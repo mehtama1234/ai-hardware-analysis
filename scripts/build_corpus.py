@@ -38,14 +38,19 @@ def main():
             f = ft.get(key, {})
             pid = f"{a.conf}-{a.year}-{i:03d}"
 
-            # choose pdf url + source
+            # choose pdf url + source. Only mark a PDF as obtainable if it is GENUINELY open:
+            # publisher landing pages (ACM/IEEE/doi.org/Springer) are paywalled (403) and don't count.
+            PAYWALLED = ("dl.acm.org", "doi.org", "ieeexplore.ieee.org", "link.springer.com",
+                         "dial.uclouvain.be", "sciencedirect.com")
             pdf_url, src = None, None
+            oa = e.get("oa_pdf") or ""
+            oa_host = oa.split("/")[2] if "//" in oa else ""
             if f.get("pdf_url"):
                 pdf_url, src = f["pdf_url"], "proceedings"
             elif e.get("arxiv_id"):
                 pdf_url, src = f"https://arxiv.org/pdf/{e['arxiv_id']}", "arxiv"
-            elif e.get("oa_pdf"):
-                pdf_url, src = e["oa_pdf"], "openalex-oa"
+            elif oa and oa_host not in PAYWALLED:
+                pdf_url, src = oa, "openalex-oa"
 
             abstract = f.get("abstract") or e.get("abstract")
             rec = {

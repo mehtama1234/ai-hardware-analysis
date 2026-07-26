@@ -23,15 +23,25 @@ def main():
     tdir = ROOT / "conferences" / f"{a.conf}-{a.year}" / "text"
     bdir = ROOT / "analysis" / "per-paper" / "batches"
     bdir.mkdir(parents=True, exist_ok=True)
-    for f in glob.glob(str(bdir / "batch_*")):
+    for f in glob.glob(str(bdir / f"{a.conf}_{a.year}_batch_*")) + glob.glob(str(bdir / "batch_*")):
         os.remove(f)
+    # analyze only papers with real content (full text OR abstract); title-only papers are
+    # logged as a gap, not force-analyzed from a bare title.
+    analyzable = []
+    skipped_title_only = 0
+    for r in recs:
+        tpath = tdir / f"{r['id']}.txt"
+        has = tpath.exists() and tpath.stat().st_size > 2000
+        if not has and not r.get("abstract"):
+            skipped_title_only += 1
+            continue
+        analyzable.append((r, tpath, has))
+
     n = with_text = 0
-    for i in range(0, len(recs), a.per):
-        chunk = recs[i:i + a.per]
-        with (bdir / f"batch_{i // a.per:03d}.jsonl").open("w") as f:
-            for r in chunk:
-                tpath = tdir / f"{r['id']}.txt"
-                has = tpath.exists() and tpath.stat().st_size > 2000
+    for i in range(0, len(analyzable), a.per):
+        chunk = analyzable[i:i + a.per]
+        with (bdir / f"{a.conf}_{a.year}_batch_{i // a.per:03d}.jsonl").open("w") as f:
+            for r, tpath, has in chunk:
                 with_text += has
                 f.write(json.dumps({
                     "id": r["id"], "title": r["title"], "venue": r["venue"],
@@ -40,7 +50,12 @@ def main():
                     "text_path": str(tpath) if has else None,
                 }) + "\n")
         n += 1
-    print(f"batches={n} papers={len(recs)} with_full_text={with_text}")
+    if skipped_title_only:
+        (ROOT / "logs" / f"{a.conf}-{a.year}-titleonly.log").write_text(
+            "\n".join(r["id"] + "\t" + r["title"] for r in recs
+                      if not (tdir / f"{r['id']}.txt").exists() and not r.get("abstract")))
+    print(f"batches={n} analyzable={len(analyzable)} with_full_text={with_text} "
+          f"skipped_title_only={skipped_title_only}")
 
 
 if __name__ == "__main__":
