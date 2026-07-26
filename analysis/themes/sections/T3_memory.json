@@ -1,0 +1,711 @@
+{
+  "problem_plain": "Modern AI models—and many database, graph, and scientific workloads—spend most of their time waiting for data to travel from memory chips to the processor, not actually doing arithmetic. A large language model generating a single word must haul tens of gigabytes of stored numbers (its weights and its running conversation notes) across an electrical connection that can only move a fraction of that data per second. The processor sits idle for the vast majority of the time, starved for numbers to crunch.",
+  "why_plain": "Transistors on a compute chip have gotten dramatically faster over decades, but the wires connecting chips to memory have not kept pace—moving a byte still takes roughly the same time it did years ago. This gap between compute speed and data-movement speed is called the memory wall, and AI workloads hit it especially hard because they access enormous parameter tables and conversation-notes buffers with patterns that defeat simple caching strategies.",
+  "approach_plain": "The papers in this theme attack the memory wall from three directions: bringing the arithmetic closer to where data already lives (processing-in-memory and compute-in-memory), smarter management of which data lives where and for how long (tiering, prefetching, compression, and cache replacement), and restructuring how programs hand data between storage layers (near-storage computation, CXL-attached memory, and software-hardware co-design). Together they aim to cut the number of bytes that must cross any electrical boundary before useful work can happen.",
+  "groups": [
+    {
+      "heading": "Running arithmetic inside or right next to memory chips",
+      "explain": "Instead of shipping data from memory to a processor, these designs place small arithmetic units inside or immediately beside the memory chip itself. The chip's internal wiring carries far more data per second than any external bus, so doing even simple math there—matrix-vector multiplications, distance calculations, reductions—can eliminate most of the costly external data movement. This is often called processing-in-memory (PIM) or near-memory processing (NMP).",
+      "papers": [
+        {
+          "id": "asplos-2025-051",
+          "name": "CENT",
+          "gloss": "GPU-free LLM inference system using 32 CXL-connected memory modules with arithmetic units built into GDDR6 memory chips; 2.3x higher throughput and 5.2x better cost-per-token than four A100 GPUs."
+        },
+        {
+          "id": "asplos-2025-054",
+          "name": "PAPI",
+          "gloss": "Mixes processing-in-memory units with GPU-like chips; a runtime profiler watches each LLM decoding kernel and routes it to whichever hardware matches its current memory-vs-compute balance."
+        },
+        {
+          "id": "asplos-2025-102",
+          "name": "",
+          "gloss": "Schedules encrypted-data computations (homomorphic encryption) on processing-in-memory hardware by co-locating numbers that are used together, cutting cross-bank data transfers; 4-209x faster than prior accelerators."
+        },
+        {
+          "id": "asplos-2025-170",
+          "name": "PUSHtap",
+          "gloss": "Maps database rows to the direction CPUs read (interleaved across banks) and columns to the direction in-memory processors read (localized per bank), so one copy of data serves both transactional and analytical queries without format conversion; 3.4x OLAP and 4.4x OLTP throughput."
+        },
+        {
+          "id": "hpca-2025-019",
+          "name": "AsyncDIMM",
+          "gloss": "Lets the host CPU and the near-memory accelerator on a standard memory module access DRAM simultaneously rather than taking turns; 1.19-1.92x speedup over synchronous near-memory designs."
+        },
+        {
+          "id": "hpca-2025-031",
+          "name": "PROCA",
+          "gloss": "Programmable statistical-sampling (MCMC) accelerator using processing-in-memory; predicts whether a candidate sample will be accepted before finishing the full calculation, enabling pipelined parallel generation; 172-4871x faster than a CPU."
+        },
+        {
+          "id": "hpca-2025-050",
+          "name": "PAISE",
+          "gloss": "Offloads LLM attention operations (the step where each new word checks against stored conversation context) from a GPU to HBM-PIM chips; reorders data layout to exploit bank-level parallelism; cuts attention latency up to 48%."
+        },
+        {
+          "id": "hpca-2025-077",
+          "name": "FACIL",
+          "gloss": "Changes DRAM address mappings per memory page so LLM weight tensors can be accessed simultaneously by both the in-memory processor and the host chip without re-copying data; cuts time-to-first-token 2.4-2.6x."
+        },
+        {
+          "id": "hpca-2025-079",
+          "name": "Piccolo",
+          "gloss": "Places only the scatter-gather memory routing function—not full arithmetic—inside DRAM, keeping cost low while eliminating the wide-row overfetch penalty for sparse graph traversal; up to 3.28x faster, 59.7% less energy."
+        },
+        {
+          "id": "hpca-2025-102",
+          "name": "UniNDP",
+          "gloss": "Unified compiler and simulator framework targeting many different near-DRAM processor architectures via a shared instruction set; improves mapping quality 1.05-3.43x over per-architecture tools."
+        },
+        {
+          "id": "hpca-2025-104",
+          "name": "GoPIM",
+          "gloss": "Balances graph neural network pipeline stages on resistive-memory (ReRAM) in-memory processors using ML-guided crossbar resource allocation; up to 191x faster, 16x more energy-efficient than prior GCN accelerators."
+        },
+        {
+          "id": "isca-2025-056",
+          "name": "EOD",
+          "gloss": "Near-memory processor aggregates compressed graph node features without decompressing them on the host first; 981x speedup on the aggregation step and 18x end-to-end over GPU."
+        },
+        {
+          "id": "isca-2025-058",
+          "name": "NMP-PaK",
+          "gloss": "Places pipelined processing units inside memory module buffer chips to assemble genome graphs; memory bandwidth utilization rises from 6.5% to 44%, yielding 16x CPU and 5.7x A100 GPU speedup."
+        },
+        {
+          "id": "isca-2025-066",
+          "name": "ANSMET",
+          "gloss": "Near-memory processors at the memory-rank level compute distance lower bounds as vectors stream out and stop the fetch early when a candidate is clearly too far; approximately 8x total speedup for vector nearest-neighbor search."
+        },
+        {
+          "id": "isca-2025-072",
+          "name": "HeterRAG",
+          "gloss": "Pairs low-cost high-capacity DIMM-based in-memory processors (for irregular retrieval) with high-bandwidth HBM-based in-memory processors (for dense LLM generation) in a single retrieval-augmented generation system."
+        },
+        {
+          "id": "isca-2025-074",
+          "name": "OptiPIM",
+          "gloss": "Formulates how to map a neural network onto a processing-in-memory accelerator as an integer linear programming problem and solves it in under four minutes; at least 1.9x better than hand-tuned heuristics."
+        },
+        {
+          "id": "isca-2025-091",
+          "name": "DReX",
+          "gloss": "In-DRAM logic filters out distant vector candidates before they leave the chip; a near-memory accelerator then does exact nearest-neighbor search on survivors; 6-7x faster time-to-first-token with no accuracy loss."
+        },
+        {
+          "id": "isca-2025-096",
+          "name": "ATiM",
+          "gloss": "First autotuning tensor compiler for UPMEM, a commercial DRAM chip with embedded processors; automatically finds the best tiling and threading without hand-coding; up to 8.2x speedup on GPT-J layers."
+        },
+        {
+          "id": "isca-2025-055",
+          "name": "DX100",
+          "gloss": "Programmable accelerator that reorders up to 16,384 indirect memory indices (A[B[i]] patterns) before issuing DRAM requests—500x more lookahead than a DRAM controller has—achieving near-peak bandwidth; 2.6x faster than four CPU cores."
+        },
+        {
+          "id": "micro-2025-012",
+          "name": "Stratum",
+          "gloss": "Stacks in-memory processors above a 3D DRAM die bonded at micrometer pitch; a lightweight topic classifier predicts which expert neural-network weights will be needed and moves them to faster internal DRAM tiers; 8.3x decoding throughput over GPU baseline."
+        },
+        {
+          "id": "micro-2025-057",
+          "name": "Pimba",
+          "gloss": "Two DRAM banks share one processing unit by interleaving reads from one with writes to the other, halving chip area; accelerates both recurrent LLM state updates and transformer attention; 4.1x token throughput over GPU."
+        },
+        {
+          "id": "micro-2025-067",
+          "name": "ORCHES",
+          "gloss": "GPU handles prefill; processing-in-memory handles decoding; branch-aware pipelining speculatively overlaps reasoning steps in test-time compute LLM inference; 4.2x speedup over GPU-only."
+        },
+        {
+          "id": "micro-2025-092",
+          "name": "FALA",
+          "gloss": "Routes high-reuse graph data through the CPU cache and low-reuse irregular accesses through in-memory processors; a fine-grained column access fetches only the needed graph vertices rather than a full DRAM row; 1.56x faster, 35% less energy."
+        },
+        {
+          "id": "isca-2025-021",
+          "name": "Ecco",
+          "gloss": "Hardware compressor-decompressor wedged between the GPU's L2 cache and HBM; compresses LLM weights and conversation-context cache 4x using entropy coding; 64 parallel decoders match L2 throughput; 2.9x over standard inference without accuracy loss."
+        },
+        {
+          "id": "isca-2025-020",
+          "name": "REIS",
+          "gloss": "In-storage processing system co-designs nearest-neighbor search with the NAND flash controller's internal parallelism; accelerates both vector-search and data-fetch steps of retrieval-augmented generation without major hardware changes."
+        },
+        {
+          "id": "isca-2025-076",
+          "name": "",
+          "gloss": "Reconfigurable in-storage accelerator that runs both the embedding model (converting a query to a vector) and the similarity search entirely inside the storage device; 4.3x over CPU+NVMe, 1.5x over GPU+DRAM for RAG retrieval."
+        },
+        {
+          "id": "micro-2025-059",
+          "name": "CrossBit",
+          "gloss": "Adds inter-column communication wires inside NAND flash chips so bitwise operations can span multiple bit-lines; enables error correction and database filtering inside flash at 2.1x speed and 2.5x energy efficiency over prior in-flash designs."
+        },
+        {
+          "id": "isca-2025-013",
+          "name": "Folded Banks (FB-HBM)",
+          "gloss": "Redistributes DRAM bank subarrays across 3D-stacked dies using vertical bonds, moving global wiring from long horizontal paths to short vertical ones; improves fine-grained random-access bandwidth without requiring external near-data logic."
+        },
+        {
+          "id": "isca-2025-028",
+          "name": "MagiCache",
+          "gloss": "Each row in an on-chip SRAM array can be dynamically reassigned as either a cache slot or a compute lane; instruction chaining hides memory latency by pipelining computation over data as it arrives; 1.19-1.61x over prior in-cache compute architectures."
+        },
+        {
+          "id": "hpca-2025-045",
+          "name": "MVE",
+          "gloss": "Multi-dimensional vector instruction set extension that describes up to four-dimensional memory access patterns, letting a mobile phone's in-SRAM vector engine (built from the L2 cache) cover 60% of its 8,192 compute lanes instead of 23%; 2.9x over ARM Neon at 8.8x lower energy."
+        },
+        {
+          "id": "asplos-2025-085",
+          "name": "ASDR",
+          "gloss": "Maps 3D neural radiance field (NeRF) inference to computing-in-memory arrays; adaptive sampling reduces work per camera ray and cross-ray data reuse avoids redundant array activations for edge deployment."
+        },
+        {
+          "id": "asplos-2025-172",
+          "name": "CMSwitch",
+          "gloss": "First compiler that exposes a computing-in-memory chip's ability to switch arrays between compute and memory modes; uses mixed-integer programming to decide per layer; 1.31x average speedup over static assignment."
+        },
+        {
+          "id": "hpca-2025-033",
+          "name": "ER-DCIM",
+          "gloss": "Digital computing-in-memory chip with real-time error correction for multiply-accumulate results under low-voltage operation; residue codes catch additive errors during the computation itself rather than at the SRAM cell level."
+        },
+        {
+          "id": "isca-2025-098",
+          "name": "HyFlexPIM",
+          "gloss": "Mixed analog/digital resistive-memory processor: fine-tuning concentrates critical transformer weights into 5-10% of parameters (kept in reliable single-bit cells), letting 90-95% use efficient two-bit cells with under 1% accuracy loss; 1.86x throughput gain."
+        },
+        {
+          "id": "micro-2025-118",
+          "name": "",
+          "gloss": "First real-hardware characterization of a commercial computing-in-SRAM chip (GSI APU, 2 million 1-bit processors) under retrieval-augmented generation workloads; three data-layout optimizations yield 54-118x energy advantage over GPU."
+        }
+      ]
+    },
+    {
+      "heading": "CXL-attached memory: expanding how much memory a server can see over a fast bus",
+      "explain": "CXL (Compute Express Link) is a new electrical standard that lets a server treat memory modules, SSDs, or entire compute nodes as if they were local RAM, connected through the same slot as a graphics card. This expands effective memory without changing the processor chip. The catch is that CXL memory arrives 140-410 nanoseconds later than on-die RAM, so systems must be smart about what lives in fast versus slow memory and how data migrates between them.",
+      "papers": [
+        {
+          "id": "asplos-2025-087",
+          "name": "Melody",
+          "gloss": "Systematic measurement framework runs 265 workloads across four real CXL devices and five CPU platforms; introduces sub-operation latency analysis to pinpoint exactly which step in a CXL memory access is the bottleneck."
+        },
+        {
+          "id": "asplos-2025-125",
+          "name": "HybridTier",
+          "gloss": "Tracks both long-term access frequency and short-term access momentum simultaneously using compact probabilistic counters; decides which pages to keep in fast local RAM versus slower CXL memory; up to 91% faster than prior tiering systems."
+        },
+        {
+          "id": "asplos-2025-130",
+          "name": "M5",
+          "gloss": "Places hardware page-hotness and word-hotness trackers inside the CXL controller itself; accurately counts accesses at 64-byte granularity, enabling sub-page migrations for apps where only a few bytes in a page are frequently read; 14% faster than CPU-driven migration."
+        },
+        {
+          "id": "asplos-2025-140",
+          "name": "CTXNL",
+          "gloss": "Gives database transaction code selective per-item control over cache coherence, bypassing full CXL coherence overhead for loosely-shared data; 2.1x throughput over standard CXL memory sharing."
+        },
+        {
+          "id": "asplos-2025-080",
+          "name": "ByteFS",
+          "gloss": "File system that routes small random reads through the byte-addressable CXL interface and large sequential writes through the block interface of a dual-interface memory-semantic SSD, exploiting both access paths of one device."
+        },
+        {
+          "id": "hpca-2025-116",
+          "name": "SkyByte",
+          "gloss": "Bridges the mismatch between CXL's byte-granular accesses and flash's page-granular writes using a write log in the SSD controller's DRAM; OS switches threads during long flash accesses to hide latency; 6x speedup over plain CXL-SSD."
+        },
+        {
+          "id": "isca-2025-059",
+          "name": "LIA",
+          "gloss": "Single-GPU LLM inference framework offloads matrix computations to AMX-capable Intel CPUs (using matrix-acceleration instructions on recent Xeon chips) and uses CXL memory to expand effective model capacity; up to 19x lower latency than GPU-only offloading."
+        },
+        {
+          "id": "asplos-2025-014",
+          "name": "CXLfork",
+          "gloss": "Uses CXL-attached shared memory to clone a process onto a remote server node without serializing or copying its state; 87% reduction in local memory use and 2.26x faster cold-start for serverless functions."
+        },
+        {
+          "id": "isca-2025-121",
+          "name": "ArtMem",
+          "gloss": "Reinforcement learning agent controls page placement between fast DRAM and slow CXL memory tiers; learns when to suppress migrations entirely when the fast tier is underused; 35-172% faster than static tiering policies."
+        },
+        {
+          "id": "isca-2025-131",
+          "name": "UGPU",
+          "gloss": "Dynamically carves a single GPU into unbalanced slices with tailored compute and memory ratios; exploits HBM's intra-stack vertical wiring to migrate pages between memory dies in parallel rather than sequentially, reducing reconfiguration overhead."
+        }
+      ]
+    },
+    {
+      "heading": "Smarter prefetching: fetching data before the processor asks for it",
+      "explain": "A prefetcher is a hardware or software unit that predicts what data will be needed in the near future and fetches it from main memory early, hiding the wait time behind ongoing computation. These papers design prefetchers that handle irregular patterns (pointer chasing, graph traversals, indirect lookups) that defeat classical stride-based prefetchers, and co-design prefetching with related mechanisms like scheduling and branch prediction.",
+      "papers": [
+        {
+          "id": "hpca-2025-021",
+          "name": "Gaze",
+          "gloss": "Hardware prefetcher that learns spatial memory-access footprints from the ordering of accesses within a region rather than from the instruction address; 5.7-11.4% IPC improvement over prior spatial prefetchers."
+        },
+        {
+          "id": "hpca-2025-057",
+          "name": "Alecto",
+          "gloss": "Per-request prefetcher selector routes each memory demand to whichever of several competing prefetch algorithms best handles that access type; reduces metadata table energy 48% while improving coverage and accuracy."
+        },
+        {
+          "id": "hpca-2025-087",
+          "name": "MOKA/DRIPPER",
+          "gloss": "Framework that decides on each prefetch whether crossing a page boundary is beneficial; uses perceptron predictors sensitive to TLB pressure and live system state; 1.7-3.3% speedup over always-crossing or never-crossing strategies."
+        },
+        {
+          "id": "hpca-2025-075",
+          "name": "RecMG",
+          "gloss": "Separate ML models guide caching and prefetching of embedding vectors (large lookup tables in recommendation systems) on tiered DRAM+SSD memory; 43% faster end-to-end recommendation inference."
+        },
+        {
+          "id": "isca-2025-036",
+          "name": "Magellan",
+          "gloss": "Compiler-based prefetcher that builds dependency graphs across nested loops to handle multi-level indirect accesses (A[B[C[i]]] patterns) in graph and sparse-math workloads; 1.14x average speedup with 25% fewer cache misses."
+        },
+        {
+          "id": "isca-2025-069",
+          "name": "Prophet",
+          "gloss": "Profile-guided method that injects hints into the program binary to help existing hardware temporal prefetchers manage their on-chip metadata storage better; 14% speedup over the prior best temporal prefetcher."
+        },
+        {
+          "id": "isca-2025-030",
+          "name": "IPEX",
+          "gloss": "Add-on layer for hardware prefetchers on batteryless energy-harvesting devices; suppresses prefetches that will be lost in the next power failure based on predicted outage timing; 7.9% average energy saving."
+        },
+        {
+          "id": "micro-2025-019",
+          "name": "MAMA",
+          "gloss": "Multi-agent reinforcement learning system where each CPU core runs its own prefetch aggressiveness policy but a central supervisor provides global bandwidth visibility to prevent cores from collectively over-fetching; 2.1% throughput gain, 10% fairness improvement."
+        },
+        {
+          "id": "micro-2025-084",
+          "name": "TSP+MRS",
+          "gloss": "In hardware task-parallel systems (tasks ~100 cycles, too short for standard prefetchers), a task-seeded prefetcher issues fetches the moment a task is queued; a prefetch-status-aware scheduler dispatches tasks only after their data has arrived; up to 3.1x speedup."
+        },
+        {
+          "id": "asplos-2025-168",
+          "name": "Hierarchical Prefetching",
+          "gloss": "Groups hundreds of kilobytes of related server code into Bundles via static binary analysis, then prefetches an entire Bundle when any entry point is detected; tolerates branch divergence without losing coverage; 6.6% gain over instruction-fetch-directed prefetching."
+        },
+        {
+          "id": "asplos-2025-107",
+          "name": "Skia",
+          "gloss": "Lightweight shadow-branch records retain evicted branch targets so the instruction prefetch engine can continue predicting correct fetch addresses even after the main branch buffer runs out of capacity."
+        },
+        {
+          "id": "asplos-2025-025",
+          "name": "",
+          "gloss": "Cooperative replacement policy that jointly manages the instruction address-translation buffer and instruction cache, preventing them from independently evicting and re-fetching the same code regions."
+        },
+        {
+          "id": "hpca-2025-028",
+          "name": "EDBP",
+          "gloss": "Cache dead-block predictor for energy-harvesting devices that accounts for upcoming power failures; gates off cache lines that will not be accessed before the next outage; 9.8% total energy reduction."
+        },
+        {
+          "id": "hpca-2025-014",
+          "name": "SoMa",
+          "gloss": "Compiler framework that schedules when tensors should be fetched from DRAM across multiple fused neural network layers rather than one layer at a time; 2.1x faster, 37% less energy than prior layer-fusion approaches."
+        },
+        {
+          "id": "isca-2025-038",
+          "name": "NUPEA",
+          "gloss": "On spatial dataflow chips where processors are spread across a fabric, places critical load instructions on the processors physically closest to memory rather than moving data to fixed processors; 28% faster than uniform placement."
+        },
+        {
+          "id": "isca-2025-002",
+          "name": "CHESS/SBP",
+          "gloss": "Microservice branch predictor that records the control flow of prior request executions and replays those paths for new requests sharing similar code flow; achieves within 5% of warm-predictor performance from a cold start with only 18 KB overhead."
+        },
+        {
+          "id": "hpca-2025-078",
+          "name": "Phelps",
+          "gloss": "Pre-executes all hard-to-predict branches in a helper thread unconditionally across every loop iteration; per-branch queues synchronize with the main thread in lock-step; eliminates misprediction stalls for nested delinquent branches."
+        },
+        {
+          "id": "hpca-2025-074",
+          "name": "",
+          "gloss": "Shows that in-order CPUs can use aggressive value prediction without recovery penalties because instruction order is deterministic; achieves 86% of out-of-order pipeline performance gains without renaming hardware; 38% IPC improvement."
+        },
+        {
+          "id": "isca-2025-017",
+          "name": "",
+          "gloss": "Ahead branch prediction: starts branch prediction several cycles early by noting that only one or two of the 2^N possible intermediate branch-direction combinations actually occur at runtime; cuts energy overhead from 14.6x to 1.5x with 4.4% performance gain."
+        },
+        {
+          "id": "asplos-2025-174",
+          "name": "DeepContext",
+          "gloss": "Framework-agnostic shim layer correlates Python operator calls with GPU kernel execution across the full deep learning software stack to expose cross-layer performance bottlenecks; 1.06-1.66x speedup after guided optimization."
+        }
+      ]
+    },
+    {
+      "heading": "Cache replacement and LLC management: deciding what to keep, what to evict",
+      "explain": "When a cache (fast on-chip memory) is full and new data arrives, the hardware must evict something. Choosing badly means the processor will have to fetch that data from slow main memory again soon. These papers design smarter eviction rules, often using observation of past access behavior, instruction-level annotations passed from the compiler, or joint management of instruction and data streams in many-core systems.",
+      "papers": [
+        {
+          "id": "isca-2025-060",
+          "name": "Garibaldi",
+          "gloss": "Last-level cache replacement that tracks which data each instruction triggers; if evicting an instruction line would discard its associated hot data, the policy protects it; 13.2% geomean speedup, 10% energy reduction on a 40-core server."
+        },
+        {
+          "id": "micro-2025-054",
+          "name": "TRRIP",
+          "gloss": "Compiler marks each code block hot, warm, or cold; OS passes this label through existing page-table bits; L2 cache replacement policy treats hot instruction lines as highest priority; 3.9% speedup, 27% fewer instruction cache misses on mobile benchmarks."
+        },
+        {
+          "id": "hpca-2025-089",
+          "name": "IBM Telum Cache",
+          "gloss": "IBM Telum II processor uses a horizontally federated set of last-level cache slices distributed across chiplets with an adaptive persistence algorithm; sustains over 90% processor utilization for enterprise and generative AI workloads simultaneously."
+        },
+        {
+          "id": "isca-2025-081",
+          "name": "PACIPV",
+          "gloss": "Exhaustive search over cache insertion-and-promotion rule combinations finds the best prefetch-aware policy for instruction-heavy server workloads; matches complex learned policies with negligible hardware overhead."
+        },
+        {
+          "id": "hpca-2025-120",
+          "name": "FLACK/FURBYS",
+          "gloss": "New theoretical optimality bound for micro-op cache (decoded instruction cache) replacement that surpasses Belady's classical optimal algorithm; a practical profile-guided version cuts misses 14% over LRU and improves performance-per-watt 3.1%."
+        },
+        {
+          "id": "micro-2025-093",
+          "name": "Drishti",
+          "gloss": "Separates the reuse predictor (trained on each core's accesses across all cache slices) from the sample set (kept per slice); each core gets global reuse awareness without central interconnect traffic; nearly doubles the gain of Hawkeye and Mockingjay on 32-core systems."
+        },
+        {
+          "id": "isca-2025-016",
+          "name": "Avalanche",
+          "gloss": "Sparse-matrix multiplication accelerator reorders one matrix's columns to improve data locality; evicts fully-computed intermediate results early to free capacity; 1.97x over prior sparse-matrix accelerators on a 6.15 mm2 chip."
+        },
+        {
+          "id": "hpca-2025-115",
+          "name": "Gemina",
+          "gloss": "Coordinates memory deduplication (freeing RAM by merging identical pages) with huge-page management (which boosts address-translation hit rates); preserves 96% of deduplication savings while recovering 43% of the translation-buffer performance lost by naive deduplication."
+        },
+        {
+          "id": "hpca-2025-093",
+          "name": "OASIS",
+          "gloss": "Detects which data objects in a multi-GPU system have stable vs. shifting access patterns; assigns different migration or replication policies per object and per phase without programmer annotations; 64% faster than standard on-touch migration."
+        },
+        {
+          "id": "asplos-2025-015",
+          "name": "Necro-reaper",
+          "gloss": "New processor instructions let the compiler and memory allocator tell hardware to skip fetching or writing back data that has already been freed; cuts memory traffic 26% and raises throughput 6% in warehouse-scale server workloads."
+        },
+        {
+          "id": "hpca-2025-011",
+          "name": "TDRAM",
+          "gloss": "Adds small tag-comparison circuits directly to an HBM3 (high-bandwidth 3D-stacked memory) die so the memory chip itself checks if a cache lookup is a hit and only sends data back to the CPU on a hit; 1.23x faster, 21% less energy."
+        },
+        {
+          "id": "hpca-2025-053",
+          "name": "MPW",
+          "gloss": "Batches pending GPU address-translation requests that share page-table structure, then issues multiple memory lookups per translation unit in parallel; reduces translation queuing latency 87% and improves GPU throughput 56%."
+        },
+        {
+          "id": "isca-2025-035",
+          "name": "Heliostat",
+          "gloss": "Repurposes existing ray-tracing acceleration units (already in modern GPUs for 3D rendering) as extra address-translation engines; page-table traversal and BVH tree traversal are structurally identical; 1.93x speedup at 1.5% the area of dedicated units."
+        },
+        {
+          "id": "asplos-2025-101",
+          "name": "NACHO",
+          "gloss": "Embeds write-after-read dependency detection directly in the cache controller for energy-harvesting embedded devices, eliminating a separate memory tracker and cutting checkpoint frequency; 54% less runtime overhead, 82% fewer writes to non-volatile memory."
+        },
+        {
+          "id": "isca-2025-045",
+          "name": "WarmCache",
+          "gloss": "Uses magnetic-resistive memory (STT-RAM) with intentionally relaxed retention time so cache contents survive typical power outages; compiler-driven region checks correct any decayed bits on restart; 1.3-1.4x faster than prior energy-harvesting cache designs."
+        },
+        {
+          "id": "hpca-2025-119",
+          "name": "Pivot",
+          "gloss": "Prioritizes only the memory requests from latency-critical co-located tasks that are actually blocking the CPU pipeline—not all requests from those tasks—across every level of the memory hierarchy; up to 2.76x better-effort task throughput improvement."
+        },
+        {
+          "id": "hpca-2025-084",
+          "name": "IRIS",
+          "gloss": "Mobile camera's image processor reuses its own intermediate outputs (edge masks and motion vectors already computed for noise reduction) to score image region importance; low-importance regions are downsampled before storage, cutting bandwidth 55% with under 1% accuracy loss."
+        }
+      ]
+    },
+    {
+      "heading": "Managing the conversation-notes cache for LLM serving",
+      "explain": "Large language models maintain a running record of the conversation—called the KV cache, where KV stands for key-value pairs representing the model's internal notes on what it has read—that grows with every new word and can fill GPU memory entirely. These papers focus on moving, compressing, or scheduling this cache so it does not become the bottleneck for interactive AI serving.",
+      "papers": [
+        {
+          "id": "asplos-2025-073",
+          "name": "Aqua",
+          "gloss": "Pages the conversation-notes cache over the fast GPU-to-GPU interconnect (NVLink fabric within a server) to neighboring GPUs rather than to slow CPU RAM when a prompt is preempted; 4x throughput, 20x responsiveness improvement over prior LLM serving systems."
+        },
+        {
+          "id": "mlsys-2025-024",
+          "name": "NEO",
+          "gloss": "Asymmetric CPU-GPU pipeline where CPU handles attention (comparing new words against stored conversation notes) while GPU handles matrix math simultaneously; hides PCIe data transfer latency behind computation; up to 7.5x throughput on consumer GPUs."
+        },
+        {
+          "id": "mlsys-2025-051",
+          "name": "FPDT",
+          "gloss": "Trains LLMs on sequences up to 2 million tokens (the length of a small book) by streaming sequence chunks through a double buffer that prefetches the next chunk over PCIe while the GPU processes the current one; 16x longer sequences than prior work on the same hardware."
+        },
+        {
+          "id": "micro-2025-103",
+          "name": "LLM.265",
+          "gloss": "Repurposes the GPU's existing video-encode/decode hardware (H.265 codec chips used for streaming video) as a unified compressor for all LLM tensor types—weights, activations, gradients, conversation-notes cache—without adding new silicon."
+        },
+        {
+          "id": "hpca-2025-034",
+          "name": "GSArch",
+          "gloss": "Classifies 3D Gaussian primitives (data units in a new 3D rendering technique) as hot (accessed by many pixels) or cold; caches hot ones on-chip to eliminate redundant DRAM fetches during backward training; up to 6.5x speedup over A100."
+        },
+        {
+          "id": "asplos-2025-112",
+          "name": "",
+          "gloss": "Shows that exact nearest-neighbor search for retrieval-augmented generation can be faster end-to-end than approximate search because it finds fewer, more relevant documents, reducing the LLM's reading burden; motivates hardware acceleration of exact search."
+        }
+      ]
+    },
+    {
+      "heading": "Near-storage and in-storage computation: filtering data before it leaves the drive",
+      "explain": "Storage drives hold far more data than any memory chip, but reading data from an SSD and shipping it to a processor wastes bandwidth on items that will be immediately discarded. These papers push simple computation—filtering, matching, compression, vector search—into the storage device itself so only the relevant fraction of data ever travels across the bus.",
+      "papers": [
+        {
+          "id": "isca-2025-051",
+          "name": "UPP",
+          "gloss": "Defines a compact instruction set for database filter expressions; the database compiles arbitrary SQL predicates into these instructions and ships them to a flash-based accelerator (SmartSSD) where they run directly on stored data; 1.2-7.9x query speedup."
+        },
+        {
+          "id": "isca-2025-000",
+          "name": "ANVIL",
+          "gloss": "Performs name-matching inside NAND flash chips of a conventional SSD for key-value store lookups; only matching entries exit the device; 4x-25x speedup over conventional SSD depending on workload."
+        },
+        {
+          "id": "asplos-2025-092",
+          "name": "Fusion",
+          "gloss": "Analytics object store that lays out erasure-coded files so filter predicates can be evaluated at storage nodes without reassembling the full object across the network; reduces latency for selective queries."
+        },
+        {
+          "id": "asplos-2025-083",
+          "name": "FEDORA",
+          "gloss": "Stores oblivious RAM (a privacy-preserving structure that hides which embedding entries are accessed) on SSDs rather than expensive DRAM; SSD-friendly access patterns extend SSD lifetime 158x and cut round-trip latency 24x for federated recommendation training."
+        },
+        {
+          "id": "hpca-2025-091",
+          "name": "CCZNS",
+          "gloss": "Revives hardware compression inside zoned-namespace SSDs (which have a sequential-write-only interface) by having the SSD perform compression but exposing chunk boundaries to the host software for address management."
+        },
+        {
+          "id": "asplos-2025-010",
+          "name": "OS2G",
+          "gloss": "Data processing unit (smart network card with its own processors) reads training data from object storage and delivers it directly to GPU memory without involving the host CPU; eliminates a full round-trip through the host."
+        },
+        {
+          "id": "mlsys-2025-053",
+          "name": "",
+          "gloss": "Characterizes pre-propagation graph neural network training and finds data loading is 88-91% of total runtime; chunk-based reshuffling and GPU Direct Storage (reading from SSD directly into GPU memory without CPU copies) yield 15x training speedup."
+        },
+        {
+          "id": "mlsys-2025-058",
+          "name": "YOUMU",
+          "gloss": "Reads LLM training data directly from Parquet columnar files using page-level random access without converting formats first; eliminates terabytes of format-conversion disk use and cuts memory footprint 80% per training node."
+        },
+        {
+          "id": "asplos-2025-007",
+          "name": "AnyKey",
+          "gloss": "Redesigns key-value SSD metadata so the size of stored keys does not cause metadata to grow unboundedly; separates key identity from the full key payload so metadata stays bounded for any key-size distribution."
+        },
+        {
+          "id": "asplos-2025-071",
+          "name": "ZRAID",
+          "gloss": "Stores partial parity (incomplete RAID stripes arising from sequential-write-only SSD operation) inside the SSD's own write buffer rather than a reserved zone, eliminating the associated throughput bottleneck."
+        },
+        {
+          "id": "hpca-2025-042",
+          "name": "Zebra",
+          "gloss": "Uses the SSD's native write buffer window (ZRWA) to absorb partial parity updates in zoned-namespace RAID, matching the repeated sequential-overwrite pattern to the buffer's random-write capability; 1.1-4.2x throughput improvement."
+        },
+        {
+          "id": "hpca-2025-114",
+          "name": "RpcNIC",
+          "gloss": "PCIe-attached smart network card for RPC processing; batches cross-PCIe writes and keeps serialized data on host memory to avoid slow PCIe data transfers; 2.3x faster RPC processing, 2.6x throughput over comparable designs."
+        }
+      ]
+    },
+    {
+      "heading": "Memory reliability, system management, and infrastructure",
+      "explain": "As systems push DRAM harder—more row activations per second, lower voltages, denser multi-level cells—physical reliability becomes a concern. Activating one DRAM row repeatedly can flip bits in adjacent rows (a vulnerability called RowHammer). Separately, cloud systems need smarter placement and isolation policies across virtual machines and storage tiers. These papers study these challenges and propose fixes.",
+      "papers": [
+        {
+          "id": "hpca-2025-066",
+          "name": "",
+          "gloss": "Experimental study on 160 DDR4 and HBM2 chips shows the activation count needed to cause a bitflip varies 3.5x across repeated measurements; fundamentally challenges correctness of existing RowHammer mitigation strategies."
+        },
+        {
+          "id": "micro-2025-113",
+          "name": "ColumnDisturb",
+          "gloss": "Newly discovered DRAM vulnerability: a single row activation can disturb up to 3,072 rows simultaneously through shared column wires, far broader than the two adjacent rows affected by RowHammer; first experimental characterization on 216 DDR4 chips."
+        },
+        {
+          "id": "isca-2025-124",
+          "name": "PuDHammer",
+          "gloss": "Processing-using-DRAM operations activate multiple rows simultaneously; this can lower the bitflip threshold by up to 158x compared to standard RowHammer on real DDR4 chips; first experimental characterization of this risk."
+        },
+        {
+          "id": "hpca-2025-110",
+          "name": "Pegasus",
+          "gloss": "Maps DRAM error addresses to specific virtual machine memory regions, enabling migration of only the at-risk VMs rather than the whole server node; deployed on 300,000+ production nodes, reducing migration cost over 70%."
+        },
+        {
+          "id": "asplos-2025-131",
+          "name": "FleetIO",
+          "gloss": "Multi-agent reinforcement learning manages multi-tenant cloud SSD resources; each tenant has its own learning agent; agents collectively balance isolation against utilization without hand-tuned rules."
+        },
+        {
+          "id": "asplos-2025-136",
+          "name": "Tela",
+          "gloss": "Cloud virtual disk placement that models how I/O load on storage servers changes over time and picks placements that balance load not just at the moment of creation but across predicted future intervals."
+        },
+        {
+          "id": "asplos-2025-069",
+          "name": "Virtuoso",
+          "gloss": "Simulates OS virtual memory behavior (page allocation, TLB shootdowns) by imitating observed OS decisions rather than running a full OS; enables fast hardware/OS co-design iteration without full-OS simulation overhead."
+        },
+        {
+          "id": "asplos-2025-057",
+          "name": "",
+          "gloss": "Simplifies the flash I/O stack for memory-constrained microcontrollers by collapsing separate management layers into coarser-grained unified logic, reducing write amplification without separate wear-leveling overhead."
+        },
+        {
+          "id": "hpca-2025-005",
+          "name": "Ariadne",
+          "gloss": "Compressed swap for mobile phones applies small fast-decompressing chunks to app data needed during relaunch and large compact chunks to cold data; proactively decompresses before the user switches back; 50% faster app relaunch."
+        },
+        {
+          "id": "asplos-2025-151",
+          "name": "Stramash",
+          "gloss": "Single OS kernel instance runs simultaneously on CPUs with different instruction sets (e.g., x86 and RISC-V) by treating cache-coherent shared memory as a first-class substrate rather than using inter-kernel message-passing; 2.1x over multi-kernel designs."
+        },
+        {
+          "id": "asplos-2025-058",
+          "name": "Wave",
+          "gloss": "Offloads OS-level system software tasks (thread scheduling, memory management, RPC stacks) from host CPU cores to ARM cores on a smart network card; saves 16 host cores for memory management with only 1.1-7.4% performance overhead."
+        },
+        {
+          "id": "hpca-2025-081",
+          "name": "Concord",
+          "gloss": "Directory-based software cache coherence protocol for serverless computing; allows multiple nodes to hold read replicas and invalidates them on write; 2.4x faster, 1.7x higher throughput on a 16-node cluster."
+        },
+        {
+          "id": "isca-2025-050",
+          "name": "InfiniMind",
+          "gloss": "Memory controller for an implanted brain-computer interface running continual learning on non-volatile memory; four write-reduction techniques tailored to the sparse, structured nature of neural signals extend memory lifetime 23x."
+        },
+        {
+          "id": "asplos-2025-149",
+          "name": "",
+          "gloss": "Performance prediction model for co-located network functions on smart network cards; accounts for how different tasks compete for CPU, memory bandwidth, and queue resources to support accurate SLA management."
+        },
+        {
+          "id": "asplos-2025-178",
+          "name": "Gigaflow",
+          "gloss": "Virtual switch running on a smart network card caches intermediate pipeline stages rather than only complete flow lookups; scales to large cloud tenant flow-rule tables without cache thrash."
+        },
+        {
+          "id": "asplos-2025-143",
+          "name": "BTrace",
+          "gloss": "Redesigned tracing buffer for smartphones that sacrifices some throughput to preserve completeness of recorded events, which is critical for diagnosing stability issues on mobile systems."
+        },
+        {
+          "id": "mlsys-2025-048",
+          "name": "BYOM",
+          "gloss": "Each application trains its own lightweight model to score which storage jobs are worth placing on fast SSDs vs. cheap HDDs; a storage-layer adaptive algorithm translates scores to placements using real-time SSD capacity feedback without retraining across workload changes."
+        },
+        {
+          "id": "hpca-2025-103",
+          "name": "I-DGNN",
+          "gloss": "Reformulates inter-snapshot dynamic graph neural network computation as a standalone chained matrix multiplication, eliminating repeated full-pipeline passes for each graph update; 65-71% runtime reduction over prior DGNN accelerators."
+        },
+        {
+          "id": "hpca-2025-117",
+          "name": "MeHyper",
+          "gloss": "Hypergraph neural network accelerator identifies shared intermediate values across vertex and hyperedge aggregation tasks and computes each shared value once via a microedge abstraction; 1032x faster than CPU, 10.5x over GPU baseline."
+        }
+      ]
+    },
+    {
+      "heading": "Workload-specific memory layout and bandwidth optimizations",
+      "explain": "DRAM delivers data in fixed bursts of 64 bytes at a time, but many workloads—graph analytics, genomics, sparse linear algebra, satellite imaging—need only a few bytes from each burst. These papers restructure data layouts, computation orders, or hardware to ensure that most of each fetched burst is actually used, directly raising effective memory bandwidth without changing the raw speed of the chips.",
+      "papers": [
+        {
+          "id": "hpca-2025-030",
+          "name": "NOVA",
+          "gloss": "Graph processing architecture that decouples the reduce and propagate steps so the entire graph stays in DRAM rather than being partitioned across multiple passes; scales to graphs with 2 billion edges; 2.35x over prior accelerator."
+        },
+        {
+          "id": "micro-2025-018",
+          "name": "Chason",
+          "gloss": "FPGA-based sparse matrix-vector multiply accelerator that dynamically migrates non-zero data across HBM memory channels at runtime to balance load; up to 8x over prior HBM-based sparse accelerator, 20x over RTX 4090 GPU."
+        },
+        {
+          "id": "hpca-2025-073",
+          "name": "SPARK",
+          "gloss": "Converts 1.4% of a CPU's L1 cache into a near-cache unit for sparse linear and integer programming; skips multiplications for zero values; 15x over Zen3 CPU, 152x better energy on sparse integer programming."
+        },
+        {
+          "id": "hpca-2025-106",
+          "name": "Buffalo",
+          "gloss": "Distributes high-degree graph nodes across non-contiguous memory partitions (buckets) to prevent memory explosion during GNN training on billion-scale graphs that exceed GPU memory; 71% faster than standard GNN training frameworks."
+        },
+        {
+          "id": "mlsys-2025-035",
+          "name": "GSplit",
+          "gloss": "Partitions GNN mini-batches across GPUs using a pre-computed probabilistic vertex assignment so each GPU processes a non-overlapping slice; eliminates redundant feature loading; 4.4x faster than standard GNN distributed training."
+        },
+        {
+          "id": "asplos-2025-138",
+          "name": "pulse",
+          "gloss": "Near-data execution framework for pointer-chasing over linked data structures on rack-scale disaggregated memory; traversal kernels run where data lives rather than at remote CPU nodes, eliminating serial round-trip latency."
+        },
+        {
+          "id": "asplos-2025-046",
+          "name": "StreamGrid",
+          "gloss": "Enables streaming point cloud processing with bounded on-chip memory by enforcing spatial grid splits and statically determined computation endpoints; 10x speedup, 3.9x better energy, 61% less on-chip memory than prior accelerators."
+        },
+        {
+          "id": "asplos-2025-040",
+          "name": "ARC",
+          "gloss": "GPU extension that merges gradient accumulation atomic writes from multiple threads in a warp (the 32-thread group that executes together) before they reach the shared cache's atomic unit; reduces contention during 3D rendering backward passes."
+        },
+        {
+          "id": "asplos-2025-026",
+          "name": "OctoCache",
+          "gloss": "Software restructuring of 3D occupancy mapping for autonomous robots: reorders tree-node traversal for cache locality and parallelizes independent map updates; 45-88% faster 3D map construction, 3x faster UAV navigation."
+        },
+        {
+          "id": "asplos-2025-132",
+          "name": "GPUlog",
+          "gloss": "Implements a recursive logic-query engine (Datalog) on a GPU using a new data structure that combines incremental indexing with dense array operations amenable to GPU throughput; 45x faster than CPU-based Datalog on program analysis workloads."
+        },
+        {
+          "id": "asplos-2025-038",
+          "name": "Earth+",
+          "gloss": "On-board satellite imagery compression that compares each new image to a recent reference from another satellite in the constellation and transmits only changed pixels (delta encoding); 3.3x less downlink bandwidth without quality loss."
+        },
+        {
+          "id": "isca-2025-046",
+          "name": "SEAL",
+          "gloss": "In-sensor visual localization chip encodes pixel values as pulse delays rather than binary numbers; keypoint detection and tracking run inside the image sensor itself; 16-61x latency reduction and 7x energy saving versus host processing."
+        }
+      ]
+    }
+  ],
+  "connect": "Every paper in this theme—whether it moves arithmetic into memory, prefetches data earlier, compresses tensors, or filters results at the storage device—is solving the same physical problem: the wires that carry data between chips are slower and costlier per bit than the arithmetic units that process it, so the only way to make AI systems faster is to move less data, not do less math."
+}

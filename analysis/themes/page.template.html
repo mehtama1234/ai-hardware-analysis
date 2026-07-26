@@ -1,0 +1,460 @@
+<style>
+  :root{
+    --ground:#14171d; --ground-2:#181c23; --panel:#1c212a; --panel-2:#222834;
+    --line:#2b323d; --line-soft:#242a34;
+    --ink:#eae7e0; --ink-dim:#b7bcc4; --ink-mute:#8b93a0;
+    --demand:#e8975a;  --demand-soft:#e8975a22;   /* warm: silicon / what the models want */
+    --supply:#4fc1b1;  --supply-soft:#4fc1b11f;   /* cool: software / the clever fix */
+    --warn:#e0584b;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --maxw:1120px; --prose:64ch;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--sans);font-size:17px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    background-image:radial-gradient(1200px 620px at 80% -8%, #1d2530 0%, transparent 62%);
+    background-attachment:fixed;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,5vw,44px)}
+  .prose{max-width:var(--prose)}
+  a{color:var(--supply);text-underline-offset:3px}
+  h1,h2,h3{text-wrap:balance;font-family:var(--serif);font-weight:600;letter-spacing:-.012em;line-height:1.08;margin:0}
+  p{margin:0 0 1em}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-mute)}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:clamp(52px,11vh,116px) 0 40px;border-bottom:1px solid var(--line-soft)}
+  .hero .eyebrow{color:var(--demand)}
+  .hero h1{font-size:clamp(2.4rem,6vw,4.4rem);margin:.5em 0 .34em}
+  .hero .lede{font-family:var(--serif);font-size:clamp(1.25rem,2.4vw,1.72rem);line-height:1.42;color:var(--ink-dim);max-width:34ch}
+  .hero .lede b{color:var(--ink);font-weight:600}
+  .chartcard{margin:44px 0 8px;background:linear-gradient(180deg,var(--panel),var(--ground-2));
+    border:1px solid var(--line);border-radius:14px;padding:22px 22px 16px;overflow:hidden}
+  .chartcard figcaption{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute);margin-top:6px}
+  canvas{display:block;width:100%;height:280px}
+  .legend{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.74rem;margin-bottom:12px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:var(--ink-dim)}
+  .swatch{width:22px;height:3px;border-radius:2px;display:inline-block}
+
+  section{padding:clamp(46px,8vh,84px) 0;border-bottom:1px solid var(--line-soft)}
+  .sec-head{margin-bottom:30px}
+  .sec-head h2{font-size:clamp(1.75rem,3.6vw,2.7rem);margin:.35em 0 .3em}
+  .sec-head .kicker{color:var(--supply)}
+  .sec-head p{color:var(--ink-dim)}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+  .note{background:var(--ground-2);border:1px solid var(--line);border-left:3px solid var(--demand);
+    border-radius:10px;padding:18px 20px}
+  .note h3{font-size:1.12rem;margin-bottom:.4em;color:var(--ink)}
+  .note p{margin:0;color:var(--ink-dim);font-size:.96rem}
+  .note.cool{border-left-color:var(--supply)}
+  .bigidea{font-family:var(--serif);font-size:clamp(1.35rem,2.9vw,2rem);line-height:1.34;
+    color:var(--ink);max-width:26ch;margin:8px 0}
+  .bigidea .d{color:var(--demand)} .bigidea .s{color:var(--supply)}
+
+  /* ---------- THE STACK ---------- */
+  .stack{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .srow{display:grid;grid-template-columns:220px 1fr auto;gap:18px;align-items:center;
+    padding:13px 18px;border:1px solid var(--line);border-radius:10px}
+  @media(max-width:720px){.srow{grid-template-columns:1fr;gap:9px;padding:14px 16px}}
+  .srow .layer{font-family:var(--mono);font-size:.82rem;color:var(--ink);letter-spacing:.01em}
+  .srow .layer small{display:block;color:var(--ink-mute);font-size:.72rem;letter-spacing:0;margin-top:2px;text-transform:none}
+  .srow .depthbar{height:4px;border-radius:2px;min-width:40px}
+  .srow .who{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  @media(max-width:720px){.srow .who{justify-content:flex-start}}
+  .vchip{font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;padding:3px 9px;border-radius:999px;
+    border:1px solid transparent;white-space:nowrap}
+  .vchip.sw{color:var(--supply);background:var(--supply-soft);border-color:#4fc1b144}
+  .vchip.hw{color:var(--demand);background:var(--demand-soft);border-color:#e8975a44}
+  .vchip.bridge{color:#cbd2da;background:#ffffff0d;border:1px dashed #6a7482}
+  .seam{display:flex;align-items:center;gap:14px;margin:12px 0;padding:10px 18px;
+    border-radius:10px;background:linear-gradient(90deg,#4fc1b114,#e8975a14);border:1px dashed #4a5360}
+  .seam .mono{font-size:.74rem;color:var(--ink-dim);letter-spacing:.03em}
+  .stacknote{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font-family:var(--mono);font-size:.72rem;color:var(--ink-mute)}
+  .stacknote span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  /* ---------- VENUES ---------- */
+  .venues{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .venue{background:linear-gradient(180deg,var(--panel),var(--ground-2));border:1px solid var(--line);
+    border-radius:13px;padding:22px 22px 20px;border-top:3px solid var(--demand)}
+  .venue.sw{border-top-color:var(--supply)}
+  .venue.bridge{border-top-color:#8892a0}
+  .venue .vh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
+  .venue h3{font-size:1.5rem}
+  .venue .role{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
+  .venue .tagline{font-family:var(--serif);color:var(--ink-dim);font-size:1.02rem;margin:.3em 0 .9em}
+  .venue .sig{font-family:var(--mono);font-size:.74rem;color:var(--ink-mute);line-height:1.9;
+    border-top:1px solid var(--line-soft);padding-top:12px;margin-top:4px}
+  .venue .sig b{color:var(--ink-dim);font-weight:400}
+  .venue .sig .pid{color:inherit}
+  .venue.sw .sig .pid{color:var(--supply)} .venue.hw .sig .pid,.venue.bridge .sig .pid{color:var(--demand)}
+  .hwbars{display:flex;flex-direction:column;gap:5px;margin:2px 0 12px}
+  .hwbars .b{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;font-family:var(--mono);font-size:.7rem;color:var(--ink-mute)}
+  .hwbars .track{height:6px;background:#ffffff0f;border-radius:3px;overflow:hidden}
+  .hwbars .fill{height:100%;border-radius:3px}
+
+  /* ---------- SAME MOVE, DIFFERENT DEPTH ---------- */
+  .pairs{display:flex;flex-direction:column;gap:14px}
+  .pair{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:stretch;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  @media(max-width:720px){.pair{grid-template-columns:1fr;gap:10px}}
+  .pair .side{display:flex;flex-direction:column;gap:4px}
+  .pair .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}
+  .pair .sw .lab{color:var(--supply)} .pair .hw .lab{color:var(--demand)}
+  .pair .side p{margin:0;font-size:.92rem;color:var(--ink-dim)}
+  .pair .side p b{color:var(--ink)}
+  .pair .arrow{align-self:center;font-family:var(--mono);color:var(--ink-mute);font-size:1.2rem}
+  @media(max-width:720px){.pair .arrow{transform:rotate(90deg)}}
+  .pair .move{grid-column:1/-1;font-family:var(--serif);font-size:1.05rem;color:var(--ink);
+    border-bottom:1px solid var(--line-soft);padding-bottom:8px;margin-bottom:2px}
+
+  /* ---------- AXIS ---------- */
+  .axis{display:flex;flex-direction:column;gap:2px}
+  .ax{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:baseline;padding:19px 0;border-top:1px solid var(--line)}
+  .ax .lead{font-family:var(--serif);font-size:1.15rem;color:var(--ink);max-width:20ch}
+  .ax .lead::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--demand);margin-right:11px;vertical-align:middle}
+  .ax p{margin:0;color:var(--ink-dim);font-size:.96rem}
+  .ax p .pid{font-family:var(--mono);color:var(--demand);font-size:.85em}
+
+  /* ---------- coverage / footer ---------- */
+  .cov{background:var(--ground-2);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:12px;padding:24px 26px}
+  .cov h3{font-size:1.2rem;margin-bottom:.5em}
+  .cov p{color:var(--ink-dim);font-size:.95rem}
+  .covtable{width:100%;border-collapse:collapse;margin:14px 0;font-family:var(--mono);font-size:.8rem}
+  .covtable th,.covtable td{text-align:right;padding:7px 12px;border-bottom:1px solid var(--line-soft)}
+  .covtable th:first-child,.covtable td:first-child{text-align:left}
+  .covtable th{color:var(--ink-mute);font-weight:400;letter-spacing:.04em}
+  .covtable td{color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .covtable tr.total td{border-top:1px solid var(--line);color:var(--ink);border-bottom:0}
+  .covtable .hi{color:var(--supply)} .covtable .lo{color:var(--ink-mute)} .covtable .gap{color:var(--warn)}
+  .tablewrap{overflow-x:auto}
+
+  footer{padding:50px 0 80px}
+  .stats{display:flex;gap:36px;flex-wrap:wrap;margin:8px 0 26px}
+  .stats .kv{display:flex;flex-direction:column}
+  .stats .kv .v{color:var(--ink);font-size:1.4rem;font-family:var(--serif)}
+  .stats .kv .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute)}
+  .meta{display:flex;flex-wrap:wrap;gap:12px 28px;font-family:var(--mono);font-size:.76rem;color:var(--ink-mute)}
+  .meta b{color:var(--ink-dim);font-weight:400}
+
+  /* ---------- DETAILED THEMES ---------- */
+  .theme{padding-top:8px}
+  .theme + .theme{border-top:1px solid var(--line);margin-top:38px;padding-top:38px}
+  .theme .tnum{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;color:var(--demand);text-transform:uppercase}
+  .theme h3{font-size:clamp(1.5rem,3vw,2.15rem);margin:.28em 0 .5em}
+  .theme .frame{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 26px}
+  @media(max-width:760px){.theme .frame{grid-template-columns:1fr}}
+  .theme .fb{background:var(--ground-2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .theme .fb .lab{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:6px}
+  .theme .fb.problem{border-left:3px solid var(--demand)}
+  .theme .fb.approach{border-left:3px solid var(--supply)}
+  .theme .fb p{margin:0;color:var(--ink-dim);font-size:.98rem}
+  .theme .fb.approach p,.theme .fb.problem p{color:var(--ink)}
+  .theme .tstat{font-family:var(--mono);font-size:.72rem;color:var(--ink-mute);margin:-8px 0 22px}
+  .tgroup{margin:0 0 22px}
+  .tgroup h4{font-family:var(--serif);font-size:1.24rem;color:var(--ink);margin:0 0 .35em}
+  .tgroup .gx{color:var(--ink-dim);max-width:64ch;margin:0 0 14px;font-size:.98rem}
+  .plist{display:flex;flex-direction:column;gap:0}
+  .prow{display:grid;grid-template-columns:78px 1fr;gap:16px;align-items:baseline;padding:9px 0;border-top:1px solid var(--line-soft)}
+  .prow .pid{font-family:var(--mono);font-size:.72rem;color:var(--supply)}
+  .prow .pg{font-size:.95rem;color:var(--ink-dim)}
+  .prow .pg b{color:var(--ink);font-weight:600}
+  .prow .pg .lowtag{font-family:var(--mono);font-size:.62rem;color:var(--ink-mute);border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+  .connect{font-family:var(--serif);font-size:1.12rem;color:var(--ink);max-width:60ch;
+    border-left:3px solid var(--supply);padding:4px 0 4px 18px;margin-top:8px}
+  .themenav{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+  .themenav a{font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);text-decoration:none;
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .themenav a:hover{border-color:var(--supply);color:var(--supply)}
+
+  [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+  [data-reveal].in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}
+  :focus-visible{outline:2px solid var(--supply);outline-offset:3px;border-radius:4px}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">AI hardware 2025 · MLSys · ISCA · MICRO · HPCA · ASPLOS · 619 papers</div>
+    <h1>One problem. Every layer.</h1>
+    <p class="lede">The whole field is now fighting a <b>single fight</b> — running transformers against the memory wall. What splits five conferences apart is <b>which layer of the machine</b> each one attacks.</p>
+
+    <figure class="chartcard" data-reveal>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--demand)"></i>what the models want</span>
+        <span><i class="swatch" style="background:var(--supply)"></i>what one chip can give</span>
+        <span><i class="swatch" style="background:#e8975a55"></i>the gap the whole field attacks</span>
+      </div>
+      <canvas id="gap" width="1000" height="280" aria-label="Chart: model demand rises steeply while single-chip capability stays nearly flat, opening a widening gap."></canvas>
+      <figcaption><span>→ bigger models · longer prompts · more users</span><span>the memory wall</span></figcaption>
+    </figure>
+  </header>
+
+  <!-- THE ONE PROBLEM -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the shared fight</div>
+      <h2>A chip can multiply faster than it can remember</h2>
+      <p>Every one of the five venues starts from the same physical fact. It is the reason they exist in the same conversation at all.</p>
+    </div>
+    <div class="prose">
+      <p>A language model multiplies your words through an enormous grid of numbers to guess the next word — billions of times. Two resources decide the cost: <b>arithmetic</b>, which modern chips have in abundance, and <b>memory</b> — how much fits close to the chip and how fast numbers move in and out — which is scarce and has barely improved.</p>
+    </div>
+    <p class="bigidea">So the field's shared truth: AI is starved for <span class="d">data movement</span>, not <span class="s">math</span>. Every venue is closing that gap — just at a different depth.</p>
+    <p class="prose" style="margin-top:22px">In 2025 the workload even <b>converged</b>: LLM inference is the single most common workload at <em>all five</em> venues. What changed is that the fight moved down the stack — the same instinct, applied at whatever layer each community owns.</p>
+  </section>
+
+  <!-- THE STACK -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">connecting the dots</div>
+      <h2>The field is a stack — and each venue owns a floor</h2>
+      <p>Read top to bottom: from the software that serves a model down to the silicon that runs it. The chips on the right show who works there. The one move — <em>fuse the algorithm into the hardware</em> — is the same on every floor. What's new is that the seam keeps sinking.</p>
+    </div>
+
+    <div class="stack">
+      <div class="srow" data-reveal><div class="layer">Serving &amp; scheduling<small>who runs when, meet deadlines</small></div><div class="depthbar" style="background:#4fc1b1"></div><div class="who"><span class="vchip sw">MLSys</span><span class="vchip bridge">ASPLOS</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Training &amp; parallelism<small>split a run across chips</small></div><div class="depthbar" style="background:#57bcae"></div><div class="who"><span class="vchip sw">MLSys</span><span class="vchip bridge">ASPLOS</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Kernels &amp; compilers<small>lower code onto the chip</small></div><div class="depthbar" style="background:#63b6a4"></div><div class="who"><span class="vchip sw">MLSys</span><span class="vchip bridge">ASPLOS</span><span class="vchip hw">ISCA</span></div></div>
+
+      <div class="seam" data-reveal><span class="mono">↓ the co-design seam keeps sinking — 2025's real shift ↓</span></div>
+
+      <div class="srow" data-reveal><div class="layer">Datapath / number format<small>Tensor Core → bit-serial, LUT, block-FP</small></div><div class="depthbar" style="background:#8fb08a"></div><div class="who"><span class="vchip hw">ISCA</span><span class="vchip hw">HPCA</span><span class="vchip hw">MICRO</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Accelerator / dataflow<small>purpose-built ASICs</small></div><div class="depthbar" style="background:#b7a173"></div><div class="who"><span class="vchip hw">ISCA</span><span class="vchip hw">HPCA</span><span class="vchip hw">MICRO</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Memory system<small>DRAM scheduling, cache, CXL</small></div><div class="depthbar" style="background:#cf9a63"></div><div class="who"><span class="vchip hw">HPCA</span><span class="vchip hw">MICRO</span><span class="vchip hw">ISCA</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Compute-in / near memory<small>move compute into the RAM (PIM/CIM)</small></div><div class="depthbar" style="background:#dd925a"></div><div class="who"><span class="vchip hw">ISCA</span><span class="vchip hw">HPCA</span><span class="vchip bridge">ASPLOS</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Interconnect / fabric<small>NoC, chiplet, wafer-scale networks</small></div><div class="depthbar" style="background:#e58e54"></div><div class="who"><span class="vchip hw">ISCA</span><span class="vchip hw">HPCA</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Coherence &amp; security<small>RowHammer, Spectre, TEEs, proofs</small></div><div class="depthbar" style="background:#e8975a"></div><div class="who"><span class="vchip hw">MICRO</span><span class="vchip bridge">ASPLOS</span><span class="vchip hw">HPCA</span></div></div>
+      <div class="srow" data-reveal><div class="layer">Silicon<small>ASIC · CIM · analog · photonic</small></div><div class="depthbar" style="background:#e8975a"></div><div class="who"><span class="vchip hw">ISCA</span><span class="vchip hw">HPCA</span><span class="vchip hw">MICRO</span></div></div>
+    </div>
+
+    <div class="stacknote">
+      <span><i class="dot" style="background:var(--supply)"></i>software floors (MLSys)</span>
+      <span><i class="dot" style="background:var(--demand)"></i>silicon floors (ISCA/MICRO/HPCA)</span>
+      <span><i class="dot" style="background:#8892a0"></i>ASPLOS spans both — the bridge</span>
+    </div>
+    <p class="prose" style="margin-top:24px">The single most important finding of going wide: <b>the point where "the algorithm" fuses into "the hardware" is descending.</b> In 2024 it lived at the Tensor Core. In 2025 it moved into the DRAM bank, the SRAM array, the on-chip network, and the coherence protocol. MLSys optimizes the top floors as fixed; the architecture venues rebuild the floors below.</p>
+  </section>
+
+  <!-- FIVE VENUES -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the five characters</div>
+      <h2>Same fight, five personalities</h2>
+      <p>Each venue's hardware mix gives it away. MLSys is GPU-and-software; the architecture venues are ASIC-and-silicon; ASPLOS is CPU-heavy and bridges both.</p>
+    </div>
+
+    <div class="venues">
+      <article class="venue sw" data-reveal>
+        <div class="vh"><h3>MLSys</h3><span class="role">software · 61 papers</span></div>
+        <div class="tagline">Systems-for-LLMs on GPUs.</div>
+        <div class="hwbars">
+          <div class="b"><span>GPU</span><div class="track"><div class="fill" style="width:100%;background:var(--supply)"></div></div><span>42</span></div>
+          <div class="b"><span>CPU</span><div class="track"><div class="fill" style="width:43%;background:var(--supply)"></div></div><span>18</span></div>
+          <div class="b"><span>ASIC</span><div class="track"><div class="fill" style="width:5%;background:var(--supply)"></div></div><span>~1</span></div>
+        </div>
+        <div class="sig"><b>The software that makes a fixed GPU serve LLMs faster: attention kernels, SLO schedulers, quantized GEMM, training plans. Never touches real silicon.</b><br>
+        <span class="pid">000</span> FlashInfer · <span class="pid">003</span> QServe · <span class="pid">018</span> SOLA</div>
+      </article>
+
+      <article class="venue hw" data-reveal>
+        <div class="vh"><h3>ISCA</h3><span class="role">silicon · 112 analyzed</span></div>
+        <div class="tagline">The flagship: where real accelerators live.</div>
+        <div class="hwbars">
+          <div class="b"><span>ASIC</span><div class="track"><div class="fill" style="width:100%;background:var(--demand)"></div></div><span>49</span></div>
+          <div class="b"><span>CPU</span><div class="track"><div class="fill" style="width:57%;background:var(--demand)"></div></div><span>28</span></div>
+          <div class="b"><span>GPU</span><div class="track"><div class="fill" style="width:47%;background:var(--demand)"></div></div><span>23</span></div>
+          <div class="b"><span>CIM</span><div class="track"><div class="fill" style="width:27%;background:var(--demand)"></div></div><span>13</span></div>
+        </div>
+        <div class="sig"><b>Compute-in-memory engines, LUT-based low-bit Tensor Cores, near-data accelerators, wafer-scale networks, and a whole quantum/crypto cohort. Spreads far past LLMs into HPC, graphs, databases.</b><br>
+        <span class="pid">079</span> LUT Tensor Core · <span class="pid">055</span> DX100 · <span class="pid">098</span> RRAM PIM</div>
+      </article>
+
+      <article class="venue hw" data-reveal>
+        <div class="vh"><h3>MICRO</h3><span class="role">microarch · 47 of 123*</span></div>
+        <div class="tagline">Microarchitecture, memory, and security.</div>
+        <div class="hwbars">
+          <div class="b"><span>CPU</span><div class="track"><div class="fill" style="width:100%;background:var(--demand)"></div></div><span>19</span></div>
+          <div class="b"><span>ASIC</span><div class="track"><div class="fill" style="width:89%;background:var(--demand)"></div></div><span>17</span></div>
+          <div class="b"><span>GPU</span><div class="track"><div class="fill" style="width:47%;background:var(--demand)"></div></div><span>9</span></div>
+        </div>
+        <div class="sig"><b>Memory-centric microarchitecture and the security corner: RowHammer, secure speculation, reverse-engineering GPU pipelines, in-DRAM near-memory for MoE. *76 papers unreadable (see coverage).</b><br>
+        <span class="pid">012</span> Stratum · <span class="pid">035</span> DECA · <span class="pid">025</span> ρHammer</div>
+      </article>
+
+      <article class="venue hw" data-reveal>
+        <div class="vh"><h3>HPCA</h3><span class="role">memory systems · 119 analyzed</span></div>
+        <div class="tagline">Where accelerators meet DRAM physics.</div>
+        <div class="hwbars">
+          <div class="b"><span>ASIC</span><div class="track"><div class="fill" style="width:100%;background:var(--demand)"></div></div><span>48</span></div>
+          <div class="b"><span>CPU</span><div class="track"><div class="fill" style="width:75%;background:var(--demand)"></div></div><span>36</span></div>
+          <div class="b"><span>GPU</span><div class="track"><div class="fill" style="width:67%;background:var(--demand)"></div></div><span>32</span></div>
+          <div class="b"><span>CIM</span><div class="track"><div class="fill" style="width:27%;background:var(--demand)"></div></div><span>13</span></div>
+        </div>
+        <div class="sig"><b>The most memory-dominated venue: DRAM-die RowHammer mitigation, in-cache vector compute, silent-data-corruption modeling, datacenter energy. HPC leads its workloads, ahead of LLMs.</b><br>
+        <span class="pid">002</span> LEGO · <span class="pid">035</span> EXION · <span class="pid">082</span> DynamoLLM</div>
+      </article>
+
+      <article class="venue bridge" data-reveal>
+        <div class="vh"><h3>ASPLOS</h3><span class="role">the bridge · 164 analyzed</span></div>
+        <div class="tagline">Where software serving meets silicon security.</div>
+        <div class="hwbars">
+          <div class="b"><span>CPU</span><div class="track"><div class="fill" style="width:100%;background:#aab2bd"></div></div><span>81</span></div>
+          <div class="b"><span>GPU</span><div class="track"><div class="fill" style="width:68%;background:#aab2bd"></div></div><span>55</span></div>
+          <div class="b"><span>ASIC</span><div class="track"><div class="fill" style="width:26%;background:#aab2bd"></div></div><span>21</span></div>
+        </div>
+        <div class="sig"><b>The only venue carrying both worlds at scale: GPU LLM serving and MoE and training, plus deep CPU/memory/security/coherence work — the biggest security pillar of any venue (34 papers).</b><br>
+        <span class="pid">051</span> GPU-free PIM+CXL · <span class="pid">113</span> MOAT · <span class="pid">134</span> CXL proof</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- SAME MOVE, DIFFERENT DEPTH -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the deep pattern</div>
+      <h2>The same instinct, at four different depths</h2>
+      <p>The clearest proof that it's one field: take any core move, and you find MLSys doing it in software while an architecture venue does the identical thing lower down, in the metal.</p>
+    </div>
+    <div class="pairs">
+      <div class="pair" data-reveal>
+        <div class="move">Use smaller numbers</div>
+        <div class="side sw"><span class="lab">MLSys · in the kernel</span><p><b>QServe</b> runs 4-bit weights on the GPU's Tensor Cores so low precision actually yields throughput.</p></div>
+        <div class="arrow">→</div>
+        <div class="side hw"><span class="lab">ISCA · in the circuit</span><p><b>LUT Tensor Core</b> builds a bit-serial datapath where low precision is the silicon itself — 4–6× less power/area.</p></div>
+      </div>
+      <div class="pair" data-reveal>
+        <div class="move">Hide slow memory behind fast</div>
+        <div class="side sw"><span class="lab">MLSys · overlap it</span><p><b>NEO / FlexInfer</b> stream from CPU RAM and SSD just in time, so the GPU never waits on the slow tier.</p></div>
+        <div class="arrow">→</div>
+        <div class="side hw"><span class="lab">HPCA/ASPLOS · erase it</span><p><b>PIM + CXL</b> move the compute <em>into</em> the memory — one ASPLOS design serves LLMs with no GPU at all, beating 4×A100.</p></div>
+      </div>
+      <div class="pair" data-reveal>
+        <div class="move">Make attention hardware-shaped</div>
+        <div class="side sw"><span class="lab">MLSys · fused kernel</span><p><b>FlashInfer</b> folds every attention variant into one templated GPU kernel that keeps the chip full.</p></div>
+        <div class="arrow">→</div>
+        <div class="side hw"><span class="lab">MICRO · in the DRAM</span><p><b>Stratum</b> builds a Mono3D-DRAM near-memory path so MoE attention runs where the weights already live.</p></div>
+      </div>
+      <div class="pair" data-reveal>
+        <div class="move">Stop the chips waiting on each other</div>
+        <div class="side sw"><span class="lab">MLSys · overlap collectives</span><p><b>COMET / TileLink</b> hide all-to-all traffic behind compute in software, at tile granularity.</p></div>
+        <div class="arrow">→</div>
+        <div class="side hw"><span class="lab">HPCA/ISCA · rebuild the fabric</span><p><b>Topology-native AllReduce</b> and network-on-wafer redesign the interconnect itself so the traffic barely exists.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE AXIS MLSYS CAN'T SEE -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">what going wide revealed</div>
+      <h2>The half of the machine MLSys never sees</h2>
+      <p>The real reward of reading all five venues: an entire set of concerns that is <em>structurally invisible</em> from the software layer, yet decides whether any of it is safe, correct, or buildable.</p>
+    </div>
+    <div class="axis">
+      <div class="ax" data-reveal><div class="lead">Real silicon</div><p>ASIC is the <em>top</em> hardware target at ISCA, MICRO, and HPCA — compute-in-memory, RRAM/SRAM arrays, analog, photonic, bit-serial accelerators. MLSys is 42/61 GPU with essentially one custom chip. <span class="pid">isca-079</span> <span class="pid">isca-098</span> <span class="pid">hpca-002</span></p></div>
+      <div class="ax" data-reveal><div class="lead">Memory systems &amp; coherence</div><p>DRAM bank scheduling, near-core compute, cache-compression circuits, CXL, and <em>formal coherence proofs</em>. MLSys treats memory as a fixed tier to hide behind — it has zero coherence papers. <span class="pid">asplos-134</span> <span class="pid">micro-081</span></p></div>
+      <div class="ax" data-reveal><div class="lead">Security &amp; side-channels</div><p>~9 ISCA / 6 MICRO / 13 HPCA / <b>34 ASPLOS</b> papers on RowHammer, Spectre, TEEs, confidential serving — versus effectively zero at MLSys. An entire threat surface the software layer cannot even represent. <span class="pid">asplos-113</span> <span class="pid">micro-025</span></p></div>
+      <div class="ax" data-reveal><div class="lead">Reliability at the metal</div><p>Silent-data-corruption modeling, low-voltage CIM error correction, quantum-error-correction decoders, fleet fault detection. MLSys reliability stops at serving-SLO robustness. <span class="pid">hpca-024</span> <span class="pid">asplos-148</span></p></div>
+      <div class="ax" data-reveal><div class="lead">Whole non-LLM worlds</div><p>HPC is a top-two workload at the architecture venues; databases, genomics, quantum, FHE/ZKP cryptography, ray-tracing, robotics all appear. MLSys is ~80% dense-transformer LLM. <span class="pid">isca-025</span> <span class="pid">isca-047</span></p></div>
+    </div>
+  </section>
+
+  <!--THEMES-->
+
+  <!-- HONEST COVERAGE -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the honest part</div>
+      <h2>What we could — and couldn't — actually read</h2>
+    </div>
+    <div class="cov" data-reveal>
+      <h3>Read this before trusting any number</h3>
+      <p>Only MLSys has an open full-text archive, so it is the one fully-read corpus and the reliable anchor. The architecture venues are paywalled — full text exists only where a paper is also on arXiv, so most were read from the abstract alone (shallower), and papers on neither are logged, not analyzed.</p>
+      <div class="tablewrap">
+        <table class="covtable">
+          <thead><tr><th>venue</th><th>papers</th><th>analyzed</th><th>full-text</th><th>abstract-only</th><th>title-only</th></tr></thead>
+          <tbody>
+            <tr><td>MLSys</td><td>61</td><td>61</td><td class="hi">61</td><td class="lo">0</td><td class="gap">0</td></tr>
+            <tr><td>ISCA</td><td>135</td><td>112</td><td class="hi">17</td><td class="lo">95</td><td class="gap">23</td></tr>
+            <tr><td>MICRO</td><td>123</td><td>47</td><td class="hi">20</td><td class="lo">27</td><td class="gap">76</td></tr>
+            <tr><td>HPCA</td><td>121</td><td>119</td><td class="hi">8</td><td class="lo">111</td><td class="gap">2</td></tr>
+            <tr><td>ASPLOS</td><td>179</td><td>164</td><td class="hi">14</td><td class="lo">150</td><td class="gap">15</td></tr>
+            <tr class="total"><td>total</td><td>619</td><td>503</td><td class="hi">120</td><td class="lo">383</td><td class="gap">116</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>MICRO is materially under-sampled:</b> IEEE withholds its abstracts from the open indexes and many papers aren't on arXiv, so 76 of 123 could not be read at all — the 47 analyzed skew toward authors who self-post. The <em>structural</em> contrasts on this page (silicon and memory and security at the architecture venues vs. GPU-serving at MLSys) hold up because they're visible even from abstracts. The <em>precise counts</em> are lower bounds, unevenly — treat every non-MLSys number as directional, and never compare a speedup across venues.</p>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    <div class="eyebrow" style="color:var(--supply)">how this was built</div>
+    <div class="stats">
+      <div class="kv"><span class="v">5</span><span class="k">venues</span></div>
+      <div class="kv"><span class="v">619</span><span class="k">papers</span></div>
+      <div class="kv"><span class="v">503</span><span class="k">analyzed</span></div>
+      <div class="kv"><span class="v">120</span><span class="k">read in full</span></div>
+      <div class="kv"><span class="v">9</span><span class="k">shared themes</span></div>
+    </div>
+    <p class="prose" style="color:var(--ink-dim);font-size:.95rem">
+      Every venue was pulled from DBLP, enriched via OpenAlex, and read at full text where a PDF was openly obtainable (MLSys proceedings + arXiv), else from the abstract — each paper analyzed for its problem, method, and contribution, then clustered into cross-venue themes. Paywalled full text (ACM/IEEE) was never forced. This page is the conceptual layer on top of that record; the <span class="mono" style="color:var(--demand)">venue-NNN</span> ids map to per-paper analyses in the repo.
+    </p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var items = document.querySelectorAll('[data-reveal]');
+  if (reduce || !('IntersectionObserver' in window)) {
+    items.forEach(function(el){el.classList.add('in')});
+  } else {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    }, {threshold:.1});
+    items.forEach(function(el){io.observe(el)});
+  }
+
+  var c = document.getElementById('gap'); if(!c) return;
+  var ctx = c.getContext('2d');
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  var DEMAND=css('--demand')||'#e8975a', SUPPLY=css('--supply')||'#4fc1b1', LINE=css('--line')||'#2b323d';
+  function draw(p){
+    var W=c.width,H=c.height,padL=12,padR=14,padB=26,padT=14;
+    ctx.clearRect(0,0,W,H);
+    var x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+    function X(t){return x0+(x1-x0)*t;} function Y(v){return y0+(y1-y0)*v;}
+    ctx.strokeStyle=LINE;ctx.lineWidth=1;
+    for(var g=0;g<=4;g++){var gy=y0+(y1-y0)*(g/4);ctx.globalAlpha=.5;ctx.beginPath();ctx.moveTo(x0,gy);ctx.lineTo(x1,gy);ctx.stroke();}
+    ctx.globalAlpha=1;
+    function sup(t){return 0.30+0.14*t+0.02*Math.sin(t*7);}
+    function dem(t){return 0.30+0.66*Math.pow(t,1.9);}
+    var N=140,tm=p;
+    ctx.beginPath();ctx.moveTo(X(0),Y(sup(0)));
+    for(var i=0;i<=N;i++){var t=tm*i/N;ctx.lineTo(X(t),Y(sup(t)));}
+    for(var j=N;j>=0;j--){var t2=tm*j/N;ctx.lineTo(X(t2),Y(dem(t2)));}
+    ctx.closePath();
+    var gr=ctx.createLinearGradient(0,y1,0,y0);gr.addColorStop(0,'rgba(232,151,90,0.30)');gr.addColorStop(1,'rgba(232,151,90,0.04)');
+    ctx.fillStyle=gr;ctx.fill();
+    ctx.lineWidth=2.5;ctx.strokeStyle=SUPPLY;ctx.beginPath();
+    for(var k=0;k<=N;k++){var ts=tm*k/N;(k?ctx.lineTo:ctx.moveTo).call(ctx,X(ts),Y(sup(ts)));}ctx.stroke();
+    ctx.strokeStyle=DEMAND;ctx.beginPath();
+    for(var m=0;m<=N;m++){var td=tm*m/N;(m?ctx.lineTo:ctx.moveTo).call(ctx,X(td),Y(dem(td)));}ctx.stroke();
+    if(tm>=0.999){ctx.fillStyle=DEMAND;ctx.beginPath();ctx.arc(X(1),Y(dem(1)),4.5,0,7);ctx.fill();
+      ctx.fillStyle=SUPPLY;ctx.beginPath();ctx.arc(X(1),Y(sup(1)),4.5,0,7);ctx.fill();}
+  }
+  if(reduce){draw(1);return;}
+  var start=null;
+  function anim(ts){if(!start)start=ts;var p=Math.min(1,(ts-start)/1100);draw(1-Math.pow(1-p,3));if(p<1)requestAnimationFrame(anim);}
+  requestAnimationFrame(anim);
+})();
+</script>

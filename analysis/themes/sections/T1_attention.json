@@ -1,0 +1,551 @@
+{
+  "problem_plain": "Every time a language model generates one new word, it must re-read every word it has ever written or seen in the conversation. Those notes — called the KV cache (the model's running record of prior context, one compressed entry per token per layer) — grow without bound and must be loaded from memory on every single step. At long conversations or large batches, reading that memory takes far more time than the arithmetic needed to produce the next word.",
+  "why_plain": "Modern GPU chips can perform arithmetic ten to one hundred times faster than they can move data from memory. So as soon as the KV cache grows large relative to what fits in fast on-chip memory, every decode step stalls waiting for data rather than computing — a pure memory-bandwidth bottleneck with no arithmetic shortcut.",
+  "approach_plain": "Papers in this theme attack the bottleneck from three directions: reduce the amount of data that must be stored (compression, sparsity, smarter caching); reduce the cost of reading that data (in-storage compute, near-memory chips, better kernel scheduling); and reduce how often the data needs to be read at all (prefix reuse, progressive filtering, smarter scheduling). A secondary cluster of papers improves the surrounding serving infrastructure — schedulers, prefill/decode disaggregation, heterogeneous cluster routing — so that GPUs spend less idle time and the memory that does exist is used at peak efficiency.",
+  "groups": [
+    {
+      "heading": "Making attention kernels faster on current GPUs",
+      "explain": "The attention operation itself — comparing each new query against every stored key-value pair to produce a weighted sum — is the hottest inner loop. These papers redesign the low-level GPU code (called kernels) that executes this loop, squeezing out idle processor time and memory round-trips through better tiling, quantization, and work distribution across the GPU's parallel cores.",
+      "papers": [
+        {
+          "id": "mlsys-2025-000",
+          "name": "FlashInfer",
+          "gloss": "Unifies paged, ragged, and tree-shaped KV layouts into one sparse block format; JIT-compiles custom attention kernels per variant; cuts inter-token latency 29–69% vs compiler backends"
+        },
+        {
+          "id": "mlsys-2025-015",
+          "name": "FlexAttention",
+          "gloss": "Lets users express any attention mask or bias as a Python function; a compiler converts it into a single tiled GPU kernel; within 1% overhead of hand-tuned FlashAttention-2 for standard variants"
+        },
+        {
+          "id": "mlsys-2025-025",
+          "name": "TurboAttention",
+          "gloss": "Quantizes both the matrix multiplications and the softmax step to low-precision integer arithmetic on Tensor Cores; 1.8x prefill and 1.7x decode speedup with near-lossless accuracy"
+        },
+        {
+          "id": "mlsys-2025-037",
+          "name": "LeanAttention",
+          "gloss": "Slices attention work into equal tiles across all GPU cores regardless of head or batch boundaries, exploiting the mathematical associativity of softmax; average 1.73x faster than FlashDecoding on A100"
+        },
+        {
+          "id": "mlsys-2025-038",
+          "name": "MAS-Attention",
+          "gloss": "Pipelines matrix-multiply and softmax units in parallel on edge chips via semi-synchronous streams; up to 2.75x over sequential baseline on simulated edge accelerator"
+        },
+        {
+          "id": "mlsys-2025-034",
+          "name": "FastTree",
+          "gloss": "Groups queries that share a common KV prefix in the cache tree so attention becomes a batched matrix multiply instead of per-query vector operations; 2.2x system throughput over SGLang"
+        },
+        {
+          "id": "asplos-2025-109",
+          "name": "vAttention",
+          "gloss": "Uses the operating system's own demand-paging mechanism to give KV cache a contiguous virtual address space while still allocating physical memory on demand, so standard unmodified attention kernels can run without the complexity of paged memory management"
+        },
+        {
+          "id": "micro-2025-114",
+          "name": "TransFusion",
+          "gloss": "Represents the full Transformer stack as a graph of tensor operations and uses dynamic programming plus Monte Carlo tree search to find the best tiling and pipeline order; 1.6x cloud, 2.2x edge over prior fusion"
+        },
+        {
+          "id": "asplos-2025-111",
+          "name": "PICACHU",
+          "gloss": "Plug-in reconfigurable-array chip handles LLM nonlinear ops (softmax, layer-norm) that fixed-function accelerators handle poorly, freeing the main matrix unit for linear layers"
+        }
+      ]
+    },
+    {
+      "heading": "Shrinking the KV cache through compression and sparsity",
+      "explain": "Rather than accepting that the full cache must exist and be read, these papers reduce either its size (quantization, low-rank projection) or the fraction that must be read per step (sparse attention, progressive filtering). The goal is to preserve model quality while dramatically cutting how many bytes travel between memory and the compute cores.",
+      "papers": [
+        {
+          "id": "mlsys-2025-007",
+          "name": "",
+          "gloss": "Empirical study revealing that popular KV compression methods lose their throughput advantage under realistic serving stacks (paged attention + FlashAttention) at batch sizes above 4; identifies three overlooked failure modes"
+        },
+        {
+          "id": "mlsys-2025-047",
+          "name": "LServe",
+          "gloss": "Designates half of attention heads as 'streaming' (attend only to recent and sink tokens) and uses hierarchical page scoring to skip low-importance KV pages during decode; handles 64k–512k token contexts"
+        },
+        {
+          "id": "mlsys-2025-060",
+          "name": "SampleAttention",
+          "gloss": "Two-stage algorithm identifies the minimum KV blocks needed to retain 99% of attention probability mass per query; 5.29x prefill latency reduction at 1M-token context with near-lossless accuracy"
+        },
+        {
+          "id": "hpca-2025-092",
+          "name": "LAD",
+          "gloss": "Custom chip detects when attention scores at a token position stay constant across consecutive decode steps, suppressing redundant KV reads; 10.7x attention speedup and 52x energy efficiency vs A100"
+        },
+        {
+          "id": "micro-2025-096",
+          "name": "MCBP",
+          "gloss": "Exploits bit-level repetition and sparsity in weight matrices plus progressive bit-by-bit filtering of KV candidates; 9.43x faster and 31x more energy-efficient than A100, 50% fewer KV cache accesses"
+        },
+        {
+          "id": "isca-2025-130",
+          "name": "DeepSeek-V3 analysis",
+          "gloss": "Production 671B mixture-of-experts model using Multi-head Latent Attention to compress KV cache from 516 KB to 70 KB per token via low-rank projection; quantifies hardware bottlenecks at 2048-GPU scale"
+        },
+        {
+          "id": "mlsys-2025-004",
+          "name": "Marconi",
+          "gloss": "Extends prefix caching to hybrid models that mix attention with recurrent (Mamba-style) layers by checkpointing recurrent state at branch points; FLOP-aware eviction score prioritizes entries by compute saved per byte; 34x higher cache hit rate vs vLLM"
+        }
+      ]
+    },
+    {
+      "heading": "Moving KV cache memory closer to compute — or compute closer to memory",
+      "explain": "When the cache cannot fit in GPU memory, data must come from somewhere else. These papers treat storage (flash, DRAM DIMMs) not as a dump site but as a place to embed compute units, or they redesign the physical memory-chip interface so data travels a shorter distance before arithmetic happens.",
+      "papers": [
+        {
+          "id": "hpca-2025-068",
+          "name": "InstAttention",
+          "gloss": "Runs attention computation inside storage drives (computational storage devices) that have high internal flash bandwidth, bypassing the slow PCIe link that bottlenecks GPU-side KV offload; 11.1x throughput over FlexGen"
+        },
+        {
+          "id": "isca-2025-061",
+          "name": "AiF",
+          "gloss": "Embeds matrix-vector multiply units inside flash chips, exploiting full internal flash bandwidth; a lightweight error-correction redesign delivers 4x bandwidth amplification; 14.6x throughput over SSD offloading"
+        },
+        {
+          "id": "hpca-2025-063",
+          "name": "Hermes (NDP-DIMM)",
+          "gloss": "Partitions LLM weights into frequently-used 'hot' neurons (kept on GPU) and rarely-used 'cold' neurons computed near DRAM on special DIMMs; 75x faster than PCIe offloading for consumer-GPU LLM inference"
+        },
+        {
+          "id": "isca-2025-068",
+          "name": "H2-LLM",
+          "gloss": "Uses hybrid-bonding to bond high-capacity compute dies face-to-face with DRAM dies, exploring the architecture and data-movement strategy jointly; 2.72x faster than conventional near-memory designs"
+        },
+        {
+          "id": "hpca-2025-083",
+          "name": "Lincoln",
+          "gloss": "Sends LLM weights from flash to the chip via the faster DRAM electrical interface (LPDDR) for prefill, and runs decode matrix operations directly inside flash dies via hybrid bonding; 254x generation speedup over conventional SSD systems"
+        }
+      ]
+    },
+    {
+      "heading": "Scheduling and routing requests to use memory and compute efficiently",
+      "explain": "Even with fast kernels and compressed caches, a serving system can idle GPUs or run out of memory if it schedules requests poorly. These papers treat the KV cache as a shared resource to be managed — predicting how much space future requests will need, deciding which requests to admit or evict, and routing work across heterogeneous hardware so that memory-hungry decode stages and compute-hungry prefill stages each get the hardware they need.",
+      "papers": [
+        {
+          "id": "asplos-2025-049",
+          "name": "Past-Future Scheduler",
+          "gloss": "Samples output-length predictions from a sliding window of recent requests to estimate the peak KV cache demand of the entire running batch before admitting a new request; 2–3x higher throughput than conservative or aggressive baselines"
+        },
+        {
+          "id": "asplos-2025-064",
+          "name": "",
+          "gloss": "Preserves KV cache across conversation turns to avoid recomputing prior-turn keys and values; adds a length-aware scheduler to prevent long prompts from blocking shorter ones"
+        },
+        {
+          "id": "isca-2025-034",
+          "name": "WindServe",
+          "gloss": "Phase-disaggregated serving (prefill on one GPU pool, decode on another) with a global scheduler that continuously migrates jobs and KV cache between pools without stalls; 4.28x faster time-to-first-token"
+        },
+        {
+          "id": "mlsys-2025-023",
+          "name": "ThunderServe",
+          "gloss": "Assigns prefill to compute-dense GPUs and decode to memory-bandwidth-dense GPUs in cloud clusters with ordinary Ethernet interconnects; hierarchical tabu-search and linear-programming routing yields 1.7x average throughput"
+        },
+        {
+          "id": "mlsys-2025-018",
+          "name": "SOLA",
+          "gloss": "Formulates LLM request scheduling as a per-iteration constrained optimization, dynamically switching between minimizing first-token latency and minimizing per-token latency based on which SLO is currently at risk; 99.4% SLO attainment vs 45.5% baseline"
+        },
+        {
+          "id": "mlsys-2025-040",
+          "name": "Seesaw",
+          "gloss": "Dynamically re-shards the model between tensor parallelism (for prefill) and pipeline parallelism (for decode) at each stage boundary, buffering KV cache in CPU DRAM between stages"
+        },
+        {
+          "id": "asplos-2025-097",
+          "name": "Helix",
+          "gloss": "Models LLM inference across heterogeneous GPU clusters as a max-flow problem and solves placement and request routing jointly with integer programming; up to 3.3x throughput"
+        },
+        {
+          "id": "hpca-2025-082",
+          "name": "DynamoLLM",
+          "gloss": "Hierarchically adjusts GPU instance count, tensor-parallelism degree, and GPU clock frequency in response to request-type mix and diurnal load changes; 53% energy saving and 38% carbon reduction"
+        },
+        {
+          "id": "asplos-2025-127",
+          "name": "TAPAS",
+          "gloss": "Thermal- and power-aware cloud scheduler that models the millisecond-scale power spikes of the prefill phase and uses quantization and parallelism knobs to stay within thermal limits while meeting latency SLOs"
+        },
+        {
+          "id": "hpca-2025-043",
+          "name": "throttLL'eM",
+          "gloss": "Predicts future KV cache size and batch load with an ML model (R² > 0.97), then reduces GPU clock frequency proactively; up to 43.8% lower energy while satisfying latency SLOs"
+        }
+      ]
+    },
+    {
+      "heading": "Distributing long contexts across many GPUs",
+      "explain": "A million-token conversation requires hundreds of gigabytes of KV cache — more than fits in any single GPU. These papers split the sequence across multiple GPUs and design the communication pattern so that attention scores can still be computed correctly across partitions, and data transferred between GPUs does not become the new bottleneck.",
+      "papers": [
+        {
+          "id": "mlsys-2025-050",
+          "name": "Context Parallelism",
+          "gloss": "Two ring-attention algorithms (circulate queries vs. circulate keys/values) with load-balanced 2N-chunk sharding for causal masking; 1M-token prefill in 77 seconds on 128 H100 GPUs at 93% efficiency"
+        },
+        {
+          "id": "mlsys-2025-049",
+          "name": "ScaleFusion",
+          "gloss": "Hides cross-machine communication for video-generation Transformer inference by pipelining all-to-all transfers within and across layers using spatial-temporal independence of alternating attention heads"
+        },
+        {
+          "id": "isca-2025-080",
+          "name": "Hybe",
+          "gloss": "Streams partial KV tensors from GPU to lightweight NPU during prefill so decode runs on NPU memory rather than overflowing GPU VRAM; 2.1x faster and 3.9x more energy-efficient for million-token contexts"
+        },
+        {
+          "id": "asplos-2025-144",
+          "name": "FlexSP",
+          "gloss": "Adapts the degree of sequence splitting per-sequence to match heterogeneous lengths in a training batch, eliminating load imbalance from long-tail sequence distributions"
+        }
+      ]
+    },
+    {
+      "heading": "Smarter prefix caching and query reuse",
+      "explain": "If many requests start with the same long system prompt or document, the model would recompute the same KV entries thousands of times. These papers cache and reuse those computed entries, reducing both latency and memory pressure, and extend this idea to structured database queries and multi-turn conversations.",
+      "papers": [
+        {
+          "id": "mlsys-2025-029",
+          "name": "",
+          "gloss": "Reorders rows and fields in database tables so that LLM batch inference maximizes shared KV cache prefixes across rows; 1.5–3.4x latency reduction with 32% cost savings on GPT-4o-mini"
+        },
+        {
+          "id": "asplos-2025-166",
+          "name": "Medusa",
+          "gloss": "Serverless LLM cold start is dominated by KV cache initialization and CUDA graph compilation; Medusa pre-serializes both to disk so cold starts just reload a snapshot rather than recompute them"
+        },
+        {
+          "id": "isca-2025-052",
+          "name": "RAGO",
+          "gloss": "Introduces a structured description of Retrieval-Augmented Generation (RAG) pipeline variants to guide per-variant optimization; 2x queries-per-chip and 55% lower first-token latency vs generic LLM serving"
+        },
+        {
+          "id": "isca-2025-095",
+          "name": "Hermes (RAG)",
+          "gloss": "Partitions the retrieval datastore and routes queries only to relevant partitions via a coarse index tier; 9.33x latency reduction for trillion-token RAG with no accuracy loss"
+        }
+      ]
+    },
+    {
+      "heading": "Hardware modeling, profiling, and broader serving infrastructure",
+      "explain": "Before you can optimize a system you must understand it precisely. These papers build accurate models of GPU behavior for LLM workloads, improve cluster utilization, or handle related inference infrastructure concerns. Many of these papers address the surrounding machinery — power measurement, cluster management, GPU sharing, training efficiency — that determines how efficiently the attention and KV-cache hardware is used in practice.",
+      "papers": [
+        {
+          "id": "isca-2025-018",
+          "name": "AMALI",
+          "gloss": "Analytical model for LLM inference on GPUs that explicitly models tensor-core throttle stalls and instruction-cache latencies; reduces prediction error from 127% to 23% on A100"
+        },
+        {
+          "id": "micro-2025-043",
+          "name": "",
+          "gloss": "Reverse-engineers NVIDIA Ampere GPU pipeline microarchitecture via microbenchmarks, revealing compiler-encoded dependency tracking replaces hardware scoreboards; improves simulator accuracy by 18 percentage points"
+        },
+        {
+          "id": "isca-2025-019",
+          "name": "GCStack+GCScaler",
+          "gloss": "Fine-grained concurrent stall accounting and analytical scaling lets designers explore 1,000 GPU design variants from a single simulation trace, 32.7x faster than re-simulation"
+        },
+        {
+          "id": "asplos-2025-076",
+          "name": "NeuSight",
+          "gloss": "Predicts GPU kernel latency at the tile level aligned to GPU streaming-multiprocessor granularity; reduces LLM inference prediction error from 30.8% to 2.3% for unseen GPUs like H100"
+        },
+        {
+          "id": "mlsys-2025-026",
+          "name": "Lumos",
+          "gloss": "Trace-driven LLM training performance model that captures compute-communication overlaps via CUDA event dependencies; 3.3% average replay error vs 14% for prior tools"
+        },
+        {
+          "id": "hpca-2025-085",
+          "name": "MLPerf Power",
+          "gloss": "Industry-consortium benchmarking framework standardizing energy-efficiency measurement for ML systems from microwatt IoT devices to megawatt datacenters; 1,841 measurements across 60 systems"
+        },
+        {
+          "id": "asplos-2025-094",
+          "name": "Dilu",
+          "gloss": "Serverless DL serving with two-dimensional GPU elasticity (adjusting both instance count and per-instance GPU share); reduces fragmentation 10–46% and QoS violations 11–71%"
+        },
+        {
+          "id": "mlsys-2025-010",
+          "name": "PipeFill",
+          "gloss": "Schedules batch inference or small training jobs into the idle gaps (pipeline bubbles) that arise during distributed pipeline-parallel LLM training; 63% GPU utilization improvement at 8,000 GPUs"
+        },
+        {
+          "id": "asplos-2025-171",
+          "name": "Tally",
+          "gloss": "Intercepts GPU kernel launches and schedules thread blocks across co-running inference and training jobs without application changes; P99 latency overhead 7.2% vs 188.9% for prior GPU sharing"
+        },
+        {
+          "id": "mlsys-2025-030",
+          "name": "ReaL",
+          "gloss": "RLHF training system that redistributes model weights across GPUs between pipeline stages so each stage uses its optimal parallelization strategy; 3.58x faster than DeepSpeed-Chat"
+        },
+        {
+          "id": "mlsys-2025-056",
+          "name": "Rubick",
+          "gloss": "Cluster scheduler that treats execution plan (parallelism strategy) as a scheduling variable alongside resource allocation, continuously co-optimizing both; up to 3.2x lower job completion time"
+        },
+        {
+          "id": "asplos-2025-145",
+          "name": "Spindle",
+          "gloss": "Distributes multi-modal, multi-task foundation model training across GPUs using wavefront scheduling that pipelines heterogeneous task waves; up to 71% faster than prior distributed training systems"
+        },
+        {
+          "id": "asplos-2025-158",
+          "name": "",
+          "gloss": "Rewrites LLM prefill attention kernels for mobile NPU fixed-function units via operator fusion and computation reordering, targeting interactive on-device screen understanding tasks"
+        },
+        {
+          "id": "isca-2025-116",
+          "name": "SpecEE",
+          "gloss": "Combines speculative early exit (stopping inference at an early layer when the answer is clear) with speculative decoding token trees; reduces early-exit predictor overhead from ~20% to near zero"
+        },
+        {
+          "id": "asplos-2025-133",
+          "name": "CoServe",
+          "gloss": "Serving system for Collaboration-of-Experts models (hundreds of specialist models selected per input) that pre-computes expert usage sequences and schedules requests to minimize expert swaps; 4.5–12x throughput"
+        },
+        {
+          "id": "asplos-2025-135",
+          "name": "Ayo",
+          "gloss": "End-to-end LLM application optimizer that schedules LLM and non-LLM pipeline stages jointly below the task-module boundary, reducing overall pipeline latency"
+        },
+        {
+          "id": "mlsys-2025-033",
+          "name": "FlexInfer",
+          "gloss": "Analytically selects per-layer execution policy (CPU-only, GPU-offload, or split) for LLM inference on commodity servers with limited GPU memory; 75–76% latency reduction vs FlexGen"
+        },
+        {
+          "id": "mlsys-2025-046",
+          "name": "AI Metropolis",
+          "gloss": "Multi-agent LLM simulation runtime that tracks spatial-temporal dependencies between agents to eliminate false synchronization barriers, enabling near-optimal parallelism as agent count scales to 1,000"
+        },
+        {
+          "id": "asplos-2025-084",
+          "name": "CIDRE",
+          "gloss": "Serverless container orchestrator that models container concurrency state to decide between waiting for a warm container and starting a new cold one; reduces cold-start ratio by up to 75%"
+        },
+        {
+          "id": "asplos-2025-175",
+          "name": "",
+          "gloss": "Component-based roofline analysis tool for Huawei's Ascend neural-network chip that identifies which hardware unit (compute, memory, pipeline) is the bottleneck per operator; 1.07–2.15x end-to-end model speedup"
+        },
+        {
+          "id": "asplos-2025-089",
+          "name": "lambda-trim",
+          "gloss": "Cuts serverless ML cold-start cost by automatically removing unused Python imports, guided by a profiler that accounts for both time and memory as billing dimensions"
+        },
+        {
+          "id": "mlsys-2025-016",
+          "name": "XGrammar",
+          "gloss": "Constrained LLM decoding (e.g., enforcing valid JSON output) now adds near-zero overhead by precomputing token masks offline for 99% of the vocabulary; 100x per-token speedup, 80x serving throughput"
+        },
+        {
+          "id": "asplos-2025-059",
+          "name": "Exo 2",
+          "gloss": "Compiler framework letting users define new scheduling transformations outside the compiler core; enables writing hardware-specific attention and LLM kernels with ~10x less scheduling code"
+        },
+        {
+          "id": "isca-2025-047",
+          "name": "Dadu-Corki",
+          "gloss": "Robotic manipulation system that cuts LLM inference frequency 5x by predicting multi-step trajectories instead of per-frame actions, and offloads robot control to a dedicated chip; 5.9x end-to-end speedup"
+        },
+        {
+          "id": "asplos-2025-146",
+          "name": "",
+          "gloss": "Applies per-operator voltage and frequency scaling to AI accelerators using an analytical model that identifies which operations are memory-bound (lower frequency is safe) vs compute-bound"
+        },
+        {
+          "id": "hpca-2025-090",
+          "name": "CogSys",
+          "gloss": "ASIC accelerator unifying neural network and symbolic reasoning computation on reconfigurable processor tiles with a streaming dataflow; 75x faster than a systolic array at 4mm² in 28nm"
+        },
+        {
+          "id": "hpca-2025-056",
+          "name": "Adyna",
+          "gloss": "Precompiles a small set of kernels covering the distribution of dynamic computation sizes in conditional neural networks; runtime selects the best-fit kernel; 1.7x over multi-tile accelerator baseline"
+        },
+        {
+          "id": "asplos-2025-156",
+          "name": "SING",
+          "gloss": "Full-stack shared GPU cluster management system designed for academic campuses with limited staffing; provides fair multi-user scheduling, automated monitoring, and incident management"
+        },
+        {
+          "id": "mlsys-2025-008",
+          "name": "DiffServe",
+          "gloss": "Serving system for text-to-image diffusion models that routes queries to lightweight or heavyweight models based on a quality discriminator score; MILP allocates GPU resources dynamically; 20% quality improvement vs random routing"
+        }
+      ]
+    },
+    {
+      "heading": "Papers in this bucket whose primary topic is outside LLM attention and KV cache",
+      "explain": "The bucket file contains papers on distributed tracing, temporal graph computation, quantum scheduling, autonomous driving, IoT power management, erasure coding, microservice scaling, cloud VM management, sparse matrix algebra, memory-dependence prediction, chip design space exploration, federated learning, and other topics. These are included here for completeness; their findings do not directly address the KV-cache memory bottleneck.",
+      "papers": [
+        {
+          "id": "asplos-2025-004",
+          "name": "Mint",
+          "gloss": "Distributed tracing: retains all requests by storing only the per-request deviation from a common structural template, sharply reducing storage volume"
+        },
+        {
+          "id": "asplos-2025-005",
+          "name": "EXIST",
+          "gloss": "Distributed tracing: redesigns the intra-service trace collection pipeline to reduce overhead from 5–10% to per-mille level without losing causal observability"
+        },
+        {
+          "id": "asplos-2025-006",
+          "name": "TempGraph",
+          "gloss": "GPU temporal graph processing: breaks time-dependent chains into concurrently executable groups via a Generate-Activate-Compute model; 3–16x over GPU baselines"
+        },
+        {
+          "id": "asplos-2025-009",
+          "name": "Cascade",
+          "gloss": "Temporal graph neural network training: identifies nodes whose state has stabilized to safely enlarge batch size; 2.3x average speedup without accuracy loss"
+        },
+        {
+          "id": "asplos-2025-016",
+          "name": "xUI",
+          "gloss": "CPU hardware: extends Intel's user-interrupt mechanism with hardware safepoints and accelerator forwarding to match polling latency while remaining asynchronous"
+        },
+        {
+          "id": "asplos-2025-031",
+          "name": "AnA",
+          "gloss": "Autonomous driving perception: query-driven selective activation of perception tasks reduces compute 44% and halves collisions on adversarial benchmarks"
+        },
+        {
+          "id": "asplos-2025-035",
+          "name": "Quetzal",
+          "gloss": "IoT energy harvesting: queueing-theory overflow prediction combined with energy-recharge-aware scheduling prevents data loss when processing rate lags capture rate; 4.2x fewer missed events"
+        },
+        {
+          "id": "asplos-2025-093",
+          "name": "RESCQ",
+          "gloss": "Quantum error correction: realtime resource redistribution for continuous-angle QEC architectures; 2x lower cycle count over static scheduling proposals"
+        },
+        {
+          "id": "asplos-2025-114",
+          "name": "TaOPT",
+          "gloss": "Mobile UI testing: tool-agnostic parallel test orchestration that steers different devices toward distinct app state subspaces; 60% less testing time for equivalent coverage"
+        },
+        {
+          "id": "asplos-2025-116",
+          "name": "Coach",
+          "gloss": "Cloud VM oversubscription: temporal utilization prediction collocates VMs with complementary resource patterns; fits ~26% more VMs per server"
+        },
+        {
+          "id": "asplos-2025-123",
+          "name": "RESCQ",
+          "gloss": "Quantum error correction scheduling: same paper as asplos-2025-093; see above"
+        },
+        {
+          "id": "hpca-2025-013",
+          "name": "ChameleonEC",
+          "gloss": "Erasure coding repair in storage: dynamically routes repair tasks around busy network links and slow nodes; 4.9–498% repair acceleration"
+        },
+        {
+          "id": "hpca-2025-020",
+          "name": "Grad",
+          "gloss": "Microservice auto-scaling: gradient-based model jointly scales both critical and non-critical services; 49% resource reduction"
+        },
+        {
+          "id": "hpca-2025-032",
+          "name": "",
+          "gloss": "ML for cloud systems: argues for Bayesian models with uncertainty estimates to detect out-of-distribution workloads in production resource management"
+        },
+        {
+          "id": "hpca-2025-052",
+          "name": "VR-Pipe",
+          "gloss": "GPU graphics pipeline: repurposes depth-test hardware for early termination in 3D Gaussian Splatting volume rendering; 2.78x speedup"
+        },
+        {
+          "id": "hpca-2025-064",
+          "name": "Mascot",
+          "gloss": "CPU memory dependence prediction: unified TAGE-based predictor learns both dependence and non-dependence patterns for load scheduling and speculative store bypass; 1.9% IPC improvement"
+        },
+        {
+          "id": "hpca-2025-067",
+          "name": "ARTEMIS",
+          "gloss": "SoC design-space exploration: integrates a dynamic task scheduler into the search loop to collapse the mapping dimension; 5–13x faster convergence to deadline-meeting designs"
+        },
+        {
+          "id": "hpca-2025-076",
+          "name": "HILP",
+          "gloss": "SoC workload parallelism modeling: formulates workload scheduling as a job-shop integer program to explore the full range of parallelism levels rather than just extremes"
+        },
+        {
+          "id": "hpca-2025-100",
+          "name": "BOSS",
+          "gloss": "Ion-trap quantum computing: blocking algorithm reduces shuttle operations by up to 96% across 4,000-gate circuits"
+        },
+        {
+          "id": "isca-2025-043",
+          "name": "Fair-CO2",
+          "gloss": "Cloud carbon accounting: uses cooperative game theory (Shapley values) to fairly attribute carbon emissions across co-located workloads accounting for interference"
+        },
+        {
+          "id": "isca-2025-099",
+          "name": "HardHarvest",
+          "gloss": "CPU core harvesting: hardware scheduler steals idle cores from latency-critical VMs for batch work without hypervisor calls; 1.8x harvest throughput, 6x lower tail latency"
+        },
+        {
+          "id": "isca-2025-112",
+          "name": "",
+          "gloss": "GPU sparse matrix-vector multiply: uses GPU Work Graphs (on-device self-scheduling) to fuse preprocessing and per-row computation; up to 7.2x over rocSPARSE"
+        },
+        {
+          "id": "micro-2025-077",
+          "name": "Task-LP",
+          "gloss": "Hardware task scheduler: label-propagation accelerator clusters 128 in-flight tasks by data dependency in under 300 cycles, placing dependent tasks on the same core; 1.5x speedup"
+        },
+        {
+          "id": "mlsys-2025-001",
+          "name": "FLStore",
+          "gloss": "Federated learning storage: co-locates compute and cache for non-training federated learning workloads; 71% latency and 92% cost reduction vs cloud object store"
+        },
+        {
+          "id": "mlsys-2025-006",
+          "name": "ProtoRAIL",
+          "gloss": "Cloud vCPU oversubscription: prototypical imitation learning with expert feedback identifies high-risk allocation patterns; 0% hot-node rate at 9.4% higher utilization"
+        },
+        {
+          "id": "mlsys-2025-013",
+          "name": "AIOpsLab",
+          "gloss": "Cloud operations agent benchmark: 100-problem benchmark covering fault detection, localization, root-cause analysis, and mitigation; best agent achieves 59% accuracy"
+        },
+        {
+          "id": "mlsys-2025-027",
+          "name": "LAVA",
+          "gloss": "VM lifetime scheduling: conditional expected-remaining-lifetime prediction adapts scheduling on misprediction; 3% less stranded compute fleet-wide at Google"
+        },
+        {
+          "id": "mlsys-2025-028",
+          "name": "Venn",
+          "gloss": "Federated learning device scheduling: contention-aware matching of edge devices to jobs with overlapping eligibility; 1.88x job completion time improvement"
+        },
+        {
+          "id": "mlsys-2025-032",
+          "name": "SwiftVI",
+          "gloss": "Reinforcement learning: heap-based action elimination during value iteration prunes dominated actions incrementally without offline precomputation"
+        },
+        {
+          "id": "mlsys-2025-039",
+          "name": "AdaParse",
+          "gloss": "PDF parsing for LLM training data: hierarchical classifier routes documents to cheap or expensive parsers; 17x throughput over best-quality parser alone"
+        },
+        {
+          "id": "asplos-2025-147",
+          "name": "D-VSync",
+          "gloss": "Smartphone rendering: decouples rendering pipeline from display refresh cycle so rendering can complete asynchronously, reducing missed frames on large screens"
+        }
+      ]
+    }
+  ],
+  "connect": "Every technique in this theme is ultimately a response to the same constraint: a GPU's memory bandwidth grows far more slowly than the number of tokens a model must remember. Whether papers compress the cache, move compute next to memory, cache shared prefixes, or route requests across heterogeneous hardware, they are all engineering around the physical reality that moving bytes costs more than computing with them — and that the gap widens with every new model generation."
+}

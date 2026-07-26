@@ -1,0 +1,300 @@
+{
+  "problem_plain": "Every computer that handles sensitive work — a cloud server running your bank's code, an AI model processing private medical records, a phone storing your passwords — is built from hardware that was designed to run fast, not to keep secrets. Speed-oriented design decisions, like letting the processor guess what instructions are coming next or sharing a memory bus between multiple users, leave physical fingerprints that an attacker can read without ever breaking any lock. The core problem is that the hardware itself leaks information through time, power draw, and physical side-effects of its own normal operation. As AI workloads grow and more computation moves to shared cloud chips, the attack surface — the number of places where secrets can leak — grows with it.",
+  "why_plain": "Modern hardware is fast because it reuses resources: the same cache lines, the same memory rows, the same branch-prediction tables, the same memory bus slots get shared between programs, between virtual machines, and between users. Sharing is the physical root of nearly every attack in this section — if two tenants' data ever passes through the same transistor at overlapping times, the timing or electrical residue of that overlap can carry secret information out.",
+  "approach_plain": "Researchers attack the problem from three directions. First, they find and document the new leakage paths that sharing creates — discovering that even mundane hardware features like a prefetch engine, a memory disambiguation table, or an idle power state can bleed secrets across security boundaries. Second, they build defenses that either eliminate the sharing (physically isolating resources by owner) or make the sharing timing-uniform (so every tenant sees identical delays regardless of what the other tenant is doing). Third, they verify that proposed defenses actually hold up — using automated testing tools, formal proofs, and real silicon measurements to close the gap between a security claim on paper and security in practice.",
+  "groups": [
+    {
+      "heading": "Memory row hammering: when reading one cell flips a neighbor",
+      "explain": "DRAM memory chips store bits as tiny electrical charges in rows of cells. Repeatedly reading (hammering) the same row at high speed disturbs the charge in physically adjacent rows, eventually flipping bits in data that belongs to another program or another virtual machine. The problem has grown worse as chip manufacturing shrinks cells closer together. Many papers here either find new ways to launch this attack despite existing guards, or propose new guards that provably stop the attack without crippling memory performance.",
+      "papers": [
+        {
+          "id": "asplos-2025-027",
+          "name": "HyperHammer",
+          "gloss": "First attack that hammers memory rows from inside a virtual machine and corrupts the hypervisor — the software layer that owns all other virtual machines — bypassing KVM's defenses"
+        },
+        {
+          "id": "asplos-2025-113",
+          "name": "MOAT",
+          "gloss": "Tracks per-row activation counts using only 7 bytes of storage per memory bank; two thresholds (proactive and reactive) provably stop bit-flip attacks with just 0.28% average slowdown on real server benchmarks"
+        },
+        {
+          "id": "hpca-2025-015",
+          "name": "Chronus",
+          "gloss": "Moves row-activation counters off the memory data path so they update in parallel with normal reads, eliminating the latency penalty of DDR5's new counting requirement while also defeating the 'wave attack' evasion technique"
+        },
+        {
+          "id": "hpca-2025-072",
+          "name": "AutoRFM",
+          "gloss": "Limits protective refresh to just one sub-section of a memory bank at a time, letting all other sections keep serving requests; cuts slowdown from 33% to 3.1% at the lowest currently-known safe hammering threshold"
+        },
+        {
+          "id": "hpca-2025-086",
+          "name": "PaCRAM",
+          "gloss": "Measures 388 real DDR4 chips and shows protective refresh can run 64% faster than spec with only 0.54% more refreshes needed, enabling cheaper defenses on existing hardware"
+        },
+        {
+          "id": "hpca-2025-095",
+          "name": "QPRAC",
+          "gloss": "Sorts pending mitigation requests by how many times each row has been hit, so the most-threatened rows are always refreshed first; nearly zero performance impact for normal workloads at DDR5's required safety threshold"
+        },
+        {
+          "id": "hpca-2025-096",
+          "name": "DAPPER",
+          "gloss": "Randomizes the mapping from memory rows to shared tracking buckets so attackers cannot inflate another program's counter or trigger spurious resets; 0.9% overhead, uses under 100 KB of chip storage per 32 GB of memory"
+        },
+        {
+          "id": "isca-2025-101",
+          "name": "DREAM",
+          "gloss": "Two strategies to work within JEDEC's multi-bank refresh command: batch mitigations across banks to amortize stall time, or group rows into 'gangs' that share one counter, cutting tracker storage 8x"
+        },
+        {
+          "id": "isca-2025-107",
+          "name": "MoPAC",
+          "gloss": "Updates the activation counter only on a random fraction of row accesses, adjusting the safety threshold by the same fraction; cuts DDR5 timing overhead from 10% to under 2% while preserving formal security guarantees"
+        },
+        {
+          "id": "isca-2025-113",
+          "name": "TPRAC / PRACLeak",
+          "gloss": "Shows that DDR5's own row-hammer defense creates a new timing side-channel (key extraction demonstrated); fixes it by issuing protective refresh on a fixed schedule instead of in reaction to suspicious access patterns"
+        },
+        {
+          "id": "micro-2025-025",
+          "name": "rhoHammer",
+          "gloss": "Revives bit-flip attacks on Intel's latest chips (Raptor Lake) where all prior load-based attacks fail; uses non-blocking software prefetch instructions to hammer at 47,000+ flips per minute where the load baseline achieves zero"
+        },
+        {
+          "id": "micro-2025-090",
+          "name": "Citadel",
+          "gloss": "A software memory allocator that physically separates different security domains into non-adjacent DRAM rows so no hammering attack can reach across; 7.2% memory overhead, zero runtime slowdown, no hardware changes needed"
+        },
+        {
+          "id": "micro-2025-020",
+          "name": "LeakyHammer",
+          "gloss": "Demonstrates that row-hammer defenses themselves (the protective refresh pauses) create measurable timing channels; builds a 39–49 Kbps covert channel and a website fingerprinting attack from those pauses alone"
+        }
+      ]
+    },
+    {
+      "heading": "Speculative execution leaks: the processor guesses wrong and bleeds secrets",
+      "explain": "To run fast, processors guess the outcome of branch decisions and execute instructions ahead of time. If the guess turns out wrong, those instructions are rolled back — but they have already touched the cache, the branch predictor, and other shared structures, leaving a timing fingerprint. An attacker who controls a neighboring program can read that fingerprint and reconstruct secrets the rolled-back code touched. This class of attack, known as Spectre, has spawned dozens of variants; the papers here either expose new attack surfaces or build defenses with formal proofs.",
+      "papers": [
+        {
+          "id": "asplos-2025-047",
+          "name": "AMuLeT",
+          "gloss": "Automatically generates small test programs that probe speculative execution paths at hardware design time, detecting which Spectre variants a proposed countermeasure fails to block before the chip is manufactured"
+        },
+        {
+          "id": "asplos-2025-104",
+          "name": "",
+          "gloss": "Formally proves in the Coq proof assistant that a new compiler transformation protects cryptographic code from all known Spectre variants including the return-stack-buffer attack; overhead under 2% for most cryptographic operations"
+        },
+        {
+          "id": "asplos-2025-159",
+          "name": "DejaVuzz",
+          "gloss": "A hardware fuzzer that swaps physical memory pages at runtime to precisely trigger speculative execution windows, then uses information-flow tracking to detect when secret data escapes through a side channel"
+        },
+        {
+          "id": "isca-2025-037",
+          "name": "SpecASan",
+          "gloss": "Repurposes ARM's hardware memory-tagging feature (normally used to catch buffer overflows) to stall speculative memory accesses that fail a tag check, blocking transient execution leakage without disabling speculation entirely"
+        },
+        {
+          "id": "isca-2025-041",
+          "name": "Cassandra",
+          "gloss": "Replaces the branch predictor entirely for cryptographic code regions by recording and replaying the deterministic control flow; eliminates speculative leakage and achieves a net 1.85% average speedup over an unprotected baseline"
+        },
+        {
+          "id": "micro-2025-061",
+          "name": "ShadowBinding",
+          "gloss": "First RTL-level implementation of two leading Spectre defenses on a real RISC-V core; finds the combined IPC and clock-frequency penalty reaches 35% — far higher than prior paper estimates — motivating a new issue-stage taint variant that cuts this to 27%"
+        },
+        {
+          "id": "asplos-2025-108",
+          "name": "",
+          "gloss": "Uses compile-time analysis to pre-verify safe program behaviors, shrinking the set of decisions an ML-based runtime security monitor must cover, making it practical to distinguish real attacks from monitor mispredictions"
+        }
+      ]
+    },
+    {
+      "heading": "Cache and microarchitecture side channels: reading secrets through shared timing structures",
+      "explain": "A cache is a small, fast memory inside the chip that holds recently used data. Because it is shared between programs, one program's access pattern changes the timing of another's accesses. Attackers exploit these timing differences — sometimes measuring differences as small as a few nanoseconds — to reconstruct cryptographic keys, infer which websites a user visited, or track keystrokes. This group includes both classical cache attacks and newer variants that exploit other shared microarchitectural structures like the prefetch engine, branch target table, and memory disambiguation unit.",
+      "papers": [
+        {
+          "id": "asplos-2025-030",
+          "name": "Reload+Reload",
+          "gloss": "Discovers two previously unknown side channels on AMD's encrypted-memory virtualization (SEV-SNP): a cache-flush timing channel and a memory-contention channel; uses them to extract AES-128 keys across virtual machine boundaries"
+        },
+        {
+          "id": "asplos-2025-056",
+          "name": "ShadowLoad",
+          "gloss": "Shows an attacker can write a chosen pattern into the CPU's hardware prefetch predictor from outside a protected enclave, causing the victim's prefetcher to issue unwanted memory fetches that alter the victim's execution timing"
+        },
+        {
+          "id": "asplos-2025-086",
+          "name": "MDPeek",
+          "gloss": "Exploits Intel's memory disambiguation unit — a structure that predicts whether a store and a load touch the same address — as a side channel against SGX enclaves, bypassing defenses that balance branch paths at the instruction level"
+        },
+        {
+          "id": "asplos-2025-095",
+          "name": "PhasePrint",
+          "gloss": "Fingerprints individual cloud FPGA chips by deliberately inducing timing faults via ring oscillators and measuring the device-specific fault pattern that results from manufacturing variation; identifies chips despite vendor restrictions"
+        },
+        {
+          "id": "asplos-2025-098",
+          "name": "FlexProf",
+          "gloss": "Recovers up to 33% throughput lost by fixed-schedule secure memory controllers by splitting time slots into read-optimized and write-optimized types chosen via coarse application profiling, while preserving timing isolation between virtual machines"
+        },
+        {
+          "id": "asplos-2025-124",
+          "name": "SMaCk",
+          "gloss": "Exploits the CPU pipeline flush that occurs when one thread overwrites another thread's cached instructions; timing differences of 150–350 cycles enable RSA key recovery in 10 memory traces and full AES key extraction in a single trace"
+        },
+        {
+          "id": "hpca-2025-046",
+          "name": "BrokenSleep",
+          "gloss": "Uses the deterministic wake-up delay of processor idle states (C-states) to carry a covert channel and infer keystrokes over a normal network connection — no co-location on the same machine required"
+        },
+        {
+          "id": "asplos-2025-176",
+          "name": "",
+          "gloss": "Lets an unprivileged attacker force the operating system to preempt the victim at attacker-chosen moments, greatly amplifying the signal quality of timing side-channel measurements without any special hardware access"
+        },
+        {
+          "id": "micro-2025-014",
+          "name": "CryptoBTB",
+          "gloss": "Secures the branch target buffer (a table that remembers where jumps land) by encrypting the table index outside the prediction critical path, using a hierarchical two-level structure to avoid performance loss; 4.3% overhead vs 32% for prior work"
+        },
+        {
+          "id": "hpca-2025-004",
+          "name": "",
+          "gloss": "Eliminates side-channel leakage from embedding table lookups in AI recommendation models by replacing the memory lookup entirely with a small neural network computation; 4x faster than oblivious-memory protection with 1000x less memory overhead"
+        }
+      ]
+    },
+    {
+      "heading": "Trusted execution and confidential computing: verifying what runs inside a protected enclave",
+      "explain": "A trusted execution environment (TEE) is a hardware-isolated region of the chip — a walled room — where sensitive code can run even if the surrounding operating system is compromised. Cloud providers offer these as 'confidential computing.' The papers here either find gaps in existing TEE designs or build new mechanisms to close them, including protecting the encrypted data that flows between the CPU and memory, protecting the network path, and making encryption fast enough not to cancel out the security benefit.",
+      "papers": [
+        {
+          "id": "asplos-2025-008",
+          "name": "PipeLLM",
+          "gloss": "Reduces the encryption overhead of running a large AI model inside NVIDIA's hardware-isolated GPU (TEE) from up to 88% throughput loss to under 20%, by predicting which data block the GPU will request next and pre-encrypting it in parallel with GPU computation"
+        },
+        {
+          "id": "asplos-2025-048",
+          "name": "TNIC",
+          "gloss": "Moves the security root of trust from the CPU into a smart network card; the card enforces message signing and prevents a sender from sending two conflicting messages, enabling Byzantine-fault-tolerant distributed systems at up to 6x the throughput of CPU-based TEE schemes"
+        },
+        {
+          "id": "asplos-2025-106",
+          "name": "Pave",
+          "gloss": "Runs untrusted data-processing code inside an Intel SGX enclave with a runtime monitor that tracks every data flow in and out, blocking flows that would expose user data; users verify the monitor's integrity remotely via SGX attestation"
+        },
+        {
+          "id": "micro-2025-071",
+          "name": "AIORE",
+          "gloss": "Cuts the encryption overhead on CXL memory expansion devices (used in cloud TEEs) by 63% on average by using fast parallel encryption for hot pages and secure mode-compliant encryption only for cold pages, with re-encryption offloaded to compute inside the memory device itself"
+        },
+        {
+          "id": "hpca-2025-009",
+          "name": "SpecMPK",
+          "gloss": "Allows the instruction that switches memory-domain permissions to execute out of order rather than stalling the pipeline, while blocking any speculative access to the newly unlocked region until the permission change is permanent; 12% average speedup for applications with frequent domain switches"
+        },
+        {
+          "id": "isca-2025-064",
+          "name": "Jord",
+          "gloss": "Runs many serverless functions inside a single address space using hardware memory-protection keys for nanosecond-level isolation, eliminating the millisecond container startup overhead and achieving over 2x the throughput of current serverless systems"
+        },
+        {
+          "id": "hpca-2025-018",
+          "name": "NVMePass",
+          "gloss": "Adds an isolation primitive inside the NVMe storage controller so virtual machines can submit storage commands directly without hypervisor involvement; achieves near-native storage speed for 100+ VMs simultaneously"
+        },
+        {
+          "id": "asplos-2025-103",
+          "name": "Segue & ColorGuard",
+          "gloss": "Uses two underexploited x86 hardware features — segment registers for sandbox bounds and memory protection key tags for instance coloring — to cut WebAssembly sandboxing overhead by 45% and scale to 15x more concurrent sandboxes per address space"
+        }
+      ]
+    },
+    {
+      "heading": "Hardware verification and formal security proofs: catching bugs before the chip ships",
+      "explain": "A security flaw in a chip design cannot be patched with a software update — it lives in billions of devices until they are replaced. This group of papers builds tools and methods to prove that a proposed hardware design is secure before manufacturing begins. Some use automatic test-program generation to probe for weaknesses; others use mathematical solvers or theorem provers to verify correctness; one synthesizes correct OS code from a formal hardware description automatically.",
+      "papers": [
+        {
+          "id": "asplos-2025-011",
+          "name": "Velosiraptor",
+          "gloss": "Automatically generates the operating system code that configures hardware memory protection from a formal hardware specification, eliminating the error-prone manual adaptation that has historically introduced security bugs"
+        },
+        {
+          "id": "asplos-2025-119",
+          "name": "SylQ-SV",
+          "gloss": "Speeds up symbolic execution of hardware designs written in SystemVerilog by caching and reusing solver answers across similar paths; achieves up to 17% runtime reduction while covering the full language including security assertions"
+        },
+        {
+          "id": "isca-2025-022",
+          "name": "CapChecker / Adaptive CHERI",
+          "gloss": "An adapter shim placed on the bus between an accelerator chip and system memory that enforces pointer-level memory bounds checking — a safety feature called CHERI capabilities — on any accelerator without modifying the accelerator itself; 1.4% average overhead"
+        },
+        {
+          "id": "hpca-2025-051",
+          "name": "Let-Me-In (LMI)",
+          "gloss": "Encodes per-allocation size and base address directly into the unused high bits of GPU memory pointers, enabling hardware bounds checks on every GPU memory access with negligible overhead across thousands of parallel threads"
+        },
+        {
+          "id": "hpca-2025-109",
+          "name": "Palermo",
+          "gloss": "Redesigns the oblivious RAM (ORAM) protocol — a method of hiding which memory addresses a program reads — to allow overlapping requests, achieving 2.9x speedup over a sequential ORAM baseline with a hardware controller occupying under 2% chip area"
+        }
+      ]
+    },
+    {
+      "heading": "Fuzzing and automated bug-finding: probing systems faster than humans can",
+      "explain": "Security researchers find bugs by sending millions of unexpected inputs to a system and watching for crashes or misbehavior — a process called fuzzing. The challenge is that interesting bugs often live behind specific combinations of inputs, so naive random testing misses them. The papers here use machine learning and statistical methods to guide the fuzzer toward unexplored corners of a program, and one applies uniform probability theory to find concurrency bugs that only appear when threads interleave in rare orders.",
+      "papers": [
+        {
+          "id": "asplos-2025-050",
+          "name": "Snowplow",
+          "gloss": "Trains a machine learning model on kernel source code to predict which system-call mutations are most likely to reach uncovered code paths, improving kernel vulnerability discovery rate over handcoded heuristics"
+        },
+        {
+          "id": "asplos-2025-163",
+          "name": "KernelGPT",
+          "gloss": "Uses a large language model to automatically write and iteratively repair the descriptions of system calls that a kernel fuzzer needs as input, dramatically expanding which parts of the kernel can be tested"
+        },
+        {
+          "id": "asplos-2025-173",
+          "name": "SURW",
+          "gloss": "A concurrency testing algorithm with a provable guarantee of uniform sampling over thread interleavings, finding rare race-condition bugs that biased random methods miss on standard concurrency benchmarks"
+        }
+      ]
+    },
+    {
+      "heading": "Supply-chain and software-level AI security: attacks that arrive before the model runs",
+      "explain": "Not all attacks target hardware. A machine learning model is assembled from dozens of open-source libraries, pre-trained weights downloaded from the internet, and automated pipelines. If any upstream piece is compromised, the model can be silently altered to behave differently for specific inputs — a backdoor — or to leak its own weights through its outputs. This paper documents the scale of that risk in today's AI ecosystem.",
+      "papers": [
+        {
+          "id": "mlsys-2025-005",
+          "name": "",
+          "gloss": "Demonstrates that a malicious Python package can silently rewrite PyTorch internals at import time to inject backdoors or steal model weights; a survey of 549,000 GitHub issues finds the ML community is no more security-aware than the Linux community despite a larger dependency attack surface"
+        },
+        {
+          "id": "asplos-2025-042",
+          "name": "Orion",
+          "gloss": "An automated compiler that translates a standard PyTorch model into encrypted computation (fully homomorphic encryption) so the server learns nothing about the inputs or outputs; first to compile YOLO object detection with 139 million parameters, 2.4x faster than prior tools"
+        },
+        {
+          "id": "hpca-2025-008",
+          "name": "DPUaudit",
+          "gloss": "Moves system audit log collection from the monitored host into a physically separate smart network card that pulls log data over the interconnect, reducing monitoring overhead from over 10% to an average of 2.1%"
+        },
+        {
+          "id": "asplos-2025-002",
+          "name": "",
+          "gloss": "Applies hypothesis testing with provable accuracy bounds to decide exactly when a hyperdimensional computing classifier can safely stop early, avoiding wasted computation while guaranteeing the accuracy loss stays within a statistical bound"
+        }
+      ]
+    }
+  ],
+  "connect": "Every attack in this section ultimately exploits the same physical fact that bottlenecks AI performance: data must move through shared wires, shared caches, and shared memory rows, and every time two tenants share the same wire, the timing of that sharing carries a signal. The same memory bus contention that limits how fast a GPU can feed a large language model is the contention that lets a spy process read timing differences measured in nanoseconds — security and performance are two faces of the same data-movement problem."
+}

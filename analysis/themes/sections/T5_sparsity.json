@@ -1,0 +1,230 @@
+{
+  "problem_plain": "Modern AI models do enormous amounts of arithmetic, but most of the numbers they multiply together are zero or nearly zero and contribute almost nothing to the final answer. Doing that arithmetic anyway wastes energy and time. For Mixture-of-Experts models — where a large network is divided into many specialized sub-networks called experts, and only a few experts process each piece of text — the waste is even more extreme: only a tiny fraction of the model's parameters do any work on any given input. The challenge is figuring out which work can be safely skipped, communicating that decision to the hardware fast enough, and actually avoiding the load-and-compute cycle for the parts that do not matter.",
+  "why_plain": "Memory bandwidth is the real constraint: loading a number from memory costs far more energy than performing an arithmetic operation on it, so the biggest win comes from never loading the zeros at all, not merely from skipping the multiply once a number is already on-chip.",
+  "approach_plain": "The papers in this theme exploit the observation that, at any moment, only a sparse subset of a model's values are non-zero and worth computing. They identify that sparse subset — sometimes at the level of individual bits, sometimes at the level of whole expert sub-networks — and then redesign data layout, hardware datapaths, or scheduling policies so that the zero-valued or dormant portions are never fetched, never routed, and never multiplied. The core technique varies: some papers prune weights before deployment, some dynamically skip computations at runtime, and some reorganize where data lives in memory so that the active subset can be read in one efficient burst rather than many scattered accesses.",
+  "groups": [
+    {
+      "heading": "Mixture-of-Experts: routing traffic and hiding communication delays",
+      "explain": "In a Mixture-of-Experts model the network contains many independent sub-networks. Each input token is routed to only two or three of them. This means the vast majority of the model's weights are idle for any given token, which is exactly the sparsity we want to exploit. The engineering challenge is that routing decisions must be sent across machines, the right weights must be fetched at the right moment, and the communication delay between machines can dominate total time if not carefully hidden behind useful work.",
+      "papers": [
+        {
+          "id": "asplos-2025-022",
+          "name": "MoC-System",
+          "gloss": "Saves only the expert sub-networks that actually ran during each training step when writing crash-recovery checkpoints, shrinking checkpoint size dramatically; exact numbers not reported in the abstract."
+        },
+        {
+          "id": "asplos-2025-024",
+          "name": "MoE-Lightning",
+          "gloss": "Streams expert weights from CPU memory to GPU in pages, overlapping the data transfer with computation of the previous expert; achieves 10.3x higher throughput than prior offloading approaches on a single 16 GB GPU."
+        },
+        {
+          "id": "asplos-2025-045",
+          "name": "Klotski",
+          "gloss": "Keeps several inference requests in flight at once so that tokens from different requests that need the same expert are batched together, making each expert's compute long enough to hide its load time from disk."
+        },
+        {
+          "id": "asplos-2025-105",
+          "name": "FSMoE",
+          "gloss": "Overlaps both within-machine and between-machine communication with expert computation using a three-stream pipeline whose chunk size is tuned per workload by a linear performance model; 1.19x to 3.01x faster than DeepSpeed-MoE on real models."
+        },
+        {
+          "id": "mlsys-2025-055",
+          "name": "COMET",
+          "gloss": "Fuses the all-to-all network communication and the matrix multiply into one GPU kernel, decomposing shared memory buffers so computation can start on locally available tokens immediately; hides 86.5% of communication time, giving 1.71x end-to-end speedup."
+        }
+      ]
+    },
+    {
+      "heading": "Dynamic activation skipping: deciding at runtime which neurons to skip",
+      "explain": "Many neural network layers produce activations where most values are zero or very small after a nonlinear function is applied. If you can predict which values will be negligible before doing the full computation, you can skip loading the corresponding weights entirely. The trick is that this decision must be made cheaply — the cost of predicting which work to skip must be less than the work saved.",
+      "papers": [
+        {
+          "id": "asplos-2025-141",
+          "name": "Neuralink",
+          "gloss": "Reorganizes which neurons are stored next to each other in a phone's flash storage so that neurons that tend to activate together are physically adjacent, turning scattered random reads into fast sequential reads; 1.49x average latency improvement on-device."
+        },
+        {
+          "id": "mlsys-2025-017",
+          "name": "DIP / DIP-CA",
+          "gloss": "Selects only the largest-magnitude inputs to each layer at runtime, skipping the corresponding weight columns in all three projection matrices; a cache-aware variant biases selection toward columns already in fast memory, cutting mobile DRAM traffic by 46% and raising throughput 40%."
+        },
+        {
+          "id": "hpca-2025-035",
+          "name": "EXION",
+          "gloss": "Exploits two kinds of skippable work in image-generation models: across the hundreds of denoising steps, most intermediate results repeat (70–97% of one key layer's outputs are reused rather than recomputed), and within each step most attention scores are negligible; a custom chip achieves 3.2–379x speedup over a server GPU with negligible quality loss."
+        }
+      ]
+    },
+    {
+      "heading": "Structured weight sparsity: encoding zeros in a regular pattern the hardware can exploit efficiently",
+      "explain": "Removing individual random zeros from a weight matrix is hard to exploit in hardware because the non-zero values end up at irregular addresses. If instead zeros are forced into a regular pattern — for example, exactly two zeros in every group of four weights — the hardware can use a fixed-size compressed format with no extra indexing overhead. The engineering tension is that a more regular pattern is easier for hardware but diverges more from the ideal sparse model, hurting accuracy.",
+      "papers": [
+        {
+          "id": "hpca-2025-062",
+          "name": "TB-STC",
+          "gloss": "Finds a two-dimensional block sparsity pattern that works for both forward and backward passes through the same weight matrix, exploiting their mathematical transpose relationship; improves energy-delay product 3.82x and recovers up to 2.58% accuracy lost by simpler structured sparsity methods."
+        },
+        {
+          "id": "mlsys-2025-014",
+          "name": "xDecimate / MATCH",
+          "gloss": "Adds a single new instruction to a tiny RISC-V processor that selects and multiplies only the non-zero entries in a semi-structured sparse pattern in one hardware step; achieves 3.21x speedup on an image classifier at just 5% extra chip area."
+        },
+        {
+          "id": "mlsys-2025-022",
+          "name": "TASD / TTC",
+          "gloss": "Decomposes any irregularly sparse weight tensor into a sum of regularly structured sparse tensors using the distributive property of matrix algebra, so a chip designed only for regular sparsity can run any sparse model without retraining; 39% speedup on NVIDIA structured-sparse hardware with 99% model quality preserved."
+        },
+        {
+          "id": "hpca-2025-023",
+          "name": "BADA",
+          "gloss": "Exploits sparsity at the level of individual bit-slices (groups of bits within a number) — skipping computation whenever either the weight or the input bit-slice is all zeros — combined with training tricks that push more weight bits toward zero; 2.67x throughput and 2.15x energy efficiency over the prior best bit-slice design."
+        },
+        {
+          "id": "hpca-2025-060",
+          "name": "CROSS",
+          "gloss": "A compiler that routes each piece of a sparse neural network to whichever of a sparse kernel or a fast dense kernel finishes faster, using a graph translation technique to make sparse work compatible with highly optimized dense math libraries; 2.03x average speedup over seven competing methods."
+        }
+      ]
+    },
+    {
+      "heading": "Spiking networks and binary activations: skipping work when signals are silent",
+      "explain": "Spiking neural networks are a biologically inspired alternative where neurons communicate by firing discrete on/off pulses rather than continuous numbers. Because a pulse of zero means the neuron is silent, a sparse network where most neurons are quiet at any moment means most multiplications can be replaced by simple additions or skipped entirely. This extreme sparsity makes spiking networks very energy-efficient if the hardware and algorithms are designed to exploit it.",
+      "papers": [
+        {
+          "id": "hpca-2025-094",
+          "name": "Prosperity",
+          "gloss": "Notices that two rows of a weight matrix multiplied by identical on/off pulse patterns yield identical results; computes each unique pattern's result once and reuses it for all matching rows; 7.4x faster and 8x more energy-efficient than a prior spiking-network accelerator."
+        },
+        {
+          "id": "isca-2025-109",
+          "name": "Phi",
+          "gloss": "Clusters common pulse patterns offline using k-means, precomputes their products with the weights, and at runtime looks up results rather than multiplying; a sparse residual matrix handles the remainder; 3.45x faster and 4.93x more energy-efficient than prior spiking accelerators."
+        },
+        {
+          "id": "isca-2025-117",
+          "name": "Bishop",
+          "gloss": "Packs pulse data across both tokens and time steps into bundles, routes high-density bundles to fast dense hardware cores and low-density bundles to efficient sparse cores, replacing most multiplications with AND-and-accumulate operations on binary pulses; 5.91x speedup and over 6x energy improvement."
+        },
+        {
+          "id": "mlsys-2025-019",
+          "name": "Bio-FO",
+          "gloss": "Trains each layer of a network independently using only forward passes and a fixed random projection, eliminating the need to store intermediate activations for backpropagation; up to 19.8x energy reduction and 3x memory reduction versus prior forward-only training on a Jetson edge device."
+        }
+      ]
+    },
+    {
+      "heading": "Sparse matrix operations for graphs and scientific computing",
+      "explain": "Many workloads outside of neural networks — graph analysis, database pattern matching, and physics simulations — are inherently sparse: most entries in their data matrices are zero because most pairs of nodes are not connected. Multiplying or solving equations with these sparse matrices using hardware designed for dense matrices wastes enormous bandwidth fetching zeros. The solutions here either redesign the data layout and access pattern or repurpose existing hardware units for the irregular access patterns that sparse data demands.",
+      "papers": [
+        {
+          "id": "asplos-2025-039",
+          "name": "Hopps",
+          "gloss": "Tracks only the automata (pattern-matching machines) that are currently active for each input character using a compressed bitmap, skipping all inactive ones; stores the active automata's transition tables in contiguous memory bursts to reduce off-chip data movement."
+        },
+        {
+          "id": "hpca-2025-039",
+          "name": "SparseWeaver",
+          "gloss": "Adds a small hardware unit to GPU cores that converts irregular sparse graph operations into balanced dense operations on the fly, exploiting graph topology to avoid synchronization overhead; 2.36x faster than prior balancing schemes."
+        },
+        {
+          "id": "hpca-2025-097",
+          "name": "SPASM",
+          "gloss": "Builds a library of common data access pattern templates for sparse matrix-vector multiplication and selects among them at runtime per tile, achieving 2.81x speedup over a fixed-pattern accelerator without sacrificing generality."
+        },
+        {
+          "id": "hpca-2025-099",
+          "name": "HSMU-SpGEMM",
+          "gloss": "Redesigns the hash-based accumulator for sparse matrix-matrix multiplication on GPUs to fit more active data into the fast on-chip shared memory (a small scratch-pad near each compute core) while reducing collision overhead; outperforms four leading GPU sparse libraries."
+        },
+        {
+          "id": "hpca-2025-113",
+          "name": "AccelES",
+          "gloss": "Uses a low-precision compressed version of a sparse matrix to cheaply identify the top candidates, then applies full-precision scoring only to those candidates; 3.4x faster than an FPGA baseline and 153x faster than a CPU for recommendation embedding lookups."
+        },
+        {
+          "id": "isca-2025-044",
+          "name": "Telos",
+          "gloss": "Accelerates the sequential bottleneck in physics equation solvers — where each answer depends on the previous one — by arranging the computation across processing elements in a pipeline that respects the structured sparsity of grid-based simulations; 61x faster than a CPU and 8x faster than a GPU."
+        },
+        {
+          "id": "isca-2025-129",
+          "name": "RT+SpMSpM",
+          "gloss": "Repurposes the ray-tracing intersection units built into modern GPUs to detect non-zero output positions in sparse matrix multiplication, then adds a small row accumulation engine (0.2% extra chip area) to also compute the products alongside detection; 3.06x faster than the leading GPU sparse library."
+        },
+        {
+          "id": "mlsys-2025-009",
+          "name": "SparseTransX",
+          "gloss": "Replaces the costly scatter-gather operations in knowledge-graph embedding training with a single sparse matrix multiply by encoding which entities appear in each training example as a sparse incidence matrix; 5.3x CPU and 4.2x GPU speedup with 11x memory reduction on large datasets."
+        },
+        {
+          "id": "micro-2025-105",
+          "name": "Bootes",
+          "gloss": "Reorders the rows of the input matrix before sparse matrix-matrix multiplication using spectral clustering on a row-similarity graph, so that rows with overlapping non-zero patterns are adjacent and share fetched data; reduces off-chip memory traffic 2.31x versus a leading accelerator."
+        },
+        {
+          "id": "micro-2025-106",
+          "name": "Misam",
+          "gloss": "Uses a lightweight decision-tree classifier to predict the best matrix computation strategy from structural features of the input, then exploits FPGA partial reconfiguration to swap in a specialized hardware layout for that strategy; up to 10.76x speedup via adaptive switching."
+        }
+      ]
+    },
+    {
+      "heading": "Hardware and compiler infrastructure for adaptive sparse acceleration",
+      "explain": "Even when we know which computations to skip, turning that knowledge into real hardware speedups requires solving coordination problems: on-chip memory must store irregularly shaped non-zero data without wasting space, the hardware must be flexible enough to handle many different sparsity patterns, and compilers must map sparse computations to chips efficiently. These papers build the plumbing that makes sparsity exploitation practical across a broad class of workloads.",
+      "papers": [
+        {
+          "id": "isca-2025-067",
+          "name": "HYTE",
+          "gloss": "Divides sparse tensor tiling into an offline sampling pass that picks a near-optimal initial tile shape and a runtime pass that adjusts tile shape as local density varies; 3.3x to 6.2x faster than fixed tiling strategies."
+        },
+        {
+          "id": "isca-2025-085",
+          "name": "FlexNeRFer",
+          "gloss": "A single chip that supports multiple data movement patterns and automatically selects the best sparse storage format at runtime based on observed density; 8.22–43.3x faster than an equivalent GPU for rendering 3D scenes from neural representations."
+        },
+        {
+          "id": "micro-2025-038",
+          "name": "Quartz",
+          "gloss": "A reconfigurable chip with distributed on-chip memory banks whose dataflow can be reprogrammed at runtime to match the access pattern of any sparse kernel — graph, neural network, or linear algebra; quantitative results not reported in the abstract."
+        },
+        {
+          "id": "micro-2025-068",
+          "name": "SeaCache",
+          "gloss": "An on-chip cache that packs variable-length rows of sparse data into fixed-size blocks, then dynamically splits its memory between data and replacement-policy bookkeeping based on measured hit rates; 2.8x better than prior sparse cache designs."
+        },
+        {
+          "id": "micro-2025-091",
+          "name": "",
+          "gloss": "Models sparse tensor tiling as a probability problem, predicting cache behavior from the statistical distribution of non-zero entries to guide tile-size selection without knowing the full input at compile time; detailed results not available from the abstract."
+        },
+        {
+          "id": "isca-2025-006",
+          "name": "Transitive Array",
+          "gloss": "Identifies when a partial product needed in a matrix multiply has already been computed earlier in the same batch and reuses it via a dependency graph, enabling a chip with no multipliers at all; 7.46x faster than a leading low-precision accelerator on language model inference."
+        }
+      ]
+    },
+    {
+      "heading": "Model pruning: removing whole layers or neurons before deployment",
+      "explain": "Rather than skipping zeros at runtime, pruning removes parts of a model permanently before it is ever deployed. Structured pruning removes entire layers or blocks, which is clean and efficient but can damage accuracy. The key insight here is that the original full model is still available after pruning and can be used to generate better training data for the smaller pruned model, partially recovering lost quality.",
+      "papers": [
+        {
+          "id": "mlsys-2025-042",
+          "name": "",
+          "gloss": "Prunes entire transformer decoder blocks from a language model by keeping those whose outputs differ most from their inputs (the similar-output blocks carry redundant information), then uses the unpruned model to rewrite the fine-tuning dataset so the pruned model learns from outputs matched to its new capacity rather than the original model's."
+        },
+        {
+          "id": "asplos-2025-081",
+          "name": "MetaSapiens",
+          "gloss": "Cuts the number of 3D Gaussian primitives in a neural scene-rendering model based on each primitive's visual contribution and hardware cost, then renders peripheral screen regions at lower detail exploiting the eye's reduced sharpness outside the center of gaze; claims real-time neural rendering on mobile hardware."
+        },
+        {
+          "id": "mlsys-2025-012",
+          "name": "",
+          "gloss": "Selects a maximally diverse small subset from a billion-point training dataset by distributing the selection algorithm across many machines and computing bounds on each point's marginal value without centralizing all data; achieves 98% of centralized selection quality."
+        }
+      ]
+    }
+  ],
+  "connect": "Every technique in this theme is ultimately a strategy for moving less data: by skipping zero weights, routing tokens only to the expert sub-networks that need them, or reusing previously computed results, these systems reduce the number of memory reads needed per answer — and since reading from memory costs orders of magnitude more energy than performing arithmetic, skipping the work that does not matter translates almost directly into lower energy and higher throughput, not because the math got faster, but because the chip stopped paying for data it never needed."
+}
