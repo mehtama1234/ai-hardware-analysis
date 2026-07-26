@@ -100,7 +100,7 @@ def main():
 
     themes = "\n".join(render_theme(i, key, title) for i, (key, title) in enumerate(ORDER, 1))
 
-    section = f'''<section>
+    section = f'''<section id="details">
     <div class="sec-head prose">
       <div class="eyebrow kicker">the details</div>
       <h2>Every theme, from first principles</h2>
