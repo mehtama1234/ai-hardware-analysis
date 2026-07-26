@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-131",
+  "title": "UGPU: Dynamically Constructing Unbalanced GPUs for Enhanced Resource Efficiency",
+  "venue": "ISCA",
+  "problem": "Physical GPUs maintain a fixed, balanced ratio of compute and memory resources, which is inefficient when co-executing workloads have heterogeneous compute-to-memory demands. Partitioning a GPU into unbalanced slices requires accurate performance prediction under variable resource allocations and causes heavy data migration overhead when memory resources are redistributed.",
+  "motivation": "Cloud GPUs serving multiple concurrent tenants waste resources because no single balanced configuration is optimal for the diverse compute-memory ratios of simultaneously running applications.",
+  "method": "UGPU dynamically carves a single physical GPU into unbalanced GPU slices—each with a tailored compute-SM count and HBM capacity—using a demand-aware resource partitioning algorithm that avoids complex analytical performance models. To handle memory redistribution without incurring the latency of traditional page migration, it introduces PageMove, which exploits the fact that all HBM memory channels share physical TSV connections within the DRAM stack, enabling parallel page migration between bank groups. PageMove pairs a customized memory address mapping with a Parallel Page Migration Mode (PPMM) and updated virtual memory management to move pages across memory dies at high throughput concurrently.",
+  "key_novelty": "PageMove exploits pre-existing intra-stack TSV connectivity and simultaneous multi-bank-group transfers in HBM to execute parallel page migration between memory dies, eliminating the dominant overhead of dynamic GPU slice reconfiguration.",
+  "contributions": [
+    "First study of dynamically constructing unbalanced GPU slices from a single physical GPU for multi-tenant cloud workloads.",
+    "Demand-aware resource partitioning algorithm that adaptively sizes compute and memory slices without a performance model.",
+    "PageMove: a lightweight HBM architecture extension enabling parallel page migration across bank groups via TSV connections.",
+    "Custom memory address mapping and PPMM protocol integrated with virtual memory management to support live slice reconfiguration."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "scheduling", "virtualization", "parallelism"],
+  "workloads": ["LLM-inference", "CNN"],
+  "metrics": {
+    "speedup": "not explicitly quantified in abstract",
+    "other": "PageMove reduces page migration overhead vs. traditional migration (magnitude not stated in abstract)"
+  },
+  "baselines": ["balanced physical GPU allocations", "traditional page migration methods"],
+  "limitations": "Requires minor DRAM architecture modifications and a custom address mapping, potentially limiting applicability to existing HBM-equipped GPUs without hardware changes.",
+  "tags": ["gpu-partitioning", "hbm", "page-migration", "multi-tenancy", "resource-efficiency", "cloud-gpu"],
+  "primary_theme": "dynamic unbalanced GPU resource partitioning for multi-tenant efficiency",
+  "confidence": "low"
+}

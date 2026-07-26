@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-101",
+  "title": "DREAM: Enabling Low-Overhead Rowhammer Mitigation via Directed Refresh Management",
+  "venue": "ISCA",
+  "problem": "JEDEC's Directed Refresh Management (DRFM) commands stall 8–32 DRAM banks simultaneously during Rowhammer mitigation, causing severe performance overheads (up to 49% slowdown) compared to the per-bank NRR assumed by prior work. Existing counter-based trackers that avoid these stalls require impractically large storage.",
+  "motivation": "Rowhammer thresholds continue to fall (approaching 500 activations), making efficient yet JEDEC-standards-compliant mitigations critical for real products.",
+  "method": "DREAM proposes two DRFM-aware variants. DREAM-R (randomized) delays issuing a DRFM after sampling an aggressor row so that other banks can also sample rows within the same window, amortizing the multi-bank stall across more mitigations per DRFM command. DREAM-C (counter-based) groups 32–256 randomly chosen rows across 32 banks into a 'gang' that shares a single counter, reducing tracker storage by 8x versus Graphene while avoiding CAM lookups and preserving DRFM compatibility.",
+  "key_novelty": "Exploiting DRFM's inherent multi-bank parallelism to either batch-amortize stalls (DREAM-R) or dramatically compress tracker storage via gang counting (DREAM-C), without requiring non-standard DRAM commands.",
+  "contributions": [
+    "DREAM-R: delayed DRFM issuance that reduces PARA overhead from 12.7% to 4.24% and MINT overhead from 15.9% to 2.1% under DRFMsb.",
+    "DREAM-C: gang-based counter tracker achieving only 1 KB/bank storage at threshold 500, 8x lower than Graphene, with negligible slowdown.",
+    "Security analysis bounding the safe delay window for DREAM-R to preserve correctness at a given Rowhammer threshold.",
+    "Favorable comparison to PRAC demonstrating DREAM as a practical JEDEC-compliant alternative."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "reliability", "approximation"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "DREAM-R reduces PARA slowdown from 12.7% to 4.24% (DRFMsb); DREAM-C reduces storage to 1 KB/bank (8x vs Graphene) with negligible slowdown at threshold 500",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "PARA with NRR: 3.9% slowdown; with DRFMab: 49% slowdown (baselines)"
+  },
+  "baselines": ["PARA (with NRR and DRFMsb/DRFMab)", "MINT", "Graphene", "PRAC"],
+  "limitations": "Security guarantee of DREAM-R depends on bounding the delay interval, which may tighten constraints at very low future Rowhammer thresholds.",
+  "tags": ["rowhammer", "dram", "refresh-management", "memory-security", "jedec", "drfm"],
+  "primary_theme": "DRAM Rowhammer mitigation with JEDEC DRFM",
+  "confidence": "low"
+}

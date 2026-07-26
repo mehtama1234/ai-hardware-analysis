@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-045",
+  "title": "WarmCache: Exploiting STT-RAM Cache for Low-Power Intermittent Systems",
+  "venue": "ISCA",
+  "problem": "Energy harvesting systems (EHS) suffer from compulsory cache misses after power failures because volatile SRAM caches lose all data across power outages, forcing cold-start cache rebuilding on each power restoration. Existing non-volatile cache designs impose high write energy and latency overhead.",
+  "motivation": "Intermittent computing on energy-harvested devices is increasingly important for IoT/edge applications, but power-outage-induced compulsory misses impose prohibitive performance penalties with traditional caches.",
+  "method": "WarmCache uses an STT-RAM cache with relaxed thermal stability (reduced retention time) tuned so cache contents survive typical power outage durations without requiring full non-volatile persistence. The compiler partitions the program into regions and performs region-level error correction: at each region boundary, updated cache lines are scrubbed and any multi-bit retention errors trigger re-execution of that region. A region formation technique via stitching (combining short regions) and splitting (dividing long regions) aligns region boundaries with the STT-RAM scrubbing interval.",
+  "key_novelty": "Using relaxed-retention STT-RAM (not fully non-volatile) to preserve cache warmth across power outages, combined with compiler-driven region-level error correction to handle retention failures without write-back overhead.",
+  "contributions": [
+    "Insight that STT-RAM retention time need only exceed power outage duration, not persist indefinitely, enabling reduced thermal stability and lower write energy.",
+    "Region-level error correction scheme: scrubbing at region boundaries and re-executing on detected multi-bit errors.",
+    "Compiler region formation with stitching and splitting to match region size to scrubbing interval.",
+    "1.3-1.4x average performance improvement over state-of-the-art EHS cache designs."
+  ],
+  "hardware_target": ["ASIC", "SoC"],
+  "technique_category": ["cache", "reliability", "compiler", "circuit-design"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "1.3-1.4x over state-of-the-art EHS cache design",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["state-of-the-art STT-RAM cache design for EHS"],
+  "limitations": "Relies on power outage durations being shorter than the relaxed STT-RAM retention time; longer outages would cause data loss and correctness failures.",
+  "tags": ["STT-RAM", "intermittent-computing", "energy-harvesting", "non-volatile-cache", "error-correction", "compiler"],
+  "primary_theme": "Relaxed-retention STT-RAM cache for intermittent energy-harvesting systems",
+  "confidence": "low"
+}

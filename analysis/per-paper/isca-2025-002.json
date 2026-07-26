@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-002",
+  "title": "Leveraging control-flow similarity to reduce branch predictor cold effects in microservices",
+  "venue": "ISCA",
+  "problem": "Microservices suffer from severe branch mispredictions due to cold branch predictor state when cores are shared across interleaved service invocations or power-gated between requests. This cold-start effect degrades tail latency under strict SLA constraints.",
+  "motivation": "Microservice architectures dominate modern datacenters, and their fine-grained execution with frequent core switching causes predictor state eviction, making branch mispredictions a primary performance bottleneck that existing warm-predictor-focused designs cannot address.",
+  "method": "The authors propose Similarity-based Branch Prediction (SBP), a hybrid predictor that augments conventional history-based and static-hint predictors with a similarity component (CHESS). CHESS encodes the control flow of prior request executions into a compact reference execution trace, then identifies branches that are hard to predict via conventional means and redirects them to the similarity predictor. The similarity predictor leverages dynamic control-flow reconvergence analysis to replay past execution paths for matching current requests, requiring only 18.1 KB of additional storage.",
+  "key_novelty": "CHESS exploits inter-request control-flow similarity in microservices—encoding prior execution traces as reference paths—to warm-start branch prediction for cold-predictor scenarios without requiring actual predictor state persistence.",
+  "contributions": [
+    "Quantitative analysis confirming high control-flow similarity across microservice requests using static and dynamic reconvergence analysis",
+    "SBP hybrid predictor architecture combining history-based, static-hint, and similarity-based prediction components",
+    "CHESS instantiation achieving 94% branch MPKI reduction over a cold fetch predictor and 78% over state-of-the-art warm predictor",
+    "Performance within 95% of a warm baseline using only 18.1 KB additional storage"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "cache", "scheduling"],
+  "workloads": ["recommendation"],
+  "metrics": {
+    "speedup": "Within 95% of warm baseline performance",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "94% branch MPKI reduction vs. cold predictor; 78% vs. state-of-the-art warm predictor",
+    "other": "18.1 KB additional storage overhead"
+  },
+  "baselines": ["Cold fetch predictor", "State-of-the-art warm branch predictor", "Warm baseline system"],
+  "limitations": "Not discussed explicitly; reference trace length must remain practical, potentially limiting coverage for highly divergent workloads.",
+  "tags": ["branch prediction", "microservices", "cold-start", "control-flow similarity", "datacenter", "hybrid predictor"],
+  "primary_theme": "Cold-start branch prediction using inter-request control-flow similarity for microservices",
+  "confidence": "low"
+}

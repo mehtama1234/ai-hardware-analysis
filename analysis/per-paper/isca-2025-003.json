@@ -1,0 +1,32 @@
+{
+  "id": "isca-2025-003",
+  "title": "Reconfigurable Stream Network Architecture",
+  "venue": "ISCA",
+  "problem": "FPGA-based DNN overlay accelerators suffer from layer-granularity serialization: von Neumann-style coarse-grained ISAs treat each layer instruction atomically, preventing dynamic layer fusion, inter-layer pipelining, and fine-grained bandwidth orchestration across heterogeneous resources (FPGA fabric + AI Engines).",
+  "motivation": "AI hardware increasingly combines heterogeneous components (e.g., AMD Versal with FPGA fabric + hardened AI Engines), but no existing ISA abstraction unifies resource orchestration and execution-phase transitions at sub-layer granularity, leaving compute units idle during pipeline drains and phase switches.",
+  "method": "RSN (Reconfigurable Stream Network) abstracts the datapath as a circuit-switched network of stateful functional units (FUs) connected by latency-insensitive data streams. Programming a computation means triggering a path through the FU network; multiple non-conflicting paths enable spatial and pipeline parallelism. A three-level instruction decoder fuses multiple FU uOP streams into a single RSN instruction stream with packet-level reuse to minimize instruction overhead (1 byte drives up to 1.6 GFLOPs). RSN-XNN, the prototype on Versal VCK190, virtualizes both FPGA BRAMs/DSPs and AI Engine tiles as heterogeneous FUs through a common stream interface, enabling dynamic sequential layer pipelining and fine-grained DDR/LPDDR bandwidth interleaving during phase transitions.",
+  "key_novelty": "RSN introduces a circuit-switched streaming network ISA abstraction that enables dynamic multi-layer pipelining and fine-grained bandwidth orchestration on FPGA overlays without per-layer bitstream reconfiguration—the first FPGA design to achieve this.",
+  "contributions": [
+    "Reconfigurable Stream Network (RSN) ISA abstraction with stateful FU network and latency-insensitive streams",
+    "First FPGA overlay enabling dynamic sequential linear-layer pipelining and fine-grained off-chip bandwidth mapping",
+    "RSN-XNN prototype on VCK190: 6.1x latency reduction and 2.4x–3.2x throughput improvement over SOTA on same platform",
+    "2.1x higher energy efficiency vs. A100 GPU at same 7nm process in FP32; latency parity with T4 GPU at 18% of its memory bandwidth",
+    "Open-source release of RSN-XNN"
+  ],
+  "hardware_target": ["FPGA", "ASIC"],
+  "technique_category": ["dataflow", "compiler", "interconnect", "scheduling", "kernel-fusion"],
+  "workloads": ["transformer", "CNN", "LLM-inference"],
+  "metrics": {
+    "speedup": "6.1x latency reduction for BERT vs. SOTA on VCK190; 2.4x–3.2x throughput for BERT/ViT/NCF/MLP",
+    "energy_or_tops_w": "2.1x higher energy efficiency in FP32 vs. A100 at same 7nm node",
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Matches T4 GPU latency with only 18% of its memory bandwidth"
+  },
+  "baselines": ["SOTA FPGA DNN overlay on VCK190", "NVIDIA T4 GPU (FP32)", "NVIDIA A100 GPU (7nm, FP32)", "NVIDIA V100 GPU", "NVIDIA L4 GPU"],
+  "limitations": "The proof-of-concept RSN-XNN lacks tile-level interleaving (an intentional omission to save circuits), which may limit performance for workloads requiring fine-grained tile-level data reuse.",
+  "tags": ["FPGA overlay", "streaming ISA", "dataflow", "heterogeneous accelerator", "DNN inference", "layer fusion"],
+  "primary_theme": "Circuit-switched streaming ISA for heterogeneous FPGA DNN overlays",
+  "confidence": "high"
+}

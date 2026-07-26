@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-075",
+  "title": "Dynamic Load Balancer in Intel Xeon Scalable Processor: Performance Analyses, Enhancements, and Guidelines",
+  "venue": "ISCA",
+  "problem": "Rapid growth in inter-host networking speed causes bursty, unevenly distributed traffic across CPU cores, leading to excessive queuing delays and service latency variance; hardware-based load balancing with the Intel DLB still consumes significant host CPU cycles to prepare and enqueue work descriptors for received packets.",
+  "motivation": "Network throughput is outpacing CPU load-balancing capacity, and while the DLB on-chip accelerator reduces software overhead, it still unnecessarily burns host CPU cycles on descriptor preparation that could be eliminated entirely.",
+  "method": "The paper first benchmarks DLB against software load balancers with a microbenchmark suite. It then proposes AccDirect, a system architecture and software co-design that exploits PCIe Peer-to-Peer (P2P) communication to create a direct path between the NIC and DLB, eliminating the host CPU from the descriptor enqueue path. The NIC directly enqueues work descriptors to DLB hardware queues using P2P DMA, removing all CPU cycles from the load-balancing hot path.",
+  "key_novelty": "AccDirect eliminates host CPU involvement in load balancing by using PCIe P2P to connect NIC directly to the on-chip DLB, reducing system-wide CPU power by 10% while maintaining equivalent throughput.",
+  "contributions": [
+    "Comprehensive performance comparison of Intel DLB vs. software load balancers via a microbenchmark suite",
+    "Identification that host CPU descriptor preparation is the dominant remaining overhead in DLB-based load balancing",
+    "AccDirect: a PCIe P2P co-design allowing NIC to directly enqueue descriptors to DLB without CPU involvement",
+    "Configuration guidelines for DLB's large configuration space and advanced QoS features"
+  ],
+  "hardware_target": ["CPU", "SmartNIC"],
+  "technique_category": ["interconnect", "scheduling", "power"],
+  "workloads": ["database", "HPC"],
+  "metrics": {
+    "speedup": "14-50% higher throughput than commodity hardware load balancer at comparable p99 latency",
+    "energy_or_tops_w": "10% reduction in system-wide host CPU power consumption",
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["software-based load balancers", "commodity hardware load balancers", "conventional DLB"],
+  "limitations": "Evaluation is specific to Intel Xeon + DLB platform; generalization to other CPU/NIC platforms with different PCIe topologies not discussed.",
+  "tags": ["load-balancing", "dlb", "pcie-p2p", "cpu", "networking", "latency"],
+  "primary_theme": "CPU-bypass load balancing via PCIe P2P NIC-to-DLB direct communication",
+  "confidence": "low"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "isca-2025-086",
+  "title": "Finesse: An Agile Design Framework for Pairing-based Cryptography via Software/Hardware Co-Design",
+  "venue": "ISCA",
+  "problem": "Pairing-based cryptography (PBC) accelerators require frequent re-engineering as security demands grow and pairing curve parameters evolve, but existing designs are either highly customized (inflexible) or flexible but low-performance, with no framework automating the algorithm-to-hardware translation across diverse pairing curves. The complex interdependency among algorithm choices, finite-field operator variants, and hardware configurations makes design-space exploration intractable manually.",
+  "motivation": "Evolving cryptographic attacks force migration to larger bit-width pairing curves (e.g., BN254 to BLS24-509), which 2-order-of-magnitude slower than standard signatures, creating an urgent need for an agile framework that cuts re-engineering cycles from months to minutes.",
+  "method": "Finesse introduces a three-layer abstraction: an intermediate representation (IR) for finite-field operations over arbitrary extension fields, a RISC-flavor Fp-level ISA with VLIW extension, and a parameterized hardware pipeline model. A specialized compiler performs SSA-based dataflow optimization, instruction scheduling with issue-slot affinity optimization, and register bank allocation before generating binary for target hardware. A cycle-accurate simulator enables co-design feedback loops with EDA toolchain synthesis metrics. The hardware implements modular arithmetic ALUs (mmul, madd, mlin, minv) in a multi-core SIMT architecture with shared instruction memory on ASIC (40 nm) and FPGA (Virtex-7) platforms.",
+  "key_novelty": "Issue-slot affinity scheduling that partitions pipeline slots into periodic intervals aligning Long (modmul) and Short (linear) instructions to eliminate write-back conflicts, combined with a co-design feedback loop between compiler and EDA synthesis for joint algorithm-architecture optimization across arbitrary pairing curves.",
+  "contributions": [
+    "Finesse agile design framework spanning algorithm IR to hardware RTL for arbitrary pairing curves with compilation in minutes",
+    "Three-layer abstraction system (IR, ISA, hardware model) decoupling algorithm variants from hardware implementation",
+    "Issue-slot affinity scheduling optimization that improves IPC from ~0.19 to ~0.87-0.97 across BN and BLS curve families",
+    "34x throughput and 6.2x area efficiency improvement over prior flexible frameworks; 3x throughput and 3.2x area efficiency over state-of-the-art fixed ASIC designs"
+  ],
+  "hardware_target": ["ASIC", "FPGA"],
+  "technique_category": ["compiler", "scheduling", "circuit-design", "dataflow"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": "1.77 mm2 (1-core, 40nm); 8.00 mm2 (8-core, 40nm); 12.09 kops/mm2 vs 1.39 kops/mm2 for prior ASIC at 65nm equiv.",
+    "ppa": "34x throughput, 6.2x slice efficiency vs FlexiPair; 3x throughput, 3.2x area efficiency vs SOTA ASIC",
+    "other": "Compilation time: 8.0s (BN254) to 53.1s (BLS24-509); IPC improved from 0.19 to 0.87-0.97"
+  },
+  "baselines": ["FlexiPair (flexible FPGA framework)", "Prior state-of-the-art ASIC pairing accelerator (65nm FDSOI, 250 MHz)"],
+  "limitations": "Design-space exploration currently uses exhaustive search over operator variant combinations, which may not scale to the full design space for very complex future curves.",
+  "tags": ["pairing-cryptography", "agile-design", "compiler", "sw-hw-codesign", "asic", "fpga"],
+  "primary_theme": "Agile compiler-driven co-design framework for pairing-based cryptography accelerators",
+  "confidence": "high"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "isca-2025-020",
+  "title": "REIS: A High-Performance and Energy-Efficient Retrieval System with In-Storage Processing",
+  "venue": "ISCA",
+  "problem": "The retrieval stage of RAG (Retrieval-Augmented Generation) is a throughput bottleneck because Approximate Nearest Neighbor Search (ANNS) on large embedding databases incurs massive data movement between host and storage; existing In-Storage Processing (ISP) approaches use storage-agnostic ANNS algorithms, do not accelerate the subsequent data-fetch step, and require heavy SSD hardware modifications.",
+  "motivation": "LLMs have static knowledge cutoffs and retraining is prohibitively expensive; RAG is the practical solution, but its retrieval stage can dominate end-to-end inference latency at scale, making storage-side acceleration critical for production deployments.",
+  "method": "REIS co-designs the ANNS algorithm with ISP hardware inside the storage system to avoid host-storage data movement. It adopts an ISP-tailored ANNS algorithm that exploits the internal bandwidth and parallelism of NAND flash controllers without large hardware modifications. REIS additionally accelerates the data-retrieval step for items selected by ANNS, overlapping fetch and search computations. The system is designed to minimize changes to storage hardware while maximizing throughput.",
+  "key_novelty": "ISP-tailored ANNS algorithm that co-designs the search procedure with the flash storage controller's internal architecture, simultaneously accelerating both vector search and subsequent data retrieval without significant hardware modification.",
+  "contributions": [
+    "ISP-optimized ANNS algorithm tailored to the internal bandwidth and parallelism of flash storage controllers",
+    "Acceleration of the post-ANNS data retrieval step, which prior ISP works leave on the critical path",
+    "Near-storage system design that requires minimal hardware modifications to existing SSD architectures",
+    "High-performance, energy-efficient retrieval system enabling faster RAG pipelines for LLMs"
+  ],
+  "hardware_target": ["PIM (processing-in-memory)", "ASIC"],
+  "technique_category": ["near-data-processing", "memory-system", "dataflow"],
+  "workloads": ["LLM-inference", "database"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "other": "High performance and energy efficiency claimed; specific numbers not reported in abstract"
+  },
+  "baselines": ["prior in-storage processing ANNS works", "host-based ANNS over storage interface"],
+  "limitations": "Not discussed in abstract; hardware modification scope and ANNS accuracy-recall tradeoffs under ISP constraints are not quantified.",
+  "tags": ["RAG", "in-storage-processing", "ANNS", "LLM-inference", "near-data-processing"],
+  "primary_theme": "in-storage processing for RAG retrieval acceleration",
+  "confidence": "low"
+}

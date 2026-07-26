@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-033",
+  "title": "Topology-Aware Virtualization over Inter-Core Connected Neural Processing Units",
+  "venue": "ISCA",
+  "problem": "Inter-core connected NPUs (e.g., Graphcore IPU, Tenstorrent) require large hardware resources, leading to poor utilization when tasks have imbalanced resource requirements, yet no prior virtualization work accounts for their hardware topology (NoC routing, SRAM-centric cores). Existing MIG-style monolithic virtualization ignores inter-core communication structure and therefore delivers suboptimal performance when multiple workloads share the device.",
+  "motivation": "AI accelerator deployments in cloud and edge increasingly use inter-core connected NPUs, but imbalanced resource utilization across tasks wastes expensive silicon and limits multi-tenancy throughput.",
+  "method": "vNPU introduces three integrated techniques: (1) NPU route virtualization redirects instruction and data flow from virtual NPU core IDs to physical cores, constructing a virtual topology over the physical NoC fabric; (2) NPU memory virtualization uses SRAM-centric and NoC-aware address translation to minimize translation stalls and maximize effective memory bandwidth; (3) best-effort topology mapping enumerates candidate virtual topologies and selects the mapping that best balances resource utilization against end-to-end performance for the collocated workload mix. A prototype is validated on FPGA (Chipyard+FireSim) and on a simulator (DCRA).",
+  "key_novelty": "vNPU is the first virtualization design for inter-core connected NPUs that simultaneously virtualizes routing, SRAM-centric memory translation, and topology mapping to preserve the spatial communication structure of the physical device within each virtual partition.",
+  "contributions": [
+    "NPU route virtualization that redirects data/instruction flow from virtual to physical cores, creating a virtual topology transparent to workloads.",
+    "NPU memory virtualization optimized for SRAM-centric, NoC-equipped cores to minimize translation stalls.",
+    "Best-effort topology mapping algorithm that finds the optimal virtual-to-physical core assignment across all candidates.",
+    "FPGA and simulator prototype demonstrating up to 1.92x speedup for Transformer and 1.28x for ResNet vs MIG-based baseline."
+  ],
+  "hardware_target": ["NPU", "FPGA"],
+  "technique_category": ["virtualization", "interconnect", "memory-system", "scheduling"],
+  "workloads": ["transformer", "CNN"],
+  "metrics": {
+    "speedup": "up to 1.92x (Transformer) and 1.28x (ResNet) vs MIG-based virtualization",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["MIG-based virtualization method"],
+  "limitations": "Prototype is validated on FPGA simulation (FireSim) and a functional simulator rather than real inter-core connected NPU silicon, which may not capture all real-world timing effects.",
+  "tags": ["npu", "virtualization", "inter-core", "topology", "noc", "multi-tenancy"],
+  "primary_theme": "topology-aware virtualization for inter-core connected NPUs",
+  "confidence": "low"
+}

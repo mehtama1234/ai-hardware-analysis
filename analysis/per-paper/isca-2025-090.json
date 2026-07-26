@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-090",
+  "title": "Chimera: Communication Fusion for Hybrid Parallelism in Large Language Models",
+  "venue": "ISCA",
+  "problem": "Hybrid parallelism strategies (tensor, pipeline, sequence, data parallelism combined) for LLM training and inference on multi-NPU systems generate a large volume of diverse collective communications whose blocking nature severely throttles compute utilization. Redundant communication operators introduced by combining multiple parallelism dimensions compound this bottleneck.",
+  "motivation": "Communication overhead is the dominant bottleneck in scaling LLMs across multi-NPU clusters; eliminating redundant collectives via fusion directly translates to proportional end-to-end throughput improvement without any model accuracy loss.",
+  "method": "Chimera performs a systematic analysis of communication processes for each parallelism dimension (tensor, pipeline, data, sequence), identifies redundant collective operations that arise when multiple parallelism strategies are combined, and eliminates them by fusing adjacent communication operators during parallelism transformation. It reorders operations and generates a single redundancy-free communication operator that achieves the semantics of the original multi-collective sequence. The resulting fused operator is injected into the LLM computation graph as a replacement for the original blocking collectives.",
+  "key_novelty": "Cross-parallelism communication operator fusion that detects and eliminates redundant collectives arising from the combination of multiple LLM parallelism strategies, replacing them with a single semantically equivalent operator.",
+  "contributions": [
+    "Comprehensive analysis of communication redundancy across all hybrid LLM parallelism patterns",
+    "Chimera communication fusion mechanism that eliminates redundant collectives by merging adjacent operators during parallelism transformation",
+    "1.23–7.06x network bandwidth speedup through redundancy elimination",
+    "1.32–1.58x forward pass and 1.16–1.36x backward pass end-to-end speedup on representative multi-NPU systems"
+  ],
+  "hardware_target": ["NPU"],
+  "technique_category": ["parallelism", "interconnect", "kernel-fusion"],
+  "workloads": ["LLM-inference", "LLM-training"],
+  "metrics": {
+    "speedup": "1.32–1.58x forward pass, 1.16–1.36x backward pass vs no fusion",
+    "other": "1.23–7.06x network bandwidth speedup"
+  },
+  "baselines": ["Multi-NPU LLM systems without communication fusion"],
+  "limitations": "The degree of redundancy and thus speedup is highly dependent on the specific parallelism configuration; benefits may be limited for systems using only a single parallelism dimension.",
+  "tags": ["llm", "communication-fusion", "hybrid-parallelism", "multi-npu", "collective-communication"],
+  "primary_theme": "Communication fusion to eliminate redundant collectives in hybrid LLM parallelism",
+  "confidence": "low"
+}

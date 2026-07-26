@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-059",
+  "title": "LIA: A Single-GPU LLM Inference Acceleration with Cooperative AMX-Enabled CPU-GPU Computation and CXL Offloading",
+  "venue": "ISCA",
+  "problem": "Single-GPU LLM inference is constrained by GPU memory capacity, forcing either expensive multi-GPU deployments or frequent CPU-GPU transfers over slow PCIe, which bottleneck both latency and throughput.",
+  "motivation": "Modern Intel CPUs with Advanced Matrix Extensions (AMX) achieve 20-40 TFLOPS matrix multiplication throughput—comparable to some GPUs—unlocking significant computation offloading to CPUs to reduce PCIe data movement and GPU memory pressure.",
+  "method": "LIA is a single-GPU LLM inference framework that systematically offloads matrix computations to AMX-enabled CPUs (4th-gen Sapphire Rapids and 6th-gen Granite Rapids Xeon), reducing CPU-GPU transfers by keeping model parameters near the CPU. LIA introduces a memory-offloading policy that integrates CXL memory (as an affordable DRAM extension) with DDR memory to expand effective model capacity for throughput-oriented batch workloads. The system partitions transformer layer computations between CPU and GPU based on runtime latency/throughput objectives, using AMX tile instructions for high-throughput GEMM on the CPU side.",
+  "key_novelty": "A cooperative CPU-GPU inference framework that exploits AMX matrix extensions on modern Intel CPUs as a genuine compute peer to the GPU, combined with CXL memory integration for extended model capacity without multi-GPU cost.",
+  "contributions": [
+    "Benchmarking of AMX throughput on Sapphire Rapids (20 TFLOPS) and Granite Rapids (40 TFLOPS), demonstrating viability as GPU-class compute for LLM offloading.",
+    "LIA framework for cooperative AMX-enabled CPU-GPU LLM inference with latency and throughput optimization.",
+    "CXL memory offloading policy integrated with DDR to enable larger batch sizes (up to 900-1.6K) and 1.5x additional throughput.",
+    "Up to 19x lower latency and 5.1x higher throughput vs state-of-the-art single-GPU offloading on Granite Rapids + H100."
+  ],
+  "hardware_target": ["GPU", "CPU"],
+  "technique_category": ["memory-system", "parallelism", "near-data-processing"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "Up to 5.1x lower latency (Sapphire Rapids), up to 19x lower latency (Granite Rapids) vs latest single-GPU offloading; 3.7x-5.1x higher throughput",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "CXL offloading yields additional 1.5x throughput; max batch size increased 1.8x (900-1.6K)"
+  },
+  "baselines": ["latest single-GPU LLM offloading framework", "LIA with DDR memory only (for CXL comparison)"],
+  "limitations": "Not discussed; cost and availability of CXL memory hardware and Granite Rapids systems in production deployments are not addressed.",
+  "tags": ["llm-inference", "cpu-gpu-offloading", "amx", "cxl-memory", "single-gpu", "matrix-extensions"],
+  "primary_theme": "AMX CPU-GPU cooperative LLM inference with CXL memory offloading",
+  "confidence": "low"
+}

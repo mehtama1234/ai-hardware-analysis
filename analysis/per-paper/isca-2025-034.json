@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-034",
+  "title": "WindServe: Efficient Phase-Disaggregated LLM Serving with Stream-based Dynamic Scheduling",
+  "venue": "ISCA",
+  "problem": "Phase-disaggregated LLM serving systems that separate compute-bound prefill from memory-bandwidth-bound decoding still suffer from coarse-grained static scheduling that leaves prefill compute overloaded while decoding resources sit idle, creating queuing delays and underutilization. KV cache transfers between disaggregated phases introduce additional scheduling overhead that further degrades latency SLOs.",
+  "motivation": "LLM inference serving must meet tight TTFT (time-to-first-token) and TPOT (time-per-output-token) SLOs under high load, but existing disaggregated systems use static assignment that cannot adapt to dynamic request arrival patterns and resource availability.",
+  "method": "WindServe implements a global scheduler that continuously monitors compute and memory resource usage across prefill and decoding pools and dynamically orchestrates cross-phase job assignments to reduce queuing delay and KV-cache swapping overhead. A stall-free rescheduling strategy saturates memory resources while minimizing overhead from KV cache transfers between phases. A stream-based pipeline mitigates interference between prefill and decoding jobs running concurrently by separating their execution streams and managing dependencies asynchronously.",
+  "key_novelty": "WindServe's stall-free rescheduling strategy enables continuous saturation of memory resources during KV cache migration between disaggregated phases without introducing scheduling stalls, enabling fine-grained dynamic load balancing that static schedules cannot achieve.",
+  "contributions": [
+    "Fine-grained dynamic scheduler monitoring compute and memory resource utilization to orchestrate cross-phase job assignment in real time.",
+    "Stall-free rescheduling strategy that saturates memory resources while KV cache transfers occur between prefill and decoding nodes.",
+    "Stream-based pipeline that mitigates interference between co-running prefill and decoding jobs.",
+    "4.28x improvement in TTFT median latency and 1.5x reduction in TPOT P99 latency over state-of-the-art phase-disaggregated serving systems."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "memory-system", "parallelism"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "4.28x TTFT median improvement; 1.5x TPOT P99 reduction vs SOTA phase-disaggregated systems",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "improved SLO attainment under high load"
+  },
+  "baselines": ["state-of-the-art phase-disaggregated LLM serving systems (unspecified in abstract)"],
+  "limitations": "Not discussed (specific systems compared against and workload characteristics are not detailed in the abstract).",
+  "tags": ["llm-serving", "phase-disaggregation", "scheduling", "kv-cache", "prefill-decoding", "latency-slo"],
+  "primary_theme": "dynamic scheduling for phase-disaggregated LLM inference serving",
+  "confidence": "low"
+}

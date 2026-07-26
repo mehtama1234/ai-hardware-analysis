@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-107",
+  "title": "MoPAC: Efficiently Mitigating Rowhammer with Probabilistic Activation Counting",
+  "venue": "ISCA",
+  "problem": "DDR5 JEDEC's Per-Row Activation Counters (PRAC) introduce extended DRAM timing parameters that cause 10% average performance overhead for all applications—even benign ones—because counter updates are performed on every activation regardless of actual attack likelihood.",
+  "motivation": "As PRAC moves toward commercial adoption in DDR5, its blanket per-activation overhead represents a significant tax on normal workloads that must be reduced without compromising Rowhammer security guarantees.",
+  "method": "MoPAC reduces counter-update frequency by performing PRAC updates probabilistically rather than on every row activation. To maintain security, the mitigation threshold is adjusted downward by the inverse of the sampling probability to ensure aggressors are still caught before exceeding the Rowhammer threshold. MoPAC-C (memory-controller side) uses two precharge command variants: a normal-latency precharge that skips counter updates and a higher-latency precharge that performs counter updates, with the controller probabilistically selecting which to issue. MoPAC-D (in-DRAM) probabilistically selects activations for counter updates within the DRAM chip and uses ALERT or REF timing to absorb the counter-update latency.",
+  "key_novelty": "Probabilistic PRAC counter updates with threshold compensation, enabling a hardware-transparent reduction in DDR5 timing overhead while preserving formal Rowhammer security guarantees.",
+  "contributions": [
+    "MoPAC-C: memory-controller-side probabilistic precharge selection achieving 1.7% average slowdown at threshold 500, vs. 10% for PRAC.",
+    "MoPAC-D: fully in-DRAM probabilistic activation sampling achieving 0.7% average slowdown at threshold 500.",
+    "Formal security argument showing threshold adjustment correctly compensates for probabilistic undercounting.",
+    "Demonstration that MoPAC removes a major commercial adoption barrier for PRAC in DDR5."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "reliability", "approximation"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "MoPAC-C: 1.7% slowdown; MoPAC-D: 0.7% slowdown at threshold 500 vs. 10% for PRAC",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["PRAC (DDR5 standard)", "TRR"],
+  "limitations": "Probabilistic undercounting could be exploited by adversaries who craft attack patterns that exploit the sampling gap; the security argument assumes statistical independence of activations.",
+  "tags": ["rowhammer", "dram", "ddr5", "prac", "probabilistic-counting", "memory-security"],
+  "primary_theme": "Probabilistic DRAM activation counting for efficient Rowhammer mitigation",
+  "confidence": "low"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "isca-2025-016",
+  "title": "Avalanche: Optimizing Cache Utilization via Matrix Reordering for Sparse Matrix Multiplication Accelerator",
+  "venue": "ISCA",
+  "problem": "Sparse Matrix Multiplication (SpMM) accelerators suffer from poor on-chip memory utilization due to irregular memory access patterns; existing designs fail to cache both input matrices efficiently, leading to redundant DRAM accesses and low throughput.",
+  "motivation": "SpMM is ubiquitous in scientific computing and graph workloads, and as models grow sparser, on-chip memory utilization becomes the primary performance limiter rather than raw compute throughput.",
+  "method": "Avalanche applies three complementary techniques: (1) Mat-Reorder reorders columns of matrix B to maximize data locality and enable early completion of row computations in matrix A; (2) DP-Evict (Dead-Product Early Eviction) immediately evicts fully-computed intermediate products from on-chip SRAM to reclaim capacity; (3) RM-Caching (Reuse Distance-Aware Matrix Caching) prioritizes retention of matrix B elements with short reuse distances in the on-chip cache. Together these techniques keep both operand matrices resident in a 6.15 mm2 chip with minimal spill-to-DRAM.",
+  "key_novelty": "Column reordering of the sparse input matrix (Mat-Reorder) to align non-zero access patterns with on-chip cache capacity, enabling simultaneous caching of both operand matrices.",
+  "contributions": [
+    "Mat-Reorder algorithm that reorders matrix columns to improve data locality and allow early row-computation completion",
+    "Dead-Product Early Eviction (DP-Evict) policy that reclaims on-chip memory as soon as partial products are finalized",
+    "Reuse Distance-Aware Matrix Caching (RM-Caching) that prioritizes high-reuse elements for on-chip retention",
+    "End-to-end SpMM accelerator (6.15 mm2) achieving 1.97x average speedup over state-of-the-art SpMM accelerators"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["memory-system", "cache", "dataflow", "scheduling"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "speedup": "1.97x average over state-of-the-art SpMM accelerator",
+    "area": "6.15 mm2 chip area",
+    "other": null
+  },
+  "baselines": ["state-of-the-art SpMM accelerator (unspecified, inferred from abstract)"],
+  "limitations": "The matrix reordering step incurs preprocessing overhead that may not be amortized for one-shot or highly dynamic sparse workloads.",
+  "tags": ["spmm", "sparse", "on-chip-cache", "matrix-reordering", "data-locality"],
+  "primary_theme": "on-chip cache optimization for sparse matrix multiplication",
+  "confidence": "low"
+}

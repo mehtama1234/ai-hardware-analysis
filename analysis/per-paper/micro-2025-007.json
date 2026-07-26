@@ -1,0 +1,28 @@
+{
+  "id": "micro-2025-007",
+  "title": "Distributed-HISQ: A Distributed Quantum Control Architecture",
+  "venue": "MICRO",
+  "problem": "Distributed quantum control architectures (DQCAs) for superconducting qubits face two blockers: existing lock-step synchronization schemes incur large execution overheads (idle time or full program broadcast across controllers), and existing quantum ISAs are either too high-level or too hardware-specific to support diverse qubit technologies and gate implementation strategies on a single microarchitecture.",
+  "motivation": "Fault-tolerant quantum computing requires thousands to millions of qubits, making distributed control inevitable, yet nondeterministic feedback loop latencies demand cycle-accurate cross-controller synchronization that current lock-step and demand-driven schemes cannot provide efficiently.",
+  "method": "Distributed-HISQ comprises two mechanisms: (1) HISQ, a hardware instruction set built as an extension to RISC-V 32I that abstracts quantum control as 'send codeword X to port Y at time T,' decoupling instruction semantics from both quantum-operation meaning and analog electronics; and (2) BISP (Booking-based Instruction Synchronization Protocol), which exploits the deterministic duration of quantum gates to pre-book synchronization points in advance, achieving zero-cycle overhead when the deterministic tasks preceding sync are long enough to hide inter-controller communication latency. The system uses a hybrid tree+mesh network topology, with a balanced tree for region-level remote sync and mesh-like intra-layer links mirroring qubit device topology for nearest-neighbor sync. BISP hardware costs only 13 LUTs per SyncU on an FPGA.",
+  "key_novelty": "The booking-based synchronization protocol (BISP) allows controllers to pre-announce their synchronization time-points before reaching them, eliminating the round-trip latency overhead of prior on-demand sync schemes and enabling zero-cycle synchronization overhead in the common case.",
+  "contributions": [
+    "HISQ: a hardware-agnostic quantum ISA extension to RISC-V that decouples control from quantum semantics and analog implementation, enabling a single microarchitecture to serve multiple qubit technologies",
+    "BISP: a booking-based synchronization protocol achieving potentially zero-cycle overhead, implemented in 13 LUTs, supporting both nearest-neighbor and region-level remote synchronization",
+    "Full implementation and validation on a commercial 66-qubit superconducting quantum control system (DQCtrl), including qubit-level calibration experiments",
+    "Simulation results showing 22.8% average program execution time reduction and ~5x infidelity reduction versus lock-step baseline across dynamic circuit benchmarks"
+  ],
+  "hardware_target": ["FPGA"],
+  "technique_category": ["scheduling", "parallelism", "compiler"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "22.8% reduction in average program execution time vs. lock-step baseline",
+    "accuracy": "~5x reduction in infidelity vs. lock-step baseline for long-range CNOT circuits",
+    "other": "BISP SyncU costs only 13 LUTs; HISQ full control board: 4155 LUTs, 6392 FFs, 2.46 Mb BRAM"
+  },
+  "baselines": ["IBM-style lock-step synchronization (central controller broadcast)"],
+  "limitations": "Region-level synchronization was not achievable in the physical hardware prototype due to limited LVDS connectivity; scalability analysis assumes idealized constant communication latency for the baseline, potentially underestimating baseline overhead.",
+  "tags": ["quantum-control", "synchronization", "quantum-isa", "distributed-control", "fpga", "superconducting-qubits"],
+  "primary_theme": "distributed quantum control architecture with zero-overhead synchronization",
+  "confidence": "high"
+}

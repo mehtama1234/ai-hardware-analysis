@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-058",
+  "title": "NMP-PaK: Near-Memory Processing Acceleration of Scalable De Novo Genome Assembly",
+  "venue": "ISCA",
+  "problem": "De novo genome assembly using De Bruijn graph (DBG) algorithms is both memory-latency-bound and memory-footprint-intensive: processing 10% of the human genome (38.3 GB input) requires 528 GB of DRAM, and the Iterative Compaction step—which dominates 48% of runtime—achieves only 2.5% of available memory bandwidth due to fine-grained, irregular access patterns across large, dynamic MacroNode data structures.",
+  "motivation": "Genomic datasets are growing faster than Moore's Law, and state-of-the-art distributed assemblers (e.g., PaKman) require tens of thousands of CPU cores and hundreds of terabytes of memory, making personalized medicine and microbiome analysis prohibitively costly on single-node systems.",
+  "method": "NMP-PaK places pipelined systolic Processing Elements (PEs) inside DIMM buffer chips (channel-level NMP) to exploit high internal memory bandwidth and reduce data movement latency. Each PE implements a 3-stage pipeline (Invalidation Check, TransferNode Extraction, Routing and Update) operating at MacroNode granularity, with an intra-DIMM crossbar switch and an inter-DIMM network bridge routing TransferNodes between PEs. Software optimizations complement the hardware: customized batch processing divides the genome into 10% batches to reduce peak memory footprint by 14x, pointer-aliasing deduplication eliminates redundant MacroNode copies, and a hybrid CPU-NMP strategy offloads large MacroNodes (>1 KB) to the CPU to avoid PE buffer oversizing and workload imbalance.",
+  "key_novelty": "Channel-level NMP with pipelined systolic PEs co-designed specifically for the MacroNode data structure of DBG assembly, enabling parallel MacroNode-granular Iterative Compaction with inter-DIMM TransferNode routing and a hybrid CPU-NMP offload policy for irregular outliers.",
+  "contributions": [
+    "Systematic analysis showing that PaKman's Iterative Compaction is memory-latency-bound (54.2% stall time) with severely underutilized bandwidth (2.5% of 204.8 GB/s), making it suitable for channel-level NMP.",
+    "Channel-level NMP architecture with 3-stage pipelined systolic PEs, intra-DIMM crossbar, and inter-DIMM network bridge tailored to MacroNode-granular Iterative Compaction.",
+    "Software stack including customized batch processing (14x memory footprint reduction), pointer-aliasing deduplication, and hybrid CPU-NMP hybrid processing for irregular large MacroNodes.",
+    "16x speedup over CPU baseline, 5.7x over GPU baseline, and 8.3x throughput improvement over PaKman on a supercomputer under identical resource constraints."
+  ],
+  "hardware_target": ["PIM (processing-in-memory)", "CPU"],
+  "technique_category": ["near-data-processing", "memory-system", "dataflow", "scheduling"],
+  "workloads": ["genomics"],
+  "metrics": {
+    "speedup": "16x over CPU baseline; 5.7x over GPU (A100); 8.3x throughput vs PaKman supercomputer under same resources",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "14x memory footprint reduction; 2.4x reduction in memory operations",
+    "other": "Memory bandwidth utilization: 44% (NMP-PaK) vs 6.5% (CPU baseline)"
+  },
+  "baselines": ["Software-optimized PaKman CPU baseline (Intel Xeon Platinum 8380, 40 cores)", "NVIDIA A100 40GB GPU", "PaKman on supercomputer (16,384 cores, 1,024 nodes)"],
+  "limitations": "NMP-PaK targets a single-node system; the 8.3x throughput advantage over the supercomputer reflects resource efficiency, not raw speed—the supercomputer completes full human genome assembly 123x faster in wall time.",
+  "tags": ["genomics", "near-memory-processing", "de-novo-assembly", "dram-buffer-chip", "hardware-software-codesign", "de-bruijn-graph"],
+  "primary_theme": "Channel-level NMP acceleration of De Bruijn graph genome assembly",
+  "confidence": "high"
+}

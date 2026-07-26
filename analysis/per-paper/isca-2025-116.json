@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-116",
+  "title": "SpecEE: Accelerating Large Language Model Inference with Speculative Early Exiting",
+  "venue": "ISCA",
+  "problem": "Early exiting for LLM inference is bottlenecked by the predictor, which must search over a vocabulary of ~30,000 tokens per layer and incurs up to 20% overall inference latency overhead. Existing predictors also fail to integrate with speculative decoding token trees without exponential mapping complexity.",
+  "motivation": "Early exiting can skip expensive upper Transformer layers for easy tokens, but the vocabulary-scale predictor overhead and poor interaction with speculative decoding prevent its practical deployment at scale.",
+  "method": "SpecEE introduces a speculative-model-based paradigm that uses a small draft model to reduce the token vocabulary search space for the early-exit predictor. It redesigns the predictor to exploit inherent data variation and GPU parallelism to cut computational complexity, uses layer-wise activation frequency profiling to weight predictor deployment non-uniformly across layers, and develops a tree-aware mapping that handles the full speculative decoding token tree without exponential blowup.",
+  "key_novelty": "Using a speculative draft model to shrink the predictor's runtime search space so that early exiting and speculative decoding compose efficiently.",
+  "contributions": [
+    "Identification of vocabulary size as the dominant source of early-exit predictor overhead (up to 20% latency)",
+    "Speculative-model-based predictor that reduces vocabulary search space and improves GPU parallelization",
+    "Layer-wise non-uniform predictor deployment guided by per-layer activation frequency statistics",
+    "Tree-aware early-exit mapping compatible with speculative decoding token trees at linear rather than exponential complexity"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["sparsity", "scheduling", "parallelism"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "predictor overhead reduced from ~20% to lower; specific end-to-end speedup not stated in abstract"
+  },
+  "baselines": ["standard early exiting LLM inference systems"],
+  "limitations": "Quantitative end-to-end speedup numbers and accuracy impact are not reported in the abstract.",
+  "tags": ["early-exit", "speculative-decoding", "llm-inference", "predictor", "gpu"],
+  "primary_theme": "speculative early exiting for LLM inference",
+  "confidence": "low"
+}

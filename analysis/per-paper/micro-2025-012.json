@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-012",
+  "title": "Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving",
+  "venue": "MICRO",
+  "problem": "MoE LLM inference is bottlenecked by the massive expert parameter volume (>95% of model size in models like Mixtral 8x7B), which overwhelms GPU HBM bandwidth and capacity; HBM-based NMP approaches are further limited by coarse-pitch TSV interconnects (~10 µm) that cap internal bandwidth.",
+  "motivation": "Monolithic 3D-Stackable DRAM (Mono3D DRAM) enables Cu-Cu hybrid bonding at 1 µm pitch—5x finer than HBM TSVs—delivering higher internal bandwidth, but its aggressive vertical scaling introduces layer-dependent access latency heterogeneity that naive designs waste.",
+  "method": "Stratum integrates Mono3D DRAM with NMP logic via Cu-Cu hybrid bonding on a logic die, connected to GPU via 2.5D silicon interposer. Within the Mono3D DRAM stack, an in-memory tiering mechanism assigns expert weights to fast (low wordline-staircase latency) or slow tiers based on predicted access frequency. A lightweight topic classifier predicts which experts will be hot for a given batch of user queries and re-maps them to fast tiers before each batch via a row-swap buffer. The NMP processor on the logic die includes per-channel Processing Units (PUs) connected via a ring network, each containing near-bank PE clusters with tensor cores executing GeMM/GeMV, an intra-channel reducer, and a SIMD special-function engine for Softmax/SiLU. The prefill phase runs on the GPU (xPU) and decoding runs on Stratum NMP.",
+  "key_novelty": "In-memory tiering exploits inherent access-latency heterogeneity across Mono3D DRAM wordline layers, combined with topic-based expert usage prediction, to maximally concentrate hot expert weights in fast DRAM tiers without off-chip data movement.",
+  "contributions": [
+    "First system-hardware co-design for MoE serving using Monolithic 3D-Stackable DRAM, integrating 3D hybrid bonding with 2.5D silicon interposer",
+    "In-memory tiering mechanism with tiering tables and row-swap buffers to exploit Mono3D DRAM layer-latency heterogeneity",
+    "NMP processor architecture with ring-based on-chip network, near-bank tensor cores, and SIMD special-function engine optimized for MoE expert and attention execution",
+    "Topic-aware serving system with lightweight topic classifier and SLO-aware scheduler achieving up to 8.29x decoding throughput and 7.66x energy efficiency vs. GPU baselines"
+  ],
+  "hardware_target": ["GPU", "PIM", "chiplet"],
+  "technique_category": ["near-data-processing", "memory-system", "packaging", "scheduling"],
+  "workloads": ["LLM-inference", "MoE", "attention"],
+  "metrics": {
+    "speedup": "up to 8.29x decoding throughput improvement vs. GPU baseline",
+    "energy_or_tops_w": "up to 7.66x better energy efficiency vs. GPU baseline",
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Mono3D DRAM internal bandwidth: ~5x higher vertical interconnect density than HBM (1 µm vs 10 µm TSV pitch)"
+  },
+  "baselines": ["NVIDIA H100 GPU-HBM baseline", "NVIDIA RTX A6000 GPU-HBM baseline", "AttAcc", "Neupims", "Duplex"],
+  "limitations": "Mono3D DRAM is an emerging technology not yet in volume production; evaluation is simulation-based and assumes projected device parameters that may differ from eventual silicon.",
+  "tags": ["moe", "llm-inference", "near-memory-processing", "3d-dram", "memory-tiering", "chiplet"],
+  "primary_theme": "Mono3D DRAM NMP system for MoE LLM inference with in-memory tiering",
+  "confidence": "high"
+}

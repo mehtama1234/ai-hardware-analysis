@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-018",
+  "title": "AMALI: An Analytical Model for Accurately Modeling LLM Inference on Modern GPUs",
+  "venue": "ISCA",
+  "problem": "Existing GPU analytical models cannot accurately predict LLM inference performance because they mismodel tensor core throughput, ignore constant and instruction cache effects, and abstract away warp-level execution details critical to LLM kernels.",
+  "motivation": "Architects rely on analytical models to quickly identify bottlenecks and explore design spaces; errors exceeding 100% MAPE in current models make them unreliable for LLM inference workloads on modern GPUs such as A100.",
+  "method": "AMALI introduces three modeling innovations: (1) an instruction-modifier and throughput-based tensor core model that captures math-pipe throttle stalls by accurately modeling the pipeline fill/drain behavior of tensor cores; (2) micro-benchmark-derived analytical models for constant cache and instruction cache that measure CUDA kernel launching latencies; (3) a multi-warp model using warp instruction number distributions to reflect the heterogeneous occupancy and scheduling behavior of LLM inference kernels. All three components are validated against real A100 hardware measurements.",
+  "key_novelty": "The explicit modeling of instruction-cache and constant-cache latencies via micro-benchmarks, combined with a throttle-stall-aware tensor core model, reduces LLM inference MAPE from 127.56% to 23% on A100.",
+  "contributions": [
+    "Instruction-modifier and throughput-based tensor core model capturing math-pipe throttle stalls",
+    "Analytical constant-cache and instruction-cache models derived from CUDA micro-benchmarks",
+    "Multi-warp execution model using warp instruction number distribution for LLM inference characteristics",
+    "Validation on A100 GPU reducing MAPE from 127.56% to 23% across typical LLM inference applications"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["compiler", "memory-system"],
+  "workloads": ["LLM-inference", "transformer"],
+  "metrics": {
+    "accuracy": "MAPE reduced from 127.56% to 23% on A100",
+    "other": null
+  },
+  "baselines": ["existing GPU analytical models (prior work, MAPE ~127.56%)"],
+  "limitations": "Validation is limited to A100 GPU; applicability to other GPU microarchitectures (e.g., H100 with Hopper SM) requires additional micro-benchmark re-characterization.",
+  "tags": ["analytical-model", "LLM-inference", "GPU", "tensor-core", "performance-modeling"],
+  "primary_theme": "analytical GPU performance modeling for LLM inference",
+  "confidence": "low"
+}

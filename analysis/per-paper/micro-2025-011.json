@@ -1,0 +1,29 @@
+{
+  "id": "micro-2025-011",
+  "title": "HiPACK: Efficient Sub-8-Bit Direct Convolution with SIMD and Bitwise Management",
+  "venue": "MICRO",
+  "problem": "Sub-8-bit quantized convolutions on ARM SIMD (NEON/SVE) processors suffer from incompatibility because SIMD instructions lack native support for sub-8-bit data widths, requiring unpacking operations that conflict with parallel multiplication and negate the memory savings of quantization.",
+  "motivation": "Sub-8-bit quantization dramatically reduces memory footprint and compute cost for DNN inference, but the lack of efficient SIMD execution paths leaves substantial performance on the table on widely deployed ARM embedded and edge processors.",
+  "method": "HiPACK introduces a packing-centric direct convolution strategy with four key techniques: (1) decoupling the unpacking phase from multiplication by pre-expanding sub-8-bit data into a packed 8-bit layout before the multiply loop; (2) optimizing caching of intermediate packed data to improve L1/L2 hit rates; (3) determining ideal segmentation of the packed layout to balance register pressure and cache reuse; and (4) a Dual Interleaved Register (DIR) mechanism that interleaves two packed-data streams in alternating SIMD registers to enable full-width SIMD multiplication without scalar fallback paths.",
+  "key_novelty": "The Dual Interleaved Register (DIR) mechanism enables parallel sub-8-bit SIMD multiplication by interleaving two data streams so that a single SIMD multiply instruction processes both without width-mismatch stalls.",
+  "contributions": [
+    "HiPACK: a complete sub-8-bit direct convolution kernel for ARM SIMD that eliminates SIMD incompatibility through decoupled unpacking and DIR",
+    "Up to 4.6x speedup over floating-point baseline and 1.7x over state-of-the-art on BCM2711 ARM Cortex-A72",
+    "Open-source implementation at github.com/Xtra-Computing/HIPACK"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["quantization", "kernel-fusion", "dataflow"],
+  "workloads": ["CNN"],
+  "metrics": {
+    "speedup": "up to 4.6x vs. FP baseline; 1.7x vs. state-of-the-art on BCM2711 ARM",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["floating-point convolution on BCM2711", "state-of-the-art sub-8-bit ARM convolution libraries"],
+  "limitations": "Evaluation is limited to a single ARM Cortex-A72 processor (BCM2711); generalization to other ISAs (x86 AVX, RISC-V) or structured sparsity is not discussed.",
+  "tags": ["sub-8-bit", "quantization", "simd", "arm", "convolution", "edge-inference"],
+  "primary_theme": "sub-8-bit SIMD convolution via packing and dual interleaved registers",
+  "confidence": "low"
+}

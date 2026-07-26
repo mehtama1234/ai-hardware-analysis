@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-076",
+  "title": "In-Storage Acceleration of Retrieval Augmented Generation as a Service",
+  "venue": "ISCA",
+  "problem": "As RAG deployments shift knowledge bases to persistent NVMe storage to handle ever-growing corpora, the Search & Retrieval phase — comprising embedding model inference, similarity/relevance search over dynamic data structures, and long-latency storage accesses — becomes the dominant bottleneck for end-to-end latency.",
+  "motivation": "Moving RAG knowledge bases from DRAM to persistent storage dramatically lowers cost but fundamentally reshapes the performance profile, making in-storage compute an essential architecture to avoid the retrieval bottleneck from penalizing LLM generation quality of service.",
+  "method": "The paper proposes a metamorphic in-storage accelerator architecture embedded within NVMe storage devices. The in-storage accelerator is programmable to support diverse RAG retrieval algorithms, dynamic data structures (e.g., HNSW, IVF), and varying computational patterns. It executes smaller language models for query embedding generation entirely in-storage, while the final LLM generation runs on DGX A100 systems. The metamorphic design adapts its functional units to the retrieval algorithm at hand without requiring host CPU involvement in the hot path.",
+  "key_novelty": "A metamorphic (reconfigurable) in-storage accelerator that executes both embedding model inference and similarity search entirely within the storage device, eliminating retrieval-stage host CPU and DRAM round-trips.",
+  "contributions": [
+    "Empirical analysis identifying Search & Retrieval as the dominant RAG latency contributor when using persistent storage",
+    "Metamorphic in-storage accelerator architecture supporting diverse RAG algorithms and dynamic data structures",
+    "In-storage execution of smaller language models for query embedding generation",
+    "Up to 4.3x end-to-end throughput improvement over Xeon CPU + NVMe and 1.5x over A100 GPU + DRAM pipelines"
+  ],
+  "hardware_target": ["ASIC", "SoC"],
+  "technique_category": ["near-data-processing", "dataflow", "memory-system"],
+  "workloads": ["LLM-inference", "database", "transformer"],
+  "metrics": {
+    "speedup": "4.3x over Xeon CPU + NVMe; 1.5x over A100 GPU + DRAM",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Xeon CPUs with NVMe storage", "A100 GPUs with DRAM"],
+  "limitations": "In-storage embedding model execution is limited to smaller language models; large LLM generation still offloaded to external GPU systems.",
+  "tags": ["in-storage-compute", "rag", "nvm", "embedding", "retrieval", "llm-inference"],
+  "primary_theme": "in-storage accelerator for RAG retrieval and embedding",
+  "confidence": "low"
+}
