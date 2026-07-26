@@ -1,0 +1,35 @@
+{
+  "id": "mlsys-2025-023",
+  "title": "ThunderServe: High-performance and Cost-efficient LLM Serving in Cloud Environments",
+  "venue": "MLSYS 2025",
+  "problem": "LLM serving on heterogeneous cloud GPU clusters with diverse GPU types and limited/heterogeneous network bandwidth (PCIe/Ethernet rather than NVLink/InfiniBand) suffers poor throughput and high latency.",
+  "motivation": "Commercial cloud clusters mix GPU types (A100, A6000, A40, RTX 3090Ti) and use commodity networking. Existing systems assume homogeneous GPUs and high-bandwidth interconnects, leaving performance on the table and missing the opportunity to assign compute-intensive prefill to high-FLOPS GPUs and memory-bandwidth-bound decode to high-HBM-bandwidth GPUs.",
+  "method": "Two-level hierarchical scheduling: (1) Upper-level tabu search partitions GPU pool into model-serving groups, designating each group as prefill-phase or decode-phase. (2) Lower-level deduces optimal tensor/pipeline parallelism per group and orchestrates request routing via a two-stage transportation problem solved as linear programming. Phase splitting assigns prefill to high-FLOPS GPUs (e.g., A40) and decode to high-HBM-bandwidth GPUs (e.g., 3090Ti). 4-bit KV cache quantization for inter-phase transfer; dequantized before use. Lightweight rescheduling adjusts phase designation and orchestration without model reload when load changes.",
+  "key_novelty": "First system integrating prefill-decode phase splitting with heterogeneous GPU assignment in cloud environments with low-bandwidth interconnects, using tabu search for upper-level partition and LP for lower-level routing.",
+  "contributions": [
+    "Two-level hierarchical scheduling with tabu search (upper) and linear programming (lower)",
+    "Prefill-decode phase splitting matched to heterogeneous GPU compute vs bandwidth profiles",
+    "4-bit KV cache quantization for efficient inter-phase transfer over low-bandwidth networks",
+    "Lightweight rescheduling completing in ~13s vs ~157s for full reschedule"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["parallelism", "scheduling", "memory-system"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "Up to 2.1x, avg 1.7x throughput vs SOTA; up to 2.5x, avg 1.5x latency reduction",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Rescheduling completes in ~13s vs ~157s for full reschedule"
+  },
+  "baselines": ["HexGen", "DistServe", "vLLM"],
+  "limitations": [
+    "Tabu search for upper-level partition may not converge to global optimum",
+    "4-bit KV quantization adds small accuracy loss",
+    "LP routing optimization is per-scheduling-event, may lag rapid workload shifts"
+  ],
+  "tags": ["LLM-serving", "heterogeneous-GPU", "prefill-decode-disaggregation", "cloud", "scheduling", "KV-cache-quantization"],
+  "primary_theme": "scheduling",
+  "confidence": "high"
+}

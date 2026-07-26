@@ -1,0 +1,38 @@
+{
+  "id": "mlsys-2025-014",
+  "title": "N:M Sparse DNN Kernels for RISC-V MCUs via Custom ISA Extension",
+  "venue": "MLSys 2025",
+  "problem": "N:M semi-structured sparsity cannot be efficiently exploited on RISC-V microcontrollers (MCUs) because standard ISAs lack the hardware primitives to accelerate structured sparse operations without prohibitive overhead.",
+  "motivation": "Edge MCUs (IoT, wearable, embedded) have severe power and area budgets. N:M sparsity can reduce inference compute and memory bandwidth by up to 16x at 1:16 ratio, but realizing this speedup requires ISA-level support that does not exist in commodity RISC-V cores.",
+  "method": "A custom xDecimate ISA instruction is added to a RISC-V core that performs hardware-accelerated N:M sparse selection and MAC in a single operation. Decimate Im2col reformulates convolution to enable xDecimate on im2col-transformed feature maps. The MATCH compiler generates xDecimate-aware kernels. Synthesized at 22nm targeting the Vega PULP SoC (basis for commercial GAP9). Evaluated on ResNet-18 and ViT at 1:4, 1:8, and 1:16 sparsity ratios.",
+  "key_novelty": "xDecimate: first RISC-V ISA extension specifically designed for N:M semi-structured sparsity, enabling hardware-level acceleration of 1:4 through 1:16 sparse patterns at only 5% area overhead on a commercial-grade SoC.",
+  "contributions": [
+    "xDecimate custom RISC-V ISA instruction for N:M sparse MAC operations",
+    "Decimate Im2col algorithm adapting convolution to exploit xDecimate",
+    "MATCH compiler integration for automated xDecimate kernel generation",
+    "22nm synthesis showing 5% area overhead over baseline RISC-V core",
+    "3.21x speedup on ResNet-18 and 1.81x on ViT at 1:16 sparsity",
+    "Demonstration on Vega PULP SoC / GAP9 commercial product"
+  ],
+  "hardware_target": ["RISC-V", "SoC", "MCU"],
+  "technique_category": ["sparsity", "compiler", "circuit-design", "ISA-extension"],
+  "workloads": ["CNN-inference", "transformer-inference"],
+  "metrics": {
+    "speedup": "3.21x (ResNet-18) and 1.81x (ViT) at 1:16 sparsity vs dense baseline",
+    "energy_or_tops_w": null,
+    "area": "5% area overhead for xDecimate unit on 22nm RISC-V core",
+    "ppa": null,
+    "accuracy": "Accuracy maintained within standard N:M sparsity training tolerances",
+    "other": "1:4 and 1:8 sparsity also evaluated with proportionally lower speedups"
+  },
+  "baselines": ["Dense RISC-V inference (no sparsity)", "Software-only N:M sparsity on unmodified RISC-V", "ARM Cortex-M dense inference"],
+  "limitations": [
+    "xDecimate requires retraining with N:M sparsity constraints",
+    "Speedup diminishes for ViT due to attention memory access patterns",
+    "Custom ISA extension requires toolchain modifications",
+    "Evaluation limited to two model architectures"
+  ],
+  "tags": ["RISC-V", "ISA-extension", "N:M-sparsity", "MCU", "edge-inference", "PULP", "GAP9", "compiler", "hardware-acceleration", "semi-structured-sparsity"],
+  "primary_theme": "hardware-efficiency",
+  "confidence": "high"
+}

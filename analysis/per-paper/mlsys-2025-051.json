@@ -1,0 +1,58 @@
+{
+  "id": "mlsys-2025-051",
+  "title": "Training Ultra Long Context Language Model with Fully Pipelined Distributed Transformer",
+  "venue": "MLSYS 2025",
+  "problem": "Training LLMs on extremely long sequences (1M+ tokens) requires memory far exceeding GPU capacity; existing Ulysses-style sequence parallelism is bottlenecked by PCIe transfer latency when offloading to host memory.",
+  "motivation": "Long-context training (protein sequences, documents) demands sequence parallelism beyond NVLink bandwidth; CPU offloading is necessary but naive implementations serialize compute and transfer, wasting GPU cycles.",
+  "method": "Fully Pipelined Distributed Transformer (FPDT) extends DeepSpeed Ulysses with CPU memory offloading using a double-buffer design. The sequence is sliced into chunks (default 64K tokens). A pipeline overlaps PCIe host-to-device prefetch of the next chunk with GPU computation on the current chunk. A rank-ordinal scatter redistributes activations across GPUs. The vocabulary computation is also pipelined within the sequence chunk pipeline.",
+  "key_novelty": "Double-buffer design that hides PCIe latency behind computation, enabling 16x longer sequences than state-of-the-art on the same hardware while maintaining >55% MFU. First system to train 8B LLM with 2M sequence length on only 4 GPUs.",
+  "contributions": [
+    "Sequence chunk pipeline design slicing the full sequence into 64K-token chunks for pipeline execution",
+    "Double-buffer prefetching overlapping PCIe host-to-device with GPU compute",
+    "Rank-ordinal scatter for efficient cross-GPU activation redistribution",
+    "16x increase in trainable sequence length versus prior SOTA on same hardware",
+    "Training 8B LLM at 2M sequence length on 4 GPUs with >55% MFU",
+    "Compatibility with existing training frameworks (GPT, Llama models)"
+  ],
+  "hardware_target": [
+    "NVIDIA GPU (A100/H100)",
+    "PCIe bus",
+    "NVLink",
+    "CPU DRAM"
+  ],
+  "technique_category": [
+    "Sequence parallelism",
+    "CPU offloading",
+    "Pipeline overlap",
+    "Distributed training",
+    "Memory optimization"
+  ],
+  "workloads": [
+    "LLM pre-training (GPT, Llama 8B)",
+    "Ultra-long sequence training (up to 2M tokens)"
+  ],
+  "metrics": {
+    "max_sequence_length": "2M tokens on 4 GPUs for 8B LLM",
+    "mfu": ">55% on 2M-token sequences",
+    "sequence_length_improvement": "16x over prior SOTA on same hardware",
+    "pipeline_chunk_size": "64K tokens (default)"
+  },
+  "baselines": [
+    "DeepSpeed Ulysses",
+    "Megatron sequence parallelism",
+    "Naive CPU offloading without double-buffer"
+  ],
+  "limitations": "MFU of 55% implies 45% overhead from communication/memory transfers; requires sufficient CPU DRAM; chunk size tuning affects both MFU and throughput; does not address gradient checkpointing interaction explicitly.",
+  "tags": [
+    "long-context-training",
+    "sequence-parallelism",
+    "CPU-offloading",
+    "pipeline",
+    "double-buffer",
+    "DeepSpeed",
+    "LLM-training",
+    "memory-optimization"
+  ],
+  "primary_theme": "Long-Context LLM Training / Memory Efficiency",
+  "confidence": "high"
+}

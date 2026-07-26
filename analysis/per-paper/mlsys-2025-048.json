@@ -1,0 +1,53 @@
+{
+  "id": "mlsys-2025-048",
+  "title": "A Bring-Your-Own-Model Approach for ML-Driven Storage Placement in Warehouse-Scale Computers",
+  "venue": "MLSYS",
+  "problem": "ML-based storage tiering (SSD vs HDD placement) cannot be practically deployed at Google-scale because a monolithic model in the storage layer must be retrained whenever any workload changes, breaks separation of concerns, and becomes a single point of failure across heterogeneous workloads.",
+  "motivation": "Optimal ILP-based placement achieves 5.06x savings over a production heuristic, showing large headroom. But imitation learning against this oracle fails because the model must also adapt to dynamic environment changes (varying SSD quota, new workloads) that are external to the workload itself. Workloads change at application-layer velocity, far faster than storage system update cycles.",
+  "method": "Bring-Your-Own-Model (BYOM): each workload trains its own lightweight gradient-boosted trees model at the application layer, not in the storage layer. The model predicts an 'importance' ranking category for each shuffle job based on application-level features (execution metadata, allocated resources, historical I/O metrics, timestamps). Importance categories are designed by analyzing oracle placement decisions under varying SSD capacities: category 0 = negative TCO savings, categories 1-N = I/O density quantiles. At the storage layer, an Adaptive Category Selection (ACS) algorithm uses a sliding admission threshold driven by real-time SSD spillover TCIO feedback, dynamically adjusting which importance categories are admitted to SSD without needing to retrain the model.",
+  "key_novelty": "Cross-layer ML+heuristic design where application-layer per-workload gradient-boosted trees predict environment-agnostic importance rankings, and a storage-layer adaptive algorithm translates rankings to placement decisions using real-time capacity feedback\u2014separating ML concerns from system concerns.",
+  "contributions": [
+    "Cross-layer BYOM architecture separating per-workload application-layer ML from storage-layer heuristic",
+    "Importance ranking formulation combining TCO savings sign and I/O density quantiles into categorical labels",
+    "Gradient-boosted trees model (15 categories, 300 trees, depth 6) with 4ms inference latency vs 99ms for Transformers",
+    "Adaptive Category Selection algorithm adjusting admission threshold via SSD spillover TCIO feedback",
+    "3.47x TCO savings over SOTA heuristic baseline; 2.59x on average across 10 production clusters",
+    "Prototype deployment in Google's production distributed data processing framework"
+  ],
+  "hardware_target": "Warehouse-scale data centers; Google production clusters (O(10,000) machines); HDD/SSD storage servers",
+  "technique_category": "systems-ml",
+  "workloads": [
+    "Shuffle jobs in distributed data processing frameworks (Apache Beam-like) at Google",
+    "Video processing, ML, database query workloads on 10 production clusters"
+  ],
+  "metrics": [
+    "TCO savings % (vs all-HDD baseline)",
+    "TCIO savings % (I/O reduction)",
+    "Model inference latency (ms/job)",
+    "Generalization accuracy on unseen workloads"
+  ],
+  "baselines": [
+    "FirstFit (FIFO SSD admission)",
+    "Heuristic (CacheSack-style adaptive per-category)",
+    "ML Baseline (lifetime prediction, Zhou & Maas 2021)",
+    "Oracle TCIO",
+    "Oracle TCO"
+  ],
+  "limitations": [
+    "Per-cluster model training requires labeled historical traces for each deployment cluster",
+    "Top-1 accuracy is only 0.36 for 15-class model; TCO savings have diminishing returns beyond moderate accuracy",
+    "Adaptive threshold mechanism may lag sudden workload changes within the tl decision interval"
+  ],
+  "tags": [
+    "ml-for-systems",
+    "storage",
+    "data-placement",
+    "ssd-hdd-tiering",
+    "gradient-boosted-trees",
+    "datacenter",
+    "google",
+    "cross-layer"
+  ],
+  "primary_theme": "ML for Systems",
+  "confidence": "high"
+}

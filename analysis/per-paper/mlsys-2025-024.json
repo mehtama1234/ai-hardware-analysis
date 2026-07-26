@@ -1,0 +1,35 @@
+{
+  "id": "mlsys-2025-024",
+  "title": "NEO: Saving GPU Memory Crisis with CPU Offloading for Online LLM Inference",
+  "venue": "MLSYS 2025",
+  "problem": "GPU memory limits LLM inference batch size, wasting GPU compute; existing CPU offloading systems either hurt latency (symmetric pipelining bubbles) or require expensive dedicated CPUs.",
+  "motivation": "Most cloud VMs have abundant DRAM and multi-core CPUs alongside a single GPU. Symmetric GPU-CPU pipelining creates bubbles when GPU stage is shorter than CPU attention. A carefully asymmetric split can keep the GPU fully busy while hiding CPU attention latency.",
+  "method": "NEO asymmetric GPU-CPU pipelining: each iteration splits into two sub-batches. Batch-0 (all prefill requests + most decode requests) runs a long linear projection stage on GPU. Batch-1 (CPU-assigned decode requests) runs a long attention stage on CPU — both overlap. KV cache split into GPU-cache (HBM) and CPU-cache (DRAM). Layer-wise KV swap overlaps PCIe transfer with GPU compute. Load-aware scheduler uses offline-profiled time models + linear interpolation to greedily assign requests per iteration, comparing GPU-only vs asymmetric pipelining and choosing higher throughput. ISPC-compiled SPMD CPU attention kernels (PACPU) with paged attention, SIMD loads, and Flash Decoding-style parallelism across cores.",
+  "key_novelty": "Asymmetric sub-batch design that integrates prefill into the GPU batch to extend GPU-stage duration, hiding CPU attention latency and eliminating symmetric pipelining bubbles.",
+  "contributions": [
+    "Asymmetric GPU-CPU pipeline splitting prefill+most-decode to GPU and minority-decode to CPU",
+    "Load-aware scheduler with offline time models for per-iteration batch assignment",
+    "PACPU: ISPC-based paged CPU attention kernel with SIMD and Flash Decoding parallelism",
+    "Layer-wise KV swap to overlap PCIe transfer with GPU linear projection"
+  ],
+  "hardware_target": ["GPU", "CPU"],
+  "technique_category": ["near-data-processing", "scheduling", "memory-system", "kernel-fusion"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "Up to 7.5x throughput on T4, 26% on A10G, 14% on H100 vs GPU-only; up to 79.3% with higher-bandwidth CPUs",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["vLLM", "FastDecode", "SwiftLLM"],
+  "limitations": [
+    "PCIe bandwidth is a bottleneck; gains are largest on low-HBM GPUs (T4) and CPUs with high memory bandwidth",
+    "Load-aware scheduler relies on offline profiling; accuracy degrades for unseen request mixes",
+    "CPU attention adds latency for long-sequence decode"
+  ],
+  "tags": ["LLM-inference", "CPU-offloading", "GPU-CPU-pipelining", "KV-cache", "attention", "throughput"],
+  "primary_theme": "memory-system",
+  "confidence": "high"
+}

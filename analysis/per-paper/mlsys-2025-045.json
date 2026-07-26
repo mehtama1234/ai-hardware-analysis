@@ -1,0 +1,56 @@
+{
+  "id": "mlsys-2025-045",
+  "title": "Scaling Deep Learning Training with MPMD Pipeline Parallelism",
+  "venue": "MLSYS",
+  "problem": "GSPMD/SPMD-based pipeline parallelism in JAX can only encode GPipe-style schedules; it cannot express MPMD schedules like 1F1B or Interleaved 1F1B that improve memory efficiency and throughput, and it forces homogeneous stages with poor scalability over low-bandwidth (DCN) inter-node links.",
+  "motivation": "The GPipe schedule stores all microbatch activations simultaneously (O(num_microbatches) memory), whereas 1F1B reduces this to O(num_stages). Best-practice LLM training (e.g., Llama-3) uses a mix of TP+PP+DP; SPMD encoding of PP in JAX cannot produce 1F1B or Interleaved 1F1B, leaving ~20% performance on the table due to extra rematerialization. DCN links between nodes have 10-100x lower bandwidth than NVLink/ICI, making PP with P2P communication essential at scale.",
+  "method": "JaxPP extends JAX with a MPMD pipeline parallelism runtime. Users annotate model code with pipeline_yield calls that mark stage boundaries; JaxPP infers stages from data dependencies. An accumulate_grads API implements the gradient accumulation loop with user-specified schedules (1F1B, Interleaved 1F1B). A single-controller driver process traces the JAX computation to a task graph, assigns tasks to SPMD actors (each actor manages one or more devices with a local SPMD mesh), and infers send/receive pairs using topological ordering to avoid deadlocks. Buffer deletion is handled by a liveness pass. All task dispatches are fused into a single RPC per actor. A loop commuting pass handles weight sharing (tied embeddings) efficiently.",
+  "key_novelty": "First JAX-native MPMD pipeline parallelism system that supports arbitrary user-defined pipeline schedules (including 1F1B and Interleaved 1F1B) via lightweight pipeline_yield annotations, without requiring model rewrites, while remaining fully model-agnostic through XLA compilation.",
+  "contributions": [
+    "MPMD runtime for JAX enabling arbitrary pipeline schedules decoupled from model implementation",
+    "pipeline_yield stage boundary annotation that is auto-differentiable and composes with JAX transforms",
+    "accumulate_grads API supporting 1F1B and Interleaved 1F1B schedules",
+    "Task graph runtime with topological send/receive inference, async P2P overlap, and buffer liveness pass",
+    "Loop commuting pass for efficient weight sharing (tied embeddings)",
+    "51.2% speedup over SPMD PP and 1.16x over JAX FSDP on GPT-3 175B (128 GPUs, H100)",
+    "98.33% weak scaling efficiency from 64 to 1024 H100 GPUs",
+    "95.6% throughput of NeMo's hand-optimized pipeline parallelism"
+  ],
+  "hardware_target": "NVIDIA H100 GPUs (DGX H100 nodes), InfiniBand NDR400 interconnect; multi-node clusters",
+  "technique_category": "training-efficiency",
+  "workloads": [
+    "GPT-3 175B training (BF16)",
+    "Llama-2 70B training (BF16)",
+    "Large-scale distributed training"
+  ],
+  "metrics": [
+    "TFLOPS/device",
+    "Training step time (s)",
+    "Weak scaling efficiency (%)",
+    "Throughput vs FSDP and NeMo"
+  ],
+  "baselines": [
+    "JAX SPMD pipeline parallelism (GPipe schedule)",
+    "JAX FSDP",
+    "NeMo pipeline parallelism",
+    "Megatron-LM",
+    "DeepSpeed"
+  ],
+  "limitations": [
+    "Single-controller design introduces driver process as potential bottleneck at extreme scale",
+    "Dispatch overhead increases with many small stages; circular repeat must be tuned",
+    "No custom kernels except cuDNN attention; some NeMo optimizations (async TP, sequence parallelism) not included"
+  ],
+  "tags": [
+    "pipeline-parallelism",
+    "distributed-training",
+    "mpmd",
+    "jax",
+    "llm-training",
+    "gradient-accumulation",
+    "1f1b",
+    "scaling"
+  ],
+  "primary_theme": "Distributed Training & Parallelism",
+  "confidence": "high"
+}

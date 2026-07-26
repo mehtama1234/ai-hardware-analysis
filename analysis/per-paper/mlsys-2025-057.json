@@ -1,0 +1,63 @@
+{
+  "id": "mlsys-2025-057",
+  "title": "Radius: Range-based Gradient Sparsity for Large Foundation Model Pre-training",
+  "venue": "MLSYS 2025",
+  "problem": "Gradient communication in data-parallel LLM pre-training is a major bottleneck. Existing top-k sparsification methods fail with AdamW (causing divergence) and have poor scalability due to allgather operations whose cost grows linearly with worker count.",
+  "motivation": "Dense allreduce for gradient communication accounts for ~40% of training time. Naive top-k with allgather requires O(n) bandwidth scaling, requires large HBM buffers, and is theoretically incompatible with Adam/AdamW optimizers. A scalable sparsification method compatible with AdamW is needed.",
+  "method": "Radius observes that top-k gradient indices are temporally stable after 15-20% of training steps. It reuses previously computed top-k indices for T steps (T=200 default) to enable dense allreduce on only the top-k fraction of gradients (avoiding allgather). All workers use identical top-k indices (since indices are computed post-allreduce), so only the gradient values need communication without index exchange. Gradient correction (mimicking AdamW operations) is applied before index selection to select indices based on effective model updates. Error feedback accumulates non-top-k gradients for compensation at resampling steps.",
+  "key_novelty": "Leverages temporal stability of top-k gradient indices to replace expensive allgather with dense allreduce on a sparse subset, making gradient sparsification scalable and compatible with AdamW for the first time.",
+  "contributions": [
+    "Discovery and validation of temporal stability of top-k gradient index distributions in LLM pre-training",
+    "Allreduce-based top-k sparsification avoiding allgather scalability bottleneck",
+    "Gradient correction ensuring correct index selection for AdamW optimizers",
+    "Error feedback mechanism preventing divergence from index reuse",
+    "19% overall pre-training time reduction on GPT-2.0B with 40% sparsity on 64 A100 GPUs",
+    "Better strong scaling efficiency than dense allreduce (42.5% vs 32.8% at 128 GPUs)",
+    "Preserved downstream task performance on GLUE, SuperGLUE, LAMBADA"
+  ],
+  "hardware_target": [
+    "NVIDIA A100 GPU",
+    "Slingshot 11 interconnect (25 GB/s NIC)",
+    "GH200 (Vista supercomputer)",
+    "NVLink3"
+  ],
+  "technique_category": [
+    "Gradient compression",
+    "Gradient sparsification",
+    "Communication reduction",
+    "Data-parallel training",
+    "LLM pre-training"
+  ],
+  "workloads": [
+    "GPT-355M pre-training",
+    "GPT-2.0B pre-training on OpenWebText"
+  ],
+  "metrics": {
+    "per_step_time_reduction": "21% at d=0.4 sparsity",
+    "overall_training_speedup": "19% at d=0.4",
+    "communication_reduction": "89.69% at d=0.4 vs baseline",
+    "communication_reduction_d05": "58.76% at d=0.5",
+    "scaling_efficiency_128gpus": "42.5% (d=0.4) vs 32.8% (baseline)",
+    "max_speedup_d01": "35% (with some accuracy degradation)",
+    "vs_powersgd": "5.14% faster than PowerSGD rank=128"
+  },
+  "baselines": [
+    "Dense allreduce (baseline)",
+    "Naive top-k with allgather",
+    "PowerSGD (rank=128, Optimus-CC)"
+  ],
+  "limitations": "Requires 15-20% warm-up training with dense allreduce before activating sparsification; very high sparsity (d=0.1) causes training instability; index resampling interval T must be tuned (default T=200); not yet extended to pipeline or tensor parallelism; tested only on pure data-parallel setting.",
+  "tags": [
+    "gradient-sparsification",
+    "gradient-compression",
+    "data-parallel",
+    "LLM-pre-training",
+    "AdamW",
+    "allreduce",
+    "communication-reduction",
+    "A100",
+    "Slingshot"
+  ],
+  "primary_theme": "Gradient Compression / Communication Reduction for LLM Training",
+  "confidence": "high"
+}

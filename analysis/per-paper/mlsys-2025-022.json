@@ -1,0 +1,36 @@
+{
+  "id": "mlsys-2025-022",
+  "title": "Enabling Unstructured Sparse Acceleration on Structured Sparse Accelerators",
+  "venue": "MLSYS 2025",
+  "problem": "Unstructured sparse DNN models cannot be accelerated on structured sparse hardware (e.g., 2:4 NVIDIA sparse Tensor Cores), and structured sparse models require hardware-specific fine-tuning making them non-portable.",
+  "motivation": "State-of-the-art sparse accelerators support only fixed N:M structured sparsity patterns. Unstructured sparse models from pruning pipelines are incompatible with these accelerators, and retraining for each target hardware is expensive. A hardware-agnostic decomposition could unlock acceleration without retraining.",
+  "method": "TASD (Tensor Approximation via Structured Decomposition): decomposes any sparse tensor into a series of N:M structured sparse tensors using the distributive property of tensor algebra. TASD-W performs offline weight decomposition via greedy layer-wise search minimizing dropped non-zeros while maintaining 99% model quality. TASD-A handles dynamic runtime activation decomposition with sparsity-degree-based pattern selection attached to accelerator input. TTC (TASD Tensor Core) extends VEGETA/STC to support multiple N:M patterns simultaneously. Decomposition-aware dataflow keeps B/C tiles stationary to amortize the decomposition overhead.",
+  "key_novelty": "First method enabling unstructured sparse DNNs to run on structured sparse hardware without fine-tuning, via tensor series decomposition exploiting the distributive property of matrix algebra.",
+  "contributions": [
+    "TASD decomposition framework converting arbitrary sparse tensors to series of N:M structured sparse tensors",
+    "TASD-W offline weight decomposition with greedy layer-wise quality-constrained search",
+    "TASD-A runtime activation decomposition with dynamic pattern selection",
+    "TTC hardware design supporting multiple N:M patterns on structured sparse accelerator",
+    "Decomposition-aware stationary dataflow to minimize overhead"
+  ],
+  "hardware_target": ["GPU", "ASIC"],
+  "technique_category": ["sparsity", "dataflow", "approximation", "compiler"],
+  "workloads": ["CNN", "transformer"],
+  "metrics": {
+    "speedup": "39% speedup on NVIDIA RTX 3080 (2:4 sparse Tensor Cores)",
+    "energy_or_tops_w": "EDP improvement up to 83% (dense DNNs), 74% (sparse DNNs)",
+    "area": null,
+    "ppa": null,
+    "accuracy": "Maintains 99% model quality target with greedy decomposition",
+    "other": "Computation reduction up to 40%"
+  },
+  "baselines": ["Dense Tensor Core", "DSTC (dual-side sparse tensor core)"],
+  "limitations": [
+    "Decomposition introduces multiple passes over structured sparse hardware",
+    "Quality guarantee (99%) is a heuristic threshold, not formal",
+    "TASD-A runtime overhead depends on sparsity pattern detection latency"
+  ],
+  "tags": ["sparsity", "N:M-sparsity", "structured-sparse", "tensor-decomposition", "ASIC", "GPU", "ResNet", "BERT"],
+  "primary_theme": "sparsity",
+  "confidence": "high"
+}

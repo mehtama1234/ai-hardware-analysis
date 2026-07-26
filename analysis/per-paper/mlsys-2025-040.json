@@ -1,0 +1,45 @@
+{
+  "id": "mlsys-2025-040",
+  "title": "Seesaw: High-throughput LLM Inference via Model Re-sharding",
+  "venue": "MLSYS",
+  "problem": "A single static parallelization strategy (tensor parallelism or pipeline parallelism) cannot optimally serve both the prefill and decode stages of LLM inference, leaving throughput on the table.",
+  "motivation": "Prefill is compute-bound and benefits from tensor parallelism (TP) across few devices to minimize latency, while decode is memory-bandwidth-bound and benefits from pipeline parallelism (PP) to enable large batch sizes. Existing engines (e.g., vLLM) fix one strategy, causing either prefill or decode to run suboptimally.",
+  "method": "Seesaw dynamically re-shards the model between TP for prefill and PP for decode at every stage boundary. KV cache is moved via a tiered buffering scheme: GPU VRAM for active batches and CPU DRAM as an auxiliary store, with asynchronous swap-in/swap-out pipelines. A transition-minimizing scheduler batches multiple requests together so re-sharding occurs less frequently, amortizing the overhead.",
+  "key_novelty": "Dynamic mid-inference model re-sharding combined with CPU-backed tiered KV cache buffering and a transition-minimizing request scheduler that jointly minimizes resharding frequency and maximizes batch utilization.",
+  "contributions": [
+    "Dynamic model re-sharding framework switching between TP (prefill) and PP (decode) at stage boundaries",
+    "Tiered KV cache buffering using CPU DRAM as auxiliary store with async pipeline for swap",
+    "Transition-minimizing scheduling policy that batches requests to reduce re-sharding events",
+    "End-to-end throughput evaluation showing 1.36x average and 1.78x peak improvement over vLLM"
+  ],
+  "hardware_target": "NVIDIA A10, L4, A100 GPUs; multi-GPU server nodes",
+  "technique_category": "inference-serving",
+  "workloads": [
+    "LLM inference (prefill + decode)",
+    "Throughput-oriented serving with mixed request batches"
+  ],
+  "metrics": [
+    "Throughput (tokens/s)",
+    "Stage transition frequency",
+    "KV cache hit rate"
+  ],
+  "baselines": [
+    "vLLM 0.5.4"
+  ],
+  "limitations": [
+    "Re-sharding introduces latency spikes at stage boundaries that must be hidden by batching",
+    "CPU memory tiering adds host-device PCIe bandwidth pressure",
+    "Evaluated only on throughput-oriented workloads; latency-sensitive use cases may differ"
+  ],
+  "tags": [
+    "llm-inference",
+    "parallelism",
+    "tensor-parallelism",
+    "pipeline-parallelism",
+    "kv-cache",
+    "scheduling",
+    "dynamic-resharding"
+  ],
+  "primary_theme": "LLM Inference & Serving",
+  "confidence": "high"
+}

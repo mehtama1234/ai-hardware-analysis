@@ -1,0 +1,36 @@
+{
+  "id": "mlsys-2025-005",
+  "title": "Supply-Chain Attacks in Machine Learning Frameworks",
+  "venue": "MLSYS 2025",
+  "problem": "ML frameworks (PyTorch, TensorFlow, HuggingFace) have a larger dependency attack surface than comparable non-ML software, yet the ML community has no higher security awareness than non-ML communities, leaving ML-specific supply-chain vulnerabilities unaddressed by existing defenses.",
+  "motivation": "Traditional supply-chain attack detection focuses on suspicious system calls and network traffic. ML frameworks enable a novel attack vector: Python's shared memory space allows compromised upstream dependencies to silently overwrite global objects and local stack variables in downstream ML code, injecting vulnerabilities (backdoors, pipeline weaknesses, model stealing) that evade conventional detection tools.",
+  "method": "Two contributions: (1) Attack demonstration - introduces ML-specific supply-chain attacks using two Python mechanisms: (a) global variable overwriting where a compromised upstream package directly mutates PyTorch/TorchVision globals (e.g., interpolation mode enums, softmax functions, model forward methods) at import time; (b) local variable overwriting using Python's inspect module and undocumented PyFrame_LocalsToFast C API to modify in-scope variables in downstream function call stacks. Three attack types demonstrated: backdoor injection via forward function hijacking, pipeline vulnerability injection via interpolation mode swap, and model weight stealing via steganographic encoding in inference outputs. (2) Security awareness analysis - LLM-assisted analysis of 549,635 GitHub issues/PRs from Top-50 ML repositories using GPT-3.5 for coarse filtering (97.8% recall) then GPT-4 for fine-grained safeguard classification (78.9% precision, 0.85 Cohen's kappa). Compared against Top-50 Linux repositories.",
+  "key_novelty": "First systematic demonstration that Python's shared memory model enables ML-specific supply-chain attacks that manipulate model behavior (not just OS security) while evading all conventional detection; LLM-assisted large-scale security awareness study across 549k GitHub issues.",
+  "contributions": [
+    "Novel ML-specific attack class: global and local variable overwriting via Python runtime mechanics",
+    "Three attack implementations: backdoor via forward-function hijacking, pipeline vulnerability via enum overwrite, model-stealing via steganographic output encoding",
+    "Bypass demonstration against jailbreak defenses (HTTP interception) and model-stealing defenses (softmax margin manipulation)",
+    "LLM-assisted analysis pipeline (GPT-3.5 filter + GPT-4 classifier) for security awareness measurement across 549,635 ML GitHub issues/PRs",
+    "Finding: ML community security awareness is statistically similar to non-ML communities despite higher risk"
+  ],
+  "hardware_target": ["cpu", "cloud"],
+  "technique_category": ["security", "software-supply-chain", "adversarial-ml"],
+  "workloads": ["ml-security", "model-inference", "model-training"],
+  "metrics": {
+    "llm_pipeline_recall": "97.8% recall vs manual annotations (0.85 Cohen's kappa)",
+    "llm_pipeline_precision": "78.9% precision vs manual annotations",
+    "ml_repos_analyzed": "549,635 issues/PRs from Top-50 ML repositories",
+    "security_pr_acceptance_pytorch": "64.20% security PR acceptance at PyTorch (lower than most ML repos)",
+    "ml_vs_linux_distribution": "Similar security awareness distribution between ML and Linux communities"
+  },
+  "baselines": ["Top-50 Linux GitHub repositories (non-ML community baseline)", "Conventional supply-chain detection tools (system call monitoring, network traffic analysis)"],
+  "limitations": [
+    "Analysis limited to GitHub public repositories; internal corporate ML projects not captured",
+    "IS/PR percentage used as proxy for security awareness may not capture implicit or informal security practices",
+    "Attack demonstrations are proof-of-concept; real-world stealthiness depends on additional obfuscation",
+    "Proposed mitigation (source code analysis for cross-package variable writes) not implemented or benchmarked"
+  ],
+  "tags": ["security", "supply-chain", "Python", "adversarial-ML", "backdoor", "model-stealing", "GitHub-analysis"],
+  "primary_theme": "ml-security",
+  "confidence": "high"
+}

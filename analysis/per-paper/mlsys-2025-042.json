@@ -1,0 +1,52 @@
+{
+  "id": "mlsys-2025-042",
+  "title": "Self-Data Distillation for Recovering Quality in Pruned Large Language Models",
+  "venue": "MLSYS",
+  "problem": "Structured depth pruning of LLMs removes decoder blocks and reduces compute, but post-pruning SFT causes catastrophic forgetting by shifting the data distribution away from the original model's knowledge.",
+  "motivation": "One-shot pruning removes up to 6 decoder layers from a 32-layer model, significantly degrading accuracy. Vanilla SFT on the original fine-tuning dataset exacerbates forgetting because the responses no longer reflect the unpruned model's knowledge. A method is needed to recover quality while preserving the efficiency gains of pruning.",
+  "method": "Angular cosine distance between adjacent block outputs is used to identify which layers are most redundant (lowest angular distance = most similar outputs = best pruning candidates). The unpruned model then rewrites the fine-tuning dataset: for each prompt, the unpruned model generates a 'distilled' response that preserves semantic richness. Conditional selection keeps original responses for prompts where the pruned model already performs acceptably. SLERP model merging blends pruned and distilled model checkpoints. The pruned model is also used as a speculative decoding draft model paired with the full model as verifier.",
+  "key_novelty": "Using the unpruned model to regenerate a semantically-aligned distillation dataset for post-pruning SFT, preventing catastrophic forgetting while maintaining the efficiency of depth pruning; plus SLERP merging and speculative decoding as downstream applications.",
+  "contributions": [
+    "Angular cosine distance metric for depth-wise block pruning candidate identification",
+    "Self-data distillation: unpruned model rewrites fine-tuning responses to prevent catastrophic forgetting",
+    "Conditional selection to preserve original responses where pruned model is already adequate",
+    "SLERP model merging for additional quality recovery",
+    "Speculative decoding application: pruned model as draft (+1.70 average accepted length at block size 10)",
+    "91.24% accuracy retention at block size 6 vs 81.66% for standard SFT on Llama3.1-8B"
+  ],
+  "hardware_target": "GPU inference (A100-class); edge deployment of pruned models",
+  "technique_category": "model-compression",
+  "workloads": [
+    "LLM instruction following",
+    "HuggingFace OpenLLM Leaderboard v1 benchmarks",
+    "Speculative decoding inference"
+  ],
+  "metrics": [
+    "Average accuracy (OpenLLM Leaderboard v1)",
+    "Accuracy retention % vs unpruned baseline",
+    "Average accepted token length (speculative decoding)",
+    "FLOPs reduction"
+  ],
+  "baselines": [
+    "Standard SFT on pruned model",
+    "LLM-Pruner",
+    "ShortGPT",
+    "FLAP"
+  ],
+  "limitations": [
+    "Self-data distillation requires running inference on the full unpruned model, incurring generation cost",
+    "Angular cosine metric may not capture all relevant structural information for pruning",
+    "Evaluated primarily on Llama3.1-8B and Mistral-7B; larger models may behave differently"
+  ],
+  "tags": [
+    "model-compression",
+    "structured-pruning",
+    "knowledge-distillation",
+    "llm",
+    "speculative-decoding",
+    "model-merging",
+    "catastrophic-forgetting"
+  ],
+  "primary_theme": "Model Compression & Pruning",
+  "confidence": "high"
+}

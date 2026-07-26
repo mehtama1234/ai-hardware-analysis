@@ -1,0 +1,40 @@
+{
+  "id": "mlsys-2025-016",
+  "title": "XGrammar: Flexible and Efficient Structured Generation Engine for Large Language Models",
+  "venue": "MLSys 2025",
+  "problem": "Context-free grammar (CFG) constrained decoding for LLMs is slow because every token generation step requires recomputing token masks from scratch, dominating inference latency for structured output generation.",
+  "motivation": "Applications requiring JSON, SQL, or other structured outputs from LLMs depend on constrained decoding, but existing systems (Outlines, llama.cpp grammar) add 10-100x overhead per token. Eliminating redundant computation would make structured generation practical for high-throughput serving.",
+  "method": "XGrammar splits the token vocabulary into context-independent tokens (whose acceptance can be precomputed offline once per grammar) and context-dependent tokens (requiring runtime evaluation). For Llama-3.1 with JSON grammar, only 1,134 of 128k tokens are context-dependent (<1%). A persistent pushdown automaton stack tracks parser state. Context expansion reduces context-dependent tokens further (to ~120, a 90% reduction). An adaptive token mask cache stores masks per parser state, with 0.2% memory overhead. CPU-GPU overlap hides remaining mask computation behind GPU attention.",
+  "key_novelty": "Context-independent/context-dependent token split that precomputes >99% of token masks offline, combined with a persistent pushdown automaton and adaptive token mask cache, achieving near-zero constrained decoding overhead.",
+  "contributions": [
+    "Context-independent vs context-dependent token classification for pushdown automata",
+    "Offline precomputation of context-independent token masks (>99% of vocabulary)",
+    "Context expansion algorithm reducing context-dependent tokens by 90%",
+    "Persistent execution stack for efficient parser state management",
+    "Adaptive token mask cache with 0.2% memory overhead (160MB to 0.46MB)",
+    "CPU-GPU overlap hiding remaining runtime mask computation",
+    "Up to 100x per-token speedup; 80x end-to-end serving vs vLLM+Outlines",
+    "Near-zero overhead in MLC-LLM integration"
+  ],
+  "hardware_target": ["GPU", "CPU"],
+  "technique_category": ["compiler", "scheduling", "systems"],
+  "workloads": ["LLM-inference", "structured-generation"],
+  "metrics": {
+    "speedup": "Up to 100x per-token speedup; 80x end-to-end serving throughput vs vLLM+Outlines",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "Exact grammar compliance; no accuracy loss vs unconstrained sampling within grammar",
+    "other": "Context-dependent tokens: <1% of vocabulary (1134/128k for Llama-3.1); mask cache 0.46MB vs 160MB naive"
+  },
+  "baselines": ["vLLM + Outlines (regex/CFG constrained decoding)", "llama.cpp grammar sampling", "Guidance library"],
+  "limitations": [
+    "Context expansion has worst-case exponential complexity for certain grammar structures",
+    "Cache effectiveness depends on grammar and input distribution",
+    "Context-dependent token computation still required at runtime for complex grammars",
+    "Primarily evaluated on JSON grammar; other grammar types may have higher context-dependent ratios"
+  ],
+  "tags": ["constrained-decoding", "structured-generation", "context-free-grammar", "pushdown-automaton", "LLM-inference", "token-masking", "JSON-generation", "serving", "MLC-LLM"],
+  "primary_theme": "inference-efficiency",
+  "confidence": "high"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-039",
+  "title": "AdaParse: An Adaptive Parallel PDF Parsing and Resource Scaling Engine",
+  "venue": "MLSYS 2025",
+  "problem": "Building trillion-token scientific text datasets for LLM pre-training requires parsing millions of PDFs, but state-of-the-art high-quality parsers (e.g., Nougat) can only process 1-2 PDFs/second on a 4-A100 node, while lightweight parsers produce poor quality on complex documents.",
+  "motivation": "Different PDFs have vastly different parsing difficulty; routing simpler documents to cheap extraction tools and only complex ones to expensive ML-based parsers (Nougat) can achieve high throughput with comparable accuracy, but requires a document-adaptive routing strategy aligned with human preference.",
+  "method": "AdaParse implements a hierarchical three-stage classifier pipeline: CLS I (rule-based validity check on PyMuPDF-extracted text features), CLS II (metadata-driven regression predicting if improvement is likely), CLS III (LLM-based multi-class parser selection). Human preferences are collected from 23 domain experts and incorporated via Direct Preference Optimization (DPO) to fine-tune the SciBERT-based classifier. Parsl orchestrates parallel execution on HPC (Polaris), batching PDFs, warm-starting ML parsers, and distributing tasks across nodes.",
+  "key_novelty": "DPO-aligned adaptive PDF parser routing that combines a fast text extraction first-pass with hierarchical ML classifiers, aligned to expert human preferences, achieving 17x throughput improvement over Nougat alone with 0.2% better BLEU accuracy.",
+  "contributions": [
+    "Comprehensive benchmark of 7 parsers across 25,000 PDFs with human preference collection from 23 domain experts",
+    "DPO-based alignment of parser selection model with human judgment for scientific document quality",
+    "Hierarchical classification pipeline (rule-based + metadata regression + LLM-based) for adaptive parser routing",
+    "17x throughput improvement vs Nougat with 0.2% better BLEU; scales to ~78 PDFs/sec on 128 Polaris nodes"
+  ],
+  "hardware_target": ["gpu-datacenter", "hpc"],
+  "technique_category": ["scheduling", "distributed-training"],
+  "workloads": ["data-preprocessing"],
+  "metrics": {
+    "speedup": "17x throughput improvement vs Nougat (state-of-the-art parser); ~78 PDF/sec at 128 nodes vs ~8 PDF/sec for Nougat",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "BLEU 52.1 vs Nougat 48.1 (+0.2% better); 76.9% accepted token rate vs 69.8% Nougat",
+    "other": "Evaluated on Polaris HPC (560 nodes, 4x A100 per node); 1000-document held-out benchmark"
+  },
+  "baselines": ["Nougat", "Marker", "PyMuPDF", "pypdf", "GROBID", "Tesseract"],
+  "limitations": "Limited to 5% allocation of documents to high-quality (Nougat) parser by design; DPO requires initial human preference collection effort; BLEU score shown to be only partially predictive of human preferences (R^2=46.5%).",
+  "tags": ["pdf-parsing", "data-curation", "dpo", "adaptive-routing", "hpc", "llm-training-data"],
+  "primary_theme": "ML data infrastructure",
+  "confidence": "high"
+}

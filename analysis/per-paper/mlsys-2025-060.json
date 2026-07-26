@@ -1,0 +1,38 @@
+{
+  "id": "mlsys-2025-060",
+  "title": "SampleAttention: Near-Lossless Acceleration of Long Context LLM Inference with Adaptive Structured Sparse Attention",
+  "venue": "MLSYS 2025",
+  "problem": "Long-context LLM prefill (TTFT) latency scales quadratically with sequence length due to dense attention computation; existing sparse attention methods use either static sparse patterns or fixed sparsity budgets, failing to adapt to per-head, per-input, and per-model variability in sparsity ratio and pattern. Both dimensions—optimal sparsity ratio and the exact structure of important tokens—must be determined dynamically at runtime to avoid accuracy loss.",
+  "motivation": "Attention computation constitutes over 90% of TTFT for very long contexts (e.g., 1M tokens on A100), and LLMs now routinely support context windows of 128K–1M tokens, making static or fixed-budget sparse attention approaches inadequate for practical deployment.",
+  "method": "SampleAttention introduces a two-stage query-guided key-value filtering algorithm driven by a new accuracy proxy called Cumulative Residual Attention (CRA), defined as the minimum fraction of attention probability mass retained per query after sparsification. Stage 1 (Query-Guided Chunked Sampling) partitions queries into chunkn equal segments, computes full attention scores for a small query block at the tail of each chunk, then reduces these token-level scores at block granularity (block size 128) along both column and slash directions. Stage 2 (Score-Based Key-Value Filtering) independently selects the minimum number of column-strip blocks and slash-strip blocks needed to satisfy separate CRA thresholds (αc, αs) via cumulative-sum top-k, extends the selected block indices to cover the full attention matrix, merges them into a binary block-sparse mask, and executes sparse FlashAttention2 on the result. Hardware efficiency is achieved by kernel-fusing the sampling pipeline (bmm, mask_fill, softmax, reduction) and by operator fusion for sequences >256K. Hyperparameters are tuned offline per model and per sequence-length range on a small RULER subset.",
+  "key_novelty": "The CRA metric—minimum per-query retained attention probability—provides a principled, runtime-computable proxy that tightly correlates with downstream task accuracy across models and tasks, enabling fully adaptive (per-head, per-input) sparsity ratio and pattern selection without retraining.",
+  "contributions": [
+    "Empirical characterization of adaptive attention sparsity: sparsity ratio varies from 27.4% to 99.8% across heads, contents, and model architectures, with average >89.6% across evaluated models.",
+    "CRA accuracy metric and its use as a runtime threshold to determine the minimal set of column-strip and slash-strip KV blocks, decomposing joint selection into two independent top-k operations for efficiency.",
+    "Two-stage SampleAttention algorithm with chunked equidistant query sampling and CRA-guided block filtering, implemented as hardware-efficient fused CUDA kernels on top of FlashAttention2.",
+    "Demonstrated 5.29x TTFT reduction vs. FlashAttention2 at 1M tokens while maintaining >99% of full-attention accuracy (near-lossless as defined by MLPerf) on RULER, LongBench, and InfiniteBench across ChatGLM4-9B, YI-9B, and InternLM2-7B."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["sparsity", "attention", "kernel-fusion"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "5.29x TTFT reduction vs. FlashAttention2 at 1M token context; 1.15x–3.94x at 32K–512K",
+    "accuracy": ">99% of full attention score on RULER/LongBench/InfiniteBench (near-lossless per MLPerf definition)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "other": "Sampling overhead is 21.6%–39.1% of total attention time at 32K–128K; overhead fraction shrinks with length"
+  },
+  "baselines": [
+    "FlashAttention2",
+    "MInference",
+    "BigBird",
+    "StreamingLLM",
+    "HyperAttention",
+    "Hash-Sparse (Pagliardini et al. 2023)"
+  ],
+  "limitations": "SampleAttention targets the prefill phase only and does not compress the KV cache for decoding; gains diminish at short sequences (<32K) due to fixed sampling overhead, and hyperparameters must be tuned offline per model and length range.",
+  "tags": ["sparse-attention", "long-context", "prefill-acceleration", "adaptive-sparsity", "llm-inference", "gpu"],
+  "primary_theme": "adaptive structured sparse attention for long-context LLM prefill",
+  "confidence": "high"
+}

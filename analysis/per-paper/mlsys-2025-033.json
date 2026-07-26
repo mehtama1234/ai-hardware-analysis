@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-033",
+  "title": "FlexInfer: A Flexible CPU-GPU Collaborative Framework for DNN Inference",
+  "venue": "MLSYS 2025",
+  "problem": "LLM inference on commodity servers with limited GPU memory forces weight offloading to CPU, but existing offloading systems (FlexGen, SplitGen) use static policies that either underutilize the GPU or overspend PCIe bandwidth on unnecessary transfers.",
+  "motivation": "PCIe transfer dominates 96-98% of execution time in GPU-offload inference; different inference phases (prefill vs decode) and different layers have vastly different compute-to-bandwidth ratios, making a single policy suboptimal.",
+  "method": "FlexInfer employs an analytical policy estimator that, given current hardware state (GPU memory available, PCIe bandwidth, CPU compute), selects per-layer execution policy: CPU-only, GPU-offload, or SplitGen (split computation between CPU and GPU). Policy decisions are made at runtime without profiling overhead.",
+  "key_novelty": "First system to apply phase-aware and layer-aware dynamic policy selection between CPU-only, GPU-offload, and hybrid (SplitGen) modes for LLM inference, using an analytical model rather than learned or exhaustive search.",
+  "contributions": [
+    "Analytical policy estimator that selects CPU-only/GPU-offload/SplitGen per layer per phase without profiling",
+    "Phase-aware scheduling distinguishing prefill vs decode compute-bandwidth profiles",
+    "75-76% E2E latency reduction over FlexGen on two server configurations",
+    "Framework generalizing across different GPU memory sizes and PCIe bandwidths"
+  ],
+  "hardware_target": ["gpu-datacenter", "cpu"],
+  "technique_category": ["scheduling", "memory-system"],
+  "workloads": ["llm-inference"],
+  "metrics": {
+    "speedup": "75% (Server1) and 76% (Server2) end-to-end latency reduction vs FlexGen",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "No accuracy loss (exact computation)",
+    "other": "96-98% of FlexGen time is PCIe transfer; FlexInfer reduces this bottleneck significantly"
+  },
+  "baselines": ["FlexGen", "FlexGen Opt", "SplitGen", "CPU-only"],
+  "limitations": "Analytical estimator accuracy depends on stable PCIe and memory bandwidth; evaluated primarily on decoder-only models; does not address batch-size scaling.",
+  "tags": ["cpu-gpu-offload", "llm-inference", "pcie-bottleneck", "policy-selection", "scheduling", "memory-offload"],
+  "primary_theme": "LLM inference systems",
+  "confidence": "high"
+}

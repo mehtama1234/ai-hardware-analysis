@@ -1,0 +1,57 @@
+{
+  "id": "mlsys-2025-052",
+  "title": "Balancing Pipeline Parallelism with Vocabulary Parallelism",
+  "venue": "MLSYS 2025",
+  "problem": "In pipeline-parallel LLM training, embedding and output vocabulary layers placed on one pipeline stage cause severe computation and memory imbalance, worsening pipeline bubbles and memory bottlenecks especially for large vocabularies.",
+  "motivation": "Modern LLMs use large vocabularies (32K-200K tokens) where the embedding and output projection layers require substantial FLOPs and memory. When concentrated on the first/last pipeline stage, this creates imbalance that reduces throughput.",
+  "method": "Vocabulary Parallelism (VP) partitions embedding and output projection layers evenly across all pipeline devices. Computations are grouped into vocabulary-specific pipeline passes. Algorithm 1 reduces cross-device all-reduce barriers from 3 to 2; Algorithm 2 further reduces to 1 barrier by combining online softmax with pre-computed partial gradients. VP integrates with existing 1F1B and V-Half pipeline schedules via a generalizable method.",
+  "key_novelty": "Online softmax optimization that reduces communication barriers from 3 to 1 within vocabulary layer passes, enabling vocabulary computation to be integrated into existing pipeline schedules with only a small constant activation memory overhead.",
+  "contributions": [
+    "Vocabulary Parallelism: even partition of vocabulary layers across all pipeline stages",
+    "Algorithm 1: 2-barrier vocabulary forward/backward pass",
+    "Algorithm 2: 1-barrier vocabulary pass via online softmax and pre-computed gradients",
+    "Integration framework for VP with 1F1B and V-Half pipeline schedules",
+    "5-51% throughput improvement versus naive approaches",
+    "Perfect compute and memory balance when combined with V-Half schedule"
+  ],
+  "hardware_target": [
+    "NVIDIA GPU",
+    "NVLink",
+    "InfiniBand"
+  ],
+  "technique_category": [
+    "Pipeline parallelism",
+    "Vocabulary parallelism",
+    "Communication optimization",
+    "LLM training",
+    "Load balancing"
+  ],
+  "workloads": [
+    "LLM pre-training with large vocabularies",
+    "Transformer training with pipeline parallelism"
+  ],
+  "metrics": {
+    "throughput_improvement": "5% to 51% over naive approaches",
+    "communication_barriers_reduced": "From 3 to 1 (Algorithm 2)",
+    "memory_balance": "Perfect balance with V-Half schedule",
+    "activation_memory_overhead": "Small constant overhead"
+  },
+  "baselines": [
+    "Naive pipeline parallelism (vocabulary on one stage)",
+    "1F1B schedule without VP",
+    "V-Half schedule without VP"
+  ],
+  "limitations": "Small constant activation memory overhead added; communication pattern more complex; benefit scales with vocabulary size (smaller vocabularies see less gain); requires modification to pipeline scheduling logic.",
+  "tags": [
+    "pipeline-parallelism",
+    "vocabulary-parallelism",
+    "LLM-training",
+    "load-balancing",
+    "communication-optimization",
+    "online-softmax",
+    "1F1B",
+    "V-Half"
+  ],
+  "primary_theme": "Pipeline Parallelism / LLM Training Efficiency",
+  "confidence": "high"
+}

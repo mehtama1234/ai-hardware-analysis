@@ -1,0 +1,60 @@
+{
+  "id": "mlsys-2025-050",
+  "title": "Context Parallelism for Scalable Million-Token Inference",
+  "venue": "MLSYS 2025",
+  "problem": "Long-context LLM inference (prefill of sequences up to 1M tokens) exceeds single-GPU memory and compute capacity, requiring efficient distributed strategies across many GPUs.",
+  "motivation": "State-of-the-art LLMs serving very long contexts (documents, code, multi-modal) need near-linear scaling of prefill latency with GPU count. Existing KV-cache replication across GPUs wastes memory and existing ring-attention implementations have load imbalance under causal masking.",
+  "method": "Context Parallelism (CP) partitions the input sequence across GPUs along the sequence dimension. Two ring-attention variants are developed: pass-KV (circulates Key/Value tensors across a GPU ring, each GPU holds fixed Q blocks) and pass-Q (circulates Query tensors, each GPU holds fixed KV). Load-balanced sharding uses 2N chunks per sequence to balance causal attention across N GPUs. Adaptive selection switches between pass-KV and pass-Q based on KV-cache miss rate to cover full prefill, persistent KV prefill, and decode phases.",
+  "key_novelty": "Two complementary ring-attention algorithms (pass-KV and pass-Q) with load-balanced 2N-chunk sharding that eliminates causal-mask imbalance, plus adaptive mode selection covering all inference phases. Demonstrated on commodity RDMA and TCP interconnects showing bandwidth-tolerance.",
+  "contributions": [
+    "Pass-KV ring attention: each GPU holds query chunks and receives rotating KV blocks for full causal attention without redundancy",
+    "Pass-Q ring attention: each GPU holds KV cache and receives rotating query blocks, optimal for persistent KV prefill and decode",
+    "Load-balanced 2N chunk partitioning to equalize work under causal masking",
+    "Adaptive pass-KV vs pass-Q selection based on KV-cache miss threshold",
+    "Scaling to 1M context prefill in 77s on 128 H100 GPUs (93% parallelization efficiency, 63% FLOPS utilization)",
+    "Benchmarks on both RDMA and TCP showing similar scalability, validating medium-to-low bandwidth commercial datacenter deployments"
+  ],
+  "hardware_target": [
+    "NVIDIA H100 GPU",
+    "RDMA interconnect",
+    "TCP interconnect",
+    "NVLink"
+  ],
+  "technique_category": [
+    "Sequence parallelism",
+    "Ring attention",
+    "Distributed inference",
+    "Load balancing",
+    "KV cache management"
+  ],
+  "workloads": [
+    "LLM long-context prefill (Llama3 405B)",
+    "Persistent KV prefill",
+    "Autoregressive decode"
+  ],
+  "metrics": {
+    "prefill_latency_1M_tokens": "77 seconds on 128 H100 GPUs",
+    "prefill_latency_128K_tokens": "3.8 seconds",
+    "parallelization_efficiency": "93% at 128 GPUs",
+    "flops_utilization": "63%",
+    "scaling": "Near-linear from 1 to 128 GPUs"
+  },
+  "baselines": [
+    "Single-GPU prefill",
+    "Data-parallel inference",
+    "Existing ring attention without load balancing"
+  ],
+  "limitations": "Efficiency drops somewhat at very high GPU counts due to communication overhead; requires custom attention kernels; 63% FLOPS utilization leaves headroom; TCP interconnect slightly worse than RDMA in absolute latency.",
+  "tags": [
+    "context-parallelism",
+    "ring-attention",
+    "long-context",
+    "LLM-inference",
+    "sequence-parallelism",
+    "H100",
+    "distributed-inference",
+    "KV-cache"
+  ],
+  "primary_theme": "Distributed LLM Inference / Sequence Parallelism",
+  "confidence": "high"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-037",
+  "title": "LeanAttention: Hardware-Aware Scalable Attention Mechanism for the Decode-Phase of Transformers",
+  "venue": "MLSYS 2025",
+  "problem": "During LLM decode-phase, attention computation suffers critically low GPU SM occupancy because FlashAttention-2 only parallelizes over batch and heads (Nq=1 for decode), leaving most SMs idle; FlashDecoding's fixed-split partitioning causes imbalanced loads and quantization inefficiencies.",
+  "motivation": "Decode-phase attention constitutes up to 50-60% of total inference time at long contexts; fixed-split partitioning wastes SMs when the number of CTAs is not a multiple of SM count, and the problem worsens for heterogeneous batch context lengths.",
+  "method": "LeanAttention applies a Stream-K style decomposition to attention: the context length dimension is linearized into LeanTiles (fixed-size KV blocks optimal per hardware), then total LeanTiles are divided equally among all CTAs regardless of head or batch boundaries. Partial attention outputs from CTAs spanning head boundaries are reduced using the associativity property of the softmax re-scaling operator, enabling exact attention with near-100% SM occupancy for any problem size.",
+  "key_novelty": "Proves and exploits the associativity of the softmax re-scaling operator to enable Stream-K style arbitrary work partitioning in attention, achieving near-100% GPU occupancy for all context lengths and batch sizes, unlike fixed-split which fails at many configurations.",
+  "contributions": [
+    "Proof and exploitation of associativity of softmax re-scaling as a reduction operator",
+    "Stream-K style LeanTile decomposition achieving near-100% SM occupancy for all attention problem sizes",
+    "LeanRaggedBatching for heterogeneous context lengths with equal LeanTile distribution",
+    "Average 1.73x speedup over FlashDecoding (up to 2.18x at 256k context) on A100; 1.52x average on H100"
+  ],
+  "hardware_target": ["gpu-datacenter"],
+  "technique_category": ["attention", "kernel-fusion"],
+  "workloads": ["llm-inference", "attention"],
+  "metrics": {
+    "speedup": "Average 1.73x over FlashDecoding on A100 (max 2.18x at 256k context, 56 heads, BS=2); average 1.52x on H100 (max 2.53x at 64k context); 3.5x at 128k context for head_dim=128",
+    "energy_or_tops_w": "More energy-efficient than FlashDecoding at context lengths >128k (lower SM idle time)",
+    "area": null,
+    "ppa": null,
+    "accuracy": "Exact attention (no approximation); maintains bit-exact parity with FlashAttention-2",
+    "other": "End-to-end: 1.73x speedup on Phi-3 Medium for >16k output tokens"
+  },
+  "baselines": ["FlashAttention-2", "FlashDecoding", "FlashInfer"],
+  "limitations": "Reduction overhead grows with splits per head (significant at <4 heads or <1k context); requires input tensor layout (batch, heads, seq, dim) differing from FlashAttention-2; targeted at decode-phase only.",
+  "tags": ["attention", "decode-phase", "stream-k", "gpu-occupancy", "softmax", "llm-inference"],
+  "primary_theme": "Attention kernel optimization",
+  "confidence": "high"
+}

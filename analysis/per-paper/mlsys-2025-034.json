@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-034",
+  "title": "FastTree: Optimizing Attention Computation for Tree-Structured LLM Inference",
+  "venue": "MLSYS 2025",
+  "problem": "LLM serving systems that share KV cache via radix trees (prefix sharing) waste compute by running separate GEMV attention for each query even when many queries share a large common KV prefix, failing to exploit the tree structure for hardware-efficient GEMM.",
+  "motivation": "GEMV (single query against KV cache) has poor tensor core utilization; when multiple queries share a prefix, grouping their attention into GEMM would dramatically improve hardware efficiency, but existing kernels do not exploit the tree topology.",
+  "method": "Binary edge assignment algorithm greedily partitions the radix tree into context groups (shared prefix) and query groups (independent queries). A FlashAttention-style tiled attention kernel reuses the shared KV prefix across all queries in a group, transforming per-query GEMV into batched GEMM via query aggregation.",
+  "key_novelty": "Greedy binary edge assignment on the radix tree KV-cache graph that maximizes query aggregation opportunities, enabling GEMV-to-GEMM conversion and shared KV reuse within a single fused attention kernel.",
+  "contributions": [
+    "Binary edge assignment algorithm for grouping radix-tree nodes into context-query groups for query aggregation",
+    "FlashAttention-style tiled kernel with shared KV reuse across aggregated queries (GEMV-to-GEMM)",
+    "2.2x throughput improvement over SGLang+FlashInfer on tree-structured serving workloads",
+    "Kernel-level: 5.1x over FlashAttention, 4.2x over FlashInfer, 10.6x over DeFT"
+  ],
+  "hardware_target": ["gpu-datacenter"],
+  "technique_category": ["attention", "kernel-fusion", "memory-system"],
+  "workloads": ["llm-inference", "attention"],
+  "metrics": {
+    "speedup": "2.2x system throughput over SGLang+FlashInfer; kernel: 5.1x over FlashAttention, 4.2x over FlashInfer, 10.6x over DeFT",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "Exact attention (no approximation)",
+    "other": "Hardware: H100 GPU"
+  },
+  "baselines": ["FlashAttention", "FlashInfer", "DeFT", "CascadeAttn", "SGLang"],
+  "limitations": "Benefit depends on degree of KV prefix sharing (tree depth/breadth); greedy binary assignment may not always find the globally optimal grouping; limited evaluation on non-tree serving patterns.",
+  "tags": ["attention", "kv-cache", "radix-tree", "prefix-sharing", "gemm", "llm-serving"],
+  "primary_theme": "LLM serving and attention kernels",
+  "confidence": "high"
+}

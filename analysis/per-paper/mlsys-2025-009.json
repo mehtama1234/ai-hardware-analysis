@@ -1,0 +1,38 @@
+{
+  "id": "mlsys-2025-009",
+  "title": "SparseTransX: Efficient Training of Translation-Based Knowledge Graph Embeddings Using Sparse Matrix Operations",
+  "venue": "MLSYS 2025",
+  "problem": "Training translational knowledge graph embedding (KGE) models (TransE, TransR, TransH, TorusE) is bottlenecked by fine-grained scatter/gather operations during gradient computation (up to 40% of CPU training time), causing irregular memory access patterns, high backpropagation overhead, and large intermediate memory allocations.",
+  "motivation": "KG training triplets are inherently sparse (each triplet touches only 2-3 entity/relation embeddings out of thousands), yet existing frameworks (TorchKGE, DGL-KE, PyG) use dense PyTorch embedding lookup and fine-grained scatter operations. Sparse matrix operations (SpMM) are highly optimized in GNN libraries but have never been applied to KGE training. Replacing scatter-gather with SpMM unifies multiple embedding operations into a single matrix multiply, enabling cache blocking, SIMD vectorization, WARP-level GPU primitives, and loop unrolling.",
+  "method": "SparseTransX reformulates translational KGE training by constructing a sparse incidence matrix A from training triplets: each row represents one triplet, with +1 in the head entity column and -1 in the tail entity column (for ht expression) or additionally +1 in the relation column offset by entity count (for hrt expression). Multiplying A (sparse, M x (N+R)) by the embedding matrix E (dense, (N+R) x d) directly computes batched (head - tail) or (head + relation - tail) expressions via a single SpMM call. Both forward and backward pass benefit: backward reduces to SpMM on the transpose A^T. Four models implemented: TransE (hrt computation, L2 norm), TransR (ht computation + per-relation projection matrix Mr applied separately), TransH (two ht computations with hyperplane projections), TorusE (hrt with torus distance). Framework uses iSpLib (CSR format, SIMD vectorized, auto-tuned) for CPU and DGL g-SpMM (COO format) for GPU. PyTorch DDP/FSDP wrappers support distributed training.",
+  "key_novelty": "First application of SpMM to replace scatter-gather in translational KGE training; sparse incidence matrix formulation that unifies head-tail-relation embedding extraction into a single matrix multiplication enabling high-performance sparse library acceleration.",
+  "contributions": [
+    "Sparse incidence matrix formulation for ht (head-tail) and hrt (head+relation-tail) expressions via SpMM",
+    "Sparse formulations for TransE, TransR, TransH, TorusE (and extensibility analysis for DistMult, ComplEx, RotatE)",
+    "SparseTransX library: iSpLib (CPU, CSR, SIMD+loop-unrolling+cache-blocking) and DGL g-SpMM (GPU, COO, WARP-level)",
+    "11x GPU memory efficiency improvement for TransH over TorchKGE",
+    "Streaming embedding support via PyTorch memory-mapped tensors for embeddings too large for CPU memory"
+  ],
+  "hardware_target": ["NVIDIA A100-SXM4 (40GB)", "AMD EPYC 7763 (64-core)"],
+  "technique_category": ["sparse-computation", "knowledge-graph", "graph-ml", "training-optimization", "memory-optimization"],
+  "workloads": ["knowledge-graph-embedding", "graph-ml-training"],
+  "metrics": {
+    "cpu_speedup_transe": "up to 5.3x speedup on CPU vs TorchKGE (across 7 datasets including BioKG 4.8M triplets)",
+    "gpu_speedup_transe": "up to 4.2x speedup on GPU vs TorchKGE",
+    "gpu_memory_transe": "5.61 GB vs 13.55 GB (TorchKGE) for TransE",
+    "gpu_memory_transh": "0.28 GB vs 3.1 GB (TorchKGE) for TransH (11x reduction)",
+    "flops_reduction_transe": "220 vs 483.87 billion FLOPs (TorchKGE) for TransE",
+    "cache_miss_improvement": "26.54% vs 29.37% (TorchKGE) for TransE"
+  },
+  "baselines": ["TorchKGE", "DGL-KE", "PyTorch Geometric (PyG)"],
+  "limitations": [
+    "TorusE speedup is lower than TransE because torus L2 dissimilarity function (not embedding gradient) dominates compute",
+    "TransH shows moderate speedup because SpMM accounts for smaller fraction of total training time due to large computational graph",
+    "TransR backward is slower than DGL-KE (which uses custom gradient via DGL graph API) on CPU in some configs",
+    "Distributed training results shown only as preliminary (Appendix F); not the primary evaluation focus",
+    "COO format for GPU requires format conversion overhead for some workloads"
+  ],
+  "tags": ["knowledge-graph", "SpMM", "sparse-matrix", "TransE", "TransR", "graph-ml", "training-optimization", "GPU-memory"],
+  "primary_theme": "sparse-computation-for-graph-ml",
+  "confidence": "high"
+}

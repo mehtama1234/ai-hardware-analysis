@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-036",
+  "title": "Photon: Federated LLM Pre-Training",
+  "venue": "MLSYS 2025",
+  "problem": "LLM pre-training is constrained to high-bandwidth data centers because standard distributed training (3D parallelism) requires AllReduce at every step, making cross-region or internet-scale collaboration impractical due to low inter-datacenter bandwidth.",
+  "motivation": "Building larger data centers is expensive and inflexible; cross-silo federated learning with LocalSGD reduces communication frequency by orders of magnitude, but prior methods like DiLoCo converge 2x slower and cannot train at billion-parameter scale effectively.",
+  "method": "Photon is a federated LLM pre-training system using cross-silo FL with LocalSGD. Each client performs many local gradient steps before synchronizing. The system exploits federated averaging's robustness to enable small local batch sizes with high learning rates—a combination that improves generalization via noise injection. Architecture includes an Aggregator (central server), LLM Clients (local training nodes), and Data Sources. Communication uses parameter server, AllReduce, or Ring-AllReduce depending on network topology. Adaptive local parallelism selects DDP/FSDP vs sub-federation based on client connectivity.",
+  "key_novelty": "First complete system for federated LLM pre-training at billion-parameter scale that trains models matching or exceeding centralized training quality, exploiting federated averaging's robustness to combine small batch sizes with high learning rates for 2x faster convergence than DiLoCo.",
+  "contributions": [
+    "First open-source federated LLM pre-training system (Photon) trained decoder-only LLMs up to 7B parameters from scratch",
+    "Federated optimization approach combining small local batch sizes with high learning rates, converging 2x faster than DiLoCo",
+    "20% higher throughput vs centralized training with 64-512x less communication; 35% wall-time reduction",
+    "3B and 7B models achieve 13.7-16.9% lower perplexity than centralized counterparts"
+  ],
+  "hardware_target": ["gpu-datacenter"],
+  "technique_category": ["parallelism", "distributed-training"],
+  "workloads": ["llm-training"],
+  "metrics": {
+    "speedup": "35% wall-time reduction vs centralized for 7B model (95.6h vs 147.9h at 10Gbps with Ring-AllReduce)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "7B model: 13.8 perplexity vs 16.6 centralized (-16.9%); 3B: 15.7 vs 18.2 (-13.7%)",
+    "other": "Communication reduced 500x for 7B model; 64-512x less overall"
+  },
+  "baselines": ["Centralized training (DDP/3D parallelism)", "DiLoCo"],
+  "limitations": "Requires stable internet connectivity (>1Gbps); assumes cross-silo (not cross-device) setting; communication topology limited by slowest link in Ring-AllReduce; evaluated only on C4 and The Pile datasets.",
+  "tags": ["federated-learning", "llm-training", "low-bandwidth", "distributed-training", "localsgd", "pre-training"],
+  "primary_theme": "Distributed LLM training",
+  "confidence": "high"
+}

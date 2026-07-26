@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-038",
+  "title": "MAS-Attention: Memory-Aware Stream Processing for Attention Acceleration on Resource-Constrained Edge Devices",
+  "venue": "MLSYS 2025",
+  "problem": "On resource-constrained edge neural accelerators (e.g., smartphone NPUs), attention acceleration methods like FLAT execute MatMul and softmax sequentially on separate MAC and VEC compute units, leaving one unit idle at all times and achieving suboptimal latency.",
+  "motivation": "Edge devices have heterogeneous MAC and VEC units that run independently; parallelizing tiled MatMul (on MAC) and softmax (on VEC) exploits this heterogeneity, but requires careful tiling, dependency management, and cache overflow prevention.",
+  "method": "MAS-Attention schedules two streams of tiled tasks: tiled MatMul on MAC units and tiled softmax on VEC units, in a semi-synchronous pipelined fashion. A multi-tiered tiling scheme (sub-matrix tiling for MatMul, row-granularity for softmax) is optimized via MCTS + Genetic Algorithm offline. A proactive buffer overwrite strategy prevents cache overflow by selectively overwriting K or V matrix tiles and reloading as needed, prioritizing softmax completion.",
+  "key_novelty": "First attention acceleration method for edge accelerators to exploit MAC-VEC heterogeneous parallelism via semi-synchronous stream processing, combined with a proactive cache overwrite strategy that prevents pipeline stalls under constrained on-chip memory.",
+  "contributions": [
+    "Semi-synchronous MAC-VEC stream processing scheme parallelizing MatMul and softmax in attention",
+    "Multi-tiered tiling scheme with MCTS+GA offline search for optimal tile parameters",
+    "Proactive buffer overwrite strategy for cache management under limited on-chip memory",
+    "Up to 2.75x speedup and 54% energy reduction vs FLAT (simulated); 1.76x speedup on real Huawei DaVinci NPU"
+  ],
+  "hardware_target": ["edge", "npu"],
+  "technique_category": ["dataflow", "memory-system", "attention"],
+  "workloads": ["llm-inference", "attention"],
+  "metrics": {
+    "speedup": "Up to 2.75x over FLAT (simulated edge, geomean 1.70x); up to 1.76x on real Huawei MatePad Pro 13.2 DaVinci NPU (geomean 1.42x vs FLAT); 8.50x over Layer-Wise baseline",
+    "energy_or_tops_w": "54% energy reduction vs FLAT (simulated); geomean 18.55% energy savings vs FLAT across all networks",
+    "area": null,
+    "ppa": null,
+    "accuracy": "Exact attention (golden data validation on all workloads)",
+    "other": "Evaluated on BERT, LLaMA3-8B, T5, ViT, XLM; 6% end-to-end latency reduction on Stable Diffusion 1.5 UNet"
+  },
+  "baselines": ["Layer-Wise (unfused)", "Soft-Pipe", "FLAT", "TileFlow", "FuseMax"],
+  "limitations": "Proactive overwrite may increase DRAM reads in some cases, partially negating energy savings; search overhead (MCTS+GA) is significant offline; evaluated only on single-inference scenarios, not batched inference.",
+  "tags": ["edge-inference", "attention", "npu", "mac-vec-parallelism", "dataflow", "memory-management"],
+  "primary_theme": "Edge attention acceleration",
+  "confidence": "high"
+}

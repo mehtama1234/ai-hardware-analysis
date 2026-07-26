@@ -1,0 +1,51 @@
+{
+  "id": "mlsys-2025-046",
+  "title": "AI Metropolis: Scaling Large Language Model-based Multi-Agent Simulation with Out-of-order Execution",
+  "venue": "MLSYS",
+  "problem": "LLM-powered multi-agent simulations use global step-wise synchronization (borrowed from RL frameworks) that creates false dependencies between agents who are spatially distant and have no actual interaction, severely limiting parallelism and LLM inference batch sizes.",
+  "motivation": "Trace analysis of GenAgent (25 agents, generative social simulation) shows 95% of time is LLM inference, average concurrent queries is only 1.94 out of 25 agents, and each agent depends on only 1.85 other agents per step on average\u2014yet global sync enforces all-to-all dependencies. Batch size directly determines GPU throughput in LLM serving; eliminating false dependencies expands concurrency and batch size.",
+  "method": "AI Metropolis introduces out-of-order execution for multi-agent simulation. A spatiotemporal dependency graph tracks real read-after-write dependencies: agent A is blocked by agent B only if their spatial distance is within reach over the step difference (radius_p + |StepA - StepB - 1| * max_vel). Agents that are coupled (within interaction range at same step) form clusters. A controller process uses geo-clustering to form ready clusters and dispatches them to worker processes via a priority queue sorted by step number (earlier steps = higher priority). Workers update the dependency graph in parallel using an in-memory Redis database with transactional updates. The critical path is C++ for low-latency controller logic.",
+  "key_novelty": "Out-of-order execution scheduling for LLM multi-agent simulation based on spatial-temporal dependency tracking, eliminating false dependencies while preserving temporal causality, enabling near-optimal parallelism as agent count scales.",
+  "contributions": [
+    "Spatiotemporal dependency graph formulation for LLM agent simulations based on perception radius and movement speed",
+    "Out-of-order execution: agents at different time steps can proceed as long as dependencies permit",
+    "Agent clustering into minimal synchronized units based on spatial coupling rules",
+    "Priority scheduling (earlier time steps first) to reduce critical path length",
+    "Scalable implementation: C++ controller, Redis for state, thread/process decomposition to bypass GIL",
+    "1.3x-4.15x speedup over parallel-sync baseline; approaching oracle as agent count increases to 500+"
+  ],
+  "hardware_target": "NVIDIA L4 GPUs (GCP G2), NVIDIA A100 GPUs; LLM inference served via SGLang",
+  "technique_category": "inference-serving",
+  "workloads": [
+    "LLM multi-agent social simulation (GenAgent, SmallVille 25 agents, LargeVille up to 1000 agents)",
+    "Llama-3 8B, Llama-3 70B, Mixtral 8x7B inference"
+  ],
+  "metrics": [
+    "End-to-end simulation completion time (s)",
+    "Achieved parallelism (avg concurrent LLM queries)",
+    "Speedup vs single-thread and parallel-sync",
+    "Fraction of oracle performance"
+  ],
+  "baselines": [
+    "Single-thread sequential simulation",
+    "Parallel-sync (global step synchronization)",
+    "Oracle (optimal dependency graph from trace analysis)"
+  ],
+  "limitations": [
+    "Conservative dependency rules may preserve some false dependencies compared to oracle, especially at low agent counts",
+    "Redis database becomes a shared-state bottleneck at very large agent counts",
+    "Current formulation assumes Euclidean spatial relationships; social networks require different distance metrics"
+  ],
+  "tags": [
+    "llm-inference",
+    "multi-agent",
+    "simulation",
+    "scheduling",
+    "out-of-order-execution",
+    "dependency-tracking",
+    "parallelism",
+    "serving"
+  ],
+  "primary_theme": "LLM Inference & Serving",
+  "confidence": "high"
+}

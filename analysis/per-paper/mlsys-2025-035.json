@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-035",
+  "title": "GSplit: Scaling Graph Neural Network Training on Large Graphs via Probabilistic Splitting",
+  "venue": "MLSYS 2025",
+  "problem": "Mini-batch GNN training with data parallelism causes significant redundant feature loading and computation because the same graph vertices appear in multiple GPU micro-batches, limiting scalability to large graphs.",
+  "motivation": "On large graphs like Orkut and Papers100M, data-parallel GNN training loads up to 2.5x more features than necessary due to vertex overlap across micro-batches; eliminating this redundancy can dramatically reduce training time.",
+  "method": "Split parallelism: each mini-batch is sampled once and non-overlappingly partitioned (split) on-the-fly among GPUs using an offline probabilistic splitting algorithm. The offline phase uses pre-sampling to weight graph vertices and edges by expected sampling frequency, then applies weighted min-edge-cut partitioning (METIS) to find a global vertex-to-GPU assignment. Online splitting maps each sampled vertex to its pre-assigned GPU in constant time. Inter-GPU feature shuffles at each GNN layer exchange only required features.",
+  "key_novelty": "Online probabilistic splitting that reduces NP-hard per-mini-batch partitioning to a constant-time lookup by leveraging an offline pre-sampled weighted graph partition, providing provable expected communication minimization and load balancing.",
+  "contributions": [
+    "Split parallelism paradigm eliminating redundant vertex loading and computation in GNN mini-batch training",
+    "Lightweight online splitting algorithm with probabilistic guarantees via offline pre-sampling and METIS partitioning",
+    "GSplit split/shuffle API compatible with existing single-GPU GNN sampling and training kernels",
+    "Up to 4.4x speedup over DGL, 4.1x over P3, 1.9x over Quiver on large-graph benchmarks"
+  ],
+  "hardware_target": ["gpu-datacenter"],
+  "technique_category": ["parallelism", "memory-system"],
+  "workloads": ["gnn-training"],
+  "metrics": {
+    "speedup": "Up to 4.4x over DGL (2.5x average), 4.1x over P3 (2.4x average), 1.9x over Quiver (1.4x average) on Orkut/Papers100M/Friendster graphs",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "No accuracy loss vs data-parallel training (verified on Papers100M)",
+    "other": "Hardware: AWS EC2 p3.8xlarge with 4x NVIDIA V100 GPUs"
+  },
+  "baselines": ["DGL", "Quiver", "P3 (push-pull parallelism)", "Edge (naive split)"],
+  "limitations": "Offline pre-sampling and METIS partitioning add one-time preprocessing cost; gains depend on graph redundancy (less benefit on low-overlap graphs like Friendster); multi-host setup reverts to hybrid DP+split.",
+  "tags": ["gnn", "graph-neural-network", "data-parallelism", "split-parallelism", "mini-batch", "large-graph"],
+  "primary_theme": "GNN training systems",
+  "confidence": "high"
+}

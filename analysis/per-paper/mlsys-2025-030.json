@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-030",
+  "title": "ReaL: Efficient RLHF Training of Large Language Models with Parameter Reallocation",
+  "venue": "MLSYS 2025",
+  "problem": "RLHF training of LLMs involves multiple model function calls (actor, critic, reference, reward) with fundamentally different compute and memory profiles, yet existing systems apply static parallelization strategies that leave GPU resources severely underutilized.",
+  "motivation": "In RLHF pipelines, generation (actor) is memory-bandwidth-bound and benefits from tensor parallelism, while training (PPO update) is compute-bound and benefits from data parallelism; using one fixed strategy for all stages wastes GPU time and memory.",
+  "method": "Parameter reallocation: model weights are redistributed across GPUs between function calls so each stage uses an optimal parallelization strategy. An MCMC-based search finds the best execution plan (parallelization configs + scheduling order) over the combined search space of all model functions.",
+  "key_novelty": "First system to dynamically reallocate model parameters between RLHF pipeline stages rather than holding a fixed replica layout, paired with an MCMC planner that searches the discrete plan space efficiently.",
+  "contributions": [
+    "Parameter reallocation framework enabling per-stage optimal parallelization in RLHF without redundant weight copies",
+    "MCMC-based execution plan search over joint parallelization and scheduling configuration space",
+    "End-to-end ReaL system achieving 3.58x speedup over DeepSpeed-Chat, OpenRLHF, NeMo-Aligner, and veRL on H100 clusters",
+    "Up to 81% speedup over Megatron-LM heuristic at 8192 context length"
+  ],
+  "hardware_target": ["gpu-datacenter"],
+  "technique_category": ["parallelism", "scheduling"],
+  "workloads": ["llm-training", "rlhf"],
+  "metrics": {
+    "speedup": "3.58x over DeepSpeed-Chat/OpenRLHF/NeMo-Aligner/veRL; 81% over Megatron-LM heuristic at 8192 context on H100 128-GPU cluster",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "No degradation in reward model quality vs baselines",
+    "other": null
+  },
+  "baselines": ["DeepSpeed-Chat", "OpenRLHF", "NeMo-Aligner", "veRL", "Megatron-LM"],
+  "limitations": "MCMC plan search adds offline overhead; reallocation communication cost grows with cluster size; evaluated primarily on PPO-based RLHF (not other RL algorithms).",
+  "tags": ["rlhf", "parameter-reallocation", "parallelism", "mcmc", "llm-training", "scheduling"],
+  "primary_theme": "LLM training systems",
+  "confidence": "high"
+}

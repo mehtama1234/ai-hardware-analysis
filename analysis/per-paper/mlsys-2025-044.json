@@ -1,0 +1,51 @@
+{
+  "id": "mlsys-2025-044",
+  "title": "VoLUT: Efficient Volumetric streaming enhanced by LUT-based super-resolution",
+  "venue": "MLSYS",
+  "problem": "3D volumetric video streaming requires extremely high bandwidth; downsampling before transmission and upsampling via super-resolution at the receiver is needed, but existing 3D SR algorithms are too slow for real-time use on commodity mobile devices.",
+  "motivation": "YuZu and similar neural 3D SR methods provide quality but require heavy per-point neural network inference that is too slow on mobile edge hardware. LUTs precompute the mapping from low-res to high-res point offsets offline, enabling fast lookup-table-based SR at inference time.",
+  "method": "VoLUT has a two-stage SR pipeline. Stage 1 (dilated kNN interpolation): broader spatial context via dilated k-nearest neighbor search for initial upsampling; octree parallelism accelerates the kNN computation; neighbor relationships are reused across upsampling steps. Stage 2 (LUT refinement): coordinates of upsampled points are normalized to [0,1], quantized into b discrete bins per axis (bin=128 by default), and looked up in a precomputed 3D LUT that stores high-resolution position offsets (RF=4 receptive field, bin=128 yields 1.6GB LUT). The LUT is built offline from a trained NN model. MPC (Model Predictive Control)-based adaptive bitrate algorithm dynamically selects downsampling rate based on network conditions, streaming a continuous range of quality levels.",
+  "key_novelty": "First system to run high-quality 3D point cloud super-resolution on commodity mobile devices at line-rate, using offline NN-to-LUT conversion with position encoding quantization and dilated kNN interpolation, combined with MPC-based continuous ABR streaming.",
+  "contributions": [
+    "LUT-based 3D super-resolution: offline conversion of SR neural network to lookup table for fast mobile inference",
+    "Position encoding pipeline: normalize -> quantize to b bins -> LUT lookup of position offsets",
+    "Dilated kNN interpolation for broader spatial context in stage 1 upsampling",
+    "Octree-based parallel kNN with neighbor relationship reuse to reduce computation",
+    "MPC-based continuous ABR for volumetric video streaming adapting to bandwidth fluctuations",
+    "8.4x SR speedup over YuZu, 70% bandwidth reduction, 36.7% QoE improvement"
+  ],
+  "hardware_target": "Commodity mobile devices (receiver-side); server-side encoding; edge streaming",
+  "technique_category": "inference-serving",
+  "workloads": [
+    "3D volumetric video streaming and super-resolution",
+    "Point cloud upsampling"
+  ],
+  "metrics": [
+    "SR speedup (x vs YuZu)",
+    "Bandwidth reduction (%)",
+    "QoE improvement (%)",
+    "SR quality (PSNR/Chamfer distance)"
+  ],
+  "baselines": [
+    "GradPU",
+    "YuZu",
+    "Vivo"
+  ],
+  "limitations": [
+    "LUT size (1.6GB at RF=4, bin=128) may exceed mobile device storage for fine-grained configurations",
+    "LUT must be retrained/rebuilt if the content distribution shifts significantly",
+    "Dilated kNN still requires octree construction overhead at the receiver"
+  ],
+  "tags": [
+    "super-resolution",
+    "volumetric-video",
+    "point-cloud",
+    "lut",
+    "mobile-inference",
+    "adaptive-bitrate",
+    "streaming",
+    "edge-ai"
+  ],
+  "primary_theme": "Efficient Inference on Edge/Mobile",
+  "confidence": "high"
+}

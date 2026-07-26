@@ -1,0 +1,69 @@
+{
+  "id": "mlsys-2025-055",
+  "title": "COMET: Fine-grained Computation-communication Overlapping for Mixture-of-Experts",
+  "venue": "MLSYS 2025",
+  "problem": "In distributed MoE models, inter-device all-to-all communication occupies up to 47% of total execution time. Existing coarse-grained overlapping schemes impair computational efficiency and provide sub-optimal latency concealment.",
+  "motivation": "Sparse MoE models with expert parallelism require all-to-all token routing across GPUs. Naive pipelining partitions expert computation into chunks, but granularity mismatches between token-level communication and tile-level GEMM computation cause inefficiency. Dynamic token routing creates varying workloads that prevent deterministic kernel scheduling.",
+  "method": "COMET introduces two mechanisms: (1) Shared Tensor Based Dependency Resolving: analyzes the shared buffers between producer (communication) and consumer (computation) operations, decomposes shared tensors along independent dimensions (M-axis for layer0 GEMM, N-axis for layer1 top-K reduction), and reschedules computation tiles to begin as early as possible using local data first. (2) Adaptive Workload Assignment: thread-block specialization isolates communication and computation in separate SM groups within a fused kernel, with adaptive thread-block allocation profiled per input shape and parallelism strategy.",
+  "key_novelty": "Fine-grained fused GPU kernels that resolve the granularity mismatch between token-level communication and tile-level GEMM computation through shared tensor decomposition and rescheduling, combined with adaptive SM allocation that dynamically balances communication vs. compute SMs at runtime.",
+  "contributions": [
+    "Shared tensor based dependency resolving enabling fine-grained communication-computation overlap",
+    "Tensor decomposition and rescheduling along M-axis (layer0) and N-axis (layer1)",
+    "Thread-block specialization isolating comm/compute in fused kernels",
+    "Adaptive thread-block assignment profiled per (input-shape, parallelism) configuration",
+    "NVSHMEM integration for fine-grained GPU-initiated communication",
+    "1.96x single MoE layer speedup, 1.71x end-to-end speedup",
+    "86.5% communication latency hidden vs 68.6% (Tutel) and 29.2% (FasterMoE)",
+    "Deployed in production on 10,000+ GPU clusters saving millions of GPU hours"
+  ],
+  "hardware_target": [
+    "NVIDIA H800 GPU",
+    "NVIDIA L20 GPU",
+    "NVLink",
+    "PCIe",
+    "Hopper TMA"
+  ],
+  "technique_category": [
+    "MoE computation-communication overlap",
+    "Kernel fusion",
+    "Thread-block specialization",
+    "Distributed training",
+    "NVSHMEM"
+  ],
+  "workloads": [
+    "Mixtral 8x7B training and inference",
+    "Qwen2-MoE",
+    "Phi3.5-MoE",
+    "MoE layer microbenchmarks"
+  ],
+  "metrics": {
+    "single_moe_layer_speedup": "1.96x over SOTA",
+    "end_to_end_speedup": "1.71x on average",
+    "communication_hidden": "86.5% of communication latency",
+    "latency_reduction_vs_megatron_cutlass": "34.1%",
+    "latency_reduction_vs_megatron_te": "42.6%",
+    "latency_reduction_vs_fastermoe": "44.4%",
+    "latency_reduction_vs_tutel": "31.8%",
+    "speedup_range": "1.28x to 2.37x on single MoE layer"
+  },
+  "baselines": [
+    "Megatron-CUTLASS",
+    "Megatron-TE (Transformer Engine)",
+    "FasterMoE",
+    "Tutel"
+  ],
+  "limitations": "Requires pre-profiling per (shape, parallelism) configuration to select optimal thread-block split; NVSHMEM memory overhead (small but non-zero); primarily validated on H800/L20; L20 (PCIe) gains smaller (1.19-1.46x) than H800 (NVLink).",
+  "tags": [
+    "MoE",
+    "communication-computation-overlap",
+    "kernel-fusion",
+    "thread-block-specialization",
+    "NVSHMEM",
+    "expert-parallelism",
+    "tensor-parallelism",
+    "H800",
+    "distributed-training"
+  ],
+  "primary_theme": "MoE Communication Optimization / Kernel Fusion",
+  "confidence": "high"
+}

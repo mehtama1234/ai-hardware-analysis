@@ -1,0 +1,37 @@
+{
+  "id": "mlsys-2025-010",
+  "title": "PipeFill: Using GPUs During Bubbles in Pipeline-Parallel LLM Training",
+  "venue": "MLSys 2025",
+  "problem": "Pipeline-parallel LLM training leaves substantial GPU idle time (pipeline bubbles) that represents wasted compute capacity at scale.",
+  "motivation": "At 8K GPUs, pipeline bubbles can consume 30-40% of total compute time. Recovering this idle capacity without disrupting the primary training job would yield significant throughput gains at minimal additional cost.",
+  "method": "PipeFill schedules independent fill jobs (batch inference, small model training) into pipeline bubble slots using a Pipeline Bubble Instruction (PBI) abstraction, a Fill Job Executor that maps fill work to idle GPU time, and a Fill Job Scheduler that tracks bubble windows and dispatches work. Implemented on DeepSpeed with GPipe and 1F1B schedules.",
+  "key_novelty": "First system to systematically characterize and exploit pipeline bubble structure for productive secondary workloads, introducing the PBI abstraction that expresses fill work independently of the primary schedule.",
+  "contributions": [
+    "Formal characterization of pipeline bubble patterns in GPipe and 1F1B schedules",
+    "Pipeline Bubble Instruction (PBI) abstraction for expressing fill job work units",
+    "Fill Job Executor that executes fill work within bubble windows without disrupting primary training",
+    "Fill Job Scheduler that dynamically selects and dispatches fill jobs based on bubble availability",
+    "DeepSpeed-based implementation evaluated at up to 8K GPUs"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "parallelism"],
+  "workloads": ["LLM-training", "LLM-inference"],
+  "metrics": {
+    "speedup": "1.63x GPU utilization increase (63% improvement) at 8K GPUs",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "<2% slowdown on primary LLM training job",
+    "other": "Fill job throughput scales with pipeline depth and bubble ratio"
+  },
+  "baselines": ["Traditional pipeline parallelism (no bubble filling)", "AntMan (GPU sharing)", "Muri (GPU multiplexing)"],
+  "limitations": [
+    "Fill jobs must be independent of the primary training job",
+    "Bubble windows may be too short for certain fill workloads",
+    "Scheduling overhead increases with number of fill job types",
+    "Requires DeepSpeed-compatible primary training setup"
+  ],
+  "tags": ["pipeline-parallelism", "GPU-utilization", "LLM-training", "scheduling", "bubble-filling", "DeepSpeed", "distributed-training"],
+  "primary_theme": "training-efficiency",
+  "confidence": "high"
+}

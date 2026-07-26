@@ -1,0 +1,36 @@
+{
+  "id": "mlsys-2025-026",
+  "title": "Lumos: Efficient Performance Modeling and Estimation for Large-Scale LLM Training",
+  "venue": "MLSYS 2025",
+  "problem": "Existing performance models for distributed LLM training fail to accurately capture complex inter-stream dependencies (computation-communication overlap), leading to large prediction errors (dPRO averages 14% error) and preventing reliable what-if analysis for configuration exploration.",
+  "motivation": "Training LLMs across hundreds of GPUs with 3D parallelism (tensor/pipeline/data) creates intricate dependency patterns. Missing inter-stream dependencies causes tools like dPRO to overestimate overlap and underestimate total iteration time. Experimenting on real hardware at scale is expensive; a simulation-based approach could reduce costs.",
+  "method": "Lumos: a trace-driven performance modeling and estimation toolkit. Uses PyTorch Kineto profiler (only ~10 lines of hook code) to collect CPU operator traces, CUDA runtime events, and GPU kernel traces. Constructs a task-level execution graph with four dependency types: CPU-to-CPU (intra/inter-thread via cudaLaunchKernel), CPU-to-GPU (correlation IDs), GPU-to-CPU (cudaStreamSync), GPU-to-GPU (intra/inter-stream via cudaEventRecord/cudaStreamWaitEvent). Graph manipulation supports adjusting data parallelism (update communication times), pipeline parallelism (repartition layers, insert communication tasks, update schedule), and model architecture (adjust tensor dimensions for GEMM kernels, duplicate layers). Simulation runs a dependency-respecting event-driven scheduler producing replayed traces.",
+  "key_novelty": "First trace-driven performance model to accurately capture LLM inter-stream compute-communication dependencies (via cudaEventRecord/cudaStreamWaitEvent), enabling both accurate replay (3.3% avg error) and flexible what-if estimation for parallelism and architecture changes.",
+  "contributions": [
+    "Execution graph construction capturing all four CPU/GPU dependency types including inter-stream sync",
+    "3.3% average replay error vs 14% for dPRO on GPT-3 variants with up to 512 H100 GPUs",
+    "Graph manipulation interface for data parallelism, pipeline parallelism, and model architecture changes",
+    "Accurate SM utilization replay demonstrating fine-grained execution fidelity",
+    "What-if estimation for scale-out configurations with 4.2% average error"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["parallelism", "scheduling"],
+  "workloads": ["LLM-training"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "3.3% average replay error across GPT-3 15B to 175B, 16 to 512 H100 GPUs; 4.2% for scale-out what-if",
+    "other": "dPRO baseline achieves 14% average error; Lumos faithfully replays SM utilization"
+  },
+  "baselines": ["dPRO"],
+  "limitations": [
+    "Does not model memory consumption, bandwidth usage, or energy",
+    "Tensor parallelism adjustment not yet supported (fixed in practice)",
+    "Kernel runtime prediction for unseen configurations relies on in-house fleet model (not generalized)"
+  ],
+  "tags": ["LLM-training", "performance-modeling", "simulation", "distributed-training", "3D-parallelism", "trace-driven", "H100"],
+  "primary_theme": "parallelism",
+  "confidence": "high"
+}

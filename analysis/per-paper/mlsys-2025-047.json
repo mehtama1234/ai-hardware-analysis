@@ -1,0 +1,55 @@
+{
+  "id": "mlsys-2025-047",
+  "title": "LServe: Efficient Long-sequence LLM Serving with Unified Sparse Attention",
+  "venue": "MLSYS",
+  "problem": "Serving LLMs on long sequences (>64k tokens) is bottlenecked by attention: quadratic complexity during prefill and linear KV cache memory pressure during decode. No existing system addresses both stages simultaneously in a unified framework.",
+  "motivation": "At 128k tokens, attention accounts for 75%+ of runtime in both prefill and decode stages for Llama-3-8B on A100. KV cache quantization (QServe) reduces memory and bandwidth but does not cut computation count. Dynamic sparse attention (MInference, Quest) reduces compute but does not cut memory and addresses only one stage. A unified system can compound savings multiplicatively.",
+  "method": "LServe unifies structured block-sparse attention patterns in a single framework. For static sparsity: half of attention heads are designated as streaming heads (attend only to sink tokens and recent local window, \u039b-shaped mask) identified offline via DuoAttention's optimization-based gating. A fused CUDA kernel handles both streaming and dense heads in one pass for both prefill and decode. For dynamic sparsity (decode only): hierarchical paging introduces a two-level abstraction where logical pages (fine-grained, NL tokens) are used for importance scoring while physical pages (NP = g*NL tokens) hold the actual quantized KV data. Page importance is max-pooled from logical page scores (query dot product with per-logical-page kmax/kmin statistics). Reusable page selection exploits temporal locality: the same page selection result is shared across a chunk of consecutive decode steps. All sparsity patterns are unified in block-sparse attention kernels with W4A8KV4 quantization.",
+  "key_novelty": "Unified block-sparse attention framework combining static streaming heads and dynamic hierarchical page pruning into fused CUDA kernels with KV quantization, achieving multiplicative speedup in both prefill and decode stages while maintaining long-context accuracy.",
+  "contributions": [
+    "Unified block-sparse attention formulation compatible with both static and dynamic sparsity patterns",
+    "Hierarchical paging: logical-page importance scoring decoupled from physical-page memory layout to preserve accuracy with large quantized pages",
+    "Reusable page selection exploiting temporal locality of attention to cut page selector overhead by 4x",
+    "Fused CUDA/PTX kernels integrating streaming head masking, dynamic page lookup, and KV quantization",
+    "2.9x prefill speedup and 1.3-2.1x decode speedup over vLLM on Llama-3-8B, Llama-2-7B, Minitron-4B",
+    "Demonstrated compatibility with DeepSeek-R1-Distill-Llama-8B reasoning model at comparable accuracy"
+  ],
+  "hardware_target": "NVIDIA A100 80GB GPUs; NVIDIA L40S 48GB GPU; multi-GPU servers",
+  "technique_category": "inference-serving",
+  "workloads": [
+    "Long-sequence LLM serving (64k-512k tokens)",
+    "Llama-3-8B, Llama-2-7B, Minitron-4B inference",
+    "NIAH, LongBench, RULER benchmarks"
+  ],
+  "metrics": [
+    "Time to first token (TTFT, prefill latency)",
+    "Per-token generation latency (decode)",
+    "LongBench accuracy",
+    "NIAH accuracy",
+    "RULER accuracy (multi-hop)"
+  ],
+  "baselines": [
+    "vLLM 0.6.3",
+    "QServe",
+    "MInference",
+    "DuoAttention",
+    "Quest"
+  ],
+  "limitations": [
+    "Half-head streaming conversion is determined offline and may not optimally adapt to all input distributions",
+    "Hierarchical paging adds per-layer kmax/kmin storage overhead (~2x key stats per logical page)",
+    "Reusable page selection introduces bounded staleness in KV page selection between chunk boundaries"
+  ],
+  "tags": [
+    "llm-inference",
+    "sparse-attention",
+    "long-context",
+    "kv-cache",
+    "quantization",
+    "serving",
+    "attention-optimization",
+    "cuda"
+  ],
+  "primary_theme": "LLM Inference & Serving",
+  "confidence": "high"
+}

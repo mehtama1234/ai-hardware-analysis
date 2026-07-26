@@ -1,0 +1,34 @@
+{
+  "id": "mlsys-2025-000",
+  "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+  "venue": "MLSYS 2025",
+  "problem": "LLM inference serving requires attention kernels that simultaneously handle heterogeneous KV-cache storage layouts (ragged, paged, tree-structured), diverse attention variants (GQA, MLA, sliding-window), and dynamic request batching, while remaining compatible with static CUDAGraph capture.",
+  "motivation": "Existing attention kernels (FlashAttention, Triton-based backends) are optimized for a single storage format and static batch shapes; adapting them to production serving workloads with shared prefixes, paged memory, and mixed request types requires significant rewriting and yields suboptimal memory access and load imbalance.",
+  "method": "FlashInfer introduces: (1) Block-Sparse Row (BSR) format as a unified KV-cache representation that encodes ragged, paged, and prefix-tree layouts via a single sparse block structure; (2) composable format decomposition that splits shared-prefix attention from unique-suffix attention and merges partial softmax accumulators; (3) a JIT compiler that instantiates CUDA attention templates per attention variant at first use, reusing compiled binaries across requests; (4) a load-balanced scheduler that uses a priority queue to assign work tiles to thread blocks while preserving CUDAGraph compatibility via a static wrapper that hides dynamic dispatch.",
+  "key_novelty": "BSR as a single unifying KV-cache abstraction that collapses paged, ragged, and tree-structured layouts into one kernel path; CUDAGraph-compatible dynamic load balancing via a static-size priority queue indirection layer.",
+  "contributions": [
+    "Block-sparse row format unifying heterogeneous KV-cache layouts for attention computation",
+    "Composable formats enabling shared-prefix decomposition and partial softmax merging",
+    "JIT compiler for on-demand attention kernel instantiation across GQA, MLA, and sliding-window variants",
+    "Load-balanced CUDAGraph-compatible scheduling algorithm using priority-queue tile assignment",
+    "Integration into SGLang, vLLM, and MLC-Engine with measured end-to-end speedups"
+  ],
+  "hardware_target": ["NVIDIA GPU (A100, H100)"],
+  "technique_category": ["attention-kernel", "kv-cache-management", "jit-compilation", "sparse-format", "kernel-scheduling"],
+  "workloads": ["llm-inference", "long-context-inference", "parallel-generation", "prefix-caching"],
+  "metrics": {
+    "ITL_reduction_vs_triton": "29-69% inter-token latency reduction vs compiler backends on LLM serving benchmarks",
+    "long_context_latency": "28-30% latency reduction for long-context inference",
+    "parallel_generation_speedup": "13-17% speedup for LLM serving with parallel generation"
+  },
+  "baselines": ["Triton attention backend", "FlashAttention-2", "vLLM paged attention", "SGLang radix cache attention"],
+  "limitations": [
+    "JIT compilation adds first-request latency; warm-up required for production deployment",
+    "BSR block size must be tuned per hardware; sub-optimal block sizes degrade performance",
+    "Load-balanced scheduling overhead may dominate for very short sequences",
+    "Composable format merging requires storing intermediate partial softmax states, increasing SRAM pressure"
+  ],
+  "tags": ["attention", "KV-cache", "BSR", "JIT", "CUDAGraph", "LLM-serving", "FlashInfer", "load-balancing"],
+  "primary_theme": "attention-kernel-optimization",
+  "confidence": "high"
+}

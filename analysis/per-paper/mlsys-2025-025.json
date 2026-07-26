@@ -1,0 +1,36 @@
+{
+  "id": "mlsys-2025-025",
+  "title": "TurboAttention: Efficient Attention Approximation for High Throughput LLMs",
+  "venue": "MLSYS 2025",
+  "problem": "LLM attention is a dominant inference bottleneck at long context lengths: KV cache consumes massive memory, FlashAttention requires FP16/FP32 (using slow CUDA cores for softmax exponentiation), and existing KV cache compression methods still dequantize to FP16 before attention, negating latency benefits.",
+  "motivation": "FP32 CUDA cores deliver only ~3% of FP16 Tensor Core throughput. Attention can constitute up to 80% of inference latency at large context lengths. A unified quantized-attention solution that runs entirely on Tensor Cores and removes FP32 exponentiation overhead is needed.",
+  "method": "TurboAttention combines two innovations: (1) FlashQ — blockwise progressive quantization (BPQ) of Q/K/V to INT8 for FlashAttention-compatible quantized MatMuls, then channel-wise asymmetric INT4/INT2 compression of K/V for cache storage; headwise mixed precision assigns 2-bit quantization to the lowest-priority heads (based on a gap×std priority metric) and 4-bit to the rest. An enhanced KV buffer defers progressive compression every nb=64 steps. (2) SAS (Sparse Activated Softmax) — approximates exponentiation via LUT (integer part) + degree-3 polynomial (decimal part), runs entirely on Tensor Cores in FP16, and sparsifies near-zero attention scores to zero. Together these enable fully INT8 MatMul + FP16 softmax on Tensor Cores.",
+  "key_novelty": "First unified approach bridging FlashAttention's tiled dataflow with quantization algorithms, enabling fully quantized attention execution (both MatMul and softmax) on GPU Tensor Cores without FP32 CUDA core softmax.",
+  "contributions": [
+    "FlashQ: blockwise progressive quantization of Q/K/V compatible with FlashAttention tiling",
+    "Headwise mixed-precision KV cache (INT2/INT4) with priority-based head selection",
+    "Enhanced KV cache buffer deferring compression to avoid per-step recompression",
+    "SAS: LUT+polynomial softmax approximation eliminating FP32 exponentiation, running on Tensor Cores",
+    "End-to-end Triton implementation fusing QKV projection with quantization"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["quantization", "kernel-fusion", "approximation"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "Up to 1.8x prefill speedup, 1.7x decode speedup vs FlashAttention FP16; up to 2.37x maximum throughput",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "Near-lossless: avg 60.27% vs 61.89% FP16 baseline on GSM8k/AQuA/BBH across Llama3/Qwen2/Phi-3",
+    "other": "KV cache size reduced by over 4.4x; enables 32k context where FP16 OOMs at 4k"
+  },
+  "baselines": ["FlashAttention FP16", "KIVI", "GEAR-L"],
+  "limitations": [
+    "Polynomial softmax approximation introduces small numerical error vs exact softmax",
+    "2-bit heads can degrade accuracy on some models; headwise selection requires calibration passes",
+    "Implemented in Triton; CUDA kernel would deliver additional speedup (noted by authors)"
+  ],
+  "tags": ["attention", "quantization", "KV-cache", "FlashAttention", "softmax-approximation", "LLM-inference", "Tensor-Core", "INT8"],
+  "primary_theme": "quantization",
+  "confidence": "high"
+}

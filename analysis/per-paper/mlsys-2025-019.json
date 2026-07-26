@@ -1,0 +1,40 @@
+{
+  "id": "mlsys-2025-019",
+  "title": "Efficient On-Device Machine Learning with a Biologically-Plausible Forward-Only Algorithm",
+  "venue": "MLSys 2025",
+  "problem": "Backpropagation-based DNN training on IoT and wearable edge devices is infeasible due to excessive memory (activations must be stored), energy consumption, and biologically implausible requirements (weight transport, non-locality, update locking, frozen activities).",
+  "motivation": "Edge devices such as medical wearables and IoT sensors have memory budgets measured in megabytes and power budgets of 5-10W. Existing forward-only alternatives (FF, PEPITA, DRTP) only partially address BP's biological implausibility and achieve lower accuracy. A fully biologically-plausible, memory-efficient forward-only algorithm that approaches BP accuracy would enable viable on-device training.",
+  "method": "Bio-FO trains each layer independently using only forward passes. For each hidden layer l, an auxiliary classifier with a fixed random matrix Bl projects layer activations hl to class predictions, computing local cross-entropy loss and gradient without backpropagating through other layers. Weight updates use only local activations (hl-1 and hl), avoiding weight transport (no symmetric backward weights), non-locality (no inter-layer error signals), update locking (updates proceed as activations arrive), and frozen activities (no activation storage required). A sparsity mask Sl enables locally connected (LC) and CNN extensions. Implemented in PyTorch; evaluated on MNIST, CIFAR-10/100, medical EEG/ECG datasets, and mini-ImageNet on NVIDIA Jetson Nano.",
+  "key_novelty": "First forward-only algorithm to simultaneously and fully address all four biological implausibility issues of BP (weight transport, non-locality, update locking, frozen activities) while outperforming prior forward-only methods (FF, PEPITA, DRTP) in accuracy and achieving 3x memory reduction and up to 19.8x energy reduction.",
+  "contributions": [
+    "Bio-FO: layer-local forward-only training with fixed random auxiliary classifiers",
+    "Simultaneous resolution of weight transport, non-locality, update locking, and frozen activities",
+    "3x memory reduction vs BP (32MB vs 96MB at batch size 1)",
+    "Up to 19.8x energy reduction vs FF on CIFAR-100 on Jetson Nano",
+    "Outperforms DRTP, PEPITA, FF on CIFAR-10, CIFAR-100, CHB-MIT, MIT-BIH, mini-ImageNet",
+    "Extension to LC and CNN via sparsity mask Sl",
+    "Fastest convergence among forward-only algorithms (lower slowness parameter)"
+  ],
+  "hardware_target": ["SoC", "MCU", "edge"],
+  "technique_category": ["training-algorithm", "memory-system", "sparsity"],
+  "workloads": ["CNN-training", "on-device-learning"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": "Up to 19.8x energy reduction vs FF (CIFAR-100: 37.9 Wh vs 753.5 Wh for FF); evaluated at 5W power on Jetson Nano",
+    "area": null,
+    "ppa": null,
+    "accuracy": "CIFAR-100: 74.57% error (vs 76.16% PEPITA, 85.76% FF); mini-ImageNet: 67.39% error (vs 74.58% CaFo, 91.23% PEPITA); 3x memory reduction vs BP",
+    "other": "Fastest convergence: MNIST slowness 0.156 (vs 0.541 FF, 1.494 DRTP); hardware: NVIDIA Jetson Nano (128-core Maxwell GPU, 5-10W)"
+  },
+  "baselines": ["DRTP (Frenkel et al., 2021)", "PEPITA (Dellaferrera et al., 2022)", "FF/Forward-Forward (Hinton, 2022)", "Backpropagation (BP)", "CaFo (Zhao, 2023)"],
+  "limitations": [
+    "Accuracy gap vs BP remains significant on large-scale datasets (mini-ImageNet: 67.39% vs 53.49% error for BP)",
+    "Fixed random auxiliary classifiers may be suboptimal for complex tasks",
+    "Not yet evaluated on hardware designed specifically for forward-only algorithms",
+    "Not extended to GANs, GNNs, or Transformer architectures",
+    "Weight sharing in CNN extension is not biologically plausible"
+  ],
+  "tags": ["forward-only", "biologically-plausible", "on-device-training", "edge-AI", "wearable", "IoT", "energy-efficiency", "local-learning", "Jetson-Nano", "backpropagation-free"],
+  "primary_theme": "training-efficiency",
+  "confidence": "high"
+}

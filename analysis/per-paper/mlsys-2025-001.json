@@ -1,0 +1,35 @@
+{
+  "id": "mlsys-2025-001",
+  "title": "FLStore: Efficient Federated Learning Storage for non-training workloads",
+  "venue": "MLSYS 2025",
+  "problem": "Federated learning non-training workloads (scheduling, personalization, clustering, debugging, incentivization) impose high latency and cost because they access large volumes of metadata (model weights, hyperparameters, aggregated updates) stored in remote cloud object stores or in-memory caches without data locality.",
+  "motivation": "FL non-training workloads exhibit access patterns that differ from training: they require low-latency reads of client update metadata, repeated access to aggregated model checkpoints, and correlation of historical round data. Existing aggregator-server designs serialise these accesses through a central bottleneck, incurring round-trip overheads that dominate total latency.",
+  "method": "FLStore is a serverless cache framework that co-locates compute and data on the same cache tier. A Cache Engine (hash-table-based) routes requests to the cache node holding the relevant data based on a locality-aware key hashing. A Request Tracker maintains per-client access history to identify hot data. Four caching policies (P1-P4) are derived from a taxonomy of FL non-training workload types: P1 caches client model updates by round; P2 caches aggregated models; P3 caches derived metadata (gradients, loss) across rounds; P4 implements prefetching for predictable access patterns.",
+  "key_novelty": "Unified data+compute serverless cache tier with a four-policy taxonomy derived from a systematic analysis of FL non-training workload access patterns, enabling locality-aware execution without a central aggregator bottleneck.",
+  "contributions": [
+    "Taxonomy of FL non-training workloads and their storage access characteristics",
+    "Four tailored caching policies (P1-P4) mapped to workload types",
+    "Locality-aware request routing via Cache Engine hash table and Request Tracker",
+    "Serverless cache architecture that fuses compute and data planes for FL metadata",
+    "Integration with existing FL frameworks (Flower, PySyft) with minimal API changes"
+  ],
+  "hardware_target": ["cloud-cpu", "serverless-cache"],
+  "technique_category": ["distributed-storage", "caching", "federated-learning", "serverless"],
+  "workloads": ["federated-learning", "model-aggregation", "scheduling", "personalization"],
+  "metrics": {
+    "latency_vs_objstore_agg": "71% average latency reduction vs cloud object store aggregator; 99.7% peak",
+    "cost_vs_objstore_agg": "92.45% cost reduction; 98.8% peak",
+    "latency_vs_cache_agg": "64.6% average latency reduction vs in-memory cloud cache aggregator",
+    "cost_vs_cache_agg": "98.83% cost reduction vs in-memory cache aggregator"
+  },
+  "baselines": ["ObjStore-Agg (S3-based aggregator)", "Cache-Agg (Redis/Memcached-based aggregator)"],
+  "limitations": [
+    "Serverless cold-start latency when cache nodes are not warm",
+    "Hash-based routing may cause hotspots for highly skewed client distributions",
+    "Fault tolerance relies on replication which adds storage overhead",
+    "Taxonomy and policies assume relatively stationary access patterns; concept drift requires policy re-tuning"
+  ],
+  "tags": ["federated-learning", "caching", "serverless", "non-training-workloads", "storage", "FL"],
+  "primary_theme": "distributed-systems",
+  "confidence": "high"
+}

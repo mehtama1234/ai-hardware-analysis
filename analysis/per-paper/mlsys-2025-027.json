@@ -1,0 +1,37 @@
+{
+  "id": "mlsys-2025-027",
+  "title": "LAVA: Lifetime-Aware VM Allocation with Learned Distributions and Adaptation to Mispredictions",
+  "venue": "MLSYS 2025",
+  "problem": "VM scheduling in hyperscale cloud data centers is NP-hard with incomplete lifetime information; one-shot lifetime predictions accumulate mispredictions over time, causing host fragmentation and wasted capacity.",
+  "motivation": "88% of VMs live less than 1 hour but 98% of core-hours are consumed by longer-lived VMs. One-shot prediction tools like LA-Binary degrade rapidly with prediction errors. Repredicting remaining lifetime using observed uptime enables adaptive correction of mispredictions and fundamentally better scheduling.",
+  "method": "LAVA: three lifetime-aware algorithms using distribution-based VM lifetime prediction. ML model: GBDT trained on VM features (zone, family, shape, SSD, project metadata) to predict E(Tr|Tu) — conditional expected remaining lifetime given observed uptime. Multiple training examples per VM by augmenting with Tu quantiles. Model compiled into Borg scheduler binary (<10us latency, 780x faster than LA-Binary's inference server). Three algorithms: (1) NILAS — non-invasive reprediction tie-breaker using max repredicted exit time of co-scheduled VMs; (2) LAVA — lifetime-class based host state machine (open/recycling) placing shorter-lived VMs in gaps of longer-lived hosts, upgrading/downgrading host lifetime class on mispredictions; (3) LARS — lifetime-guided migration ordering for defragmentation, migrating longest-lived VMs first to let shorter VMs exit naturally.",
+  "key_novelty": "First production VM scheduler to use distribution-based lifetime reprediction (conditional expectation updated via uptime) and adapt scheduling decisions on misprediction detection, demonstrating that reprediction is theoretically and practically superior to one-shot prediction.",
+  "contributions": [
+    "Distribution-based GBDT lifetime model predicting E(Tr|Tu) at 99% precision/70% recall for 7-day threshold",
+    "Theoretical proof that reprediction reduces host requirements by Omega(m) over one-shot prediction",
+    "NILAS: non-invasive reprediction-based tie-breaker integrated into existing lexicographic scorer",
+    "LAVA: lifetime-class host state machine with adaptive misprediction correction",
+    "LARS: lifetime-guided migration ordering reducing live migrations by 4.5%",
+    "Fleet-wide production deployment at Google Borg, improving empty hosts 2.3-9.2 pp"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["scheduling"],
+  "workloads": ["cloud-scheduling", "VM-allocation"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "3% stranded compute reduction, 2% stranded memory reduction; 2.3-9.2 pp increase in empty hosts; 4.5% reduction in VM migrations",
+    "other": "Model latency <10us (780x faster than LA-Binary); fleet-wide production deployment"
+  },
+  "baselines": ["LA-Binary (Lifetime Alignment)", "Best Fit (Waste Minimization)"],
+  "limitations": [
+    "Focuses on bin-packing timing; does not model FLOPS utilization or energy directly",
+    "Model requires periodic retraining (monthly) as workload distributions shift",
+    "LAVA's invasive scoring may conflict with other high-priority business metrics in some pools"
+  ],
+  "tags": ["VM-scheduling", "cloud", "lifetime-prediction", "GBDT", "bin-packing", "defragmentation", "Google-Borg", "production"],
+  "primary_theme": "scheduling",
+  "confidence": "high"
+}

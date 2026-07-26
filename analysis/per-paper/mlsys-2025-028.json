@@ -1,0 +1,36 @@
+{
+  "id": "mlsys-2025-028",
+  "title": "Venn: Resource Management for Collaborative Learning Jobs",
+  "venue": "MLSYS 2025",
+  "problem": "Multiple concurrent collaborative learning (federated learning) jobs compete for ephemeral, heterogeneous edge devices with overlapping eligibility requirements; existing schedulers use random device-to-job matching, causing high scheduling delays and poor job completion time.",
+  "motivation": "CL jobs must wait for enough eligible devices (those meeting hardware/data/software constraints) to become available. Different jobs compete for overlapping subsets of devices. Random matching wastes scarce device types on jobs that have alternatives, extending average JCT up to the point where scheduling delay dominates over response collection time.",
+  "method": "Venn: a centralized CL resource manager with two algorithms. (1) Intersection Resource Scheduling (IRS): groups jobs by device requirements into Resource-Homogeneous Job Groups. Within each group, sorts jobs by ascending remaining demand (shortest-first). Across groups, greedily allocates intersected resources to the group with the longer queue-to-resource ratio, prioritizing groups with scarce resources. Algorithm runs in O(max(m log m, n^2)) time. (2) Resource-aware tier-based device matching: partitions eligible devices into V tiers by hardware capability; assigns randomly-selected tier to each job. Triggers tier-based matching only when JCT reduction condition holds (1 + c > V + c*g). Fairness extension adjusts demand weights to prevent starvation.",
+  "key_novelty": "First CL resource manager to formalize and solve the Intersection Resource Scheduling problem — where job resource demands may overlap, contain, or be nested — with a contention-aware heuristic that jointly optimizes scheduling delay and response collection time.",
+  "contributions": [
+    "Formalization of Intersection Resource Scheduling (IRS) problem for multi-CL-job contention",
+    "Two-level contention-aware scheduling heuristic (intra-group shortest-first + inter-group resource allocation)",
+    "Tier-based device-to-job matching reducing response collection time under low contention",
+    "Starvation prevention via fairness-weighted demand adjustment",
+    "Evaluation across 5 real-world CL workload scenarios with up to 1.88x JCT improvement"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["scheduling"],
+  "workloads": ["federated-learning", "collaborative-learning"],
+  "metrics": {
+    "speedup": "Up to 1.88x JCT improvement vs random matching baseline",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "No impact on final model accuracy vs random matching",
+    "other": "O(max(m log m, n^2)) scheduling complexity; negligible overhead at scale"
+  },
+  "baselines": ["Random matching (optimized)", "FIFO", "SRSF (Shortest Remaining Service First)"],
+  "limitations": [
+    "Assumes synchronous CL training rounds (though authors note extension to async)",
+    "Device tier granularity V is a hyperparameter requiring tuning",
+    "Simulator-based evaluation; real-world large-scale deployment not shown"
+  ],
+  "tags": ["federated-learning", "collaborative-learning", "edge-scheduling", "resource-management", "contention", "device-heterogeneity"],
+  "primary_theme": "scheduling",
+  "confidence": "high"
+}

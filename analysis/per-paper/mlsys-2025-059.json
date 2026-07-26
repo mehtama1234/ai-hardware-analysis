@@ -1,0 +1,72 @@
+{
+  "id": "mlsys-2025-059",
+  "title": "APOLLO: SGD-like Memory, AdamW-level Performance",
+  "venue": "MLSYS 2025",
+  "problem": "AdamW optimizer for LLM training maintains first and second moments, tripling memory requirements over model weights alone (28 GB optimizer states for LLaMA-7B). This forces smaller batch sizes, more GPUs, or lower-end models.",
+  "motivation": "Existing memory-efficient optimizers either require expensive SVD (GaLore, Fira), suffer performance gaps (Flora), or still have significant overhead (Adam-mini). A memory-efficient optimizer matching AdamW performance without SVD is needed for scalable LLM training.",
+  "method": "APOLLO identifies that AdamW's element-wise learning rate adaptation can be coarsened to channel-wise or tensor-wise scaling without performance loss. It approximates channel-wise gradient scaling factors using an auxiliary low-rank optimizer state in a random-projected space (not SVD). Algorithm: (1) project full gradient to low-rank space via random Gaussian matrix; (2) apply AdamW on the low-rank gradient to get low-rank moments; (3) extract channel-wise scaling factors from low-rank moments; (4) apply scaling to full gradient for weight update. APOLLO-Mini uses tensor-wise (rank-1) scaling for SGD-level memory. The random projection matrix is resampled every T=200 steps. A Norm-growth Limiter stabilizes training.",
+  "key_novelty": "Theoretical proof (via Johnson-Lindenstrauss lemma) that random projection preserves gradient scaling factors up to a bounded ratio, enabling SVD-free low-rank approximation that is rank-insensitive and achieves SGD-level memory at AdamW performance.",
+  "contributions": [
+    "Channel-wise structured learning rate update sufficient for LLM training (replacing element-wise AdamW)",
+    "APOLLO: channel-wise gradient scaling via random-projected low-rank auxiliary optimizer state",
+    "APOLLO-Mini: tensor-wise scaling with rank-1 sub-space achieving SGD-level optimizer memory",
+    "Theoretical bound on scaling factor approximation error via JL lemma",
+    "SVD-free operation: random projection reduces SVD cost (10 min per update for 7B) to negligible",
+    "3x training throughput on 8xA100-80GB via 4x larger batch sizes",
+    "First pre-training of LLaMA-13B with naive DDP on A100-80GB",
+    "First LLaMA-7B pre-training on a single GPU under 12 GB (with INT8 quantization)"
+  ],
+  "hardware_target": [
+    "NVIDIA A100 GPU (80 GB)",
+    "Multi-GPU (8x A100)",
+    "Single GPU"
+  ],
+  "technique_category": [
+    "Memory-efficient optimizer",
+    "Gradient low-rank approximation",
+    "Random projection",
+    "LLM training",
+    "Optimizer design"
+  ],
+  "workloads": [
+    "LLaMA pre-training (60M to 7B) on C4 dataset",
+    "LLaMA-13B pre-training",
+    "Fine-tuning on commonsense reasoning (LLaMA-3.2-1B, LLaMA-3-8B, Gemma-7B, Mistral-7B)",
+    "MMLU evaluation"
+  ],
+  "metrics": {
+    "perplexity_vs_adamw_llama1b": "APOLLO-Mini achieves lower perplexity than AdamW at 2.60G vs 7.80G optimizer memory",
+    "throughput_improvement": "~3x on LLaMA-7B (8xA100) via 4x larger batch sizes",
+    "optimizer_memory_llama7b_apollo": "1.6 GB (vs 28 GB AdamW)",
+    "optimizer_memory_llama7b_mini": "~0 GB (rank-1)",
+    "total_memory_llama7b_q_apollo_mini": "12 GB (with INT8 quantization)",
+    "perplexity_improvement_vs_galore": "Up to 3.62 points better at same memory budget",
+    "optimizer_step_time_7b": "0.159s APOLLO vs 0.173s AdamW (negligible overhead)"
+  },
+  "baselines": [
+    "AdamW",
+    "GaLore",
+    "Fira",
+    "Flora",
+    "Adam-mini",
+    "LoRA",
+    "ReLoRA",
+    "Low-Rank",
+    "Q-GaLore"
+  ],
+  "limitations": "Norm-growth Limiter adds a hyperparameter (gamma); requires resampling interval T tuning; APOLLO-Mini with rank-1 needs explicit gradient scale factor (sqrt(128)); theoretical bounds assume fixed projection matrix within T steps; not yet evaluated beyond data-parallel training.",
+  "tags": [
+    "memory-efficient-optimizer",
+    "LLM-training",
+    "gradient-compression",
+    "random-projection",
+    "AdamW",
+    "low-rank",
+    "APOLLO",
+    "pre-training",
+    "fine-tuning",
+    "A100"
+  ],
+  "primary_theme": "Memory-Efficient LLM Optimizer / Training Efficiency",
+  "confidence": "high"
+}

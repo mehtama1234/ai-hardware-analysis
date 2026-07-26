@@ -1,0 +1,53 @@
+{
+  "id": "mlsys-2025-049",
+  "title": "ScaleFusion: Scalable Inference of Spatial-Temporal Diffusion Transformers for High-Resolution Long Video Generation",
+  "venue": "MLSYS",
+  "problem": "Existing sequence parallelism techniques (DeepSpeed-Ulysses, RingAttention, DSP) for distributed ST-DiT inference incur 34-44% communication overhead when crossing machine boundaries, preventing efficient strong scaling beyond a single server.",
+  "motivation": "Generating 1080p video with OpenSora ST-DiT (1.1B params) takes >5 minutes on a single A100 GPU. Multi-machine scaling is needed but ST-DiT's alternating spatial/temporal attention requires back-to-back all-to-all collectives (tensor re-sharding between spatial-distributed and temporal-distributed layouts) with serial data dependencies, making communication-computation overlap non-trivial. Cross-machine NVLink/NVSwitch bandwidth is unavailable; AWS EFA provides only 400 Gbps vs multi-TB/s NVSwitch intra-node.",
+  "method": "ScaleFusion exploits spatial-temporal independence: spatial attention is independent along the temporal dimension, and temporal attention is independent along the spatial dimension. This allows slicing each layer execution into NT temporal slices (spatial layers) or NS spatial slices (temporal layers). Intra-layer scheduling: execute all-to-all for slice i+1 asynchronously while computing slice i (pipelining communication and computation within a layer). Inter-layer scheduling: further decompose the first slice's all-to-all into LT or LS sub-partitions, and lift 2/3 of them to overlap with the last-slice computation of the previous layer, eliminating the head and tail of the pipeline that can't be overlapped by intra-layer alone. Two CUDA streams (compute and communication) are used. Hyperparameters NT=NS=4, LT=1, LS=3 are used by default.",
+  "key_novelty": "First system to hide cross-machine all-to-all communication overhead in ST-DiT inference through intra-layer and inter-layer pipelined communication scheduling algorithms, enabled by the spatial-temporal independence property of alternating attention layers.",
+  "contributions": [
+    "Identification and formal proof of spatial-temporal independence property in ST-DiT architectures",
+    "Intra-layer communication scheduling: pipeline all-to-all of slice i+1 with computation of slice i",
+    "Inter-layer communication scheduling: lift first-slice communication partitions to previous layer's last-slice computation window",
+    "Configurable NT, NS, LT, LS hyperparameters adapting to different video resolutions and durations",
+    "3.60x strong scaling on 32 A100 GPUs (4 machines) vs 8 GPUs; 97-103% weak scaling efficiency",
+    "1.36x average (up to 1.58x) speedup over DSP; 1.28x peak memory reduction vs OpenSora; avoids OOM at 4k resolution"
+  ],
+  "hardware_target": "NVIDIA A100 40GB GPUs; Amazon EC2 p4d.24xlarge instances; AWS EFA 400 Gbps cross-machine interconnect",
+  "technique_category": "inference-serving",
+  "workloads": [
+    "ST-DiT video generation inference (OpenSora 1.1B)",
+    "1080p 8-64s, 2K 8-16s, 4K 8-16s video generation",
+    "Distributed multi-machine inference"
+  ],
+  "metrics": [
+    "End-to-end inference latency (s)",
+    "Strong scaling speedup (x)",
+    "Weak scaling efficiency (%)",
+    "Peak memory usage (GiB)",
+    "Communication/computation breakdown (%)"
+  ],
+  "baselines": [
+    "OpenSora (DeepSpeed-Ulysses)",
+    "DSP (Dynamic Sequence Parallelism, Zhao et al. 2024)",
+    "ScaleFusion intra-layer only (SO)"
+  ],
+  "limitations": [
+    "Hyperparameter tuning (NT, NS, LT, LS) requires profiling for new video resolutions or models",
+    "Inter-layer scheduling adds communication-ordering complexity and partial tensor re-arrangements",
+    "Limited to ST-DiT architectures with strict alternating spatial-temporal attention structure"
+  ],
+  "tags": [
+    "video-generation",
+    "diffusion-transformer",
+    "sequence-parallelism",
+    "distributed-inference",
+    "communication-overlap",
+    "scaling",
+    "attention-parallelism",
+    "a100"
+  ],
+  "primary_theme": "Distributed Inference & Parallelism",
+  "confidence": "high"
+}

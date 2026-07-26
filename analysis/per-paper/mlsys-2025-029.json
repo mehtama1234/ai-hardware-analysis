@@ -1,0 +1,37 @@
+{
+  "id": "mlsys-2025-029",
+  "title": "Optimizing LLM Queries in Relational Data Analytics Workloads",
+  "venue": "MLSYS 2025",
+  "problem": "LLM batch inference over relational tables is extremely slow and expensive because naive row-order invocation achieves low KV cache prefix hit rates, wasting prefill computation on repeated data patterns.",
+  "motivation": "Relational data contains systematic repetition (foreign keys, joined metadata, repeated categories) that creates prefix-sharing opportunities across rows. A fixed default field ordering in SQL leaves much of this sharing unexploited. With full knowledge of the batch, optimal reordering can dramatically increase prefix cache hit rates.",
+  "method": "Two algorithms for row and field reordering to maximize KV cache prefix hit count (PHC). PHC is defined as the sum of squared prefix lengths reused from the previous row. (1) OPHR (Optimal Prefix Hit Recursion): recursively splits table by distinct values in each field, selecting the split maximizing total PHC; provably optimal but exponential complexity. (2) GGR (Greedy Group Recursion): greedy approximation selecting the highest-hit-count value/field at each step; uses functional dependencies (primary/foreign keys) to group correlated fields together in prefixes and skip redundant recursion; uses cardinality and average value length statistics for early stopping. GGR runs in under 15s for tables up to 30K rows and 57 fields. Implemented as a PySpark UDF with vLLM as the serving backend.",
+  "key_novelty": "First approach exploiting relational data structure (functional dependencies, field cardinality) to reorder rows and per-row field orderings for maximum KV cache prefix sharing in LLM batch analytics workloads.",
+  "contributions": [
+    "Formal definition of Prefix Hit Count (PHC) objective for LLM query optimization",
+    "OPHR: provably optimal recursive reordering algorithm",
+    "GGR: efficient greedy approximation leveraging functional dependencies and table statistics",
+    "Proof that per-row field reordering beats fixed field ordering by up to m times in PHC",
+    "16-query benchmark across 7 real-world datasets (Movies, Products, BIRD, PDMX, Beer, SQuAD, FEVER)",
+    "32% cost savings with OpenAI/Anthropic prompt caching pricing"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "scheduling"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "1.5-3.4x end-to-end query latency speedup vs Cache (Original); 1.8-3.8x vs No Cache",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "Within 5% accuracy of original ordering (except FEVER+Llama3-8B where GGR is +14.2% better)",
+    "other": "32% cost savings on OpenAI GPT-4o-mini; up to 79% estimated savings with Anthropic auto-prefix caching; GGR runs in <15s for 30K rows x 57 fields"
+  },
+  "baselines": ["No Cache (naive invocation)", "Cache (Original) — caching enabled, no reordering"],
+  "limitations": [
+    "Assumes offline batch mode with full table visibility; not applicable to streaming queries",
+    "PHC objective assumes exact-match prefix sharing; substring matches not exploited",
+    "OPHR is exponential complexity, impractical for large tables; GGR is an approximation"
+  ],
+  "tags": ["LLM-inference", "KV-cache", "prompt-caching", "relational-analytics", "batch-inference", "query-optimization", "prefix-sharing", "Spark", "vLLM"],
+  "primary_theme": "memory-system",
+  "confidence": "high"
+}

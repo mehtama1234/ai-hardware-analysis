@@ -1,0 +1,71 @@
+{
+  "id": "mlsys-2025-056",
+  "title": "Rubick: Exploiting Job Reconfigurability for Deep Learning Cluster Scheduling",
+  "venue": "MLSYS 2025",
+  "problem": "Existing DL cluster schedulers treat training jobs as black boxes with static execution plans, causing mismatches between execution plans and available resources that lead to poor training performance and cluster underutilization.",
+  "motivation": "Advanced training strategies (3D parallelism, ZeRO series) create jobs with highly diverse multi-resource requirements (GPU, CPU, memory, network). No single plan is optimal across all resource conditions; optimal plans shift with resource availability. Users lack expertise to choose plans dynamically, and schedulers lack plan visibility.",
+  "method": "Rubick co-optimizes job execution planning and resource allocation jointly. Key components: (1) Performance model with 7 fittable parameters capturing GPU, CPU, bandwidth, and strategy-specific behaviors for forward/backward/optimizer phases with overlap modeling. Model is fitted from 7 sampled profiling runs and updated online. (2) Resource sensitivity curves showing throughput vs resource allocation for each job, with best execution plan chosen per allocation. (3) Scheduling algorithm that allocates based on sensitivity curve slopes, shrinking the least-sensitive job to resource the most-sensitive, guaranteeing SLOs via minimum-resource enforcement.",
+  "key_novelty": "First cluster scheduling system that treats execution plan reconfiguration as a first-class scheduling dimension alongside resource allocation, co-optimizing both jointly for all running jobs continuously.",
+  "contributions": [
+    "Identification of diverse multi-resource demands of different training execution plans",
+    "Performance model for reconfigurable DL training capturing DP/TP/PP/ZeRO/GC/GA behaviors and overlaps",
+    "Resource sensitivity curves for performance-aware scheduling with integrated execution planning",
+    "Scheduling algorithm that shrinks least-sensitive jobs to benefit most-sensitive jobs",
+    "3.2x reduction in average JCT, 1.4x reduction in makespan on 64-GPU cluster",
+    "SLO guarantees via performance-based (not resource-based) guarantees",
+    "Open-source implementation on Kubernetes with DeepSpeed and Megatron support"
+  ],
+  "hardware_target": [
+    "NVIDIA A800 GPU",
+    "NVLink",
+    "RDMA (100 Gb/s)",
+    "CPU (96 vCPU)",
+    "Host DRAM"
+  ],
+  "technique_category": [
+    "Cluster scheduling",
+    "Execution plan reconfiguration",
+    "Performance modeling",
+    "Multi-resource allocation",
+    "DL training systems"
+  ],
+  "workloads": [
+    "LLaMA-2-7B training",
+    "LLaMA-30B training",
+    "GPT-2 training",
+    "T5 training",
+    "RoBERTa training",
+    "BERT training",
+    "ViT training"
+  ],
+  "metrics": {
+    "avg_jct_reduction": "Up to 3.2x vs Sia, Synergy",
+    "makespan_reduction": "Up to 1.4x",
+    "performance_model_avg_error": "Up to 7.4%",
+    "performance_model_max_error": "Up to 10.4%",
+    "reconfiguration_overhead": "78 seconds per job average (1% of total GPU hours)",
+    "profiling_time": "210 seconds average per model type"
+  },
+  "baselines": [
+    "Sia",
+    "Synergy",
+    "AntMan",
+    "Rubick-E (plan only)",
+    "Rubick-R (resource only)",
+    "Rubick-N (neither)"
+  ],
+  "limitations": "Performance model requires 7 profiling runs per model type before scheduling; reconfiguration incurs checkpoint save/restore overhead (~78s per event); model fitting error up to 10.4% can cause suboptimal decisions; only supports DeepSpeed and Megatron frameworks currently.",
+  "tags": [
+    "cluster-scheduling",
+    "execution-plan-reconfiguration",
+    "3D-parallelism",
+    "ZeRO",
+    "performance-modeling",
+    "resource-allocation",
+    "JCT",
+    "Kubernetes",
+    "multi-tenant"
+  ],
+  "primary_theme": "DL Cluster Scheduling / Execution Plan Reconfigurability",
+  "confidence": "high"
+}

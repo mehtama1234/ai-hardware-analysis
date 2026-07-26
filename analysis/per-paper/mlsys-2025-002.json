@@ -1,0 +1,34 @@
+{
+  "id": "mlsys-2025-002",
+  "title": "TileLink: Generating Efficient Compute-Communication Overlapping Kernels using Tile-Centric Primitives",
+  "venue": "MLSYS 2025",
+  "problem": "Distributed LLM training and inference require overlapping compute with inter-GPU communication (all-reduce, all-gather, reduce-scatter) to hide network latency. Operator decomposition is easy but leaves performance on the table; fusing communication into compute kernels is effective but requires expert CUDA/NVSHMEM code that is error-prone and non-portable.",
+  "motivation": "Existing overlapping libraries like FLUX require ~2000 lines of hand-written CUDA. Decomposed operator approaches that simply pipeline communication stages achieve lower utilization because they cannot finely interleave compute and communication tiles. A compiler abstraction that decouples the two concerns and synthesizes fused kernels would lower the expertise barrier while matching expert-tuned performance.",
+  "method": "TileLink has a frontend and a backend. The frontend exposes tile-centric primitives: producer_tile_notify/consumer_tile_wait synchronize tile-level data readiness; peer_tile_notify/peer_tile_wait coordinate cross-rank tile dependencies; tile_push_data/tile_pull_data transfer tiles between devices; rank_copy_data/rank_notify/rank_wait handle rank-level collective coordination. The backend performs tile-centric mapping in three stages: (1) shape mapping assigns tile dimensions to compute and communication workloads; (2) rank mapping determines which GPU rank computes/receives each tile via affine transforms (static) or runtime lookup tables (dynamic); (3) channel mapping assigns each tile to an NVLink/InfiniBand channel. The backend compiles these mappings to PTX via Triton extended with NVSHMEM primitives, producing fused kernels that interleave compute threads and communication threads within a single CUDA kernel.",
+  "key_novelty": "Tile-centric primitive abstraction that decouples compute and communication design spaces at the tile granularity, compiled to overlapping kernels via shape/rank/channel mapping; achieves expert-level overlap with ~10x less code than handwritten CUDA.",
+  "contributions": [
+    "Tile-centric frontend primitives (9 ops) that decouple compute-communication design space",
+    "Three-stage backend: shape mapping, rank mapping (affine or lookup-table), channel mapping",
+    "Compilation to PTX via Triton+NVSHMEM for generating fused overlapping kernels",
+    "Support for static (affine) and dynamic (lookup-table) rank mapping for irregular collectives",
+    "Demonstration on GEMM+all-reduce, GEMM+all-gather, MoE expert dispatch, and attention+communication"
+  ],
+  "hardware_target": ["NVIDIA GPU (A100, H100)", "NVLink", "InfiniBand"],
+  "technique_category": ["compute-communication-overlap", "kernel-fusion", "compiler", "distributed-execution"],
+  "workloads": ["llm-training", "llm-inference", "moe-inference", "tensor-parallelism"],
+  "metrics": {
+    "speedup_vs_non_overlapping": "1.17x to 20.76x speedup vs non-overlapping baseline",
+    "vs_flux": "Performance comparable to FLUX (expert-written library) with ~200 Python lines vs ~2000 CUDA lines",
+    "code_reduction": "~10x less code than equivalent FLUX implementation"
+  },
+  "baselines": ["Non-overlapping (sequential compute then communicate)", "FLUX (expert handwritten CUDA overlapping library)", "Megatron-LM tensor parallelism"],
+  "limitations": [
+    "Static shape mapping requires recompilation for different tensor shapes",
+    "Dynamic lookup-table mapping adds runtime overhead for irregular collectives",
+    "NVSHMEM dependency limits portability to non-NVIDIA interconnects",
+    "Tile granularity must be tuned per model architecture and hardware topology"
+  ],
+  "tags": ["compute-communication-overlap", "tile-centric", "kernel-fusion", "NVSHMEM", "distributed", "tensor-parallelism", "compiler"],
+  "primary_theme": "distributed-compute-communication-overlap",
+  "confidence": "high"
+}

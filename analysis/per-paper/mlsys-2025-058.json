@@ -1,0 +1,66 @@
+{
+  "id": "mlsys-2025-058",
+  "title": "Youmu: Efficient Columnar Data Pipeline for LLM Training",
+  "venue": "MLSYS 2025",
+  "problem": "LLM training datasets stored in columnar formats (Parquet) must be converted to other formats before training, wasting terabytes of storage. Direct use of columnar data causes 100x+ efficiency drops due to granularity mismatch between coarse columnar chunk I/O (100s of MB) and fine-grained random access needed for shuffling.",
+  "motivation": "Parquet-to-JSON conversion for 43 TB FineWeb costs ~95 TB extra storage. Existing solutions either cache entire datasets in DRAM (high memory), use memory-mapped I/O (cache thrashing), or sacrifice shuffle quality (streaming). A solution that eliminates format conversion while preserving shuffle quality and GPU utilization is needed.",
+  "method": "YOUMU uses page-level data granularity as its core mechanism. The control plane builds a global page index spanning all Parquet files by collecting metadata at initialization; an index translator uses layered binary search to map random page IDs to physical locations. The data plane reads compressed pages directly from SSDs and decodes them using metadata. An aggressive buffer shuffle reads new pages into a fixed-size buffer as data is consumed, providing continuous in-buffer shuffling. Implemented in ~500 lines of Rust with PyO3 Python bindings.",
+  "key_novelty": "Page-level (KB-to-MB granularity) direct access to Parquet columnar data for LLM training, eliminating format conversion while achieving near-perfect shuffle quality via global page shuffling across multi-billion pages of TB-scale datasets.",
+  "contributions": [
+    "Identification of granularity mismatch as the root cause of columnar data inefficiency for training",
+    "Global page index with layered binary search for O(log n) random page access across TB-scale datasets",
+    "Page-level direct I/O avoiding columnar chunk overhead and unused column reads",
+    "Aggressive buffer shuffle providing superior shuffle quality over streaming baselines",
+    "~80% less memory footprint vs distributed memory-based solutions (30-47 GB vs 100-150 GB per node)",
+    "Comparable throughput to Ray Data with much lower memory (3ms batch latency for page shuffle)",
+    "Perplexity improvement of 0.3-0.7 over local shuffle for LLM pre-training",
+    "Rust implementation with PyArrow-compatible Python APIs"
+  ],
+  "hardware_target": [
+    "NVMe SSD",
+    "CPU DRAM",
+    "GPU",
+    "InfiniBand (100 Gb/s)",
+    "WekaFS"
+  ],
+  "technique_category": [
+    "Data pipeline",
+    "I/O optimization",
+    "Data shuffling",
+    "LLM training",
+    "Columnar storage"
+  ],
+  "workloads": [
+    "LLM pre-training from scratch (160M LLaMa-style)",
+    "Continual training of OpenLLaMa-3B",
+    "C4 dataset (200B tokens)",
+    "FineWeb (1.5T tokens)"
+  ],
+  "metrics": {
+    "memory_footprint_reduction": "~80% vs distributed memory-based (30-47 GB vs 100-150 GB per node)",
+    "batch_latency": "3ms for page shuffle, 0.4s for full random shuffle",
+    "perplexity_vs_streaming": "0.3-0.7 perplexity improvement",
+    "shuffle_quality": "10.6% of no-shuffle degradation vs 53.3% for streaming",
+    "shuffle_wall_time": "<10 seconds initialization vs 1000s+ for Ray Data",
+    "disk_usage": "No additional disk vs 2.6 TB for HuggingFace Feather conversion"
+  },
+  "baselines": [
+    "HuggingFace Datasets (memory-mapped)",
+    "Ray Data (distributed memory, full and chunk shuffle)",
+    "Streaming-based local shuffle"
+  ],
+  "limitations": "Targets SSD-backed storage systems; benefits depend on storage performance; page-level granularity introduces some I/O waste for fully random shuffle; primarily validated for auto-regressive pre-training (single-column datasets); metadata caching requires 30-47 GB per node.",
+  "tags": [
+    "data-pipeline",
+    "columnar-storage",
+    "Parquet",
+    "LLM-training",
+    "shuffle",
+    "I/O-optimization",
+    "SSD",
+    "memory-efficiency",
+    "Rust"
+  ],
+  "primary_theme": "LLM Training Data Pipeline / Columnar I/O Optimization",
+  "confidence": "high"
+}

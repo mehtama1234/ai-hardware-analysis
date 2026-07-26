@@ -1,0 +1,41 @@
+{
+  "id": "mlsys-2025-018",
+  "title": "SOLA: Optimizing SLO Attainment for Large Language Model Serving with State-Aware Scheduling",
+  "venue": "MLSys 2025",
+  "problem": "Existing LLM serving systems apply coarse-grained, fixed scheduling policies (prefill-prioritized or decode-prioritized) that cause significant latency distribution bias between TTFT and TPOT and high inter-request variance, resulting in poor SLO attainment.",
+  "motivation": "LLM serving SLOs specify both Time-to-First-Token (TTFT) and Time-per-Output-Token (TPOT). Fixed scheduling strategies systematically over-satisfy one metric while violating the other. With vLLM's default strategy, 35% of requests fail TPOT SLOs even when their TTFT has substantial unused budget, indicating room for redistribution.",
+  "method": "SOLA models scheduling as a constrained optimization problem over a design space parameterized by request execution order (Fi), number of requests per iteration (ni), and tokens per iteration (ki). A State Monitor tracks per-request TTFT/TPOT, output length distribution, and system memory usage. A Strategy Generator solves one of two constrained optimization problems at each iteration: (1) minimize max TPOT subject to TTFT SLO, or (2) minimize max TTFT subject to TPOT SLO. Hierarchical prioritization (phase-level then request-level) implements the derived strategy. A polynomial cost model (Cp for prefill, Cd for decode) predicts latency and is tuned online via a scaling ratio. Implemented on vLLM v0.4.2.",
+  "key_novelty": "First serving system to formalize LLM scheduling as a per-iteration constrained optimization with real-time SLO state awareness, enabling dynamic switching between TTFT-optimal and TPOT-optimal strategies based on monitored request and system states.",
+  "contributions": [
+    "Formal design space for LLM scheduling: execution order (Fi), request count (ni), token count (ki)",
+    "State Monitor tracking per-request and system-level TTFT/TPOT state",
+    "Two constrained optimization problems capturing TTFT-TPOT trade-offs",
+    "Dynamic problem switching based on real-time SLO fulfillment ratios (pTTFT, pTPOT)",
+    "Hierarchical prioritization: phase-level then request-level sorting",
+    "Online polynomial cost model with iterative scaling ratio tuning",
+    "Peak memory prediction to avoid preemption overhead",
+    "SLO attainment improved from 45.5% to 99.4%; 1.04-1.27x more requests served"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "systems"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "1.04-1.27x more requests served than state-of-the-art at 90% SLO attainment; 1.04-1.11x at 99% attainment",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "SLO attainment improved from 45.5% to 99.4% (Llama3-70B, ShareGPT, 4 A100s)",
+    "other": "Scheduling overhead: 0.40-0.45% additional latency; evaluated on 8x A100 80GB SXM4"
+  },
+  "baselines": ["vLLM-D (default prefill-prioritized)", "vLLM-S (SplitFuse/Sarathi-Serve integration)", "SJF (shortest-job-first)"],
+  "limitations": [
+    "Evaluated only on co-located prefill+decode (not disaggregated systems)",
+    "Output length prediction accuracy affects scheduling quality",
+    "Scheduling overhead (0.40-0.45%) grows with system complexity",
+    "Cost model initialization requires offline profiling",
+    "SplitFuse chunk size sensitivity noted as a limitation of baseline comparison"
+  ],
+  "tags": ["LLM-serving", "SLO", "scheduling", "TTFT", "TPOT", "constrained-optimization", "vLLM", "continuous-batching", "state-aware", "goodput"],
+  "primary_theme": "inference-efficiency",
+  "confidence": "high"
+}

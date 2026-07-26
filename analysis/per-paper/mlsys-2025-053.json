@@ -1,0 +1,59 @@
+{
+  "id": "mlsys-2025-053",
+  "title": "Graph Learning at Scale: Characterizing and Optimizing Pre-Propagation GNNs",
+  "venue": "MLSYS 2025",
+  "problem": "Pre-propagation GNNs (PP-GNNs), which decouple feature propagation from training as a preprocessing step, suffer from data loading as their dominant bottleneck (88-91% of training time) and face severe scalability challenges from input expansion (K(R+1)x larger inputs).",
+  "motivation": "PP-GNNs theoretically solve neighbor explosion in graph sampling but their practical efficiency is largely unexplored. Data loading from storage and large expanded input sizes prevent them from realizing their theoretical advantages.",
+  "method": "The paper characterizes PP-GNN bottlenecks and proposes: (1) Chunk reshuffling that performs coarser shuffling enabling GPU-side batch assembly to replace fine-grained row-level shuffling; (2) Double-buffer prefetching to overlap I/O with computation; (3) GPU Direct Storage (GDS) for graphs exceeding host memory; (4) Tailored training strategies (mini-batch GD and chunk-based sampling) to handle input expansion. These optimizations target the I/O path from SSD/storage to GPU.",
+  "key_novelty": "First systematic characterization of PP-GNN training revealing data loading (not compute) as the bottleneck, plus chunk reshuffling that enables efficient GPU-side batch assembly without fine-grained per-row I/O.",
+  "contributions": [
+    "Comprehensive characterization comparing PP-GNNs vs graph-sampling methods in efficiency, scalability, and accuracy",
+    "Identification of data loading (88-91% of time) as the key bottleneck",
+    "Chunk reshuffling technique enabling coarser I/O with GPU-side batch assembly",
+    "Double-buffer prefetching overlapping data loading with computation",
+    "GPU Direct Storage (GDS) integration for large-graph scalability",
+    "15x average training throughput speedup over PP-GNN baselines",
+    "Up to 100x speedup versus sampling-based GNNs on large graph benchmarks"
+  ],
+  "hardware_target": [
+    "NVIDIA GPU",
+    "GPU Direct Storage (GDS)",
+    "NVMe SSD",
+    "CPU DRAM"
+  ],
+  "technique_category": [
+    "Graph neural networks",
+    "I/O optimization",
+    "Data loading",
+    "Prefetching",
+    "GPU Direct Storage"
+  ],
+  "workloads": [
+    "Node classification on large graphs (ogbn-papers100M, MAG240M)",
+    "PP-GNN training (SIGN, GAMLP, SAGN)"
+  ],
+  "metrics": {
+    "training_throughput_improvement": "15x average over PP-GNN baselines",
+    "vs_sampling_gnn": "Up to 100x speedup on large graph benchmarks",
+    "data_loading_bottleneck": "88-91% of training time in baseline",
+    "accuracy": "Comparable to graph-sampling-based methods"
+  },
+  "baselines": [
+    "Vanilla PP-GNN (SIGN, GAMLP)",
+    "Graph-sampling GNNs (GraphSAGE, GraphSAINT)",
+    "Standard PyTorch DataLoader"
+  ],
+  "limitations": "Chunk reshuffling provides coarser shuffle quality than fully random; GPU Direct Storage requires NVMe with GDS support; benefits depend on storage bandwidth; not evaluated on dynamic graphs.",
+  "tags": [
+    "GNN",
+    "graph-neural-networks",
+    "data-loading",
+    "I/O-optimization",
+    "GPU-direct-storage",
+    "prefetching",
+    "pre-propagation",
+    "large-graphs"
+  ],
+  "primary_theme": "Graph Neural Network Training / I/O Optimization",
+  "confidence": "high"
+}

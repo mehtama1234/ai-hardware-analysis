@@ -1,0 +1,31 @@
+{
+  "id": "mlsys-2025-031",
+  "title": "MEADOW: Memory Efficient Adaptable Dataflow for On-Device LLM Workloads",
+  "venue": "MLSYS 2025",
+  "problem": "Running LLM inference on edge FPGAs is severely constrained by the FPGA's limited on-chip SRAM and external DRAM bandwidth, making naive GEMM-based attention execution impractical at the bandwidth envelope of sub-10W devices.",
+  "motivation": "Edge FPGAs like the Xilinx ZCU102 have <10 TOPS peak and narrow external memory busses; attention's bandwidth requirements dwarf what a single weight-streaming dataflow can achieve, necessitating a co-designed dataflow and weight compression scheme.",
+  "method": "Token-Parallel Head-Sequential (TPHS) dataflow partitions attention across token dimension in parallel while sequencing across heads to fit SRAM; weight packing extracts unique chunks from weight tensors, applies packet-specific encoding precision, and uses frequency-aware reindexing to minimize DRAM traffic. W8A8 quantization applied throughout.",
+  "key_novelty": "Combined TPHS dataflow and three-level weight packing (unique-chunk extraction + per-packet precision + frequency-aware reindexing) co-designed for sub-10W FPGA inference, achieving 1.5-2.5x latency reduction over GEMM baseline.",
+  "contributions": [
+    "TPHS dataflow enabling token-level parallelism with head-sequential scheduling to fit attention within FPGA SRAM budget",
+    "Three-level weight packing: unique chunk extraction, packet-specific encoding precision, and frequency-aware reindexing",
+    "W8A8 quantization pipeline compatible with TPHS dataflow on Xilinx ZCU102",
+    "1.5x decode and 2.5x prefill latency reduction vs GEMM baseline; >40% vs CTA and FlightLLM"
+  ],
+  "hardware_target": ["fpga", "edge"],
+  "technique_category": ["dataflow", "memory-system", "quantization"],
+  "workloads": ["llm-inference"],
+  "metrics": {
+    "speedup": "1.5x decode latency, 2.5x prefill latency vs GEMM baseline; >40% improvement vs CTA/FlightLLM",
+    "energy_or_tops_w": "Sub-10W device (Xilinx ZCU102)",
+    "area": null,
+    "ppa": null,
+    "accuracy": "W8A8 quantization with accuracy preserved",
+    "other": null
+  },
+  "baselines": ["GEMM baseline", "CTA", "FlightLLM"],
+  "limitations": "Limited to Xilinx ZCU102 FPGA platform; W8A8 quantization may not be sufficient for all model quality requirements; evaluation focused on attention kernels.",
+  "tags": ["fpga", "edge-inference", "attention", "quantization", "dataflow", "weight-compression"],
+  "primary_theme": "Edge ML acceleration",
+  "confidence": "high"
+}
