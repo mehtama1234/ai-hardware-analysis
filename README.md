@@ -40,12 +40,24 @@ the rest. Abstract-only is a first-class, labeled outcome — not a failure.
 
 ## Venue status
 
-| Venue | Edition | Papers | Full text | Confidence |
-| --- | --- | --- | --- | --- |
-| MLSys | 2025 (pilot) | 61 | 61/61 (open proceedings) | high |
+| Venue | Edition | Papers | Analyzed | Full text (high) | Abstract-only (low) | Title-only (gap) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| MLSys | 2025 (pilot) | 61 | 61 | 61 | 0 | 0 |
+| ISCA | 2025 | 135 | 112 | 17 | 95 | 23 |
+| MICRO | 2025 | 123 | 47 | 20 | 27 | 76 |
+| HPCA | 2025 | 121 | 119 | 8 | 111 | 2 |
+| ASPLOS | 2025 | 179 | 164 | 14 | 150 | 15 |
+| **total** | | **619** | **503** | **120** | **383** | **116** |
 
-(2026 editions of most venues are not yet indexed on DBLP as of project start — pilot and
-scale on the latest complete editions, upgrading a venue once DBLP shows its full list.)
+Full text is only obtainable where a paper is on arXiv or the venue has open proceedings
+(MLSys). ACM/IEEE/doi.org PDF links are paywalled (403). MICRO is materially under-sampled —
+IEEE withholds its abstracts from OpenAlex *and* Crossref and many papers aren't on arXiv, so
+76/123 are title-only and unanalyzed. Cross-venue synthesis:
+[`analysis/syntheses/cross-venue-2025-themes.md`](analysis/syntheses/cross-venue-2025-themes.md).
+Big-picture conceptual page: [`mlsys-2025-bigpicture.html`](mlsys-2025-bigpicture.html).
+
+(2026 editions of most venues are not yet indexed on DBLP — scale on the latest complete
+editions, upgrading a venue once DBLP shows its full list.)
 
 ## Per-paper schema
 
