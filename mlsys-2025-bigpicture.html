@@ -1,0 +1,459 @@
+<style>
+  :root{
+    --ground:#14171d; --ground-2:#181c23; --panel:#1c212a; --panel-2:#222834;
+    --line:#2b323d; --line-soft:#242a34;
+    --ink:#eae7e0; --ink-dim:#b7bcc4; --ink-mute:#8b93a0;
+    --demand:#e8975a;  /* warm: what the models want */
+    --demand-soft:#e8975a22;
+    --supply:#4fc1b1;  /* cool: what the fix gives back */
+    --supply-soft:#4fc1b11f;
+    --warn:#e0584b;    /* semantic only: honest caveats */
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --maxw:1080px; --prose:64ch;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--sans);font-size:17px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    background-image:radial-gradient(1200px 620px at 78% -8%, #1d2530 0%, transparent 62%);
+    background-attachment:fixed;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,5vw,44px)}
+  .prose{max-width:var(--prose)}
+  a{color:var(--supply);text-underline-offset:3px}
+  h1,h2,h3{text-wrap:balance;font-family:var(--serif);font-weight:600;letter-spacing:-.012em;line-height:1.08;margin:0}
+  p{margin:0 0 1em}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-mute)}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:clamp(52px,11vh,120px) 0 40px;border-bottom:1px solid var(--line-soft)}
+  .hero .eyebrow{color:var(--demand)}
+  .hero h1{font-size:clamp(2.5rem,6.4vw,4.6rem);margin:.5em 0 .38em}
+  .hero .lede{font-family:var(--serif);font-size:clamp(1.25rem,2.4vw,1.72rem);line-height:1.42;color:var(--ink-dim);max-width:32ch}
+  .hero .lede b{color:var(--ink);font-weight:600}
+  .chartcard{margin:44px 0 8px;background:linear-gradient(180deg,var(--panel),var(--ground-2));
+    border:1px solid var(--line);border-radius:14px;padding:22px 22px 16px;overflow:hidden}
+  .chartcard figcaption{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.04em;color:var(--ink-mute);margin-top:6px}
+  canvas{display:block;width:100%;height:300px}
+  .legend{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:.74rem;margin-bottom:12px}
+  .legend span{display:inline-flex;align-items:center;gap:7px;color:var(--ink-dim)}
+  .swatch{width:22px;height:3px;border-radius:2px;display:inline-block}
+
+  /* ---------- generic section ---------- */
+  section{padding:clamp(46px,8vh,86px) 0;border-bottom:1px solid var(--line-soft)}
+  .sec-head{margin-bottom:30px}
+  .sec-head h2{font-size:clamp(1.75rem,3.6vw,2.7rem);margin:.35em 0 .3em}
+  .sec-head .kicker{color:var(--supply)}
+  .sec-head p{color:var(--ink-dim)}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+  .note{background:var(--ground-2);border:1px solid var(--line);border-left:3px solid var(--demand);
+    border-radius:10px;padding:18px 20px}
+  .note h3{font-size:1.12rem;margin-bottom:.4em;color:var(--ink)}
+  .note p{margin:0;color:var(--ink-dim);font-size:.96rem}
+  .note.cool{border-left-color:var(--supply)}
+
+  .bigidea{font-family:var(--serif);font-size:clamp(1.35rem,2.9vw,2rem);line-height:1.34;
+    color:var(--ink);max-width:24ch;margin:8px 0}
+  .bigidea .d{color:var(--demand)} .bigidea .s{color:var(--supply)}
+
+  /* ---------- strategy cards ---------- */
+  .moves{display:flex;flex-direction:column;gap:20px}
+  .move{background:linear-gradient(180deg,var(--panel),var(--ground-2));
+    border:1px solid var(--line);border-radius:14px;padding:26px clamp(20px,3vw,32px);
+    display:grid;grid-template-columns:auto 1fr;gap:8px 26px}
+  @media(max-width:680px){.move{grid-template-columns:1fr;gap:14px}}
+  .move .idx{font-family:var(--mono);font-size:.8rem;color:var(--ink-mute);grid-row:1/ span 3;
+    padding-top:6px;letter-spacing:.05em}
+  @media(max-width:680px){.move .idx{grid-row:auto}}
+  .move h3{font-size:1.4rem;margin-bottom:2px}
+  .move .plain{color:var(--ink-dim);max-width:60ch;margin:.5em 0 0}
+  .move .plain b{color:var(--ink);font-weight:600}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+  .tag.demand{color:var(--demand);background:var(--demand-soft);border-color:#e8975a44}
+  .tag.supply{color:var(--supply);background:var(--supply-soft);border-color:#4fc1b144}
+  .papers{display:flex;flex-direction:column;gap:8px;margin-top:16px;grid-column:2}
+  @media(max-width:680px){.papers{grid-column:1}}
+  .paper{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:baseline;
+    padding:9px 0;border-top:1px solid var(--line-soft)}
+  .paper:first-child{border-top:0}
+  .paper .pid{font-family:var(--mono);font-size:.74rem;color:var(--supply)}
+  .paper .pname{font-size:.95rem;color:var(--ink)}
+  .paper .pname em{color:var(--ink-mute);font-style:normal}
+  .paper .pmetric{font-family:var(--mono);font-size:.78rem;color:var(--demand);text-align:right;
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+  @media(max-width:520px){.paper{grid-template-columns:auto 1fr}.paper .pmetric{grid-column:2;text-align:left}}
+  .caveatchip{margin-top:14px;grid-column:2;font-size:.86rem;color:var(--ink-dim);
+    border:1px dashed #e0584b55;background:#e0584b12;border-radius:8px;padding:10px 14px}
+  @media(max-width:680px){.caveatchip{grid-column:1}}
+  .caveatchip b{color:var(--warn)}
+
+  /* ---------- patterns ---------- */
+  .patterns{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:720px){.patterns{grid-template-columns:1fr}}
+  .pat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px}
+  .pat .n{font-family:var(--mono);font-size:.72rem;color:var(--ink-mute);letter-spacing:.1em}
+  .pat h3{font-size:1.22rem;margin:.35em 0 .4em}
+  .pat p{margin:0;color:var(--ink-dim);font-size:.95rem}
+
+  /* ---------- gaps ---------- */
+  .gaps{display:flex;flex-direction:column;gap:2px}
+  .gap{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:baseline;
+    padding:20px 0;border-top:1px solid var(--line)}
+  .gap .lead{font-family:var(--serif);font-size:1.15rem;color:var(--ink);max-width:20ch}
+  .gap p{margin:0;color:var(--ink-dim);font-size:.96rem}
+  .gap .lead::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:var(--warn);margin-right:11px;vertical-align:middle}
+
+  /* ---------- footer ---------- */
+  footer{padding:52px 0 80px}
+  .meta{display:flex;flex-wrap:wrap;gap:14px 30px;font-family:var(--mono);font-size:.78rem;color:var(--ink-mute)}
+  .meta b{color:var(--ink-dim);font-weight:400}
+  .kv{display:flex;flex-direction:column}
+  .kv .v{color:var(--ink);font-size:1.3rem}
+  .stats{display:flex;gap:36px;flex-wrap:wrap;margin:8px 0 30px}
+  .stats .kv .k{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute)}
+  .stats .kv .v{font-family:var(--serif)}
+
+  [data-reveal]{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+  [data-reveal].in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}
+  :focus-visible{outline:2px solid var(--supply);outline-offset:3px;border-radius:4px}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">MLSys 2025 · 61 papers · from first principles</div>
+    <h1>Feeding the machine</h1>
+    <p class="lede">Modern AI models now want <b>far more</b> than any single chip can give. Nearly every paper at this conference is one more way to close that gap.</p>
+
+    <figure class="chartcard" data-reveal>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--demand)"></i>what the models want</span>
+        <span><i class="swatch" style="background:var(--supply)"></i>what one chip can give</span>
+        <span><i class="swatch" style="background:#e8975a55"></i>the gap every paper attacks</span>
+      </div>
+      <canvas id="gap" width="1000" height="300" aria-label="A chart: model demand rises steeply while single-chip capability stays nearly flat, opening a widening gap."></canvas>
+      <figcaption><span>→ bigger models · longer prompts · more simultaneous users</span><span>the gap is the whole field</span></figcaption>
+    </figure>
+  </header>
+
+  <!-- WHY THE GAP EXISTS -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the one problem</div>
+      <h2>A chip can multiply faster than it can remember</h2>
+      <p>Everything below is a consequence of a single physical fact. To understand the whole field, you only need this.</p>
+    </div>
+
+    <div class="prose">
+      <p>A language model does one small thing, billions of times: it takes your words and multiplies them through an enormous grid of numbers to guess the next word. Doing that well depends on two very different resources.</p>
+      <p>The first is <b>arithmetic</b> — how many multiplications the chip can do per second. Modern chips have this in staggering abundance.</p>
+      <p>The second is <b>memory</b> — both how much fits close to the chip, and how fast numbers can be shuttled in and out. This is the scarce one, and it has barely improved while models exploded in size.</p>
+    </div>
+
+    <p class="bigidea">So the deepest truth of the field: AI is starved for <span class="d">data movement</span>, not <span class="s">math</span>. The chip sits idle, waiting to be fed.</p>
+
+    <div class="twocol" style="margin-top:26px">
+      <div class="note">
+        <h3>Reading a prompt ≠ writing an answer</h3>
+        <p>Reading your whole prompt at once is heavy on arithmetic and keeps the chip busy. Writing the answer happens <b>one word at a time</b>, each word barely any math but a fresh trip through memory — so the chip mostly waits. These two jobs are so different that splitting them apart is one of the biggest organizing ideas in the corpus.</p>
+      </div>
+      <div class="note cool">
+        <h3>The model's growing notebook</h3>
+        <p>As it writes, the model keeps a scratchpad of everything seen so far so it needn't recompute. That notebook — the <b>KV cache</b> — grows with every word and every extra user, and quickly becomes the single biggest thing hogging memory. A large share of these papers are, at heart, about this one notebook: shrinking it, reusing it, or streaming it elsewhere.</p>
+      </div>
+    </div>
+
+    <p class="prose" style="margin-top:26px">Once you see the problem this way, the 61 papers stop being a list and become <b>two moves</b>, repeated in a dozen costumes: either <span class="mono" style="color:var(--demand)">shrink what must be moved and computed</span>, or <span class="mono" style="color:var(--supply)">get more useful work out of the hardware you already have</span>. Here is how.</p>
+  </section>
+
+  <!-- THE MOVES -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the approaches</div>
+      <h2>Eight ways to close the gap</h2>
+      <p>Each is grounded in the actual papers, with their headline result in plain terms. The pill says which side of the problem the move works on.</p>
+    </div>
+
+    <div class="moves">
+
+      <article class="move" data-reveal>
+        <div class="idx">01</div>
+        <div>
+          <h3>Do the core math without wasting the chip</h3>
+          <p class="plain">The one operation a model does most is <b>attention</b> — and while writing an answer it left the chip up to 80% idle, with a different hand-written version for every model. These papers rewrite it so the chip stays full, and fold dozens of variants into a single flexible engine.</p>
+          <div class="tags"><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">000</span><span class="pname">FlashInfer <em>— one engine for every attention layout</em></span><span class="pmetric">29–69% faster between words</span></div>
+          <div class="paper"><span class="pid">034</span><span class="pname">FastTree <em>— reuses shared prompt prefixes</em></span><span class="pmetric">2.2× throughput</span></div>
+          <div class="paper"><span class="pid">037</span><span class="pname">LeanAttention <em>— keeps every core busy on decode</em></span><span class="pmetric">up to 2.53×</span></div>
+          <div class="paper"><span class="pid">015</span><span class="pname">FlexAttention <em>— write a variant in a few lines</em></span><span class="pmetric">&lt;1% overhead vs 20–26%</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">02</div>
+        <div>
+          <h3>Use smaller numbers</h3>
+          <p class="plain">Every number in the model is normally stored in 16 bits. Round them down to 4. There is simply <b>less to move and cheaper to multiply</b> — provided the rounding doesn't corrupt the answer, and the tiny numbers can run on the chip's fast math units instead of its slow ones.</p>
+          <div class="tags"><span class="tag demand">shrinks demand</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">003</span><span class="pname">QServe <em>— 4-bit weights that stay fast at scale</em></span><span class="pmetric">2.4–3.5× throughput</span></div>
+          <div class="paper"><span class="pid">021</span><span class="pname">MiLo <em>— 3-bit experts with tiny correctors</em></span><span class="pmetric">1.2× over prior best</span></div>
+          <div class="paper"><span class="pid">025</span><span class="pname">TurboAttention <em>— even the attention runs in 8-bit</em></span><span class="pmetric">KV notebook 4.4× smaller</span></div>
+        </div>
+        <div class="caveatchip"><b>Reality check (007):</b> a companion study shows these compression wins can shrink — or even reverse — inside a real serving system once more than a few requests run at once. Single-request benchmarks flatter the technique.</div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">03</div>
+        <div>
+          <h3>Skip the work that doesn't matter</h3>
+          <p class="plain">Most of the numbers contribute almost nothing to a given answer, so <b>don't compute them</b>. The catch: skipping is irregular and chips crave regularity. The trick these papers share is making the skipping a shape the hardware already understands.</p>
+          <div class="tags"><span class="tag demand">shrinks demand</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">022</span><span class="pname">TASD <em>— reshapes messy sparsity to fit the chip</em></span><span class="pmetric">39% faster, ~80% less energy</span></div>
+          <div class="paper"><span class="pid">014</span><span class="pname">xDecimate <em>— a new chip instruction for skipping</em></span><span class="pmetric">3.2× vs dense</span></div>
+          <div class="paper"><span class="pid">017</span><span class="pname">Dynamic Input Pruning <em>— drops dead weights on a phone</em></span><span class="pmetric">40% faster, 46% less memory</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">04</div>
+        <div>
+          <h3>Split across many chips — and hide the chatter</h3>
+          <p class="plain">When one chip isn't enough, use hundreds. But chips talking to each other can burn <b>nearly half the time</b>. The winning move is to make them talk <b>while</b> they compute, so no chip ever sits waiting for a message.</p>
+          <div class="tags"><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">002</span><span class="pname">TileLink <em>— overlaps compute and messaging</em></span><span class="pmetric">up to 20× vs no overlap</span></div>
+          <div class="paper"><span class="pid">055</span><span class="pname">COMET <em>— hides the cost of routing experts</em></span><span class="pmetric">hides 86% of chatter</span></div>
+          <div class="paper"><span class="pid">030</span><span class="pname">ReaL <em>— reshuffles chips between training stages</em></span><span class="pmetric">3.58× over prior systems</span></div>
+          <div class="paper"><span class="pid">057</span><span class="pname">Radius <em>— sends only the gradients that changed</em></span><span class="pmetric">90% less communication</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">05</div>
+        <div>
+          <h3>Hide slow memory behind fast memory</h3>
+          <p class="plain">Fast memory next to the chip is tiny; slow memory (the CPU's RAM, an SSD) is plentiful. Treat the slow tier as <b>overflow capacity</b> and stream from it just in time, so the chip is fed continuously and never notices the slower shelf behind it.</p>
+          <div class="tags"><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">024</span><span class="pname">NEO <em>— parks part of the work on the CPU</em></span><span class="pmetric">up to 7.5×</span></div>
+          <div class="paper"><span class="pid">033</span><span class="pname">FlexInfer <em>— picks the best tier per layer</em></span><span class="pmetric">75% less latency</span></div>
+          <div class="paper"><span class="pid">051</span><span class="pname">FPDT <em>— streams a book-length sequence</em></span><span class="pmetric">16× longer inputs</span></div>
+          <div class="paper"><span class="pid">059</span><span class="pname">APOLLO <em>— shrinks the training bookkeeping</em></span><span class="pmetric">28GB → 1.6GB</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">06</div>
+        <div>
+          <h3>Run the whole crowd intelligently</h3>
+          <p class="plain">In production, thousands of requests arrive at once, each with a deadline, and prompt-reading fights answer-writing for the same chip. A <b>scheduler</b> decides who runs when — keeping the chip full and keeping its promises, instead of hoping simple rules suffice.</p>
+          <div class="tags"><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">018</span><span class="pname">SOLA <em>— re-optimizes the queue every step</em></span><span class="pmetric">deadlines met: 45% → 99%</span></div>
+          <div class="paper"><span class="pid">004</span><span class="pname">Marconi <em>— reuses cached conversation prefixes</em></span><span class="pmetric">71% faster first word</span></div>
+          <div class="paper"><span class="pid">023</span><span class="pname">ThunderServe <em>— splits phases across mixed GPUs</em></span><span class="pmetric">up to 2.1×</span></div>
+          <div class="paper"><span class="pid">016</span><span class="pname">XGrammar <em>— precomputes structured-output rules</em></span><span class="pmetric">up to 100×</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">07</div>
+        <div>
+          <h3>When the input is a whole book</h3>
+          <p class="plain">Cost grows with the <b>square</b> of the prompt length and the notebook grows straight up with it, so a book-length prompt breaks a single chip. The answer combines two earlier moves: <b>skip</b> the far-away text that doesn't matter, and <b>split</b> the rest across chips.</p>
+          <div class="tags"><span class="tag demand">shrinks demand</span><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">060</span><span class="pname">SampleAttention <em>— reads only the blocks that count</em></span><span class="pmetric">5.3× faster at 1M words</span></div>
+          <div class="paper"><span class="pid">050</span><span class="pname">Context Parallelism <em>— shares the text across chips</em></span><span class="pmetric">1M-word prompt in 77s</span></div>
+          <div class="paper"><span class="pid">047</span><span class="pname">LServe <em>— fuses skipping into the kernel</em></span><span class="pmetric">faster read and write</span></div>
+        </div>
+      </article>
+
+      <article class="move" data-reveal>
+        <div class="idx">08</div>
+        <div>
+          <h3>The same war, on a phone</h3>
+          <p class="plain">The identical problem with a hundredth of the budget — and here <b>energy is the real currency</b>, not just speed. The move is to design the algorithm and the tiny chip <b>together</b>: custom instructions, memory-shaped dataflow, even training that never runs backwards.</p>
+          <div class="tags"><span class="tag demand">shrinks demand</span><span class="tag supply">stretches supply</span></div>
+        </div>
+        <div class="papers">
+          <div class="paper"><span class="pid">019</span><span class="pname">Bio-FO <em>— trains forward-only on a device</em></span><span class="pmetric">up to 19.8× less energy</span></div>
+          <div class="paper"><span class="pid">031</span><span class="pname">MEADOW <em>— long context under 10 watts</em></span><span class="pmetric">1.5–2.5× on an FPGA</span></div>
+          <div class="paper"><span class="pid">044</span><span class="pname">VoLUT <em>— replaces math with lookups</em></span><span class="pmetric">line-rate on a phone</span></div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- DEEP PATTERNS -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">connecting the dots</div>
+      <h2>Four instincts underneath all of it</h2>
+      <p>Strip the eight moves down further and the same four reflexes appear again and again — the shared worldview of the field.</p>
+    </div>
+    <div class="patterns">
+      <div class="pat" data-reveal>
+        <div class="n">I.</div>
+        <h3>The wall between software and chip is gone</h3>
+        <p>No one optimizes "the algorithm" and "the hardware" separately anymore. The sparsity pattern, the number format, the attention variant are each folded <em>directly</em> into the chip's math units and their scheduling. Co-design is the default, not the exception.</p>
+      </div>
+      <div class="pat" data-reveal>
+        <div class="n">II.</div>
+        <h3>Reading and writing are different machines</h3>
+        <p>Again and again, prompt-reading and answer-writing are pulled apart and handled as two distinct jobs — separate schedules, separate chips, separate parallel strategies — because their appetites for math and memory are opposite.</p>
+      </div>
+      <div class="pat" data-reveal>
+        <div class="n">III.</div>
+        <h3>Always hide the slow thing behind the fast thing</h3>
+        <p>Whether the slow thing is an SSD, the CPU's memory, or the network between chips, the template never changes: overlap the slow transfer with useful compute so its cost disappears into time you were spending anyway.</p>
+      </div>
+      <div class="pat" data-reveal>
+        <div class="n">IV.</div>
+        <h3>Decide at runtime, don't hard-code</h3>
+        <p>Fixed heuristics are the recurring villain. Adaptive skipping budgets, deadline-aware scheduling, plans that reshape mid-flight — the field keeps replacing static rules with decisions made from what's actually happening right now.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HONEST GAPS -->
+  <section>
+    <div class="sec-head prose">
+      <div class="eyebrow kicker">the honest part</div>
+      <h2>What the whole field is quietly not doing</h2>
+      <p>A picture that only shows the wins is a brochure. Three blind spots run across the corpus.</p>
+    </div>
+    <div class="gaps">
+      <div class="gap" data-reveal>
+        <div class="lead">It is a one-vendor world</div>
+        <p>Almost every result is on NVIDIA silicon, benchmarked against other NVIDIA software. There is essentially no TPU, no AMD GPU — one edge NPU and one custom chip in 61 papers. "Portable" mostly means portable between NVIDIA backends.</p>
+      </div>
+      <div class="gap" data-reveal>
+        <div class="lead">Energy is the reason, not the measurement</div>
+        <p>Power is the stated motivation for much of this work, yet only the handful of edge papers actually report joules or energy-per-op. The datacenter work reports speed and throughput and stays silent on the electricity bill it claims to care about.</p>
+      </div>
+      <div class="gap" data-reveal>
+        <div class="lead">Reported is not realized</div>
+        <p>One paper (007) is the field's conscience: it shows compression speedups that look great in isolation can vanish, or turn negative, once dropped into a real serving stack under real load. Many headline numbers come from the gentlest possible setting.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    <div class="eyebrow" style="color:var(--supply)">how this was built</div>
+    <div class="stats">
+      <div class="kv"><span class="v">61</span><span class="k">papers</span></div>
+      <div class="kv"><span class="v">100%</span><span class="k">read in full text</span></div>
+      <div class="kv"><span class="v">9</span><span class="k">themes clustered</span></div>
+      <div class="kv"><span class="v">51</span><span class="k">report hard numbers</span></div>
+    </div>
+    <p class="prose" style="color:var(--ink-dim);font-size:.95rem">
+      Every paper in MLSys 2025 was pulled from the open proceedings, read in full, and analyzed for its problem, method, and contribution; the nine themes were then clustered across the corpus. The numbers above are directional <em>within</em> a move — different papers use different chips, batch sizes, and baselines, so they are not strictly comparable across moves. This page is the conceptual layer on top of that record.
+    </p>
+    <div class="meta" style="margin-top:24px">
+      <span><b>Corpus:</b> MLSys 2025 · full-text, high-confidence</span>
+      <span><b>IDs</b> (e.g. <span class="mono" style="color:var(--supply)">003</span>) map to per-paper analyses in the repo</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* reveal on scroll */
+  var items = document.querySelectorAll('[data-reveal]');
+  if (reduce || !('IntersectionObserver' in window)) {
+    items.forEach(function(el){el.classList.add('in')});
+  } else {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    }, {threshold:.12});
+    items.forEach(function(el){io.observe(el)});
+  }
+
+  /* demand vs supply gap chart */
+  var c = document.getElementById('gap'); if(!c) return;
+  var ctx = c.getContext('2d');
+  function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+  var DEMAND=css('--demand')||'#e8975a', SUPPLY=css('--supply')||'#4fc1b1',
+      LINE=css('--line')||'#2b323d', MUTE=css('--ink-mute')||'#8b93a0';
+
+  function draw(p){
+    var W=c.width, H=c.height, padL=12, padR=14, padB=26, padT=14;
+    ctx.clearRect(0,0,W,H);
+    var x0=padL, x1=W-padR, y0=H-padB, y1=padT;
+    function X(t){return x0+(x1-x0)*t;}
+    function Y(v){return y0+(y1-y0)*v;}
+
+    /* faint baseline grid */
+    ctx.strokeStyle=LINE; ctx.lineWidth=1;
+    for(var g=0; g<=4; g++){ var gy=y0+(y1-y0)*(g/4); ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(x0,gy); ctx.lineTo(x1,gy); ctx.stroke(); }
+    ctx.globalAlpha=1;
+
+    /* supply: near-flat, gently stepping (hardware barely improves) */
+    function supplyV(t){ return 0.30 + 0.14*t + 0.02*Math.sin(t*7); }
+    /* demand: accelerating (models exploding) */
+    function demandV(t){ return 0.30 + 0.66*Math.pow(t,1.9); }
+
+    var N=140, tmax=p;
+    /* gap fill */
+    ctx.beginPath();
+    ctx.moveTo(X(0),Y(supplyV(0)));
+    for(var i=0;i<=N;i++){ var t=tmax*i/N; ctx.lineTo(X(t),Y(supplyV(t))); }
+    for(var j=N;j>=0;j--){ var t2=tmax*j/N; ctx.lineTo(X(t2),Y(demandV(t2))); }
+    ctx.closePath();
+    var grad=ctx.createLinearGradient(0,y1,0,y0);
+    grad.addColorStop(0,'rgba(232,151,90,0.30)');
+    grad.addColorStop(1,'rgba(232,151,90,0.04)');
+    ctx.fillStyle=grad; ctx.fill();
+
+    /* supply line */
+    ctx.lineWidth=2.5; ctx.strokeStyle=SUPPLY; ctx.beginPath();
+    for(var k=0;k<=N;k++){ var ts=tmax*k/N; (k?ctx.lineTo:ctx.moveTo).call(ctx,X(ts),Y(supplyV(ts))); }
+    ctx.stroke();
+    /* demand line */
+    ctx.lineWidth=2.5; ctx.strokeStyle=DEMAND; ctx.beginPath();
+    for(var m=0;m<=N;m++){ var td=tmax*m/N; (m?ctx.lineTo:ctx.moveTo).call(ctx,X(td),Y(demandV(td))); }
+    ctx.stroke();
+
+    /* endpoint dots */
+    if(tmax>=0.999){
+      ctx.fillStyle=DEMAND; ctx.beginPath(); ctx.arc(X(1),Y(demandV(1)),4.5,0,7); ctx.fill();
+      ctx.fillStyle=SUPPLY; ctx.beginPath(); ctx.arc(X(1),Y(supplyV(1)),4.5,0,7); ctx.fill();
+    }
+  }
+
+  if(reduce){ draw(1); return; }
+  var start=null;
+  function anim(ts){
+    if(!start) start=ts;
+    var p=Math.min(1,(ts-start)/1100);
+    var eased=1-Math.pow(1-p,3);
+    draw(eased);
+    if(p<1) requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+})();
+</script>
