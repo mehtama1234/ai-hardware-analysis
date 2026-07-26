@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-082",
+  "title": "COMET: Towards Practical W4A4KV4 LLMs Serving",
+  "venue": "ASPLOS",
+  "problem": "Prevalent LLM quantization methods (W8A8 or W4-only) do not fully utilize INT4 tensor cores on modern GPUs and cannot reduce the KV cache memory bottleneck, because quantizing activations to 4-bit causes unacceptable accuracy loss with standard methods, leaving W4A4 impractical.",
+  "motivation": "LLM inference is bottlenecked by GPU memory bandwidth and capacity; W4A4KV4 would halve memory traffic versus W8A8 and quarter versus FP16, but requires solving the activation quantization accuracy problem to be practically deployable.",
+  "method": "COMET introduces a fine-grained mixed-precision quantization algorithm (FMPQ) that compresses most activations to 4-bit while preserving accuracy by identifying and retaining outlier activations at higher precision (e.g., 8-bit) in a mixed-precision format. On the hardware side, COMET develops a highly optimized W4Ax GPU kernel (supporting both W4A4 and W4A8 mixed-precision GEMM) with a novel mixed-precision data layout that co-locates 4-bit and 8-bit activation elements to enable fast dequantization. The kernel uses GPU software pipelining to overlap data loading and conversion with computation, and introduces fine-grained streaming multiprocessor (SM) scheduling to achieve load balance across SMs. COMET integrates this kernel into a full LLM inference framework with efficient KV4 cache management supporting models like LLaMA-3-70B on a single A100-80G.",
+  "key_novelty": "Fine-grained mixed-precision quantization (FMPQ) enabling practical W4A4 by selectively retaining outlier activations at INT8, combined with a W4Ax kernel with mixed-precision data layout and SM-level load-balanced scheduling to fully exploit INT4 tensor cores.",
+  "contributions": [
+    "FMPQ: fine-grained mixed-precision quantization algorithm compressing most activations to INT4 with negligible accuracy loss",
+    "Optimized W4Ax kernel with mixed-precision data layout for fast dequantization and software pipelining",
+    "Fine-grained SM scheduling achieving load balance across streaming multiprocessors",
+    "COMET inference framework: first practical W4A4KV4 LLM serving system with 2.88x kernel speedup over cuBLAS and 2.02x end-to-end throughput over TensorRT-LLM"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["quantization", "kernel-fusion", "memory-system", "scheduling"],
+  "workloads": ["LLM-inference", "transformer", "attention"],
+  "metrics": {
+    "speedup": "2.88x kernel-level speedup over cuBLAS; 2.02x end-to-end throughput vs TensorRT-LLM on A100-80G",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "negligible accuracy loss vs FP16 for LLaMA family models",
+    "other": "evaluated on LLaMA-3-70B on single A100-80G-SMX4"
+  },
+  "baselines": ["cuBLAS", "TensorRT-LLM", "W8A8 quantization", "W4-only quantization"],
+  "limitations": "Mixed-precision overhead for outlier activations adds complexity; KV4 accuracy impact on long-context or specialized LLM tasks not discussed in abstract.",
+  "tags": ["llm-inference", "w4a4", "quantization", "int4", "gpu-kernel", "kv-cache"],
+  "primary_theme": "practical W4A4KV4 LLM inference via fine-grained mixed-precision quantization",
+  "confidence": "low"
+}

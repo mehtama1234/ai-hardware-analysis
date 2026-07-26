@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-051",
+  "title": "UPP: Universal Predicate Pushdown to Smart Storage",
+  "venue": "ISCA",
+  "problem": "Existing in-storage processing (ISP) solutions only support simple operators (equality, range comparisons) on fixed-length columns, leaving modern analytical queries that use complex operators and diverse data formats unaccelerated. There is no flexible ISP mechanism that can handle arbitrary filter predicates used in production databases.",
+  "motivation": "As database queries grow in complexity—using date arithmetic, string functions, and compound predicates over variable-length columns—naive ISP offloading cannot match these requirements, leaving bandwidth and compute savings on the table.",
+  "method": "UPP defines a compact, purpose-built ISA for predicate pushdown that is separate from individual operator implementations. The database software layer recognizes filter predicates, compiles them to UPP-compliant instructions, and ships them to an FPGA (SmartSSD) where bitwise comparison execution leverages lightweight metadata to evaluate predicates directly in storage without reformatting data. The hardware/software co-design avoids changing input data formats on disk while enabling flexible predicate evaluation through this instruction-level abstraction.",
+  "key_novelty": "A compact ISA tailored explicitly for predicate pushdown allows the database to compile arbitrary, complex filter predicates into storage-executable instructions, achieving generality that prior ISP designs relying on hardwired operator logic cannot.",
+  "contributions": [
+    "A universal predicate ISA (UPP-ISA) that covers arbitrary filter operators and functions beyond simple comparisons",
+    "A software compilation layer in the database that automatically generates UPP instructions for diverse predicates",
+    "An FPGA-based SmartSSD implementation performing bitwise predicate evaluation with lightweight metadata",
+    "End-to-end evaluation on a 100 GB TPC-H dataset showing 1.2–7.9x Spark query speedup without changing data formats"
+  ],
+  "hardware_target": ["FPGA"],
+  "technique_category": ["near-data-processing", "compiler", "dataflow"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "1.2–7.9x end-to-end Spark query speedup on TPC-H 100 GB",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Apache Spark without ISP"],
+  "limitations": "Speedup range is workload-dependent; predicates with heavy control flow or pointer indirection may not compile cleanly to the UPP-ISA.",
+  "tags": ["in-storage processing", "predicate pushdown", "fpga", "analytics", "isa", "smart-storage"],
+  "primary_theme": "flexible ISA for in-storage predicate evaluation",
+  "confidence": "low"
+}

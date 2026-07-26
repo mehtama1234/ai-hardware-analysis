@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-081",
+  "title": "Concord: Rethinking Distributed Coherence for Software Caches in Serverless Environments",
+  "venue": "HPCA",
+  "problem": "Serverless functions incur high latency from frequent global storage accesses; existing node-local caching schemes either restrict each data item to a single cache node (causing frequent remote reads) or allow multi-node replication but impose heavy coherence overhead, neither being optimal for serverless access patterns characterized by frequent reads, strong temporal locality, and few concurrent writers.",
+  "motivation": "Global storage access is a dominant performance bottleneck in serverless computing, and serverless workloads' unique access patterns (read-heavy, temporally local, small data items, few concurrent nodes per application) are not well-served by existing single-node or naive multi-replica caching strategies.",
+  "method": "Concord implements a directory-based distributed software cache coherence protocol inspired by hardware cache coherence, adapted for serverless environments. It allows multiple replicas of the same data item across nodes and satisfies reads locally from any replica. To maintain coherence, a directory tracks replica locations and manages invalidation/update messages on writes. The protocol minimizes coherence traffic by exploiting serverless access patterns, reduces contention points in the directory, and handles node failures and frequent coherence domain changes (as serverless function instances spin up/down). Two additional capabilities are unlocked: transactional storage accesses and transparent data-aware function placement.",
+  "key_novelty": "A directory-based hardware-cache-coherence-inspired software coherence protocol tailored to serverless access patterns, enabling multi-node read replication with efficient invalidation while supporting transactional storage and data-aware placement.",
+  "contributions": [
+    "Concord: distributed software cache coherence system for serverless with directory-based multi-replica protocol",
+    "Coherence protocol resilient to node failures and frequent coherence domain changes from serverless churn",
+    "Transactional storage accesses unlocked as a new capability in serverless environments",
+    "Transparent data-aware function placement; 2.4x execution speedup and 1.7x throughput improvement on 16-node cluster vs. state-of-the-art, using only 4.8% of application memory"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["coherence", "memory-system", "cache"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "2.4x execution speedup, 1.7x throughput improvement vs. state-of-the-art serverless caching on 16-node cluster",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": "Only 6.2MB (4.8% of application memory) overhead"
+  },
+  "baselines": ["State-of-the-art serverless caching schemes (single-node and multi-node approaches)"],
+  "limitations": "Evaluation is on a 16-node cluster; scalability to very large serverless clusters with thousands of nodes and high write rates is not fully characterized.",
+  "tags": ["serverless", "cache-coherence", "distributed-caching", "software-cache", "directory-protocol"],
+  "primary_theme": "hardware-inspired software cache coherence for serverless computing",
+  "confidence": "low"
+}

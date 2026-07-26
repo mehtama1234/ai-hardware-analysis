@@ -1,0 +1,28 @@
+{
+  "id": "micro-2025-097",
+  "title": "REACT3D: Real-time Edge Accelerator for Incremental Training in 3D Gaussian Splatting based SLAM Systems",
+  "venue": "MICRO",
+  "problem": "3D Gaussian Splatting (3DGS) SLAM requires incremental training and rendering at over 30 FPS on edge devices, but existing GPU-based solutions and prior accelerators fall short due to redundant training computation, unnecessary loss computation, and irregular memory access patterns. The combination of continuous camera streaming, per-Gaussian gradient accumulation, and sparse activated Gaussian sets creates severe compute and memory irregularity.",
+  "motivation": "Real-time 3DGS-SLAM on edge platforms is a critical capability for autonomous robots and AR/VR systems, and no prior hardware design achieves the 30 FPS real-time threshold required for accurate tracking and mapping.",
+  "method": "REACT3D introduces two algorithmic optimizations: (1) spatial consistency and convergence-aware sparsification that predicts under-optimized Gaussians based on spatial coherence and convergence dynamics, eliminating redundant forward/backward rendering passes; and (2) a pixel block-wise fine-grained dataflow that fuses loss computation into the rendering pipeline, removing explicit loss storage. At the architectural level, a Content Addressable Memory (CAM)-based Dual-index Gaussian Buffer resolves discontinuous memory accesses by maintaining two parallel indices into the Gaussian buffer, avoiding computation conflicts during gradient merging across scattered Gaussian-to-pixel mappings.",
+  "key_novelty": "The CAM-based Dual-index Gaussian Buffer that resolves the irregular memory access and gradient-merging conflict problem inherent to 3DGS training on sparse, streaming SLAM data.",
+  "contributions": [
+    "Spatial consistency and convergence-aware sparsification algorithm that eliminates redundant Gaussian forward/backward passes",
+    "Pixel block-wise fine-grained dataflow that fuses loss computation and eliminates explicit loss memory traffic",
+    "CAM-based Dual-index Gaussian Buffer microarchitecture for irregular memory disambiguation during gradient merging",
+    "First hardware design demonstrated to meet real-time (>30 FPS) requirements for 3DGS SLAM on an edge device, achieving 12.10x speedup and 33.69x energy efficiency over NVIDIA Jetson AGX Orin"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["dataflow", "memory-system", "sparsity", "near-data-processing"],
+  "workloads": ["vision"],
+  "metrics": {
+    "speedup": "12.10x over NVIDIA Jetson AGX Orin",
+    "energy_or_tops_w": "33.69x energy efficiency improvement over NVIDIA Jetson AGX Orin",
+    "other": "Achieves >30 FPS real-time 3DGS SLAM threshold"
+  },
+  "baselines": ["NVIDIA Jetson AGX Orin"],
+  "limitations": "Evaluation is limited to the 3DGS SLAM domain; generalizability of the CAM-based buffer and sparsification to other NeRF variants or volumetric representations is not discussed.",
+  "tags": ["3d-gaussian-splatting", "slam", "edge-accelerator", "sparse-training", "irregular-memory"],
+  "primary_theme": "Real-time 3DGS SLAM edge acceleration",
+  "confidence": "low"
+}

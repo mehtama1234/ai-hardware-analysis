@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-021",
+  "title": "LLMulator: Generalizable Cost Modeling for Dataflow Accelerators with Input-Adaptive Control Flow",
+  "venue": "MICRO",
+  "problem": "Existing performance prediction methods for dataflow-based accelerators (TPUs, NPUs, FPGAs) fail to generalize across three dimensions: unseen applications with extreme loop scales (errors exceeding 40%), input-dependent control flows where branch probabilities shift at runtime (errors up to 60%), and diverse hardware architectures with varying memory delays and loop mapping primitives. No prior method unifies all three generalization axes.",
+  "motivation": "Accurate, fast cost modeling is the critical bottleneck in design-space exploration for dataflow accelerators, and the growing complexity of hardware-software stacks (HLS, spatial mappings, dynamic operators) makes hand-crafted analytical models and static graph neural network approaches obsolete.",
+  "method": "LLMulator uses a pre-trained LLM (LLaMA-3.2-1B fine-tuned via LoRA) as the backbone for cost prediction with three novel mechanisms: (1) Progressive numeric encoding that tokenizes each decimal digit independently and uses categorical cross-entropy rather than regression to predict performance as digit-wise classification with beam-search error correction, enabling range-agnostic estimates; (2) Dynamic Prediction Calibration (DPC) using Direct Preference Optimization (DPO)-style reinforcement learning with a replay buffer, where the model is updated online from Verilator simulation feedback to adapt to runtime input variations in loop bounds and control-flow branching; (3) A progressive dataset synthesizer that generates multi-level training data via AST-based generation, dataflow-specific loop-tree mutation, and LLM-based augmentation, then formats data with intermediate RTL reasoning chains (via SiliconCompiler and OpenROAD) to teach the model compilation-level reasoning.",
+  "key_novelty": "Treating hardware performance values as digit-wise categorical token sequences (rather than regression targets) enables confidence-aware, range-agnostic prediction that generalizes to out-of-distribution loop scales, combined with RL-based online calibration for input-adaptive control flows.",
+  "contributions": [
+    "Progressive numeric modeling paradigm that tokenizes numerical program values digit-by-digit with categorical output and beam search, reducing edge-value prediction errors by 2.3%–13.6% over regression baselines.",
+    "Dynamic Prediction Calibration framework using DPO-based reinforcement learning from simulation feedback, converging to 11.2% cycle prediction error after a few iterations, a 9.7% improvement over static models.",
+    "Progressive data augmentation framework combining AST generation, dataflow-specific loop mutation, and LLM self-augmentation, with hardware mapping parameters (memory delays, loop unroll pragmas) to cover diverse hardware configs.",
+    "End-to-end LLMulator framework achieving 12.2% MAPE on ASIC design scenarios, reducing error by 16.7%–7.8% compared to GNNHLS and TLP state-of-the-art methods."
+  ],
+  "hardware_target": ["ASIC", "NPU", "TPU"],
+  "technique_category": ["compiler", "dataflow", "scheduling"],
+  "workloads": ["CNN", "transformer", "LLM-inference"],
+  "metrics": {
+    "accuracy": "12.2% MAPE on ASIC scenarios; 9.7% error reduction from DPC over static; 16.7%–7.8% error reduction vs GNNHLS/TLP",
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "other": null
+  },
+  "baselines": ["GNNHLS", "TLP", "Timeloop", "Tenset/TVM MLP"],
+  "limitations": "Calibration via DPO requires repeated simulation runs (Verilator) per input, adding profiling overhead that may be prohibitive for very large dataflow programs; the method targets HLS-level (C-to-RTL) modeling and does not address post-place-and-route variability.",
+  "tags": ["cost-modeling", "llm-for-hardware", "dataflow-accelerator", "rl-calibration", "design-space-exploration", "numeric-tokenization"],
+  "primary_theme": "LLM-based generalizable cost modeling for dataflow accelerators",
+  "confidence": "high"
+}

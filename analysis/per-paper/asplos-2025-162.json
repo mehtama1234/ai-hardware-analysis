@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-162",
+  "title": "Debugger Toolchain Validation via Cross-Level Debugging",
+  "venue": "ASPLOS",
+  "problem": "Existing debugger toolchain validation techniques detect bugs in debug information by comparing execution traces between optimized and unoptimized executables, but compiler optimizations make such traces incomparable and leave bugs in debugger toolchains undetected when the unoptimized executable itself contains toolchain errors.",
+  "motivation": "Bugs hidden in production debugger toolchains (GDB, LLDB) can systematically mislead developers, yet comprehensive testing has been absent due to the lack of sound test oracles.",
+  "method": "The paper introduces Cross-Level Debugging (CLD), which compares execution traces obtained from debugging the same executable using source-level and instruction-level debugging strategies within the same debugger. CLD formalizes three invariant relations—reachability preservation of program locations, order preservation for reachable locations, and value consistency at program locations—that must hold between the two trace levels regardless of optimization level. The Devil framework implements these relations as test oracles, generates diverse test programs, runs them under both debugging levels, and flags violations as toolchain bugs.",
+  "key_novelty": "Using source-level versus instruction-level debugging of the same executable as a built-in oracle, eliminating the need to compare across different executables and enabling detection of toolchain bugs even in unoptimized binaries.",
+  "contributions": [
+    "Cross-Level Debugging (CLD) concept: comparing source-level and instruction-level debug traces of the same executable",
+    "Formalization of three semantic invariant relations between debugging levels as test oracles",
+    "Devil framework implementing CLD for automated debugger toolchain validation",
+    "Discovery of 27 new bug reports in GDB and LLDB, 18 confirmed and 12 fixed"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["compiler", "reliability"],
+  "workloads": [],
+  "metrics": {
+    "other": "27 new bug reports found; 18 confirmed, 12 fixed by developers in GDB and LLDB"
+  },
+  "baselines": ["prior debugger validation techniques comparing optimized vs. unoptimized executables"],
+  "limitations": "Relies on instruction-level behavior being fully observable through the debugger API; may miss bugs that manifest only under concurrent or hardware-level conditions not captured by the debugging trace.",
+  "tags": ["debugger", "testing", "toolchain-validation", "gdb", "lldb", "oracle"],
+  "primary_theme": "Cross-level oracle-based debugger toolchain validation",
+  "confidence": "low"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-008",
+  "title": "PipeLLM: Fast and Confidential Large Language Model Services with Speculative Pipelined Encryption",
+  "venue": "ASPLOS",
+  "problem": "Confidential GPU computing (e.g., NVIDIA H100 TEE) protects outsourced LLM inference through data encryption, but the encryption module imposes up to 52.8% throughput reduction for OPT-30B and 88.2% for OPT-66B due to synchronous encryption latency on the critical path.",
+  "motivation": "Outsourced LLM inference increasingly requires strong confidentiality guarantees, but the encryption overhead of TEE-enabled GPUs makes confidential LLM serving commercially unviable without a mechanism to hide encryption latency.",
+  "method": "PipeLLM overlaps GPU computation with encryption through pipelining, analogously to CPU instruction pipelining. The key challenge is that the encryption module does not know which data to encrypt until the GPU requests it, so PipeLLM introduces speculative pipelined encryption: it predicts the next data requiring encryption by analyzing LLM serving patterns (token generation sequences, KV-cache access patterns), pre-emptively encrypting predicted data ahead of GPU demand. A low-cost pipeline relinquishing mechanism handles mispredictions by falling back without correctness violation.",
+  "key_novelty": "Speculative prediction of encryption targets based on LLM serving patterns, enabling pipelined overlap of GPU computation and confidential encryption to nearly eliminate encryption latency on the critical path.",
+  "contributions": [
+    "Characterization showing up to 88.2% throughput drop from synchronous encryption in H100-class confidential GPU LLM serving.",
+    "Speculative pipelined encryption that predicts encryption targets from LLM serving patterns and pipelines encryption with GPU compute.",
+    "Efficient pipeline relinquishing mechanism for handling mispredictions with low overhead.",
+    "Demonstrated <19.6% throughput overhead vs. non-confidential baselines (vLLM, PEFT, FlexGen) across 13B-175B LLMs."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["security", "parallelism", "scheduling"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "reduces throughput overhead from 52.8-88.2% down to <19.6% vs. vLLM/PEFT/FlexGen (non-confidential baselines)"
+  },
+  "baselines": ["vLLM", "PEFT", "FlexGen", "vanilla H100 confidential computing"],
+  "limitations": "Misprediction rate of the speculative encryption predictor under adversarial or highly variable serving patterns is not characterized.",
+  "tags": ["confidential-computing", "llm-inference", "gpu-tee", "speculative-execution", "encryption-pipeline"],
+  "primary_theme": "Speculative pipelined encryption for confidential LLM serving on GPU TEEs",
+  "confidence": "low"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "micro-2025-106",
+  "title": "Misam: Machine Learning Assisted Dataflow Selection in Accelerators for Sparse Matrix Multiplication",
+  "venue": "MICRO",
+  "problem": "SpGEMM accelerators that support multiple dataflows (e.g., row-wise, column-wise, inner-product) face two critical problems: (1) no fast principled mechanism exists for selecting the optimal dataflow at runtime given input matrix sparsity patterns, and (2) providing hardware flexibility for multiple dataflows incurs area overhead and underutilization when one dataflow is locked in.",
+  "motivation": "Real-world SpGEMM workloads exhibit highly diverse and dynamic sparsity patterns, so any single fixed dataflow leaves significant performance on the table, yet the cost of hardware reconfiguration must be carefully managed to yield net benefit.",
+  "method": "Misam uses a lightweight decision tree classifier to dynamically predict the optimal SpGEMM hardware configuration from matrix structural features (sparsity density, distribution, pattern statistics) extracted at runtime. To overcome hardware underutilization from multi-dataflow support, Misam targets FPGAs and exploits FPGA partial reconfigurability to deploy specialized, resource-efficient bitstreams tailored to specific sparsity regimes on demand. A reconfiguration engine evaluates whether the anticipated performance gain from switching bitstreams exceeds the reconfiguration overhead before triggering a reconfiguration.",
+  "key_novelty": "Using FPGA partial reconfiguration guided by a runtime ML decision tree to deploy sparsity-regime-specialized bitstreams on demand, achieving the efficiency of a fixed-dataflow accelerator with the adaptability of a flexible one.",
+  "contributions": [
+    "Lightweight decision tree that predicts optimal SpGEMM hardware configuration from matrix features without significant runtime overhead",
+    "FPGA partial reconfiguration framework that swaps specialized SpGEMM bitstreams on demand, eliminating area overhead of multi-dataflow hardware",
+    "Reconfiguration engine that performs cost-benefit analysis before initiating bitstream switching to avoid net-negative reconfiguration overhead",
+    "Up to 10.76x speedup over fixed-dataflow baselines across diverse sparsity patterns"
+  ],
+  "hardware_target": ["FPGA"],
+  "technique_category": ["sparsity", "dataflow", "scheduling", "compiler"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "speedup": "Up to 10.76x speedup via adaptive reconfiguration"
+  },
+  "baselines": ["Fixed-dataflow SpGEMM accelerators"],
+  "limitations": "FPGA reconfiguration latency bounds the granularity at which dataflow switching is profitable; the approach may not apply to ASIC designs where reconfigurability is absent.",
+  "tags": ["spgemm", "sparse-matrix", "fpga-reconfiguration", "dataflow-selection", "adaptive-accelerator"],
+  "primary_theme": "ML-guided FPGA reconfiguration for adaptive SpGEMM dataflow selection",
+  "confidence": "low"
+}

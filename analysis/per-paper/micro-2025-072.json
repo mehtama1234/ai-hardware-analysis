@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-072",
+  "title": "LEGOSim: A Unified Parallel Simulation Framework for Multi-chiplet Heterogeneous Integration",
+  "venue": "MICRO",
+  "problem": "Simulating heterogeneous multi-chiplet systems (e.g., CPU+GPU+CIM chiplets integrated on an interposer) is not supported by existing simulators (gem5, GPGPU-Sim) because they lack modular composition of heterogeneous chiplet models and suffer from prohibitive synchronization overhead in parallel simulation—per-cycle global synchronization can waste up to 99.9% of simulation time on barrier overhead.",
+  "motivation": "The industry shift to chiplet-based heterogeneous integration (SIMBA, CXL memory, CIM accelerators) requires accurate performance simulation tools, but no unified framework allows plugging diverse chiplet simulators together with acceptable speed and accuracy.",
+  "method": "LEGOSim wraps individual chiplet simulators (open-source or proprietary) as parallel OS processes called 'simlets', each advancing independently using a PDES (parallel discrete event simulation) approach. An on-demand synchronization protocol uses adaptive time quanta and non-global fencing: synchronization only occurs when a simlet needs to send or receive a message whose timestamp falls within another simlet's current quantum, avoiding unnecessary global barriers. A Network-on-Interposer (NoI) simulator models inter-chiplet communication (latency, bandwidth, topology) and is integrated as a separate simlet. The framework was validated against SIMBA (multi-chiplet neural network accelerator) and a CiM-based accelerator, achieving average errors of 3.79% and 3.94% respectively.",
+  "key_novelty": "The on-demand, non-global synchronization protocol with adaptive time quanta that allows heterogeneous chiplet simlets to advance asynchronously and only synchronize when cross-chiplet message delivery actually requires it, reducing synchronization overhead by up to 99.9%.",
+  "contributions": [
+    "LEGOSim parallel simulation framework that integrates heterogeneous chiplet simulators as independent parallel processes (simlets) with minimal code modification",
+    "On-demand synchronization protocol with adaptive time quanta and non-global fencing, eliminating unnecessary barriers while preserving correctness",
+    "Integrated Network-on-Interposer (NoI) simulator for accurate modeling of inter-chiplet communication and interconnect topology",
+    "Validation against SIMBA and CiM accelerator architectures with <4% average error; synchronization overhead reduced by 99.9% vs. per-cycle sync and 66.1% vs. fixed-quantum sync"
+  ],
+  "hardware_target": ["chiplet", "ASIC", "CIM (compute-in-memory)"],
+  "technique_category": ["interconnect", "packaging", "parallelism"],
+  "workloads": ["CNN", "LLM-inference"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "3.79% and 3.94% average simulation error vs. real hardware (SIMBA and CiM accelerator)",
+    "other": "Synchronization overhead reduced by up to 99.9% vs. per-cycle sync; 66.1% reduction vs. fixed-quantum sync"
+  },
+  "baselines": ["per-cycle global synchronization", "fixed time-quantum synchronization", "SIMBA multi-chiplet architecture (validation target)", "CiM-based accelerator (validation target)"],
+  "limitations": "Validation is limited to two specific multi-chiplet systems; scalability to large numbers of heterogeneous simlets with complex cross-chiplet dependency patterns is not analyzed.",
+  "tags": ["chiplet-simulation", "parallel-simulation", "heterogeneous-integration", "network-on-interposer", "synchronization", "design-space-exploration"],
+  "primary_theme": "parallel simulation framework for heterogeneous multi-chiplet systems",
+  "confidence": "low"
+}

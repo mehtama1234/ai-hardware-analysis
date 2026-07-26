@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-111",
+  "title": "NeuVSA: A Unified and Efficient Accelerator for Neural Vector Search",
+  "venue": "HPCA",
+  "problem": "Neural Vector Search (NVS) systems require both a neural embedding stage and a vector search stage, but existing accelerators treat these as separate compute kernels with incompatible memory access patterns, causing insufficient parallelization, frequent data access conflicts, and poor scheduling.",
+  "motivation": "Information retrieval increasingly relies on NVS for superior recall quality, yet the embedding-search separation creates a fundamental efficiency gap that cannot be resolved by simply combining existing accelerators.",
+  "method": "NeuVSA uses Product Quantization (PQ) as a unifying computational primitive, reformulating both the embedding and search stages into the same computing and memory access paradigm via a learned PQ-based algorithm with end-to-end joint training of the codebook and index. The hardware is a homogeneous ASIC with multiple sub-accelerators, each exploiting all exposed parallelism through a structured index assignment strategy and an elastic on-chip buffer that prevents data access conflicts. A hardware-aware scheduling strategy coordinates sub-accelerators to maximize throughput. The joint training strategy improves recall by 4.6% and accuracy by 43.5% over LUT-NN.",
+  "key_novelty": "Algorithm-architecture co-design that unifies neural embedding and vector search into a single PQ-centric compute paradigm, eliminating inter-stage separation for the first time.",
+  "contributions": [
+    "Learned PQ-based unified NVS algorithm with end-to-end joint codebook+index training",
+    "Homogeneous ASIC accelerator exploiting all parallelism of the unified algorithm",
+    "Elastic on-chip buffer and structured index assignment to eliminate data access conflicts",
+    "2.82x-416x lower latency and up to 49.6x higher throughput vs. CPU/GPU/DFX+ANNA/PQA+ANNA; 65.2% area reduction vs. PQA+ANNA"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["dataflow", "memory-system", "scheduling", "kernel-fusion"],
+  "workloads": ["recommendation"],
+  "metrics": {
+    "speedup": "2.82x-416.17x lower latency over CPU, GPU, DFX+ANNA, PQA+ANNA",
+    "other": "49.60x higher throughput over CPU; 10.57x over GPU; 65.2% area reduction vs. PQA+ANNA; 4.6% recall improvement over separated strategy"
+  },
+  "baselines": ["CPU (unspecified)", "GPU (unspecified)", "DFX+ANNA", "PQA+ANNA", "LUT-NN"],
+  "limitations": "Evaluation is limited to product-quantization-based NVS; graph-based ANN search (HNSW, etc.) is not addressed.",
+  "tags": ["vector-search", "product-quantization", "neural-retrieval", "asic-accelerator", "co-design", "information-retrieval"],
+  "primary_theme": "Unified neural vector search accelerator via PQ-based algorithm-architecture co-design",
+  "confidence": "low"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "micro-2025-069",
+  "title": "RTGS: Real-Time 3D Gaussian Splatting SLAM via Multi-Level Redundancy Reduction",
+  "venue": "MICRO",
+  "problem": "3D Gaussian Splatting-based SLAM systems cannot achieve real-time throughput (>=30 FPS) on edge devices; even the most efficient 3DGS-SLAM algorithms run at 0.78–14 FPS on a state-of-the-art edge GPU (NVIDIA ONX). The rendering and backpropagation stages dominate runtime (>80%), with severe workload imbalance across pixels and costly atomic gradient aggregation causing memory conflicts.",
+  "motivation": "Emerging AR/VR, autonomous driving, and robotics applications require real-time 3DGS-SLAM on power-constrained edge devices, but the gap between current algorithm throughput and the 30 FPS requirement exceeds 20x, blocking deployment.",
+  "method": "RTGS is an algorithm-hardware co-design framework targeting 3DGS-SLAM. On the algorithm side: (1) adaptive Gaussian pruning progressively removes low-importance Gaussians by reusing gradients from the backpropagation pass (no added overhead for importance scoring), and (2) dynamic downsampling reduces non-keyframe resolution from 1/16 to 1/4 of full resolution based on temporal distance to nearest keyframe, reusing keyframe identification and alpha-computing results. On the hardware side, a plug-in ASIC integrated alongside edge GPU SMs includes: (1) a Workload Scheduling Unit (WSU) combining pixel-level pairwise scheduling with subtile-level streaming, exploiting inter-iteration workload similarity to reuse scheduling patterns; (2) a Rendering & Backpropagation (R&B) Buffer that stores forward-pass intermediate values (accumulated transmittance T and per-Gaussian color contributions) to eliminate recomputation during backpropagation, reducing alpha gradient latency from 20 to 4 cycles; and (3) a Gradient Merging Unit (GMU) using a Benes network and bypass-extended reduction tree to perform pipelined sparse gradient aggregation, replacing atomic-add operations with structured in-order merging. The design is implemented at 28 nm, 500 MHz, 8.11 W, 28.41 mm2.",
+  "key_novelty": "Exploiting inter-iteration workload similarity in SLAM (where Gaussians are fixed between tracking iterations) to amortize scheduling overhead across iterations, enabling lightweight pixel-level pairwise scheduling that approaches oracle load balance with negligible cost.",
+  "contributions": [
+    "Multi-level redundancy characterization of 3DGS-SLAM: identifying skewed Gaussian gradient distributions (14% of Gaussians drive 86% of gradient magnitude), high inter-frame pixel similarity in non-keyframes, and per-iteration workload stability",
+    "Adaptive Gaussian pruning that reuses existing backpropagation gradients for importance scoring with zero additional computational overhead",
+    "Dynamic downsampling that couples non-keyframe resolution scaling to keyframe distance, reusing keyframe identification and alpha-computing pipeline stages",
+    "RTGS ASIC plug-in with WSU (inter-iteration scheduling reuse), R&B Buffer (forward-to-backward data reuse eliminating recomputation), and GMU (Benes-network-based pipelined sparse gradient aggregation)",
+    "Up to 48.8x speedup and 82.5x energy efficiency over edge GPU baseline; real-time >=30 FPS achieved across four datasets and three 3DGS-SLAM algorithms"
+  ],
+  "hardware_target": ["GPU", "ASIC"],
+  "technique_category": ["dataflow", "scheduling", "memory-system", "kernel-fusion", "sparsity"],
+  "workloads": ["vision"],
+  "metrics": {
+    "speedup": "up to 48.8x over edge GPU baseline (ONX); real-time >=30 FPS on four datasets",
+    "energy_or_tops_w": "up to 82.5x energy efficiency over edge GPU baseline",
+    "area": "28.41 mm2 at 28nm",
+    "ppa": "8.11W power at 500MHz, 28nm",
+    "accuracy": "ATE and PSNR within 10% variance vs. unmodified baselines",
+    "other": "Gradient merging latency reduced 68% vs. atomic ops; alpha gradient compute reduced from 20 to 4 cycles"
+  },
+  "baselines": ["NVIDIA ONX edge GPU (baseline GPU)", "NVIDIA RTX 3090", "GauSPU (12nm GPU plug-in accelerator)", "DISTWAR (GPU-level atomic gradient optimization)", "GS-SLAM, MonoGS, Photo-SLAM, SplaTAM (3DGS-SLAM algorithms)", "Taming 3DGS, LightGaussian, FlashGS (Gaussian pruning baselines)"],
+  "limitations": "Hardware synthesized at 28 nm technology node, which is older than the 8 nm process used by the baseline edge GPU, making direct area/power comparisons less favorable; scaled 8nm projections show 2.40 mm2 / 3.76 W but are not validated with actual tape-out.",
+  "tags": ["3dgs-slam", "edge-inference", "algorithm-hardware-codesign", "gaussian-splatting", "workload-scheduling", "gradient-aggregation"],
+  "primary_theme": "algorithm-hardware co-design for real-time 3D Gaussian Splatting SLAM on edge",
+  "confidence": "high"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-075",
+  "title": "Machine Learning-Guided Memory Optimization for DLRM Inference on Tiered Memory",
+  "venue": "HPCA",
+  "problem": "Deep learning recommendation models (DLRMs) have embedding tables at terabyte scale that cannot fit in DRAM alone; tiered memory (DRAM + cheaper capacity tiers) is cost-effective but embedding access patterns have long and irregular reuse distances that defeat classical caching and prefetching heuristics.",
+  "motivation": "As DLRM embedding tables grow to terabyte scale in production systems, tiered memory becomes necessary for cost, but suboptimal placement of embedding vectors causes frequent slow-tier fetches that dominate end-to-end inference latency.",
+  "method": "RecMG uses separate ML models for caching and prefetching of embedding vectors. The caching model predicts which vectors have long reuse distances or few future reuses and should stay in fast memory. The prefetching model uses a novel differentiable loss function to narrow the search space for candidate vectors to prefetch, minimizing on-demand fetches. Data labeling is tailored to DLRM inference characteristics (sparse accesses, variable reuse distances). Both models operate at inference time to guide real-time placement decisions on tiered memory systems.",
+  "key_novelty": "A differentiable loss function for the prefetching ML model that narrows the prefetching candidate space and directly minimizes on-demand fetches for DLRM embedding vectors on tiered memory.",
+  "contributions": [
+    "RecMG: an ML-guided system combining separate caching and prefetching models for DLRM embedding-vector placement on tiered memory",
+    "Novel differentiable loss function for embedding prefetching that reduces search space and on-demand fetches",
+    "Tailored data labeling addressing unique challenges of sparse DLRM access patterns for ML training",
+    "2.2x, 2.8x, and 1.5x reduction in on-demand fetches over temporal, spatial, and ML-based prefetchers; up to 43% end-to-end inference time reduction"
+  ],
+  "hardware_target": ["GPU", "CPU"],
+  "technique_category": ["prefetching", "memory-system", "near-data-processing"],
+  "workloads": ["DLRM", "recommendation"],
+  "metrics": {
+    "speedup": "Up to 43% reduction in end-to-end DLRM inference time",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": "On-demand fetch reduction: 2.2x vs temporal, 2.8x vs spatial, 1.5x vs ML-based prefetchers"
+  },
+  "baselines": ["Temporal prefetcher", "Spatial prefetcher", "ML-based prefetcher (prior work)"],
+  "limitations": "Not discussed; the ML models introduce inference-time overhead that may not be quantified for all deployment scenarios.",
+  "tags": ["dlrm", "tiered-memory", "embedding-caching", "ml-prefetching", "recommendation-inference"],
+  "primary_theme": "ML-guided embedding placement for DLRM on tiered memory",
+  "confidence": "low"
+}

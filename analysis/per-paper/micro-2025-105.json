@@ -1,0 +1,26 @@
+{
+  "id": "micro-2025-105",
+  "title": "Bootes: Boosting the Efficiency of Sparse Accelerators Using Spectral Clustering",
+  "venue": "MICRO",
+  "problem": "Sparse Matrix-Matrix Multiplication (SpGEMM) accelerators using row-wise product dataflow suffer from poor off-chip memory traffic because row reordering — the primary technique to improve data reuse — is either suboptimal, slow to compute, or fails to detect when reordering is counterproductive for certain sparsity patterns.",
+  "motivation": "Off-chip memory traffic is the dominant cost in SpGEMM acceleration, and better row reordering could dramatically reduce it, but prior reordering methods (e.g., RCM, graph partitioning) are slow (making preprocessing overhead hard to justify) and lack quality guarantees for all sparsity patterns.",
+  "method": "Bootes applies spectral clustering to reorder rows of the input matrix A before feeding them into a row-wise SpGEMM accelerator. A similarity matrix capturing structural properties of A's row sparsity patterns guides the clustering; similar rows are placed adjacent so that their accesses into B have high overlap, maximizing data reuse. The spectral clustering algorithm itself is optimized to reduce preprocessing time to a geometric mean of 11.61x faster than existing reordering techniques. A decision tree model trained on real-world sparse matrices predicts whether reordering will be beneficial before executing it, enabling cost-aware preprocessing that avoids overhead when reordering would increase traffic.",
+  "key_novelty": "Using spectral clustering on a row-similarity matrix to optimally reorder SpGEMM inputs for maximum off-chip data reuse, combined with a decision tree gating mechanism to skip reordering when it is counterproductive.",
+  "contributions": [
+    "Spectral clustering-based row reordering for SpGEMM that maximizes off-chip traffic reduction by exploiting structural similarity between matrix rows",
+    "Optimized spectral clustering implementation achieving 11.61x geometric mean speedup in preprocessing time over prior reordering techniques",
+    "Decision tree model that predicts reordering benefit per matrix, enabling cost-aware preprocessing to avoid counterproductive reordering",
+    "Off-chip traffic reduction of 2.31x, 1.67x, and 1.38x on Flexagon, GAMMA, and Trapezoid accelerators respectively"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["sparsity", "memory-system", "scheduling"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "other": "Off-chip traffic reduction: 2.31x (Flexagon), 1.67x (GAMMA), 1.38x (Trapezoid); preprocessing speedup: 11.61x geomean over prior reordering"
+  },
+  "baselines": ["Flexagon", "GAMMA", "Trapezoid (existing SpGEMM accelerators without reordering or with prior reordering)"],
+  "limitations": "The decision tree benefit predictor and spectral clustering cost may still add non-trivial overhead for very small matrices; the approach targets row-wise product dataflow and may not generalize to other SpGEMM dataflows.",
+  "tags": ["spgemm", "sparse-matrix", "row-reordering", "spectral-clustering", "off-chip-traffic"],
+  "primary_theme": "Spectral clustering row reordering to minimize SpGEMM off-chip memory traffic",
+  "confidence": "low"
+}

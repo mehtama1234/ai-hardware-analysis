@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-110",
+  "title": "Pruner: A Draft-then-Verify Exploration Mechanism to Accelerate Tensor Program Tuning",
+  "venue": "ASPLOS",
+  "problem": "Search-based tensor program tuning for deep neural network deployment is slow because the exploration mechanism applies an accurate-but-slow learned cost model to all candidate schedules, taking hours or days to find optimal programs. Additionally, learned cost models trained on one hardware platform cannot adapt online to a new platform, causing performance degradation in cross-platform deployment scenarios.",
+  "motivation": "Efficient deployment of deep neural networks on diverse hardware requires fast tensor program search; current learned cost model-driven approaches are a computational bottleneck that limits the practical speed of autotuning frameworks like TVM.",
+  "method": "Pruner introduces a 'Draft-then-Verify' exploration mechanism: a fast Symbol-based Analyzer (draft model) rapidly screens a large pool of schedule candidates using lightweight symbolic analysis, producing a small set of promising drafts. The expensive learned cost model then verifies only these filtered candidates. MoA-Pruner extends this with a Momentum online Adaptation strategy that uses momentum-based gradient updates to adapt the cost model incrementally to new hardware platforms during the tuning process itself, addressing cross-platform unawareness without full retraining.",
+  "key_novelty": "A two-stage Draft-then-Verify exploration that pairs a cheap symbolic pre-filter with an accurate learned cost model, drastically reducing the number of expensive model evaluations needed per search step.",
+  "contributions": [
+    "Identification and analysis of cross-platform online unawareness as a failure mode of learned cost models in tensor program tuning.",
+    "Pruner's Draft-then-Verify mechanism using a Symbol-based Analyzer to pre-screen candidates before invoking the learned cost model.",
+    "MoA-Pruner's Momentum online Adaptation strategy for cross-platform cost model adaptation without offline retraining.",
+    "Empirical demonstration of significant speedup in schedule search compared to standard TVM-style cost model-only exploration."
+  ],
+  "hardware_target": ["GPU", "CPU", "ASIC"],
+  "technique_category": ["compiler", "scheduling"],
+  "workloads": ["CNN", "transformer", "LLM-inference"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "search time reduction not quantified in abstract; hours-to-days improvement claimed"
+  },
+  "baselines": ["TVM (Ansor)", "standard learned cost model exploration"],
+  "limitations": "The Symbol-based Analyzer may miss promising candidates filtered out before the learned model, and adaptation accuracy for very different architectures is not characterized from the abstract.",
+  "tags": ["tensor-program-tuning", "autotuning", "cost-model", "schedule-search", "cross-platform", "tvm"],
+  "primary_theme": "draft-then-verify two-stage tensor program search",
+  "confidence": "low"
+}

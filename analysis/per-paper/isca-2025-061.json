@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-061",
+  "title": "AiF: Accelerating On-Device LLM Inference Using In-Flash Processing",
+  "venue": "ISCA",
+  "problem": "On-device LLM inference with SSD offloading is severely bottlenecked by the limited external read bandwidth of flash storage (NAND-to-host path), making inference latency unacceptably high even though LLM weight matrices fit in flash capacity. Existing SSD offloading engines are bound by PCIe/interface bandwidth rather than the high internal NAND bandwidth.",
+  "motivation": "Edge and personal devices lack sufficient DRAM to hold large LLM weights, and SSD offloading is the only capacity solution, but NAND internal bandwidth (hundreds of GB/s aggregate across planes) vastly exceeds the external interface bandwidth (~7 GB/s), creating a large exploitable gap if computation can be pushed inside the flash chip.",
+  "method": "AiF integrates matrix-vector multiplication (GEMV) compute units directly inside flash chips (Accelerator-in-Flash), exploiting the high internal NAND plane-level bandwidth without routing data across the external interface. Two novel flash read techniques are introduced specifically for LLM weight access patterns stored in flash memory. AiF also employs a streamlined error correction process that delivers a 4x boost in internal read bandwidth with minimal overhead, enabling in-flash GEMV operations to run at near-full internal bandwidth.",
+  "key_novelty": "AiF is the first in-flash processing design that embeds GEMV computation within flash chips and introduces flash-read techniques tailored to LLM weight layout, achieving 4x internal bandwidth amplification through a lightweight ECC scheme.",
+  "contributions": [
+    "An in-flash processing architecture (AiF) that offloads GEMV operations into flash chips, bypassing external bandwidth limitations.",
+    "Two novel flash-read techniques optimized for reading LLM weight parameters stored in NAND flash.",
+    "A streamlined ECC mechanism that achieves 4x internal read bandwidth improvement with minimal implementation overhead.",
+    "14.6x throughput improvement over baseline SSD offloading and 1.4x over DRAM-resident inference across eight real-world LLMs."
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["near-data-processing", "memory-system", "kernel-fusion"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "14.6x throughput over SSD offloading baseline; 1.4x over in-memory inference",
+    "other": "4x boost in internal flash read bandwidth during inference"
+  },
+  "baselines": ["SSD offloading (baseline)", "in-memory (DRAM) inference"],
+  "limitations": "Not discussed; in-flash compute area and power impact on flash chip reliability and endurance are not evaluated.",
+  "tags": ["in-flash-processing", "llm-inference", "on-device-ai", "nand-flash", "near-data", "gemv"],
+  "primary_theme": "In-flash GEMV acceleration for on-device LLM inference",
+  "confidence": "low"
+}

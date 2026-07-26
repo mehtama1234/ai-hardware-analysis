@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-140",
+  "title": "CTXNL: A Software-Hardware Co-designed Solution for Efficient CXL-Based Transaction Processing",
+  "venue": "ASPLOS",
+  "problem": "Directly adopting CXL for multi-node transaction processing incurs high performance overhead because standard CXL cache coherence primitives enforce fine-grained coherence uniformly, while transactional data has loosely coherent access patterns that do not require full coherence at every access.",
+  "motivation": "CXL enables low-latency, cache-coherent shared memory across nodes, making it a promising alternative to network-based RDMA for distributed OLTP, but naive adoption of CXL coherence protocols wastes bandwidth and latency on unnecessary coherence traffic for transaction workloads.",
+  "method": "CTXNL is a software-hardware co-designed system that introduces a hybrid coherence primitive tailored to the transactional access pattern. The core mechanism allows transaction developers to selectively opt in or out of cache coherence on a per-data-item basis, bypassing full CXL coherence overhead for data items that are only loosely coherent during normal transaction execution while maintaining correctness via selective coherence enforcement at commit or conflict points. Hardware support is added to CXL memory controllers to efficiently implement the selective coherence primitive.",
+  "key_novelty": "A hybrid CXL coherence primitive that grants transaction developers selective, per-item control over cache coherence, avoiding unnecessary coherence overhead for loosely coherent transactional data.",
+  "contributions": [
+    "Identification of the mismatch between full CXL cache coherence and the loosely coherent nature of transactional data access",
+    "Design of the CTXNL hybrid coherence primitive enabling selective coherence for OLTP workloads",
+    "Software-hardware co-design integrating CTXNL into CXL memory controllers",
+    "Up to 2.08x throughput improvement over vanilla CXL shared memory on OLTP workloads"
+  ],
+  "hardware_target": ["CPU", "SoC"],
+  "technique_category": ["coherence", "memory-system", "interconnect"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "up to 2.08x throughput vs. vanilla CXL memory sharing",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "outperforms current network-based (RDMA) systems"
+  },
+  "baselines": ["vanilla CXL memory sharing", "network-based (RDMA) distributed transaction systems"],
+  "limitations": "The approach requires developer annotation of data items for selective coherence, adding programming burden not discussed in detail.",
+  "tags": ["cxl", "cache-coherence", "transaction-processing", "oltp", "co-design", "disaggregated-memory"],
+  "primary_theme": "Selective CXL cache coherence for OLTP transaction processing",
+  "confidence": "low"
+}

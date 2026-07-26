@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-154",
+  "title": "Fat-Tree QRAM: A High-Bandwidth Shared Quantum Random Access Memory for Parallel Queries",
+  "venue": "ASPLOS",
+  "problem": "Existing Quantum Random Access Memory (QRAM) architectures, particularly Bucket-Brigade (BB) QRAM, cannot process multiple queries in parallel because the binary tree root node is exclusively occupied for the entire duration of each query, forcing all queries to queue and execute sequentially. In a shared memory system with multiple QPUs, this causes total query latency to scale as O(p*log(N)) for p parallel processes, bottlenecking parallel quantum algorithms.",
+  "motivation": "Parallel quantum algorithms (distributed Shor's, parallel QSP, Hamiltonian simulation, k-Sum) critically depend on high-bandwidth QRAM capable of simultaneous queries; the sequential nature of BB QRAM fundamentally limits quantum computing throughput in shared memory systems.",
+  "method": "Fat-Tree QRAM replaces each single router node in the BB QRAM binary tree with a Fat-Tree node containing multiple router copies: the router at level i is duplicated (log(N)-i-1) times, so the root contains log(N) router copies and the leaves contain one (matching BB QRAM). This doubling of total router count (from N to 2N-2-log(N)) enables O(log(N)) independent queries to be pipelined simultaneously. Each query is realized via alternating gate steps (CSWAP address loading, 4 circuit layers each) and swap steps (local intra-node SWAP gates, 1 layer each, constant depth because swaps are nearest-neighbor within a node). Two local swap types (SWAP-I and SWAP-II, alternating even/odd router indices) cycle queries through sub-component QRAMs of increasing size without inter-node communication. Hardware is implemented in both modular (superconducting coaxial-cable-linked chips) and on-chip (bi-planar thickness-2 chip with TSVs for inter-plane connections) formats using superconducting cavities with native CSWAP gates. A FIFO scheduling protocol (proven optimal by greedy exchange) maximizes utilization.",
+  "key_novelty": "The Fat-Tree QRAM architecture that achieves O(log(N)) query-level pipelining in O(log(N)) time using O(N) qubits by replacing binary-tree BB QRAM nodes with multiplexed Fat-Tree nodes, achieving constant QRAM bandwidth independent of memory size N.",
+  "contributions": [
+    "Fat-Tree QRAM architecture pipelining O(log(N)) independent queries in O(log(N)) time with O(N) qubits — constant factor qubit overhead vs. BB QRAM",
+    "Modular (coaxial-cable-linked) and on-chip (bi-planar, TSV-connected) hardware implementations for superconducting circuits with bi-planar nearest-neighbor connectivity sufficiency proof",
+    "FIFO query scheduling protocol proven optimal for minimizing total query latency; analysis of hardware utilization and QRAM bandwidth metrics",
+    "Demonstrated circuit depth reduction of up to 10x for parallel quantum algorithms (Grover's, k-Sum, Hamiltonian simulation, QSP) at N=2^10 vs. BB and Virtual QRAM baselines"
+  ],
+  "hardware_target": ["photonic", "analog"],
+  "technique_category": ["memory-system", "interconnect", "scheduling", "circuit-design"],
+  "workloads": ["cryptography", "HPC"],
+  "metrics": {
+    "speedup": "up to 10x circuit depth reduction for parallel quantum algorithms vs. BB and Virtual QRAM at N=2^10",
+    "energy_or_tops_w": null,
+    "area": "16N qubits (vs. 8N for BB QRAM) — 2x qubit overhead for log(N)-fold parallelism",
+    "ppa": null,
+    "accuracy": "same infidelity scaling as BB QRAM: O(log^2(N)*epsilon) per query",
+    "other": "constant QRAM bandwidth (independent of N) vs. O(1/log(N)) for BB QRAM; amortized single-query latency 8.25 circuit layers (constant) vs. 8*log(N) for BB"
+  },
+  "baselines": ["Bucket-Brigade (BB) QRAM", "Virtual QRAM", "Distributed BB QRAM (D-BB)", "Distributed Fat-Tree QRAM (D-Fat-Tree)"],
+  "limitations": "Fat-Tree QRAM requires rapid classical memory swapping with constant time intervals between queries, which may be challenging in practice for large classical memory; the paper notes this as an open hardware challenge.",
+  "tags": ["quantum-memory", "qram", "fat-tree", "parallel-queries", "superconducting", "quantum-computing"],
+  "primary_theme": "high-bandwidth parallel-query quantum random access memory",
+  "confidence": "high"
+}

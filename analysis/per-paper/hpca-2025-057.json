@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-057",
+  "title": "Integrating Prefetcher Selection with Dynamic Request Allocation Improves Prefetching Efficiency",
+  "venue": "HPCA",
+  "problem": "Hybrid hardware prefetchers sharing the same MSHRs and bandwidth resources create conflicts where competing prefetch requests from different algorithms negate each other's coverage, and existing prefetcher selection algorithms use inaccurate demand request allocation and coarse-grained selection criteria.",
+  "motivation": "Commercial processors deploy multiple concurrent prefetching algorithms to cover diverse access patterns, but resource conflicts and poor coordination between prefetchers degrade overall effectiveness, especially for memory-intensive workloads.",
+  "method": "Alecto is a prefetcher selection algorithm that intercepts each demand request before routing it to prefetchers. For each demand request, Alecto determines the most suitable prefetcher(s) by evaluating fine-grained per-request suitability metrics (accuracy, coverage, timeliness). It then dynamically routes each demand request only to the prefetcher(s) best suited for that specific access, rather than broadcasting to all prefetchers. This per-request allocation prevents table pollution in temporal prefetchers and reduces resource contention.",
+  "key_novelty": "Per-demand-request prefetcher selection that routes each request only to the most suitable prefetcher, simultaneously improving accuracy, coverage, and timeliness while drastically reducing prefetcher table energy by avoiding unnecessary training.",
+  "contributions": [
+    "Identification that inaccurate demand request allocation and coarse-grained selection are the two key limitations of prior prefetcher selection approaches",
+    "Alecto algorithm that performs fine-grained, per-demand-request prefetcher selection and allocation",
+    "2.76% single-core and 7.56% eight-core IPC improvement over state-of-the-art RL-based Bandit selection; 5.25% gain on memory-intensive benchmarks",
+    "48% reduction in prefetcher table access energy (7% reduction on full memory hierarchy) with less than 1 KB storage overhead"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "scheduling", "cache"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": "2.76% IPC improvement (single-core) and 7.56% (eight-core) over Bandit; 5.25% on memory-intensive",
+    "energy_or_tops_w": "48% prefetcher table energy reduction; 7% full memory hierarchy energy reduction",
+    "area": "<1 KB storage overhead",
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Bandit (RL-based prefetcher selection)"],
+  "limitations": "Evaluation focuses on CPU memory hierarchies; applicability to GPU or accelerator memory subsystems with different access pattern characteristics is not discussed.",
+  "tags": ["hardware-prefetching", "prefetcher-selection", "memory-hierarchy", "hybrid-prefetcher", "energy-efficiency"],
+  "primary_theme": "fine-grained per-request prefetcher selection to reduce hybrid prefetcher conflicts",
+  "confidence": "low"
+}

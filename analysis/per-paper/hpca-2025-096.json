@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-096",
+  "title": "DAPPER: A Performance-Attack-Resilient Tracker for RowHammer Defense",
+  "venue": "HPCA",
+  "problem": "Host-side RowHammer mitigation mechanisms rely on shared counter or tracking structures that are vulnerable to Performance Attacks (Perf-Attacks), where adversaries reverse-engineer the shared structure's mapping to artificially inflate DRAM access counters or trigger early resets, degrading performance of co-running benign applications.",
+  "motivation": "As RowHammer thresholds shrink and mitigations become more aggressive, the shared tracking structures they depend on represent an increasingly exploitable side-channel that allows attackers to launch denial-of-service attacks on victim applications via DRAM bandwidth saturation.",
+  "method": "DAPPER introduces secure hashing to randomize the mapping of DRAM rows to shared tracking structures, preventing adversaries from predicting counter locations. DAPPER-S provides a base secure hashing template using a single hash function. DAPPER-H extends this with double-hashing, novel reset strategies that avoid predictable early resets, and mitigative refresh techniques that piggyback RowHammer mitigations onto scheduled refresh operations to amortize overhead. The combined design uses only 96KB of SRAM per 32GB of DRAM, validated against 57 workloads from SPEC2006, SPEC2017, TPC, Hadoop, MediaBench, and YCSB.",
+  "key_novelty": "Secure double-hashing with adaptive reset strategies that simultaneously thwart RowHammer bit-flip attacks and Perf-Attacks on shared tracking structures, using under 100KB SRAM per 32GB DRAM.",
+  "contributions": [
+    "Formal identification and characterization of Performance Attacks against RowHammer mitigation tracking structures",
+    "DAPPER-S: secure hashing template to prevent adversarial mapping inference of shared RowHammer counters",
+    "DAPPER-H: enhanced design with double-hashing, novel reset strategies, and mitigative refresh for low performance overhead",
+    "0.9% slowdown under Perf-Attacks at RowHammer threshold 500, using only 96KB SRAM per 32GB DRAM"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "security", "reliability"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": "0.9% slowdown under Perf-Attacks at threshold=500",
+    "area": "96KB SRAM per 32GB DRAM"
+  },
+  "baselines": ["Shared-counter RowHammer mitigations (SPEC2006/2017, TPC, Hadoop, MediaBench, YCSB workloads)"],
+  "limitations": "Security guarantees against Perf-Attacks at RowHammer thresholds below 500 are not fully analyzed.",
+  "tags": ["rowhammer", "memory-security", "performance-attack", "hashing", "dram"],
+  "primary_theme": "Perf-Attack-resilient RowHammer tracking via secure hashing and double-hash reset strategies",
+  "confidence": "low"
+}

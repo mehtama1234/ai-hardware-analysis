@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-095",
+  "title": "QPRAC: Towards Secure and Practical PRAC-based Rowhammer Mitigation using Priority Queues",
+  "venue": "HPCA",
+  "problem": "The JEDEC PRAC (Per Row Activation Counting) framework for DDR5 enables RowHammer mitigation via Alert Back-Off (ABO) signaling, but existing PRAC implementations (e.g., Panopticon) are either insecure when instantiated per JEDEC specification, or impractical (e.g., UPRAC) due to requiring oracle knowledge of the top-N most-activated rows.",
+  "motivation": "DRAM RowHammer thresholds are shrinking with each technology generation, making scalable, secure, and low-overhead mitigations for future DDR5 and beyond chips critical for system security.",
+  "method": "QPRAC designs a Priority-based Service Queue (PSQ) in the memory controller that maintains pending mitigation requests sorted by row activation count, using PRAC's per-row counters to prioritize mitigations. High activation-count rows are served first, preventing adversarial bypass. The PSQ is co-designed with two complementary mechanisms: opportunistic mitigation during Refresh Management (RFM) operations (piggybacking extra mitigations at low cost), and proactive mitigation during standard DRAM refresh (REF) operations to drain the queue before ABO events fire, minimizing performance impact.",
+  "key_novelty": "A priority-based service queue (PSQ) that orders RowHammer mitigations by activation count within the PRAC/ABO framework, providing principled security while opportunistic and proactive refresh co-design reduces ABO-induced slowdowns to near zero.",
+  "contributions": [
+    "Security analysis showing Panopticon is insecure under JEDEC PRAC specification and UPRAC is impractical",
+    "Priority-based Service Queue (PSQ) design for secure, scalable RowHammer mitigation via PRAC/ABO",
+    "Co-design with opportunistic RFM mitigations and proactive REF-based mitigations to minimize performance overhead",
+    "Secure mitigation scaling to RowHammer threshold as low as 71 with only 0.8% (0% with proactive) benign workload slowdown"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "security", "reliability"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": "0.8% slowdown for benign workloads (0% with proactive mitigations) at threshold=71"
+  },
+  "baselines": ["Panopticon", "UPRAC"],
+  "limitations": "Scalability below RowHammer threshold 71 and interaction with advanced DDR5 bank scheduling policies are not discussed.",
+  "tags": ["rowhammer", "ddr5", "prac", "memory-security", "dram"],
+  "primary_theme": "Priority-queue-based secure RowHammer mitigation for PRAC/ABO DDR5",
+  "confidence": "low"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-084",
+  "title": "IRIS: Unleashing ISP-Software Cooperation to Optimize the Machine Vision Pipeline",
+  "venue": "HPCA",
+  "problem": "Continuous Vision (CV) SoC pipelines capture entire scenes at uniform high resolution (e.g., 4K), wasting memory bandwidth and backend compute on low-information regions (sky, road) that do not require full-resolution processing, while the ISP discards intermediate computations (edge masks, motion vectors) that could guide resolution reduction.",
+  "motivation": "Mobile CV systems for autonomous driving and AR/VR face strict latency and energy constraints; uniform full-resolution capture causes both the frontend (ISP, memory bus) and backend (CPU/GPU) to process unnecessary data, and the ISP already generates the information needed to identify low-salience regions but discards it.",
+  "method": "IRIS augments the frontend ISP with three lightweight hardware units: (1) an IRIS Saliency Scorer that reuses ISP byproducts (the edge mask from Edge Enhancement and motion vectors from Temporal Denoising's Block Matching Algorithm) to compute a per-region saliency score (ISS = EDM + alpha * EDM * MM) without any new image analysis; (2) a Quad Unit that applies a hierarchical quadtree-like grouping (16x16, 32x32, 64x64 pixel regions) and compares maximum quadblock ISS to a backend-provided threshold to decide resolution; and (3) a Downsampling Unit that reduces selected quadblocks from 32x32 or 64x64 to 16x16 in-pipeline. The resulting mixed-resolution frame with a Region Resolution Map metadata is stored in the framebuffer. On the backend, for Vision Transformers IRIS feeds a mixed-resolution tokenizer (Quadformer-style), and for visual localization (ORB-SLAM3) IRIS enables an iterative feature extraction algorithm that processes regions in descending ISS order and stops on diminishing marginal feature increase. The ISP extension is validated as cycle-accurate RTL that never stalls the ISP pipeline.",
+  "key_novelty": "Repurposing already-computed ISP internal byproducts (edge mask from Edge Enhancement and motion vectors from Temporal Denoising) as a zero-additional-compute saliency scorer to drive per-region adaptive spatial resolution downsampling in the ISP pipeline before framebuffer write.",
+  "contributions": [
+    "IRIS: ISP hardware augmentation with Saliency Scorer, Quad Unit, and Downsampling Unit that performs mixed-resolution imaging by repurposing ISP byproducts at negligible added cost",
+    "ISS saliency score combining edge density and motion magnitude, validated to correlate strongly with ORB feature density on KITTI",
+    "Iterative feature extraction algorithm for ORB-SLAM3 leveraging ISS ranking to skip low-saliency regions with diminishing-return stopping criterion",
+    "For localization (ORB-SLAM3/KITTI): 22.8% average latency, 10.5% tail latency, 22.5% energy reduction; for classification (ViT/ImageNet): 37.5% average latency, 9% tail latency, 41.5% energy reduction, <1% accuracy loss at threshold 0.3"
+  ],
+  "hardware_target": ["SoC"],
+  "technique_category": ["dataflow", "approximation", "memory-system", "circuit-design"],
+  "workloads": ["vision", "CNN", "transformer"],
+  "metrics": {
+    "speedup": "Localization: 22.8% avg latency reduction, 10.5% tail latency reduction; Classification: 37.5% avg latency reduction, 9% tail latency reduction",
+    "energy_or_tops_w": "Localization: 22.5% energy reduction; Classification: 41.5% energy reduction",
+    "area": "Synthesized at 14nm with Synopsys; area overhead not quoted in headline but reported as negligible vs. ISP",
+    "accuracy": "ViT top-1 accuracy within 1% of baseline at ISS threshold 0.3; ORB-SLAM APE below 5mm at ISS=0.2, MFI=3%",
+    "other": "~70% average image size reduction at threshold 0.5; 55% image size reduction at threshold 0.3"
+  },
+  "baselines": ["Baseline uniform-resolution ISP pipeline (no downsampling)", "Software-only saliency generation (VL-SO, ViT-SO) without ISP hardware"],
+  "limitations": "Software-only saliency generation hurts performance (4.7% latency increase for small ViTs) because the overhead of computing saliency in software outweighs benefits, making IRIS dependent on ISP hardware augmentation that requires ISP redesign or cooperation from vendors.",
+  "tags": ["isp", "computer-vision", "mixed-resolution", "adaptive-sampling", "saliency", "edge-inference"],
+  "primary_theme": "ISP-software cooperative adaptive resolution for mobile CV pipelines",
+  "confidence": "high"
+}

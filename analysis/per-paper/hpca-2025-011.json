@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-011",
+  "title": "Efficient Caching with A Tag-enhanced DRAM",
+  "venue": "HPCA",
+  "problem": "DRAM-based caches (e.g., HBM3-as-cache) suffer from high miss penalties due to two-step tag-then-data access, wasted data movement on cache misses where data is fetched then discarded, and interference between demand requests and miss-fetched data on the data bus. Existing DRAM cache designs cannot perform in-DRAM tag comparison or conditional data response, so they always transfer data regardless of hit/miss status.",
+  "motivation": "SRAM caches are hitting a density scaling wall, driving adoption of DRAM-based caches (HBM, LPDDR) for large-footprint workloads, but DRAM cache performance is limited by the fundamental mismatch between DRAM's architecture and cache semantics (tag checks, conditional data return, dirty data management).",
+  "method": "TDRAM adds small, low-latency metadata/tag mats to an HBM3 die alongside the existing data mats, enabling lockstep tag-and-data access, in-DRAM tag comparison, and conditional data response (data is only transferred to the CPU if the comparison indicates a hit), eliminating wasted data bus transfers on misses. Opportunistic early tag probing allows tag lookups to start before the full row is available, reducing both hit and miss latencies. A flush buffer stores conflicting dirty data on write misses within the DRAM, eliminating data bus turnaround delays caused by writing back dirty evictees before fetching new data.",
+  "key_novelty": "Adding low-latency tag mats directly to the HBM3 die enabling in-DRAM tag comparison and conditional data response, mirroring SRAM cache semantics (no wasted data transfer on miss) in a DRAM-based cache.",
+  "contributions": [
+    "TDRAM microarchitecture adding on-die tag mats to HBM3 for in-DRAM tag comparison and conditional data response",
+    "Opportunistic early tag probing reducing latency for both hit and miss paths",
+    "In-DRAM flush buffer eliminating data bus turnaround delays on write misses",
+    "2.65x faster tag checks, 1.23x speedup, and 21% less energy vs state-of-the-art DRAM cache designs across HPC workloads"
+  ],
+  "hardware_target": ["chiplet", "ASIC"],
+  "technique_category": ["memory-system", "cache", "circuit-design", "packaging"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "1.23x speedup vs state-of-the-art commercial and research DRAM caches",
+    "energy_or_tops_w": "21% less energy consumption vs state-of-the-art",
+    "other": "2.65x faster tag checks",
+    "area": null,
+    "ppa": null,
+    "accuracy": null
+  },
+  "baselines": ["State-of-the-art commercial DRAM cache designs", "State-of-the-art research DRAM cache designs"],
+  "limitations": "Not discussed; adding tag mats to HBM3 increases die area and manufacturing complexity, and potential impact on HBM3 density/cost is not quantified.",
+  "tags": ["dram-cache", "hbm", "tag-comparison", "cache-design", "memory-system", "hpc"],
+  "primary_theme": "in-DRAM tag comparison for efficient DRAM-based cache with conditional data response",
+  "confidence": "low"
+}

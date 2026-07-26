@@ -1,0 +1,26 @@
+{
+  "id": "isca-2025-037",
+  "title": "SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization",
+  "venue": "ISCA",
+  "problem": "Transient execution attacks (Spectre, Meltdown, MDS) exploit speculative execution to leak sensitive data through residual microarchitectural state, and existing defenses either delay speculative execution or require costly shadow structures and dynamic information flow tracking. Providing strong security against transient execution attacks without significant performance overhead remains an open problem.",
+  "motivation": "Speculative execution is essential for modern processor performance, but hardware defenses against Spectre-class attacks typically impose 10-50% performance overheads, making a lightweight yet comprehensive solution highly desirable.",
+  "method": "SpecASan extends ARM's Memory Tagging Extension (MTE) from the committed path to the speculative path. When a speculative memory access fails the MTE tag comparison (i.e., the tag on the pointer does not match the tag in memory), that access is stalled until speculation resolves, preventing it from affecting microarchitectural state (caches, TLBs). This is combined with existing Control-Flow Integrity (CFI) enforcement to block gadget construction. The approach models transient execution attacks as software-defined security contract violations and enforces the contracts in hardware using existing MTE tag-check hardware, requiring minimal new hardware.",
+  "key_novelty": "SpecASan is the first design to repurpose ARM MTE tag checks on the speculative execution path to selectively delay potentially leaking memory accesses, enforcing security contracts without disabling speculation or adding shadow structures.",
+  "contributions": [
+    "Security model framing transient execution attacks as software-defined security contract violations",
+    "Hardware mechanism extending ARM MTE tag checking to the speculative execution path",
+    "Combined SpecASan+CFI defense covering Spectre, Meltdown, and MDS without new shadow structures",
+    "Low performance overhead with minimal hardware complexity demonstrated via evaluation"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "cache", "reliability"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "other": "Low performance overhead (exact number not given in abstract); coverage of Spectre + MDS"
+  },
+  "baselines": ["unsafe baseline processor"],
+  "limitations": "Relies on ARM MTE availability; applicability to non-ARM ISAs is not discussed, and exact overhead numbers are not given in the abstract.",
+  "tags": ["spectre", "transient-execution", "memory-tagging", "arm-mte", "side-channel"],
+  "primary_theme": "hardware-enforced transient execution attack mitigation via memory tagging",
+  "confidence": "low"
+}

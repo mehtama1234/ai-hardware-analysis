@@ -1,0 +1,27 @@
+{
+  "id": "asplos-2025-158",
+  "title": "Fast On-device LLM Inference with NPUs",
+  "venue": "ASPLOS",
+  "problem": "On-device LLM inference on mobile NPUs incurs unacceptably high latency, particularly during the prefill stage, because existing NPU programming models are not designed to efficiently map the irregular, attention-heavy computation patterns of LLMs. Even mobile-sized models (e.g., Gemma-2B) run too slowly for interactive tasks such as screen UI understanding.",
+  "motivation": "Growing privacy concerns and the availability of smaller open models are driving demand for fully on-device LLM inference, but mobile NPUs—which dominate edge SoCs—lack the software infrastructure to execute prefill efficiently.",
+  "method": "The system analyzes the NPU execution bottlenecks of mobile LLMs and redesigns the inference pipeline to exploit NPU-specific parallelism. It introduces operator fusion and tiling strategies tailored to NPU dataflow constraints, and reorders computation to overlap NPU and CPU execution. The approach targets the prefill stage specifically, batching token processing to amortize NPU invocation overhead and restructuring attention kernels to fit the NPU's fixed-function units.",
+  "key_novelty": "A prefill acceleration framework specifically co-designed for mobile NPU microarchitectures that restructures LLM attention computation to match NPU dataflow and reduces invocation overhead through operator fusion.",
+  "contributions": [
+    "Characterization of prefill-stage bottlenecks on mobile NPUs for LLMs such as Gemma-2B",
+    "NPU-optimized operator fusion and tiling strategy for attention and feed-forward layers",
+    "Prefill pipeline that overlaps CPU and NPU execution to hide latency",
+    "Demonstrated significant prefill speedup enabling practical on-device LLM inference"
+  ],
+  "hardware_target": ["NPU"],
+  "technique_category": ["kernel-fusion", "dataflow", "scheduling", "parallelism"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "significant reduction in prefill latency for Gemma-2B on mobile NPU (exact numbers not available from abstract)",
+    "other": "targeting interactive latency for screen UI understanding tasks"
+  },
+  "baselines": ["CPU-only inference", "GPU mobile inference"],
+  "limitations": "Evaluation scope limited to a narrow set of mobile-sized models; generalization to larger quantized models not discussed.",
+  "tags": ["npu", "on-device", "llm-inference", "prefill", "mobile"],
+  "primary_theme": "NPU-optimized on-device LLM prefill acceleration",
+  "confidence": "low"
+}

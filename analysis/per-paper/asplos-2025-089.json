@@ -1,0 +1,27 @@
+{
+  "id": "asplos-2025-089",
+  "title": "lambda-trim: Optimizing Function Initialization in Serverless Applications With Cost-driven Debloating",
+  "venue": "ASPLOS",
+  "problem": "In serverless FaaS platforms, Function Initialization (package import, module loading) accounts for more than 50% of the monetary cost of cold starts in real-world ML applications, yet existing optimization efforts focus on the container/VM startup phase rather than the Python initialization phase.",
+  "motivation": "Serverless ML applications pay substantial billed cost for loading unused Python modules during cold starts, and this initialization overhead is the user's responsibility under current pricing models, making it a critical but neglected optimization target.",
+  "method": "lambda-trim uses a three-stage automated pipeline: a static analyzer identifies the reachable module dependency graph for a given serverless function, a profiler specialized for the serverless pricing model (which accounts for both memory usage and wall-clock time as billing dimensions) quantifies the latency and cost contribution of each module, and a debloater removes redundant code paths and unused modules while preserving correctness. The optimized application is directly deployable on standard serverless platforms without runtime changes.",
+  "key_novelty": "Serverless-pricing-model-aware profiling that jointly optimizes for latency and memory (both billing dimensions) to prioritize debloating decisions, specifically targeting the Function Initialization phase.",
+  "contributions": [
+    "Identification and quantification of Function Initialization as the dominant cold-start cost component in ML serverless workloads",
+    "Static analyzer for serverless Python module dependency graphs",
+    "Serverless-pricing-aware profiler that accounts for both latency and memory billing dimensions",
+    "Automated debloater producing deployable applications with reduced cold-start latency and cost"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["compiler", "scheduling", "virtualization"],
+  "workloads": ["LLM-inference", "CNN"],
+  "metrics": {
+    "speedup": "substantial reductions in cold-start latency (not quantified in abstract)",
+    "other": "Function Initialization >50% of monetary cold-start cost in real-world ML applications"
+  },
+  "baselines": ["unoptimized serverless Python functions on FaaS platforms"],
+  "limitations": "Targets Python serverless applications only; correctness of debloating for dynamically imported modules or reflection-heavy code may require conservative handling.",
+  "tags": ["serverless", "cold-start", "debloating", "python", "faas", "cost-optimization"],
+  "primary_theme": "Cost-driven Python debloating for serverless function initialization",
+  "confidence": "low"
+}

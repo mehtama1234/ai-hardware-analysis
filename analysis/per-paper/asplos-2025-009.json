@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-009",
+  "title": "Cascade: A Dependency-aware Efficient Training Framework for Temporal Graph Neural Network",
+  "venue": "ASPLOS",
+  "problem": "TGNN training is severely constrained by temporal dependencies between input events: large batches improve parallelism but cause infrequent node memory updates leading to stale information and accuracy degradation, forcing small-batch training with high latency and underutilized hardware.",
+  "motivation": "Temporal GNNs are critical for real-world dynamic graph tasks, but the trade-off between batch size and memory freshness creates a fundamental hardware utilization bottleneck that prevents efficient training on modern accelerators.",
+  "method": "Cascade uses a topology-aware scheduler that packs as many spatially-independent events as possible into the same batch, then leverages inter-node memory similarity to identify 'stabilized' nodes whose memories have converged sufficiently to safely break temporal dependencies. This similarity-based dependency breaking allows temporally-independent events to be included in larger batches. An adaptive update frequency mechanism based on runtime feedback further reduces redundant memory updates, achieving 2.3x average (up to 5.1x) speedup without accuracy loss.",
+  "key_novelty": "Similarity-based temporal dependency breaking that identifies stabilized nodes whose memory states can be safely treated as independent, enabling large-batch TGNN training without sacrificing accuracy.",
+  "contributions": [
+    "Topology-aware scheduler that maximizes spatial independence within training batches.",
+    "Node memory similarity analysis to identify stabilized nodes and break temporal dependencies safely.",
+    "Adaptive memory update frequency mechanism guided by runtime feedback.",
+    "2.3x average (5.1x peak) speedup over prior TGNN training frameworks without accuracy degradation."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "parallelism", "dataflow"],
+  "workloads": ["GNN", "LLM-training"],
+  "metrics": {
+    "speedup": "2.3x average, up to 5.1x over prior TGNN training frameworks"
+  },
+  "baselines": ["prior state-of-the-art TGNN training frameworks"],
+  "limitations": "Not discussed; the similarity threshold for dependency breaking may require per-dataset tuning and the impact on accuracy for non-stabilizing nodes is not fully analyzed.",
+  "tags": ["temporal-gnn", "training-efficiency", "dependency-analysis", "batch-scheduling", "memory-freshness"],
+  "primary_theme": "Dependency-aware large-batch training for temporal graph neural networks",
+  "confidence": "low"
+}

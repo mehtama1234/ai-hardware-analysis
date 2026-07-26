@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-078",
+  "title": "Accurate Leakage Speculation for Quantum Error Correction",
+  "venue": "MICRO",
+  "problem": "Physical qubits in quantum error correction (QEC) can leak into higher energy states (e.g., |2>), corrupting syndrome measurements and spreading errors to neighboring qubits; detecting leakage on data qubits is especially hard because they are never directly measured during QEC cycles.",
+  "motivation": "As QEC codes scale to larger distances, even rare leakage events accumulate and paralyze syndrome extraction, and existing heuristic leakage detectors (e.g., eraser) have high false-positive rates that trigger unnecessary Leakage Reduction Circuits (LRCs), introducing additional gate errors and extending QEC cycle latency.",
+  "method": "GLADIATOR frames leakage detection as a graph labeling problem. Offline, it constructs a code-aware error-propagation graph whose nodes are syndrome patterns and weighted directed edges represent transition probabilities under leakage vs. non-leakage errors, calibrated to device characterization data. Each node accumulates incoming leakage-edge weights (W_L) and non-leakage-edge weights (W_NL); nodes where W_L > W_NL by a threshold factor are labeled as leakage patterns and compiled into a lookup table. Online, a parity-adjacency generator extracts a 5-bit syndrome pattern per data qubit each QEC cycle and a combinational sequence checker (at most 10 LUTs per data qubit) classifies it in under 1 ns, triggering an LRC only for patterns flagged as leakage-dominated. GLADIATOR-D extends the design to a two-round sliding window of syndrome history for further accuracy. The method generalizes to surface codes, color codes, and qLDPC codes.",
+  "key_novelty": "A probabilistic graph-labeling framework that distinguishes leakage-induced syndrome patterns from standard Pauli-error patterns using calibrated transition probabilities, enabling code-agnostic, low-overhead leakage speculation that requires at most 10 LUTs per data qubit versus 177-5393 LUTs for prior work.",
+  "contributions": [
+    "GLADIATOR: a code-aware offline error-propagation graph construction and online syndrome lookup table for accurate leakage speculation across surface, color, and qLDPC codes",
+    "Reduction of unnecessary LRCs by up to 3x (2x average) vs. eraser, and 1.73x less leakage population growth",
+    "Hardware implementation requiring <0.1% LUTs at code distance 25 (17x-63x reduction vs. eraser on Kintex UltraScale+ FPGA)",
+    "Analysis of structured open-loop staggered LRC scheduling as a competitive baseline to motivate closed-loop approaches"
+  ],
+  "hardware_target": ["FPGA"],
+  "technique_category": ["reliability", "scheduling"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "1.7x-3.9x QEC cycle speedup vs. always-LRC baseline",
+    "energy_or_tops_w": null,
+    "area": "<0.1% LUTs at code distance 25 on Kintex UltraScale+ FPGA; 10 LUTs per data qubit",
+    "ppa": null,
+    "accuracy": "16% reduction in logical error rate; 1.91x lower false-positive rate vs. eraser",
+    "other": "17x-63x FPGA LUT reduction vs. eraser across code distances 5-25; combinational logic evaluates in <1 ns"
+  },
+  "baselines": ["eraser", "eraser+m (eraser with Multi-Level Readout)", "Always-LRC (open-loop)", "Staggered Always-LRC", "MLR-only detection", "DQLR"],
+  "limitations": "GLADIATOR's graphical model must be rebuilt for each QEC code and re-calibrated when device noise drifts significantly; the two-round windowed variant (GLADIATOR-D) adds latency that may constrain real-time QEC controller timing.",
+  "tags": ["quantum-error-correction", "leakage-detection", "syndrome-classification", "fault-tolerant-qc", "fpga", "surface-code"],
+  "primary_theme": "accurate leakage speculation for quantum error correction",
+  "confidence": "high"
+}

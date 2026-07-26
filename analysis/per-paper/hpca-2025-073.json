@@ -1,0 +1,29 @@
+{
+  "id": "hpca-2025-073",
+  "title": "SPARK: Sparsity Aware, Low Area, Energy-Efficient, Near-memory Architecture for Accelerating Linear Programming Problems",
+  "venue": "HPCA",
+  "problem": "Integer Linear Programming (ILP) and Linear Programming (LP) solvers run for tens of hours on large parallel computers because their sparse, branch-intensive algorithms are poorly matched to CPUs and GPUs. GPUs suffer from thread divergence on ILP branching and require frequent host interactions, while CPU solvers like Gurobi cannot meet real-time decision thresholds (seconds to minutes).",
+  "motivation": "Real-life optimization problems (network routing, traffic scheduling, map routing) require decisions in seconds, but state-of-the-art solvers on CPUs and GPUs take hours, making ILP impractical for time-critical applications.",
+  "method": "SPARK reconfigures the existing L1 cache in a CPU to act as a near-cache compute accelerator with ~1.4% area overhead. It integrates sparsity detection and sparsity-aware compute units near the cache to skip insignificant multiplications in sparse matrix operations, and exploits reuse patterns inherent to ILP algorithms (e.g., simplex pivots, branch-and-bound traversal) through a reuse-aware datapath. The architecture is reconfigurable to handle both sparse and dense ILPs and LPs without separate hardware.",
+  "key_novelty": "Near-L1-cache reconfiguration that enables sparsity-aware, reuse-aware computation for ILP/LP directly within the CPU pipeline at minimal area cost (~1.4% of a CPU).",
+  "contributions": [
+    "Near-cache ILP/LP accelerator that reconfigures existing L1 cache with minimal hardware overhead (~1.4% of CPU area)",
+    "Sparsity detection and sparsity-aware compute eliminating redundant operations and data movement in sparse ILP workloads",
+    "Reuse-aware architecture exploiting computational patterns of ILP solver algorithms",
+    "15x/20x speedup and 152x/740x energy improvement over AMD Zen3 CPU and NVIDIA Tesla V100 GPU on MIPLIB 2017 benchmarks"
+  ],
+  "hardware_target": ["CPU", "ASIC"],
+  "technique_category": ["near-data-processing", "sparsity", "memory-system", "dataflow"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "speedup": "15x over Zen3 CPU, 20x over V100 GPU (sparse ILP); 7-17x over CPU, 103-250x over GPU (sparse LP)",
+    "energy_or_tops_w": "152x energy improvement over Zen3 CPU, 740x over V100 GPU (sparse ILP)",
+    "area": "~1.4% of a CPU die area overhead",
+    "other": null
+  },
+  "baselines": ["AMD Zen3 CPU (Gurobi)", "NVIDIA Tesla V100 GPU"],
+  "limitations": "Evaluation focuses on MIPLIB 2017 benchmarks; applicability to ILP problem classes beyond mixed-integer programming (e.g., constraint programming) is not discussed.",
+  "tags": ["near-cache-compute", "ilp-acceleration", "sparsity", "cpu-augmentation", "linear-programming"],
+  "primary_theme": "near-cache ILP/LP acceleration with sparsity awareness",
+  "confidence": "low"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "asplos-2025-124",
+  "title": "SMaCk: Efficient Instruction Cache Attacks via Self-Modifying Code Conflicts",
+  "venue": "ASPLOS",
+  "problem": "Self-modifying code (SMC) detection on x86 processors triggers pipeline flushes and machine clears that are shared between SMT sibling threads, creating measurable timing side channels on the L1 instruction cache that are significantly more distinguishable (150-350 cycle differences) than conventional L1i cache Prime+Probe attacks (1-2 cycle differences). These SMC-based timing channels have not been systematically exploited as a standalone attack primitive for information leakage.",
+  "motivation": "Conventional L1i cache side-channel attacks suffer from low signal-to-noise ratios because cache hit/miss timing differences are only 1-2 cycles; SMC pipeline flushes amplify this signal 100-350x, enabling more reliable cryptographic key extraction and covert channels.",
+  "method": "The attack exploits the x86 SMC detection mechanism: when an instruction modifies a cache line already loaded in the L1i cache, the processor flushes the entire pipeline and serializes all sibling threads, adding 235-425 cycles of observable delay. The authors reverse engineer which x86 instructions trigger machine clears (clflush, clflushopt, store, lock+inc, prefetch, clwb) using hardware performance counters (MACHINE_CLEARS.SMC, CYCLE_ACTIVITY.STALLS_TOTAL). They construct Prime+iProbe and Flush+iReload covert channels using these instructions as probes on L1i cache sets shared between SMT threads. For attacks, the receiver primes L1i cache sets with nop-filled cache lines, then probes using SMC-creating instructions to detect evictions caused by the victim's instruction execution. Case studies demonstrate RSA key recovery (2048-bit Libgcrypt, 10 traces for 70% recovery), single-trace OpenSSL SRP server key extraction (65-90% bit leakage), and a Spectre-v1 variant (ISpectre) via the instruction cache with up to 4105 B/s throughput. A performance counter-based defense (machine_clears.smc counter) detects attacks with 99.36% accuracy and 0.85% FPR.",
+  "key_novelty": "Systematic exploitation of the x86 SMC pipeline flush mechanism as a high-SNR side channel on the L1 instruction cache, enabling unprivileged SMT-thread attacks with 100-350x larger timing signal than prior L1i attacks.",
+  "contributions": [
+    "Systematic characterization of which x86 instructions trigger the SMC detection mechanism and their timing profiles across Intel and AMD microarchitectures",
+    "Prime+iProbe and Flush+iReload L1i cache attack variants leveraging SMC timing, achieving up to 670 Kbit/s covert channel bandwidth with <1% error rate",
+    "End-to-end cryptographic attacks: 2048-bit RSA key recovery in 10 traces and single-trace OpenSSL SRP server key extraction with up to 90% bit leakage",
+    "ISpectre: a Spectre-v1 variant using L1i cache encoding that bypasses data-cache-focused Spectre defenses",
+    "Performance counter-based dynamic detection with 99.36% F-score using machine_clears.smc counter"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "cache"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": null,
+    "other": "Covert channel: up to 670 Kbit/s, <1% error rate (Flush+iFlush/Flushopt); RSA key recovery: 70% bits in 10 traces (Prime+iFlush) vs. state-of-the-art Mastik; SRP leakage: 65-90% bits in single trace vs. 22-48% for Mastik; ISpectre throughput: up to 4105 B/s on AMD Ryzen 5; detection F-score: 0.987"
+  },
+  "baselines": ["Mastik L1i Prime+Probe toolkit", "TLB-Evict+Prefetch", "Lipp et al. AMD cache attack (0.66 B/s)"],
+  "limitations": "Attack requires SMT (hyper-threading) to be enabled; effectiveness varies across microarchitectures (e.g., AMD EPYC 7232P resists flush-based SMC conflicts); ~45% of SRP key bits remain unrecoverable per single trace due to sliding window ambiguity.",
+  "tags": ["side-channel", "instruction-cache", "smc", "x86", "spectre", "cryptographic-attack", "hyper-threading"],
+  "primary_theme": "L1 instruction cache side-channel attacks via self-modifying code pipeline flushes",
+  "confidence": "high"
+}

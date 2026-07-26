@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-035",
+  "title": "DECA: A Near-Core LLM Decompression Accelerator Grounded on a 3D Roofline Model",
+  "venue": "MICRO",
+  "problem": "LLM inference on CPU servers (Intel Sapphire Rapids with AMX TMUL and HBM) is bottlenecked not by memory bandwidth or matrix compute throughput, but by AVX vector decompression overhead: decompressing quantized (BF8, MXFP4) and sparsified weight tiles in software consumes over 95% of dynamic instructions per core, and even 4x more vector (AVX) throughput is insufficient to eliminate this bottleneck for highly compressed models.",
+  "motivation": "CPU servers are an increasingly attractive LLM inference platform due to AMX matrix engines and HBM, but the inability of the traditional 2D roofline model to expose the vector-decompression bottleneck makes it unclear how to improve the system; a principled model-driven hardware solution is needed.",
+  "method": "DECA is a near-core ML model decompression accelerator placed alongside each CPU core and connected via memory-mapped interface sharing the L2 TLB. Its microarchitecture is a three-stage pipeline: (1) Dequantization using a LUT array (L parallel 256-entry LUTs) that converts low-bit quantized values (1–8 bit) to BF16; (2) Expansion that de-sparsifies data by inserting zeros at bitmask-specified positions using a crossbar (XBAR) controlled by Parallel Prefix Sum-generated expansion indices from a bitmask queue; (3) Scaling that applies per-group scale factors for group quantization. Two duplicated Loader+TOut register pairs enable hardware double buffering between DECA and the TMUL. A new ISA extension called TEPL (Tile External Preprocess and Load) eliminates per-iteration memory fences by out-of-order invocation of DECA — TEPL instructions are issued speculatively like loads, and the core is squash-safe because DECA never writes memory state. The design methodology is grounded in a novel 3D Roof-Surface analytical model extending the 2D roofline to add a vector-throughput axis (AIXV = matrix ops per vector op), which correctly predicts that highly compressed kernels are VEC-bound, not MEM-bound.",
+  "key_novelty": "A 3D Roof-Surface analytical performance model that adds a vector-throughput dimension to the traditional roofline, directly motivating and correctly sizing a near-core decompression accelerator (DECA) with an out-of-order ISA extension (TEPL) that speculatively invokes the accelerator without serializing fences.",
+  "contributions": [
+    "The Roof-Surface 3D analytical performance model (and its 2D BORD projection) that correctly attributes compressed GeMM inefficiency to AVX vector throughput rather than memory bandwidth for HBM systems.",
+    "DECA near-core accelerator with a three-stage (dequantization-via-LUT/expansion-via-XBAR/scaling) pipeline supporting 1–8 bit quantization, arbitrary unstructured sparsity, and group quantization; achieves up to 4x speedup over libxsmm on compressed GeMMs.",
+    "TEPL ISA extension enabling out-of-order, speculative DECA invocation without per-iteration memory fences, hiding CPU-DECA communication latency and enabling cross-iteration overlap.",
+    "Reduction of next-token generation time for Llama2-70B and OPT-66B by 1.6x–2.6x over software-only and 2.5x–5.0x over uncompressed baseline in simulated 56-core SPR with HBM."
+  ],
+  "hardware_target": ["CPU", "ASIC"],
+  "technique_category": ["quantization", "sparsity", "near-data-processing", "memory-system", "compiler"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "up to 4x over Intel libxsmm software kernels on compressed GeMMs; 1.6x–2.6x reduction in next-token generation time for Llama2-70B/OPT-66B vs software-only; 2.5x–5.0x vs uncompressed baseline",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Roof-Surface model accurate to within 10% for most kernels; libxsmm BF8_5% density achieves only 1/4.94 of roofline-predicted optimal on HBM"
+  },
+  "baselines": ["Intel libxsmm software kernels (AVX+AMX)", "uncompressed BF16 baseline on SPR DDR5/HBM"],
+  "limitations": "DECA is evaluated via simulation of a 56-core SPR system; no silicon measurements are provided, and the analysis focuses on generation-phase (low arithmetic intensity) inference with small batch sizes where weight bandwidth dominates, not prompt-phase or large-batch inference.",
+  "tags": ["llm-inference", "near-core-accelerator", "decompression", "quantization", "sparsity", "isa-extension", "roofline-model"],
+  "primary_theme": "Near-core decompression accelerator for compressed LLM inference on CPU+HBM",
+  "confidence": "high"
+}

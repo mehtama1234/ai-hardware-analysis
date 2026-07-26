@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-081",
+  "title": "Light-weight Cache Replacement for Instruction Heavy Workloads",
+  "venue": "ISCA",
+  "problem": "Modern instruction-heavy workloads (e.g., server-side software with large code footprints) place heavy pressure on the last-level cache (LLC), and state-of-the-art LLC replacement policies designed for general workloads impose high hardware overhead yet provide little additional benefit over simple policies when aggressive prefetching is also present. Existing policies such as Mockingjay require complex prediction infrastructure that is not justified by their marginal gains for instruction-heavy access patterns.",
+  "motivation": "The growing prevalence of instruction-heavy cloud workloads (database engines, key-value stores, microservices) has exposed a mismatch between replacement policy complexity and realized performance gains, motivating lightweight policies that co-design with prefetching rather than against it.",
+  "method": "PACIPV (Prefetch-Aware Coarse-grained Insertion and Promotion Vectors) generalizes the Re-Reference Interval Prediction (RRIP) framework by parameterizing cache line insertion position and promotion position as configurable vectors rather than fixed rules. The design space of valid RRIP-based policies is enumerated exhaustively on a training workload set to find the optimal insertion and promotion vectors. The selected policy is prefetch-aware, distinguishing demand and prefetch accesses and assigning them different insertion/promotion behavior to prevent prefetch thrashing. The resulting hardware implementation uses simple counter logic with negligible area overhead compared to RRIP.",
+  "key_novelty": "Exhaustive search over the RRIP insertion/promotion vector design space to find prefetch-aware optimal coarse-grained LLC replacement policies, demonstrating that simple parameterized RRIP variants match or exceed complex learned replacement policies for instruction-heavy workloads.",
+  "contributions": [
+    "Formalization of RRIP-based LLC replacement as a space of insertion and promotion vectors (IPVs) amenable to exhaustive search",
+    "PACIPV: a prefetch-aware coarse-grained policy derived by training-set search that handles demand and prefetch accesses differently",
+    "Empirical finding that lightweight RRIP-based policies match complex policies (e.g., Mockingjay) for instruction-heavy workloads with aggressive prefetching, at far lower hardware cost",
+    "3.3% speedup over LRU baseline, outperforming SRRIP by 1.1% and matching Mockingjay within 0.1% with much less hardware"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["cache", "prefetching"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": "3.3% over LRU baseline; +1.1% over SRRIP; within 0.1% of Mockingjay",
+    "other": "significantly less hardware overhead than Mockingjay"
+  },
+  "baselines": ["LRU", "SRRIP", "Mockingjay"],
+  "limitations": "The exhaustive search is performed offline on a fixed training workload set; generalization to dynamic workload mixes and online adaptability are not discussed.",
+  "tags": ["cache-replacement", "llc", "rrip", "prefetch-aware", "instruction-workloads", "low-overhead"],
+  "primary_theme": "Lightweight LLC replacement for instruction-heavy workloads",
+  "confidence": "low"
+}

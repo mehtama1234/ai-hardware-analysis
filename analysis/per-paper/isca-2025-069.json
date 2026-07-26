@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-069",
+  "title": "Profile-Guided Temporal Prefetching",
+  "venue": "ISCA",
+  "problem": "Temporal prefetching for irregular memory access patterns (data-dependent structures, pointer-chasing) requires metadata to record and replay past access sequences; existing on-chip metadata storage schemes for temporal prefetchers have limited capacity, and prior software-guided approaches have failed to optimize metadata storage management effectively, leaving temporal prefetching 0.1% over baseline with profile-guided methods.",
+  "motivation": "Irregular memory access patterns in server and data-intensive workloads cause hardware temporal prefetchers to thrash their on-chip metadata stores, limiting effectiveness; profile-guided hints can steer metadata management much more efficiently than dynamic policies alone, but prior software approaches have lacked the ability to tune hints adaptively across diverse inputs.",
+  "method": "Prophet is a hardware-software co-designed framework that uses profile-guided methods to optimize on-chip metadata storage management for temporal prefetchers. Instead of tracing full access sequences, Prophet profiles programs using lightweight hardware counters, then injects hints (compiler annotations) into the program binary to guide the hardware temporal prefetcher's metadata storage management at runtime. Dynamic tuning of these hints allows the optimized binary to adapt to different program inputs without re-profiling. Prophet is designed to coexist with existing hardware temporal prefetchers: it provides optimized metadata management for frequently executed hot paths while the original hardware-only scheme handles less frequent paths.",
+  "key_novelty": "Prophet uses counter-based profiling (rather than trace-based) combined with binary-injected hints and dynamic runtime tuning to guide on-chip metadata storage management for temporal prefetchers, enabling adaptation to varying program inputs without re-profiling.",
+  "contributions": [
+    "A counter-based profiling methodology (as opposed to trace-based) that generates metadata storage management hints with negligible profiling overhead.",
+    "A binary annotation mechanism that injects runtime hints to steer hardware temporal prefetcher metadata management for frequently executed workloads.",
+    "Dynamic in-binary hint tuning that adapts metadata management to different program inputs without requiring re-profiling.",
+    "14.23% performance improvement over state-of-the-art temporal prefetcher (Triangel), vs. 0.1% for prior profile-guided approaches."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "compiler", "memory-system"],
+  "workloads": ["database", "graph-analytics"],
+  "metrics": {
+    "speedup": "14.23% over Triangel (state-of-the-art temporal prefetcher); prior profile-guided methods achieved only 0.1%",
+    "other": "Negligible profiling, analysis, and instruction overhead"
+  },
+  "baselines": ["Triangel (state-of-the-art temporal prefetcher)", "prior profile-guided software prefetching"],
+  "limitations": "Prophet requires a profiling run before deployment; if workload input distributions change significantly, dynamic tuning may not fully compensate without re-profiling.",
+  "tags": ["temporal-prefetching", "profile-guided", "hardware-software-codesign", "metadata-management", "irregular-access", "pointer-chasing"],
+  "primary_theme": "Profile-guided metadata management for hardware temporal prefetchers",
+  "confidence": "low"
+}

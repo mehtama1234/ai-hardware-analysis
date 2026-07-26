@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-027",
+  "title": "WarpDrive: GPU-Based Fully Homomorphic Encryption Acceleration Leveraging Tensor and CUDA Cores",
+  "venue": "HPCA",
+  "problem": "GPU-based acceleration of Fully Homomorphic Encryption (FHE) is bottlenecked by frequent pipeline stalls from memory-latency-bound Number Theoretic Transform (NTT) operations and by suboptimal utilization of GPU hardware units, leaving both CUDA Cores and Tensor Cores underused for FHE workloads.",
+  "motivation": "FHE is increasingly important for privacy-preserving computation, but its multi-orders-of-magnitude overhead over plaintext computation demands practical GPU acceleration; existing GPU solutions fail to fully exploit the available parallelism and memory hierarchy of modern NVIDIA GPUs.",
+  "method": "WarpDrive applies three key optimizations: (1) computation decomposition of NTT that reduces total instruction count by 73% through arithmetic restructuring; (2) fine-grained memory access design that pipelines loads to eliminate 86% of pipeline stalls; (3) a concurrent-execution framework that runs CUDA Cores and Tensor Cores simultaneously within a single NTT kernel — the first such combined use — exploiting both unit types' complementary throughput characteristics. Additionally, intra-ciphertext parallelism is maximally extracted without requiring ciphertext batching.",
+  "key_novelty": "First framework to concurrently utilize CUDA Cores and Tensor Cores within the same NTT kernel for FHE, exceeding the throughput of either unit type alone.",
+  "contributions": [
+    "Computation decomposition reducing FHE NTT instruction count by 73%.",
+    "Fine-grained memory access design cutting pipeline stalls by 86%.",
+    "Concurrent CUDA Core + Tensor Core NTT kernel achieving throughput superior to either unit individually.",
+    "Up to 2.12x intra-ciphertext parallelism improvement without ciphertext batching; 13.4x NTT and 3.5x homomorphic multiplication speedup over TensorFHE on A100."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["kernel-fusion", "memory-system", "parallelism"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "13.4x NTT throughput, 3.5x homomorphic multiplication, 2.8x FHE workload vs TensorFHE on A100",
+    "other": "1218 KOPS NTT, 305 KOPS homomorphic multiplication on A100; 73% instruction reduction; 86% pipeline stall reduction"
+  },
+  "baselines": ["TensorFHE (GPU)"],
+  "limitations": "Evaluation is on A100 only; generality to newer GPU architectures (H100, B200) with different Tensor Core ISAs is not discussed.",
+  "tags": ["fhe", "homomorphic-encryption", "ntt", "tensor-cores", "gpu-acceleration"],
+  "primary_theme": "GPU kernel optimization for Fully Homomorphic Encryption via concurrent CUDA and Tensor Core execution",
+  "confidence": "low"
+}

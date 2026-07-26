@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-017",
+  "title": "Mithril: A Scalable System for Deep GNN Training",
+  "venue": "HPCA",
+  "problem": "Distributed full-graph deep GNN training does not scale to many layers because inter-GPU communication volume grows with graph size and number of layers, overwhelming existing graph parallelism approaches which partition the graph across GPUs and require massive cross-partition neighbor data exchange.",
+  "motivation": "Deep GNNs (many layers) achieve higher model expressiveness but existing graph-parallel training systems cannot scale due to O(layers) communication blow-up across GPU boundaries.",
+  "method": "Mithril applies layer-level model parallelism to full-graph GNN training: each GPU owns a disjoint subset of consecutive GNN layers and processes all graph nodes for those layers. This reduces per-epoch communication by a factor equal to the number of GNN layers compared to graph parallelism. Pipeline parallelism across layer-partitioned GPUs is realized by partitioning the graph into dependent chunks; inter-chunk embedding dependencies are broken using embedding speculation (speculative forward pass). A hybrid scheme combines Mithril's layer parallelism with graph parallelism for large graphs to improve GPU utilization and ensure convergence.",
+  "key_novelty": "First application of layer-level model parallelism to full-graph GNN training, combined with embedding speculation to resolve cross-layer data dependencies in a pipelined execution.",
+  "contributions": [
+    "First layer-level model parallelism design for full-graph deep GNN training, reducing communication by a factor of the number of GNN layers.",
+    "Embedding speculation technique to break inter-chunk embedding dependencies enabling pipelined layer-parallel execution.",
+    "Hybrid layer-parallel + graph-parallel scheme for large graphs with improved GPU utilization and convergence guarantees.",
+    "Up to 22.89x (avg 6.78x) reduction in per-epoch communication volume; up to 10.21x (avg 7.16x) training speedup on commodity Ethernet vs. graph parallelism baseline."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["parallelism", "interconnect", "scheduling"],
+  "workloads": ["GNN"],
+  "metrics": {
+    "speedup": "Up to 2.34x (avg 1.49x) on InfiniBand; up to 10.21x (avg 7.16x) on commodity Ethernet vs. graph parallelism baseline",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Communication volume reduction: up to 22.89x (avg 6.78x) per epoch"
+  },
+  "baselines": ["Graph parallelism (graph-partitioned distributed GNN training)"],
+  "limitations": "Embedding speculation may introduce approximation errors affecting convergence for very deep GNNs or graphs with high structural heterogeneity; convergence analysis is empirical.",
+  "tags": ["gnn", "distributed-training", "model-parallelism", "communication-reduction", "embedding-speculation", "layer-parallelism"],
+  "primary_theme": "Layer-level model parallelism for scalable deep GNN distributed training",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-102",
+  "title": "Affinity-based Optimizations for TFHE on Processing-in-DRAM",
+  "venue": "ASPLOS",
+  "problem": "Fully Homomorphic Encryption over the Torus (TFHE) is a compute- and bandwidth-intensive workload; when mapped to Processing-in-Memory (PIM/HBM) architectures, existing accelerators over-exploit parallelism at the expense of data affinity, causing excessive remote data accesses (RDAs) that degrade performance due to PIM's limited inter-bank communication bandwidth.",
+  "motivation": "PIM architectures offer high internal bandwidth that can dramatically accelerate TFHE, but the workload's affinity patterns must be respected to avoid the remote-access bottleneck that nullifies bandwidth advantages.",
+  "method": "The paper applies algorithmic optimizations to TFHE to restructure its sub-tasks (bootstrapping, key-switching, NTT/FFT operations) so that data accessed together is co-located on the same PIM vault or bank. An offline scheduler analyzes the affinity patterns of TFHE sub-tasks—determining which operands are used together and how frequently—and derives an optimal scheduling order that minimizes RDAs while maintaining sufficient parallelism. The approach is validated on a variant of an existing PIM-HBM device with minimal hardware modifications and evaluated on a real FPGA-based PIM system emulator.",
+  "key_novelty": "An affinity-pattern-driven offline scheduling framework for TFHE on PIM that minimizes remote data accesses by co-scheduling operations with shared data onto the same PIM units.",
+  "contributions": [
+    "Analysis of data affinity patterns in TFHE sub-tasks (bootstrapping, key-switching, NTT) on PIM architectures.",
+    "An offline affinity-aware scheduler that minimizes RDAs while maintaining parallelism.",
+    "Algorithmic restructuring of TFHE to expose better data locality on PIM.",
+    "4.24x to 209x speedup over prior TFHE accelerators on real-world benchmarks on a FPGA-based PIM system."
+  ],
+  "hardware_target": ["PIM (processing-in-memory)", "FPGA"],
+  "technique_category": ["near-data-processing", "scheduling", "memory-system"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "4.24x to 209x over prior TFHE accelerators on real-world benchmarks",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["prior TFHE accelerators"],
+  "limitations": "Results are from an FPGA-based PIM emulator rather than a fabricated PIM ASIC, so absolute performance numbers may not transfer directly to production hardware.",
+  "tags": ["homomorphic-encryption", "tfhe", "pim", "hbm", "affinity", "scheduling"],
+  "primary_theme": "Affinity-aware scheduling of TFHE on processing-in-DRAM to minimize remote accesses",
+  "confidence": "low"
+}

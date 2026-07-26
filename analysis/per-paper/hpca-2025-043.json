@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-043",
+  "title": "throttLL'eM: Predictive GPU Throttling for Energy Efficient LLM Inference Serving",
+  "venue": "HPCA",
+  "problem": "LLM inference serving on GPUs consumes excessive energy while providers must simultaneously satisfy Service-Level Objectives (SLOs); static GPU frequency settings over-provision compute resources when request load is low or KV cache pressure is manageable.",
+  "motivation": "Inference dominates LLM workloads and GPU power demand is a growing environmental and monetary concern, requiring dynamic power management that does not violate user-facing SLO constraints.",
+  "method": "throttLL'eM uses instance sizing and GPU frequency scaling guided by an ML model that predicts future KV cache usage and batch size. The ML model receives projections of these metrics as inputs and outputs per-iteration performance estimates, enabling iteration-level frequency decisions. The R^2 score exceeds 0.97 and misprediction is under 1 iteration/second on average. Frequency scaling and instance count adjustments are applied jointly to reduce energy while keeping within SLO bounds.",
+  "key_novelty": "Iteration-granularity GPU frequency scaling for LLM inference driven by a predictive ML model of KV cache usage and batch size, enabling proactive throttling rather than reactive power capping.",
+  "contributions": [
+    "Predictive ML model for KV cache usage and batch size projection in LLM inference",
+    "Iteration-level GPU frequency and instance scaling framework respecting SLOs",
+    "Up to 43.8% energy reduction vs NVIDIA Triton server under SLO constraints",
+    "Open-source release of throttLL'eM at https://github.com/WilliamBlaskowicz/throttLL-eM"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["power", "scheduling"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "energy_or_tops_w": "Up to 43.8% lower energy; at least 1.71x energy efficiency improvement under SLOs vs NVIDIA Triton server"
+  },
+  "baselines": ["NVIDIA Triton inference server with default GPU frequency settings"],
+  "limitations": "The ML prediction model is trained on specific LLM inference traces and may not generalize to all model families or serving configurations without retraining.",
+  "tags": ["llm-inference", "gpu-throttling", "energy-efficiency", "slo", "kv-cache", "frequency-scaling"],
+  "primary_theme": "predictive GPU frequency scaling for energy-efficient LLM inference serving",
+  "confidence": "low"
+}

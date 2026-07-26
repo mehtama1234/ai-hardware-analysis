@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-022",
+  "title": "MoC-System: Efficient Fault Tolerance for Sparse Mixture-of-Experts Model Training",
+  "venue": "ASPLOS",
+  "problem": "Sparse Mixture-of-Experts (MoE) LLMs have model parameter counts far exceeding dense models of equivalent compute cost, making checkpoint-based fault tolerance extremely expensive in terms of checkpoint size, write bandwidth, and recovery time for distributed training at >10k node scale.",
+  "motivation": "Distributed training clusters beyond 10k nodes have high failure rates, making fault tolerance essential, but the large parameter footprint of MoE models (many experts, sparse activation) creates checkpoint overhead disproportionate to the actual training compute.",
+  "method": "MoC-System exploits the sparse activation pattern of MoE models: only a subset of experts is activated per token, so most expert parameters are not updated in any given training step. The system uses a Model-on-Checkpoint (MoC) approach that selectively checkpoints only the experts that were actually updated (activated) during a training step, avoiding checkpointing dormant expert parameters. This is combined with distributed checkpoint orchestration to overlap checkpoint I/O with forward/backward computation and expert-parallel sharding to minimize per-node checkpoint volume.",
+  "key_novelty": "Exploiting MoE sparse activation to checkpoint only updated (active) experts per step, drastically reducing checkpoint size and I/O without sacrificing fault recovery correctness.",
+  "contributions": [
+    "Analysis of the fault tolerance bottleneck specific to sparse MoE model training at scale",
+    "MoC-System: selective expert checkpointing based on sparse activation patterns",
+    "Distributed checkpoint orchestration overlapping I/O with computation",
+    "Demonstrated reduction in checkpoint overhead while maintaining full fault recovery capability"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["parallelism", "memory-system", "scheduling"],
+  "workloads": ["LLM-training", "MoE"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "reduced checkpoint overhead for MoE models; specific numbers not in abstract"
+  },
+  "baselines": ["standard full-model checkpoint approaches for MoE training"],
+  "limitations": "Specific quantitative speedup or checkpoint overhead reduction numbers are not provided in the abstract.",
+  "tags": ["fault-tolerance", "checkpoint", "moe", "sparse-training", "llm-training", "distributed"],
+  "primary_theme": "sparse-activation-aware fault tolerance for MoE LLM training",
+  "confidence": "low"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "asplos-2025-092",
+  "title": "Fusion: An Analytics Object Store Optimized for Query Pushdown",
+  "venue": "ASPLOS",
+  "problem": "Disaggregated cloud storage uses erasure coding that partitions analytics file objects into fixed-size blocks across storage nodes; when query predicates are pushed down to storage (computation pushdown), the storage system must reassemble objects across nodes, incurring high network latency that undermines pushdown's intended benefits for ad-hoc and highly-selective OLAP queries.",
+  "motivation": "Cloud OLAP databases increasingly rely on computation pushdown to reduce latency on large object queries, but erasure-coded disaggregated storage fundamentally conflicts with this approach because reassembly overhead negates pushdown gains.",
+  "method": "Fusion is an analytics object store that co-designs storage layout and query pushdown execution for erasure-coded environments. It reorganizes how analytics file objects (e.g., Parquet files) are partitioned and distributed across storage nodes so that query-relevant data stripes can be accessed and evaluated locally at storage nodes without full object reassembly. Pushdown execution is coordinated across storage nodes in a way that respects erasure coding boundaries, enabling predicate evaluation close to data while minimizing cross-node communication.",
+  "key_novelty": "Co-designing erasure-coded object storage layout with query pushdown execution so predicates can be evaluated at storage nodes without full object reassembly.",
+  "contributions": [
+    "Identification of erasure coding as a fundamental barrier to efficient computation pushdown in cloud OLAP storage",
+    "Fusion: an object store layout and pushdown architecture co-designed for erasure-coded disaggregated storage",
+    "Pushdown execution protocol that partitions predicate evaluation across storage nodes along erasure coding boundaries",
+    "Reduced network latency for ad-hoc and highly-selective OLAP queries on large objects"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["near-data-processing", "memory-system", "scheduling"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "not stated quantitatively in abstract",
+    "other": "reduced network latency for selective OLAP queries (not quantified in abstract)"
+  },
+  "baselines": ["existing cloud OLAP databases with computation pushdown on erasure-coded storage"],
+  "limitations": "Design is optimized for read-heavy OLAP analytics; update-heavy or transactional workloads are not addressed.",
+  "tags": ["object-store", "erasure-coding", "query-pushdown", "cloud-storage", "olap", "disaggregated-storage"],
+  "primary_theme": "Erasure-coding-aware analytics object store for query pushdown",
+  "confidence": "low"
+}

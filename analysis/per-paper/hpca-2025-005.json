@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-005",
+  "title": "Ariadne: A Hotness-Aware and Size-Adaptive Compressed Swap Technique for Fast Application Relaunch and Reduced CPU Usage on Mobile Devices",
+  "venue": "HPCA",
+  "problem": "Mobile devices under memory pressure use ZRAM (RAM-based compressed swap) to defer app eviction, but ZRAM prolongs relaunch latency and wastes CPU time because it applies uniform compression settings regardless of data hotness, does not differentiate compression chunk size, and lacks prefetching of soon-to-be-needed decompressed data.",
+  "motivation": "Application relaunch latency and CPU usage for compression/decompression directly impact mobile user experience, and growing app memory footprints exacerbate memory pressure on fixed mobile DRAM budgets.",
+  "method": "Ariadne introduces three coordinated techniques: (1) a low-overhead hotness-aware data organization scheme that classifies anonymous memory pages as hot, warm, or cold based on observed relaunch access patterns, allowing reuse of hotness labels across consecutive relaunches; (2) a size-adaptive compression scheme that uses small chunk sizes for hot/warm data (enabling fast decompression on the critical relaunch path) and large chunk sizes for cold data (improving compression ratio); and (3) a proactive decompression scheme that predicts the next set of pages needed during relaunch and decompresses them in advance to overlap decompression with computation.",
+  "key_novelty": "Hotness-aware adaptive compression chunk sizing that applies small fast-decompressing chunks to relaunch-critical data and large high-ratio chunks to cold data, combined with proactive decompression based on observed relaunch locality.",
+  "contributions": [
+    "Observation that anonymous data has stable hotness between consecutive relaunches and exhibits spatial locality during relaunch",
+    "Low-overhead hotness classification scheme for ZRAM pages without significant runtime profiling cost",
+    "Size-adaptive compression assigning different chunk sizes per hotness tier to balance decompression speed and compression ratio",
+    "Proactive decompression predictor reducing relaunch latency by 50% and CPU usage of compression/decompression by 15% over ZRAM on Google Pixel 7 (Android 14)"
+  ],
+  "hardware_target": ["SoC"],
+  "technique_category": ["memory-system", "scheduling", "prefetching", "power"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "50% reduction in application relaunch latency vs ZRAM",
+    "other": "15% reduction in CPU usage for compression/decompression vs ZRAM",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null
+  },
+  "baselines": ["ZRAM (state-of-the-art compressed swap for mobile)"],
+  "limitations": "Evaluated on a single device (Google Pixel 7); generalization to different SoC memory configurations and Android versions is not discussed.",
+  "tags": ["mobile", "compressed-swap", "memory-management", "relaunch-latency", "hotness", "zram"],
+  "primary_theme": "hotness-aware adaptive compressed swap for mobile application relaunch optimization",
+  "confidence": "low"
+}

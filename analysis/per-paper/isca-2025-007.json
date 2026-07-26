@@ -1,0 +1,29 @@
+{
+  "id": "isca-2025-007",
+  "title": "Oaken: Fast and Efficient LLM Serving with Online-Offline Hybrid KV Cache Quantization",
+  "venue": "ISCA",
+  "problem": "LLM serving with large batch sizes is bottlenecked by KV cache memory bandwidth and capacity: HBM provides high bandwidth but limited capacity, while high-capacity LPDDR memory lacks bandwidth. Existing KV cache quantization approaches either incur excessive online outlier detection overhead (e.g., topK sorting at O(n log n)) or sacrifice accuracy through coarse-grained grouping.",
+  "motivation": "As LLM context lengths and serving batch sizes grow, the KV cache dominates memory usage and becomes the primary throughput bottleneck, making efficient quantization with low runtime overhead essential for cost-effective inference.",
+  "method": "Oaken uses an online-offline hybrid KV cache quantization scheme: offline profiling (~100 inferences) determines per-layer, data-agnostic outlier thresholds, which are applied online to partition per-token KV vectors into three groups (outer/large outliers, inner/small outliers, middle/inliers). Group-shift quantization subtracts offline thresholds to narrow each group's value range before applying 4/5-bit uniform quantization. Outliers are stored in COO sparse format fused into zeroed elements of the dense 4-bit inlier matrix (8 bits per sparse entry total), and a custom DMA-integrated quantization/dequantization engine with a page-based MMU handles bandwidth-maximizing burst memory access. The accelerator is built on an LPU architecture synthesized in TSMC 28nm with HBM or LPDDR memory.",
+  "key_novelty": "Offline profiling of per-layer KV distribution thresholds eliminates expensive online sorting while enabling fine-grained mixed-precision grouping, and fused dense-and-sparse encoding reduces outlier storage from 23 to 8 bits per entry.",
+  "contributions": [
+    "Online-offline hybrid KV cache quantization that avoids O(n log n) online sorting by using offline-profiled thresholds for three-group value partitioning",
+    "Group-shift quantization that narrows the value range of outlier groups to enable low-bitwidth uniform quantization without FP16 fallback",
+    "Fused dense-and-sparse encoding that embeds 5-bit outlier values into zeroed elements of the 4-bit dense matrix, reducing storage overhead by 65% vs. COO+FP16",
+    "Custom quantization/dequantization engines and page-based MMU integrated into DMA, achieving up to 1.58x throughput over A100 GPU with only 8.21% area overhead"
+  ],
+  "hardware_target": ["ASIC", "NPU"],
+  "technique_category": ["quantization", "memory-system", "sparsity"],
+  "workloads": ["LLM-inference", "attention", "MoE"],
+  "metrics": {
+    "speedup": "1.79x over vLLM, 1.58x over QServe at batch size 256",
+    "accuracy": "0.54% average accuracy loss vs. state-of-the-art KV quantization baselines",
+    "area": "8.21% area overhead for Oaken modules",
+    "other": "KV bitwidth reduction up to 70%; synthesized at TSMC 28nm"
+  },
+  "baselines": ["NVIDIA A100 GPU (vLLM)", "QServe", "KVQuant", "KIVI", "Tender", "Atom", "LPU"],
+  "limitations": "Offline profiling must be repeated per model, and the fixed group ratio (4%/90%/6%) may be suboptimal for models with highly atypical KV distributions.",
+  "tags": ["kv-cache", "quantization", "llm-serving", "mixed-precision", "memory-bandwidth"],
+  "primary_theme": "Online-offline hybrid KV cache quantization for LLM serving",
+  "confidence": "high"
+}

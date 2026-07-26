@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-047",
+  "title": "Ditto: Accelerating Diffusion Model via Temporal Value Similarity",
+  "venue": "HPCA",
+  "problem": "Diffusion models require many iterative denoising steps, each a full forward pass of a large network, causing prohibitive computation and memory overhead; adjacent time steps produce outputs with high value similarity and narrow differences that are not exploited by existing accelerators.",
+  "motivation": "Diffusion models achieve state-of-the-art image generation quality but their iterative structure directly multiplies compute cost by the number of denoising steps, making them impractical for low-power or real-time deployment without algorithmic-hardware co-design.",
+  "method": "Ditto exploits temporal value similarity: adjacent time-step outputs differ narrowly, and these differences are quantized to reduced bit-widths (often zero). The Ditto algorithm performs a full-precision pass on the first time step, then computes subsequent steps using quantized temporal differences and the distributive property of layer operations, avoiding redundant computation for near-zero or zero differences. Ditto execution flow optimization reorganizes memory access patterns to reduce the memory overhead of storing and retrieving temporal difference data. The Ditto hardware accelerator is co-designed with the algorithm, with specialized units for dynamic difference sparsity exploitation.",
+  "key_novelty": "Algorithm-hardware co-design that quantizes inter-timestep activation differences to exploit temporal sparsity in diffusion model denoising, performing near-zero or zero-difference skipping without accuracy loss.",
+  "contributions": [
+    "Analysis showing adjacent diffusion time steps have narrow differences representable at reduced bit-widths or zero",
+    "Ditto algorithm using temporal difference processing with the distributive property to skip redundant computation",
+    "Ditto execution flow optimization to reduce memory overhead of temporal difference management",
+    "Ditto hardware accelerator achieving up to 1.5x speedup and 17.74% energy saving vs baseline accelerators"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["approximation", "sparsity", "quantization", "dataflow"],
+  "workloads": ["diffusion"],
+  "metrics": {
+    "speedup": "Up to 1.5x speedup vs other accelerators",
+    "energy_or_tops_w": "17.74% energy saving vs other accelerators"
+  },
+  "baselines": ["other diffusion model hardware accelerators (unspecified)"],
+  "limitations": "The 1.5x speedup and 17.74% energy saving are modest; baseline accelerators are not specifically named in the abstract.",
+  "tags": ["diffusion-model", "temporal-similarity", "quantization", "sparsity", "hardware-accelerator"],
+  "primary_theme": "temporal difference sparsity exploitation for diffusion model acceleration",
+  "confidence": "low"
+}

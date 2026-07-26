@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-112",
+  "title": "GPUs All Grown-Up: Fully Device-Driven SpMV Using GPU Work Graphs",
+  "venue": "ISCA",
+  "problem": "Sparse matrix-vector multiplication (SpMV) on GPUs requires expensive host-side preprocessing to select per-row algorithms based on non-zero distribution, forcing costly CPU-GPU round-trips and limiting cache locality. This preprocessing adds latency that is particularly problematic for iterative solvers with repeated SpMV calls.",
+  "motivation": "SpMV is a fundamental kernel in HPC and graph analytics, and its irregular sparsity patterns make static per-row algorithm selection at compile time impossible, yet existing GPU approaches pay high overhead for dynamic selection through host involvement.",
+  "method": "The paper leverages GPU Work Graphs, a novel GPU programming model originally designed for graphics, to implement fully device-driven SpMV self-scheduling. Work Graphs enable fine-grained dataflow execution of individual workgroups using emerging GPU hardware and firmware support (AMD GPUs with rocSPARSE stack). Preprocessing is fused with per-row computation: as soon as preprocessing generates sufficient work metadata, workgroups of specialized per-row SpMV kernels are self-scheduled and dispatched on-device without host interaction. This interleaving improves L1/L2 cache locality and eliminates CPU-GPU synchronization entirely. The approach uses a fixed 25 MiB device-side supporting data structure independent of matrix size, contrasting with scaling structures in rocSPARSE LRB.",
+  "key_novelty": "Applying GPU Work Graphs—a hardware/firmware-level on-device self-scheduling mechanism—to SpMV to fuse preprocessing and per-row computation on the GPU, eliminating host interaction and improving cache locality.",
+  "contributions": [
+    "First application of GPU Work Graphs to sparse linear algebra (SpMV), enabling fully device-driven preprocessing and execution.",
+    "Novel Work Graphs SpMV kernels that self-schedule per-row algorithms based on dynamically determined non-zero structure.",
+    "Up to 7.19x speedup (mean 3.35x) over rocSPARSE LRB for single SpMV across 59 sparse matrices.",
+    "75% reduction in code complexity and a fixed 25 MiB memory footprint independent of matrix size."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "dataflow", "memory-system"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "speedup": "up to 7.19x (mean 3.35x, SD 1.89) over rocSPARSE LRB for single SpMV; beats rocSPARSE CSR-Adaptive for up to 92 consecutive SpMV calls",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "75% reduction in code complexity; fixed 25 MiB data structure vs. matrix-size-scaling rocSPARSE LRB structures"
+  },
+  "baselines": ["rocSPARSE LRB", "rocSPARSE CSR-General", "rocSPARSE CSR-Adaptive"],
+  "limitations": "Evaluation is limited to AMD GPUs supporting Work Graphs (rocSPARSE/ROCm ecosystem); portability to NVIDIA CUDA and generalization to SpMM or other sparse kernels is not demonstrated.",
+  "tags": ["spmv", "gpu", "work-graphs", "self-scheduling", "sparse-linear-algebra", "hpc"],
+  "primary_theme": "device-driven GPU self-scheduling for sparse matrix-vector multiplication",
+  "confidence": "low"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "micro-2025-118",
+  "title": "Characterizing and Optimizing Realistic Workloads on a Commercial Compute-in-SRAM Device",
+  "venue": "MICRO",
+  "problem": "Prior compute-in-SRAM evaluations rely on simulators or small prototypes, so the real-world performance and energy efficiency of commercial devices under realistic AI workloads (particularly retrieval-augmented generation over large corpora) is not well understood, and programming principles for exploiting the architecture's 2-million bit-processor parallelism are largely unknown.",
+  "motivation": "Compute-in-SRAM architectures achieve massive on-chip bandwidth (26 TB/s on the GSI APU vs. 7 TB/s for A100 GPU) at far lower power, making them attractive for memory-bound AI workloads, but extracting this potential requires non-obvious data layout and movement optimizations that existing analytical models do not capture.",
+  "method": "The paper characterizes the commercial GSI APU (2M 1-bit processors at 500 MHz, 25 TOPS, 26 TB/s on-chip bandwidth, 12MB L1 / 64KB L2 / 1MB L3 / 16GB DDR) using the Phoenix benchmark suite and matrix multiplication microbenchmarks, and develops a Python-based analytical framework modeling non-uniform data movement costs across 4 memory levels (L1-L4) and intra-VR vs. inter-VR operations. Three optimizations are proposed and validated on real hardware: (1) communication-aware reduction mapping that maps the reduction axis temporally to cheaper inter-VR operations (scalar-vector product) rather than costly intra-VR spatial reduction; (2) DMA coalescing via subgroup copy to eliminate redundant off-chip data duplication across loop iterations; and (3) broadcast-friendly data layouts that reduce L3 lookup table sizes from K*N to N elements to cut broadcast latency. These optimizations are applied to RAG retrieval over 10-200GB corpora.",
+  "key_novelty": "First comprehensive real-hardware evaluation of a commercial compute-in-SRAM device (GSI APU) under realistic AI workloads, revealing that even compute-in-SRAM can be bandwidth-bound without careful data layout optimization, and demonstrating three concrete optimizations that approach the compute roofline.",
+  "contributions": [
+    "First comprehensive real-hardware performance and energy characterization of a commercial compute-in-SRAM device (GSI APU) under Phoenix benchmarks, matrix multiplication, and RAG workloads",
+    "Analytical framework modeling non-uniform data movement costs and hierarchical reduction latencies for general-purpose compute-in-SRAM architectures",
+    "Three data movement and layout optimizations: communication-aware reduction mapping, DMA coalescing, and broadcast-friendly layouts",
+    "4.8x-6.6x retrieval speedup over CPU and GPU-matching latency for RAG at 54.4x-117.9x lower energy than NVIDIA A6000"
+  ],
+  "hardware_target": ["CIM (compute-in-memory)"],
+  "technique_category": ["memory-system", "near-data-processing", "dataflow"],
+  "workloads": ["LLM-inference", "database"],
+  "metrics": {
+    "speedup": "4.8x-6.6x retrieval speedup over optimized CPU; 1.1x-1.8x end-to-end RAG latency improvement; matches NVIDIA A6000 GPU latency for RAG",
+    "energy_or_tops_w": "54.4x-117.9x energy reduction vs. NVIDIA A6000 GPU for RAG; 41.8x speedup over CPU on Phoenix benchmarks"
+  },
+  "baselines": ["Intel Xeon Gold 6230R CPU", "NVIDIA A6000 GPU"],
+  "limitations": "The off-chip (DDR4/HBM) memory bandwidth is modeled via simulation rather than measured; results apply to the specific GSI APU architecture and generalization to other compute-in-SRAM designs requires re-profiling the analytical framework.",
+  "tags": ["compute-in-sram", "gsi-apu", "rag", "energy-efficiency", "characterization", "data-layout"],
+  "primary_theme": "Real-hardware compute-in-SRAM characterization and optimization for RAG",
+  "confidence": "high"
+}

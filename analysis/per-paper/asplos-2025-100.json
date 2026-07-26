@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-100",
+  "title": "Vela: A Virtualized LLM Training System with GPU Direct RoCE",
+  "venue": "ASPLOS",
+  "problem": "LLM training at scale typically requires dedicated bare-metal GPU clusters with specialized interconnects (InfiniBand, NVLink), but deploying LLM training on cloud-native virtualized infrastructure using commodity hardware and standard Ethernet-based RDMA (RoCE) introduces performance challenges from virtualization overhead and suboptimal network stack interactions.",
+  "motivation": "Making LLM training infrastructure accessible on commodity cloud hardware (RDMA over Converged Ethernet, KVM virtualization) broadens access and reduces cost, but achieving acceptable efficiency requires careful co-design of the virtualization and network layers.",
+  "method": "Vela uses Linux KVM-based virtualization with SRIOV-based network interfaces to enable GPU-to-GPU peer-to-peer DMA (GPU Direct) across VMs without passing through the host CPU. VMs are connected via a virtualized RoCE (RDMA over Converged Ethernet) network built from off-the-shelf NICs. The system was deployed on NVIDIA A100 GPUs in IBM Cloud, using model parallelism for a 50B-parameter decoder model at ~1500 GPU scale, and insights from 2.5 years of production operation guide architectural recommendations.",
+  "key_novelty": "Demonstrating that GPU Direct RoCE with KVM virtualization and SRIOV can achieve approximately 80% of ideal LLM training throughput at 1500-GPU scale using entirely commodity, off-the-shelf hardware.",
+  "contributions": [
+    "A production-scale cloud-native LLM training system architecture using KVM virtualization, SRIOV NICs, and GPU Direct RoCE.",
+    "~80% of ideal throughput training a 50B-parameter model at ~1500 GPU scale, and ~70% per-GPU FLOPS vs. single-VM HPL benchmark.",
+    "2.5 years of operational insights on designing, building, and operating virtualized AI infrastructure.",
+    "Identification of performance bottlenecks and improvement opportunities for future virtualized AI systems."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["interconnect", "virtualization", "parallelism"],
+  "workloads": ["LLM-training"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "~80% of ideal throughput at 1500-GPU scale (50B param model); ~70% per-GPU FLOPS vs single-VM HPL"
+  },
+  "baselines": ["ideal (non-virtualized) throughput", "single VM with High-Performance Linpack"],
+  "limitations": "The 80% efficiency figure leaves a 20% gap whose sources are acknowledged but not fully resolved in this work.",
+  "tags": ["llm-training", "rdma", "roce", "virtualization", "cloud", "a100"],
+  "primary_theme": "Cloud-native LLM training on virtualized GPU infrastructure with GPU Direct RoCE",
+  "confidence": "low"
+}

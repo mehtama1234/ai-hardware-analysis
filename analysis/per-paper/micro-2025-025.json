@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-025",
+  "title": "ρHammer: Reviving RowHammer Attacks on New Architectures via Prefetching",
+  "venue": "MICRO",
+  "problem": "Conventional load-based (MOV instruction) RowHammer attacks have become ineffective on the most recent Intel architectures (Alder Lake / Raptor Lake, 12th–14th gen), where load-based hammering produces zero bit flips, primarily because insufficient DRAM row activation rates and more aggressive out-of-order/speculative execution disrupt the attack's hammering order.",
+  "motivation": "DRAM densification continues to increase RowHammer vulnerability, but attack techniques have lagged behind architectural defenses and microarchitectural complexity of newer platforms, leaving a critical gap in understanding real-world exploitability.",
+  "method": "ρHammer introduces three coordinated techniques: (1) A layout-agnostic DRAM address mapping reverse-engineering algorithm using selective pairwise SBDR (Same-Bank Different-Row) timing measurements in a three-step Duet/Trios/Quartet structured deduction that recovers full bank functions in polynomial time without prior knowledge of bank bit counts or layouts; (2) A prefetch-based hammering paradigm exploiting the asynchronous nature of x86 PREFETCHT2/PREFETCHNTA instructions, which retire after forwarding to L1 LFB without stalling the CPU, combined with multi-bank parallelism to maximize per-tREFI activation rate while also alleviating disorder through bank-interleaving latency; (3) A counter-speculation technique using runtime control-flow obfuscation (indirect addressing) and NOP-based pseudo-barriers tuned to neutralize OoO execution and branch prediction reordering without using explicit memory barriers, which cannot order prefetch instructions per Intel SDM.",
+  "key_novelty": "A prefetch-based Rowhammer hammering paradigm that exploits the asynchronous, non-blocking nature of x86 software prefetch instructions to bypass load-based activation rate bottlenecks, enabling the first successful RowHammer attacks on Raptor Lake where all prior methods completely fail.",
+  "contributions": [
+    "Generic, layout-agnostic DRAM address mapping reverse-engineering using structured SBDR pairwise deduction (Duet/Trios/Quartet), recovering full mappings in under 10 seconds on Alder/Raptor Lake where all existing tools fail.",
+    "Prefetch-based hammering paradigm leveraging asynchronous x86 PREFETCH instructions and multi-bank parallelism, achieving 112x higher flip rates than load-based baselines on Comet/Rocket Lake.",
+    "Counter-speculation hammering technique combining control-flow obfuscation and NOP pseudo-barriers to mitigate OoO/branch-prediction disorder unique to prefetch instructions.",
+    "First demonstrated RowHammer attacks on Raptor Lake (14th-gen Intel), achieving 2,291 flips/min; enables end-to-end exploitation and open-sourced implementation."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "security", "prefetching"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "flip rate: 187K/min on Comet Lake (112.4x over load baseline); 47K/min on Rocket Lake (47.1x over baseline); 2,291/min on Raptor Lake (baseline: 0); 200K+ bit flips in 2-hour fuzzing on Comet Lake"
+  },
+  "baselines": ["load-based Rowhammer (MOV + clflushopt)", "non-uniform hammering frameworks (BlackSmith, SMASH)"],
+  "limitations": "Reverse-engineering and hammering require root privileges (Linux pagemap interface for virtual-to-physical translation); attack does not address DDR5 or TRR-equipped DDR5 DIMMs, and RowPress effects are explicitly out of scope.",
+  "tags": ["rowhammer", "dram-security", "prefetching", "speculative-execution", "memory-vulnerability", "reverse-engineering"],
+  "primary_theme": "Prefetch-based RowHammer revival on modern Intel architectures",
+  "confidence": "high"
+}

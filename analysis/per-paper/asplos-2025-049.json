@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-049",
+  "title": "Past-Future Scheduler for LLM Serving under SLA Guarantees",
+  "venue": "ASPLOS",
+  "problem": "LLM serving frameworks using continuous batching suffer from either overestimation of memory consumption (conservative schedulers) or underestimation leading to harmful request evictions (aggressive schedulers), because neither accurately accounts for the dynamic memory release profile of concurrently running requests across future decoding steps.",
+  "motivation": "As LLM inference scales to thousands of GPUs serving tens of millions of requests per day under strict SLA constraints (TTFT, TPOT, MTPOT), maximizing goodput (SLA-satisfying throughput) requires precise KV-cache memory estimation that adapts to varying input-output length distributions across chatbot, code, and reasoning workloads.",
+  "method": "The Past-Future scheduler combines two components: (1) output length distribution prediction that samples predicted output lengths from the empirical distribution of recent historical requests (a sliding window of ~1,000 finished requests), updating each running request's predicted remaining length at every decode step using the conditional distribution P(l > l_current); and (2) future required memory estimation that sorts running requests by estimated remaining length, computes memory occupancy at each future completion event, and determines peak future memory as max(M_t+1, M_t+2, ...) across all future completion times. A queued request is admitted only if adding it keeps peak future memory below hardware capacity. This is implemented in LightLLM with <1% scheduling overhead using GPU-parallel computation.",
+  "key_novelty": "The observation that LLM output length distributions are stable within adjacent time windows enables a parameter-free, model-agnostic historical-distribution sampling approach to precisely estimate peak future KV-cache memory demand for the entire running batch, eliminating both conservative underutilization and aggressive eviction.",
+  "contributions": [
+    "Discovery that LLM request output length distributions are stable within adjacent time windows, validated on six real-world trace datasets including BurstGPT and Mooncake.",
+    "Past-Future scheduler: a two-component algorithm estimating future peak memory via historical output length distribution sampling and per-future-completion-event memory accounting.",
+    "LightLLM: a production-deployed LLM serving framework implementing the Past-Future scheduler on a cluster of thousands of GPUs.",
+    "2-3x higher goodput than vLLM (aggressive) and TGI/DeepSpeed-MII (conservative) schedulers under heavy load across Llama2-7B, 13B, 70B models on A100, H800, and 4090 hardware."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "memory-system"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "2-3x higher goodput over aggressive/conservative schedulers under heavy load",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Memory utilization approaches theoretical optimum (93-94% vs 98% oracle) while eviction rate drops to ~3-7% vs 93% for aggressive at watermark=99%; 50-60% throughput improvement on multimodal LLaVA and Qwen-VL models"
+  },
+  "baselines": ["vLLM (aggressive scheduler)", "TGI (conservative scheduler)", "DeepSpeed-MII / FastGen (conservative)", "TensorRT-LLM (conservative)"],
+  "limitations": "The scheduler relies on distribution stationarity within adjacent time windows and may perform poorly if output length distributions shift abruptly (e.g., sudden workload type change); warm-up period needed at service startup.",
+  "tags": ["LLM-serving", "KV-cache", "scheduling", "SLA", "continuous-batching"],
+  "primary_theme": "history-aware future memory estimation for LLM serving scheduler goodput",
+  "confidence": "high"
+}

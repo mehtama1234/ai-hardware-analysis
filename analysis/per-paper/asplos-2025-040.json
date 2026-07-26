@@ -1,0 +1,30 @@
+{
+  "id": "asplos-2025-040",
+  "title": "ARC: Warp-level Adaptive Atomic Reduction in GPUs to Accelerate Differentiable Rendering",
+  "venue": "ASPLOS",
+  "problem": "During the backward pass of rasterization-based differentiable rendering (e.g., 3D Gaussian Splatting), gradient computation requires a large volume of atomic add operations to accumulate gradients from many Gaussian primitives into shared parameters, overwhelming the atomic units in the GPU L2 cache and causing long stalls that dominate training time.",
+  "motivation": "3D Gaussian Splatting training is widely used for novel-view synthesis and 3D scene reconstruction, but long backward-pass stalls from atomic contention block real-time or interactive use on modern GPU hardware.",
+  "method": "ARC introduces warp-level adaptive atomic reduction, a GPU microarchitecture extension that intercepts atomic add operations at the warp level before they reach the L2 cache atomic units. Within a warp, threads targeting the same memory address are first reduced together using warp-level shuffle instructions (or a small dedicated reduction buffer), producing a single atomic operation per warp instead of one per thread. The approach adaptively decides whether to apply warp-level reduction based on detected contention levels, avoiding overhead when atomics are already sparse.",
+  "key_novelty": "Warp-level coalescing of atomic reduction operations before they reach the L2 cache, adaptively gated by contention detection, specifically targeting the gradient accumulation bottleneck in differentiable rendering.",
+  "contributions": [
+    "Identification and characterization of atomic operation contention as the dominant bottleneck in 3D Gaussian Splatting backward pass on GPUs.",
+    "ARC: a warp-level adaptive atomic reduction mechanism that coalesces intra-warp atomics targeting the same address before issuing to L2.",
+    "Demonstration of significant training speedup for differentiable rendering workloads without loss of rendering quality."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "kernel-fusion", "scheduling"],
+  "workloads": ["diffusion", "vision"],
+  "metrics": {
+    "speedup": "not stated in abstract",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["baseline GPU without ARC"],
+  "limitations": "Not discussed; the approach targets atomic-heavy rendering kernels and may not generalize to sparse or non-contiguous atomic patterns.",
+  "tags": ["differentiable-rendering", "atomic-reduction", "GPU", "3D-gaussian-splatting", "memory-contention"],
+  "primary_theme": "warp-level atomic reduction for differentiable rendering",
+  "confidence": "low"
+}

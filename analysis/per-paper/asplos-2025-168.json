@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-168",
+  "title": "Hierarchical Prefetching: A Software-Hardware Instruction Prefetcher for Server Applications",
+  "venue": "ASPLOS",
+  "problem": "Server-side applications have large instruction working sets that cause severe front-end bottlenecks even with state-of-the-art fetch-directed instruction prefetching (FDIP), because record-and-replay prefetchers lose coverage and timeliness when actual control flow diverges from predicted control flow.",
+  "motivation": "Instruction cache misses are a primary bottleneck in modern server workloads (databases, web servers, key-value stores), and existing prefetchers fail when control flow variability causes mismatches between recorded and replayed sequences.",
+  "method": "Hierarchical Prefetching identifies coarse-grained functionality blocks called Bundles—spanning tens to hundreds of kilobytes of code—through lightweight static software analysis of the server binary. Hardware then uses a compact record-and-replay mechanism (under 2KB of on-chip SRAM) that prefetches entire Bundles when a bundle entry point is detected, rather than individual cache lines. Most Bundle metadata is stored in main memory, keeping on-chip storage minimal. The bundle formation analysis groups functionally related code regions that tend to execute together, tolerating control flow variability by prefetching the entire functional region rather than a precise sequence.",
+  "key_novelty": "Defining coarse-grained code Bundles (10s–100s KB) through software analysis and prefetching them wholesale in hardware, achieving high coverage and timeliness despite control flow variability with under 2KB of on-chip storage.",
+  "contributions": [
+    "Bundle abstraction: coarse-grained functionality blocks identified via software analysis for server code",
+    "Hierarchical prefetching microarchitecture combining software Bundle formation with lightweight hardware record-and-replay under 2KB on-chip storage",
+    "6.6% average IPC improvement over FDIP across 11 server workloads",
+    "Improved miss coverage and timeliness over prior instruction prefetchers under control flow variability"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "cache", "compiler"],
+  "workloads": ["database", "HPC"],
+  "metrics": {
+    "speedup": "6.6% average performance gain over FDIP across 11 server workloads"
+  },
+  "baselines": ["FDIP (fetch-directed instruction prefetching)", "other record-and-replay instruction prefetchers"],
+  "limitations": "Software analysis for Bundle formation must be performed offline per binary; effectiveness on highly dynamic or JIT-compiled server code not discussed.",
+  "tags": ["instruction-prefetching", "server", "front-end", "cache", "software-hardware-codesign"],
+  "primary_theme": "Coarse-grained hierarchical instruction prefetching for server front-end bottlenecks",
+  "confidence": "low"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-087",
+  "title": "To Cross, or Not to Cross Pages for Prefetching?",
+  "venue": "HPCA",
+  "problem": "L1D cache prefetchers operating with virtual addresses can issue prefetch requests across page boundaries, but whether page-cross prefetching is beneficial or harmful is workload- and phase-dependent, and existing prefetchers lack the intelligence to selectively enable or suppress these cross-page requests.",
+  "motivation": "State-of-the-art L1D prefetchers produce inaccurate page-cross prefetches that pollute caches and waste TLB resources, yet completely disabling them also misses legitimate performance gains, motivating a dynamic, workload-aware decision mechanism.",
+  "method": "MOKA is a holistic framework for designing Page-Cross Filters that attach to existing L1D prefetchers. It combines three components: (i) hashed perceptron predictors using prefetcher-independent program features (PC, stride, memory access history) to estimate page-cross benefit, (ii) system-state-adaptive predictors that account for TLB pressure and MSHR occupancy, and (iii) a dynamic phase-switching scheme that periodically recalibrates filter decisions across changing execution phases. The resulting prototype filter, DRIPPER, is instantiated for Berti, IPCP, and BOP prefetchers without modifying their core logic.",
+  "key_novelty": "A systematic, predictor-agnostic framework (MOKA) for selectively gating page-cross prefetch requests using phase-adaptive hashed perceptron predictors that account for both program features and live system state.",
+  "contributions": [
+    "Comprehensive characterization showing page-cross L1D prefetching is rarely beneficial and often harmful across 218 workloads",
+    "MOKA framework unifying design principles for Page-Cross Filters applicable to any L1D prefetcher",
+    "DRIPPER, a concrete filter implementation that improves geomean performance over both always-cross and never-cross strategies",
+    "Demonstration of consistent benefits across both 4KB and 2MB huge page configurations"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "cache"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "1.7% over always-cross Berti (single-core); 2.5% over never-cross Berti; 2.0%/3.3% geomean on 8-core mixes vs always/never-cross"
+  },
+  "baselines": ["Berti (always page-cross)", "Berti (never page-cross)", "IPCP", "BOP"],
+  "limitations": "Evaluation focuses on single-threaded and 8-core multiprogrammed workloads; server-scale NUMA or accelerator-coupled scenarios are not explored.",
+  "tags": ["prefetching", "cache", "l1d", "page-boundary", "perceptron-predictor"],
+  "primary_theme": "Selective page-cross prefetch filtering for L1D caches",
+  "confidence": "low"
+}

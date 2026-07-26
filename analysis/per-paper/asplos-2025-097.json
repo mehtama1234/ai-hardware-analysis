@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-097",
+  "title": "Helix: Serving Large Language Models over Heterogeneous GPUs and Network via Max-Flow",
+  "venue": "ASPLOS",
+  "problem": "Serving LLMs across heterogeneous GPU clusters (differing GPU types, memory capacities, and interconnect speeds) is inefficient because existing systems cannot jointly optimize model placement and request scheduling to account for both GPU and network heterogeneity simultaneously.",
+  "motivation": "Real-world ML infrastructure increasingly mixes GPU generations and interconnect bandwidths; existing homogeneity-assuming serving systems leave significant throughput and latency on the table.",
+  "method": "Helix models the LLM inference computation over a heterogeneous cluster as a max-flow problem on a directed, weighted graph where nodes represent GPU instances and edge capacities encode both GPU compute throughput and network bandwidth. A Mixed Integer Linear Programming (MILP) solver operates on this graph to jointly discover optimized model placement (which layers/shards go where) and request scheduling (how tokens are routed through the cluster), treating the two tasks as a unified optimization rather than solving them independently.",
+  "key_novelty": "Formulating heterogeneous LLM serving as a max-flow problem that jointly optimizes model placement and request scheduling in a single MILP, exposing trade-offs invisible to decoupled approaches.",
+  "contributions": [
+    "A max-flow graph formulation that captures both GPU and network heterogeneity via directed weighted edges for LLM serving.",
+    "A MILP algorithm that jointly solves model placement and request scheduling on heterogeneous clusters.",
+    "Up to 3.3x throughput improvement and up to 66%/24% reduction in prompting/decoding latency over existing approaches on 24-42 GPU heterogeneous clusters.",
+    "Open-source Helix system available for reproducibility."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "parallelism"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "up to 3.3x throughput over existing approaches",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "prompting latency reduced up to 66%, decoding latency reduced up to 24%"
+  },
+  "baselines": ["existing heterogeneous LLM serving approaches (unnamed in abstract)"],
+  "limitations": "MILP solving time and scalability beyond 42-GPU clusters are not discussed.",
+  "tags": ["llm-serving", "heterogeneous-cluster", "max-flow", "milp", "model-placement", "scheduling"],
+  "primary_theme": "Max-flow-based joint model placement and scheduling for heterogeneous LLM serving",
+  "confidence": "low"
+}

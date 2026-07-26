@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-068",
+  "title": "InstAttention: In-Storage Attention Offloading for Cost-Effective Long-Context LLM Inference",
+  "venue": "HPCA",
+  "problem": "Long-context LLM inference at large batch sizes generates KV caches that exceed GPU VRAM capacity; offloading KV caches to SSDs via PCIe creates a critical bandwidth bottleneck that severely limits throughput.",
+  "motivation": "Growing context lengths and batch sizes in offline LLM inference for resource-constrained scenarios (e.g., edge) demand cost-effective storage solutions that do not sacrifice throughput to PCIe bandwidth limitations.",
+  "method": "InstAttention offloads both the attention computation and KV cache storage to Computational Storage Drives (CSDs), which have high internal NAND bandwidth not limited by PCIe. A flash-aware in-storage attention engine executes the attention decode phase directly inside the CSD, with KV cache management mechanisms tailored to flash access patterns (e.g., large sequential reads). Optimized P2P transmission between GPU and CSDs eliminates unnecessary data migration back across PCIe. The system targets offline inference of a 13B model on an NVIDIA A6000 GPU.",
+  "key_novelty": "Offloading attention computation itself (not just storage) to in-storage CSD compute units, leveraging internal flash bandwidth to bypass the PCIe bottleneck for long-sequence KV cache access.",
+  "contributions": [
+    "InstAttention system architecture offloading attention decode computation and KV cache to CSDs",
+    "Flash-aware in-storage attention engine with KV cache management for CSD flash access patterns",
+    "P2P GPU-to-CSD transmission mechanism reducing data migration overhead",
+    "Up to 11.1x throughput improvement over SSD-based offloading (FlexGen) for long-sequence 13B inference on A6000"
+  ],
+  "hardware_target": ["GPU", "ASIC"],
+  "technique_category": ["near-data-processing", "memory-system", "kernel-fusion"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "up to 11.1x throughput improvement over FlexGen for long-sequence inference (13B model, A6000 GPU)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["FlexGen (SSD-based LLM offloading)"],
+  "limitations": "Not discussed; approach is targeted at offline inference and may require redesign for latency-sensitive online inference scenarios.",
+  "tags": ["llm-inference", "kv-cache", "in-storage-compute", "csd", "long-context"],
+  "primary_theme": "in-storage attention computation for long-context LLM inference",
+  "confidence": "low"
+}

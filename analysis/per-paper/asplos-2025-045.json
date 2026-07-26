@@ -1,0 +1,30 @@
+{
+  "id": "asplos-2025-045",
+  "title": "Klotski: Efficient Mixture-of-Expert Inference via Expert-Aware Multi-Batch Pipeline",
+  "venue": "ASPLOS",
+  "problem": "Mixture-of-Experts (MoE) LLMs with trillion-scale parameters must be offloaded to CPU/disk memory when GPU VRAM is insufficient, but each expert's compute time per token is shorter than the I/O time to load it, creating large pipeline bubbles that negate the benefit of overlapping I/O and computation.",
+  "motivation": "MoE models enable parameter scaling without proportional compute growth, but their sparse expert activation makes the offloading compute-to-I/O ratio unfavorable, bottlenecking inference throughput on commodity hardware.",
+  "method": "Klotski introduces an expert-aware multi-batch pipeline that maintains multiple batches in flight simultaneously and schedules which experts to prefetch and compute based on expert routing decisions across batches. By batching tokens that activate the same expert across multiple concurrent requests, Klotski increases per-expert compute volume to exceed I/O time, eliminating pipeline bubbles. The system tracks expert access patterns across batches and uses an expert prefetching scheduler that co-optimizes I/O and compute assignment to saturate both the memory bus and compute units.",
+  "key_novelty": "An expert-aware multi-batch pipeline for MoE offloading that batches tokens across multiple concurrent requests routed to the same expert to amortize I/O cost and eliminate pipeline bubbles.",
+  "contributions": [
+    "Analysis of the compute-I/O imbalance bottleneck in offloaded MoE inference and the pipeline bubble problem.",
+    "Klotski expert-aware multi-batch pipeline that co-schedules I/O prefetch and compute across concurrent batches.",
+    "Significant throughput improvement for trillion-parameter MoE inference on memory-constrained hardware."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "memory-system", "parallelism"],
+  "workloads": ["LLM-inference", "MoE"],
+  "metrics": {
+    "speedup": "not stated in abstract",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "pipeline bubble reduction for offloaded MoE inference"
+  },
+  "baselines": ["existing offloading-based MoE inference frameworks"],
+  "limitations": "Multi-batch pipelining increases request latency per batch since batches wait for others; not discussed explicitly.",
+  "tags": ["MoE", "LLM-inference", "offloading", "scheduling", "pipeline"],
+  "primary_theme": "multi-batch expert-aware scheduling for offloaded MoE inference",
+  "confidence": "low"
+}

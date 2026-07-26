@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-051",
+  "title": "Let-Me-In: (Still) Employing In-pointer Bounds Metadata for Fine-grained GPU Memory Safety",
+  "venue": "HPCA",
+  "problem": "GPU programs written in C/C++ inherit memory safety vulnerabilities such as out-of-bounds accesses. The heterogeneous GPU memory hierarchy (heap, local memory, thousands of concurrent threads) makes it difficult to enforce fine-grained bounds checking with low overhead.",
+  "motivation": "As GPUs are deployed in safety-critical systems (autonomous driving, medical diagnostics), memory corruption bugs pose serious reliability and security risks, and existing GPU memory safety schemes impose prohibitive metadata storage or performance costs.",
+  "method": "LMI aligns GPU memory allocations to powers-of-two boundaries and performs static analysis at compile time to identify and mark pointer arithmetic instructions. Bounds metadata (base and size) is encoded into the unused upper bits of 64-bit GPU virtual address pointers, eliminating separate metadata memory structures. Hardware bounds-checking logic validates each memory access against the in-pointer metadata before issuing the request, adding minimal per-access latency even under thousands of concurrent threads.",
+  "key_novelty": "Storing per-object bounds metadata entirely within the unused upper bits of GPU pointers, made feasible by power-of-two allocation alignment and static pointer-arithmetic tagging, eliminating separate metadata tables and their associated overhead.",
+  "contributions": [
+    "Fine-grained GPU memory safety mechanism (LMI) covering heap and local memory with negligible hardware overhead",
+    "Power-of-two allocation alignment strategy that enables in-pointer metadata encoding on GPUs",
+    "Static analysis pass that identifies and marks pointer arithmetic instructions to enable runtime bounds derivation",
+    "Evaluation demonstrating near-zero performance and hardware cost overhead compared to prior GPU memory safety proposals"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["security", "memory-system", "compiler"],
+  "workloads": ["CNN", "HPC"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": "negligible hardware overhead (claimed)",
+    "accuracy": null,
+    "other": "negligible performance overhead vs baseline GPU execution"
+  },
+  "baselines": ["baseline GPU without memory safety", "prior GPU memory safety mechanisms"],
+  "limitations": "Coverage is limited to heap and local memory; global/shared GPU memory safety and complex pointer aliasing patterns may not be fully addressed.",
+  "tags": ["gpu-security", "memory-safety", "bounds-checking", "pointer-tagging", "static-analysis"],
+  "primary_theme": "fine-grained GPU memory safety via in-pointer metadata",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-148",
+  "title": "Micro Blossom: Accelerated Minimum-Weight Perfect Matching Decoding for Quantum Error Correction",
+  "venue": "ASPLOS",
+  "problem": "Minimum-Weight Perfect Matching (MWPM) decoders for quantum error correction (QEC) on surface codes require sub-microsecond latency to avoid accumulating idle logical errors during fault-tolerant gate feedforward, but all prior exact MWPM implementations on CPUs achieve multi-microsecond latency and the blossom algorithm was believed to be too complex for hardware acceleration. Approximate decoders that achieve low latency sacrifice accuracy, causing 1.7x-13.9x more logical errors at code distance 13.",
+  "motivation": "Fault-tolerant logical T-gates require decoder feedforward within ~1 microsecond for superconducting qubits; every microsecond of decoding latency multiplies the effective logical error rate by a factor of (1 + L/d), making exact MWPM decoding latency the critical path for practical fault-tolerant quantum computation.",
+  "method": "Micro Blossom employs a heterogeneous CPU+FPGA architecture that partitions the blossom algorithm into primal (CPU) and dual (hardware) phases. The FPGA accelerator instantiates one vertex processing unit (vPU) and one edge processing unit (ePU) per node and edge in the decoding graph, achieving O(d^3) parallel PUs. The dual phase—the dominant bottleneck—is fully parallelized: each vPU maintains compact per-vertex state (residue, unique-touch, unique-node, direction) and communicates only with graph neighbors via a broadcast/convergecast network. Isolated conflicts (the common case at low error rates) are detected and resolved entirely in hardware without CPU involvement via parallel ePU logic, reducing average CPU interactions from O(p*|V|+1) to O(p^2*|V|+1). Round-wise fusion processes each measurement round incrementally as it arrives, achieving stream decoding with constant latency independent of the number of rounds. The hardware is generated from a decoding-graph JSON specification via SpinalHDL to synthesizable Verilog.",
+  "key_novelty": "The first hardware-accelerated exact MWPM decoder: a per-vertex/per-edge parallel processing unit architecture implementing the blossom algorithm's dual phase entirely in programmable logic, combined with hardware-resident isolated-conflict resolution and round-wise fusion for sub-microsecond stream decoding.",
+  "contributions": [
+    "Heterogeneous CPU+FPGA architecture for exact MWPM decoding achieving sub-microsecond average latency (0.8 us at d=13, p=0.1%)",
+    "Vertex- and edge-level parallelization of the blossom algorithm's dual phase using compact per-vPU/ePU state with only local connectivity",
+    "Hardware-resident isolated-conflict detection and resolution that eliminates O(p|V|) CPU interactions, improving average complexity from O(pd^3+1) to O(p^2*d^2+1)",
+    "Round-wise fusion for low-latency stream decoding with constant latency regardless of measurement rounds; 8x lower latency than best prior MWPM implementation"
+  ],
+  "hardware_target": ["FPGA"],
+  "technique_category": ["circuit-design", "parallelism", "near-data-processing"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "8x lower average decoding latency than best prior MWPM (Sparse Blossom) at d=13, p=0.1%",
+    "energy_or_tops_w": null,
+    "area": "Xilinx Versal VMK180 FPGA prototype; O(d^3) PUs for surface code distance d",
+    "ppa": null,
+    "accuracy": "Exact MWPM (same logical error rate as software Parity Blossom); 17x total latency reduction vs. Parity Blossom CPU baseline",
+    "other": "Average decoding latency 0.8 us at d=13, p=0.1% at 62 MHz; worst-case complexity O(d^9) vs. O(d^12) prior"
+  },
+  "baselines": ["Parity Blossom (Apple M1 Max CPU)", "Sparse Blossom (Apple M1 Max CPU)", "Helios (approximate decoder)", "Union-Find decoder"],
+  "limitations": "The FPGA prototype runs at a moderate 62 MHz clock; ASIC implementation would enable higher clock speeds and support larger code distances for sub-microsecond latency, but no ASIC results are presented.",
+  "tags": ["quantum-error-correction", "mwpm-decoding", "fpga-acceleration", "blossom-algorithm", "surface-code", "heterogeneous-architecture"],
+  "primary_theme": "hardware-accelerated quantum error correction decoding",
+  "confidence": "high"
+}

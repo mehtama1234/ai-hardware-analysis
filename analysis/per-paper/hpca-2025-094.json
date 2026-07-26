@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-094",
+  "title": "Prosperity: Accelerating Spiking Neural Networks via Product Sparsity",
+  "venue": "HPCA",
+  "problem": "Existing SNN accelerators exploit bit sparsity (zero-valued spikes) to skip zero multiplications, but this approach leaves substantial redundancy unexploited: non-zero spike patterns that produce structurally identical inner products across matrix rows are recomputed independently, wasting significant compute.",
+  "motivation": "SNNs are promising for ultra-efficient edge AI due to their event-driven spike computation, but realizing their full efficiency potential requires moving beyond simple bit-sparsity exploitation to capture combinatorial reuse patterns in sparse binary matrix multiplication.",
+  "method": "Product Sparsity is a new sparsity paradigm that identifies combinatorially similar binary spike patterns across matrix rows: if two rows share identical non-zero positions, their dot products with the same weight vector are identical and only one needs to be computed, with the result reused for the other. Prosperity implements this via a real-time pattern matching engine that groups rows by their spike pattern hash, computes the inner product once per unique pattern, and distributes results to all matching rows. This is applied to both fully-connected and convolutional layers of SNNs with binary activations.",
+  "key_novelty": "Product Sparsity: a novel combinatorial sparsity paradigm that reuses inner product results across matrix rows with matching binary spike patterns, achieving far higher effective sparsity than bit-level zero-skipping alone.",
+  "contributions": [
+    "Product Sparsity: a new sparsity paradigm exploiting combinatorial similarity in binary spike patterns for computation reuse",
+    "11x reduction in computation for SpikeBERT vs bit sparsity alone (density 1.23% vs 13.19%)",
+    "Prosperity ASIC architecture with real-time pattern matching and result reuse engine",
+    "7.4x speedup and 8.0x energy efficiency over prior SNN accelerator PTB; 1.8x speedup and 193x energy efficiency over A100"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["sparsity", "dataflow"],
+  "workloads": ["transformer", "CNN"],
+  "metrics": {
+    "speedup": "7.4x over PTB SNN accelerator; 1.8x over A100 GPU",
+    "energy_or_tops_w": "8.0x energy efficiency over PTB; 193x energy efficiency over A100"
+  },
+  "baselines": ["PTB SNN accelerator", "A100 GPU"],
+  "limitations": "Product Sparsity benefit depends on the degree of pattern repetition in activation maps, which may vary significantly across SNN model architectures and input distributions.",
+  "tags": ["snn", "sparsity", "binary-activation", "asic", "computation-reuse"],
+  "primary_theme": "Product sparsity for SNN acceleration via combinatorial inner product reuse",
+  "confidence": "low"
+}

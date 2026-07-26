@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-050",
+  "title": "PAISE: PIM-Accelerated Inference Scheduling Engine for Transformer-based LLM",
+  "venue": "HPCA",
+  "problem": "LLM inference on GPUs is memory-bound due to the attention layer's low arithmetic intensity and high memory traffic from frequent KV-cache updates, leading to elevated latency under autoregressive token generation. GPU-only execution under-utilizes available bandwidth for attention operations.",
+  "motivation": "As LLM context lengths and batch sizes grow, the KV-cache bandwidth bottleneck worsens, making GPU-only inference increasingly inefficient and prompting exploration of near-memory execution.",
+  "method": "PAISE offloads memory-intensive attention operations from an AMD MI100 GPU to HBM-PIM devices via a GPU-PIM heterogeneous scheduling framework. A scheduling algorithm determines per-operation offload decisions based on model configuration (layer type, head count) and PIM hardware specifications (bandwidth, FLOPS). An enhanced PIM kernel implements transaction-wise interleave-batched GEMM, restructuring data layout so multiple attention heads' KV reads are interleaved across PIM banks, maximizing memory-level parallelism within the HBM-PIM device.",
+  "key_novelty": "Transaction-wise interleave-batched GEMM on HBM-PIM that reorders KV-cache data layout to exploit bank-level parallelism, combined with a model-aware scheduling algorithm that decides which transformer layers to offload.",
+  "contributions": [
+    "A scheduling algorithm that selects which operations to offload to PIM based on model and hardware parameters.",
+    "An enhanced PIM GEMM kernel with interleave-batching and data layout optimization for attention.",
+    "Implementation and evaluation on GPT-2 and Llama2-7B using AMD MI100 + HBM-PIM.",
+    "Up to 48.3% reduction in execution time for attention layers vs GPU-only inference."
+  ],
+  "hardware_target": ["GPU", "PIM (processing-in-memory)"],
+  "technique_category": ["near-data-processing", "scheduling", "memory-system"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "up to 48.3% execution time reduction vs GPU-only for attention layer"
+  },
+  "baselines": ["AMD MI100 GPU-only inference"],
+  "limitations": "Evaluated only on GPT-2 and Llama2-7B; larger models and multi-GPU configurations are not assessed.",
+  "tags": ["pim", "llm-inference", "attention", "hbm-pim", "heterogeneous-computing", "kv-cache"],
+  "primary_theme": "PIM-accelerated LLM attention offloading",
+  "confidence": "low"
+}

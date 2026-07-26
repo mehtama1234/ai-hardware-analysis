@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-084",
+  "title": "Concurrency-Informed Orchestration for Serverless Functions",
+  "venue": "ASPLOS",
+  "problem": "Serverless FaaS platforms suffer excessive cold starts because existing container keep-alive policies ignore concurrent invocations: they fail to reason about whether reusing a busy container (delayed warm start) or cold-starting a new container is preferable, and they make imbalanced eviction decisions that prematurely evict soon-to-be-reused containers.",
+  "motivation": "Concurrent function invocations are pervasive in production FaaS workloads, yet state-of-the-art keep-alive policies treat each invocation independently, causing unnecessary cold starts and latency inflation.",
+  "method": "CIDRE is a container orchestration algorithm that combines fine-grained container-level state (busy/idle, time-to-free) with coarse-grained concurrency signals to speculatively decide between a delayed warm start and a cold start under concurrent scaling. For eviction, CIDRE uses both container-level recency and concurrency-aware reuse probability to produce balanced eviction decisions that avoid removing containers still likely to be reused. The algorithm is evaluated on two production FaaS workload traces.",
+  "key_novelty": "CIDRE is the first FaaS keep-alive policy to explicitly model container concurrency state and use it to make speculative warm-vs-cold-start decisions and balanced eviction choices simultaneously.",
+  "contributions": [
+    "Identification of two new concurrency-driven challenges in FaaS keep-alive: delayed warm start tradeoff and imbalanced eviction",
+    "CIDRE algorithm combining fine-grained container and coarse-grained concurrency information for orchestration",
+    "Up to 75.1% reduction in cold start ratio and 39.3% reduction in average invocation overhead"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["scheduling", "virtualization"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "up to 39.3% average invocation overhead reduction",
+    "other": "up to 75.1% cold start ratio reduction vs state-of-the-art keep-alive policies"
+  },
+  "baselines": ["state-of-the-art FaaS container keep-alive policies"],
+  "limitations": "Evaluated on only two production workload traces; generalization to highly heterogeneous function mixes with extreme concurrency spikes not shown.",
+  "tags": ["serverless", "faas", "cold-start", "container-scheduling", "concurrency", "keep-alive"],
+  "primary_theme": "Concurrency-aware serverless container orchestration",
+  "confidence": "low"
+}

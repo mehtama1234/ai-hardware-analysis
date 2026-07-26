@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-081",
+  "title": "A. Delegato: Locality-Aware Atomic Memory Operations on Chiplets",
+  "venue": "MICRO",
+  "problem": "Chiplet-based architectures impose high, non-uniform memory access latencies across chiplet boundaries, severely degrading the performance of atomic memory operations (AMOs) used for fine-grained synchronization; existing solutions (near AMOs and centralized AMOs) either cause expensive cache-line ping-pong across chiplets or introduce coherence misses and require ALUs at the directory.",
+  "motivation": "Chiplet integration is now the primary scaling mechanism for large core-count processors, but the interposer latency (e.g., 50 ns NVLink in NVIDIA Grace) makes conventional AMO execution strategies significantly less efficient than in monolithic designs, harming parallel workload throughput.",
+  "method": "The paper introduces two new coherence transactions for far AMOs beyond centralized: (1) Delegated AMOs, which forward the RMW operation via a new SnpAMO snoop to the current cache-line owner, executing the operation locally without cache-line transfer; (2) Migrating AMOs, which transfer cache-line ownership to the requester using an AtomicLoad request (distinguishing it from a ReadUnique for smarter directory tracking). Five static directory AMO policies (All-Central, All-Migrate, Present-Central, Pinned-Owner, Unowned-Central) and a Chiplet-Aware policy are defined based on cache-line state and chiplet location. On top of this, Delegato is a tracing mechanism where the L2 private cache sets a one-bit reuse_bit in every SnpAMO response; the directory's Predictor Table transitions between Pinned-Owner, Present-Central, and Chiplet-Aware states based on this reuse feedback. Evaluated using gem5 23.1 with AMBA 5 CHI protocol, 32 OoO cores (dual 16-core chiplets), and HeteroGarnet NoC.",
+  "key_novelty": "Delegated and Migrating AMO coherence transactions that enable the directory to execute AMOs at the cache-line owner without invalidation or cache-line transfer, combined with a one-bit reuse tracing mechanism (Delegato) that transports private-cache locality information to the directory predictor.",
+  "contributions": [
+    "Two new far AMO coherence transactions (Delegated and Migrating) implemented within AMBA 5 CHI without requiring an ALU at the directory for Migrating",
+    "Five static directory AMO policies and a Chiplet-Aware policy exploiting requester and owner chiplet location",
+    "Delegato: a reuse-tracing mechanism piggybacking on SnpAMO responses to build a directory-level AMO predictor",
+    "1.13x speedup over state-of-the-art DynAMO predictor and 1.07x over All-Centralized AMOs, evaluated on 20+ benchmarks in gem5"
+  ],
+  "hardware_target": ["chiplet", "CPU"],
+  "technique_category": ["coherence", "interconnect", "memory-system"],
+  "workloads": ["graph-analytics", "HPC"],
+  "metrics": {
+    "speedup": "1.07x over centralized AMOs; 1.13x over DynAMO (state-of-the-art AMO predictor)",
+    "energy_or_tops_w": null,
+    "area": "atomic ALU extension: 2894 um2 at TSMC 7nm (0.11% of Neoverse V1 core tile)",
+    "ppa": null,
+    "accuracy": null,
+    "other": "Delegated AMOs reduce critical-path inter-chiplet messages from 4 to 2 in pathological cases"
+  },
+  "baselines": ["near AMOs (ReadUnique)", "centralized AMOs (All-Central)", "DynAMO hybrid predictor", "single-chiplet and dual-chiplet NVIDIA Grace CPU configurations"],
+  "limitations": "Delegate transactions currently limited to single-owner scenarios (multi-sharer case deferred); performance gains are modest (1.07x-1.13x geomean) reflecting the narrow optimization window for AMO-heavy workloads on this architecture.",
+  "tags": ["atomic-memory-operations", "chiplet", "coherence-protocol", "numa", "cache-locality", "chi-protocol"],
+  "primary_theme": "locality-aware atomic memory operation execution on chiplet architectures",
+  "confidence": "high"
+}

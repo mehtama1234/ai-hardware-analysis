@@ -1,0 +1,28 @@
+{
+  "id": "isca-2025-025",
+  "title": "Need for zkSpeed: Accelerating HyperPlonk for Zero-Knowledge Proofs",
+  "venue": "ISCA",
+  "problem": "Generating zero-knowledge proofs using the HyperPlonk zkSNARK protocol is prohibitively slow on CPUs, requiring minutes to hours, due to its four heterogeneous proof phases that demand large-bitwidth (255-381 bit) modular arithmetic over polynomials of degree up to 2^24. Existing ZKP accelerators target simpler protocols (Groth16, Orion, Spartan) that either require per-application trusted setups or produce large proofs, leaving HyperPlonk—which avoids both pitfalls—unaccelerated.",
+  "motivation": "HyperPlonk's combination of universal trusted setup and small proof sizes makes it ideal for blockchain and verifiable ML applications, but its prover workload is dominated by bandwidth-intensive SumCheck and compute-intensive Multi-Scalar Multiplication (MSM) kernels that require specialized hardware to be viable.",
+  "method": "zkSpeed is a modular ASIC comprising eight dedicated hardware units: a unified SumCheck unit (handling ZeroCheck, PermCheck, and OpenCheck variants with shared modular multipliers across terms), an MSM unit based on Pippenger's algorithm with improved bucket aggregation reducing aggregation latency by 92%, a Multifunction Tree Unit (MTU) using hybrid DFS/BFS tree traversal for Build MLE, MLE Evaluate, and Product MLE, a FracMLE unit using constant-time Binary Extended Euclidean Algorithm (BEEA) with Montgomery batching (batch size 64) to amortize modular inversion costs, and an MLE Combine unit with resource sharing between sequential OpenCheck phases. Units communicate via a 4-channel shared bus; global SRAM stores compressed on-chip MLE tables (10-11x compression via binary packing), while streaming SumCheck computations flow through HBM (2 TB/s target). A full-chip simulator sweeps thousands of design configurations for Pareto-optimal area-performance tradeoffs.",
+  "key_novelty": "A unified SumCheck PE architecture that handles all three HyperPlonk SumCheck variants (ZeroCheck, PermCheck, OpenCheck) with shared modular multipliers—saving 48.9% area—combined with a novel hybrid DFS/BFS Multifunction Tree Unit and Montgomery-batched modular inversion pipeline that together cover the complete HyperPlonk proving protocol in a single ASIC.",
+  "contributions": [
+    "A fully-pipelined unified SumCheck accelerator supporting all three HyperPlonk SumCheck polynomial structures with 48.9% area reduction via modular multiplier sharing.",
+    "A novel modular inversion architecture using constant-time BEEA with Montgomery batching (batch size 64) and multiplier tree, reducing latency imbalance and enabling one inversion output per cycle.",
+    "A Multifunction Tree Unit with hybrid DFS/BFS traversal eliminating full-level intermediate storage, saving 41.6% area across Pareto design points vs. dedicated units.",
+    "A full-chip design-space exploration (thousands of configurations) showing 801x geomean speedup over CPU (AMD EPYC 7502) at iso-compute area with a 366mm2, 7nm chip and 2 TB/s HBM."
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["circuit-design", "memory-system", "dataflow", "scheduling", "kernel-fusion"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "801x geomean over AMD EPYC 7502 CPU at iso-compute area (366mm2, 2 TB/s HBM)",
+    "area": "366mm2 at 7nm (full chip, excluding HBM PHY)",
+    "other": "48.9% area saved on SumCheck PE via multiplier sharing; 92% reduction in MSM bucket aggregation latency; 41.6% area saved via Multifunction Tree unit reuse; 10-11x on-chip MLE compression"
+  },
+  "baselines": ["AMD EPYC 7502 CPU (HyperPlonk reference implementation)", "NoCap (Spartan ZKP accelerator)", "SZKP (Groth16 MSM accelerator)"],
+  "limitations": "Evaluation uses synthetically generated mock circuits (no real application compiler for HyperPlonk exists), so workload diversity is limited; the accelerator is ASIC-only with fixed protocol support.",
+  "tags": ["zkp", "zero-knowledge-proofs", "hyperplonk", "sumcheck", "msm", "asic-accelerator"],
+  "primary_theme": "ASIC acceleration of zero-knowledge proof generation",
+  "confidence": "high"
+}

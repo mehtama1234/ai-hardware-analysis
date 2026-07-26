@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-022",
+  "title": "Adaptive CHERI Compartmentalization for Heterogeneous Accelerators",
+  "venue": "ISCA",
+  "problem": "Hardware accelerators in heterogeneous systems lack fine-grained memory protection: IOMMU-based isolation operates at page granularity, leaving intra-page accesses unprotected, while per-accelerator memory safety modifications require significant engineering effort and do not scale across diverse accelerator types.",
+  "motivation": "As accelerators are increasingly integrated into security-sensitive heterogeneous systems, memory safety violations (e.g., out-of-bounds accesses) can compromise the entire host system, yet retrofitting CHERI capability semantics into each accelerator individually is impractical.",
+  "method": "CapChecker is an adaptive hardware interface inserted between CHERI-unaware accelerators and the system memory bus. It imports capability metadata from the CPU's CHERI register file and enforces pointer-level bounds and permission checks on every memory access issued by the accelerator, without modifying the accelerator architecture itself. The interface interposes on the accelerator's memory request channel, decodes the capability tag and bounds from the CPU-managed capability table, and raises a fault on any out-of-bounds or permission-violating access. Capability grants from the CPU are communicated through a lightweight descriptor mechanism that maps accelerator DMA addresses to CHERI capabilities.",
+  "key_novelty": "A general-purpose, accelerator-architecture-agnostic capability enforcement shim (CapChecker) that extends CHERI pointer-level memory protection to CHERI-unaware accelerators by importing CPU capabilities at the hardware interface, requiring zero accelerator modification.",
+  "contributions": [
+    "General method for fine-grained pointer-level memory protection in heterogeneous systems without modifying accelerator architectures.",
+    "CapChecker hardware interface that imports CHERI capabilities from the CPU and enforces bounds/permission checks on all accelerator memory accesses.",
+    "Evaluation across diverse hardware accelerator benchmarks showing only 1.4% average performance overhead vs. unprotected baselines.",
+    "Demonstration that CHERI capability semantics can be extended beyond CPUs to arbitrary heterogeneous accelerators scalably."
+  ],
+  "hardware_target": ["ASIC", "RISC-V"],
+  "technique_category": ["security", "virtualization", "memory-system"],
+  "workloads": [],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "1.4% average performance overhead vs. CHERI-unaware accelerators across benchmark set"
+  },
+  "baselines": ["CHERI-unaware accelerators (no memory protection)", "IOMMU-based page-granularity isolation"],
+  "limitations": "Not discussed; intra-accelerator memory accesses that do not pass through the system memory bus may not be covered by CapChecker.",
+  "tags": ["cheri", "memory-safety", "heterogeneous-systems", "security", "capability-hardware", "accelerator"],
+  "primary_theme": "CHERI capability extension to heterogeneous accelerators for fine-grained memory protection",
+  "confidence": "low"
+}

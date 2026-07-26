@@ -1,0 +1,27 @@
+{
+  "id": "hpca-2025-116",
+  "title": "SkyByte: Architecting an Efficient Memory-Semantic CXL-based SSD with OS and Hardware Co-design",
+  "venue": "HPCA",
+  "problem": "CXL-based SSDs enable byte-granular memory expansion at low cost, but suffer from long flash access latency, unpredictable garbage collection stalls, and a fundamental mismatch between byte-granular CXL access and page-granular flash I/O that wastes significant bandwidth.",
+  "motivation": "Main memory capacity is a critical bottleneck as datasets scale, and CXL-SSDs offer a cost-effective path, but without architectural co-design their performance gap relative to DRAM makes them impractical for latency-sensitive workloads.",
+  "method": "SkyByte co-designs the host OS and SSD controller with three mechanisms: (1) opportunistic OS context switches triggered when the processor detects long CXL-SSD access delays, hiding latency via thread-level parallelism; (2) a cacheline-level write log and page-level data cache within SSD controller DRAM that coalesces byte-granular writes and performs data merging at log cleaning time to reduce flash I/O traffic; and (3) adaptive page migration that promotes hot CXL-SSD pages to fast host DRAM based on access frequency. The combination reduces both stall cycles and unnecessary flash I/O amplification.",
+  "key_novelty": "OS-level opportunistic context switching combined with a two-tier SSD controller DRAM structure (cacheline write log + page cache) that bridges the byte-granular CXL access and page-granular flash I/O mismatch.",
+  "contributions": [
+    "Opportunistic OS context switch mechanism triggered by CXL-SSD access delay detection to hide latency",
+    "Cacheline-level write log + page-level cache in SSD controller DRAM with coalescing log cleaning",
+    "Adaptive hot-page migration from CXL-SSD to host DRAM for frequently accessed data",
+    "6.11x speedup over current CXL-SSD; 23.08x reduction in flash I/O traffic; 75% of ideal DRAM performance"
+  ],
+  "hardware_target": ["SoC", "ASIC"],
+  "technique_category": ["memory-system", "cache", "near-data-processing", "scheduling"],
+  "workloads": ["database", "HPC"],
+  "metrics": {
+    "speedup": "6.11x over current CXL-based SSD",
+    "other": "23.08x reduction in flash chip I/O traffic; achieves 75% of ideal unlimited-DRAM performance"
+  },
+  "baselines": ["current CXL-based SSD (baseline)", "ideal case with unlimited host DRAM"],
+  "limitations": "Evaluation uses a CXL-SSD simulator rather than real hardware; latency variance from real NAND flash and GC characteristics may differ.",
+  "tags": ["cxl", "ssd", "memory-expansion", "flash", "os-co-design", "byte-addressable"],
+  "primary_theme": "OS-hardware co-design for byte-granular CXL-SSD memory expansion efficiency",
+  "confidence": "low"
+}

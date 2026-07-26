@@ -1,0 +1,26 @@
+{
+  "id": "isca-2025-066",
+  "title": "ANSMET: Approximate Nearest Neighbor Search with Near-Memory Processing and Hybrid Early Termination",
+  "venue": "ISCA",
+  "problem": "Approximate nearest neighbor search (ANNS) over large high-dimensional vector databases is both highly memory-bound and computationally wasteful: a large fraction of fetched vectors and their distance computations are ultimately discarded because many candidate vectors are far from the query. This dual inefficiency — excess memory traffic and low data utilization — limits throughput and energy efficiency on general-purpose computing platforms.",
+  "motivation": "Vector databases are growing rapidly for LLM retrieval-augmented generation and recommendation systems; ANNS at scale requires processing billions of high-dimensional vectors with tight latency budgets, making the memory bandwidth bottleneck and wasted computation a critical design problem.",
+  "method": "ANSMET co-designs a near-data processing (NDP) architecture at the memory rank level with a hybrid partial-dimension/bit early termination strategy. Distance calculation and comparison for ANNS are offloaded to near-data units within memory ranks, eliminating main memory bandwidth consumption for rejected vectors. As a vector is streamed from memory, ANSMET conservatively estimates a lower-bound distance using partial dimensions and/or partial bits of each element; if this lower bound already exceeds a threshold, the fetch and computation are terminated early. Data layout within a single memory access and across multiple memory ranks is co-optimized to match the early termination granularity, and a lightweight host-NDP coordination protocol manages index traversal and result sorting.",
+  "key_novelty": "The hybrid partial-dimension/bit early termination strategy conservatively estimates distance lower bounds during streaming to skip unnecessary data fetches, combined with rank-level near-data processing to eliminate host memory bandwidth consumption for rejected ANNS candidates.",
+  "contributions": [
+    "A rank-level near-data processing architecture for ANNS distance calculation and comparison that eliminates off-chip data movement for rejected vectors.",
+    "A hybrid early termination strategy combining partial-dimension and partial-bit distance lower-bound estimation during incremental vector fetching.",
+    "Co-optimized data layout within and across memory ranks to align with early termination granularity and maximize rank-level parallelism.",
+    "5.26x average speedup from NDP alone, plus an additional 1.52x from hybrid early termination on top."
+  ],
+  "hardware_target": ["PIM (processing-in-memory)"],
+  "technique_category": ["near-data-processing", "memory-system", "approximation"],
+  "workloads": ["database", "LLM-inference"],
+  "metrics": {
+    "speedup": "5.26x average from NDP; additional 1.52x from hybrid early termination (total ~8x)"
+  },
+  "baselines": ["general-purpose computing platform (CPU/GPU baseline for ANNS, unspecified)"],
+  "limitations": "Not discussed; the impact of early termination recall degradation on end-to-end retrieval quality is not quantified.",
+  "tags": ["anns", "vector-database", "near-data-processing", "early-termination", "memory-rank", "approximate-search"],
+  "primary_theme": "Near-memory processing with hybrid early termination for ANNS",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-129",
+  "title": "RTSpMSpM: Harnessing Ray Tracing for Efficient Sparse Matrix Computations",
+  "venue": "ISCA",
+  "problem": "Sparse matrix-matrix multiplication (SpMSpM) is a critical kernel for graph analytics, GNNs, and scientific computing, but existing GPU SpMSpM libraries underutilize hardware because the irregular memory access and conditional computation patterns of sparse data do not map well to standard GPU CUDA cores and tensor units.",
+  "motivation": "Modern GPUs include dedicated ray tracing hardware (RT cores) whose bounding-volume hierarchy traversal and ray-triangle intersection logic exhibits algorithmic similarity to sparse matrix intersection tests, offering an opportunity to repurpose existing silicon for sparse linear algebra without new manufacturing costs.",
+  "method": "The authors first observe the algorithmic analogy between SpMSpM (identifying non-zero output positions) and ray-triangle intersection (finding ray-geometry intersections), then implement SW-RTSpMSpM — an SpMSpM algorithm mapped to the standard ray tracing API (DXR/OptiX) that uses RT core intersection units for non-zero position detection. Analysis of the differences between the two algorithms motivates RT+SpMSpM, which introduces two architectural optimizations: (1) simultaneous computation of partial products alongside RT intersection tests (not just detection), and (2) a ray mapping and scheduling strategy paired with a small row accumulation engine (RAE) that exploits Gustavson's sparse row-by-column dataflow and eliminates reliance on shader fallbacks and redundant memory operations. The RAE introduces only 0.2% area overhead on a modern high-end RT GPU.",
+  "key_novelty": "Mapping SpMSpM as a ray tracing problem and then proposing targeted architectural extensions (simultaneous multiply with intersection + row accumulation engine) that boost efficiency while adding only 0.2% area to an existing RT-equipped GPU.",
+  "contributions": [
+    "SW-RTSpMSpM: software algorithm mapping SpMSpM to the ray tracing programming API, achieving 1.85x speedup over state-of-the-art SpMSpM library using existing RT cores.",
+    "Architectural analysis identifying the key gaps between ray tracing and SpMSpM that leave performance on the table.",
+    "RT+SpMSpM: two architectural optimizations (concurrent multiply-with-intersection and a row accumulation engine with Gustavson's dataflow) achieving 3.06x speedup over the software SpMSpM library with only 0.2% area overhead.",
+    "80% performance-per-area efficiency compared to a state-of-the-art dedicated SpMSpM accelerator, while retaining full ray tracing capability."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["sparsity", "dataflow", "near-data-processing"],
+  "workloads": ["graph-analytics", "GNN"],
+  "metrics": {
+    "speedup": "SW-RTSpMSpM: 1.85x over cuSPARSE; RT+SpMSpM: 3.06x over cuSPARSE; 1.66x over SW-RTSpMSpM",
+    "energy_or_tops_w": "80% performance per area vs. state-of-the-art SpMSpM accelerator",
+    "area": "0.2% area overhead added to GPU for RT+SpMSpM extensions",
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["cuSPARSE (state-of-the-art SpMSpM software library)", "state-of-the-art dedicated SpMSpM accelerator"],
+  "limitations": "The architectural proposals require modifications to future GPU RT core designs; evaluation of RT+SpMSpM is via simulation/modeling rather than fabricated silicon, and workload coverage is limited to SpMSpM benchmarks without broader sparse algebra.",
+  "tags": ["ray-tracing", "sparse-matrix", "gpu", "spmspM", "dataflow", "hardware-reuse"],
+  "primary_theme": "Repurposing GPU ray tracing hardware for sparse matrix multiplication",
+  "confidence": "low"
+}

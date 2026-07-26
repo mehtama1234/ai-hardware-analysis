@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-015",
+  "title": "Necro-reaper: Pruning away Dead Memory Traffic in Warehouse-Scale Computers",
+  "venue": "ASPLOS",
+  "problem": "A significant fraction of memory traffic in warehouse-scale computers (WSC) is unnecessary: it consists of writebacks of deallocated (dead) heap data and fetches of uninitialized data, neither of which carries useful information. Short-lived heap allocations larger than a cache line—common in WSC—exacerbate this problem.",
+  "motivation": "Memory bandwidth is a critical and growing bottleneck in warehouse-scale computing, and eliminating provably dead traffic can improve throughput and IPC without changing application semantics.",
+  "method": "Necro-reaper is a software/hardware co-design that introduces new ISA instructions to let the hardware skip unnecessary dead memory traffic without requiring hardware-level tracking of live/dead data. A profile-guided compiler analyzes allocation lifetimes and annotates call sites with the new instructions. A customized memory allocator extends these annotations to inform the hardware at deallocation time. The approach leverages WSC's existing vertical integration (shared hardware, OS, compiler, and allocator stack) to make the analysis and insertion of instructions practical.",
+  "key_novelty": "New ISA instructions that allow software (compiler + allocator) to signal dead heap regions to hardware, eliminating unnecessary writebacks and uninitialized-data fetches without hardware tracking.",
+  "contributions": [
+    "Identification and quantification of dead memory traffic (needless writebacks and uninitialized-data fetches) as a major WSC bottleneck",
+    "New ISA instructions enabling software-directed avoidance of dead memory traffic",
+    "Profile-guided compiler pass that annotates heap allocation/deallocation sites with dead-traffic-avoidance instructions",
+    "WSC-scale evaluation across 10 workloads showing 26% geomean memory traffic reduction and 6% geomean IPC gain"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "compiler", "cache", "near-data-processing"],
+  "workloads": ["database", "HPC"],
+  "metrics": {
+    "speedup": "6% geomean IPC increase across 10 WSC workloads",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "26% geomean memory traffic reduction"
+  },
+  "baselines": ["baseline without dead-traffic elimination (prior work requiring hardware tracking)"],
+  "limitations": "The approach requires WSC-style vertical integration (co-designed hardware, compiler, and allocator); applicability to commodity off-the-shelf systems is limited.",
+  "tags": ["dead-traffic", "memory-bandwidth", "wsc", "isa-extensions", "compiler", "heap-allocation"],
+  "primary_theme": "software-hardware co-design to eliminate dead memory traffic in warehouse-scale computers",
+  "confidence": "low"
+}

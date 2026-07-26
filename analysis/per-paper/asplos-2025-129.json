@@ -1,0 +1,27 @@
+{
+  "id": "asplos-2025-129",
+  "title": "EDM: An Ultra-Low Latency Ethernet Fabric for Memory Disaggregation",
+  "venue": "ASPLOS",
+  "problem": "Achieving low remote memory access latency over Ethernet for memory disaggregation remains unsolved; existing protocols (TCP/IP, RDMA/RoCEv2) are implemented atop the Ethernet MAC layer and incur fundamental MAC-layer latency and bandwidth overheads that are particularly severe for small memory messages.",
+  "motivation": "Memory disaggregation requires near-local-memory latency for remote accesses, but current Ethernet protocol stacks impose multi-microsecond latencies that make disaggregated memory impractical for latency-sensitive workloads.",
+  "method": "EDM implements the entire remote memory access protocol stack within the Physical layer (PHY) of the Ethernet, bypassing the MAC layer entirely to eliminate its fundamental latency overheads. At the switch level, EDM implements a centralized in-network scheduler operating within the Ethernet PHY, inspired by the Parallel Iterative Matching (PIM) algorithm, which dynamically allocates virtual circuits between compute and memory nodes. These virtual circuits reserve dedicated bandwidth in the PHY layer, eliminating queuing delay and Layer 2 packet processing delay at the switch while maintaining high bandwidth utilization. The FPGA testbed demonstrates ~300 ns unloaded latency for remote memory access.",
+  "key_novelty": "Moving the entire remote memory access protocol stack into the Ethernet PHY layer (bypassing MAC) and implementing a PIM-based centralized in-network scheduler at the PHY switch to create virtual circuits that eliminate queuing delay.",
+  "contributions": [
+    "EDM: a remote memory access protocol stack implemented entirely within the Ethernet PHY layer, bypassing the MAC",
+    "Centralized PIM-inspired in-network PHY scheduler that creates virtual circuits to eliminate queuing and L2 processing delays",
+    "FPGA testbed demonstrating ~300 ns unloaded remote memory access latency (order of magnitude lower than RoCEv2)",
+    "Network simulation showing latency remains within 1.3x unloaded latency even at high network loads"
+  ],
+  "hardware_target": ["FPGA", "SmartNIC"],
+  "technique_category": ["interconnect", "memory-system", "near-data-processing"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "~300 ns unloaded remote memory access latency vs. RoCEv2 (order of magnitude lower); 1.3x unloaded latency at high load",
+    "other": "comparable to PCIe-based CXL solutions"
+  },
+  "baselines": ["RoCEv2", "TCP/IP", "CXL (PCIe-based)"],
+  "limitations": "Centralized scheduler may face scalability challenges at very large network sizes; PHY-level implementation complexity and hardware cost not discussed.",
+  "tags": ["memory-disaggregation", "ethernet", "phy-layer", "low-latency", "in-network-scheduling", "rdma"],
+  "primary_theme": "ultra-low-latency Ethernet PHY-layer protocol for memory disaggregation",
+  "confidence": "low"
+}

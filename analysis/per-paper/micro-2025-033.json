@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-033",
+  "title": "Interleaved Bitstream Execution for Multi-Pattern Regex Matching on GPUs",
+  "venue": "MICRO",
+  "problem": "Bitparallel regex engines compile regular expressions into bitstream programs that expose fine-grained instruction-level parallelism well-suited for GPU execution, but the naive sequential (per-instruction loop-over-data) execution model suffers from poor data reuse — each data block is loaded multiple times across instructions — and high memory consumption from intermediate bitstream state, limiting GPU throughput.",
+  "motivation": "Pattern matching is a critical and performance-sensitive operation in unstructured data analytics (log processing, network intrusion detection, text search), and GPU-accelerated regex engines are increasingly important, but fundamental memory access inefficiencies prevent them from reaching peak GPU throughput.",
+  "method": "The paper introduces an interleaved bitstream execution model in which all bitstream instructions for all patterns are fused into a single loop body executed block-wise, so each data block is loaded once and processed by all instructions before moving to the next. Three key techniques make this practical on GPUs: (1) Dependency-Aware Thread-Data Mapping that resolves cross-block data dependencies — introduced because instructions in later iterations depend on state from prior blocks — via selective recomputation of dependency chains rather than communication; (2) Shift Rebalancing that restructures dependency chains to reduce the depth of synchronization barriers needed between warp threads; and (3) Zero Block Skipping that exploits bitstream sparsity (many blocks evaluate to all-zero intermediate state) to skip computation on zero blocks, reducing total work.",
+  "key_novelty": "An interleaved execution model that fuses all bitstream regex instructions into a single data-block-wise loop, improving data reuse and eliminating intermediate memory traffic, with dependency resolution via selective recomputation instead of inter-thread communication.",
+  "contributions": [
+    "Interleaved bitstream execution model fusing all regex instructions into a single block-wise loop to maximize data reuse on GPU.",
+    "Dependency-Aware Thread-Data Mapping that resolves cross-block bitstream dependencies via selective recomputation, making interleaved execution correct on GPU.",
+    "Shift Rebalancing optimization that balances dependency chain depth to reduce GPU synchronization barrier count.",
+    "Zero Block Skipping optimization exploiting bitstream sparsity to skip zero-valued intermediate blocks; combined system achieves 19.5x geometric mean speedup over state-of-the-art GPU regex engine."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["kernel-fusion", "parallelism", "dataflow"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "19.5x geometric mean speedup over state-of-the-art GPU regex engine",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["state-of-the-art GPU regex engine (bitparallel baseline)"],
+  "limitations": "not discussed",
+  "tags": ["regex", "pattern-matching", "gpu-kernel", "bitstream", "data-analytics", "kernel-fusion"],
+  "primary_theme": "Interleaved bitstream execution for GPU regex pattern matching",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "isca-2025-053",
+  "title": "Neo: Towards Efficient Fully Homomorphic Encryption Acceleration using Tensor Core",
+  "venue": "ISCA",
+  "problem": "Fully Homomorphic Encryption (FHE) imposes massive computational overhead—orders of magnitude over plaintext computation—that prevents practical deployment, while existing ASIC accelerators lack generality as FHE algorithms rapidly evolve. GPU-based solutions exist but fail to exploit tensor core (TCU) hardware for the dominant FHE primitives.",
+  "motivation": "FHE enables privacy-preserving computation on encrypted data, but its performance gap vs. plaintext is too large for real-world use; exploiting the high throughput of Tensor Cores on modern GPUs is a promising path to close this gap without sacrificing generality.",
+  "method": "Neo maps the CKKS FHE scheme's core operations—Number Theoretic Transform (NTT) and polynomial multiplication—onto GPU Tensor Cores (TCUs) by reformulating them as matrix operations compatible with the TCU's INT8/FP16 matrix-multiply-accumulate pipeline. The design includes careful decomposition of NTT butterfly stages and residue number system (RNS) arithmetic to fit TCU matrix dimensions, with custom CUDA kernels orchestrating data layout, twiddle factor injection, and modular reduction to avoid overflow in low-precision arithmetic.",
+  "key_novelty": "Reformulating FHE polynomial arithmetic (NTT and RNS multiplication for CKKS) as tensor-core matrix operations, enabling use of specialized high-throughput TCU hardware for cryptographic workloads rather than general CUDA cores.",
+  "contributions": [
+    "TCU-based acceleration of NTT and polynomial multiplication for the CKKS FHE scheme",
+    "Custom kernel design mapping FHE polynomial arithmetic to INT8/FP16 matrix operations within GPU tensor cores",
+    "Analysis of precision requirements and modular arithmetic constraints to preserve correctness under low-precision TCU computation",
+    "Performance evaluation demonstrating GPGPU FHE acceleration with Tensor Core utilization"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["kernel-fusion", "dataflow", "approximation"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Abstract truncated; headline numbers not available"
+  },
+  "baselines": ["ASIC FHE accelerators", "GPGPU FHE implementations without tensor cores"],
+  "limitations": "Not discussed; generality to other FHE schemes (BGV, BFV) beyond CKKS is not established from the abstract.",
+  "tags": ["fhe", "homomorphic-encryption", "tensor-core", "gpu", "ntt", "ckks"],
+  "primary_theme": "tensor-core acceleration of FHE polynomial arithmetic",
+  "confidence": "low"
+}

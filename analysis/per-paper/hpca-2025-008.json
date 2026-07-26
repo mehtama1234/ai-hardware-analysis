@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-008",
+  "title": "DPUaudit: DPU-assisted Pull-based Architecture for Near-Zero Cost System Auditing",
+  "venue": "HPCA",
+  "problem": "Existing hardware-based system auditing frameworks offload log processing to isolated hardware but still suffer high runtime overhead (>10% slowdown) because they use a push-based architecture requiring a log sender to run on the monitored host, which necessitates heavy software protection mechanisms that consume significant CPU resources.",
+  "motivation": "Data center security requires low-overhead system auditing to detect intrusions without impacting application performance, but current push-based designs impose overhead that defeats their purpose.",
+  "method": "DPUaudit replaces the push-based log sender on the monitored host with a pull-based architecture using a DPU (Data Processing Unit/SmartNIC) to actively pull system events directly from the monitored host's memory over the network interconnect. By removing the log sender from the monitored host entirely, DPUaudit eliminates the need for complex software protection mechanisms guarding it, achieving near-zero overhead. The DPU handles log collection, processing, and integrity verification in an isolated SmartNIC environment, physically separated from the monitored host.",
+  "key_novelty": "Inverting the auditing data flow from host-pushed to DPU-pulled, which eliminates the log sender on the monitored host and its associated protection overhead, achieving at most 2.1% runtime overhead versus one order-of-magnitude higher overhead in prior work.",
+  "contributions": [
+    "Identification of push-based architecture as the root cause of high overhead in hardware-based auditing frameworks",
+    "DPU-assisted pull-based auditing architecture that removes the log sender from the monitored host",
+    "Near-zero runtime overhead: average 2.1% slowdown for six mainstream data center applications versus >10x higher overhead in prior approaches",
+    "Maintained integrity guarantees for audit logs while eliminating heavy software protection of the log sender"
+  ],
+  "hardware_target": ["DPU", "SmartNIC"],
+  "technique_category": ["security", "near-data-processing", "virtualization"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": null,
+    "other": "Average 2.1% runtime overhead (vs at least 10x higher in existing approaches) for 6 data center application workloads",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null
+  },
+  "baselines": ["Existing hardware-based push-based auditing frameworks"],
+  "limitations": "Not discussed; pull-based DPU access to host memory may be constrained by interconnect bandwidth in high-event-rate scenarios not evaluated.",
+  "tags": ["security", "auditing", "dpu", "smartnic", "data-center", "pull-based"],
+  "primary_theme": "DPU pull-based system auditing for near-zero overhead intrusion detection",
+  "confidence": "low"
+}

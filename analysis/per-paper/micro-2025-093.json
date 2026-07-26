@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-093",
+  "title": "Drishti: Do Not Forget Slicing While Designing Last-Level Cache Replacement Policies for Many-Core Systems",
+  "venue": "MICRO",
+  "problem": "State-of-the-art LLC replacement policies (Hawkeye, Mockingjay) use a per-slice sampled cache and a per-slice reuse predictor that make myopic decisions based only on accesses to a single slice, unaware of global reuse behavior across all LLC slices in many-core systems; additionally, per-slice sampled cache sets receive insufficient LLC misses to drive accurate replacement decisions.",
+  "motivation": "Many-core commercial systems universally use sliced LLCs (e.g., 32-64 slices for 32+ cores), but state-of-the-art replacement policies are evaluated and designed for monolithic LLCs, causing their performance advantage to shrink or disappear in sliced configurations.",
+  "method": "Drishti proposes two enhancements to existing LLC replacement policies for sliced LLCs: (1) a per-core global reuse predictor where each core's predictor is trained on all accesses by that core across all LLC slices—achieving global reuse awareness without centralized inter-slice interconnect traffic—combined with a local (per-slice) sampled cache that remains slice-local; (2) a per-slice dynamic sampled cache that adaptively expands the set of LLC sets used for sampling to improve the sample quality and ensure adequate miss coverage per slice. Evaluated by augmenting Hawkeye and Mockingjay on 4, 16, and 32-core systems with 8, 32, and 64 MB sliced LLCs.",
+  "key_novelty": "Decoupling the reuse predictor (per-core, globally aware) from the sampled cache (per-slice, local) in sliced LLC replacement policies, enabling global reuse inference without centralized interconnect traffic.",
+  "contributions": [
+    "Analysis identifying that state-of-the-art LLC replacement policies lose effectiveness in many-core sliced LLC configurations due to myopic per-slice prediction and under-sampled sets",
+    "Per-core global reuse predictor combined with per-slice local sampled cache, eliminating centralized interconnect traffic while capturing global reuse patterns",
+    "Per-slice dynamic sampled cache improving LLC miss coverage per slice",
+    "On a 32-core system: Mockingjay improved from 6.7% to 13.2% over LRU; Hawkeye improved from 3.3% to 5.6% over LRU"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["cache", "memory-system"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": "5.6% IPC improvement (Hawkeye+Drishti) and 13.2% (Mockingjay+Drishti) over LRU on 32-core system",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Without Drishti: Hawkeye 3.3%, Mockingjay 6.7% over LRU; Drishti roughly doubles the gain"
+  },
+  "baselines": ["LRU", "Hawkeye (baseline, without Drishti)", "Mockingjay (baseline, without Drishti)"],
+  "limitations": "Not discussed.",
+  "tags": ["llc-replacement", "cache-slicing", "many-core", "reuse-prediction", "hawkeye", "mockingjay"],
+  "primary_theme": "sliced-LLC-aware last-level cache replacement policy design",
+  "confidence": "low"
+}

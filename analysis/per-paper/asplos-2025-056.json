@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-056",
+  "title": "ShadowLoad: Injecting State into Hardware Prefetchers",
+  "venue": "ASPLOS",
+  "problem": "Hardware prefetchers in modern CPUs maintain internal state (e.g., stride tables, stream detectors) that persists across security boundaries, and prior work showed this state leaks information across processes, user/kernel space, and trusted execution environments (TEEs). This paper extends the threat by demonstrating that an attacker can actively inject crafted state into a victim's prefetcher, turning it into a covert communication channel or an amplification primitive.",
+  "motivation": "As microarchitectural side-channel attacks grow in sophistication, the ability to actively manipulate—not merely observe—hardware prefetcher state represents a new class of cross-boundary interference that existing mitigations (context-switch prefetcher flushes) do not fully address.",
+  "method": "ShadowLoad crafts memory access sequences that train the hardware prefetcher's internal prediction structures (stride tables, stream buffers) to a desired state from an unprivileged attacker context. When the victim process subsequently executes, the pre-injected prefetcher state causes speculative prefetches that alter the victim's cache state or execution timing, enabling state injection across process, user-kernel, and TEE boundaries. The technique exploits the fact that prefetcher state is not flushed or partitioned at privilege transitions on affected CPUs.",
+  "key_novelty": "Active injection of attacker-controlled state into hardware prefetcher prediction structures to influence victim execution, as opposed to passive observation of prefetcher-induced side channels.",
+  "contributions": [
+    "Demonstration of prefetcher state injection as an active cross-boundary attack primitive on real CPUs.",
+    "Analysis of prefetcher state persistence across process, user-kernel, and TEE security boundaries.",
+    "Concrete attack scenarios using ShadowLoad for covert channels and cross-privilege interference.",
+    "Discussion of mitigation strategies and their limitations."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "security", "cache"],
+  "workloads": [],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Covert channel bandwidth and cross-boundary injection success rates (details in full paper)"
+  },
+  "baselines": ["passive prefetcher side-channel attacks", "existing TEE isolation"],
+  "limitations": "Scope is limited to specific prefetcher microarchitectures; generality across vendors not fully established from abstract.",
+  "tags": ["hardware-prefetcher", "side-channel", "microarchitecture", "security", "tee"],
+  "primary_theme": "active prefetcher state injection attack",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-077",
+  "title": "Enhancing CGRA Efficiency Through Aligned Compute and Communication Provisioning",
+  "venue": "ASPLOS",
+  "problem": "Existing CGRAs overprovision communication resources (routers consume 44% of power/area in spatio-temporal designs) relative to compute capabilities because each PE is paired with a full crossbar/router that handles peak congestion, resulting in low average communication utilization and wasteful programmability encoding.",
+  "motivation": "Edge devices demand high-performance, energy-efficient, domain-agnostic accelerators; CGRA communication over-provisioning directly wastes 43% of power and 46% of area without providing proportional benefit to computational throughput.",
+  "method": "Plaid proposes a hierarchical execution paradigm based on structural 'motifs' — recurring three-node subgraph patterns (fan-in, fan-out, unicast) in dataflow graphs (DFGs). The Plaid architecture replaces individual PE+router pairs with a Plaid Collective Unit (PCU): three ALUs share a single lightweight local router that handles all intra-motif communication internally, connected to a global router for inter-PCU communication. The Plaid compiler (built on the Morpher toolchain with simulated-annealing-based modulo scheduling) automatically identifies motifs in DFGs, generates a hierarchical DFG, and maps it onto the PCU array using flexible schedule templates that maximize resource utilization. Implemented in Verilog RTL at 22nm FDSOI targeting 100MHz; a 2x2 PCU array has 16 functional units (same as a 4x4 spatio-temporal CGRA).",
+  "key_novelty": "Identifying three-node DFG motifs (mathematically provable exhaustive structural patterns) and designing a Plaid Collective Unit that handles all intra-motif communication with a single local router, replacing per-PE overprovisioned crossbars to align compute and communication provisioning.",
+  "contributions": [
+    "Identification of compute/communication misalignment as a fundamental CGRA efficiency bottleneck",
+    "Three-node structural motif abstraction as exhaustive DFG building blocks enabling collective routing",
+    "Plaid CGRA architecture with hierarchical two-level NoC (local intra-PCU + global inter-PCU routers)",
+    "End-to-end Plaid compiler with motif identification and hierarchical modulo-scheduling mapper"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["dataflow", "interconnect", "compiler", "circuit-design", "scheduling"],
+  "workloads": ["CNN", "vision", "HPC"],
+  "metrics": {
+    "speedup": "1.4x performance improvement over energy-efficient spatial CGRA; same performance as high-performance spatio-temporal CGRA",
+    "energy_or_tops_w": "43% power reduction vs spatio-temporal CGRA; 27.7% energy reduction vs spatial CGRA; 42% total energy reduction vs spatio-temporal",
+    "area": "46% area savings vs spatio-temporal CGRA; 48% area savings vs spatial CGRA; CGRA fabric 33,366 um2 at 22nm",
+    "ppa": "1.22x energy efficiency and 1.25x area efficiency vs domain-optimized spatio-temporal CGRA",
+    "accuracy": null,
+    "other": "Evaluated on 30 DFGs from TinyML, PolyBench linear algebra, and image processing benchmarks"
+  },
+  "baselines": ["spatio-temporal CGRA (4x4 PE array, 22nm)", "spatial CGRA (SNAFU/Riptide style, 22nm)", "domain-optimized spatio-temporal CGRA (ML-specialized)"],
+  "limitations": "Performance degrades on kernels with very complex or long-distance data dependencies that cannot be captured by three-node motifs, requiring fallback to individual-node execution with global routing.",
+  "tags": ["cgra", "dataflow", "motif", "edge-accelerator", "noc", "energy-efficiency"],
+  "primary_theme": "motif-based hierarchical CGRA compute/communication alignment",
+  "confidence": "high"
+}

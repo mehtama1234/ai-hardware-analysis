@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-018",
+  "title": "NVMePass: A Lightweight, High-performance and Scalable NVMe Virtualization Architecture with I/O Queues Passthrough",
+  "venue": "HPCA",
+  "problem": "Existing NVMe virtualization approaches either suffer severe performance degradation (Virtio software path) or require dedicated hardware with limited VM scalability (VFIO/SR-IOV hardware passthrough). No solution simultaneously achieves near-native I/O performance, zero CPU overhead, and high VM count scalability.",
+  "motivation": "Cloud storage workloads demand low-latency NVMe access at scale; performance and CPU overhead trade-offs in existing virtualization approaches constrain cloud providers' ability to consolidate VMs without SLA degradation.",
+  "method": "NVMePass is a software-hardware co-design that passes NVMe I/O queues directly to VMs, enabling VMs to submit commands and receive completions without hypervisor involvement. DMA and interrupt remapping are handled without hypervisor interposition. A new hardware primitive, the NVMe Resource Domain (NRD), is implemented in the NVMe controller to enforce VM-level isolation by intercepting illegal I/O requests. Logical block address ranges and I/O queues are exclusively allocated per VM for isolation without per-operation hypervisor overhead.",
+  "key_novelty": "NVMe Resource Domain (NRD) implemented in the NVMe controller hardware enforces VM isolation at the storage device level, enabling full I/O queue passthrough without any hypervisor involvement in the data path.",
+  "contributions": [
+    "NVMePass architecture enabling NVMe I/O queue passthrough to VMs with zero hypervisor involvement in the data path.",
+    "NVMe Resource Domain (NRD) hardware primitive for device-level VM isolation and illegal I/O request interception.",
+    "DMA and interrupt remapping mechanism eliminating virtualization overhead without dedicated SR-IOV hardware.",
+    "100.1-100.5% IOPS of VFIO at comparable performance; 40% lower latency vs. SPDK-Vhost at 150 VMs; 68% throughput improvement in real-world apps at 100 VMs."
+  ],
+  "hardware_target": ["SoC", "CPU"],
+  "technique_category": ["virtualization", "memory-system", "scheduling"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "40% lower latency vs. SPDK-Vhost at 150 VMs; 68% IOPS improvement vs. SPDK-Vhost in real-world app at 100 VMs",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "100.1-100.5% IOPS of VFIO (near-native)"
+  },
+  "baselines": ["VFIO (SR-IOV hardware passthrough)", "SPDK-Vhost", "Virtio"],
+  "limitations": "NRD requires modifications to the NVMe controller hardware, necessitating vendor cooperation and may not be compatible with commodity off-the-shelf NVMe drives.",
+  "tags": ["nvme", "storage-virtualization", "i/o-passthrough", "cloud-storage", "vm-isolation", "hardware-co-design"],
+  "primary_theme": "Hardware-assisted NVMe I/O queue passthrough virtualization with in-device VM isolation",
+  "confidence": "low"
+}

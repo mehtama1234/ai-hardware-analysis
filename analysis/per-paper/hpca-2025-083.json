@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-083",
+  "title": "Lincoln: Real-Time 50~100B LLM Inference on Consumer Devices with LPDDR-Interfaced, Compute-Enabled Flash Memory",
+  "venue": "HPCA",
+  "problem": "Consumer devices cannot run large 50-100B LLM models in real time because: (1) Flash storage has insufficient internal read bandwidth for per-iteration weight loading, and (2) the conventional Flash interface (NVMe/UFS) offers far lower transmission bandwidth to the NPU than DRAM interfaces, making both the prefill and decode phases severely bandwidth-limited.",
+  "motivation": "Privacy and cost concerns drive demand for on-device LLM inference, but current approaches are limited to small, lower-quality models because the weight-loading bottleneck from Flash memory makes large-model inference far too slow for real-time use.",
+  "method": "Lincoln is a device-architecture co-design with two complementary solutions for the two LLM phases. For the compute-intensive prefill phase, Flash devices use the existing high-speed LPDDR interface (normally used for DRAM) to transmit weights to the NPU at much higher bandwidth than conventional Flash interfaces, while maintaining cost/area efficiency. For the memory-intensive decode phase, hybrid-bonding-based near-Flash computing performs matrix-vector operations directly on Flash dies to exploit the full internal Flash bandwidth without transmission bottlenecks, coupled with speculative decoding to further reduce latency. On the device level, Flash internal bandwidth is increased by improving array shrinking methods (lower read latency, more parallel Flash planes per die), leveraging 3D hybrid bonding already in consumer Flash products.",
+  "key_novelty": "Phase-specific dual strategy: using the LPDDR high-speed interface for prefill-phase weight streaming from Flash, and hybrid-bonding near-Flash compute for decode-phase GEMV execution directly on Flash dies.",
+  "contributions": [
+    "Device-level Flash bandwidth improvement via enhanced array shrinking and 3D hybrid bonding for more parallel Flash planes",
+    "LPDDR-interfaced Flash for prefill phase: repurposing the high-speed DRAM interface for Flash weight transmission to NPU",
+    "Near-Flash computing via hybrid bonding for decode phase: GEMV execution on Flash dies to eliminate transmission bottleneck",
+    "Integration with speculative decoding to reach real-time generation latency; up to 13.23x prefill and 254.1x generation speedup over conventional SSD-based systems"
+  ],
+  "hardware_target": ["NPU", "SoC"],
+  "technique_category": ["near-data-processing", "memory-system", "dataflow"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "Up to 13.23x prefill speedup, 254.1x generation speedup over conventional SSD-based systems",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Conventional SSD-based on-device LLM inference system"],
+  "limitations": "The hybrid-bonding near-Flash compute introduces significant Flash die complexity and may affect Flash endurance or cost; these tradeoffs are not fully characterized.",
+  "tags": ["on-device-llm", "flash-memory", "near-flash-computing", "lpddr-interface", "speculative-decoding", "edge-inference"],
+  "primary_theme": "LPDDR-interfaced compute-enabled Flash for on-device LLM inference",
+  "confidence": "low"
+}

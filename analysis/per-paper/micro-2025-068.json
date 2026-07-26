@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-068",
+  "title": "SeaCache: Efficient and Adaptive Caching for Sparse Accelerators",
+  "venue": "MICRO",
+  "problem": "Sparse tensor accelerators suffer from poor on-chip SRAM utilization because variable-length sparse fibers (rows/columns of nonzero data) do not map cleanly into fixed-size cache blocks, wasting capacity. Theoretically optimal replacement policies (e.g., Belady OPT) require expensive on-chip metadata that consumes significant die area.",
+  "motivation": "Sparse workloads (GNNs, sparse transformers, recommendation models) are highly memory-bound, making effective on-chip data reuse critical to performance, yet existing cache designs leave substantial capacity unused due to fragmentation from variable-length sparse data.",
+  "method": "SeaCache combines three techniques targeting sparse on-demand caches integrated in domain-specific accelerators. First, fiber packing and splitting maps variable-length sparse fibers into fixed-size cache blocks with high utilization by splitting long fibers across multiple blocks and packing short fibers together. Second, a practical replacement policy approximates OPT-like behavior at low implementation cost by exploiting access-pattern regularities in sparse computations. Third, an adaptive space-sharing mechanism dynamically partitions the cache between actual data and replacement policy metadata using a two-phase approach that measures and adjusts the optimal partition ratio at runtime.",
+  "key_novelty": "The two-phase adaptive cache partitioning that co-locates sparse data and replacement policy metadata within the same SRAM, dynamically tuning their ratio to maximize effective capacity for variable-length sparse fibers.",
+  "contributions": [
+    "Fiber packing and splitting technique that achieves high space utilization when mapping variable-length sparse data into fixed-size cache blocks",
+    "A practical replacement policy that approximates optimal replacement with substantially lower implementation cost than prior metadata-heavy schemes",
+    "A two-phase adaptive mechanism that dynamically shares cache space between data and policy metadata, tuning partition ratios at runtime",
+    "End-to-end SeaCache design outperforming state-of-the-art sparse cache designs by 2.8x on average across sparse workloads"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["cache", "memory-system", "sparsity"],
+  "workloads": ["GNN", "recommendation", "transformer"],
+  "metrics": {
+    "speedup": "2.8x over state-of-the-art sparse cache designs (average)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["state-of-the-art sparse accelerator cache designs (on-demand caches with optimal replacement policies)"],
+  "limitations": "Evaluation scope and specific workload mix not fully described in abstract; metadata overhead of adaptive partitioning under adversarial access patterns is not discussed.",
+  "tags": ["sparse-accelerator", "cache", "on-chip-memory", "fiber-packing", "replacement-policy", "memory-efficiency"],
+  "primary_theme": "adaptive on-chip caching for sparse tensor accelerators",
+  "confidence": "low"
+}

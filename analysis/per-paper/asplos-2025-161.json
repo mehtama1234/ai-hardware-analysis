@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-161",
+  "title": "Composing Distributed Computations Through Task and Kernel Fusion",
+  "venue": "ASPLOS",
+  "problem": "Distributed task-based programs composed from multiple libraries incur significant overhead from redundant data movement and kernel launch costs when tasks from different libraries are executed separately, yet existing compilers and runtimes cannot see across library boundaries to fuse these tasks.",
+  "motivation": "High-level Python programs built from composing task-based libraries (e.g., cuPyNumeric, Legate Sparse) leave cross-library optimization opportunities unexploited, causing them to underperform explicitly parallel MPI programs.",
+  "method": "Diffuse introduces an intermediate representation (IR) for distributed computation that captures task graphs from multiple libraries in a unified form, enabling cross-boundary analysis. A JIT compiler then fuses compatible distributed tasks into single merged tasks, and further fuses the GPU kernels within those tasks using kernel fusion. The IR is general enough to represent computations from cuPyNumeric and Legate Sparse without modification to application code, and the JIT compilation is performed at runtime as task graphs become available.",
+  "key_novelty": "A unified distributed-computation IR that enables cross-library task and kernel fusion at runtime, allowing high-level Python programs to match or exceed MPI performance.",
+  "contributions": [
+    "Diffuse IR: a general intermediate representation for distributed task-based computations enabling cross-library analysis",
+    "Dynamic task fusion pass that identifies and merges compatible distributed tasks across library boundaries",
+    "JIT kernel fusion within fused tasks, reducing GPU kernel launch overhead and improving data locality",
+    "1.86x average (up to 10.7x) speedup over unmodified applications on up to 128 GPUs"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["kernel-fusion", "compiler", "parallelism", "scheduling"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "1.86x average (geo-mean), 0.93x–10.7x range on up to 128 GPUs"
+  },
+  "baselines": ["unmodified task-based library applications", "explicit MPI programs"],
+  "limitations": "Fusion correctness depends on the IR faithfully capturing all inter-task dependences; not discussed whether all library patterns are representable in the IR.",
+  "tags": ["kernel-fusion", "task-fusion", "distributed", "jit-compiler", "hpc", "gpu"],
+  "primary_theme": "Cross-library task and kernel fusion for distributed GPU applications",
+  "confidence": "low"
+}

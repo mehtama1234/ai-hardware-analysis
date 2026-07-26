@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-024",
+  "title": "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs",
+  "venue": "ASPLOS",
+  "problem": "Sparse Mixture-of-Experts (MoE) LLMs have very large total parameter counts that exceed the VRAM of commodity GPUs, forcing weight offloading to CPU memory or NVMe, which creates severe I/O bottlenecks and low GPU utilization during batch inference.",
+  "motivation": "MoE models offer high capacity at low per-token compute cost, making them attractive for efficient LLM inference, but their large memory footprint makes them inaccessible to users with low-end or single GPUs without efficient offloading strategies.",
+  "method": "MoE-Lightning introduces CGOPipe (CPU-GPU-I/O Pipelining) with paged weight management: expert weights are stored in pages that are streamed between CPU memory and GPU memory in a pipeline overlapping expert computation with prefetching of the next expert's weights. A Hierarchical Roofline Model (HRM) performance model guides policy selection by predicting throughput as a function of batch size, GPU memory, CPU memory, and I/O bandwidth. The system supports multi-GPU configurations for even larger models (Mixtral 8x22B, DBRX) on 2-4 T4 GPUs.",
+  "key_novelty": "CGOPipe: a CPU-GPU-I/O pipeline with paged expert weights, guided by a Hierarchical Roofline Model, that achieves near-peak offloading throughput with significantly less CPU memory than prior work.",
+  "contributions": [
+    "CGOPipe: CPU-GPU-I/O pipeline with paged weight management for high-throughput MoE inference under VRAM constraints",
+    "HRM (Hierarchical Roofline Model): a performance model for identifying high-throughput offloading policies",
+    "Up to 10.3x throughput improvement over state-of-the-art offloading-enabled LLM inference for Mixtral 8x7B on a single T4 GPU (16GB)",
+    "2-3x reduction in CPU memory consumption at system throughput upper bound; support for Mixtral 8x22B and DBRX on 2-4 T4 GPUs"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "scheduling", "dataflow", "parallelism"],
+  "workloads": ["LLM-inference", "MoE"],
+  "metrics": {
+    "speedup": "10.3x throughput over state-of-the-art offloading-enabled LLM inference (Mixtral 8x7B on single T4 16GB GPU)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "2-3x less CPU memory at throughput upper bound"
+  },
+  "baselines": ["state-of-the-art offloading-enabled LLM inference systems"],
+  "limitations": "Evaluated on low-end T4 GPUs; performance characteristics on high-end GPUs (A100, H100) where VRAM is less constrained are not the primary focus.",
+  "tags": ["moe", "llm-inference", "offloading", "memory-constrained", "pipelining", "roofline-model"],
+  "primary_theme": "CPU-GPU-IO pipeline for high-throughput MoE inference on memory-constrained GPUs",
+  "confidence": "low"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-128",
+  "title": "PCcheck: Persistent Concurrent Checkpointing for ML",
+  "venue": "ASPLOS",
+  "problem": "Checkpointing large ML training runs to persistent storage introduces high overhead when done at high frequency, yet infrequent checkpointing leads to long recovery times after failures — a growing problem as training scale increases and cheap spot VMs dramatically raise failure rates.",
+  "motivation": "As ML training jobs scale to thousands of GPUs over weeks and increasingly use preemptible spot VMs, the probability and cost of failures rises sharply, requiring checkpointing solutions that are simultaneously low-overhead and high-frequency.",
+  "method": "PCcheck introduces persistent concurrent checkpointing, where model parameter checkpoints are taken concurrently with ongoing training (overlapping checkpoint I/O with compute) while also ensuring persistence to durable storage. It uses a combination of copy-on-write snapshots of model state and pipelined multi-stage I/O to overlap CPU-to-storage transfers with GPU computation. The system tracks consistency across concurrent training steps to guarantee that the checkpoint captured is valid and recoverable, minimizing pause time during the checkpoint process.",
+  "key_novelty": "Concurrent persistent checkpointing that overlaps I/O with training compute using copy-on-write snapshots and pipelined storage transfers, achieving high-frequency durable checkpoints without proportional training overhead.",
+  "contributions": [
+    "PCcheck: a persistent concurrent checkpointing system for large-scale ML training",
+    "Copy-on-write model state snapshots enabling overlap of checkpoint I/O with training computation",
+    "Pipelined multi-stage I/O reducing checkpoint-induced training pauses",
+    "Support for high-frequency checkpointing with low overhead on spot VMs and large GPU clusters"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "parallelism", "reliability"],
+  "workloads": ["LLM-training"],
+  "metrics": {
+    "other": "specific numbers not available in abstract"
+  },
+  "baselines": ["standard pause-and-checkpoint approaches for ML training"],
+  "limitations": "Memory overhead of copy-on-write snapshots and interaction with optimizer state checkpointing not discussed in abstract.",
+  "tags": ["checkpointing", "fault-tolerance", "ml-training", "gpu", "spot-vms"],
+  "primary_theme": "concurrent persistent checkpointing for large-scale ML training fault tolerance",
+  "confidence": "low"
+}

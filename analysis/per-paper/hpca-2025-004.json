@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-004",
+  "title": "Efficient Memory Side-Channel Protection for Embedding Generation in Machine Learning",
+  "venue": "HPCA",
+  "problem": "Embedding table lookups in ML models (DLRMs, LLMs) leak sensitive input features (user IDs, token indices) through memory access patterns, making them vulnerable to side-channel attacks; protecting these accesses with conventional ORAM incurs prohibitive overhead due to the massive size of embedding tables.",
+  "motivation": "Privacy-preserving ML inference requires hiding memory access patterns to embedding tables, but embedding tables can be hundreds of gigabytes, making ORAM's O(log N) overhead per access impractical.",
+  "method": "The paper evaluates three protection strategies: (1) linear scan of the embedding table (accesses all rows, hiding which row is used); (2) ORAM protection with optimized implementation; and (3) Deep Hash Embedding (DHE), which replaces the table lookup entirely with a hash-based neural network computation that takes the embedding index as input and produces an embedding vector through compute rather than memory access, eliminating the memory access pattern. A hybrid scheme combines DHE for large embedding tables (where its compute cost is amortized) with linear scan for small tables, selected per table based on profiled break-even points.",
+  "key_novelty": "Replacing embedding table lookups with compute-based DHE (Deep Hash Embedding) as a side-channel protection mechanism, which eliminates the memory access pattern rather than obfuscating it, yielding 4x performance improvement over optimized ORAM with up to 1116x memory footprint reduction.",
+  "contributions": [
+    "Systematic comparison of three side-channel protection strategies for embedding tables: linear scan, ORAM, and DHE",
+    "Demonstration that DHE eliminates memory access patterns and simultaneously reduces model memory footprint by up to 1116x",
+    "Hybrid DHE+linear-scan scheme achieving 4x speedup over optimized ORAM for DLRM on Criteo datasets and up to 3.08x end-to-end speedup",
+    "Extension to LLMs showing DHE speeds up GPT-2 prompt prefill by up to 1.32x and decoding by up to 1.07x over ORAM"
+  ],
+  "hardware_target": ["GPU", "CPU"],
+  "technique_category": ["security", "memory-system", "near-data-processing"],
+  "workloads": ["DLRM", "recommendation", "LLM-inference"],
+  "metrics": {
+    "speedup": "4x for large DLRM embedding tables vs ORAM; up to 3.08x end-to-end vs optimized ORAM; 1.32x prefill and 1.07x decoding for GPT-2 vs ORAM",
+    "other": "Up to 1116x memory footprint reduction",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null
+  },
+  "baselines": ["Optimized ORAM baseline", "Linear scan"],
+  "limitations": "DHE introduces additional compute overhead for embedding generation that may not be acceptable for latency-critical inference at very high batch sizes.",
+  "tags": ["side-channel", "privacy", "embedding", "dlrm", "llm", "oram"],
+  "primary_theme": "compute-based DHE as memory side-channel protection for embedding table lookups",
+  "confidence": "low"
+}

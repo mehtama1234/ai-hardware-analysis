@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-014",
+  "title": "CXLfork: Fast Remote Fork over CXL Fabrics",
+  "venue": "ASPLOS",
+  "problem": "Remote process cloning across cluster nodes incurs high serialization and copying overhead, creating large cold-start latency for serverless functions and other scale-out workloads. Traditional fork() semantics do not map efficiently to distributed shared memory environments like CXL-attached memory.",
+  "motivation": "CXL interconnects enable globally-shared memory pools across nodes, and exploiting this for process cloning can eliminate cold-start bottlenecks in serverless computing without the overhead of network-based state transfer.",
+  "method": "CXLfork implements a remote fork interface that uses CXL-attached shared memory to achieve near-zero-serialization, zero-copy process cloning across nodes. It stores process state (pages, metadata) in globally-shared CXL memory for cluster-wide deduplication, so cloning a process on a remote node avoids transferring state over the network. Fine-grained tiering between local DRAM and CXL memory is supported, allowing hot pages to remain local while cold/shared pages reside in CXL memory. CXL-porter builds on top of CXLfork as an efficient horizontal autoscaler for serverless functions.",
+  "key_novelty": "Using CXL-attached globally-shared memory for cluster-wide process-state deduplication to achieve near-local-fork latency for remote process cloning.",
+  "contributions": [
+    "CXLfork: a remote fork interface achieving close to zero-serialization, zero-copy process cloning over CXL fabrics",
+    "Cluster-wide process-state deduplication using CXL shared memory",
+    "Fine-grained state tiering between local DRAM and CXL memory",
+    "CXL-porter: an efficient horizontal autoscaler for serverless functions built on CXLfork"
+  ],
+  "hardware_target": ["CPU", "SoC"],
+  "technique_category": ["interconnect", "memory-system", "virtualization"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "2.26x over state-of-practice restore latency on average",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "87% reduction in local memory consumption on average"
+  },
+  "baselines": ["state-of-practice remote fork / serverless cold-start mechanisms"],
+  "limitations": "Results depend on CXL fabric availability; performance on real CXL hardware vs simulation is not detailed in the abstract.",
+  "tags": ["cxl", "remote-fork", "shared-memory", "serverless", "process-cloning", "interconnect"],
+  "primary_theme": "CXL-enabled zero-copy remote process cloning for serverless scale-out",
+  "confidence": "low"
+}

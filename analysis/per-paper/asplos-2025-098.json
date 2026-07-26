@@ -1,0 +1,30 @@
+{
+  "id": "asplos-2025-098",
+  "title": "FLEXPROF: Flexible, Side-Channel-Free Memory Access",
+  "venue": "ASPLOS",
+  "problem": "Secure memory controllers that prevent microarchitectural side-channels by allocating fixed 'turns' to co-scheduled VMs impose a ~2x performance slowdown because the schedule must conservatively handle worst-case mixed read/write patterns, leaving memory bus utilization inefficient.",
+  "motivation": "Eliminating timing-based memory side-channels in shared cloud systems is essential for VM isolation, but the current overhead of 2x slowdown makes secure scheduling impractical for production workloads.",
+  "method": "FlexProf introduces two types of memory controller turns: read-optimized turns and write-optimized turns, selected via coarse-grain application profiling that observes the read/write ratio without leaking sensitive information. Each turn type is sized and structured for its dominant operation. Flexibility is added so that a read-optimized turn can opportunistically issue writes when read slots are idle (and vice versa), improving utilization while preserving the fixed-turn structure needed to prevent timing side-channels between VMs.",
+  "key_novelty": "Differentiating memory controller scheduling turns into read-optimized and write-optimized types, determined by side-channel-free coarse profiling, to recover throughput lost by worst-case-only secure scheduling.",
+  "contributions": [
+    "Read-optimized and write-optimized turn types for the secure memory controller, matched to application access patterns via coarse profiling.",
+    "Opportunistic cross-turn operation issuance (reads in write turns, writes in read turns) that preserves isolation guarantees while improving utilization.",
+    "Up to 33% performance improvement (geometric mean 8%) over state-of-the-art secure memory scheduling on mixed workloads."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "security", "scheduling"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "up to 33% improvement, geometric mean 8% over state-of-the-art",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "over half of memory-intensive programs show >10% gain"
+  },
+  "baselines": ["state-of-the-art secure memory scheduling methods"],
+  "limitations": "Hardware implementation complexity and the profiling mechanism's ability to handle dynamically varying workloads are not discussed.",
+  "tags": ["memory-controller", "security", "side-channel", "scheduling", "virtualization", "secure-memory"],
+  "primary_theme": "Read/write-differentiated turn scheduling for side-channel-free memory controllers",
+  "confidence": "low"
+}

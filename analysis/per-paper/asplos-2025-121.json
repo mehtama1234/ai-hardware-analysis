@@ -1,0 +1,27 @@
+{
+  "id": "asplos-2025-121",
+  "title": "Dynamic Partial Deadlock Detection and Recovery via Garbage Collection",
+  "venue": "ASPLOS",
+  "problem": "Concurrent message-passing programs in Go are susceptible to partial deadlocks where goroutines block indefinitely on channels, causing severe memory leaks in long-running systems. Existing techniques cannot both detect and automatically recover from these partial deadlocks at runtime.",
+  "motivation": "Go's lightweight concurrency model makes partial deadlocks common in production systems, and memory leaks from blocked goroutines degrade availability, as evidenced by 252 deadlocks detected in 24 hours in a real Uber service.",
+  "method": "GOLF extends Go's garbage collector marking phase to soundly approximate goroutine liveness: a goroutine is considered live only if its channel references are reachable from the GC root set. During GC marking, goroutines blocked on channels with no live senders are flagged as deadlocked. Detected deadlocked goroutines are then automatically cancelled or cleaned up to free memory and restore system progress. The detection integrates directly into the existing GC pause with minimal overhead.",
+  "key_novelty": "Using the garbage collector's reachability marking phase as a sound liveness approximation for goroutines, enabling automatic partial deadlock detection and recovery without separate runtime monitors.",
+  "contributions": [
+    "A novel technique to detect partial deadlocks by approximating liveness through GC reachability",
+    "GOLF: an implementation integrated into the Go runtime GC that detects and recovers from partial deadlocks",
+    "Detection of 94% of microbenchmark partial deadlocks and 50% in a large industrial codebase",
+    "Production deployment at Uber detecting 252 partial deadlocks over 24 hours"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["scheduling", "reliability"],
+  "workloads": [],
+  "metrics": {
+    "accuracy": "94% detection rate on microbenchmarks, 50% on industrial test suites",
+    "other": "252 partial deadlocks detected in 24 hours in a live Uber service"
+  },
+  "baselines": ["baseline Go runtime without GOLF"],
+  "limitations": "Detection rate drops to 50% on real industrial codebases; not all partial deadlock patterns are covered by GC reachability approximation.",
+  "tags": ["deadlock-detection", "garbage-collection", "concurrency", "go-runtime", "runtime-recovery"],
+  "primary_theme": "GC-based partial deadlock detection and automatic recovery in Go",
+  "confidence": "low"
+}

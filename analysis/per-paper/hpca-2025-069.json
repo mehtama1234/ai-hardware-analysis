@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-069",
+  "title": "EDA: Energy-Efficient Inter-Layer Model Compilation for Edge DNN Inference Acceleration",
+  "venue": "HPCA",
+  "problem": "Inter-layer operator scheduling on edge NPUs can reduce DRAM traffic by reusing layer outputs in on-chip SRAM, but naive deep traversal of DNN operator graphs greatly increases off-chip memory transactions when on-chip SRAM is small, negating energy savings.",
+  "motivation": "Edge NPUs have strict price and energy budgets where DRAM accesses dominate energy; optimizing the traversal depth of inter-layer scheduling to match available on-chip memory is critical for energy-efficient deployment of DNNs.",
+  "method": "EDA is a DNN compilation framework that first transforms the DNN model into a tensor-splitting model and decomposes the model graph into subgraphs. An inter-layer cost model rapidly determines the optimal operator traversal depth for each subgraph given the available on-chip SRAM. EDA then manages the on-chip shared memory space to prevent overflow, and applies operator grouping to improve MAC unit and SRAM space utilization. The resulting compilation avoids both excessive DRAM traffic (from too-deep traversal) and under-utilization (from too-shallow traversal).",
+  "key_novelty": "An inter-layer cost model that adaptively determines the optimal DNN operator traversal depth per subgraph, balancing on-chip reuse against DRAM traffic for small-SRAM edge NPUs.",
+  "contributions": [
+    "EDA compilation framework with tensor-splitting and subgraph decomposition",
+    "Inter-layer cost model for fast traversal-depth determination per subgraph",
+    "On-chip shared memory management to prevent SRAM overflow during inter-layer scheduling",
+    "Operator grouping method improving MAC and SRAM utilization; 2.08x energy efficiency and 2.39x performance geomean over NPU with designated memory buffers"
+  ],
+  "hardware_target": ["NPU"],
+  "technique_category": ["compiler", "memory-system", "scheduling"],
+  "workloads": ["CNN", "vision"],
+  "metrics": {
+    "speedup": "2.39x geomean performance improvement over NPU with designated memory buffers",
+    "energy_or_tops_w": "2.08x geomean energy efficiency improvement",
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["NPU with designated (fixed) memory buffers without inter-layer scheduling optimization"],
+  "limitations": "Not discussed; the approach targets stacked (feed-forward) DNN models and may not generalize to irregular/dynamic graph topologies.",
+  "tags": ["npu", "edge-inference", "inter-layer-scheduling", "dnn-compilation", "energy-efficiency"],
+  "primary_theme": "adaptive inter-layer operator scheduling for edge NPU energy efficiency",
+  "confidence": "low"
+}

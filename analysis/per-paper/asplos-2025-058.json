@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-058",
+  "title": "Wave: Offloading Resource Management to SmartNIC Cores",
+  "venue": "ASPLOS",
+  "problem": "Userspace system software tasks (kernel thread scheduling, memory management, RPC stacks) consume scarce host CPU cores in cloud servers, reducing the compute available to paying tenants. Existing SmartNIC offload frameworks require custom APIs and cannot handle microsecond-scale system software latencies without host CPU involvement.",
+  "motivation": "Datacenter operators are under pressure to maximize the fraction of server CPU cycles available to tenants; SmartNICs with ARM cores are now widely deployed but underutilized for host system software offload due to latency and API mismatch.",
+  "method": "Wave is a framework that runs existing Linux userspace system software (unchanged or minimally modified) as processes/agents on mid-tier SmartNIC ARM cores. It introduces a new host-SmartNIC communication API designed to support microsecond-scale decision latencies, enabling offload of preemption-sensitive tasks such as the kernel thread scheduler. The framework uses Linux userspace system interfaces to align host OS functionality with SmartNIC capabilities, and avoids requiring custom kernel modifications on the host side.",
+  "key_novelty": "A general framework and microsecond-latency host-SmartNIC communication API that enables offloading of latency-sensitive userspace system software (scheduling, memory management, RPCs) to SmartNIC ARM cores with minimal code changes.",
+  "contributions": [
+    "Wave framework architecture enabling execution of preexisting userspace system software on SmartNIC ARM cores.",
+    "New host-SmartNIC communication API supporting us-scale system software offload.",
+    "Offload case studies: kernel thread scheduling (saving 16 host cores for memory management), RPCs (saving 8 host cores), and VM management (11.2% performance improvement).",
+    "Empirical measurement of performance overhead (1.1%-7.4%) vs. on-host implementations in apples-to-apples comparison."
+  ],
+  "hardware_target": ["SmartNIC", "CPU"],
+  "technique_category": ["scheduling", "near-data-processing", "virtualization"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "11.2% VM performance improvement from offload",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Saves 16 host cores (memory management), 8 host cores (RPC); 1.1%-7.4% perf overhead vs on-host"
+  },
+  "baselines": ["on-host userspace system software implementations"],
+  "limitations": "Performance degradation of 1.1%-7.4% vs. on-host implementations makes it unsuitable for the most latency-critical system software paths.",
+  "tags": ["smartnic", "resource-management", "offloading", "datacenter", "system-software"],
+  "primary_theme": "SmartNIC offload of userspace system software",
+  "confidence": "low"
+}

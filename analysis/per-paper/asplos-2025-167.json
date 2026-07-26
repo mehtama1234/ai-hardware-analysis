@@ -1,0 +1,26 @@
+{
+  "id": "asplos-2025-167",
+  "title": "Fault Escaping: Improving Robustness of DPU Enhanced Platform with Mutual Assisted VM Recovery",
+  "venue": "ASPLOS",
+  "problem": "Modern cloud servers that use DPUs to offload virtualization split VM state across the DPU SoC and the host, so a failure in either component crashes the entire machine and all hosted VMs, with no fault-tolerant mechanism designed for this split-hypervisor architecture.",
+  "motivation": "DPU-based offloading has increased cloud server failure rates because the split of hypervisor functions across two processing units doubles the failure surface, requiring a fundamental rethink of VM fault tolerance.",
+  "method": "The paper proposes fault escaping: a scheme that treats the split hypervisors on the DPU SoC and the host as redundant peers. Using hybrid synchronization, the full VM state (in a verified, consistent snapshot) is kept accessible on either the DPU or the host with minimal synchronization overhead (kilobytes of data). When one side fails, VMs migrate their state to the surviving peer and resume execution there, bypassing the failed component rather than attempting to recover it. The hybrid synchronization protocol differentiates hot and cold VM state to minimize cross-component bandwidth.",
+  "key_novelty": "Treating DPU and host hypervisors as redundant peers that can each host the full VM state, enabling VMs to escape from a failing component rather than waiting for in-place recovery.",
+  "contributions": [
+    "Fault-escaping scheme that enables VM migration from a failing DPU or host to the surviving peer",
+    "Hybrid synchronization protocol maintaining full VM state accessibility on both sides with kilobyte-scale overhead",
+    "VM state verification mechanism ensuring only a consistent, uncorrupted state is migrated",
+    "Improved cloud server robustness without requiring dedicated fault-recovery hardware"
+  ],
+  "hardware_target": ["DPU", "SoC"],
+  "technique_category": ["reliability", "virtualization"],
+  "workloads": [],
+  "metrics": {
+    "other": "kilobytes of synchronization overhead (vs. full VM state transfer); VM recovery latency improvement (exact numbers not available from abstract)"
+  },
+  "baselines": ["traditional monolithic hypervisor fault tolerance", "DPU-based platforms without fault escaping"],
+  "limitations": "Recovery requires the surviving peer to have sufficient resources to host the migrated VMs; peer resource contention under simultaneous failures is not discussed.",
+  "tags": ["dpu", "vm-fault-tolerance", "cloud", "hypervisor", "reliability", "migration"],
+  "primary_theme": "VM fault tolerance via peer redundancy in DPU-split hypervisor architectures",
+  "confidence": "low"
+}

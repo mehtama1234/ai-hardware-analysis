@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-108",
+  "title": "Gaussian Blending Unit: An Edge GPU Plug-in for Real-Time Gaussian-Based Rendering in AR/VR",
+  "venue": "HPCA",
+  "problem": "3D Gaussian Splatting on edge GPUs (e.g., Jetson Orin NX) achieves only 7-17 FPS for AR/VR rendering, far below the 60+ FPS threshold for immersive experiences, because the Gaussian Blending Stage—computing each Gaussian's contribution at every pixel—dominates compute time and is poorly suited to conventional GPU pipelines.",
+  "motivation": "AR/VR applications demand real-time photorealistic rendering on resource-constrained edge devices, and 3D Gaussian Splatting is the leading technique for rendering quality and efficiency, but its pixel-blending stage is the primary bottleneck on edge hardware.",
+  "method": "GBU is an edge GPU plug-in hardware module for the Gaussian Blending Stage. It introduces an intra-row sequential shading (IRSS) dataflow that processes pixels left-to-right within each row, using a two-step coordinate transformation that: (1) shares intermediate coordinate values between adjacent pixels, reducing per-pixel computation by up to 5.5x, and (2) enables early termination of Gaussians contributing minimally to pixels, reducing per-pixel computation by up to 93%. GBU adds a dedicated rendering engine that aggregates computations from multiple Gaussians across rows to balance workload. A Gaussian Reuse Cache reduces off-chip memory accesses by 44.9%. GBU integrates with conventional edge GPUs to support a wide range of AR/VR applications.",
+  "key_novelty": "The IRSS dataflow exploits spatial coherence between horizontally adjacent pixels during Gaussian blending via a two-step coordinate transformation, enabling both intermediate value sharing and early Gaussian culling in a single unified streaming pass.",
+  "contributions": [
+    "Comprehensive bottleneck analysis identifying the Gaussian Blending Stage as the primary performance limiter for 3D Gaussian Splatting on edge GPUs",
+    "IRSS dataflow with two-step coordinate transformation enabling 5.5x intermediate value sharing and 93% per-pixel computation reduction via early culling",
+    "Dedicated rendering engine balancing workload across rows by aggregating multi-Gaussian computations",
+    "Gaussian Reuse Cache reducing off-chip memory accesses by 44.9% with a 1.14x additional speedup; 1.72x GPU-software speedup and real-time performance via the GBU plug-in"
+  ],
+  "hardware_target": ["GPU", "ASIC"],
+  "technique_category": ["dataflow", "memory-system", "cache", "approximation"],
+  "workloads": ["vision"],
+  "metrics": {
+    "speedup": "1.72x on GPU with IRSS dataflow alone; real-time (60+ FPS) achieved with full GBU plug-in on Jetson Orin NX (vs. 7-17 FPS baseline)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "SOTA rendering quality maintained",
+    "other": "off-chip memory access reduced by 44.9%; per-pixel computation reduced by up to 93%"
+  },
+  "baselines": ["Jetson Orin NX Edge GPU baseline (3DGS native implementation)"],
+  "limitations": "Not discussed.",
+  "tags": ["3d-gaussian-splatting", "ar-vr", "edge-gpu", "rendering", "dataflow", "plug-in-accelerator"],
+  "primary_theme": "edge GPU plug-in for real-time 3D Gaussian Splatting rendering",
+  "confidence": "low"
+}

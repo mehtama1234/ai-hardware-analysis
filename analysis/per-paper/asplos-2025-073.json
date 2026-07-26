@@ -1,0 +1,30 @@
+{
+  "id": "asplos-2025-073",
+  "title": "Aqua: Network-Accelerated Memory Offloading for LLMs in Scale-Up GPU Domains",
+  "venue": "ASPLOS",
+  "problem": "LLM inference under bursty request patterns exhausts GPU memory, causing serving engines to use admission control that renders them unresponsive; preemptive time-sliced scheduling requires KV-cache paging that incurs high overhead and reduces throughput.",
+  "motivation": "Cloud-hosted LLM serving must remain responsive under bursty demand while sustaining high throughput, but current GPU memory management cannot reconcile both goals simultaneously.",
+  "method": "Aqua is a GPU memory management framework that uses the high-bandwidth scale-up network (NVLink/NVSwitch fabric within a server) as a fast memory offloading path for paging LLM inference state (KV caches). When a prompt is preempted, Aqua pages its KV cache over the scale-up network to remote GPU memory on other nodes rather than to slow host DRAM or NVMe, dramatically reducing paging latency. A scheduling layer enables preemptive time-sliced prompt execution on top of this low-overhead paging mechanism.",
+  "key_novelty": "Using the intra-server scale-up GPU interconnect (NVLink fabric) as a fast KV-cache paging path to enable low-overhead preemptive LLM scheduling without throughput loss.",
+  "contributions": [
+    "Identification that scale-up network bandwidth can be repurposed for fast GPU memory offloading",
+    "Aqua GPU memory management framework enabling preemptive time-sliced LLM inference",
+    "20x improvement in responsiveness and 4x throughput improvement over state-of-the-art for bursty LLM workloads"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["memory-system", "scheduling", "interconnect"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "4x throughput improvement over single long prompt baseline; 20x responsiveness improvement vs state-of-the-art",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "evaluated on 8x NVIDIA H100 80GB GPU server"
+  },
+  "baselines": ["state-of-the-art LLM serving engines with admission control"],
+  "limitations": "Requires scale-up network (NVLink/NVSwitch) which is only available in high-end multi-GPU server configurations; not applicable to scale-out or single-GPU deployments.",
+  "tags": ["llm-inference", "gpu-memory", "kv-cache", "paging", "nvlink", "preemption"],
+  "primary_theme": "network-accelerated KV-cache paging for responsive LLM serving",
+  "confidence": "low"
+}

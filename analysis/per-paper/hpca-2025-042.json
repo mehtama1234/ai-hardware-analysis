@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-042",
+  "title": "Zebra: Efficient Redundant Array of Zoned Namespace SSDs Enabled by Zone Random Write Area (ZRWA)",
+  "venue": "HPCA",
+  "problem": "Integrating ZNS SSDs into RAID configurations requires handling partial parity updates (PPUs) that arise from ZNS's append-only write semantics; existing metadata-zone-based solutions become performance bottlenecks under high PPU workloads.",
+  "motivation": "ZNS SSDs reduce device-level garbage collection overhead and enable predictable storage performance, but RAID configurations over ZNS SSDs are severely limited by the latency of dedicated metadata zones required to manage PPUs.",
+  "method": "Zebra exploits the Zone Random Write Area (ZRWA), the SSD's internal write buffer in front of each zone, to handle PPUs in-place. By ensuring that parity chunks fit within the ZRWA window, Zebra performs partial parity overrides within the buffer rather than writing to separate metadata zones. A set of complementary techniques maintain high performance and reliability across both large-zone and small-zone ZNS SSD models.",
+  "key_novelty": "Using the ZRWA (the SSD's native write buffer window) as the target storage for parity partial updates in ZNS RAID, matching the repeated sequential overwrite I/O pattern of PPUs to the ZRWA's random-write capability.",
+  "contributions": [
+    "Zebra architecture that maps ZNS RAID parity partial updates to the ZRWA write buffer",
+    "Analysis identifying repeated sequential overwrite as the dominant PPU I/O pattern",
+    "Techniques ensuring both high performance and data reliability under diverse ZNS RAID workloads",
+    "1.1x to 4.2x throughput improvement over RAIZN on micro and application benchmarks"
+  ],
+  "hardware_target": ["SoC"],
+  "technique_category": ["memory-system", "reliability", "scheduling"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "1.1x to 4.2x throughput improvement vs RAIZN ZNS RAID system"
+  },
+  "baselines": ["RAIZN (state-of-the-art ZNS RAID system)"],
+  "limitations": "Evaluation is limited to two ZNS SSD models; ZRWA window size constraints may limit applicability to workloads with large parity chunks.",
+  "tags": ["zns-ssd", "raid", "storage", "parity", "zrwa", "io-system"],
+  "primary_theme": "ZNS RAID partial parity management via ZRWA exploitation",
+  "confidence": "low"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-080",
+  "title": "Hybe: GPU-NPU Hybrid System for Efficient LLM Inference with Million-Token Context Window",
+  "venue": "ISCA",
+  "problem": "LLM inference with million-token context windows is infeasible on GPUs alone because KV cache activation memory for long contexts (>100K tokens) exceeds total GPU DRAM capacity, making batching impractical and leaving GPU compute cores severely underutilized during the memory-bandwidth-bound decode stage. The compute-memory imbalance between compute-intensive prefill and memory-intensive decode cannot be addressed by batching when KV data dominates physical memory.",
+  "motivation": "Context windows are growing toward 1M tokens for long-document reasoning and in-context retrieval, but GPU memory capacity and its fixed compute-to-memory-bandwidth ratio make it an inefficient sole inference platform, creating an opportunity for heterogeneous hardware that matches hardware resources to each stage's bottleneck.",
+  "method": "Hybe assigns the compute-intensive prefill stage to existing high-throughput GPUs (NVIDIA H100 with vLLM) and offloads the memory-bandwidth-bound decode stage to lightweight NPUs sized with exactly enough compute to saturate their HBM bandwidth. The key mechanism is fine-grained KV transmission: as the GPU produces partial KV activations during prefill, it immediately streams them to NPU HBM over interconnect, reducing peak GPU memory footprint dramatically. A stage-wise pipeline scheduler dynamically assigns incoming requests to idle GPU or NPU hardware, minimizing pipeline stalls across the two-stage heterogeneous system. Hybe NPU is implemented in 4nm process with HBM matching the H100 HBM specification.",
+  "key_novelty": "Fine-grained KV streaming that incrementally offloads partial KV tensors from GPU to NPU during prefill, enabling million-token context windows without GPU memory overflow while keeping NPUs minimally provisioned for decode-stage bandwidth saturation.",
+  "contributions": [
+    "Hybe GPU-NPU heterogeneous architecture that separates prefill (GPU) and decode (NPU) inference stages to match hardware to computational characteristics",
+    "Fine-grained KV transmission mechanism that streams partial KV activations from GPU to NPU as they are produced, minimizing peak GPU memory pressure",
+    "Stage-wise pipeline scheduler that dynamically assigns requests to idle GPU or NPU to minimize stalls",
+    "2.1x speedup for 100K-token context (Phi-3) and 3.9x energy efficiency for 1M-token context (Llama-3) versus equal-count H100 GPUs"
+  ],
+  "hardware_target": ["GPU", "NPU", "SoC"],
+  "technique_category": ["memory-system", "parallelism", "scheduling", "near-data-processing"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "2.1x for Phi-3 with 100K-token context vs H100 GPU",
+    "energy_or_tops_w": "3.9x energy efficiency for Llama-3 with 1M-token context vs equal-count H100 GPUs"
+  },
+  "baselines": ["NVIDIA H100 GPU with vLLM (equal device count)"],
+  "limitations": "NPU interconnect bandwidth and the cost/area of deploying paired NPUs alongside existing GPU infrastructure are not quantified.",
+  "tags": ["llm-inference", "long-context", "kv-cache", "heterogeneous", "gpu-npu", "memory-capacity"],
+  "primary_theme": "Heterogeneous GPU-NPU disaggregation for long-context LLM inference",
+  "confidence": "low"
+}

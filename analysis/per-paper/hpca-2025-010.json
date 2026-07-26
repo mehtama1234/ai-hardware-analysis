@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-010",
+  "title": "No Rush in Executing Atomic Instructions",
+  "venue": "HPCA",
+  "problem": "Modern x86 processors implement unfenced atomic RMW instructions (no implicit serializing fences), enabling eager execution as soon as operands are ready, but eager execution locks cachelines early which prolongs the lock duration and harms other threads attempting to acquire the same contended cacheline. Conversely, lazy execution (waiting until the atomic is oldest in the load queue and the store buffer is empty) minimizes cacheline lock time but exposes full memory access latency on non-contended accesses.",
+  "motivation": "With fence-free atomic implementations now in modern x86 processors (confirmed experimentally), the new performance question is not whether to remove fences but when to issue the atomic: eager execution doubles performance on non-contended workloads like canneal/freqmine, while lazy execution nearly halves execution time on contended workloads like pc/sps; a static policy always leaves half the benefit on the table.",
+  "method": "Rush or Wait (RoW) is a hardware mechanism that dynamically selects between eager and lazy atomic execution via a 64-entry, 4-bit saturating-counter contention predictor indexed by the XOR of the 12 least-significant PC bits. At issue, the predictor determines the execution mode; at completion, it updates using three progressively refined contention detection mechanisms: (1) Execution Window (EW) — marks an atomic contended if an external coherence invalidation/downgrade arrives while the cacheline is locked; (2) Ready Window (RW) — extends tracking to the window from when the atomic's operands are ready by computing the address eagerly and snooping the Atomic Queue (AQ) for address matches on external requests; (3) Directory detection (RW+Dir) — additionally marks an atomic contended when the cacheline arrives from another core's private cache with latency exceeding a 400-cycle threshold, catching cases where contention is resolved before an external request reaches the core. Store-to-load forwarding from older regular stores overrides a lazy prediction to improve atomic locality. Total storage: 64 bytes (256-bit predictor + 256-bit AQ augmentation).",
+  "key_novelty": "The first analysis of the eager-vs-lazy execution trade-off for unfenced atomic RMWs, and a hardware contention predictor (RoW) that dynamically switches between eager and lazy atomic execution based on predicted cacheline contention with only 64 bytes of state.",
+  "contributions": [
+    "Experimental characterization on real x86 hardware showing that modern processors implement fence-free (unfenced) atomic RMWs",
+    "Analysis of the eager-vs-lazy trade-off: eager wins for non-contended atomics (up to 2x speedup), lazy wins for contended atomics (up to 2x speedup), with strong workload dependence",
+    "Three-tier contention detection: execution window, ready window, and coherence-directory latency threshold for comprehensive contention tracking",
+    "RoW hardware mechanism achieving 9.2% average (up to 43%) execution time reduction over always-eager baseline with only 64 bytes of storage overhead"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["cache", "coherence", "scheduling"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "9.2% average execution time reduction (up to 43%) vs eager atomic baseline across Splash-4, PARSEC 3.0, and fine-grain synchronization benchmarks",
+    "area": "64 bytes total storage overhead",
+    "energy_or_tops_w": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "RW+Dir Sat achieves 7.3% reduction vs eager; 5.5% vs lazy; modeled on 32-core Intel Alder Lake parameters"
+  },
+  "baselines": ["Eager atomic execution (as soon as operands ready)", "Lazy atomic execution (wait until oldest + SB empty)", "Free Atomics (prior unfenced atomic implementation)"],
+  "limitations": "Evaluated only on synchronization-intensive parallel benchmarks from Splash-4, PARSEC, and custom suites; impact on workloads with mixed atomic patterns (some contended, some not at the same PC) is limited by predictor aliasing with 64 entries.",
+  "tags": ["atomic-instructions", "cache-coherence", "contention-prediction", "x86", "out-of-order", "synchronization"],
+  "primary_theme": "contention-aware dynamic eager/lazy scheduling of atomic RMW instructions",
+  "confidence": "high"
+}

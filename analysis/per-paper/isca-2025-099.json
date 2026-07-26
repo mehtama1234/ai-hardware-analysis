@@ -1,0 +1,30 @@
+{
+  "id": "isca-2025-099",
+  "title": "HardHarvest: Hardware-Supported Core Harvesting for Microservices",
+  "venue": "ISCA",
+  "problem": "Software core harvesting—where batch 'Harvest VMs' temporarily steal idle cores from latency-critical 'Primary VMs'—incurs prohibitive overheads (hypervisor calls, TLB/cache flushes, context switches) that are acceptable for monolithic applications but intolerable for sub-millisecond microservices.",
+  "motivation": "Cloud servers running microservices suffer low core utilization because VMs are sized for peak load, but existing software harvesting mechanisms are too slow to exploit the short idle windows between microservice requests.",
+  "method": "HardHarvest implements core harvesting entirely in hardware by adding in-hardware request scheduling logic that detects idle cores in Primary VMs and assigns them to Harvest VM tasks without hypervisor intervention. TLBs and caches are partitioned between Primary and Harvest VMs using a smart replacement algorithm that protects Primary VM working sets, enabling rapid context transfer without full TLB/cache flushes. The hardware scheduler monitors Primary VM request queues and preempts Harvest VM work before Primary VM tail latency is impacted.",
+  "key_novelty": "HardHarvest is the first hardware architecture for core harvesting in microservice environments, eliminating software overheads by combining in-hardware request scheduling with TLB/cache partitioning and a smart replacement policy.",
+  "contributions": [
+    "First hardware architecture for VM core harvesting targeting sub-millisecond microservice SLOs",
+    "In-hardware request scheduling that assigns idle Primary VM cores to Harvest VM tasks without hypervisor calls",
+    "TLB and cache partitioning with a smart replacement algorithm to protect Primary VM state during harvesting",
+    "1.5x core utilization increase, 1.8x Harvest VM throughput improvement, and 6.0x Primary VM tail latency reduction vs. software core harvesting"
+  ],
+  "hardware_target": ["CPU", "SoC"],
+  "technique_category": ["scheduling", "virtualization", "cache", "parallelism"],
+  "workloads": ["database"],
+  "metrics": {
+    "speedup": "1.8x Harvest VM throughput; 6.0x Primary VM tail latency reduction vs. software core harvesting",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": "1.5x core utilization improvement"
+  },
+  "baselines": ["state-of-the-art software core harvesting for microservices"],
+  "limitations": "Evaluation is simulation-based and targets a specific microservice workload profile; overhead for different VM configurations and workload mix ratios is not discussed.",
+  "tags": ["core-harvesting", "microservices", "virtualization", "scheduling", "tlb", "cloud"],
+  "primary_theme": "Hardware-supported core harvesting for microservice tail latency",
+  "confidence": "low"
+}

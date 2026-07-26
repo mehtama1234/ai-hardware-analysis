@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-072",
+  "title": "AutoRFM: Scaling Low-Cost in-DRAM Trackers to Ultra-Low Rowhammer Thresholds",
+  "venue": "HPCA",
+  "problem": "In-DRAM Rowhammer mitigation using the DDR5 Refresh Management (RFM) command stalls the entire DRAM bank for 200-400ns per invocation; at ultra-low Rowhammer thresholds (sub-100), the required RFM frequency causes up to 33% performance slowdown with existing low-cost trackers such as MINT.",
+  "motivation": "DRAM Rowhammer thresholds are decreasing with technology scaling, requiring more frequent mitigations, but the bank-stalling nature of RFM makes it prohibitively expensive at ultra-low thresholds.",
+  "method": "AutoRFM performs transparent RFM at the subarray granularity rather than the full bank level: it targets only one subarray at a time for mitigation while all other subarrays continue to service requests uninterrupted. If an activation request arrives for the subarray currently under mitigation, the DRAM chip issues an ALERT signal to the Memory Controller to retry after a bounded 200ns wait. Randomized Memory Mapping breaks spatial correlation between consecutive bank accesses to prevent repeated targeting of the same subarray. A Fractal Mitigation Algorithm handles transitive Rowhammer attacks (e.g., Half-Double) without recursive same-subarray mitigations. The design is evaluated with SPEC, GAP, and stream workloads.",
+  "key_novelty": "Subarray-granularity transparent RFM that allows parallel servicing of non-targeted subarrays during mitigation, breaking the bank-level stall bottleneck of standard RFM.",
+  "contributions": [
+    "AutoRFM subarray-level transparent RFM mechanism avoiding bank-wide stalls during Rowhammer mitigation",
+    "Randomized Memory Mapping to prevent repeated targeting of the same subarray",
+    "Fractal Mitigation Algorithm for transitive (Half-Double) Rowhammer attacks",
+    "Enables thresholds as low as 74 with average 3.1% slowdown vs 33% slowdown for bank-level RFM at threshold 100"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["reliability", "security", "memory-system"],
+  "workloads": ["HPC", "graph-analytics"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "3.1% average slowdown at Rowhammer threshold 74; vs 33% slowdown with bank-level RFM at threshold 100"
+  },
+  "baselines": ["MINT tracker with standard bank-level RFM (DDR5)", "other in-DRAM Rowhammer mitigations"],
+  "limitations": "Not discussed; the ALERT-based retry mechanism introduces non-deterministic latency that may affect real-time systems.",
+  "tags": ["rowhammer", "dram-mitigation", "rfm", "subarray", "memory-security"],
+  "primary_theme": "subarray-granularity RFM for scalable in-DRAM Rowhammer mitigation",
+  "confidence": "low"
+}

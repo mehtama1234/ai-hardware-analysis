@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-111",
+  "title": "PICACHU: Plug-In CGRA Handling Upcoming Nonlinear Operations in LLMs",
+  "venue": "ASPLOS",
+  "problem": "Nonlinear operations in LLMs (e.g., softmax, layer norm, GELU, RoPE) contribute significantly to inference latency and are poorly served by fixed-function accelerators designed primarily for matrix multiply/convolution, as they require user-defined precision and flexible dataflow to handle diverse operator shapes and precision requirements.",
+  "motivation": "As LLMs become the dominant workload, the nonlinear operations that standard accelerators handle inefficiently create disproportionate latency bottlenecks, and no existing hardware provides both the efficiency and flexibility needed to handle this diverse, precision-sensitive set of operators.",
+  "method": "PICACHU uses a Coarse-Grained Reconfigurable Array (CGRA) as a plug-in accelerator specifically targeting nonlinear operations in LLMs. The CGRA is configured with reconfigurable processing elements (PEs) arranged in a spatial dataflow grid that can be reprogrammed per operator, supporting user-defined precision via configurable compute units. PICACHU plugs into existing accelerator pipelines (e.g., alongside a systolic array or GPU) and offloads nonlinear operations while the main compute handles linear algebra. The CGRA dataflow is scheduled at compile time per operator using a mapping tool that assigns CGRA PE configurations and routing to match the operator's precision and shape requirements.",
+  "key_novelty": "A plug-in CGRA accelerator specifically co-designed with LLM nonlinear operation diversity, providing reconfigurable PE-level precision and dataflow to handle softmax, layer norm, GELU, and similar operations that fixed-function units cannot efficiently support.",
+  "contributions": [
+    "Profiling analysis identifying nonlinear operations as a significant LLM inference latency bottleneck not well addressed by existing accelerators.",
+    "PICACHU CGRA architecture design with user-configurable precision PEs for LLM nonlinear operator diversity.",
+    "Compiler mapping tool for scheduling nonlinear ops onto the CGRA dataflow grid.",
+    "Integration strategy for plug-in deployment alongside existing LLM accelerators."
+  ],
+  "hardware_target": ["ASIC", "FPGA"],
+  "technique_category": ["dataflow", "circuit-design", "compiler"],
+  "workloads": ["LLM-inference", "transformer", "attention"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "latency reduction for nonlinear ops; specific numbers not in abstract"
+  },
+  "baselines": ["GPU", "fixed-function LLM accelerators"],
+  "limitations": "The plug-in CGRA may introduce integration overhead with the host accelerator's memory hierarchy and control plane; specific area/power cost not available from abstract.",
+  "tags": ["cgra", "llm-inference", "nonlinear-ops", "reconfigurable", "accelerator", "softmax"],
+  "primary_theme": "CGRA plug-in accelerator for LLM nonlinear operations",
+  "confidence": "low"
+}

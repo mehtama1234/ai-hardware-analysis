@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-063",
+  "title": "GraphPipe: Improving Performance and Scalability of DNN Training with Graph Pipeline Parallelism",
+  "venue": "ASPLOS",
+  "problem": "Existing pipeline-parallel DNN training systems partition models into sequential stages, ignoring the actual DAG topology of modern neural networks, which causes missed model-parallelism opportunities and suboptimal device utilization.",
+  "motivation": "DNN models are growing beyond the capacity of a single GPU, and while pipeline parallelism is widely used, restricting pipeline stages to linear chains fails to exploit the branching and merging structure of modern architectures (e.g., transformers with parallel FFN+attention, multi-branch networks), leaving significant throughput on the table.",
+  "method": "GraphPipe introduces graph pipeline parallelism, which partitions a DNN's computation graph (DAG) rather than a linear sequence into pipeline stages. The system represents the DNN as a dataflow graph, identifies parallelizable subgraphs, and maps them to device groups that execute concurrently in a pipeline fashion. A graph-aware scheduling algorithm determines micro-batch execution order across non-linear pipeline stages to maximize throughput and minimize pipeline bubbles, coordinating across branches of the DAG.",
+  "key_novelty": "Graph-structured (DAG-aware) pipeline parallelism that exploits non-sequential DNN topology to enable concurrent execution of structurally parallel model subgraphs across device groups.",
+  "contributions": [
+    "Formulation of graph pipeline parallelism that extends pipeline parallelism to arbitrary DNN DAG topologies.",
+    "Graph-aware partitioning and scheduling algorithm to minimize pipeline bubbles across non-linear stages.",
+    "GraphPipe system implementation for large-scale DNN training.",
+    "Demonstrated scalability and throughput improvements over sequential pipeline-parallel systems."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["parallelism", "scheduling", "dataflow"],
+  "workloads": ["LLM-training", "transformer", "CNN"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Throughput improvements over sequential pipeline baselines (details in full paper)"
+  },
+  "baselines": ["GPipe", "PipeDream", "Megatron-LM pipeline parallelism"],
+  "limitations": "Graph partitioning complexity may limit scalability to very large numbers of devices with complex DNN DAGs; not quantified in the abstract.",
+  "tags": ["pipeline-parallelism", "dnn-training", "graph-parallelism", "llm-training", "multi-gpu"],
+  "primary_theme": "graph-topology-aware pipeline parallelism for DNN training",
+  "confidence": "low"
+}

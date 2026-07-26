@@ -1,0 +1,30 @@
+{
+  "id": "isca-2025-098",
+  "title": "Hybrid SLC-MLC RRAM Mixed-Signal Processing-in-Memory Architecture for Transformer Acceleration via Gradient Redistribution",
+  "venue": "ISCA",
+  "problem": "Analog RRAM PIM using multi-level cells (MLC) can offer 2x storage density and higher compute throughput than single-level cells (SLC), but MLC's non-linearity causes catastrophic accuracy degradation (e.g., 40% drop) in Transformer models, while brute-force hybrid SLC/MLC mapping fails to move enough weights into MLC to yield meaningful efficiency gains.",
+  "motivation": "Transformers dominate inference workloads and are memory-bandwidth-limited; analog RRAM PIM can eliminate data movement and exploit massive parallelism, but accuracy sensitivity to MLC non-ideality has blocked analog PIM from covering the dominant fraction of transformer weights.",
+  "method": "HyFlexPIM uses a three-tier mixed-signal RRAM PIM architecture: (1) digital SLC RRAM PIM for attention Q·K^T and ×V operations that require high precision and write real-time vectors, (2) analog SLC RRAM PIM for the most critical static weight rows, and (3) analog MLC RRAM PIM (2-bit per cell) for the error-tolerant majority of static weights. A single analog PIM module is reconfigurable between SLC and MLC via a shared 6-b/7-b flexible SAR-ADC that bypasses the MSB comparison in SLC mode, adding less than 1% area/energy overhead. On the software side, gradient redistribution applies SVD to decompose each linear weight matrix, truncates to a hard threshold rank to maintain iso-computational cost, then fine-tunes for 1-3 epochs with AdamW; the fine-tuning process naturally concentrates gradient magnitude into the top 5-10% of singular values, making those rows clearly demarcated as SLC-critical while 90-95% of weights are safely mapped to MLC.",
+  "key_novelty": "Gradient redistribution via SVD truncation followed by fine-tuning actively reshapes gradient distributions to concentrate critical weight importance into 5-10% of parameters, enabling 90-95% of Transformer weights to be computed in efficient MLC RRAM while preserving less than 1% accuracy loss.",
+  "contributions": [
+    "Reconfigurable hybrid SLC-MLC analog RRAM PIM module with a shared flexible 6-b/7-b SAR-ADC (<1% area/energy overhead for dual-mode support)",
+    "Three-tier mixed-signal architecture: digital RRAM PIM for attention, analog SLC for critical weights, analog MLC for error-tolerant majority",
+    "SVD-based gradient redistribution algorithm that concentrates 90-95% of Transformer weights into MLC-compatible low-gradient ranks through post-truncation fine-tuning",
+    "Maximum 1.86x throughput and 1.45x energy efficiency improvement over state-of-the-art with <1% accuracy degradation across BERT, GPT-2, Llama3, and ViT-Base"
+  ],
+  "hardware_target": ["CIM (compute-in-memory)", "ASIC"],
+  "technique_category": ["circuit-design", "quantization", "dataflow", "approximation"],
+  "workloads": ["LLM-inference", "transformer", "attention", "vision"],
+  "metrics": {
+    "speedup": "1.86x max throughput over ASADI (SoA analog-digital hybrid PIM)",
+    "energy_or_tops_w": "1.45x energy efficiency improvement over ASADI",
+    "area": "65nm technology node; <1% area overhead for SLC/MLC reconfigurability",
+    "accuracy": "<1% accuracy degradation for encoder (BERT) and vision (ViT); <10% loss increase for decoder (GPT-2, Llama3)",
+    "other": "5-10% SLC protection rate sufficient for encoders; 5-20% for decoders"
+  },
+  "baselines": ["ASADI (FP32 analog-digital hybrid PIM, SLC only)", "ASADI† (INT8 variant)", "SPRINT (digital processor + analog PIM for attention only)", "TransPIM (NMP baseline with FIMDRAM+HBM)", "Non-PIM INT8 digital baseline"],
+  "limitations": "HyFlexPIM is optimized for inference only; the SVD fine-tuning step incurs a one-time preprocessing cost not counted in inference latency, and the 65nm process node used for comparison may not reflect leading-edge RRAM process feasibility.",
+  "tags": ["rram", "pim", "mixed-signal", "transformer-inference", "svd", "gradient-redistribution", "mlc-slc"],
+  "primary_theme": "Hybrid SLC-MLC RRAM PIM with gradient redistribution for transformer inference",
+  "confidence": "high"
+}

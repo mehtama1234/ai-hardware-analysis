@@ -1,0 +1,27 @@
+{
+  "id": "isca-2025-015",
+  "title": "Caravan: A Hardware/Software Co-Design for Efficient SIMD Neighbor Search on Point Clouds",
+  "venue": "ISCA",
+  "problem": "Neighbor search in 3D point cloud processing via k-d trees is compute-intensive and exhibits SIMD underutilization: consecutive queries follow similar tree paths but diverge at deeper levels, causing sparse VPU lane usage that standard SIMD instructions cannot efficiently handle.",
+  "motivation": "Point cloud processing is central to 3D computer vision and autonomous systems; accelerating its core k-d tree neighbor search on commodity CPUs rather than custom ASICs offers broad applicability.",
+  "method": "Caravan-SW batches consecutive neighbor search queries that visit similar k-d tree nodes and processes them in parallel using SIMD (AVX512) instructions. At deeper tree levels where query navigation diverges, Caravan-HW adds two new ISA instructions that enable re-indexing of valid (non-empty) SIMD lanes and fast operand shuffling, allowing dense SIMD operations on the remaining active lanes. The hardware modification is lightweight, requiring only 0.032 mm2 of additional silicon area.",
+  "key_novelty": "Two new ISA instructions that re-index and shuffle valid SIMD elements at divergent k-d tree leaf levels, eliminating the runtime sparsity penalty of batched neighbor search without a full custom accelerator.",
+  "contributions": [
+    "Caravan-SW: query batching exploiting k-d tree traversal similarity for parallel SIMD neighbor search",
+    "Caravan-HW: two new CPU instructions for lane re-indexing and dense SIMD execution at divergent k-d tree leaf levels",
+    "4.05x speedup in neighbor search (1.85x end-to-end) with AVX512 software-only, 5.19x (1.97x end-to-end) with Caravan-HW",
+    "Minimal area cost of 0.032 mm2 for hardware extension"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["dataflow", "compiler", "parallelism"],
+  "workloads": ["vision"],
+  "metrics": {
+    "speedup": "5.19x neighbor search speedup (1.97x end-to-end) with Caravan-HW; 4.05x (1.85x end-to-end) with SW only",
+    "area": "0.032 mm2 additional area for HW extension"
+  },
+  "baselines": ["commodity CPU baseline (point cloud segmentation)", "custom accelerators (end-to-end comparison)"],
+  "limitations": "End-to-end speedup (1.97x) is modest relative to kernel speedup (5.19x), indicating other bottlenecks in the point cloud pipeline limit overall gains.",
+  "tags": ["point-cloud", "kd-tree", "simd", "neighbor-search", "isa-extension"],
+  "primary_theme": "SIMD-aware hardware/software co-design for k-d tree neighbor search",
+  "confidence": "low"
+}

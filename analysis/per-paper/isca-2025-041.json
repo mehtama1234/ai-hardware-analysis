@@ -1,0 +1,30 @@
+{
+  "id": "isca-2025-041",
+  "title": "Cassandra: Efficient Enforcement of Sequential Execution for Cryptographic Programs",
+  "venue": "ISCA",
+  "problem": "Modern out-of-order processors violate constant-time programming assumptions by transiently executing unintended control-flow paths, enabling Spectre-class transient execution attacks against cryptographic code. Existing mitigations that address control-flow misspeculations impose high performance overhead by broadly restricting speculative execution.",
+  "motivation": "Constant-time programming is the dominant practical defense for cryptographic side-channel attacks, but hardware speculation repeatedly undermines it, and no efficient hardware mechanism has closed this gap without major performance loss.",
+  "method": "Cassandra disables branch prediction for constant-time cryptographic code regions and instead records and replays the deterministic sequential control flow using a Branch Trace Unit (BTU) added to the processor. Exploiting the observation that constant-time programs have mostly static control flow across runs and that cryptographic programs are loop-intensive with highly compressible control-flow patterns, Cassandra performs upfront branch analysis to compress control-flow traces stored in the BTU. The BTU then supplies fetch redirections from compressed trace storage, bypassing speculative branch prediction entirely for protected code regions.",
+  "key_novelty": "Replacing the branch predictor with a record-and-replay mechanism using compressed control-flow traces for constant-time cryptographic code, achieving security without speculation overhead and even a net average speedup over an unsafe baseline.",
+  "contributions": [
+    "Identification that constant-time program control flow is mostly static and highly compressible across different runs",
+    "Cassandra hardware/software mechanism: Branch Trace Unit (BTU) that stores compressed sequential control-flow traces and drives fetch redirections without speculative prediction",
+    "Upfront branch analysis pass that compresses loop-intensive cryptographic control-flow patterns for efficient trace storage",
+    "Demonstration of average 1.85% speedup over unsafe baseline processor while enforcing strong sequential execution security guarantees"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "prefetching", "compiler"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": "average 1.85% speedup over unsafe baseline processor",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": "strong security guarantee against Spectre-class transient execution attacks on constant-time code"
+  },
+  "baselines": ["unsafe baseline processor (with branch predictor, no Spectre mitigations)"],
+  "limitations": "Not discussed for cases where constant-time code control flow is not static or compressible across runs.",
+  "tags": ["transient-execution", "spectre", "constant-time", "branch-prediction", "cryptography", "security"],
+  "primary_theme": "secure sequential execution enforcement for constant-time cryptographic code",
+  "confidence": "low"
+}

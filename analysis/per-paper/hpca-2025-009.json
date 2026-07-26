@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-009",
+  "title": "SpecMPK: Efficient In-Process Isolation with Speculative and Secure Permission Update Instruction",
+  "venue": "HPCA",
+  "problem": "Memory Protection Keys (MPK) enable user-space access control for in-process isolation, but the permission update instruction (WRPKRU) is serialized, imposing significant performance overhead when applications require frequent domain switches to enforce isolation of critical data and pointers.",
+  "motivation": "In-process isolation protects against memory safety vulnerabilities (buffer overflows, use-after-free) and speculative execution attacks, but the serialization cost of MPK permission updates makes it impractical for high-frequency domain-switching scenarios.",
+  "method": "SpecMPK speculatively executes the MPK permission update instruction (WRPKRU) out-of-order rather than serializing it. A lightweight microarchitecture enhancement monitors all subsequent memory instructions that follow a speculative permission update: any instruction that would access a memory region whose permission was transiently upgraded (i.e., a potential speculative access to protected data) is blocked from committing until the permission update instruction itself becomes non-squashable (i.e., past the point of no return in the ROB). This prevents transient permission upgrades from being exploited by speculative execution attacks while allowing the processor to overlap permission update latency with useful computation.",
+  "key_novelty": "Allowing speculative out-of-order execution of WRPKRU while preventing speculative access to transiently upgraded memory regions through a blocking mechanism tied to the instruction's non-squashable commit point.",
+  "contributions": [
+    "Analysis of WRPKRU serialization as the dominant performance bottleneck for MPK-based in-process isolation",
+    "SpecMPK microarchitecture: speculative permission update execution with transient-access blocking until non-squashable",
+    "12.21% average performance improvement for SPEC workloads requiring frequent domain switches vs serialized WRPKRU",
+    "Security argument that speculative execution attacks cannot exploit transiently upgraded permissions"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "cache", "scheduling", "reliability"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "Average 12.21% performance improvement for frequent-domain-switch SPEC workloads vs serialized WRPKRU",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Serialized WRPKRU (standard MPK)", "mprotect system calls"],
+  "limitations": "Not discussed; evaluation limited to SPEC workloads; real-world application domain-switch frequency impact may vary.",
+  "tags": ["memory-protection", "mpk", "speculative-execution", "in-process-isolation", "security", "microarchitecture"],
+  "primary_theme": "speculative MPK permission update for low-overhead in-process isolation",
+  "confidence": "low"
+}

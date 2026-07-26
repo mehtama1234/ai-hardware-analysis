@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-078",
+  "title": "Delinquent Loop Pre-execution Using Predicated Helper Threads",
+  "venue": "HPCA",
+  "problem": "Helper-thread branch pre-execution fails when delinquent branches are control-dependent on other delinquent branches: prior work must branch-predict the first delinquent branch (b1) in the helper thread to decide whether to pre-execute the second (b2), merely shifting the misprediction bottleneck to the helper thread. Additionally, stores that both influence a delinquent branch and are control-dependent on it create a disambiguation problem in helper threads.",
+  "motivation": "Hard-to-predict branches remain a fundamental IPC limiter in modern CPUs, and helper-thread pre-execution is a promising approach, but its scalability to nested delinquent control dependences has been an unresolved challenge.",
+  "method": "Phelps (Predicated Helper Threads) constructs a helper thread for each inner loop containing delinquent branches and unconditionally pre-executes all delinquent branches (including control-dependent ones) in every loop iteration. Per-branch queues are managed in lockstep with loop iterations, so the main thread can correctly consume or ignore b2 outcomes based on b1 results. Influential stores that are control-dependent on delinquent branches are predicated on those branch outcomes in the helper thread. A dual decoupled helper thread scheme handles outer-inner loop pairs with short/unpredictable inner-loop trip counts.",
+  "key_novelty": "Unconditional pre-execution of all delinquent branches (including control-dependent ones) via loop-iteration-lockstep per-branch queues, eliminating the need to predict delinquent branches within the helper thread itself.",
+  "contributions": [
+    "Phelps: predicated helper thread design that handles chains of control-dependent delinquent branches without helper-thread branch prediction",
+    "Loop-iteration-lockstep per-branch queue management enabling correct ordered delivery of pre-executed outcomes",
+    "Predicated store handling for stores that are both influential and control-dependent on delinquent branches",
+    "Dual decoupled helper thread mechanism for outer-inner loop pairs with unpredictable inner trip counts"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "scheduling"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": "Not stated in abstract"
+  },
+  "baselines": ["Prior helper thread branch pre-execution approaches"],
+  "limitations": "Not discussed; quantitative performance results are absent from the abstract.",
+  "tags": ["helper-threads", "branch-prediction", "pre-execution", "speculation", "loop-optimization"],
+  "primary_theme": "predicated helper threads for delinquent branch pre-execution",
+  "confidence": "low"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-113",
+  "title": "AccelES: Accelerating Top-K SpMV for Embedding Similarity via Low-bit Pruning",
+  "venue": "HPCA",
+  "problem": "Top-K sparse matrix-vector multiplication (SpMV) for recommendation system embedding similarity suffers from high latency due to inefficient memory access patterns when scanning full-precision sparse matrices to identify the most relevant embeddings.",
+  "motivation": "Real-time recommendation systems require sub-millisecond embedding similarity queries at scale, but existing CPU/GPU/FPGA solutions are bottlenecked by memory bandwidth when performing SpMV over large sparse feature matrices.",
+  "method": "AccelES employs a two-stage computation scheme: Stage 1 uses a compact low-bit (pruned) representation of the sparse matrix to rapidly identify the top-K candidate entries with minimal data movement, and Stage 2 performs full-precision SpMV only on this pruned candidate subset. Two novel sparse matrix storage formats, Ultra-CSR and Random-CSR, are introduced to optimize memory bandwidth utilization for irregular access patterns inherent in SpMV. The low-bit approximation in Stage 1 filters out irrelevant entries early, reducing the volume of full-precision computation dramatically.",
+  "key_novelty": "Two-stage low-bit pruning that decouples candidate identification (low-bit/low-cost) from precise scoring (full-precision/selective), enabling asymmetric computation allocation for Top-K SpMV.",
+  "contributions": [
+    "Two-stage Top-K SpMV algorithm combining low-bit candidate selection with full-precision verification",
+    "Ultra-CSR and Random-CSR matrix formats optimized for memory bandwidth in sparse embedding lookup",
+    "Accelerator achieving 3.4x over FPGA, 2.5x over GPU, and 153.3x over CPU for Top-K SpMV",
+    "Demonstrated applicability to real-time recommendation system workloads"
+  ],
+  "hardware_target": ["FPGA", "ASIC"],
+  "technique_category": ["sparsity", "quantization", "memory-system", "approximation"],
+  "workloads": ["recommendation", "DLRM"],
+  "metrics": {
+    "speedup": "3.4x over FPGA, 2.5x over GPU, 153.3x over CPU"
+  },
+  "baselines": ["FPGA baseline (unspecified)", "GPU baseline (unspecified)", "CPU baseline (unspecified)"],
+  "limitations": "The accuracy impact of the low-bit pruning approximation on final recommendation quality (beyond top-K overlap) is not discussed in the abstract.",
+  "tags": ["spmv", "embedding-similarity", "recommendation-systems", "low-bit", "sparsity", "fpga"],
+  "primary_theme": "Low-bit two-stage pruning for accelerated Top-K sparse embedding similarity",
+  "confidence": "low"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-063",
+  "title": "Make LLM Inference Affordable to Everyone: Augmenting GPU Memory with NDP-DIMM",
+  "venue": "HPCA",
+  "problem": "Deploying large LLMs (e.g., LLaMA2-70B) on consumer-grade GPUs with limited VRAM is impractical; offloading model weights to host DRAM or NVMe storage creates severe bandwidth bottlenecks on the PCIe interconnect, resulting in very low inference throughput.",
+  "motivation": "As LLM-assisted services proliferate, democratizing LLM inference on budget consumer hardware (rather than expensive server-grade HBM-equipped GPUs) is a pressing need.",
+  "method": "Hermes partitions LLM weights into 'hot' neurons (~20% of parameters, ~80% of compute) and 'cold' neurons (~80% of parameters, ~20% of compute) based on activation sparsity. Hot neurons are mapped to the consumer GPU for compute-efficient execution, while cold neurons are offloaded to near-data processing (NDP) units embedded in commodity DRAM DIMMs. A lightweight runtime predictor dynamically classifies neurons as hot or cold based on input activations. A window-based online scheduler maintains load balance across multiple NDP-DIMM modules, enabling pipelined heterogeneous execution between GPU and NDP-DIMMs.",
+  "key_novelty": "Exploiting LLM activation sparsity to drive a hot/cold neuron partition that maps cold weights to NDP-DIMMs, bypassing the PCIe bandwidth bottleneck by keeping computation near DRAM.",
+  "contributions": [
+    "Hot/cold neuron classification leveraging ~80/20 activation sparsity split in LLMs",
+    "Heterogeneous GPU + NDP-DIMM execution strategy with a lightweight real-time neuron predictor",
+    "Window-based online load-balancing scheduler across NDP-DIMM modules",
+    "75.24x average speedup over state-of-the-art offloading inference systems; LLaMA2-70B at 13.75 tokens/s on consumer hardware"
+  ],
+  "hardware_target": ["GPU", "PIM (processing-in-memory)"],
+  "technique_category": ["near-data-processing", "memory-system", "scheduling"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "75.24x average over state-of-the-art offloading-based inference on consumer hardware",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "LLaMA2-70B: 13.75 tokens/s on consumer GPU"
+  },
+  "baselines": ["FlexGen", "other SSD/host-memory offloading inference systems"],
+  "limitations": "The hot/cold neuron split assumes significant activation sparsity, which may not hold uniformly across all LLM architectures and input distributions.",
+  "tags": ["llm-inference", "ndp-dimm", "activation-sparsity", "consumer-gpu", "memory-offloading"],
+  "primary_theme": "near-DRAM processing for affordable LLM inference",
+  "confidence": "low"
+}

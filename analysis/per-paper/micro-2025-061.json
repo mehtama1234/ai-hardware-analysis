@@ -1,0 +1,26 @@
+{
+  "id": "micro-2025-061",
+  "title": "ShadowBinding: Realizing Effective Microarchitectures for In-Core Secure Speculation Schemes",
+  "venue": "MICRO",
+  "problem": "Secure speculation schemes that mitigate Spectre-class speculative side-channel attacks (such as STT and NDA) lack rigorous RTL-level microarchitectural implementations and realistic performance/cost analysis, causing prior work to significantly underestimate their overhead. Specifically, STT's rename-stage taint computation creates an expensive single-cycle dependency chain that degrades performance on wider out-of-order cores.",
+  "motivation": "As speculative side-channel attacks remain an active threat, deployment of in-core secure speculation schemes requires honest microarchitectural cost analysis; overly optimistic estimates based on simplified models prevent accurate understanding of the true performance penalty and inhibit rational security/performance trade-off decisions.",
+  "method": "ShadowBinding develops concrete RTL microarchitectures for two state-of-the-art secure speculation schemes—Speculative Taint Tracking (STT) and Non-Speculative Data Access (NDA)—implemented on the RISC-V Berkeley Out-of-Order Machine (BOOM). For STT, a novel variant called STT-Issue is proposed that delays taint computation from the rename stage to the issue stage, breaking the expensive single-cycle rename-stage dependency chain and improving IPC, area, and timing. RTL synthesis and cycle-accurate simulation are used to measure the combined IPC and timing impact, capturing the full performance loss including clock frequency degradation.",
+  "key_novelty": "STT-Issue delays taint propagation to the issue stage, eliminating the rename-stage dependency chain that limits performance for wide cores, and is the first RTL-backed evaluation revealing that combined IPC+timing overhead of in-core secure speculation exceeds 35% for high-performance cores.",
+  "contributions": [
+    "First rigorous RTL microarchitectures for STT and NDA on a real RISC-V out-of-order core (BOOM)",
+    "Novel STT-Issue variant that moves taint computation to issue stage, improving IPC, timing, and area over STT-Rename",
+    "Quantification of combined IPC and timing performance loss: 35%, 27%, and 22% for STT-Rename, STT-Issue, and NDA respectively on a high-performance core",
+    "Challenge to prior research consensus that Spectre can be solved at low performance cost using in-core schemes"
+  ],
+  "hardware_target": ["RISC-V", "CPU"],
+  "technique_category": ["security", "scheduling", "parallelism"],
+  "workloads": [],
+  "metrics": {
+    "other": "IPC impact ~20% for highest-performance core; combined IPC+timing loss: 35% (STT-Rename), 27% (STT-Issue), 22% (NDA)"
+  },
+  "baselines": ["insecure baseline BOOM RISC-V core", "STT-Rename", "NDA"],
+  "limitations": "Analysis is limited to a RISC-V academic core (BOOM); the authors note that if trends hold for commercial high-performance cores, overheads would be similar or worse, but this is not directly measured.",
+  "tags": ["speculative-execution", "side-channel", "security", "risc-v", "out-of-order", "taint-tracking"],
+  "primary_theme": "microarchitectural cost of in-core secure speculation",
+  "confidence": "low"
+}

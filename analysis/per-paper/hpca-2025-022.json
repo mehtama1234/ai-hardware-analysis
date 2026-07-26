@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-022",
+  "title": "eDKM: An Efficient and Accurate Train-Time Weight Clustering for Large Language Models",
+  "venue": "HPCA",
+  "problem": "Differentiable KMeans (DKM) weight clustering achieves state-of-the-art compression accuracy for LLMs but its memory complexity makes train-time application to billion-parameter LLMs nearly impossible, requiring far more GPU memory than available on any single device.",
+  "motivation": "Weight clustering (non-linear quantization) is natively supported on modern smartphones and offers high compression ratios for on-device LLM inference, but the training overhead of DKM has blocked its application at LLM scale.",
+  "method": "eDKM reduces DKM memory footprint during the backward pass by: (1) uniquification — detecting and deduplicating identical tensors before CPU offload to avoid redundant copies; (2) sharding — splitting large tensors across memory partitions for further compression. Both techniques apply to the intermediate tensors that must be retained on CPU during DKM's backward pass. This reduces the train-time memory footprint of a decoder layer by 130x, enabling fine-tuning and compression of a 7B LLaMA model to 3b/weight on standard GPU hardware.",
+  "key_novelty": "Uniquification-plus-sharding of DKM backward-pass tensors offloaded to CPU, reducing per-decoder-layer memory by 130x and making train-time weight clustering tractable for 7B-parameter LLMs.",
+  "contributions": [
+    "Identification of DKM's backward-pass tensor redundancy and memory explosion as the key barrier to LLM-scale weight clustering.",
+    "Uniquification technique: deduplication of identical CPU-offloaded tensors during DKM backward pass.",
+    "Sharding technique: partitioning large tensors to further reduce memory footprint.",
+    "130x memory reduction per decoder layer; LLaMA 7B compressed from 12.6 GB to 2.5 GB (3b/weight) with competitive accuracy (PIQA 77.7%, Winogrande 66.1%)."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["quantization", "memory-system"],
+  "workloads": ["LLM-inference", "LLM-training"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "PIQA: 77.7%; Winogrande: 66.1% at 3b/weight for LLaMA 7B",
+    "other": "130x reduction in train-time memory per decoder layer; model size: 12.6 GB to 2.5 GB"
+  },
+  "baselines": ["DKM (Differentiable KMeans Clustering)", "Standard LLaMA 7B (uncompressed, 12.6 GB)"],
+  "limitations": "The compression ratio and accuracy trade-offs at sub-3b granularity or for larger models (13B, 70B) are not evaluated; mobile device inference latency improvements are not directly measured.",
+  "tags": ["weight-clustering", "non-linear-quantization", "llm-compression", "mobile-inference", "memory-efficient-training", "dkm"],
+  "primary_theme": "Memory-efficient train-time weight clustering for LLM compression",
+  "confidence": "low"
+}

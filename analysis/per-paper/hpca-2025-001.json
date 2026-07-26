@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-001",
+  "title": "Push Multicast: A Speculative and Coherent Interconnect for Mitigating Manycore CPU Communication Bottleneck",
+  "venue": "HPCA",
+  "problem": "In manycore processors running parallel workloads, multiple cores repeatedly fetch the same shared cacheline at different times, consuming redundant LLC and NoC bandwidth through independent demand requests. The reactive cache hierarchy does not exploit temporal redundancy in same-data accesses across cores.",
+  "motivation": "As CPU core counts scale, NoC bandwidth becomes the performance bottleneck because the reactive cache hierarchy wastes bandwidth serving identical data to many cores sequentially.",
+  "method": "Push Multicast transforms the LLC into a proactive agent: when it services a demand request, it simultaneously pushes the data to other predicted sharers via multicast, amortizing the bandwidth cost of same-data deliveries. A coherent in-network filter is installed in routers to prune outstanding demand requests that match an in-flight push, preventing redundant traffic. A dynamic pause/resume mechanism adaptively disables pushing when contention is detected, avoiding interference between push-traffic and normal demand traffic.",
+  "key_novelty": "Converting the LLC from a reactive responder to a proactive multicast pusher, coupled with a coherent in-network filter that prunes redundant in-flight requests along the push delivery path.",
+  "contributions": [
+    "Speculative LLC-to-sharer push mechanism that multicasts data upon demand-request reply to reduce redundant NoC traffic",
+    "Coherent in-network request filter in routers that prunes outstanding requests for cachelines already being pushed",
+    "Dynamic pause/resume control for pushing to avoid interference under varying traffic loads",
+    "33% NoC bandwidth saving and up to 1.56x speedup in 16-core, 43% bandwidth saving and up to 2.08x speedup in 64-core systems"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["interconnect", "cache", "prefetching", "coherence"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "geomean 1.02x (max 1.56x) in 16-core; geomean 1.11x (max 2.08x) in 64-core",
+    "other": "33% avg NoC BW saving (16-core), 43% avg NoC BW saving (64-core)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null
+  },
+  "baselines": ["L1 Bingo data prefetcher + L2 Stride prefetcher baseline"],
+  "limitations": "Not discussed; coherence correctness with speculative push in the presence of write-invalidations may impose additional complexity not detailed in the abstract.",
+  "tags": ["noc", "multicast", "cache-coherence", "manycore", "bandwidth", "prefetching"],
+  "primary_theme": "proactive LLC-to-sharer multicast for NoC bandwidth reduction",
+  "confidence": "low"
+}

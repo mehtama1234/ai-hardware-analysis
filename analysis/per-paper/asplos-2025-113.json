@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-113",
+  "title": "MOAT: Securely Mitigating Rowhammer with Per-Row Activation Counters",
+  "venue": "ASPLOS",
+  "problem": "The JEDEC PRAC+ABO (Per-Row Activation Counting + Alert-Back-Off) framework for DDR5 Rowhammer mitigation is only a specification framework, not a proven secure implementation; the prior Panopticon design that inspired it is shown to be insecure via a new 'Jailbreak' attack that causes 9x more activations than the configured threshold of 128. A provably secure, low-overhead DRAM-side Rowhammer mitigation using the PRAC+ABO framework does not yet exist.",
+  "motivation": "Rowhammer thresholds have dropped from 139K to 4.8K activations over the past decade and will continue falling, requiring provably secure in-DRAM mitigations that tolerate sub-100 thresholds with minimal SRAM and performance overhead.",
+  "method": "MOAT (Mitigating Rowhammer with Dual Thresholds) uses per-row activation counters (PRAC) with two internal thresholds: ETH (Eligibility Threshold) for proactive mitigation during REF operations and ATH (ALERT Threshold) for triggering the ALERT-Back-Off reactive protocol. Instead of Panopticon's 8-entry per-bank queue (which loses counter information and enables Jailbreak), MOAT tracks only a single entry per bank via a Current Tracked Addr (CTA) register that always holds the row with the highest counter value, plus a Current Mitigated Addr (CMA) register, requiring only 7 bytes of SRAM per bank total. A safe counter-reset-on-refresh mechanism preserves counter integrity across refresh groups by copying boundary-row counters to 2-byte SRAM registers. The Ratchet attack analysis, exploiting the inter-ALERT activations permitted by JEDEC ABO specifications, establishes that MOAT with ATH=64 can safely tolerate a Rowhammer threshold of 99.",
+  "key_novelty": "Replacing Panopticon's multi-entry queue with a single-entry CTA register that tracks the highest-activation-count row, enabling a provably secure dual-threshold (ETH/ATH) design with only 7 bytes SRAM per bank.",
+  "contributions": [
+    "Jailbreak attack demonstrating Panopticon (the basis of PRAC+ABO) is insecure, inflicting 1152 activations (9x over threshold=128) for both deterministic and randomized variants.",
+    "MOAT design with dual ETH/ATH thresholds and single-entry CTA/CMA tracking achieving provably secure Rowhammer mitigation.",
+    "Ratchet attack analysis quantifying the impact of JEDEC-permitted inter-ALERT activations on tolerated TRH, establishing ATH=64 tolerates TRH=99.",
+    "Evaluation on 15 SPEC-2017 and 6 GAP benchmarks showing 0.28% average slowdown and 7 bytes SRAM per bank for ATH=64."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["memory-system", "security", "reliability"],
+  "workloads": ["HPC", "graph-analytics"],
+  "metrics": {
+    "speedup": "0.28% average slowdown (ATH=64) over no-ALERT baseline on SPEC2017+GAP",
+    "energy_or_tops_w": "2.3% increase in total DRAM activations; <0.5% total DRAM energy increase",
+    "area": "7 bytes SRAM per bank",
+    "ppa": null,
+    "accuracy": null,
+    "other": "TRH tolerated: 99 (ATH=64); Jailbreak: 1152 ACTs vs 128 threshold on Panopticon"
+  },
+  "baselines": ["Panopticon", "TRR (DDR4)", "DSAC", "PAT", "Mithril", "ProTRR"],
+  "limitations": "MOAT is restricted to ABO mitigation level 1 (single RFM per ALERT), limiting its ability to handle higher mitigation levels; RowPress attacks are explicitly out of scope.",
+  "tags": ["rowhammer", "ddr5", "prac", "abo", "dram-security", "in-dram-mitigation"],
+  "primary_theme": "provably secure in-DRAM Rowhammer mitigation via dual-threshold per-row counting",
+  "confidence": "high"
+}

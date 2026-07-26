@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-074",
+  "title": "Architecting Value Prediction around In-Order Execution",
+  "venue": "HPCA",
+  "problem": "In-order processors suffer from stalls when long-latency instructions block younger independent instructions from issuing, and the compiler cannot always find sufficient independent work to fill the pipeline. Conventional branch prediction techniques fail to resolve hard-to-predict (delinquent) branches quickly enough to prevent pipeline bubbles.",
+  "motivation": "In-order pipelines offer area/power advantages over out-of-order designs, but their performance falls short because the simplicity that makes them efficient also makes them vulnerable to cache misses and branch mispredictions—value prediction can bridge this gap without requiring full OOO machinery.",
+  "method": "The paper integrates both address-based value prediction and direct value prediction into an in-order pipeline (based on a scaled-up CVA6 RISC-V core), exploiting the property that in-order execution allows aggressive value speculation without recovery penalties (a mispredicted value simply overwrites its slot when the real result arrives). A reworked cache hierarchy adds a fast first-level cache that can be written speculatively. A 32-entry scoreboard 4-issue in-order pipeline is augmented without full register renaming or out-of-order memory hazard handling.",
+  "key_novelty": "Demonstrating that in-order execution's deterministic instruction ordering enables penalty-free aggressive value speculation, achieving near-OOO performance without register renaming or out-of-order memory hazard resolution.",
+  "contributions": [
+    "First study of both address-based and direct value prediction integrated into an in-order pipeline",
+    "Analysis showing that in-order execution properties enable speculation without recovery penalty",
+    "Reworked speculative-write fast L1 cache hierarchy for in-order processors",
+    "38.4% geomean IPC improvement over baseline in-order CVA6, reaching 86.7%/46.3% of the gains from comparable 32/16-entry and 64/32-entry ROB OOO processors"
+  ],
+  "hardware_target": ["RISC-V", "CPU"],
+  "technique_category": ["prefetching", "cache", "scheduling"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "38.4% geomean IPC improvement over baseline in-order CVA6; 86.7% of OOO (32/16 ROB) gains; 46.3% of OOO (64/32 ROB) gains",
+    "energy_or_tops_w": null,
+    "area": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["Baseline 4-issue in-order CVA6 (32-entry scoreboard)", "OOO with 32/16-entry ROB+scheduler", "OOO with 64/32-entry ROB+scheduler"],
+  "limitations": "Not discussed; evaluation scope limited to specific benchmark sets on a CVA6-derived model without silicon area or power breakdown.",
+  "tags": ["value-prediction", "in-order-execution", "risc-v", "speculation", "cva6"],
+  "primary_theme": "value prediction for in-order processor performance",
+  "confidence": "low"
+}

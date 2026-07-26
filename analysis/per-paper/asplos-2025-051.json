@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-051",
+  "title": "PIM Is All You Need: A CXL-Enabled GPU-Free System for Large Language Model Inference",
+  "venue": "ASPLOS",
+  "problem": "LLM inference is memory-bound (GEMV-dominated decoding stage with ~21% GPU compute utilization on Llama2-70B), yet modern GPU/TPU systems are optimized for compute throughput; simultaneously, large KV-cache requirements per user limit batch sizes, and CXL- or DRAM-density-reduced PIM architectures individually lack sufficient memory capacity or scalability for trillion-parameter LLMs.",
+  "motivation": "Running Llama2-70B on 4x A100 GPUs costs ~$694K/day for ChatGPT-scale inference while compute utilization remains below 25%, driving the need for memory-bandwidth-optimized, cost-efficient alternatives as LLM parameter sizes scale toward trillion parameters.",
+  "method": "CENT (CXL-ENabled GPU-Free sysTem) uses a hierarchical PIM-PNM architecture deployed across 32 CXL devices interconnected via a CXL 3.0 switch. Each CXL device contains 16 GDDR6-PIM memory chips (two PIM channels each) housing near-bank MAC reduction-tree processing units (16 MAC units/PU, BF16, 32 GFLOPS/PIM channel), plus PNM units including 32 accumulators, 32 reduction trees, 32 Taylor-series exponent accelerators, and 8 BOOM-2-wide RISC-V cores for non-MAC operations. MAC operations (>99% of arithmetic) execute near-bank; Softmax, RMSNorm, square root, and RoPE are handled by PNM. A custom CXL ISA (MAC_ABK, WR_GB, SEND_CXL, BCAST_CXL, etc.) orchestrates computation and data movement. LLM parallelism is implemented via pipeline parallel (PP: each transformer block to one CXL device, multiple prompts pipelined) and tensor parallel (TP: transformer block partitioned across all devices using broadcast/gather over CXL) mappings, with hybrid TP-PP for QoS balance. The CXL protocol is extended with a broadcast primitive via a reserved H-slot header code in port-based routing flits.",
+  "key_novelty": "A GPU-free hierarchical PIM-PNM architecture scaled via CXL 3.0 that exploits GDDR6-PIM internal bandwidth (512 TB/s aggregate) to achieve 2.3x higher LLM inference throughput than 4x A100 GPUs at 2.9x lower energy and 5.2x better TCO, with a novel CXL broadcast primitive enabling scalable collective communication across PIM devices.",
+  "contributions": [
+    "CENT: a GPU-free hierarchical PIM-PNM architecture over 32 CXL devices supporting full transformer block computation with 512 TB/s aggregate internal memory bandwidth.",
+    "Scalable CXL network with novel broadcast/multicast primitives via reserved H-slot flit encoding, enabling collective and peer-to-peer communication across up to 4,096 CXL nodes.",
+    "Mapping of LLM parallelism strategies (PP, TP, hybrid TP-PP) onto the CXL-PIM network with detailed transformer block operation assignment (GEMV to PIM, Softmax/RMSNorm/RoPE to PNM RISC-V/accelerators).",
+    "2.3x throughput and 2.9x energy efficiency over 4x A100 GPUs at similar average power; 5.2x tokens per dollar; 4.6x latency reduction in latency-critical (batch=1) mode."
+  ],
+  "hardware_target": ["PIM (processing-in-memory)", "RISC-V", "SoC"],
+  "technique_category": ["near-data-processing", "memory-system", "interconnect", "parallelism", "dataflow"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "2.3x end-to-end throughput over 4x A100 80GB GPUs (throughput-critical); 4.6x latency reduction (batch=1); 3.3x decoding throughput at 32K context",
+    "energy_or_tops_w": "2.9x energy efficiency (tokens/joule) over 4x A100",
+    "area": "CXL controller: 19.0 mm2 at 7nm; custom logic: 7.85 mm2 at 28nm",
+    "ppa": null,
+    "accuracy": null,
+    "other": "5.2x tokens per dollar (TCO); CENT owned TCO $0.73/hr vs GPU $1.76/hr; rental TCO $1.05/hr vs $5.45/hr"
+  },
+  "baselines": ["4x NVIDIA A100 80GB GPU with NVLink 3.0 running vLLM (batch=128)"],
+  "limitations": "CENT underperforms GPU by 2x in the compute-intensive prefill stage due to lower peak FLOPS; current evaluation limited to Llama2 (7B/13B/70B) at up to 32K context; near-bank PIM memory density reduced to ~75% of standard GDDR6.",
+  "tags": ["PIM", "CXL", "LLM-inference", "GPU-free", "memory-bandwidth"],
+  "primary_theme": "CXL-scaled PIM-PNM architecture for GPU-free LLM inference",
+  "confidence": "high"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-046",
+  "title": "BrokenSleep: Remote Power Timing Attack Exploiting Processor Idle States",
+  "venue": "HPCA",
+  "problem": "Modern processors support multiple C-state (idle) levels with different wake-up latencies; an attacker can remotely detect which C-state a victim processor core is in by measuring network response timing, enabling covert and side-channel communication across nodes without requiring co-location on the same machine.",
+  "motivation": "Prior power-based side-channel attacks require attacker and victim to share the same physical machine, but C-state wake-up latency differences are observable through network-level timing measurements, dramatically expanding the attack surface to distributed systems.",
+  "method": "BrokenSleep exploits the deterministic wake-up latency differences between processor C-states (C0 active, C1/C1E/C6 sleep) to encode information in the timing of network responses from a victim server. The attacker sends network requests and measures response latency; the victim's current C-state (determined by its workload idle pattern) is deduced from the latency profile. Both covert channel (data exfiltration across security boundaries without direct network access) and side-channel (keystroke timing inference) variants are demonstrated. The attack affects both Intel and ARM processors, exploiting standard ACPI power management without any microarchitectural vulnerability.",
+  "key_novelty": "The first remote timing attack based purely on processor idle-state (C-state) wake-up latency differences, eliminating the co-location requirement of all prior power-based side-channel attacks.",
+  "contributions": [
+    "BrokenSleep: first remote covert and side-channel attack exploiting CPU C-state wake-up latency differences",
+    "Demonstration of data exfiltration to remote machines without direct network access using C-state timing",
+    "Keystroke timing inference via remote C-state observation",
+    "Cross-architecture validation on both Intel and ARM processors"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "power"],
+  "workloads": ["database"],
+  "metrics": {
+    "other": "Demonstrated covert channel and keystroke timing inference over external network on Intel and ARM CPUs"
+  },
+  "baselines": ["prior local power side-channel attacks requiring co-location"],
+  "limitations": "The attack bandwidth and error rate for the covert channel are not quantified in the abstract; mitigation strategies are not discussed.",
+  "tags": ["side-channel", "covert-channel", "c-state", "power-attack", "remote-timing", "security"],
+  "primary_theme": "remote C-state-based timing side-channel attack",
+  "confidence": "low"
+}

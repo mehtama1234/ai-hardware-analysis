@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-071",
+  "title": "Efficient Security Support for CXL Memory through Adaptive Incremental Offloaded (Re-)Encryption",
+  "venue": "MICRO",
+  "problem": "CXL memory expansion devices adopted in cloud TEE environments (Intel SGX/TDX, AMD SEV) require XTS encryption for data confidentiality via CXL IDE, but XTS encryption's per-page latency causes significant performance overhead on memory-intensive workloads. Dynamically switching between CTR and XTS encryption modes and re-encrypting pages when access frequency changes incurs additional overhead that existing designs do not handle efficiently.",
+  "motivation": "CXL memory is increasingly deployed in cloud computing to expand DRAM bandwidth and capacity, but integrating it into TEE-protected enclaves creates a security overhead bottleneck that limits adoption in latency-sensitive workloads.",
+  "method": "AIORE (Adaptive Incremental Offloaded Re-Encryption) combines CTR-mode encryption (low latency, parallelizable) for frequently accessed hot pages with XTS encryption (CXL IDE compliant) for cold pages. The framework dynamically selects the encryption scheme per page based on tracked access frequency using a lightweight monitoring mechanism. When a page's access pattern changes (cold-to-hot or hot-to-cold), AIORE performs incremental re-encryption, processing only the modified page rather than the entire memory region. Re-encryption is offloaded to computation resources within the CXL memory node itself, overlapping re-encryption with ongoing memory traffic to hide latency. The scheme is evaluated using gem5 full-system simulation across diverse benchmarks.",
+  "key_novelty": "Offloading incremental per-page re-encryption to CXL memory node compute, dynamically adapting between CTR and XTS encryption based on page access frequency to minimize both security overhead and re-encryption cost.",
+  "contributions": [
+    "Adaptive encryption policy that dynamically assigns CTR or XTS encryption per page based on access frequency, reducing XTS overhead on hot pages",
+    "Incremental re-encryption strategy that limits re-encryption to changed pages rather than full memory regions",
+    "Offloading of re-encryption computation to the CXL memory node, hiding re-encryption latency behind normal memory traffic",
+    "Security overhead reduced by 62.8% on average with overhead within 3.7% relative to insecure baseline (gem5 evaluation)"
+  ],
+  "hardware_target": ["SoC", "chiplet"],
+  "technique_category": ["security", "memory-system", "near-data-processing"],
+  "workloads": ["HPC", "database"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "Security overhead reduced by 62.8% on average; overhead within 3.7% vs. insecure baseline (gem5)"
+  },
+  "baselines": ["CXL IDE with XTS-only encryption (baseline secure)", "insecure baseline (no encryption)"],
+  "limitations": "Evaluation is simulation-based (gem5); hardware implementation and area/power costs of the CXL node compute for re-encryption are not discussed.",
+  "tags": ["cxl-memory", "memory-encryption", "tee", "cloud-security", "adaptive-security", "near-data-processing"],
+  "primary_theme": "adaptive encryption for CXL memory in trusted execution environments",
+  "confidence": "low"
+}

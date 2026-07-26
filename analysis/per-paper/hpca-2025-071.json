@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-071",
+  "title": "FIGLUT: An Energy-Efficient Accelerator Design for FP-INT GEMM Using Look-Up Tables",
+  "venue": "HPCA",
+  "problem": "Weight-only quantization for LLM deployment produces FP-INT mixed-precision GEMM operations where one operand is floating-point (activations) and the other is low-bit integer (weights); this FP-INT compute is difficult to implement efficiently on conventional GPU multiply-accumulate hardware.",
+  "motivation": "Weight-only quantization is a leading approach to reduce LLM memory footprint and bandwidth, but hardware that efficiently executes the resulting FP-INT GEMM is lacking, limiting achievable TOPS/W.",
+  "method": "FIGLUT implements GEMM using a look-up table (LUT) approach: rather than performing FP-INT multiplications directly, the hardware precomputes all possible products of the floating-point activation values with each possible weight pattern and stores them in LUTs. At inference time, the LUT is indexed by weight bits to retrieve the precomputed partial product. A half-size LUT variant is introduced along with a dedicated decoding and multiplexing unit to reduce LUT storage overhead. The design supports multiple bit precisions and quantization methods in a single fixed hardware configuration.",
+  "key_novelty": "A half-size LUT with dedicated decode/mux that replaces FP-INT multipliers with table lookups, enabling configurable multi-precision weight-only quantized GEMM with 59% higher TOPS/W than prior LUT-based accelerators.",
+  "contributions": [
+    "FIGLUT LUT-based GEMM architecture replacing FP-INT multipliers with precomputed lookup tables",
+    "Half-size LUT design with dedicated decoding and multiplexing unit reducing storage area",
+    "Single fixed hardware configuration supporting multiple bit precisions and quantization methods",
+    "59% higher TOPS/W and 20% lower perplexity than state-of-the-art at 3-bit; 98% higher TOPS/W at matched perplexity using 2.4-bit operations"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["quantization", "circuit-design", "dataflow"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": "59% higher TOPS/W than state-of-the-art at same 3-bit precision; 98% higher TOPS/W at matched perplexity using 2.4-bit",
+    "area": null,
+    "ppa": null,
+    "accuracy": "20% lower perplexity than state-of-the-art at 3-bit weight precision",
+    "other": null
+  },
+  "baselines": ["state-of-the-art LUT-based accelerator for weight-only quantization"],
+  "limitations": "Not discussed; LUT precomputation may add latency overhead for small batch sizes or rapidly changing activation distributions.",
+  "tags": ["weight-only-quantization", "lut", "fp-int-gemm", "llm-inference", "energy-efficiency"],
+  "primary_theme": "LUT-based FP-INT GEMM for weight-only quantized LLM inference",
+  "confidence": "low"
+}

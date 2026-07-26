@@ -1,0 +1,30 @@
+{
+  "id": "asplos-2025-103",
+  "title": "Segue & ColorGuard: Optimizing SFI Performance and Scalability on Modern Architectures",
+  "venue": "ASPLOS",
+  "problem": "Software-based fault isolation (SFI) for WebAssembly (Wasm) incurs significant performance overhead from memory-access instrumentation and limits the number of Wasm instances that can run concurrently in a single address space due to address-space partitioning constraints.",
+  "motivation": "Wasm sandboxing is critical for safe, high-performance web and server-side execution, but its instrumentation overhead and scalability limits are barriers to broad deployment in latency-sensitive and high-concurrency applications.",
+  "method": "Segue exploits x86-64 segment registers (FS/GS base) to encode sandbox memory bounds directly in hardware, eliminating the explicit bounds-check instrumentation instructions for most memory accesses; this removes 44.7% of Wasm overhead on a Wasm-compatible SPEC CPU 2006 subset and reduces font-rendering sandbox overhead in Firefox by 75%. ColorGuard leverages memory protection keys (MPK/memory tagging) to color each Wasm instance's memory region with a distinct tag, enabling up to 15x more concurrent Wasm instances in a single address space without requiring separate address spaces.",
+  "key_novelty": "Using x86-64 segment registers as hardware-enforced sandbox bounds to eliminate SFI instrumentation overhead, combined with memory protection key coloring for 15x concurrency scaling.",
+  "contributions": [
+    "Segue: exploiting x86-64 segmentation to eliminate up to 44.7% of Wasm SFI overhead on SPEC CPU 2006 and 75% on Firefox font rendering.",
+    "ColorGuard: memory-tagging-based Wasm instance coloring enabling up to 15x more concurrent instances per address space.",
+    "Integration and evaluation of both optimizations in three production Wasm toolchains: Wasm2c, WAMR, and Wasmtime."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "virtualization", "compiler"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "eliminates 44.7% of Wasm overhead on SPEC CPU 2006 subset; reduces Firefox Wasm font rendering overhead by 75%",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "up to 15x more concurrent Wasm instances per address space"
+  },
+  "baselines": ["standard Wasm SFI without Segue/ColorGuard", "Firefox without Segue"],
+  "limitations": "Segue relies on x86-64 segmentation registers that are not available on ARM; portability to non-x86 architectures is limited.",
+  "tags": ["webassembly", "sfi", "sandboxing", "x86-segmentation", "memory-tagging", "security"],
+  "primary_theme": "Hardware-assisted SFI performance and scalability for WebAssembly via segmentation and memory tagging",
+  "confidence": "low"
+}

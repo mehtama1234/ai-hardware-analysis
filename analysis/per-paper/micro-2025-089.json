@@ -1,0 +1,31 @@
+{
+  "id": "micro-2025-089",
+  "title": "OmniSim: Simulating Hardware with C Speed and RTL Accuracy for High-Level Synthesis Designs",
+  "venue": "MICRO",
+  "problem": "High-Level Synthesis (HLS) tools cannot correctly simulate complex dataflow designs at the C level—particularly those with non-blocking FIFO accesses (read_nb/write_nb), infinite loops, and cyclic module dependencies—because the OS-level scheduling of software threads does not correspond to hardware timing, leading to incorrect functional results and inaccurate cycle counts; falling back to C/RTL co-simulation takes hours to days.",
+  "motivation": "HLS adoption is growing rapidly for domain-specific accelerators and complex hardware systems, but the simulation bottleneck—specifically the inability to simulate Type B and Type C dataflow designs (those with non-blocking FIFOs and/or cyclic dependencies) at the C level—forces designers into slow RTL co-simulation, undermining the productivity promise of HLS.",
+  "method": "OmniSim introduces a multi-threaded simulation framework operating at the LLVM IR level. It classifies dataflow designs into three types (A: blocking-only/acyclic; B: non-blocking or cyclic but single-behavior; C: non-blocking with behavior depending on FIFO access outcome) and applies different simulation strategies accordingly. Key mechanisms: (1) one software thread per active dataflow module (Func Sim threads) plus a dedicated Performance Simulation thread (Perf Sim thread); (2) FIFO read/write timing tables that explicitly record the hardware cycle at which each FIFO event occurs, independent of OS thread scheduling; (3) a Query Pool where Func Sim threads pause on non-blocking FIFO accesses until the Perf Sim thread resolves the query by comparing hardware-cycle timestamps; (4) flexibly overlapped execution where Func Sim and Perf Sim threads run concurrently rather than in strict phases, yielding additional speedup. An LLVM pass instruments the IR to track basic block execution traces and rewrites dataflow functions to launch concurrent threads. Incremental simulation is supported to avoid full restarts when FIFO sizes change.",
+  "key_novelty": "A tightly coupled, flexibly overlapped multi-thread simulation framework where a dedicated performance simulation thread synchronizes non-blocking FIFO events using hardware-cycle timestamps stored in FIFO tables, enabling correct simulation of previously unsupported Type B and C HLS dataflow designs at near-C speed.",
+  "contributions": [
+    "First taxonomy and classification of HLS dataflow designs into Types A/B/C based on FIFO access pattern and module dependency structure, with formal simulation requirements for each",
+    "OmniSim framework enabling correct functionality and cycle-accurate performance simulation of all dataflow types, including those explicitly declared unsupported by Vitis HLS and Catapult HLS",
+    "Up to 35.9x speedup over C/RTL co-simulation and up to 6.61x over LightningSim on its own benchmark suite",
+    "Deadlock detection and incremental FIFO-size DSE with four orders of magnitude speedup over full re-simulation"
+  ],
+  "hardware_target": ["FPGA", "ASIC"],
+  "technique_category": ["compiler", "dataflow"],
+  "workloads": ["CNN", "LLM-inference", "HPC"],
+  "metrics": {
+    "speedup": "up to 35.9x over C/RTL co-simulation; up to 6.61x over LightningSim",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": "near-RTL accuracy (99.9% cycle accuracy maintained for Type A, functionally correct for Types B and C)",
+    "other": "Incremental FIFO-size DSE: 4 orders of magnitude speedup over full simulation; correctly simulates 11 designs previously unsupported by any HLS tool"
+  },
+  "baselines": ["C/RTL co-simulation (Vitis HLS, Catapult HLS)", "LightningSim", "FLASH", "FastSim", "TAPA", "Allo"],
+  "limitations": "OmniSim requires static scheduling information from C synthesis (HLS tool must be run first); it does not detect livelocks, only deadlocks; and performance depends on the OS thread scheduler for the overlap between Func Sim and Perf Sim threads.",
+  "tags": ["hls", "simulation", "dataflow", "llvm", "fifo", "design-space-exploration"],
+  "primary_theme": "C-speed RTL-accurate simulation for complex HLS dataflow designs",
+  "confidence": "high"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "hpca-2025-082",
+  "title": "DynamoLLM: Designing LLM Inference Clusters for Performance and Energy Efficiency",
+  "venue": "HPCA",
+  "problem": "LLM inference clusters running on GPU-dense infrastructure consume excessive energy and incur high operational carbon emissions because existing systems provision resources for peak load at maximum GPU frequency and tensor parallelism, ignoring the strong heterogeneity in request types (input/output length variation) and diurnal load fluctuations that create large energy-saving opportunities.",
+  "motivation": "LLM inference workloads are rapidly becoming a dominant share of datacenter power consumption, and a single static cluster configuration cannot simultaneously serve the energy needs of short/low-compute and long/high-compute requests, leaving 35-53% energy savings on the table while meeting latency SLOs.",
+  "method": "DynamoLLM is a hierarchical three-level energy management framework (Cluster Manager, Pool Manager, Instance Manager) that dynamically reconfigures a GPU cluster across three knobs: number of inference server instances (scale in/out), tensor parallelism (shard up/down), and GPU frequency (scale up/down). The cluster is partitioned into per-request-type instance pools (classified by input/output token length into SS/SM/.../LL buckets); a BERT-based output-length predictor routes requests to the appropriate pool. Configuration selection is formulated as a MILP optimization using offline energy-performance profiles, with a hierarchical approximation heuristic for real-time operation. Reconfiguration overheads are minimized by: pre-warming VMs from snapshots, direct NVLink weight re-sharding via a bipartite graph matching algorithm (minimizing weight transfers), and keeping nvidia-smi loaded in-memory for rapid GPU frequency changes.",
+  "key_novelty": "A hierarchical multi-knob (instance count + tensor parallelism + GPU frequency) dynamic reconfiguration framework for LLM inference clusters that maintains per-request-type resource pools and minimizes reconfiguration overheads via weight-stationary NVLink re-sharding and proactive VM pre-warming.",
+  "contributions": [
+    "Characterization of LLM inference energy-performance heterogeneity across request lengths, system load, model size, and SLO requirements using Azure production traces",
+    "DynamoLLM: hierarchical cluster/pool/instance controller framework with MILP-based energy optimization under SLO constraints",
+    "Reconfiguration overhead reduction techniques: bipartite-graph-matching NVLink weight re-sharding, proactive VM snapshot pre-warming, in-memory nvidia-smi frequency tuning",
+    "53% energy savings, 38% carbon reduction, 61% cost reduction at service level while meeting latency SLOs on production traces"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "power", "parallelism"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": "53% energy saving, 38% carbon reduction vs. static SinglePool baseline",
+    "area": null,
+    "accuracy": null,
+    "other": "61% cost reduction to customer; DynamoLLM vs. single-knob baselines: ScaleInst 4.1%, ScaleShard 7%, ScaleFreq 19%, DynamoLLM 35% energy reduction in cluster experiment"
+  },
+  "baselines": ["SinglePool (TP8, max frequency, static)", "MultiPool (per-type pools, no scaling)", "ScaleInst (scale instances only)", "ScaleShard (scale parallelism only)", "ScaleFreq (scale frequency only)"],
+  "limitations": "Evaluation assumes all GPUs are NVIDIA H100 (homogeneous hardware); heterogeneous GPU cluster scenarios and multi-tenant LLM co-location are not addressed.",
+  "tags": ["llm-inference", "energy-management", "gpu-cluster", "tensor-parallelism", "gpu-frequency-scaling", "slo"],
+  "primary_theme": "dynamic energy management for LLM inference GPU clusters",
+  "confidence": "high"
+}

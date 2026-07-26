@@ -1,0 +1,28 @@
+{
+  "id": "hpca-2025-045",
+  "title": "Multi-Dimensional Vector ISA Extension for Mobile In-Cache Computing",
+  "venue": "HPCA",
+  "problem": "Existing long-vector ISA extensions (RISC-V RVV, Arm SVE) provide only 1D strided and random memory accesses, which cannot efficiently utilize the 8192-lane SIMD width of in-SRAM vector engines built from mobile L2 caches because mobile data-parallel kernels expose limited 1D parallelism (average 635 elements) across multiple multi-dimensional data structures.",
+  "motivation": "In-cache computing repurposes SRAM cache arrays into wide vector engines at low area cost, but without multi-dimensional memory access instructions the instruction issue bottleneck and low lane utilization (23% for bit-serial with RVV) prevent realizing their throughput advantage over conventional 128-bit mobile SIMD units.",
+  "method": "MVE (Multi-dimensional Vector ISA Extension) introduces up to 4D strided and random vector memory accesses, where each dimension can use stride modes: replicate (stride=0), sequential (stride=1), row-stride (stride=previous_dim x length), or arbitrary CR-configured stride. A dimension-level masked execution mechanism masks entire outer-dimension iterations using a compact mask control register, avoiding expensive per-lane scalar mask computation. The ISA operates on physical registers spanning all in-SRAM compute arrays (8192 lanes of 32-bit data), with a cache-geometry-hiding register abstraction. The MVE controller in the L2 cache flattens multi-dimensional logical register accesses to physical SRAM bitline coordinates, uses a Transpose Memory Unit (TMU) with 8T transpose bit-cells and a crossbar to route data into vertical bit-serial layout, and manages cache coherency by checking L1 presence bits and evicting L1 lines before in-cache writes. Compiler support includes liveness analysis for register width, list-hybrid instruction scheduling, and greedy register allocation to minimize in-cache register spills.",
+  "key_novelty": "A multi-dimensional vector ISA (up to 4D strided + random memory accesses with dimension-level masked execution) that hides cache geometry from programmers while raising in-cache SIMD lane utilization from 23% to 60% for mobile workloads.",
+  "contributions": [
+    "MVE ISA with 4D strided and random memory accesses plus dimension-level masked execution, improving bit-serial in-cache utilization from 23% to 60% and performance by 3.8x over RISC-V RVV on the same engine",
+    "Cache architecture design with Transpose Memory Unit (TMU), crossbar, and MVE controller that abstracts cache geometry and maintains L1/L2 coherency",
+    "Compiler infrastructure (liveness analysis, list-hybrid scheduling, greedy register allocation) for in-cache register management",
+    "End-to-end evaluation on 44 kernels from 12 real mobile libraries showing 2.9x speedup and 8.8x energy reduction vs Arm Neon, and 9.3x speedup vs Adreno 640 GPU at 3.6% area overhead"
+  ],
+  "hardware_target": ["CPU", "CIM (compute-in-memory)", "SoC"],
+  "technique_category": ["dataflow", "memory-system", "compiler", "near-data-processing", "circuit-design"],
+  "workloads": ["CNN", "vision", "speech"],
+  "metrics": {
+    "speedup": "2.9x vs Arm Neon; 9.3x vs Adreno 640 GPU; 2.0x vs RISC-V RVV on same in-cache engine; 1.5x vs Duality Cache (SIMT model)",
+    "energy_or_tops_w": "8.8x energy reduction vs Arm Neon; 5.2x energy reduction vs Adreno 640 GPU",
+    "area": "3.6% area overhead to mobile core (at 7nm)"
+  },
+  "baselines": ["Arm Neon (Cortex-A76 128-bit ASIMD)", "Qualcomm Adreno 640 GPU", "RISC-V RVV on same in-cache bit-serial engine", "Duality Cache (SIMT in-cache model)", "VRAM (bit-parallel)", "EVE (bit-hybrid)", "CAPE (associative computing)"],
+  "limitations": "MVE requires flushing dirty L2 cache lines to switch between cache and compute modes (taking under 2% of execution time in benchmarks), and performance degrades for workloads with large scalar instruction fractions (e.g., zlib reduction kernel achieves only 37% improvement).",
+  "tags": ["in-cache-computing", "isa-extension", "mobile-processor", "sram-compute", "multi-dimensional-vector", "in-sram"],
+  "primary_theme": "multi-dimensional vector ISA for mobile in-SRAM computing",
+  "confidence": "high"
+}

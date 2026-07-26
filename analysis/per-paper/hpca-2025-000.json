@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-000",
+  "title": "BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration",
+  "venue": "HPCA",
+  "problem": "LLM deployment is constrained by large weight memory footprints; existing low-precision quantization schemes either sacrifice too much accuracy or lack hardware support for multiple heterogeneous data types simultaneously. Current accelerators cannot efficiently process mixed numerical formats (e.g., INT4, FP4, NF4) within a single design.",
+  "motivation": "Memory bandwidth and capacity are the primary bottleneck for LLM inference, and sub-4-bit quantization is necessary to fit large models on edge/server hardware without unacceptable accuracy degradation.",
+  "method": "BitMoD is an algorithm-hardware co-design that introduces fine-grained per-group (128-weight) data-type adaptation, selecting from a set of carefully designed numerical types to minimize quantization error per group. On the hardware side, a bit-serial processing element natively handles multiple precisions by decomposing weights into bit-planes; a unified representation maps all data types to a common internal format, and a dedicated bit-serial dequantization unit rescales per-group partial sums with minimal overhead.",
+  "key_novelty": "Fine-grained per-group mixture-of-datatype assignment with a matched bit-serial hardware that processes all types through a unified representation, eliminating the need for separate datapaths per format.",
+  "contributions": [
+    "Fine-grained data-type adaptation that assigns a distinct numerical type to each 128-weight group to preserve accuracy at 3-4 bit precision",
+    "Bit-serial processing element with a unified internal representation supporting heterogeneous weight types without datapath duplication",
+    "Bit-serial dequantization unit that rescales per-group partial sums with minimal area overhead",
+    "Demonstrated 1.69x and 1.48x speedup over ANT and OliVe accelerators with <0.5% accuracy loss at 4-bit and better perplexity than prior art at 3-bit"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["quantization", "dataflow", "circuit-design"],
+  "workloads": ["LLM-inference"],
+  "metrics": {
+    "speedup": "1.69x over ANT, 1.48x over OliVe",
+    "accuracy": "<0.5% accuracy loss at 4-bit (discriminative); better perplexity than prior at 3-bit (generative)",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "other": null
+  },
+  "baselines": ["ANT", "OliVe"],
+  "limitations": "Evaluation targets weight-only quantization; activation quantization and KV-cache compression are not addressed.",
+  "tags": ["llm-inference", "quantization", "bit-serial", "mixed-precision", "asic", "co-design"],
+  "primary_theme": "mixed-datatype bit-serial LLM weight quantization accelerator",
+  "confidence": "low"
+}

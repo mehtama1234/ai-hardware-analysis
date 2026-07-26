@@ -1,0 +1,26 @@
+{
+  "id": "hpca-2025-091",
+  "title": "Reviving In-Storage Hardware Compression on ZNS SSDs through Host-SSD Collaboration",
+  "venue": "HPCA",
+  "problem": "Zoned Namespace (ZNS) SSDs cannot benefit from traditional host-transparent in-storage hardware compression because the ZNS interface's sequential write constraint makes it impossible to locate variable-length compressed chunks and reclaim the space freed by compression without exposing this information to the host.",
+  "motivation": "ZNS SSDs are increasingly deployed in large-scale cloud storage for their performance and cost advantages, and enabling hardware compression on them would further improve storage density and cost-effectiveness, but the host-transparent approach fails on ZNS due to fundamental interface mismatches.",
+  "method": "CCZNS (Collaborative Compression for ZNS) decouples compression execution from indexing by introducing a new ZNS interface extension where the SSD hardware performs compression but exposes chunk boundaries and offset metadata to the host rather than hiding them. The host (e.g., RocksDB with ZenFS) uses this metadata to manage address mapping and space reclamation, while the SSD accelerates the compression compute. A case study on RocksDB/ZenFS demonstrates how the host software is adapted to consume CCZNS metadata.",
+  "key_novelty": "Decoupling in-storage compression execution from index management via a host-SSD collaborative interface, which is the first solution to revive hardware compression on ZNS SSDs.",
+  "contributions": [
+    "First analysis identifying why host-transparent compression fails on ZNS SSDs due to chunk location and space reclamation challenges",
+    "CCZNS: a new host-SSD collaborative interface that decouples compression execution from address indexing",
+    "Case study demonstrating CCZNS integration with RocksDB and ZenFS",
+    "Experimental validation showing significant performance improvements over existing compression system solutions"
+  ],
+  "hardware_target": ["SoC"],
+  "technique_category": ["memory-system", "near-data-processing"],
+  "workloads": ["database"],
+  "metrics": {
+    "other": "Significantly outperforms existing system solutions (specific numbers not given in abstract)"
+  },
+  "baselines": ["Host-side software compression on ZNS", "Host-transparent hardware compression approaches"],
+  "limitations": "Requires firmware and interface modifications to ZNS SSDs, which may limit adoption to new device generations.",
+  "tags": ["zns-ssd", "compression", "storage", "host-ssd-collaboration", "rocksdb"],
+  "primary_theme": "Host-SSD collaborative hardware compression for ZNS SSDs",
+  "confidence": "low"
+}

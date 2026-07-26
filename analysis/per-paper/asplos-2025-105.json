@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-105",
+  "title": "FSMoE: A Flexible and Scalable Training System for Sparse Mixture-of-Experts Models",
+  "venue": "ASPLOS",
+  "problem": "Existing MoE training systems (DeepSpeed-MoE, Tutel) support only limited routing functions and use fixed or heuristic pipeline degrees, leaving significant communication overhead because they fail to overlap inter-node AlltoAll dispatch/combine with intra-node ESP-AllGather/ESP-ReduceScatter communications, and do not co-design Gradient-AllReduce scheduling with MoE-layer communication.",
+  "motivation": "AlltoAll communication in MoE layers accounts for 30-60% of total training time, and the combination of multiple parallelisms (DP+MP+EP+ESP) creates complex overlapping opportunities that existing systems miss, causing up to 50%+ communication overhead on GPU clusters.",
+  "method": "FSMoE introduces three techniques: (1) a modular abstraction dividing each MoE layer into six sub-modules (Gate, Order, I-Order, Dispatch, Combine, Expert) with hooks for non-invasive customization, plus a two-phase front-end/back-end profiler-scheduler that fits linear performance models for GEMM and collective operations; (2) a three-stream pipeline schedule that co-schedules intra-node ESP-AllGather/ReduceScatter with inter-node AlltoAll Dispatch/Combine and expert computation by classifying execution into four cases (dominated by inter-node comm, expert compute, AlltoAll, or intra-node comm) and using SLSQP to find the optimal pipeline chunk degree r for each case; and (3) an adaptive gradient partitioning method that slices Gradient-AllReduce work and assigns chunks to overlappable windows within and across MoE layers via a two-step algorithm (greedy assignment then differential evolution optimization), decoupling forward and backward pipeline degrees.",
+  "key_novelty": "The first MoE training system to simultaneously overlap both inter-node (AlltoAll) and intra-node (ESP-AllGather/ReduceScatter) communications with computation via adaptive per-phase pipeline degree selection, combined with MoE-aware adaptive Gradient-AllReduce partitioning.",
+  "contributions": [
+    "A modular MoE abstraction with six sub-modules, four pre-built gating functions, and hook-based extensibility supporting any routing mechanism.",
+    "A three-stream scheduling algorithm that overlaps intra-node and inter-node communications with computation, using SLSQP-solved optimal pipeline degrees per phase.",
+    "An adaptive gradient partitioning method that fully hides Gradient-AllReduce within overlappable compute/communication windows across MoE and dense layers.",
+    "1.18x-1.22x speedup over Tutel+PipeMoE on 1458 configured MoE layers; 1.19x-3.01x speedup over DeepSpeed-MoE on real-world GPT-2 and Mixtral models on up to 48-GPU clusters."
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "parallelism", "kernel-fusion"],
+  "workloads": ["LLM-training", "MoE", "transformer"],
+  "metrics": {
+    "speedup": "1.18x-1.22x over Tutel+PipeMoE on 1458 MoE layer configs; 1.19x-3.01x over DeepSpeed-MoE on GPT-2/Mixtral real-world models",
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "up to 1.42x speedup on individual gating function benchmarks vs DeepSpeed-MoE; performance model fitting r^2 >= 0.9999 for all collective types"
+  },
+  "baselines": ["DeepSpeed-MoE", "Tutel (with PipeMoE)", "Tutel-Improved (PipeMoE + Gradient-AllReduce overlap with dense ops)", "PipeMoE+Lina"],
+  "limitations": "Evaluated on clusters up to 48 GPUs with commodity RTX A6000 and RTX 2080Ti GPUs connected via InfiniBand; scaling behavior on larger production clusters (e.g., 1000+ GPUs with H100/NVLink) is not characterized.",
+  "tags": ["moe", "llm-training", "scheduling", "communication-overlap", "pipeline", "distributed-training"],
+  "primary_theme": "Adaptive communication-computation pipeline scheduling for sparse MoE training",
+  "confidence": "high"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-115",
+  "title": "ClosureX: Compiler Support for Correct Persistent Fuzzing",
+  "venue": "ASPLOS",
+  "problem": "Persistent fuzzing reuses a single process across multiple test cases to eliminate process creation/teardown overhead, but process state changes from one test case (heap state, file descriptors, global variables, etc.) persist into subsequent test cases, causing semantic inconsistencies that lead to missed crashes, false crashes, and overall incorrectness in fuzzer-discovered bugs.",
+  "motivation": "Persistent fuzzing provides the highest fuzzing throughput by reusing processes, and since bug discovery rate scales directly with throughput, fixing semantic inconsistency is essential to realizing persistent fuzzing's performance advantage without sacrificing correctness.",
+  "method": "ClosureX is a compiler pass that identifies and instruments program state that changes during execution and must be restored between fuzzing iterations to maintain semantic consistency. The compiler analyzes the program to determine which state variables are 'closure' — the minimal set that must be reset to restore execution semantics to the pre-iteration state. ClosureX instruments the loop-back path of the persistent fuzzing harness to snapshot this closure state before each test case and restore it before the next, without requiring full process re-initialization. The compiler selects the granularity of state capture (stack, heap allocations, global variables) based on static analysis of reachable effects.",
+  "key_novelty": "A compiler-driven closure analysis that identifies the minimal set of program state requiring snapshot/restore across persistent fuzzing iterations, enabling correct persistent fuzzing without full process recreation overhead.",
+  "contributions": [
+    "Formalization of the semantic inconsistency problem in persistent fuzzing and characterization of state-pollution sources.",
+    "ClosureX compiler pass for automatic closure analysis identifying the minimal state requiring per-iteration restoration.",
+    "Instrumentation of the persistent fuzzing loop-back path for efficient state snapshot and restore.",
+    "Evaluation demonstrating both correctness restoration (eliminating false/missed crashes) and throughput maintenance."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["compiler", "security"],
+  "workloads": [],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": null
+  },
+  "baselines": ["standard persistent fuzzing (libFuzzer-style)"],
+  "limitations": "Specific runtime overhead of closure snapshot/restore and completeness of static analysis for complex heap patterns not available from abstract.",
+  "tags": ["fuzzing", "persistent-fuzzing", "compiler", "correctness", "state-restoration", "testing"],
+  "primary_theme": "compiler-based closure analysis for correct persistent fuzzing",
+  "confidence": "low"
+}

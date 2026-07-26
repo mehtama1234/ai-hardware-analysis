@@ -1,0 +1,31 @@
+{
+  "id": "hpca-2025-064",
+  "title": "Mascot: Predicting Memory Dependencies and Opportunities for Speculative Memory Bypassing",
+  "venue": "HPCA",
+  "problem": "Memory dependence prediction (MDP) and speculative memory bypassing (SMB) require conflicting predictor properties: MDP tolerates false positives but not false negatives, while SMB tolerates false negatives but not false positives. Prior TAGE-based predictors for either mechanism fail to learn patterns of non-dependence, causing inaccuracy.",
+  "motivation": "Improving instruction-level parallelism (ILP) in out-of-order processors by enabling more aggressive load scheduling requires a unified predictor that can simultaneously satisfy the divergent accuracy requirements of MDP and SMB.",
+  "method": "Mascot is a TAGE-inspired predictor that learns both dependence and non-dependence contexts. Unlike prior designs that only learn dependence patterns, Mascot tracks the history of non-aliasing outcomes in the TAGE table entries, enabling low false negative rates required for MDP and low false positive rates required for SMB from a single shared structure. The predictor is used in two modes: MDP-only (for load issue gating) and combined MDP+SMB (for value forwarding from store to load bypassing address resolution).",
+  "key_novelty": "A unified TAGE-based predictor that explicitly learns non-dependence patterns, enabling both memory dependence prediction and speculative memory bypassing with a single compact hardware structure.",
+  "contributions": [
+    "Mascot unified predictor that learns dependence and non-dependence contexts for both MDP and SMB",
+    "0.4% IPC gain over prior state-of-the-art MDP predictor at same size",
+    "1.9% average IPC gain (up to 26% peak) when enabling both MDP and SMB",
+    "Mascot-opt: compact 10.1 KiB variant achieving similar gains within 0.1% of full Mascot"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["prefetching", "cache", "scheduling"],
+  "workloads": ["HPC"],
+  "metrics": {
+    "speedup": "1.9% average IPC improvement (peak 26%) for MDP+SMB over baseline; 0.4% IPC gain vs prior MDP predictor",
+    "energy_or_tops_w": null,
+    "area": "10.1 KiB (Mascot-opt compact variant)",
+    "ppa": null,
+    "accuracy": null,
+    "other": "Evaluated on SPEC CPU 2017"
+  },
+  "baselines": ["prior TAGE-based MDP predictor", "prior SMB predictor"],
+  "limitations": "Not discussed; gains are measured on SPEC CPU 2017 and may not generalize to all memory-intensive workloads.",
+  "tags": ["memory-dependence", "speculative-execution", "tage-predictor", "ilp", "out-of-order"],
+  "primary_theme": "unified memory dependence and speculative bypass prediction",
+  "confidence": "low"
+}

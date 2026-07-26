@@ -1,0 +1,31 @@
+{
+  "id": "asplos-2025-104",
+  "title": "Protecting Cryptographic Code Against Spectre-RSB: (and, in Fact, All Known Spectre Variants)",
+  "venue": "ASPLOS",
+  "problem": "Constant-time cryptographic code is designed to prevent timing-based secret leakage, but Spectre attacks—especially Spectre-RSB (Return Stack Buffer)—can violate constant-time guarantees by leaking secrets during speculative execution, and prior defenses cover only Spectre-v1 while leaving other Spectre variants unaddressed.",
+  "motivation": "Post-quantum and classical cryptographic primitives deployed in production (e.g., Kyber) are vulnerable to the full Spectre attack surface, and a comprehensive, formally verified defense is needed to make cryptographic software provably secure against all known Spectre variants.",
+  "method": "The approach combines a new value-dependent information-flow type system with a compiler transformation. The type system statically tracks whether values depend on secrets and whether they may flow to speculative-execution leak channels (cache, port contention, etc.) under any of the known Spectre mistraining variants. The compiler transformation rewrites low-level code to enforce the type-system restrictions—inserting fences, reordering, and masking as needed—so that no secret-dependent value reaches a speculative leak channel. Both the type-system soundness and the correctness of the compiler transformation are machine-proved in the Coq proof assistant, then implemented in the Jasmin high-assurance cryptography framework.",
+  "key_novelty": "A Coq-verified value-dependent information-flow type system and matching compiler transformation that jointly protect against all known Spectre variants (including Spectre-RSB) with below 5-7% overhead for complex primitives.",
+  "contributions": [
+    "A new value-dependent information-flow type system ensuring no secrets leak under speculative execution across all known Spectre variants.",
+    "A compiler transformation for Jasmin that enforces the type-system guarantees on generated low-level code.",
+    "Coq proofs of type-system soundness and compiler-transformation correctness.",
+    "Overhead below 2% for most cryptographic primitives, 5-7% for Kyber (a complex post-quantum key-encapsulation mechanism)."
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["security", "compiler"],
+  "workloads": ["cryptography"],
+  "metrics": {
+    "speedup": null,
+    "energy_or_tops_w": null,
+    "area": null,
+    "ppa": null,
+    "accuracy": null,
+    "other": "overhead below 2% for most cryptographic primitives; 5-7% for Kyber post-quantum KEM"
+  },
+  "baselines": ["cryptographic code without Spectre protection", "Spectre-v1-only protection"],
+  "limitations": "Protection covers all known Spectre variants but cannot guarantee safety against future undiscovered speculative execution attack classes.",
+  "tags": ["spectre", "cryptography", "security", "information-flow", "compiler", "formal-verification"],
+  "primary_theme": "Formally verified compiler defense against all known Spectre variants for cryptographic code",
+  "confidence": "low"
+}

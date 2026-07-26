@@ -1,0 +1,28 @@
+{
+  "id": "isca-2025-006",
+  "title": "Transitive Array: An Efficient GEMM Accelerator with Result Reuse",
+  "venue": "ISCA",
+  "problem": "General Matrix Multiplication (GEMM) in DNNs and LLMs incurs high computational cost and memory bandwidth demand, especially in resource-constrained deployments. Existing quantization and sparsity methods reduce precision but do not exploit reusable intermediate partial results within GEMM computation.",
+  "motivation": "As LLMs are deployed on edge and constrained hardware, minimizing redundant multiplications in GEMM is critical to achieving low-power, high-throughput inference without accuracy loss.",
+  "method": "The paper introduces transitive sparsity, a novel paradigm where previously computed GEMM results are reused transitively via directed acyclic graphs (DAGs) that encode reuse relationships between partial products. An optimal DAG execution order is determined to resolve dependency and parallelism constraints. The Transitive Array accelerator exploits this sparsity through a multiplication-free design that distributes work across multiple parallel lanes for balanced throughput.",
+  "key_novelty": "Transitive sparsity reuses previously computed intermediate GEMM results via DAG-ordered execution, enabling a multiplication-free accelerator architecture for LLM inference.",
+  "contributions": [
+    "Definition and formalization of transitive sparsity as a new paradigm for GEMM result reuse",
+    "DAG-based execution order strategy that resolves dependency and parallelism challenges in transitive computation",
+    "Transitive Array: a multiplication-free GEMM accelerator exploiting transitive sparsity with load-balanced parallel lanes",
+    "Evaluation showing ~7.46x and ~3.97x speedup and 2.31x and 1.65x energy reduction vs. Olive and BitVert respectively on LLaMA models"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["sparsity", "dataflow", "approximation"],
+  "workloads": ["LLM-inference", "CNN"],
+  "metrics": {
+    "speedup": "7.46x over Olive, 3.97x over BitVert",
+    "energy_or_tops_w": "2.31x energy reduction over Olive, 1.65x over BitVert",
+    "accuracy": "comparable model accuracy on LLaMA"
+  },
+  "baselines": ["Olive", "BitVert"],
+  "limitations": "The paper does not discuss the overhead of constructing and managing the DAG of transitive relations at runtime, nor scalability to very large weight matrices.",
+  "tags": ["gemm", "transitive-sparsity", "multiplication-free", "llm-inference", "result-reuse"],
+  "primary_theme": "Multiplication-free GEMM via transitive result reuse",
+  "confidence": "low"
+}

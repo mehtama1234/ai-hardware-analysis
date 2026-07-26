@@ -1,0 +1,28 @@
+{
+  "id": "hpca-2025-092",
+  "title": "LAD: Efficient Accelerator for Generative Inference of LLM with Locality Aware Decoding",
+  "venue": "HPCA",
+  "problem": "In LLM autoregressive decoding, the KV cache grows linearly with sequence length, and at lengths beyond 2048 tokens the attention mechanism's repeated read of the full KV cache becomes the dominant bottleneck, consuming over 50% of total inference time on GPU-based systems.",
+  "motivation": "KV cache memory access bandwidth is the primary bottleneck for long-context LLM inference, and reducing the frequency of KV cache reads without sacrificing output quality would yield large speedups and energy savings.",
+  "method": "LAD (Locality Aware Decoding) is a dedicated ASIC accelerator that exploits numerical locality in attention scores across consecutive decoding steps. The key insight is that when an attention score at a specific sequence position remains approximately constant across several consecutive decoding steps, the corresponding key and value vectors need not be re-fetched at every step. LAD implements a locality detection engine that identifies stable-score positions and caches their contribution, dramatically reducing KV cache access frequency while maintaining decoding accuracy. The hardware includes specialized attention decoding units paired with on-chip score history buffers to track and exploit inter-step score locality.",
+  "key_novelty": "Exploiting inter-step attention score numerical locality to suppress redundant KV cache reads across consecutive decoding steps, implemented as a dedicated hardware accelerator.",
+  "contributions": [
+    "Analysis demonstrating pervasive numerical locality in attention scores across consecutive LLM decoding steps",
+    "LAD algorithm: attention decoding with reduced KV cache access based on score locality detection",
+    "ASIC accelerator design implementing locality-aware attention with score history tracking",
+    "10.7x attention speedup and 52.4x attention energy efficiency vs A100; 2.3x end-to-end speedup at KV length >2048"
+  ],
+  "hardware_target": ["ASIC"],
+  "technique_category": ["dataflow", "memory-system", "approximation"],
+  "workloads": ["LLM-inference", "attention"],
+  "metrics": {
+    "speedup": "10.7x attention speedup vs A100 GPU (KV cache >2048); 2.3x end-to-end speedup",
+    "energy_or_tops_w": "52.4x energy efficiency for attention vs A100; 13.4x end-to-end energy efficiency",
+    "accuracy": "Average ROUGE-1 similarity 97% vs original model"
+  },
+  "baselines": ["A100 GPU"],
+  "limitations": "The locality-based approximation introduces minor output quality degradation (97% ROUGE-1 similarity) which may not be acceptable for all applications requiring exact generation.",
+  "tags": ["llm-inference", "kv-cache", "attention", "asic", "locality"],
+  "primary_theme": "KV cache access reduction via attention score locality for LLM inference acceleration",
+  "confidence": "low"
+}
