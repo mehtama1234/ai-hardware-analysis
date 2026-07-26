@@ -1,89 +1,89 @@
 {
-  "problem_plain": "Building and running AI systems at scale requires solving a wide set of infrastructure problems that do not fit neatly under any single hardware category: training models across many machines without choking on network bottlenecks, keeping the software that runs those models from ballooning in size, shrinking the memory needed to store optimizer state during training, making measurements of system performance honest and comparable, accounting for the carbon cost of building and running chips, and compressing the enormous datasets that feed these systems. Each of these is a distinct engineering challenge, yet all of them quietly limit how fast or how cheaply AI can actually progress. Together they form the unglamorous plumbing that determines whether the theoretically possible hardware improvements translate into real-world gains.",
-  "why_plain": "AI workloads are physically constrained by two scarce resources that money cannot infinitely buy: memory capacity and communication bandwidth. Every workaround that wastes either one — bloated software libraries, redundant optimizer state, slow data synchronization across continents, or uncompressed data streams — costs real time and energy at scale.",
-  "approach_plain": "Researchers across these papers attack infrastructure inefficiency from multiple angles simultaneously: pruning away software that is never actually used, mathematically approximating expensive optimizer bookkeeping with cheaper surrogates, redesigning how gradient synchronization happens across slow wide-area network links, compressing raw data at wire speed so less bandwidth is needed in the first place, and replacing misleading aggregate performance statistics with ones that are mathematically correct. The common thread is finding and eliminating hidden waste — in software, in memory, in network round-trips, in how results are reported.",
+  "problem_plain": "Building and running AI systems at the scale of real products means solving a grab-bag of practical problems that do not fit neatly into any one box: training models spread across dozens of machines without drowning in the time it takes those machines to share results, stopping the software that runs those models from swelling to a size that eats up memory, cutting the amount of bookkeeping data that training needs to hold in memory at once, making sure that performance measurements reported in research papers actually mean what they claim to mean, counting the carbon emitted not just by running chips but by building them in the first place, and squeezing large datasets so they travel and store faster. None of these is glamorous, but all of them quietly set a ceiling on how fast or how cheaply AI can actually move forward.",
+  "why_plain": "AI workloads bump up against two scarce resources that money cannot infinitely multiply: memory space and how fast data moves (bandwidth). Every source of waste — software libraries stuffed with code nobody uses, redundant bookkeeping data sitting in memory during training, slow result-sharing across machines on different continents, or raw data sent uncompressed — burns real time and real energy at scale.",
+  "approach_plain": "The papers here attack this kind of hidden waste from many angles at once: stripping away software that is compiled but never actually called, replacing expensive per-weight training bookkeeping with a compact mathematical stand-in that reaches the same answer, redesigning how machines share training results so they do it far less often across slow long-distance links, squeezing numbers down at the hardware level so less data needs to travel, and replacing misleading summary statistics in research papers with ones that are mathematically sound. The common thread is finding and eliminating hidden waste — in software, in memory, in network round-trips, in how results are reported.",
   "groups": [
     {
       "heading": "Shrinking memory used during model training",
-      "explain": "Training a large language model requires storing not just the model weights but also the optimizer's running statistics — numbers that track how each weight has been changing, used to set each weight's personal learning rate. For a 7-billion-parameter model these statistics alone occupy 28 gigabytes, crowding out space for data and forcing the use of more machines. The papers here find clever ways to store far less without changing what the training process actually learns.",
+      "explain": "Training a large AI model requires storing not just the model's weights (its learned numbers) but also the training optimizer's running bookkeeping — figures that track how each weight has been shifting over time, used to give each weight its own personal step size. For a model with 7 billion weights, that bookkeeping alone fills 28 gigabytes of memory, crowding out space for data and forcing the use of more machines. The paper here finds a clever way to store far less bookkeeping without changing what the training process actually learns.",
       "papers": [
         {
           "id": "mlsys-2025-059",
           "name": "APOLLO",
-          "gloss": "Replaces the full per-weight optimizer statistics with a compressed low-rank approximation, cutting optimizer memory from 28 GB to 1.6 GB for a 7B-parameter model while matching training quality; enables 3x higher throughput by fitting larger batches on the same hardware."
+          "gloss": "Stores training bookkeeping as a compact mathematical sketch instead of full tables, slashing optimizer memory from 28 GB to 1.6 GB for a 7-billion-weight model with no loss in training quality, and enabling 3x higher throughput by fitting bigger batches on the same hardware."
         }
       ]
     },
     {
       "heading": "Training across slow or unreliable network links",
-      "explain": "Standard distributed training requires every machine to share its gradient updates with every other machine after every single training step, which works fine inside a data center on fast private cables but becomes a bottleneck when machines are in different cities or connected only by ordinary internet. The papers here redesign the synchronization pattern so that machines do many local steps before talking to each other, dramatically cutting how much data must cross the slow link.",
+      "explain": "Standard distributed training requires every machine to share its weight updates with every other machine after each and every training step. Inside one data center on fast private cables that is fine, but it becomes a stranglehold when machines sit in different cities or are connected only by ordinary internet. The papers here redesign the sharing pattern so that machines do many local steps before talking to each other, dramatically cutting how much data must cross the slow link.",
       "papers": [
         {
           "id": "mlsys-2025-036",
           "name": "Photon",
-          "gloss": "Lets geographically distributed clusters each train locally for many steps before synchronizing, reducing network traffic 500-fold for a 7B model and cutting total training wall-clock time 35% versus a centralized approach, while actually improving model quality."
+          "gloss": "Lets clusters in different cities each train on their own for many steps before sharing results, cutting the data that must cross slow long-distance links 500-fold for a 7-billion-weight model and reducing total training time 35% versus a centralized approach, while actually improving model quality."
         },
         {
           "id": "mlsys-2025-045",
           "name": "JaxPP",
-          "gloss": "Extends the JAX machine-learning framework to support flexible pipeline parallelism schedules (where model layers are split across machines and data flows through them like an assembly line), enabling efficient multi-machine training across slower inter-node links."
+          "gloss": "Adds to an existing AI research toolkit the ability to split a model's layers across many machines like an assembly line, so each machine handles one stage and passes its output to the next, enabling efficient training across slower links between machines."
         }
       ]
     },
     {
       "heading": "Removing dead weight from machine-learning software",
-      "explain": "The software libraries that power GPU-based machine learning ship with enormous amounts of compiled code — kernels for dozens of GPU architectures, operations for every possible workload — but any given training run uses only a tiny fraction of it. This dead code consumes memory, slows down program loading, and wastes the scarce capacity of the GPU's own memory. The paper here builds a tool to identify what is actually used and strips out the rest.",
+      "explain": "The software libraries that power GPU-based machine learning ship with huge amounts of pre-compiled instructions — code covering dozens of different GPU chip generations and every possible operation type — but any one training run uses only a tiny slice of it. All that unused code still occupies memory, slows program startup, and crowds out the scarce space the GPU needs for actual work. The paper here builds a tool to find what is actually called and remove the rest permanently.",
       "papers": [
         {
           "id": "mlsys-2025-054",
           "name": "Negativa-ML",
-          "gloss": "Intercepts the runtime calls that load GPU compute kernels to discover which ones any given workload actually uses, then permanently removes the rest from the library files; shrinks GPU code by up to 75% and cuts peak GPU memory use by up to 70%."
+          "gloss": "Watches which pieces of GPU software any given workload actually loads and calls at runtime, then permanently strips out everything else from the library files, shrinking GPU code by up to 75% and cutting peak GPU memory use by up to 70%."
         }
       ]
     },
     {
       "heading": "Compressing scientific and AI data at wire speed",
-      "explain": "Scientific simulations and large AI datasets produce floating-point numbers — the kind of decimal values computers use for real-world measurements — in volumes that outpace storage and network bandwidth. Compressing these numbers before storing or sending them buys back that bandwidth, but existing compressors force a choice between speed and compression ratio. The paper here closes that gap specifically for floating-point data on both CPUs and GPUs.",
+      "explain": "Scientific simulations and large AI datasets produce enormous volumes of decimal numbers — the kind computers use for real-world measurements — faster than storage and network links can handle them. Compressing those numbers before storing or sending them buys back that speed, but existing tools force a choice between going fast and compressing well. The paper here closes that gap, targeting the specific internal bit patterns that floating-point decimal numbers use, on both regular processors and GPUs.",
       "papers": [
         {
           "id": "asplos-2025-017",
           "name": "",
-          "gloss": "Four new lossless compression algorithms tuned to the internal bit structure of floating-point numbers, achieving over 500 GB/s throughput on a modern GPU while beating most existing compressors on compression ratio too."
+          "gloss": "Four new lossless compression methods that exploit the internal bit layout of decimal numbers to squeeze data without any information loss, reaching over 500 GB per second on a modern GPU while also beating most existing tools on how tightly they compress."
         }
       ]
     },
     {
       "heading": "Accounting for the carbon cost of building and running hardware",
-      "explain": "The environmental cost of a chip comes from two places: the energy consumed while it runs (operational carbon) and the enormous industrial process that manufactured it (embodied carbon — the carbon baked into the chip before it ever turned on). These two costs trade off against each other in ways that are easy to ignore. Chips with more transistors are faster but cost more to fabricate; running fewer, larger chips longer saves manufacturing carbon but may use more electricity. The paper here builds a framework to optimize both costs together.",
+      "explain": "A chip's environmental footprint comes from two very different places: the electricity it consumes while running (its operating carbon), and the enormous industrial process that manufactured it (its built-in carbon — the pollution created before it ever turned on). These two costs trade off against each other in non-obvious ways. A chip packed with more circuitry is faster but took more energy to make; running fewer, larger chips for longer saves manufacturing carbon but may burn more electricity over time. The paper here builds a framework to optimize both costs at once rather than treating them separately.",
       "papers": [
         {
           "id": "hpca-2025-026",
           "name": "CORDOBA",
-          "gloss": "Defines a single combined metric — total carbon times execution time — that captures both manufacturing and operational carbon, then uses it to prune 98% of chip design options; finds that stacking memory directly on top of the processor die improves this combined metric 6.9x."
+          "gloss": "Creates a single combined score — total carbon multiplied by how long the job takes — that weighs both manufacturing and running costs together, uses it to eliminate 98% of chip design options automatically, and finds that placing memory directly on top of the processor (stacking chips together) improves this combined score by 6.9 times."
         }
       ]
     },
     {
       "heading": "Making performance measurements honest and comparable",
-      "explain": "Researchers report speedups by averaging ratios across many benchmarks, but the standard averaging method (the geometric mean) is mathematically wrong for speedup ratios: it can declare one design faster than another even when the opposite is true in any single workload. Meanwhile, specialized hardware for tasks like VR eye-tracking is evaluated with its own domain-specific metrics. The papers here address measurement correctness at the methodology level.",
+      "explain": "Researchers report how much faster their new design is by averaging speed-up ratios across many tests. But the standard way of averaging those ratios — the geometric mean taught in statistics class — gives the wrong answer for speed-up comparisons: it can declare one chip the winner even when the other chip is faster on every single individual test. Separately, specialized chips for tasks like tracking where a VR headset user is looking need their own purpose-built measures. The papers here tackle measurement correctness at the level of method.",
       "papers": [
         {
           "id": "hpca-2025-025",
           "name": "",
-          "gloss": "Proves algebraically that the geometric mean misrepresents aggregate speedup and that the harmonic mean is the correct replacement; shows that the two can give opposite rankings for competing chip designs."
+          "gloss": "Proves with algebra that the standard way of averaging speed-up numbers across benchmarks gives wrong answers, identifies the correct replacement (a different kind of average called the harmonic mean), and shows the two methods can declare opposite chips the winner."
         },
         {
           "id": "isca-2025-108",
           "name": "POLO / POLONet",
-          "gloss": "Co-designs an eye-tracking neural network with a dedicated hardware accelerator that renders VR images at full quality only where the user is actually looking, cutting end-to-end latency 3.9x versus prior gaze-tracking approaches."
+          "gloss": "Builds an AI model and a matching custom chip that together render VR images at full quality only in the small spot where the user's eyes are actually pointed, cutting the end-to-end delay 3.9 times compared to previous eye-tracking approaches."
         },
         {
           "id": "micro-2025-033",
           "name": "",
-          "gloss": "Speeds up GPU-based text pattern matching (used in database queries and log analysis) 19.5x by reordering computation so each block of input text is loaded once instead of once per pattern, eliminating redundant memory traffic."
+          "gloss": "Speeds up GPU-based text pattern matching — used in database searches and log analysis — by 19.5 times, by loading each block of input text just once and checking all patterns against it together, instead of reloading the same text once per pattern."
         }
       ]
     }
   ],
-  "connect": "Every paper here ultimately fights the same root constraint: the gap between how fast processors can compute and how fast data can move to feed them. Whether the fix is compressing data before it travels, eliminating optimizer state that occupies precious memory, synchronizing gradients less often across slow networks, or stripping unused code that crowds out working data — each solution reclaims bandwidth or capacity that arithmetic alone cannot create."
+  "connect": "Every paper here ultimately fights the same root constraint: the gap between how fast a processor can crunch numbers and how fast data can actually reach it. Whether the fix is squeezing data before it travels, replacing bulky training bookkeeping with a compact stand-in, sharing training results far less often across slow long-distance links, or stripping unused code that crowds out working data — each solution reclaims bandwidth or memory capacity that raw computing power alone cannot create."
 }

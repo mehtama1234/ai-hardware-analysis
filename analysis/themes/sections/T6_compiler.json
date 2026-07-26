@@ -1,246 +1,246 @@
 {
-  "problem_plain": "Every AI model is ultimately a program — a long recipe of mathematical steps. Before that recipe can run on real silicon, someone has to translate it into exact instructions the hardware understands: which wires carry which numbers, in what order, with what groupings. Today that translation is done partly by hand and partly by tools that are too rigid to see all the opportunities. The result is hardware that is rarely used to its full potential, and new hardware designs that take months of expert effort to program correctly.",
-  "why_plain": "Silicon is fast but dumb: it only does exactly what it is told, at the instruction level, and the gap between 'a matrix multiply' and 'a sequence of clock-cycle operations on specific memory addresses' is enormous. Bridging that gap efficiently — finding the right groupings, orderings, and data arrangements — is a combinatorial problem too large for humans to solve by hand at the scale modern AI requires.",
-  "approach_plain": "The papers in this theme all attack the translation gap from different angles, but share a common strategy: build a richer intermediate description of the computation — one that captures structure the final hardware instructions do not — and then use that description to search for better implementations automatically. Some build these descriptions to generate hardware itself; others use them to schedule operations more cleverly; others use machine learning to predict which of many possible translations will actually run fastest.",
+  "problem_plain": "Every AI model is a long list of math steps. Before those steps can run on a real chip, someone has to translate them into the precise, tiny instructions the chip actually obeys — which wires carry which numbers, in what order, with what groupings. Today that translation is done partly by hand and partly by tools that are too rigid to spot all the shortcuts. The result: chips spend a lot of time waiting around, and wiring up a brand-new chip design can take a team of experts many months.",
+  "why_plain": "A chip is fast but completely literal — it only does exactly what it is told, one tiny clock-tick at a time. The gap between 'multiply these two tables of numbers' and 'move these exact bytes to these exact wires in this exact order' is enormous. Bridging that gap well — finding the right groupings, orderings, and arrangements — is a puzzle with so many possible answers that no human team can solve it by hand at the scale modern AI demands.",
+  "approach_plain": "The papers here all attack that translation gap from different angles, but share a common idea: build a richer middle-layer description of the computation — one that captures structure the final chip instructions do not — and then use that description to search for better translations automatically. Some use that middle layer to generate the chip's physical circuit directly; others use it to schedule operations more cleverly; others use a small AI model to predict which of thousands of possible translations will actually run fastest on real hardware.",
   "groups": [
     {
-      "heading": "Generating hardware from a description, not by hand",
-      "explain": "The most ambitious approach is to skip hand-written hardware designs entirely: describe what a computation should do mathematically, then let a tool generate the actual silicon circuit automatically. This requires a representation rich enough to capture data flow, reuse patterns, and control logic — and a backend that can turn that representation into real, synthesizable circuit code. The payoff is that new AI operations can get custom hardware in hours rather than months.",
+      "heading": "Generating chip circuits from a description, not by hand",
+      "explain": "The boldest approach is to skip hand-written chip designs entirely. You describe what a computation should do in math, and a tool figures out what silicon circuit to build. This needs a description rich enough to capture how data flows, where it gets reused, and how operations are controlled — and a back-end tool that can turn that description into a real circuit blueprint. The payoff: a new AI operation can get its own custom chip in hours instead of months.",
       "papers": [
         {
           "id": "hpca-2025-002",
           "name": "LEGO",
-          "gloss": "Generates custom AI accelerator circuits automatically from math descriptions using linear-algebra mappings, cutting control-logic area by up to 6.5x and running 3.2x faster than the Gemmini reference chip"
+          "gloss": "Takes a math description of an AI operation and automatically builds a chip circuit for it, producing control logic that uses 6.5x less chip area and runs 3.2x faster than a hand-designed reference chip."
         },
         {
           "id": "isca-2025-111",
           "name": "Assassyn",
-          "gloss": "One program, two outputs: write hardware behavior once in an event-driven style and get both a fast simulator and synthesizable circuit code, with 70% fewer lines than hand-written RTL"
+          "gloss": "Write chip behavior once in a style that lists events and reactions; the tool produces both a fast simulator and a working chip blueprint — using 70% fewer lines than writing the chip blueprint by hand."
         },
         {
           "id": "asplos-2025-153",
           "name": "CRUSH",
-          "gloss": "Lets multiple operations safely share a single arithmetic unit in auto-generated dataflow circuits by tracking 'credits' — tokens that prevent the shared unit from being overloaded and deadlocking"
+          "gloss": "Lets several operations safely share one math unit in auto-generated circuits by handing out 'credits' — small tokens that stop the shared unit from being swamped with too much work at once, preventing a deadlock."
         },
         {
           "id": "isca-2025-014",
           "name": "HPVM-HDC",
-          "gloss": "Write one program in a C++ dialect exposing 24 hyperdimensional-computing primitives (a computing style using very long random bit-vectors); the compiler retargets it to CPUs, GPUs, or a custom chip without code changes"
+          "gloss": "Write one program using a style that works with very long strings of random bits (a computing method called hyperdimensional computing); the tool re-targets it to ordinary processors, graphics chips, or a custom chip without rewriting any code."
         }
       ]
     },
     {
-      "heading": "Simulating hardware before building it",
-      "explain": "Before taping out a chip — a process that costs millions of dollars and months of time — designers need to know whether a design works and how fast it will be. Simulation tools let them test designs in software, but traditional simulators are either accurate-but-slow (running hardware at the clock level) or fast-but-wrong (running a C model that ignores timing). This group of papers closes that gap.",
+      "heading": "Simulating a chip in software before spending money to build it",
+      "explain": "Making a physical chip costs millions of dollars and many months, so designers test their ideas in software first. Old simulators are either very accurate but painfully slow, or fast but too rough to trust. This group of papers closes that gap, giving designers fast answers they can actually rely on.",
       "papers": [
         {
           "id": "micro-2025-089",
           "name": "OmniSim",
-          "gloss": "Simulates complex auto-generated hardware designs at C-code speed but with clock-accurate results, handling previously unsupported cases where operations depend on live data-queue states; up to 35.9x faster than the previous gold standard"
+          "gloss": "Simulates auto-generated chip designs at the speed of normal software but with cycle-accurate timing — including tricky cases where operations depend on how full a data queue is — running up to 35.9x faster than the previous gold-standard simulator."
         },
         {
           "id": "micro-2025-021",
           "name": "LLMulator",
-          "gloss": "Uses a small fine-tuned language model to predict how fast a dataflow chip will run a given program, encoding timing as digit-by-digit text tokens so it generalizes to wildly different loop sizes; 12.2% average error across unseen chips"
+          "gloss": "Uses a small fine-tuned AI model to predict how fast a chip will run a given program, spelling out timing as digit-by-digit text so it handles very different problem sizes; averages only 12.2% error on chips it has never seen."
         },
         {
           "id": "isca-2025-083",
           "name": "Concorde",
-          "gloss": "Predicts CPU performance by fusing hand-crafted pipeline equations with a learned correction term, gaining speed from the equations and accuracy from the neural network for fast design-space search"
+          "gloss": "Predicts how fast a processor will be by combining hand-crafted pipeline math with a learned correction term — getting speed from the equations and accuracy from the neural network — so designers can search through many chip options quickly."
         }
       ]
     },
     {
-      "heading": "Tiling and scheduling: deciding what to compute when",
-      "explain": "Modern AI chips have many parallel compute units, but they are only useful if work arrives at them in the right order and grouping. A 'tile' is a chunk of the computation small enough to fit in fast on-chip memory; the question is how big to make each tile, which tiles to run simultaneously, and how to order them so results are reused before they have to be written back to slow main memory. Getting this wrong is the most common reason a chip sits mostly idle.",
+      "heading": "Deciding what to compute when: chunking and ordering work",
+      "explain": "Modern AI chips have many parallel math units, but those units only stay busy if work arrives in the right order and right-sized chunks. A 'chunk' is a piece of the computation small enough to fit in the chip's small, fast on-chip memory. Choosing the wrong chunk size or ordering is the most common reason a chip idles. The papers here develop smarter ways to pick chunk sizes and orderings so as much work as possible happens in fast on-chip memory before results are sent back to the slow main memory.",
       "papers": [
         {
           "id": "asplos-2025-036",
           "name": "BlockDepend",
-          "gloss": "Analyzes dependencies between neural-network operators at tile granularity — coarser than individual numbers, finer than whole layers — revealing hidden parallelism and enabling fusion that yields up to 2.88x speedup over AMD's production compiler"
+          "gloss": "Looks at which steps in a neural network depend on each other, working at chunk level rather than individual numbers — revealing hidden opportunities to merge steps and run them in parallel, giving up to 2.88x speedup over AMD's production tool."
         },
         {
           "id": "asplos-2025-157",
           "name": "Mosaic",
-          "gloss": "Partitions tensor operations into sub-tiles assigned simultaneously to scalar, vector, and tensor arithmetic units, exploiting instruction-level parallelism that homogeneous tiling leaves unused"
+          "gloss": "Splits math operations into sub-chunks assigned at the same time to simple, medium, and powerful math units on the chip — squeezing out parallelism that sending all work to one type of unit misses."
         },
         {
           "id": "hpca-2025-069",
           "name": "EDA",
-          "gloss": "For small-memory edge AI chips, finds the optimal depth to chain layer-by-layer reuse before spilling back to slow off-chip memory, delivering 2.39x performance and 2.08x energy efficiency gains"
+          "gloss": "For small chips with tight memory budgets, finds the ideal depth to keep reusing results layer by layer before sending them to slow off-chip memory — delivering 2.39x faster runs and 2.08x better energy efficiency."
         },
         {
           "id": "asplos-2025-001",
           "name": "Voyager",
-          "gloss": "Picks operator reordering and fusion strategies for graph neural networks at runtime based on the shape of each incoming graph, since one static plan cannot fit all graph topologies"
+          "gloss": "Picks step-ordering and merging strategies for graph-style networks while the program is running, because the right choice depends on the shape of each incoming graph and no single fixed plan fits them all."
         },
         {
           "id": "asplos-2025-161",
           "name": "Diffuse",
-          "gloss": "Fuses tasks and GPU kernels across different software libraries at runtime using a shared intermediate representation, achieving 1.86x average speedup on up to 128 GPUs"
+          "gloss": "Merges tasks and low-level compute jobs from different software libraries at runtime using a shared middle-layer description, achieving 1.86x average speedup across up to 128 graphics chips working together."
         },
         {
           "id": "asplos-2025-160",
           "name": "Apophenia",
-          "gloss": "Automatically detects repeating patterns in a stream of parallel tasks — treating the task sequence like a string and finding periodic substrings — then caches dependency analysis for those patterns without any programmer annotation"
+          "gloss": "Automatically spots repeating patterns in a stream of parallel tasks — treating the task list like a string of text and finding repeated phrases — then saves the dependency analysis for those patterns so it never repeats that work."
         }
       ]
     },
     {
-      "heading": "Search and auto-tuning: finding the best implementation automatically",
-      "explain": "Even once the computation is tiled correctly, there are thousands of valid ways to write the low-level instructions — different loop orderings, memory access patterns, register assignments. Trying them all is too slow; guessing is too inaccurate. This group of papers develops smarter search strategies: two-stage filters, tournament comparisons, and learned cost models that guide the search toward good solutions quickly.",
+      "heading": "Searching automatically for the fastest translation",
+      "explain": "Even after work is chunked correctly, there are thousands of valid ways to write the low-level instructions — different loop orders, memory access patterns, ways to use the chip's small set of fast registers. Trying every possibility is too slow; guessing is too inaccurate. These papers develop smarter search strategies: cheap early filters, tournament-style comparisons, and learned guessing tools that zero in on good solutions quickly.",
       "papers": [
         {
           "id": "asplos-2025-110",
           "name": "Pruner",
-          "gloss": "Speeds up the search for fast tensor programs by first using cheap symbolic analysis to screen thousands of candidate schedules, then applying an expensive learned cost model only to the small surviving set"
+          "gloss": "Speeds up the hunt for fast low-level programs by using cheap rule-based checks to eliminate most candidate arrangements first, then applying an expensive learned model only to the small set that survives."
         },
         {
           "id": "asplos-2025-117",
           "name": "DarwinGame",
-          "gloss": "Tunes application parameters in noisy shared cloud machines by co-locating multiple configurations on the same server so they all face identical interference, then ranking them via a Swiss-tournament style playoff; lands within 4.2% of optimal vs. 40%+ for prior tuners"
+          "gloss": "Tunes program settings on noisy shared cloud servers by running several configurations side-by-side so they all face identical interference, then ranking them in a tournament bracket — landing within 4.2% of optimal versus 40%+ error for earlier tools."
         },
         {
           "id": "asplos-2025-023",
           "name": "SmoothE",
-          "gloss": "Turns the combinatorial problem of picking the best expression from a compiler optimization graph into a smooth math problem solvable by gradient descent, enabling learned cost functions that simple linear models cannot express"
+          "gloss": "Turns the problem of picking the best option from a compiler's tree of choices into a smooth math curve that can be minimized by gradually adjusting numbers downhill — allowing learned cost functions too complex for simple straight-line models."
         },
         {
           "id": "asplos-2025-177",
           "name": "Syno",
-          "gloss": "Automatically invents new neural-network operators using Monte Carlo tree search over fine-grained tensor-dimension primitives, finding operators 1.37x–2.06x faster than manually designed ones with under 1% accuracy loss"
+          "gloss": "Automatically invents new AI operations by running a game-tree search over small building blocks, finding operations that run 1.37x–2.06x faster than hand-designed ones with under 1% drop in accuracy."
         },
         {
           "id": "asplos-2025-000",
           "name": "",
-          "gloss": "Position paper asking whether machine-learning-guided systems research has reached a tipping point analogous to the 2012 ImageNet breakthrough, surveying adoption across compilers, scheduling, networking, and storage"
+          "gloss": "A position paper asking whether AI-guided systems research has hit a turning point like the 2012 moment when AI first beat humans at image recognition, surveying how AI now guides compilers, task scheduling, networking, and storage decisions."
         }
       ]
     },
     {
-      "heading": "Unified intermediate representations: one description, many targets",
-      "explain": "A common frustration in AI deployment is that a model trained on one type of chip must be manually ported to run on another. The solution is an intermediate representation (IR) — a standardized mid-level description of the computation that sits between high-level Python and low-level hardware instructions. If the IR is expressive enough, a single compiler can lower it to many targets: GPUs, phones, microcontrollers, FPGAs.",
+      "heading": "One shared middle-layer description, many chip targets",
+      "explain": "A constant frustration in AI is that a model trained on one kind of chip has to be painfully re-coded to run on another. The fix is a standardized middle-layer description — a common language that sits between high-level Python code and low-level chip instructions. If that description is expressive enough, a single translation tool can send the same computation to graphics chips, phones, tiny embedded chips, or web browsers.",
       "papers": [
         {
           "id": "asplos-2025-075",
           "name": "Relax",
-          "gloss": "Unifies computational graphs, loop-level kernels, and external library calls in one IR with symbolic shape annotations that propagate dynamic sizes globally, enabling a single compiler to target GPUs, mobile phones, embedded chips, and web browsers"
+          "gloss": "Combines high-level operation graphs, low-level loop code, and calls to outside math libraries into one middle-layer description with size labels that track unknown dimensions automatically, letting one tool target graphics chips, phones, tiny chips, and web browsers."
         },
         {
           "id": "asplos-2025-013",
           "name": "PartIR",
-          "gloss": "Separates how a large model is split across many chips from how it is implemented, expressing each splitting strategy as a composable, verifiable rewrite step on the IR so strategies can be mixed and checked independently"
+          "gloss": "Separates the question of how to split a large model across many chips from the question of how to carry out each piece, expressing each splitting strategy as a small verifiable rewrite step so strategies can be mixed, matched, and checked independently."
         },
         {
           "id": "micro-2025-109",
           "name": "StreamTensor",
-          "gloss": "Introduces a type that encodes not just a tensor's shape but also the order in which a kernel streams through it, enabling automatic kernel fusion, buffer sizing, and deadlock-free on-chip queue dimensioning for FPGA dataflow accelerators"
+          "gloss": "Adds a new data type that records not just a chunk's shape but also the order a piece of compute logic streams through it — letting the tool automatically figure out how to merge steps, size buffers, and avoid deadlocks on programmable chip designs."
         },
         {
           "id": "asplos-2025-020",
           "name": "Einsum Tree IR",
-          "gloss": "Represents a multi-step tensor contraction as a tree, then optimizes data layouts across all intermediate steps globally rather than one step at a time, reducing data movement on ARM and x86 CPUs"
+          "gloss": "Represents a chain of number-table contractions as a tree, then optimizes how data is laid out in memory across all intermediate steps at once rather than one at a time — cutting unnecessary data movement on standard processors."
         },
         {
           "id": "asplos-2025-099",
           "name": "",
-          "gloss": "Community competition and benchmark suite for the problem of partitioning neural-network operators across multiple accelerators, exposing the algorithmic gap in automated intra-operator parallelism search"
+          "gloss": "A community contest and benchmark set for the problem of splitting AI operations across multiple chips automatically, making clear how large the gap is between current tools and the best possible automatic solution."
         }
       ]
     },
     {
-      "heading": "Compiler-driven energy and resource savings",
-      "explain": "A compiler does not just determine correctness and speed — it also controls how much energy a chip burns. By inspecting code statically, a compiler can identify units that will be idle and turn them off, narrow the bit-width of arithmetic that does not need full precision, and reuse computation that would otherwise be repeated. These techniques are especially valuable at the extremes: tiny microcontrollers with no spare power budget, and large AI accelerators running around the clock at data-center scale.",
+      "heading": "Using the compiler to save energy and chip area",
+      "explain": "A translation tool does not just control speed — it also controls how much power the chip burns. By inspecting code before it runs, the tool can spot units that will be idle and switch them off, use narrower number formats where full precision is not needed, and avoid repeating the same calculation twice. This matters most at the extremes: tiny chips running on a battery, and large chips running around the clock in a data center.",
       "papers": [
         {
           "id": "micro-2025-104",
           "name": "ReGate",
-          "gloss": "Adds fine-grained power switching to Google TPU-style chips: detects zero-weight rows/columns in matrix multiply units and powers them off cycle-by-cycle, cutting energy 8.5%–32.8% with under 0.5% performance loss"
+          "gloss": "Adds fine-grained power switches to Google-style AI chips: detects rows and columns of the math array that hold zero and powers them off each clock tick — cutting energy 8.5%–32.8% with under 0.5% slowdown."
         },
         {
           "id": "asplos-2025-096",
           "name": "BitSpec",
-          "gloss": "Compiler guesses that most variables need fewer bits than declared, emits narrow arithmetic, and hardware corrects the rare overflow at runtime — saving 9.9% average energy (up to 28.2%) on embedded devices"
+          "gloss": "The translation tool guesses most variables need fewer bits than declared, emits narrower math, and the chip fixes the rare case where the guess was wrong at runtime — saving 9.9% average energy (up to 28.2%) on small embedded devices."
         },
         {
           "id": "asplos-2025-090",
           "name": "",
-          "gloss": "Frames computation reuse on microcontrollers as a matrix row/column reordering problem, revealing a much larger space of reuse patterns than prior work, with 1.03x–2.2x speedup and dual accuracy/latency prediction models"
+          "gloss": "Frames reusing previously computed results on tiny microcontrollers as a problem of reordering rows and columns of a data table, uncovering far more reuse opportunities than prior work — delivering 1.03x–2.2x speedup with models that predict accuracy and run time together."
         },
         {
           "id": "asplos-2025-120",
           "name": "Chassis",
-          "gloss": "Compiler that jointly optimizes numerical accuracy and execution speed while being aware of the exact instruction set available on the target chip, unifying two previously separate compiler traditions"
+          "gloss": "A translation tool that jointly optimizes numerical accuracy and run speed while staying aware of exactly which math instructions the target chip supports — unifying two previously separate families of compiler thinking."
         }
       ]
     },
     {
-      "heading": "Compiling for quantum and specialized exotic hardware",
-      "explain": "Quantum computers manipulate quantum bits (qubits) that must be physically moved between zones — storage, entanglement, readout — and every move degrades the computation. Classical compilers have no model for this; quantum circuit compilers need entirely new scheduling abstractions. Similarly, Ising solvers — machines that search for the minimum of an energy function to solve combinatorial problems — require special encoding strategies. This group extends compiler thinking to these non-standard substrates.",
+      "heading": "Translating for quantum and other unusual machines",
+      "explain": "Quantum computers use quantum bits that must be physically shuttled between zones — storage, calculation, readout — and each unnecessary move degrades the result. Ordinary translation tools have no model for this; quantum translation tools need entirely new scheduling ideas. Similarly, some machines solve hard puzzles by hunting for the lowest-energy state of a system, and they need special encoding to avoid wasting time on impossible answers. This group extends compiler thinking to those unusual machines.",
       "papers": [
         {
           "id": "micro-2025-099",
           "name": "MUSS-TI",
-          "gloss": "Treats qubit zones in a trapped-ion quantum chip like memory levels in a cache hierarchy — storage zone as disk, operation zone as RAM, entanglement zone as registers — and uses LRU-style eviction to cut shuttle operations by 41%–73%"
+          "gloss": "Treats the zones of a trapped-ion quantum chip like levels of a memory hierarchy — storage zone as slow disk, operation zone as main memory, entanglement zone as fast registers — and uses a least-recently-used swap rule to cut shuttle moves by 41%–73%."
         },
         {
           "id": "hpca-2025-059",
           "name": "ZAC",
-          "gloss": "Compiles quantum circuits for neutral-atom zone-based machines by keeping qubits in the entanglement zone when the next gate needs them there, avoiding unnecessary round-trips; achieves 22x fidelity improvement over monolithic architectures"
+          "gloss": "Schedules quantum circuits on neutral-atom zone machines by keeping quantum bits in the working zone when the next operation needs them there, avoiding needless round-trips — achieving 22x better result fidelity over non-zone designs."
         },
         {
           "id": "asplos-2025-118",
           "name": "PowerMove",
-          "gloss": "Jointly schedules qubit movement and gate operations for zoned neutral-atom quantum computers, achieving 3.76x–4.78x faster execution and orders-of-magnitude fidelity improvement, with 216.9x faster compilation than prior methods"
+          "gloss": "Plans quantum bit movement and gate operations together on zone-based neutral-atom machines — running 3.76x–4.78x faster, with dramatically better result quality, and compiling 216.9x faster than previous planning tools."
         },
         {
           "id": "hpca-2025-101",
           "name": "Choco-Q",
-          "gloss": "Encodes optimization constraints into a quantum algorithm by choosing a driver Hamiltonian (a mathematical operator governing how the quantum state evolves) that mathematically commutes with the constraint, guaranteeing 100% feasible solutions and 235x better success rate on real IBM quantum hardware"
+          "gloss": "Encodes problem constraints into a quantum search by choosing a mathematical operator that naturally commutes with (never violates) those constraints, guaranteeing every answer is valid — achieving a 235x better success rate on real IBM quantum hardware."
         },
         {
           "id": "hpca-2025-038",
           "name": "",
-          "gloss": "Inserts a digital logic layer between an Ising solver and its energy landscape so only feasible variable assignments are ever explored, eliminating the penalty terms that waste 99%+ of solver time on infeasible states; 7.2x–52,000x fewer iterations to solution"
+          "gloss": "Inserts a small digital logic layer between an energy-minimization puzzle machine and the puzzle itself, ensuring the machine only ever explores valid answers — eliminating the penalty tricks that previously wasted 99%+ of solver time; gives 7.2x–52,000x fewer steps to a solution."
         }
       ]
     },
     {
-      "heading": "General compiler infrastructure and methodology",
-      "explain": "Behind every AI compiler are classical compiler techniques — register allocation, control-flow analysis, benchmark methodology — that also benefit from principled improvement. This group covers work that strengthens the foundations: better algorithms for assigning values to registers, cleaner ways to add security metadata to binaries, and honest critiques of how we measure software performance.",
+      "heading": "Strengthening the foundations that all compilers depend on",
+      "explain": "Behind every AI translation tool are classical building blocks — ways to assign values to a chip's small set of fast registers, ways to track data flow through a program, ways to measure software speed fairly. This group improves those foundations: smarter register assignment, easier ways to add security labels to programs, and honest critiques of flawed benchmarking habits.",
       "papers": [
         {
           "id": "asplos-2025-034",
           "name": "COGENT",
-          "gloss": "An LLVM-based toolchain that stamps variable-width security tags onto every RISC-V instruction during compilation, supporting any tag policy without modifying the core compiler; run-time overhead 0.94%–5.24%"
+          "gloss": "A toolchain built on the widely-used LLVM compiler that stamps variable-width security tags onto every instruction in a program, supporting any tagging policy without touching the core compiler — adding only 0.94%–5.24% run-time overhead."
         },
         {
           "id": "asplos-2025-021",
           "name": "",
-          "gloss": "Speeds up register allocation — assigning program variables to the chip's small set of fast registers — by exploiting the tree-like structure of real programs' control flow, making an NP-hard problem tractable in practice"
+          "gloss": "Speeds up the step of assigning program variables to the chip's small set of fast registers by exploiting the branching-tree shape of how real programs flow — making a problem that is theoretically impossibly hard become fast in practice."
         },
         {
           "id": "asplos-2025-019",
           "name": "",
-          "gloss": "Critiques Java performance benchmarks as misaligned with real workloads, documenting how JIT warm-up and garbage-collection artifacts invalidate common measurement practices and proposing sounder methodology"
+          "gloss": "Shows that standard Java speed tests do not reflect real programs, because the way Java warms up its own code and manages memory creates misleading numbers — and proposes better measurement practices."
         },
         {
           "id": "asplos-2025-115",
           "name": "ClosureX",
-          "gloss": "Compiler pass that identifies the minimal set of program state that must be snapshotted and restored between fuzz-testing iterations, enabling correct reuse of a single process across thousands of test cases without full process restart overhead"
+          "gloss": "A compiler step that finds the smallest slice of program state that must be saved and restored between automated security-test runs, letting one running process be reused across thousands of tests without a full restart."
         },
         {
           "id": "isca-2025-015",
           "name": "Caravan",
-          "gloss": "Adds two new CPU instructions that re-index active lanes in a vector unit during divergent neighbor-search in 3D point clouds, achieving 5.19x speedup with only 0.032 mm² of extra silicon area"
+          "gloss": "Adds two new processor instructions that reorganize active slots in a wide math unit when searching nearest neighbors in 3D point clouds — achieving 5.19x speedup using only 0.032 square millimeters of extra chip area."
         },
         {
           "id": "hpca-2025-098",
           "name": "",
-          "gloss": "Introduces a bit-level algebraic notation for matrix multiply units exposing four microarchitecture optimizations orthogonal to existing dataflow strategies; 1.04x–1.56x energy efficiency and 1.27x–1.56x area efficiency on 28nm silicon"
+          "gloss": "Introduces a bit-level algebra for describing how matrix math units work, revealing four improvements that are independent of previously known tricks — delivering 1.04x–1.56x better energy use and 1.27x–1.56x better area use on real 28-nanometer silicon."
         }
       ]
     }
   ],
-  "connect": "Every technique in this theme is ultimately about the same bottleneck: moving data is expensive and slow, while arithmetic is cheap and fast, so the entire art of compilation is finding arrangements of data and work that minimize how often values have to travel between slow memory and fast compute. A compiler that tiles better, fuses more aggressively, or generates hardware with smarter data paths is always, at root, reducing the distance that numbers travel."
+  "connect": "Every technique here is ultimately fighting the same bottleneck: moving data is slow and expensive, while doing math is fast and cheap. So the whole art of translation is finding arrangements of data and work that reduce how often numbers have to travel between slow main memory and the chip's fast compute units. A tool that chunks work better, merges more steps together, or generates a chip with smarter data paths is always, at root, making numbers travel shorter distances."
 }

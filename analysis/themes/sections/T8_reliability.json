@@ -1,184 +1,184 @@
 {
-  "problem_plain": "AI systems and the hardware running them can produce wrong answers silently — a misfiring transistor corrupts a number, a quantum bit decoheres, a parallel program deadlocks, or a cloud server crashes — and the system gives no warning. The fundamental challenge is that we cannot inspect every intermediate result; we must either trust that the hardware worked, or build in checks that catch failure before it propagates. As AI models grow larger and run on more hardware in parallel, a single undetected error in billions of operations per second can quietly corrupt a training run, a medical diagnosis, or a flight-control decision.",
-  "why_plain": "Hardware is physical: transistors age, cosmic rays flip bits, and manufacturing defects slip through testing. Software that runs across thousands of chips simultaneously multiplies the chances that something goes wrong, while the sheer speed of modern computation makes after-the-fact checking impractical without deliberate design.",
-  "approach_plain": "Researchers pursue three overlapping strategies: formally prove that a design is correct before it ever runs (mathematical verification); detect and attribute failures after they happen using runtime signals (operational monitoring); and build redundancy and graceful fallback into the system so that when something does fail, the effect is contained rather than catastrophic. Across all three strategies, the goal is the same — shrink the gap between what the system is supposed to do and what it actually does.",
+  "problem_plain": "AI systems and the chips running them can produce wrong answers without any warning. A worn-out transistor flips a single digit, a quantum bit loses its state in microseconds, two programs fight over the same piece of memory, or a server in a data center simply crashes — and in every case the system may keep running and report no error. It just quietly produces wrong results. The core difficulty is that we cannot stop and check every step in billions of operations per second. We either trust that the hardware worked, or we design in checks that catch a failure before a wrong answer spreads. As AI models grow larger and run across hundreds of chips at once, even one undetected error can silently ruin a weeks-long training run, a medical diagnosis, or a safety-critical decision.",
+  "why_plain": "Hardware is physical: transistors wear out over years, stray particles from space randomly flip stored bits, and manufacturing flaws sneak past quality checks. When a program runs across thousands of chips at once, the chance that something goes wrong at any one of them is much higher than for a single chip. And the sheer speed of modern computation — billions of steps per second — makes it impossible to recheck everything after the fact unless you plan for it from the start.",
+  "approach_plain": "Researchers pursue three overlapping strategies. First, prove that a design is correct on paper before it ever runs — like checking a blueprint before pouring concrete. Second, watch for warning signs while the system runs and trace failures back to the faulty piece of hardware. Third, build in redundancy and graceful fallback so that when something does fail, the damage is contained rather than total. All three strategies share the same goal: shrink the gap between what the system is supposed to do and what it actually does.",
   "groups": [
     {
-      "heading": "Proving hardware designs correct on paper before they run",
-      "explain": "Before a chip is manufactured or a protocol is deployed, engineers can write a mathematical model of how it is supposed to behave and then use automated or computer-assisted proofs to show the model can never reach a bad state. This is expensive — a single proof can take months of engineer time and thousands of CPU-hours — but it catches entire classes of bugs that testing would miss because tests only cover cases the testers thought of.",
+      "heading": "Proving designs correct on paper before they run",
+      "explain": "Before a chip is manufactured or a networking rule is published, engineers can write a precise mathematical description of how it is supposed to behave, then use automated tools to check every possible situation the design could ever reach. This is slow and costly — a single proof can take months of expert time — but it catches whole families of bugs that ordinary testing misses, because testing only covers situations the tester thought to try.",
       "papers": [
         {
           "id": "asplos-2025-134",
           "name": "CXL.cache formal proof",
-          "gloss": "Proved mathematically that the CXL memory-sharing protocol — which lets CPUs, GPUs, and accelerators share the same memory coherently over a fast link — never lets two devices write the same location at once; the proof required 53,332 machine-checked lemmas and led to five corrections in the official standard."
+          "gloss": "Proved mathematically that the rule book for a fast link that lets CPUs, GPUs, and accelerators share the same memory never allows two devices to write the same location at once; the proof required 53,332 machine-checked steps and found five errors in the official standard."
         },
         {
           "id": "asplos-2025-037",
           "name": "H-Houdini",
-          "gloss": "Extends a classic hardware proof technique to cope with large chip designs where the number of states was previously too large to reason about exhaustively; improves scalability of formal correctness guarantees for real ASICs and CPUs."
+          "gloss": "Extends an existing proof method so it can handle large chip designs where the number of possible states was previously too huge to check exhaustively; makes formal correctness guarantees practical for real chips."
         },
         {
           "id": "asplos-2025-043",
           "name": "ElasticMiter",
-          "gloss": "Gives compiler-generated dataflow circuits (produced by high-level synthesis tools that turn C code into chip logic) a sound mathematical basis for optimization: rewrites are only applied after a proof certifies the new circuit is identical in behavior to the original."
+          "gloss": "Gives tools that automatically turn high-level code into a chip blueprint a sound mathematical foundation: a simplification is only applied after a proof certifies the new blueprint behaves identically to the original."
         },
         {
           "id": "asplos-2025-137",
           "name": "Contract Shadow Logic",
-          "gloss": "Attaches extra tracking logic to a processor's register-transfer-level description (the blueprint just above transistors) that encodes security contracts about speculative execution — the processor's habit of running instructions ahead of time — and uses model-checking to prove no secret data can leak through timing side channels."
+          "gloss": "Adds invisible tracking logic alongside a chip blueprint to encode security promises about how the processor runs instructions slightly ahead of time; uses automated checking to prove that no secret data can leak through differences in timing."
         },
         {
           "id": "isca-2025-097",
           "name": "",
-          "gloss": "Writes the first formal definition of what 'precise exceptions' (cleanly stopping and restarting after an error) means when a processor uses relaxed memory ordering — a decades-old open question for Arm processors — validated with a library of concrete test cases."
+          "gloss": "Writes the first precise formal definition of what 'cleanly stopping and restarting after an error' means when a processor uses relaxed memory ordering — a decades-old open question — and validates it with a library of concrete test cases for Arm processors."
         },
         {
           "id": "asplos-2025-055",
           "name": "seL4 verification survey",
-          "gloss": "Surveys the seL4 project, which produced the first complete proof chain from an operating system's C source code all the way to the compiled binary, covering four processor families, proving both correctness and security properties; discusses prospects for scaling this to general-purpose operating systems."
+          "gloss": "Surveys the seL4 project, which produced the first complete proof chain from an operating system's source code all the way to the final compiled program, covering four chip families and proving both correctness and security; discusses prospects for scaling this to general-purpose operating systems."
         },
         {
           "id": "asplos-2025-052",
           "name": "PMVerify",
-          "gloss": "Automatically verifies that programs using non-volatile memory (storage that survives a power cut) flush data in the right order so the data is consistent after a crash; reduces what was a manual, test-driven process to an automated mathematical check."
+          "gloss": "Automatically checks that programs using storage that survives a power cut flush data in the right order, so the data stays consistent after a crash; turns what was a slow, manual testing process into an automated mathematical check."
         }
       ]
     },
     {
       "heading": "Detecting silent hardware errors in production fleets",
-      "explain": "Some hardware defects pass pre-ship tests but surface only under specific workloads in the field. These 'silent data corruptions' (SDCs) are particularly dangerous because the machine continues running and reports no error — it just produces a wrong number. Finding these requires correlating software-level symptoms (crashes, bad outputs) with hardware identities across large fleets.",
+      "explain": "Some hardware flaws pass every test before shipping but appear only under specific workloads once deployed. These 'silent wrong answers' are especially dangerous because the machine keeps running and reports no error — it simply computes the wrong number. Finding them requires connecting software-level symptoms (crashes, bad outputs) to specific hardware units across enormous fleets of servers.",
       "papers": [
         {
           "id": "asplos-2025-041",
           "name": "Hardware Sentinel",
-          "gloss": "Matches software crash patterns — segmentation faults, core dumps, log anomalies — to specific CPU models and serial numbers across 27 data-center regions and 6 years of logs; detects 1.74x more defective CPUs than dedicated in-production hardware stress tests."
+          "gloss": "Matches patterns of software crashes and bad log entries to specific chip models and serial numbers across 27 data-center regions and six years of records; finds 1.74x more defective processors than dedicated stress-testing programs run directly on the hardware."
         },
         {
           "id": "hpca-2025-016",
           "name": "Veritas",
-          "gloss": "Builds the first public microarchitecture-level model of how defects in arithmetic units (integer and floating-point compute blocks) of five generations of x86 processors translate into silent wrong answers, validated against real fleet defect data."
+          "gloss": "Builds the first publicly available model of how physical flaws in the arithmetic circuits of five generations of x86 processors turn into silent wrong answers; validated against real defect records from a large server fleet."
         },
         {
           "id": "hpca-2025-049",
           "name": "",
-          "gloss": "Studies 4 million training jobs across two large GPU clusters over 11 months; introduces the Effective Training Time Ratio metric — the fraction of compute time that actually advances the model — and shows how checkpoint frequency and job size interact with failure rates at scale."
+          "gloss": "Studies four million training jobs across two large GPU clusters over eleven months; introduces a metric — the fraction of compute time that actually advances the model — and shows how often you save progress and how big the job is both affect how much time is wasted on failures."
         },
         {
           "id": "asplos-2025-128",
           "name": "PCcheck",
-          "gloss": "Saves the state of a large model-training run to durable storage concurrently with ongoing computation using copy-on-write snapshots, so frequent safe checkpoints impose much less overhead than stopping training to write them sequentially."
+          "gloss": "Saves the state of a large model-training run to permanent storage at the same time as training continues, using a copy-on-write snapshot so frequent safe saves add much less overhead than stopping training to write them one at a time."
         }
       ]
     },
     {
       "heading": "Keeping systems running gracefully when something fails",
-      "explain": "The complement to detection is recovery: designing systems so that a failure in one component does not cascade into a total outage. This requires both the ability to save and restore state quickly, and explicit policies for which parts of the system are critical and which can be shed when resources run low.",
+      "explain": "Detecting a failure is only half the battle — the system also needs to recover without a total outage. That means saving and restoring state quickly, and having explicit policies about which parts of the system are critical and which can be switched off when things go wrong.",
       "papers": [
         {
           "id": "asplos-2025-012",
           "name": "Phoenix",
-          "gloss": "Lets cloud operators tag containers (isolated software packages) as critical or non-critical, then automatically shuts off non-critical services during a large failure to preserve capacity for critical ones; handles failures across 100,000-node clusters within 10 seconds."
+          "gloss": "Lets cloud operators mark software containers as critical or non-critical, then automatically shuts off non-critical services during a large failure to protect capacity for critical ones; handles failures across 100,000-machine clusters within ten seconds."
         },
         {
           "id": "asplos-2025-167",
           "name": "Fault Escaping",
-          "gloss": "Treats the two halves of a modern cloud server — the host CPU and the data-processing unit (DPU) offload chip that manages networking and virtualization — as redundant peers; when one fails, virtual machines migrate their state to the survivor, keeping customers online."
+          "gloss": "Treats the two halves of a modern cloud server — the main CPU and the separate chip that manages networking — as backups for each other; when one fails, running workloads move their state to the survivor, keeping customers online."
         },
         {
           "id": "asplos-2025-121",
           "name": "GOLF",
-          "gloss": "Detects goroutines (lightweight concurrent tasks in the Go programming language) that have permanently blocked waiting for messages by piggybacking on the garbage collector's existing scan of live memory references; automatically cleans them up, preventing silent memory leaks in long-running services."
+          "gloss": "Detects lightweight background tasks in Go programs that have permanently stalled waiting for a message, by piggybacking on the routine scan the program already does to reclaim unused memory; cleans them up automatically, preventing silent memory growth in long-running services."
         },
         {
           "id": "asplos-2025-162",
           "name": "Debugger toolchain validation",
-          "gloss": "Validates the tools developers use to inspect running programs by comparing what two different debugging views of the same executable report; found and triggered fixes for 12 bugs in GDB and LLDB, the industry-standard debuggers."
+          "gloss": "Validates the tools developers use to inspect running programs by comparing what two different debugging views of the same program report; found and triggered fixes for twelve bugs in GDB and LLDB, the two most widely used debugging tools."
         }
       ]
     },
     {
       "heading": "Making memory access correct and consistent across many chips",
-      "explain": "When many processors share memory — as in a GPU server or a phone's combined CPU-GPU chip — they must agree on the order in which writes become visible to other processors. Getting this wrong silently produces wrong answers. Hardware designers specify these rules, but the specifications themselves can contain errors, and the implementations may not match even a correct specification.",
+      "explain": "When many processors share memory — as in a GPU server or a phone's combined CPU-GPU chip — they must all agree on the order in which writes become visible to each other. Getting this wrong silently produces wrong answers. The rules for this agreement can themselves contain errors, and even a correct rule book can be mis-implemented in hardware.",
       "papers": [
         {
           "id": "isca-2025-123",
           "name": "CORD",
-          "gloss": "Moves the job of ordering writes between processors from the source chip to the shared memory directory (the central record of who owns what), cutting unnecessary round-trip messages by 13% and improving AI workload throughput by 24% on average."
+          "gloss": "Moves the job of deciding which chip's write wins from the chip that sent it to the shared memory directory that keeps the central record, cutting unnecessary back-and-forth messages by 13% and improving AI workload speed by 24% on average."
         },
         {
           "id": "isca-2025-005",
           "name": "",
-          "gloss": "Proposes a memory-protection scheme that adjusts its checking granularity per memory region based on which processor — CPU, GPU, or neural-network accelerator — is accessing it; reduces the overhead of checking that data has not been tampered with by 14–21% over fixed-granularity approaches."
+          "gloss": "Proposes a memory-protection scheme that adjusts how finely it checks each region of memory depending on whether a CPU, GPU, or AI accelerator is using it; reduces the cost of checking that stored data has not been tampered with by 14–21% compared to using the same check size everywhere."
         },
         {
           "id": "hpca-2025-010",
           "name": "Rush or Wait (RoW)",
-          "gloss": "Solves a correctness-and-performance tension in atomic read-modify-write instructions (operations that read a value, change it, and write it back as a single uninterruptible step): a 64-byte predictor decides at runtime whether to execute eagerly or wait, reducing contention and cutting execution time by up to 43%."
+          "gloss": "Solves a correctness-and-speed tension in operations that must read a value, change it, and write it back as a single uninterruptible step: a small 64-byte predictor decides at run time whether to go ahead immediately or wait, reducing clashes between chips and cutting run time by up to 43%."
         }
       ]
     },
     {
-      "heading": "Correcting errors in quantum computers before they propagate",
-      "explain": "Quantum bits (qubits) are far more fragile than classical transistors — they decohere (lose their quantum state) within microseconds. Quantum error correction works by encoding one logical qubit across many physical qubits and continuously measuring 'syndromes' (indirect error indicators) without collapsing the computation. The challenge is doing this fast enough and resource-efficiently enough that the correction overhead does not swamp the computation itself.",
+      "heading": "Correcting errors in quantum computers before they spread",
+      "explain": "Quantum bits are far more fragile than ordinary transistors — they lose their quantum state within microseconds if disturbed. Quantum error correction encodes one reliable logical bit across many physical quantum bits and continuously measures indirect error signals without collapsing the computation. The challenge is doing this fast enough and with few enough extra resources that the correction work does not swamp the actual computation.",
       "papers": [
         {
           "id": "isca-2025-077",
           "name": "",
-          "gloss": "Shows that distributing the idle time a qubit patch must wait for synchronization across many small gaps — rather than one big wait — reduces the logical error rate by up to 3.4x because short idle periods accumulate less decoherence than one long one."
+          "gloss": "Shows that spreading a quantum patch's required idle time across many small gaps — rather than one long wait — reduces the error rate by up to 3.4x, because brief pauses accumulate far less state-loss than a single extended pause."
         },
         {
           "id": "isca-2025-106",
           "name": "SWIPER",
-          "gloss": "Borrows the idea of speculative execution from classical CPUs and applies it to the quantum error-correction decoder: predicts inter-window data dependencies before they are resolved, eliminating blocking at window boundaries and cutting application runtime by 40%."
+          "gloss": "Borrows the idea of running ahead from classical processors and applies it to the quantum error-correction step: predicts which data one time-window will pass to the next before the answer is ready, eliminating blocking at window boundaries and cutting program run time by 40%."
         },
         {
           "id": "isca-2025-132",
           "name": "",
-          "gloss": "Designs a complete fault-tolerant quantum architecture for neutral-atom arrays — where atoms are the qubits — using transversal gates (operations that touch all physical qubits in a logical block simultaneously, requiring only one error-correction round instead of many); achieves a 50x runtime reduction for 2048-bit RSA factoring."
+          "gloss": "Designs a complete error-tolerant quantum architecture for computers where the quantum bits are individual trapped atoms, using operations that touch all physical bits in a logical group at once so only one error-correction round is needed instead of many; achieves a 50x runtime reduction for a standard 2048-bit code-breaking task."
         },
         {
           "id": "hpca-2025-088",
           "name": "",
-          "gloss": "Proposes a movement-free quantum architecture for neutral atoms that exploits the different interaction ranges of two atomic species to perform two-qubit gates without physically shuttling atoms, cutting compute time roughly 3x over movement-based approaches."
+          "gloss": "Proposes a quantum architecture for trapped atoms that avoids physically moving atoms around to perform two-qubit operations, instead exploiting the different interaction ranges of two atomic species; cuts compute time roughly 3x compared to movement-based approaches."
         },
         {
           "id": "asplos-2025-164",
           "name": "QECC-Synth",
-          "gloss": "Automatically compiles quantum error-correction code layouts onto sparse hardware by framing the problem as a mathematical optimization (MaxSAT), eliminating the need for manual, architecture-specific redesign of each error-correction scheme."
+          "gloss": "Automatically maps quantum error-correction layouts onto hardware with limited connections by turning the problem into a standard mathematical puzzle a solver can crack; eliminates the need for experts to hand-redesign each error-correction scheme for each new hardware topology."
         },
         {
           "id": "isca-2025-026",
           "name": "",
-          "gloss": "Adapts quantum error correction for near-term devices that are too resource-constrained for full correction: applies lightweight correction only to Clifford operations (a tractable gate subset) while injecting non-Clifford operations via magic states, achieving 9.27x fidelity improvement over uncorrected algorithms."
+          "gloss": "Adapts quantum error correction for near-term devices too small for full correction: applies lightweight correction only to the cheapest class of operations while carefully injecting harder operations through a resource-efficient trick, achieving a 9.27x improvement in result quality over running with no correction at all."
         }
       ]
     },
     {
       "heading": "Predicting and bounding system behavior before deployment",
-      "explain": "A complementary strategy is to verify behavior empirically or statistically — not with a full mathematical proof, but with calibrated uncertainty estimates, workload-stress simulations, and design-space analysis that makes the system's limits legible before failures occur in the field.",
+      "explain": "A complementary strategy is to measure or estimate behavior before something goes wrong in the real world — not with a full mathematical proof, but with calibrated estimates of uncertainty, workload simulations under stress, and design-space analysis that makes a system's limits visible before failures occur in the field.",
       "papers": [
         {
           "id": "mlsys-2025-011",
           "name": "",
-          "gloss": "Separates two kinds of uncertainty in AI-driven robots: sensor noise (conformal prediction gives calibrated error bounds on what the camera sees) versus model ambiguity (a formal state-machine checks whether the AI's decisions satisfy specified safety rules); reduces output variability by 40% on autonomous driving tasks."
+          "gloss": "Separates two kinds of uncertainty in AI-driven robots: sensor noise (handled by giving the camera's output a calibrated error range) versus model ambiguity (handled by a formal rule-checker that asks whether the AI's decisions satisfy specified safety rules); reduces output variability by 40% on self-driving tasks."
         },
         {
           "id": "mlsys-2025-020",
           "name": "Pitot",
-          "gloss": "Predicts how long a workload will take on a heterogeneous edge device when other programs are running simultaneously, using a learned interference term embedded in the prediction model; achieves 5.2% mean error with calibrated uncertainty intervals."
+          "gloss": "Predicts how long a task will take on a small edge device when other programs are running at the same time, using a learned slowdown term; achieves 5.2% average error and gives calibrated confidence intervals around each prediction."
         },
         {
           "id": "isca-2025-094",
           "name": "Neoscope",
-          "gloss": "Quantifies how much a chip's workload mix will change over its lifetime and uses integer-linear-program optimization to find SoC designs that remain efficient across that evolution, rather than just for today's workloads."
+          "gloss": "Measures how much a chip's mix of workloads shifts over its lifetime in the field, then uses mathematical optimization to find chip designs that stay efficient across that changing mix rather than being tuned only for today's tasks."
         },
         {
           "id": "isca-2025-010",
           "name": "Lumina / LuminCore",
-          "gloss": "Accelerates 3D neural rendering on mobile chips by caching and skipping redundant frame computations; achieves 4.5x speedup and 5.3x energy reduction with less than 0.2 dB image quality loss — reliability here means the result is close enough to correct at a fraction of the cost."
+          "gloss": "Speeds up 3D AI-generated images on mobile chips by saving and reusing frame results that have not changed, achieving a 4.5x speedup and 5.3x energy reduction with less than 0.2 dB drop in image quality — reliability here means the output is close enough to correct at a small fraction of the original cost."
         }
       ]
     }
   ],
-  "connect": "Every reliability technique in this section ultimately exists because data must move — between transistors, between cores, between chips, between racks — and each movement is an opportunity for corruption, disagreement, or delay. Formal verification proves the movement rules are logically consistent; silent-error detection finds where the physical movement went wrong; fault tolerance reroutes around failures in the movement fabric; memory-consistency protocols enforce agreement on what was moved and when; and quantum error correction patches the inevitable decoherence that happens while quantum information is in transit across a fragile physical medium."
+  "connect": "Every reliability technique in this section ultimately exists because data must move — between transistors, between cores, between chips, between racks — and each movement is an opportunity for corruption, disagreement, or delay. Proving designs correct on paper shows that the movement rules are logically sound. Silent-error detection finds where the physical movement went wrong in practice. Fault tolerance reroutes work around failures in the movement path. Memory-consistency rules enforce agreement on what was moved and when. And quantum error correction patches the inevitable state-loss that happens while fragile quantum information travels through an unstable physical medium."
 }

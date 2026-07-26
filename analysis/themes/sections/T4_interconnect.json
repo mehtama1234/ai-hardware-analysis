@@ -1,195 +1,195 @@
 {
-  "problem_plain": "When many chips work together to train or run an AI model, they must constantly share data — passing partial results, keeping copies of shared values in sync, and coordinating who does what next. The wires and switches that carry this traffic (the interconnect) have a fixed, physically limited capacity. As models and clusters grow, the volume of data that must move between chips grows faster than the capacity of those wires, turning the network into the primary bottleneck. The result is that expensive chips sit idle, waiting for data to arrive rather than doing arithmetic.",
-  "why_plain": "Physics sets hard limits: more wires cost more area and power, and signals degrade over distance. You cannot simply add bandwidth the way you can add compute cores. Meanwhile, AI models keep growing, meaning more devices must share more data at once — the demand outpaces what physics cheaply allows.",
-  "approach_plain": "Papers in this theme attack the bottleneck from three angles: reduce how much data needs to move (compression, smarter partitioning, eliminating redundant transfers), move the data more efficiently (better routing, topology-matched algorithms, overlapping transfers with computation), and rethink the hardware fabric itself (new topologies, smarter switches that process data in-flight, and purpose-built physical layers). The common thread is that saving one byte of network traffic or one millisecond of idle time compounds across thousands of chips and billions of training steps.",
+  "problem_plain": "When many chips work together to train or run an AI model, they must constantly send each other partial results and stay in sync — each chip finishes its piece of the math, then everyone has to swap numbers before the next step can begin. The wires that carry this traffic have a fixed, physically limited capacity. As models and clusters grow, the volume of data that must move between chips grows faster than those wires can handle, so expensive chips sit idle, waiting for numbers to arrive rather than doing useful work.",
+  "why_plain": "Physics sets hard limits: more wires cost more area and energy, and signals weaken over distance. You cannot simply add bandwidth the way you can add more math units. Meanwhile AI models keep growing, meaning more chips must share more data at once — the demand outpaces what physics cheaply allows.",
+  "approach_plain": "Papers in this theme attack the bottleneck from three angles: reduce how much data needs to move at all (by sending only what matters, sending smaller numbers, or skipping unimportant values); move data more cleverly (by starting transfers early, matching the message pattern to the actual wiring, or letting chips share cached copies); and rebuild the wiring and switches themselves (new connection patterns, smarter switches that do useful work on data as it passes through, and dedicated fast links). The shared insight is that saving even one byte of traffic or one millisecond of idle time compounds across thousands of chips and billions of training steps.",
   "groups": [
     {
-      "heading": "Hiding communication behind computation — overlap and scheduling",
-      "explain": "When a chip finishes its local arithmetic, it must send results to other chips before everyone can move to the next step. If the chip simply waits, that waiting time is pure waste. The trick is to start sending early — splitting large messages into smaller pieces, sending the first piece while computing the second, so the network and the arithmetic units stay busy at the same time. This requires a compiler or runtime that knows exactly when each piece of data will be ready and can pre-schedule its delivery.",
+      "heading": "Hiding communication time behind computation — sending and calculating at the same time",
+      "explain": "After a chip finishes its local arithmetic, it must send results to other chips before everyone can move on. If it simply waits, that waiting time is pure waste. The trick is to start sending early — breaking a large message into smaller pieces, sending the first piece while still computing the second, so the wiring and the math units are both kept busy at the same time. This requires a smart planner — a compiler or runtime — that knows exactly when each piece of data will be ready and schedules its delivery in advance.",
       "papers": [
         {
           "id": "asplos-2025-028",
           "name": "Concerto",
-          "gloss": "Compiler that automatically splits blocking collective messages (where all chips must wait for each other) into pieces and schedules them to overlap with ongoing computation, working across any combination of parallelism strategies; reportedly matches or beats Megatron-LM and DeepSpeed."
+          "gloss": "A code planner that automatically breaks large between-chip messages into pieces and overlaps sending them with ongoing math, so no chip just waits; works across any way of splitting a model across chips and matches or beats the best hand-tuned training frameworks."
         },
         {
           "id": "mlsys-2025-002",
           "name": "TileLink",
-          "gloss": "Programming system that expresses compute and inter-GPU data transfer at the tile (small matrix block) level, then compiles both into a single GPU kernel; achieves 1.17–20.76x speedup over non-overlapping baselines with roughly one-tenth the hand-written code."
+          "gloss": "A programming tool that treats a small block of math and the data transfer it needs as one unit, then compiles both into a single run on the chip; achieves 1.17–20.76x speedup over approaches that do math and transfers one at a time, with roughly one-tenth the hand-written code."
         },
         {
           "id": "isca-2025-082",
           "name": "MeshSlice",
-          "gloss": "2D tensor-parallelism algorithm for TPU clusters that slices collective reductions into many small partial operations interleaved with matrix multiply, hiding most communication latency; 12–23% faster than prior art on 256 TPUs."
+          "gloss": "A method for splitting model math across chips arranged in a grid (like seats in a stadium) that breaks large group-sum messages into many tiny ones interleaved with the math itself, hiding most of the waiting time; 12–23% faster than prior methods on a cluster of 256 chips."
         },
         {
           "id": "isca-2025-090",
           "name": "Chimera",
-          "gloss": "Analyzes how combining multiple parallelism strategies (splitting model, pipeline, data) creates redundant back-to-back collective messages, then fuses them into one; delivers 1.32–1.58x faster forward passes on AI chips called NPUs (dedicated neural-network processors)."
+          "gloss": "Finds cases where splitting a model in multiple ways at once creates back-to-back between-chip messages that could be merged into one, then fuses them; delivers 1.32–1.58x faster forward passes on dedicated AI chips."
         }
       ]
     },
     {
-      "heading": "Smarter collective operations — algorithms matched to physical wiring",
-      "explain": "A collective operation is when every chip in a group must contribute to — and receive — a shared result, such as adding up gradient values from all workers. The naive approach treats the network as a black box and uses generic ring or tree patterns that often collide on the same wires. A better approach designs the communication pattern to match the actual topology of wires, so data flows with the grain of the network rather than against it, using every link at full capacity.",
+      "heading": "Smarter group messages — designing the sharing pattern to match the actual wires",
+      "explain": "A group message is when every chip in a cluster must both contribute to and receive a shared result — for example, adding up updates from all workers after each training batch. The simple approach treats the wiring as a black box and uses generic ring or tree patterns that often pile onto the same wires at once. A better approach designs the message pattern to follow the actual physical connections, so data flows with the grain of the wiring rather than against it, keeping every link fully used.",
       "papers": [
         {
           "id": "hpca-2025-058",
           "name": "TidalMesh",
-          "gloss": "AllReduce (sum-across-all-chips) algorithm designed natively for 2D grid (mesh) networks; pushes data in wave patterns that align with the grid, achieving up to 24% better AllReduce performance on a 64-node 8x8 grid versus adapted ring/tree methods."
+          "gloss": "A group-sum message pattern designed natively for chips arranged in a two-dimensional grid; it sends updates in wave patterns that follow the grid's rows and columns, achieving up to 24% better group-sum speed on a 64-chip 8-by-8 grid versus generic ring or tree patterns."
         },
         {
           "id": "mlsys-2025-052",
           "name": "Vocabulary Parallelism",
-          "gloss": "Spreads the word-embedding layer (the lookup table that maps text tokens to numbers) evenly across all pipeline stages, reducing synchronization barriers from 3 to 1 per pass; improves pipeline-parallel LLM training throughput by 5–51%."
+          "gloss": "Spreads the lookup table that maps words to numbers evenly across all pipeline stages, cutting the number of between-chip sync points from three to one per pass; improves training throughput by 5–51% for large language models."
         },
         {
           "id": "isca-2025-033",
           "name": "vNPU",
-          "gloss": "Virtualizes inter-core connected AI chips (like Graphcore IPU) by making routing, memory addressing, and topology all aware of the physical wiring layout; multiple workloads share one device up to 1.92x faster than naive partitioning."
+          "gloss": "Lets multiple AI workloads share one tightly wired AI chip by making the message routing and memory addressing aware of the physical wiring layout, so sharing does not scramble the connections; allows sharing up to 1.92x faster than naive splitting."
         },
         {
           "id": "hpca-2025-080",
           "name": "PIMnet",
-          "gloss": "Builds a dedicated multi-tier network between processing-in-memory units (compute logic embedded inside DRAM chips) so they can collectively sum results without routing through the host CPU; up to 85x faster on collective operations, 11.8x on real applications."
+          "gloss": "Builds a dedicated multi-level message network between units that do math inside the memory chips themselves, letting them sum results directly with each other instead of routing everything through the main processor; up to 85x faster on group-sum operations, 11.8x faster on real workloads."
         }
       ]
     },
     {
-      "heading": "Reducing how much data moves — compression, sparsity, and redundancy elimination",
-      "explain": "The simplest way to relieve a congested road is to put fewer cars on it. For chip networks this means sending only the data that is truly needed: compressing gradient values (the updates each chip sends after processing a batch), skipping values that are near zero, deduplicating requests that ask for the same data, and reorganizing which chip stores which data so fewer cross-chip transfers are needed in the first place.",
+      "heading": "Reducing how much data moves — sending less by being smarter about what matters",
+      "explain": "The simplest way to relieve a congested road is to put fewer vehicles on it. For chip networks this means sending only the data that is truly needed: skipping update values that are close to zero, reusing knowledge about which positions carry the biggest updates, removing duplicate requests, and rearranging which chip stores which data so fewer cross-chip trips are needed in the first place.",
       "papers": [
         {
           "id": "mlsys-2025-057",
           "name": "Radius",
-          "gloss": "Observes that the most important gradient indices (the positions of the largest updates) stay stable after the first 15–20% of training; reuses those indices to send only the gradient values via a cheap all-reduce instead of an expensive all-gather, cutting communication by up to 90% and speeding training 19% on 128 GPUs."
+          "gloss": "Notices that the positions of the largest weight updates stabilize after the first 15–20% of training and reuses those known positions to send only the values — not the positions — cutting between-chip traffic by up to 90% and speeding training 19% on a cluster of 128 chips."
         },
         {
           "id": "asplos-2025-150",
           "name": "Frugal",
-          "gloss": "Makes recommendation-model training practical on cheap GPUs lacking fast inter-GPU links by rearranging which embedding rows (rows of a lookup table for users/items) live on which GPU to minimize cross-GPU traffic, then compressing gradients and overlapping transfers; targets commodity clusters with no direct GPU-to-GPU memory access."
+          "gloss": "Makes training large recommendation models practical on cheap chips without fast direct chip-to-chip links by rearranging which rows of the lookup table live on which chip to minimize cross-chip trips, then compressing what does get sent and overlapping transfers with math."
         },
         {
           "id": "isca-2025-048",
           "name": "TRACI",
-          "gloss": "Adds hardware inside network switches to detect when multiple GPUs request the same sparse embedding row (row of a user/item lookup table) and aggregates or deduplicates those requests on the fly, before data reaches the GPUs; targets recommendation models where access patterns are input-dependent and unpredictable."
+          "gloss": "Adds small logic inside network switches that notices when many chips are asking for the same row of a lookup table at once and merges those requests into one trip, delivering the answer to all requesters together; targets recommendation models where access patterns are hard to predict."
         },
         {
           "id": "isca-2025-119",
           "name": "DiTile-DGNN",
-          "gloss": "Accelerator for dynamic graph neural networks (networks whose edges change over time) that analytically finds which data is shared across time steps and avoids recomputing or resending it; cuts execution time 23–56% and energy 71–84% versus prior accelerators."
+          "gloss": "A chip design for neural networks whose connections change over time; it figures out which data stays the same across time steps and avoids resending or recomputing it, cutting run time 23–56% and energy 71–84% versus prior chip designs."
         },
         {
           "id": "hpca-2025-017",
           "name": "Mithril",
-          "gloss": "Assigns consecutive neural-network layers to different GPUs instead of splitting the graph across GPUs; each GPU processes the full graph for its layers, reducing per-epoch cross-GPU communication by a factor equal to the number of layers — up to 22.9x less traffic and 7.16x faster on commodity Ethernet."
+          "gloss": "Assigns consecutive layers of a model to different chips so each chip processes the full graph for its own layers, rather than slicing the graph itself across chips; reduces per-round cross-chip traffic by up to the number of layers — as much as 22.9x less data moved and 7.16x faster training on ordinary network links."
         }
       ]
     },
     {
-      "heading": "Network topology and routing — physical wiring that scales",
-      "explain": "How chips are wired together fundamentally determines worst-case bandwidth and latency. A standard 2D grid of routers is cheap and regular but takes many hops to send data across; a fully connected design is fast but too expensive at scale. Researchers explore new wiring patterns that add a few long-range shortcuts or reorganize the hierarchy of connections to get most of the speed benefit at a fraction of the cost, and pair them with routing rules that exploit the new structure.",
+      "heading": "Wiring patterns — physical connection layouts that scale without breaking the budget",
+      "explain": "How chips are physically connected determines how many hops a message must take and how often wires get congested. A simple two-dimensional grid of chips is cheap but requires many hops to cross; a fully connected design is fast but far too expensive at large scale. Researchers explore wiring patterns that add a few long-range shortcuts or reorganize how groups connect so data takes fewer hops at a fraction of the cost, then pair them with routing rules that exploit the new structure.",
       "papers": [
         {
           "id": "isca-2025-027",
           "name": "Zettafly",
-          "gloss": "Two-layer network topology designed for the next generation of supercomputers: the bottom layer creates small, fully non-blocking groups (where any chip can talk to any other at full speed) and the top layer connects groups through a small number of global routers, keeping diameter low and cost manageable."
+          "gloss": "A two-level wiring layout for very large clusters: the lower level creates small groups where every chip can talk to every other at full speed, and the upper level links groups through a small number of shared long-range connections, keeping the maximum number of hops low while staying affordable."
         },
         {
           "id": "isca-2025-054",
           "name": "Ruche Networks",
-          "gloss": "Augments a standard 2D grid network with uniform long-range bypass links that let non-neighboring routers communicate in fewer hops; RTL-level evaluation shows better power and area efficiency per unit of throughput versus standard mesh and torus networks."
+          "gloss": "Adds evenly spaced long-range bypass links to a standard two-dimensional grid so distant chips can reach each other in fewer hops; a detailed chip blueprint evaluation shows better energy and chip-area efficiency per unit of throughput versus standard grid and wraparound-grid wiring."
         },
         {
           "id": "hpca-2025-041",
           "name": "EIGEN",
-          "gloss": "Builds a two-layer network on the active interposer (the silicon bridge connecting multiple chips in a package): one layer uses a programmable switch for static path optimization, the other uses dynamic routing guided by a reinforcement-learning agent; reduces inter-chiplet latency up to 67% and hops up to 54%."
+          "gloss": "Builds a two-level wiring network on the silicon bridge that connects stacked chips together: one level uses a flexible switch for planned routes, the other uses a learning-based agent to reroute around congestion; cuts message delay between stacked chips up to 67% and the number of hops up to 54%."
         },
         {
           "id": "isca-2025-093",
           "name": "FRED",
-          "gloss": "Places tiny reconfigurable switches across a wafer connecting hundreds of accelerator chiplets; switches can perform partial reductions in-flight (summing values as they pass through) and route different parallelism dimensions over non-overlapping paths; 1.34–1.87x end-to-end training speedup over a 2D mesh wafer baseline."
+          "gloss": "Places small reconfigurable switches across a large wafer connecting hundreds of stacked AI chips; the switches can partly sum values as they pass through and route different kinds of traffic over separate non-overlapping paths; achieves 1.34–1.87x faster end-to-end training versus a plain two-dimensional grid wafer."
         },
         {
           "id": "isca-2025-032",
           "name": "NetCrafter",
-          "gloss": "Traffic-shaping layer at the boundary between fast intra-group links and slower inter-group links in multi-GPU systems; packs partially-filled data packets together, drops unnecessary prefetch packets, and prioritizes time-critical packets to reduce effective latency."
+          "gloss": "Sits at the boundary between fast wiring inside a group of chips and slower wiring between groups; it packs partly filled messages together, drops messages fetched early that are no longer needed, and prioritizes time-critical messages; reduces effective waiting time at that boundary."
         },
         {
           "id": "hpca-2025-118",
           "name": "NearFetch",
-          "gloss": "When a multi-chip GPU module requests data from a remote memory partition, checks whether an intermediate chip along the route already holds that data and forwards it from there instead; cuts average inter-module bandwidth-per-access by 43% and improves performance 52% on data-sharing workloads."
+          "gloss": "When one chip in a multi-chip module asks for data held by a distant chip, checks whether an intermediate chip already has a copy and delivers it from there instead; cuts the average amount of data crossing between modules by 43% and improves overall speed 52% on workloads where chips share data."
         },
         {
           "id": "hpca-2025-001",
           "name": "Push Multicast",
-          "gloss": "Makes the shared last-level cache in a many-core processor proactively push data to predicted future requesters the moment it serves any requester, amortizing the per-core network cost; saves 33–43% average network bandwidth in 16- to 64-core chips."
+          "gloss": "When a shared memory bank serves one chip's request, it immediately pushes a copy to other chips it predicts will ask next, splitting the wiring cost across all future users at once; saves 33–43% of average wiring traffic in chips with 16 to 64 cores."
         }
       ]
     },
     {
-      "heading": "New hardware abstractions — rethinking what the network layer does",
-      "explain": "Traditional networks just move bytes from point A to point B. Several papers propose making the network itself do useful work: executing atomic read-modify-write operations at the holder of the data rather than bouncing cache lines back and forth, scheduling memory access circuits at the physical signaling layer to cut latency, and bypassing the host CPU from the critical path of network packet handling altogether.",
+      "heading": "Making the network do useful work — not just move bytes",
+      "explain": "Traditional wiring just moves bytes from one place to another. Several papers propose making the wiring itself do useful work along the way: carrying out small read-and-update operations at the chip that already holds the data instead of shipping the data back and forth, handling memory requests at the lowest physical signal layer to cut delays, and removing the main processor from the path of handling incoming messages entirely.",
       "papers": [
         {
           "id": "asplos-2025-129",
           "name": "EDM",
-          "gloss": "Implements the remote-memory protocol inside the physical signaling layer of Ethernet (below the MAC, the standard packet-framing logic), eliminating that layer's overhead; achieves roughly 300 nanosecond remote memory access latency — an order of magnitude lower than standard RDMA over Ethernet."
+          "gloss": "Handles requests to read or write another chip's memory at the very lowest signaling layer of standard networking hardware, skipping all the normal packet-handling overhead above it; achieves roughly 300 nanoseconds of delay for a remote memory read — about ten times faster than the usual approach over standard networking."
         },
         {
           "id": "micro-2025-081",
           "name": "Delegato",
-          "gloss": "Instead of fetching a cache line across chiplet boundaries to perform an atomic add or swap, forwards the operation itself to the chip that already holds the data (a Delegated AMO — read-modify-write done in place); a one-bit reuse signal from private caches guides the directory's routing policy; 1.13x faster than state-of-the-art atomic predictors."
+          "gloss": "Instead of fetching data across the chip boundary just to update it and send it back, forwards the update instruction itself to the chip that already holds the data, which does the update in place; a single reuse signal from the local cache guides where to send it; 1.13x faster than the best previous approach."
         },
         {
           "id": "isca-2025-075",
           "name": "AccDirect",
-          "gloss": "Uses PCIe peer-to-peer direct memory access to connect the network card directly to the CPU's on-chip load-balancing hardware (Intel DLB), removing the host CPU from the critical path of distributing incoming network work; cuts system-wide CPU power by 10% while raising throughput 14–50%."
+          "gloss": "Connects the network card directly to the chip's internal work-distribution hardware using the standard chip link, removing the main processor from the path of handing out incoming network tasks; cuts total processor energy by 10% while raising throughput 14–50%."
         },
         {
           "id": "asplos-2025-077",
           "name": "Plaid",
-          "gloss": "Reconfigurable compute chip (CGRA — a grid of programmable logic cells) where every set of three arithmetic units shares one small local router instead of each unit having its own full crossbar; saves 43–46% power and area versus standard designs while matching their performance."
+          "gloss": "A flexible chip design (a grid of programmable logic cells) where every three math units share one small local switch instead of each unit having its own full switching network; saves 43–46% of power and chip area versus standard designs while matching their speed."
         }
       ]
     },
     {
-      "heading": "Parallelism strategies that reshape communication patterns",
-      "explain": "How you divide a model across chips determines not just how much computation each chip does, but which chips must talk to which, how often, and how much data they exchange. Choosing the right division — or inventing a new kind of division — can eliminate entire categories of communication without changing the model or the hardware.",
+      "heading": "Choosing how to split a model — division strategies that change what must be sent",
+      "explain": "How you divide a model across chips determines not just which chip does which math, but which chips must talk to which, how often, and how much data they exchange. Choosing a cleverer division — or inventing a new kind — can eliminate whole categories of between-chip messages without changing the model or the hardware at all.",
       "papers": [
         {
           "id": "asplos-2025-063",
           "name": "GraphPipe",
-          "gloss": "Treats a neural network's computation as a branching graph (DAG) rather than a linear sequence and pipelines the branches across device groups concurrently; enables parallelism opportunities that sequential pipeline schemes miss, improving throughput over linear pipeline baselines."
+          "gloss": "Treats a model's computation as a branching map of tasks rather than a single chain and runs independent branches on different chip groups at the same time; unlocks parallelism opportunities that strictly sequential splitting misses and improves overall throughput."
         },
         {
           "id": "asplos-2025-100",
           "name": "Vela",
-          "gloss": "Runs 50-billion-parameter LLM training on standard cloud virtual machines using commodity Ethernet-based RDMA (rather than expensive InfiniBand) with GPU-direct memory access bypassing the CPU; achieves roughly 80% of ideal throughput at 1,500-GPU scale, documented over 2.5 years of production operation."
+          "gloss": "Trains a 50-billion-parameter model on ordinary cloud machines using standard networking hardware (rather than specialized expensive links), letting chips read each other's memory directly without involving the main processor; achieves roughly 80% of the ideal speed at 1,500-chip scale, proven over 2.5 years of real production use."
         },
         {
           "id": "hpca-2025-024",
           "name": "C4",
-          "gloss": "Uses the periodic, predictable structure of distributed training's collective synchronization steps as a fault-detection signal — anomalies in the pattern reveal broken hardware immediately; also pre-plans traffic routes to eliminate collisions; cuts error-induced overhead 30% and communication cost 15%."
+          "gloss": "Uses the regular timing of between-chip sync steps as a built-in health monitor — any deviation signals a broken chip immediately — and pre-plans traffic routes to avoid collisions; cuts the overhead caused by hardware failures by 30% and between-chip traffic cost by 15%."
         },
         {
           "id": "isca-2025-122",
           "name": "Titan",
-          "gloss": "Automated design-space exploration framework for wafer-scale data-center chips that jointly optimizes how computation is partitioned and how die-to-die interconnects are configured, pruning infeasible designs early via physical and reliability constraints."
+          "gloss": "An automated search tool for designing very large wafer-scale AI chips that jointly finds the best way to divide model computation and the best wiring configuration between chip tiles, pruning options that violate physical or reliability limits before wasting time on them."
         }
       ]
     },
     {
-      "heading": "Tools for designing and simulating interconnects",
-      "explain": "Before you can build a better network, you need to measure the current one accurately and simulate proposed alternatives without spending months on hardware. These papers provide the measurement and simulation infrastructure that makes the rest of the research possible.",
+      "heading": "Tools for measuring and simulating chip-to-chip wiring",
+      "explain": "Before you can build a better network, you need to measure the current one accurately and explore proposed alternatives without spending months building real hardware. These papers provide the measurement and simulation tools that make the rest of the research possible.",
       "papers": [
         {
           "id": "micro-2025-072",
           "name": "LEGOSim",
-          "gloss": "Parallel simulation framework that wraps different chip simulators (CPU, GPU, compute-in-memory) as independent parallel processes synchronized only when they actually exchange messages, not every clock cycle; cuts synchronization overhead up to 99.9% and simulates heterogeneous multi-chiplet systems with under 4% error versus real hardware."
+          "gloss": "A simulation framework that runs different chip simulators as separate parallel processes that only sync when they actually exchange a message — not every clock tick — cutting synchronization overhead up to 99.9% and simulating mixed-chip systems (combining different chip types) with under 4% error versus real hardware."
         }
       ]
     }
   ],
-  "connect": "Every paper in this theme is, at root, an answer to the same physical fact: arithmetic inside a chip is cheap and fast, but moving a result to another chip is expensive and slow. Whether researchers are compressing gradients, redesigning routing algorithms, pushing computation into network switches, or rethinking how chips are wired together, they are all trying to close the gap between how fast chips can compute and how fast they can share what they have computed — because until that gap closes, adding more chips buys diminishing returns."
+  "connect": "Every paper in this theme answers the same physical fact: arithmetic inside one chip is cheap and fast, but sending a result to another chip is expensive and slow. Whether researchers are sending smaller numbers, redesigning how group messages travel, making wiring switches do partial sums on the fly, or rethinking which chip stores which data, they are all closing the gap between how fast chips can compute and how fast they can share what they computed — because until that gap closes, adding more chips delivers diminishing returns."
 }

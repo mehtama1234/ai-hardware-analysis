@@ -1,174 +1,174 @@
 {
-  "problem_plain": "Modern AI models are enormous: a single large language model may store tens of billions of numbers, each occupying 16 or 32 bits of memory. Every time the chip runs a calculation it must move those numbers from storage into the compute units, and that movement is far slower and more energy-hungry than the arithmetic itself. Quantization is the practice of re-encoding each number using fewer bits — say 4 instead of 16 — so the same wire can carry more values per second and the same memory chip can hold a larger model.",
-  "why_plain": "Memory bandwidth is a physical bottleneck: the wires connecting storage to arithmetic circuits can only move a fixed number of bits per second, and that limit has grown far more slowly than model size. Shrinking each number means more of the model fits in fast on-chip memory and fewer trips are needed to slow off-chip storage.",
-  "approach_plain": "Researchers replace high-precision numbers (32-bit or 16-bit floating point) with compact codes — integers, lookup-table indices, or custom small formats — then either retrain the model to absorb the rounding error, or design the chip arithmetic to match the new format directly. The hard part is that not all numbers in a model are equally important: a few extreme 'outlier' values carry disproportionate information and break naive compression. Most papers therefore pair a compression algorithm (which finds or avoids the outliers) with a matched hardware unit (which knows how to work in the compressed format without first converting back to the original).",
+  "problem_plain": "A large AI model stores tens of billions of numbers. Every time the chip does any work, it must pull those numbers from memory chips across slow wires into the part of the chip that does math — and that wire journey is far slower and burns far more energy than the math itself. Using smaller, rounded numbers — say 4-bit numbers instead of 16-bit numbers — means the same wire can carry four times as much of the model per second, and the same memory chip can hold a model four times as large.",
+  "why_plain": "Bandwidth — how fast data moves — is a physical wall: the wires between memory chips and the math circuits can only carry a fixed number of bits per second, and that limit has grown far more slowly than model size. Using smaller numbers means more of the model fits in the small but fast on-chip memory, so the chip makes fewer slow round-trips out to the bigger but slower memory chips.",
+  "approach_plain": "Researchers replace 16-bit or 32-bit numbers with compact codes — smaller integers or entries in a lookup table — then either retrain the model so it learns to live with the rounding, or redesign the chip's math circuits to work directly in the smaller format. The hard part is that not all numbers in a model matter equally: a handful of very large 'outlier' values carry a disproportionate share of information, and simply rounding them breaks accuracy badly. Most papers therefore pair a clever compression strategy (which finds or protects those outliers) with a matched piece of hardware (which knows how to operate in the smaller format without first converting everything back to the original size).",
   "groups": [
     {
       "heading": "Making the number format itself smarter",
-      "explain": "Instead of forcing every weight or activation into a fixed 4-bit or 8-bit integer, these papers design new numerical formats that adapt to the actual spread of values in a given layer or group of weights. A standard integer grid wastes most of its codes on values that never appear; an adaptive format places its grid lines where values actually cluster, squeezing more accuracy from the same number of bits.",
+      "explain": "Instead of forcing every stored weight or computed value into a fixed 4-bit or 8-bit slot, these papers design number formats that adjust to whatever range of values actually appears in a given part of the model. A standard fixed grid wastes most of its available codes on values that never show up; an adaptive format places its grid lines where values actually cluster, squeezing more accuracy out of the same number of bits.",
       "papers": [
         {
           "id": "hpca-2025-036",
           "name": "M-ANT",
-          "gloss": "Adapts the numeric encoding independently for each small group of 128 weights so each group gets the grid that fits its own distribution; handles the model's running memory (the record of past tokens) in real time using the same adaptive hardware; up to 4.46x faster than a prior state-of-the-art accelerator."
+          "gloss": "Picks the best number grid independently for each small group of 128 weights, then handles the model's running notes in real time using the same adaptive hardware; up to 4.46x faster than a prior leading accelerator."
         },
         {
           "id": "hpca-2025-029",
           "name": "Anda",
-          "gloss": "Defines a new number type where each group of activations shares one exponent but each element gets a dynamically allocated mantissa length, tuned per model layer without retraining; 2.4x faster and 3.1x more energy-efficient than a standard floating-point baseline."
+          "gloss": "Defines a new number type where each group of computed values shares one overall scale but each individual value gets a bit-length tuned to that layer's needs, all without retraining; 2.4x faster and 3.1x more energy-efficient than a standard baseline."
         },
         {
           "id": "micro-2025-063",
           "name": "MX+",
-          "gloss": "Fixes a flaw in the industry-standard MX (Microscaling) 4-bit format: the single extreme value in each 32-element block was encoded with only 1 mantissa bit, causing large errors; MX+ steals unused bits in that element's own encoding to give it 3 mantissa bits, recovering up to 42 percentage points of accuracy with near-zero storage overhead."
+          "gloss": "Fixes a flaw in an industry-standard 4-bit format: the single largest value in each 32-number block was encoded with almost no precision, causing big errors; MX+ borrows unused bits in that slot to give it proper precision, recovering up to 42 percentage points of accuracy with almost no extra storage."
         },
         {
           "id": "isca-2025-004",
           "name": "FATE",
-          "gloss": "Applies different numeric precisions to different dimensions of a hyperdimensional computing classifier (a pattern-matching technique that uses very long binary vectors), using the observation that some dimensions matter more than others; targets low-power embedded FPGAs, though headline numbers are not yet available."
+          "gloss": "Uses different number precisions for different dimensions of a pattern-matching system that works with very long binary strings, since some dimensions carry more information than others; targets low-power chips on small embedded boards."
         }
       ]
     },
     {
-      "heading": "Compressing the model's running memory (KV cache)",
-      "explain": "When a language model reads a long document or conversation, it builds up a 'running notes' buffer — called the KV cache — that records the context of every token it has seen. This buffer grows with context length and is read on every generation step, consuming a large fraction of memory bandwidth. Compressing these stored notes from 16 bits to 4 bits cuts the bandwidth cost of long contexts roughly 4x, but the notes contain the same outlier problem as weights.",
+      "heading": "Compressing the model's running notes",
+      "explain": "When a model reads a long document or conversation, it builds up a buffer — the model's running notes — that records what every earlier word meant in context. This buffer grows with conversation length and is re-read on every single word the model writes, so it consumes a huge share of bandwidth. Shrinking those notes from 16-bit to 4-bit numbers cuts that bandwidth cost roughly four times over, but the notes contain the same outlier problem as the model's stored weights.",
       "papers": [
         {
           "id": "isca-2025-007",
           "name": "Oaken",
-          "gloss": "Profiles each model layer's note distributions in advance (once, offline) to learn outlier thresholds, then applies those thresholds at runtime to split each note vector into three groups and quantize each group to 4 or 5 bits; stores outliers in a sparse format that piggybacks on the dense 4-bit block, cutting outlier storage from 23 to 8 bits per entry; 1.79x throughput over a standard server at batch size 256."
+          "gloss": "Studies each layer's note values once ahead of time to learn which values are outliers, then at run time splits each note into three groups and rounds each group to 4 or 5 bits; stores outliers in a compact side channel, shrinking their cost from 23 to 8 bits each; 1.79x more throughput than a standard server at batch size 256."
         },
         {
           "id": "asplos-2025-082",
           "name": "COMET",
-          "gloss": "Quantizes both model weights and the running notes to 4 bits simultaneously (W4A4KV4), keeping occasional large activation values at 8 bits in a mixed-precision layout; a custom GPU compute kernel handles both precisions in one pass; 2.88x faster kernel throughput and 2.02x end-to-end throughput over a standard serving library on A100."
+          "gloss": "Rounds both the model's stored weights and its running notes to 4-bit numbers at the same time, keeping occasional very large values at 8 bits; a custom math routine handles both sizes in one pass; 2.88x faster inner-loop throughput and 2.02x faster end-to-end speed versus a standard serving library."
         },
         {
           "id": "mlsys-2025-003",
           "name": "QServe",
-          "gloss": "Uses a two-stage weight quantization (first 8-bit, then 4-bit) with a protected numerical range that guarantees no overflow when the GPU's tensor cores operate in 8-bit mode; absorbs the scale needed for 4-bit note compression into the preceding weight matrix so no extra work is needed at runtime; up to 3.5x more throughput than a vendor-optimized baseline on NVIDIA L40S."
+          "gloss": "Uses a two-step rounding process — first to 8-bit, then to 4-bit — with a protected number range that guarantees no overflow when the chip does 8-bit math; folds the scaling needed for 4-bit running notes into the preceding weight matrix so no extra work is needed at run time; up to 3.5x more throughput than a vendor-optimized library on a top data-center GPU."
         }
       ]
     },
     {
-      "heading": "Lookup tables instead of multiply units",
-      "explain": "When weights are compressed to 2 or 3 bits, there are so few possible values that instead of multiplying an input by a weight, you can simply look up the answer in a small table. A table lookup is far cheaper in silicon area and energy than a floating-point multiplier. These papers build both the training recipes and the specialized hardware needed to make lookup tables a viable replacement for conventional arithmetic.",
+      "heading": "Lookup tables instead of multiply circuits",
+      "explain": "When weights are rounded down to 2 or 3 bits, there are so few possible values that instead of computing an input times a weight, the chip can simply look up the answer in a small table. A lookup table is far cheaper in silicon area and energy than a floating-point multiply circuit. These papers build both the training recipes and the matching hardware to make a lookup table a practical replacement for conventional arithmetic.",
       "papers": [
         {
           "id": "isca-2025-079",
           "name": "LUT Tensor Core",
-          "gloss": "Redesigns the GPU's matrix-multiply engine as a bit-serial lookup table: weights are re-encoded so half the table entries cancel by symmetry, and software fuses the table-building step with an adjacent layer's computation to hide its cost; 2 to 5.5x end-to-end inference speedup; 4 to 6x smaller area than a conventional floating-point multiply unit at the same silicon node."
+          "gloss": "Replaces the GPU's matrix-multiply engine with a lookup table that works bit by bit: weights are re-encoded so half the table entries cancel out by symmetry, and software folds the table-building step into the previous layer to hide its cost; 2 to 5.5x faster inference end-to-end; 4 to 6x smaller chip area than a conventional multiply circuit."
         },
         {
           "id": "hpca-2025-071",
           "name": "FIGLUT",
-          "gloss": "Pre-computes all possible products of a floating-point input value with every possible low-bit weight pattern and stores them in a half-size lookup table; at inference time the hardware indexes the table by the weight bits rather than multiplying; 59% higher energy-efficiency than a prior lookup-table chip at the same 3-bit precision."
+          "gloss": "Pre-computes all possible products of an input value with every possible low-bit weight pattern and stores them in a half-size lookup table; at run time the hardware reads the table using the weight bits rather than multiplying; 59% better energy efficiency than a prior lookup-table chip at the same 3-bit precision."
         },
         {
           "id": "hpca-2025-055",
           "name": "LUT-DLA",
-          "gloss": "Replaces multiply-accumulate units entirely with lookup-table fetch-and-accumulate units trained using a multi-stage algorithm; achieves sub-1-bit-equivalent compression (representing groups of values with shared codebook entries); 1.4 to 7x better power efficiency and up to 146x better area efficiency than scalar quantization hardware."
+          "gloss": "Replaces multiply-and-add circuits entirely with lookup-table fetch-and-add circuits, trained using a multi-stage recipe; achieves sub-1-bit-equivalent compression by representing groups of values with shared dictionary entries; 1.4 to 7x better power efficiency and up to 146x better area efficiency than standard rounding hardware."
         },
         {
           "id": "hpca-2025-003",
           "name": "VQ-LLM",
-          "gloss": "Solves the slow GPU memory access pattern that made lookup-table (vector quantization) LLM inference slower than plain 16-bit inference: caches hot codebook entries in thread-private registers (eliminating conflicts), partitions computation along codebook boundaries, and fuses data shuffling with an intra-warp instruction; reduces latency 64 to 99% versus prior vector-quantization implementations."
+          "gloss": "Solves why lookup-table inference was actually slower than plain 16-bit inference on GPUs: the dictionary entries were being fetched from shared memory in a way that caused threads to queue up; VQ-LLM keeps the most-used dictionary entries in each thread's private registers and reorganizes computation to avoid that bottleneck; 64 to 99% lower latency versus prior lookup-table methods."
         }
       ]
     },
     {
-      "heading": "Grouping weights together before compressing (vector quantization)",
-      "explain": "Instead of rounding each weight independently, vector quantization takes a small group of weights (say 8 or 16 at a time) and replaces the whole group with a single code that points to the nearest matching group in a learned dictionary. This allows the dictionary to capture the joint structure of the weights, achieving higher compression at the same accuracy. The challenge is that building the dictionary (a k-means clustering step) is expensive, and the wrong dictionary entries hurt accuracy badly.",
+      "heading": "Grouping weights together before compressing",
+      "explain": "Instead of rounding each weight number individually, this approach takes a small group of weights — say 8 or 16 at a time — and replaces the whole group with a single code pointing to the nearest matching group in a learned dictionary. The dictionary can capture patterns that span across many weights at once, achieving higher compression at the same accuracy. The main challenge is that building the dictionary requires an expensive clustering step, and wrong dictionary entries hurt accuracy badly.",
       "papers": [
         {
           "id": "asplos-2025-079",
           "name": "MVQ",
-          "gloss": "Combines structured pruning (removing every other weight in a regular pattern) with a dictionary-building algorithm that ignores the pruned zeros so they cannot distort the dictionary entries; the paired accelerator skips the pruned positions in its compute array, cutting the systolic array's area by 55% and improving energy efficiency by 2.3x over the baseline."
+          "gloss": "Combines skipping unimportant numbers in a regular pattern with a dictionary-building algorithm that ignores the skipped zeros so they cannot distort the dictionary; the matching hardware skips those positions in its compute array, cutting array area by 55% and improving energy efficiency by 2.3x."
         },
         {
           "id": "hpca-2025-022",
           "name": "eDKM",
-          "gloss": "Makes train-time weight clustering tractable for 7-billion-parameter language models by deduplicating and sharding the large temporary tensors that must be kept in CPU memory during the backward pass; reduces per-layer memory 130x, shrinking a 7B model from 12.6 GB to 2.5 GB at 3 bits per weight."
+          "gloss": "Makes dictionary-based weight compression practical for 7-billion-parameter models by removing duplicate data and splitting large temporary arrays that must be kept in main memory during training; cuts per-layer memory 130x, shrinking a 7-billion-parameter model from 12.6 GB to 2.5 GB at 3 bits per weight."
         },
         {
           "id": "hpca-2025-000",
           "name": "BitMoD",
-          "gloss": "Assigns each group of 128 weights its own numeric type, chosen from a small family of formats, and processes all types through a single bit-serial hardware datapath; avoids separate hardware for each format; reportedly 1.69x faster than a prior adaptive-quantization accelerator at under 0.5% accuracy loss."
+          "gloss": "Gives each group of 128 weights its own number format chosen from a small family of options, and runs all format types through a single bit-by-bit hardware path rather than needing separate circuits for each format; 1.69x faster than a prior adaptive-format accelerator at under 0.5% accuracy loss."
         }
       ]
     },
     {
-      "heading": "Fitting quantization into existing chip architectures",
-      "explain": "Most deployed hardware — GPUs, CPUs, FPGAs — was not designed for 3-bit or 4-bit arithmetic. These papers bridge the gap by designing software kernels, instruction-set extensions, or small hardware additions that let existing chips run quantized models efficiently without a complete redesign.",
+      "heading": "Making smaller numbers work on chips that were not designed for them",
+      "explain": "Most chips already in use — graphics processors, ordinary processors, programmable chips — were not built to do 3-bit or 4-bit math. These papers bridge that gap by designing software routines, new chip instructions, or small hardware additions that let existing chips run models with smaller numbers efficiently, without a complete redesign of the chip.",
       "papers": [
         {
           "id": "micro-2025-035",
           "name": "DECA",
-          "gloss": "Adds a small hardware block beside each CPU core that decompresses quantized and sparsified weight tiles in a three-stage pipeline (decode → de-sparsify → scale), hiding the decompression work behind a new speculative load instruction; on a server CPU running a 70-billion-parameter model the decompression was consuming 95% of instructions — DECA eliminates that bottleneck, giving 1.6 to 2.6x faster token generation."
+          "gloss": "Adds a small hardware block beside each processor core that unpacks rounded and skipped-number-format weight tiles in a three-stage pipeline, hiding that unpacking work behind a new instruction that fetches data early; on a server processor running a 70-billion-parameter model the unpacking was eating 95% of all instructions — DECA eliminates that bottleneck, giving 1.6 to 2.6x faster word-by-word output."
         },
         {
           "id": "micro-2025-080",
           "name": "CAMP",
-          "gloss": "Adds a small hierarchical multiplier extension to ARM and RISC-V vector units so they can run 4-bit and 8-bit integer matrix math natively; uses only 1-4% extra chip area; achieves up to 23x speedup over an unmodified vector core on quantized matrix multiply."
+          "gloss": "Adds a small extra multiplier to standard ARM and RISC-V processor math units so they can do 4-bit and 8-bit integer matrix math natively; uses only 1 to 4% extra chip area; up to 23x faster than an unmodified processor core on rounded-number matrix math."
         },
         {
           "id": "micro-2025-011",
           "name": "HiPACK",
-          "gloss": "Solves the mismatch between 4-bit weights and 8-bit ARM SIMD registers by pre-expanding packed sub-8-bit data before the multiply loop, then using an interleaved register arrangement so a single SIMD instruction can process two packed streams simultaneously; up to 4.6x faster than a floating-point baseline on a Raspberry Pi 4 processor."
+          "gloss": "Solves the mismatch between 4-bit weights and 8-bit processor registers by pre-expanding the packed 4-bit data before the math loop, then arranging registers so one instruction can process two packed streams at once; up to 4.6x faster than a full-precision baseline on a Raspberry Pi 4."
         },
         {
           "id": "mlsys-2025-031",
           "name": "MEADOW",
-          "gloss": "Enables 8-bit quantized language model inference on a 10-watt FPGA by sequencing attention computation across heads rather than materializing all at once, and by packing weights with frequency-aware reindexing to minimize off-chip memory trips; 1.5x faster decode and 2.5x faster prefill over a naive implementation."
+          "gloss": "Runs 8-bit rounded language model inference on a low-power 10-watt programmable chip by processing one attention head at a time rather than all at once, and packing weights so common values are fetched from fast on-chip memory; 1.5x faster word output and 2.5x faster reading-in-the-prompt than a straightforward implementation."
         },
         {
           "id": "mlsys-2025-021",
           "name": "MiLo",
-          "gloss": "Compresses mixture-of-experts language models (which activate different sub-networks per token) to 3-bit weights using calibration-free quantization, then adds small low-rank correction matrices that repair accuracy; the 3-bit GPU kernel uses zero-wasted bit packing and supports batch sizes above 1, which prior 3-bit kernels could not; 1.2x throughput over the previous best backend."
+          "gloss": "Compresses a model made of specialists — where different sub-networks activate for different inputs — to 3-bit weights without any calibration data, then adds small correction layers that restore accuracy; the 3-bit math routine wastes no bits in packing and supports processing multiple requests at once, which prior 3-bit routines could not; 1.2x throughput over the previous best approach."
         },
         {
           "id": "mlsys-2025-043",
           "name": "HyC-LoRA",
-          "gloss": "Compresses the activation buffers needed during fine-tuning (adapting a pre-trained model to a new task) to near 2 bits on average, using structured outlier preservation for non-linear operations and reordering compute so some buffers can be recomputed rather than stored; targets on-device fine-tuning on a single GPU."
+          "gloss": "Compresses the temporary value buffers stored during fine-tuning — adapting a pre-trained model to a new task — to near 2 bits on average, protecting large outlier values around non-math operations and reordering computation so some buffers can be recomputed rather than stored; targets fine-tuning on a single consumer GPU."
         }
       ]
     },
     {
-      "heading": "Quantization for specialized or non-language workloads",
-      "explain": "The quantization challenge extends beyond language models to protein structure prediction, image-generation diffusion models, ray tracing in graphics, vector similarity search, and even the voltage stability of the chip itself. Each workload has its own data distribution and memory access pattern, requiring its own quantization strategy.",
+      "heading": "Using smaller numbers for tasks beyond language models",
+      "explain": "The same bandwidth wall that limits language models also affects protein structure prediction, image-generation models, 3D graphics rendering, searching large databases for similar entries, and even the electrical stability of the chip itself. Each workload has its own pattern of values and its own memory access habits, so each needs its own approach to using smaller numbers.",
       "papers": [
         {
           "id": "isca-2025-042",
           "name": "LightNobel",
-          "gloss": "Handles the quadratically growing activation tensor in protein structure prediction (AlphaFold, ESMFold) by classifying activations into three groups based on magnitude and applying INT4 to ordinary values and INT16 only to outliers; a reconfigurable hardware matrix unit dynamically assigns compute lanes to each precision mix; 8.44x faster than an A100 GPU on the most expensive computation, with peak memory cut by 120x for long protein sequences."
+          "gloss": "Handles the rapidly growing value arrays in protein structure prediction by sorting values by size and applying 4-bit rounding to ordinary values while keeping large outliers in 16-bit numbers; a reconfigurable hardware math unit dynamically assigns its compute lanes to each mix of precisions; 8.44x faster than a top data-center GPU on the most expensive step, with peak memory cut 120x for long protein sequences."
         },
         {
           "id": "hpca-2025-047",
           "name": "Ditto",
-          "gloss": "Exploits the fact that adjacent denoising steps in an image-generation diffusion model produce very similar outputs: the difference between steps is small and can be encoded in very few bits, often zero; a co-designed accelerator skips zero-difference computations; reportedly up to 1.5x faster with 17.7% energy savings, though details are limited."
+          "gloss": "Exploits the fact that neighboring steps in an image-generation model produce nearly identical outputs: the change from one step to the next is tiny and can be encoded in very few bits, often zero; a matched accelerator skips zero-change computations entirely; up to 1.5x faster with 17.7% energy savings."
         },
         {
           "id": "isca-2025-049",
           "name": "AQB8",
-          "gloss": "Compresses the spatial bounding-box hierarchy used in ray tracing (the tree of boxes that determines which triangles a light ray might hit) to 8-bit integers at multiple hierarchy levels, so intersection tests run in integer arithmetic end-to-end with no conversion back to floating point; 1.82x faster than a GPU ray-tracing unit with 49% less energy and 70% fewer off-chip memory accesses."
+          "gloss": "Rounds the tree of bounding boxes used in 3D ray tracing — the data structure that figures out which surfaces a light ray might hit — to 8-bit numbers at every level, so all intersection tests run in integer math with no conversion back to floating point; 1.82x faster than a standard GPU ray-tracing unit with 49% less energy and 70% fewer trips to memory chips."
         },
         {
           "id": "hpca-2025-044",
           "name": "Panacea",
-          "gloss": "Addresses a subtle incompatibility between asymmetric quantization (which gives better accuracy) and bit-slice computation (which skips zero slices for efficiency): asymmetric encoding produces many non-zero slices that a naive skip engine would miss; Panacea deliberately shifts the zero point and selects bit slices to maximize skippable zeros; 1.97x more energy-efficient than a prior bit-slice accelerator."
+          "gloss": "Fixes an incompatibility between offset-based rounding — which gives better accuracy — and bit-slice computation — which skips zero slices for efficiency: offset encoding produces many non-zero slices that a naive skip engine would miss; Panacea shifts the offset and picks bit slices to maximize zeros that can be skipped; 1.97x more energy-efficient than a prior bit-slice accelerator."
         },
         {
           "id": "hpca-2025-111",
           "name": "NeuVSA",
-          "gloss": "Unifies the neural embedding step and the approximate nearest-neighbor search step in vector database queries into a single hardware design by reformulating both as the same product quantization (grouping of vector components into codebook entries) operation; eliminates the data-format mismatch between the two stages; reportedly 2.82 to 416x lower latency than CPU and GPU baselines."
+          "gloss": "Unifies two normally separate steps in a vector database search — turning a query into numbers, then finding the nearest stored entries — into one hardware design by recognizing that both steps reduce to the same dictionary-lookup operation; eliminates the data-format handoff between stages; 2.82 to 416x lower latency than CPU and GPU baselines."
         },
         {
           "id": "isca-2025-126",
           "name": "AIM",
-          "gloss": "Addresses an unexpected consequence of running quantized workloads on dense SRAM compute-in-memory chips: the bit patterns of quantized weights determine how much electrical current spikes (IR-drop) occur inside the chip, which can cause errors; AIM adds a regularization term during quantization training that steers weights toward bit patterns with fewer '1' bits, reducing voltage spikes by up to 69% and improving chip throughput by 1.15x."
+          "gloss": "Fixes an unexpected problem on chips that do math inside the memory: the bit patterns of rounded weights determine how much electrical current spikes inside the chip, and big spikes cause errors; AIM adds an extra training signal that steers weights toward bit patterns with fewer '1' bits, reducing voltage spikes by up to 69% and improving chip throughput by 1.15x."
         }
       ]
     }
   ],
-  "connect": "Every paper in this theme is ultimately solving the same physical constraint: the wires that carry numbers between storage and arithmetic are the bottleneck, not the arithmetic itself. Quantization is the discipline of packing more information into each wire transfer — whether by shrinking individual numbers, replacing arithmetic with table lookups, or skipping redundant values entirely — so that chips can run larger models faster without waiting for data to arrive."
+  "connect": "Every paper in this theme is ultimately solving the same physical constraint: the wires that carry numbers between memory chips and the math circuits are the bottleneck, not the math itself. Using smaller numbers is the discipline of packing more information into each wire transfer — whether by shrinking individual numbers, replacing math circuits with lookup tables, or skipping redundant values entirely — so that chips can run larger models faster without sitting idle, waiting for data to arrive."
 }
