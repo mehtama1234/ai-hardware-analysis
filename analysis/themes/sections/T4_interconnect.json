@@ -5,27 +5,27 @@
   "groups": [
     {
       "heading": "Hiding communication time behind computation — sending and calculating at the same time",
-      "explain": "After a chip finishes its local arithmetic, it must send results to other chips before everyone can move on. If it simply waits, that waiting time is pure waste. The trick is to start sending early — breaking a large message into smaller pieces, sending the first piece while still computing the second, so the wiring and the math units are both kept busy at the same time. This requires a smart planner — a compiler or runtime — that knows exactly when each piece of data will be ready and schedules its delivery in advance.",
+      "explain": "After a chip finishes its local arithmetic, it must send results to other chips before everyone can move on. If it simply waits, that waiting time is pure waste. The trick is to start sending early — breaking a large message into smaller pieces, sending the first piece while still computing the second, so the wiring and the math units are both kept busy at the same time. This requires a smart planner — a compiler or a runtime scheduler — that knows exactly when each piece of data will be ready and schedules its delivery in advance.",
       "papers": [
         {
           "id": "asplos-2025-028",
           "name": "Concerto",
-          "gloss": "A code planner that automatically breaks large between-chip messages into pieces and overlaps sending them with ongoing math, so no chip just waits; works across any way of splitting a model across chips and matches or beats the best hand-tuned training frameworks."
+          "gloss": "Breaks large between-chip messages into pieces and overlaps sending with math so chips never sit idle waiting."
         },
         {
           "id": "mlsys-2025-002",
           "name": "TileLink",
-          "gloss": "A programming tool that treats a small block of math and the data transfer it needs as one unit, then compiles both into a single run on the chip; achieves 1.17–20.76x speedup over approaches that do math and transfers one at a time, with roughly one-tenth the hand-written code."
+          "gloss": "Bundles a math block and its data transfer into one step; 1.17–20.76x speedup with one-tenth the hand-written code."
         },
         {
           "id": "isca-2025-082",
           "name": "MeshSlice",
-          "gloss": "A method for splitting model math across chips arranged in a grid (like seats in a stadium) that breaks large group-sum messages into many tiny ones interleaved with the math itself, hiding most of the waiting time; 12–23% faster than prior methods on a cluster of 256 chips."
+          "gloss": "Interleaves tiny between-chip messages with math on a chip grid, hiding waiting time; 12–23% faster on 256 chips."
         },
         {
           "id": "isca-2025-090",
           "name": "Chimera",
-          "gloss": "Finds cases where splitting a model in multiple ways at once creates back-to-back between-chip messages that could be merged into one, then fuses them; delivers 1.32–1.58x faster forward passes on dedicated AI chips."
+          "gloss": "Merges back-to-back between-chip messages into one trip; 1.32–1.58x faster results on dedicated AI chips."
         }
       ]
     },
@@ -36,22 +36,22 @@
         {
           "id": "hpca-2025-058",
           "name": "TidalMesh",
-          "gloss": "A group-sum message pattern designed natively for chips arranged in a two-dimensional grid; it sends updates in wave patterns that follow the grid's rows and columns, achieving up to 24% better group-sum speed on a 64-chip 8-by-8 grid versus generic ring or tree patterns."
+          "gloss": "Sends group-sum messages in wave patterns along grid rows and columns; up to 24% faster than generic patterns on a 64-chip grid."
         },
         {
           "id": "mlsys-2025-052",
           "name": "Vocabulary Parallelism",
-          "gloss": "Spreads the lookup table that maps words to numbers evenly across all pipeline stages, cutting the number of between-chip sync points from three to one per pass; improves training throughput by 5–51% for large language models."
+          "gloss": "Spreads the word-to-number lookup table across all processing stages, cutting between-chip sync points from three to one; improves training throughput 5–51%."
         },
         {
           "id": "isca-2025-033",
           "name": "vNPU",
-          "gloss": "Lets multiple AI workloads share one tightly wired AI chip by making the message routing and memory addressing aware of the physical wiring layout, so sharing does not scramble the connections; allows sharing up to 1.92x faster than naive splitting."
+          "gloss": "Shares one AI chip among multiple jobs by routing messages to match the physical wiring; up to 1.92x faster than naive splitting."
         },
         {
           "id": "hpca-2025-080",
           "name": "PIMnet",
-          "gloss": "Builds a dedicated multi-level message network between units that do math inside the memory chips themselves, letting them sum results directly with each other instead of routing everything through the main processor; up to 85x faster on group-sum operations, 11.8x faster on real workloads."
+          "gloss": "Dedicated network for units doing math inside memory chips; direct result-summing gives up to 85x faster group-sums, 11.8x on real workloads."
         }
       ]
     },
@@ -62,27 +62,27 @@
         {
           "id": "mlsys-2025-057",
           "name": "Radius",
-          "gloss": "Notices that the positions of the largest weight updates stabilize after the first 15–20% of training and reuses those known positions to send only the values — not the positions — cutting between-chip traffic by up to 90% and speeding training 19% on a cluster of 128 chips."
+          "gloss": "Reuses known positions of large updates, sending values only — not locations; cuts traffic 90% and speeds training 19% on 128 chips."
         },
         {
           "id": "asplos-2025-150",
           "name": "Frugal",
-          "gloss": "Makes training large recommendation models practical on cheap chips without fast direct chip-to-chip links by rearranging which rows of the lookup table live on which chip to minimize cross-chip trips, then compressing what does get sent and overlapping transfers with math."
+          "gloss": "Reduces cross-chip trips for recommendation models by placing each lookup-table row on the chip that needs it most, compressing the rest."
         },
         {
           "id": "isca-2025-048",
           "name": "TRACI",
-          "gloss": "Adds small logic inside network switches that notices when many chips are asking for the same row of a lookup table at once and merges those requests into one trip, delivering the answer to all requesters together; targets recommendation models where access patterns are hard to predict."
+          "gloss": "Switch logic merges duplicate lookup-table requests from many chips into one trip and fans the answer back to all askers."
         },
         {
           "id": "isca-2025-119",
           "name": "DiTile-DGNN",
-          "gloss": "A chip design for neural networks whose connections change over time; it figures out which data stays the same across time steps and avoids resending or recomputing it, cutting run time 23–56% and energy 71–84% versus prior chip designs."
+          "gloss": "AI chip for networks with changing connections that skips resending unchanged data between time steps; cuts run time 23–56% and energy 71–84%."
         },
         {
           "id": "hpca-2025-017",
           "name": "Mithril",
-          "gloss": "Assigns consecutive layers of a model to different chips so each chip processes the full graph for its own layers, rather than slicing the graph itself across chips; reduces per-round cross-chip traffic by up to the number of layers — as much as 22.9x less data moved and 7.16x faster training on ordinary network links."
+          "gloss": "Assigns entire model layers to each chip rather than slicing across chips; 22.9x less data moved, 7.16x faster training."
         }
       ]
     },
@@ -93,37 +93,37 @@
         {
           "id": "isca-2025-027",
           "name": "Zettafly",
-          "gloss": "A two-level wiring layout for very large clusters: the lower level creates small groups where every chip can talk to every other at full speed, and the upper level links groups through a small number of shared long-range connections, keeping the maximum number of hops low while staying affordable."
+          "gloss": "Two-level wiring: dense local groups linked by a few long-range connections; keeps hop count low while staying affordable at large scale."
         },
         {
           "id": "isca-2025-054",
           "name": "Ruche Networks",
-          "gloss": "Adds evenly spaced long-range bypass links to a standard two-dimensional grid so distant chips can reach each other in fewer hops; a detailed chip blueprint evaluation shows better energy and chip-area efficiency per unit of throughput versus standard grid and wraparound-grid wiring."
+          "gloss": "Adds long-range bypass links to a chip grid so distant chips reach each other in fewer hops; better energy efficiency overall."
         },
         {
           "id": "hpca-2025-041",
           "name": "EIGEN",
-          "gloss": "Builds a two-level wiring network on the silicon bridge that connects stacked chips together: one level uses a flexible switch for planned routes, the other uses a learning-based agent to reroute around congestion; cuts message delay between stacked chips up to 67% and the number of hops up to 54%."
+          "gloss": "Two-level wiring on the bridge between stacked chips; a learning agent reroutes around congestion; cuts delay 67% and hop count 54%."
         },
         {
           "id": "isca-2025-093",
           "name": "FRED",
-          "gloss": "Places small reconfigurable switches across a large wafer connecting hundreds of stacked AI chips; the switches can partly sum values as they pass through and route different kinds of traffic over separate non-overlapping paths; achieves 1.34–1.87x faster end-to-end training versus a plain two-dimensional grid wafer."
+          "gloss": "Reconfigurable switches across a whole-silicon-wafer design partly sum values in transit; 1.34–1.87x faster training than a plain two-dimensional grid layout."
         },
         {
           "id": "isca-2025-032",
           "name": "NetCrafter",
-          "gloss": "Sits at the boundary between fast wiring inside a group of chips and slower wiring between groups; it packs partly filled messages together, drops messages fetched early that are no longer needed, and prioritizes time-critical messages; reduces effective waiting time at that boundary."
+          "gloss": "Sits at the fast-to-slow wiring boundary, packs partly filled messages together, and prioritizes time-critical ones to cut waiting time."
         },
         {
           "id": "hpca-2025-118",
           "name": "NearFetch",
-          "gloss": "When one chip in a multi-chip module asks for data held by a distant chip, checks whether an intermediate chip already has a copy and delivers it from there instead; cuts the average amount of data crossing between modules by 43% and improves overall speed 52% on workloads where chips share data."
+          "gloss": "Delivers from a nearby chip that has a copy instead of fetching from far away; cuts data traffic 43%, improves speed 52%."
         },
         {
           "id": "hpca-2025-001",
           "name": "Push Multicast",
-          "gloss": "When a shared memory bank serves one chip's request, it immediately pushes a copy to other chips it predicts will ask next, splitting the wiring cost across all future users at once; saves 33–43% of average wiring traffic in chips with 16 to 64 cores."
+          "gloss": "Serving one request, memory immediately pushes copies to chips predicted to ask next; saves 33–43% of wiring traffic on 16-to-64-core chips."
         }
       ]
     },
@@ -134,22 +134,22 @@
         {
           "id": "asplos-2025-129",
           "name": "EDM",
-          "gloss": "Handles requests to read or write another chip's memory at the very lowest signaling layer of standard networking hardware, skipping all the normal packet-handling overhead above it; achieves roughly 300 nanoseconds of delay for a remote memory read — about ten times faster than the usual approach over standard networking."
+          "gloss": "Handles remote memory reads at the lowest signaling layer, skipping packet overhead; achieves ~300 nanoseconds — about ten times faster than usual."
         },
         {
           "id": "micro-2025-081",
           "name": "Delegato",
-          "gloss": "Instead of fetching data across the chip boundary just to update it and send it back, forwards the update instruction itself to the chip that already holds the data, which does the update in place; a single reuse signal from the local cache guides where to send it; 1.13x faster than the best previous approach."
+          "gloss": "Forwards the update to the chip holding the data; it updates in place, skipping a round trip; 1.13x faster than prior best."
         },
         {
           "id": "isca-2025-075",
           "name": "AccDirect",
-          "gloss": "Connects the network card directly to the chip's internal work-distribution hardware using the standard chip link, removing the main processor from the path of handing out incoming network tasks; cuts total processor energy by 10% while raising throughput 14–50%."
+          "gloss": "Connects the network card directly to the chip's task-assignment hardware, cutting the main processor out; saves 10% processor energy, raises throughput 14–50%."
         },
         {
           "id": "asplos-2025-077",
           "name": "Plaid",
-          "gloss": "A flexible chip design (a grid of programmable logic cells) where every three math units share one small local switch instead of each unit having its own full switching network; saves 43–46% of power and chip area versus standard designs while matching their speed."
+          "gloss": "Flexible programmable chip where three math units share one local switch; saves 43–46% power and chip area while matching standard speeds."
         }
       ]
     },
@@ -160,22 +160,22 @@
         {
           "id": "asplos-2025-063",
           "name": "GraphPipe",
-          "gloss": "Treats a model's computation as a branching map of tasks rather than a single chain and runs independent branches on different chip groups at the same time; unlocks parallelism opportunities that strictly sequential splitting misses and improves overall throughput."
+          "gloss": "Runs independent branches of model computation on separate chip groups simultaneously, unlocking parallelism that chain-style splitting misses entirely."
         },
         {
           "id": "asplos-2025-100",
           "name": "Vela",
-          "gloss": "Trains a 50-billion-parameter model on ordinary cloud machines using standard networking hardware (rather than specialized expensive links), letting chips read each other's memory directly without involving the main processor; achieves roughly 80% of the ideal speed at 1,500-chip scale, proven over 2.5 years of real production use."
+          "gloss": "Trains a 50-billion-parameter model on ordinary cloud machines; ~80% of ideal speed at 1,500 chips over 2.5 years of real production use."
         },
         {
           "id": "hpca-2025-024",
           "name": "C4",
-          "gloss": "Uses the regular timing of between-chip sync steps as a built-in health monitor — any deviation signals a broken chip immediately — and pre-plans traffic routes to avoid collisions; cuts the overhead caused by hardware failures by 30% and between-chip traffic cost by 15%."
+          "gloss": "Uses regular sync-step timing as a health monitor to catch broken chips instantly; cuts failure overhead 30% and between-chip traffic cost 15%."
         },
         {
           "id": "isca-2025-122",
           "name": "Titan",
-          "gloss": "An automated search tool for designing very large wafer-scale AI chips that jointly finds the best way to divide model computation and the best wiring configuration between chip tiles, pruning options that violate physical or reliability limits before wasting time on them."
+          "gloss": "Jointly searches for the best model division and wiring for very large whole-wafer AI chips, pruning impossible options first."
         }
       ]
     },
@@ -186,7 +186,7 @@
         {
           "id": "micro-2025-072",
           "name": "LEGOSim",
-          "gloss": "A simulation framework that runs different chip simulators as separate parallel processes that only sync when they actually exchange a message — not every clock tick — cutting synchronization overhead up to 99.9% and simulating mixed-chip systems (combining different chip types) with under 4% error versus real hardware."
+          "gloss": "Syncs different chip simulators only when they exchange a message; cuts simulation overhead 99.9% with under 4% error versus real hardware."
         }
       ]
     }

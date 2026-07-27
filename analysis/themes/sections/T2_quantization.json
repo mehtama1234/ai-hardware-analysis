@@ -10,22 +10,22 @@
         {
           "id": "hpca-2025-036",
           "name": "M-ANT",
-          "gloss": "Picks the best number grid independently for each small group of 128 weights, then handles the model's running notes in real time using the same adaptive hardware; up to 4.46x faster than a prior leading accelerator."
+          "gloss": "Picks the best number grid per 128-weight group; same hardware handles the model's running notes; up to 4.46x faster."
         },
         {
           "id": "hpca-2025-029",
           "name": "Anda",
-          "gloss": "Defines a new number type where each group of computed values shares one overall scale but each individual value gets a bit-length tuned to that layer's needs, all without retraining; 2.4x faster and 3.1x more energy-efficient than a standard baseline."
+          "gloss": "Each value group shares one scale but each value gets its own bit-length; no retraining needed; 2.4x faster, 3.1x more energy-efficient."
         },
         {
           "id": "micro-2025-063",
           "name": "MX+",
-          "gloss": "Fixes a flaw in an industry-standard 4-bit format: the single largest value in each 32-number block was encoded with almost no precision, causing big errors; MX+ borrows unused bits in that slot to give it proper precision, recovering up to 42 percentage points of accuracy with almost no extra storage."
+          "gloss": "The largest value per 32-number block had almost no precision; MX+ borrows unused bits there, recovering up to 42 accuracy points."
         },
         {
           "id": "isca-2025-004",
           "name": "FATE",
-          "gloss": "Uses different number precisions for different dimensions of a pattern-matching system that works with very long binary strings, since some dimensions carry more information than others; targets low-power chips on small embedded boards."
+          "gloss": "Applies different number precisions per dimension in a search system, since some dimensions carry more information; targets tiny low-power embedded boards."
         }
       ]
     },
@@ -36,17 +36,17 @@
         {
           "id": "isca-2025-007",
           "name": "Oaken",
-          "gloss": "Studies each layer's note values once ahead of time to learn which values are outliers, then at run time splits each note into three groups and rounds each group to 4 or 5 bits; stores outliers in a compact side channel, shrinking their cost from 23 to 8 bits each; 1.79x more throughput than a standard server at batch size 256."
+          "gloss": "Rounds the model's running notes to 4 or 5 bits; outliers stored at 8 bits instead of 23; 1.79x more throughput."
         },
         {
           "id": "asplos-2025-082",
           "name": "COMET",
-          "gloss": "Rounds both the model's stored weights and its running notes to 4-bit numbers at the same time, keeping occasional very large values at 8 bits; a custom math routine handles both sizes in one pass; 2.88x faster inner-loop throughput and 2.02x faster end-to-end speed versus a standard serving library."
+          "gloss": "Rounds weights and running notes to 4-bit in one pass; large outliers stay at 8 bits; 2.88x faster inner-loop, 2.02x faster end-to-end."
         },
         {
           "id": "mlsys-2025-003",
           "name": "QServe",
-          "gloss": "Uses a two-step rounding process — first to 8-bit, then to 4-bit — with a protected number range that guarantees no overflow when the chip does 8-bit math; folds the scaling needed for 4-bit running notes into the preceding weight matrix so no extra work is needed at run time; up to 3.5x more throughput than a vendor-optimized library on a top data-center GPU."
+          "gloss": "Rounds weights 8-bit then 4-bit; folds the running-notes scaling step into the weight math to save work; up to 3.5x more throughput."
         }
       ]
     },
@@ -57,22 +57,22 @@
         {
           "id": "isca-2025-079",
           "name": "LUT Tensor Core",
-          "gloss": "Replaces the GPU's matrix-multiply engine with a lookup table that works bit by bit: weights are re-encoded so half the table entries cancel out by symmetry, and software folds the table-building step into the previous layer to hide its cost; 2 to 5.5x faster inference end-to-end; 4 to 6x smaller chip area than a conventional multiply circuit."
+          "gloss": "Swaps the GPU's multiply engine for a lookup table; weight symmetry halves it; 2 to 5.5x faster, up to 6x less area."
         },
         {
           "id": "hpca-2025-071",
           "name": "FIGLUT",
-          "gloss": "Pre-computes all possible products of an input value with every possible low-bit weight pattern and stores them in a half-size lookup table; at run time the hardware reads the table using the weight bits rather than multiplying; 59% better energy efficiency than a prior lookup-table chip at the same 3-bit precision."
+          "gloss": "Pre-stores all possible weight-times-input answers in a half-size table; hardware reads answers instead of multiplying; 59% better energy efficiency at 3-bit precision."
         },
         {
           "id": "hpca-2025-055",
           "name": "LUT-DLA",
-          "gloss": "Replaces multiply-and-add circuits entirely with lookup-table fetch-and-add circuits, trained using a multi-stage recipe; achieves sub-1-bit-equivalent compression by representing groups of values with shared dictionary entries; 1.4 to 7x better power efficiency and up to 146x better area efficiency than standard rounding hardware."
+          "gloss": "Replaces every multiply-and-add circuit with a lookup-table fetch-and-add; up to 146x better area efficiency than standard rounding hardware."
         },
         {
           "id": "hpca-2025-003",
           "name": "VQ-LLM",
-          "gloss": "Solves why lookup-table inference was actually slower than plain 16-bit inference on GPUs: the dictionary entries were being fetched from shared memory in a way that caused threads to queue up; VQ-LLM keeps the most-used dictionary entries in each thread's private registers and reorganizes computation to avoid that bottleneck; 64 to 99% lower latency versus prior lookup-table methods."
+          "gloss": "Shared table entries caused queuing that made lookup slower than 16-bit math; VQ-LLM keeps hot entries private; 64 to 99% lower latency."
         }
       ]
     },
@@ -83,17 +83,17 @@
         {
           "id": "asplos-2025-079",
           "name": "MVQ",
-          "gloss": "Combines skipping unimportant numbers in a regular pattern with a dictionary-building algorithm that ignores the skipped zeros so they cannot distort the dictionary; the matching hardware skips those positions in its compute array, cutting array area by 55% and improving energy efficiency by 2.3x."
+          "gloss": "Pairs dictionary-based compression with skipping unimportant numbers; the hardware skips zeroed positions, cutting compute area 55% and improving energy efficiency 2.3x."
         },
         {
           "id": "hpca-2025-022",
           "name": "eDKM",
-          "gloss": "Makes dictionary-based weight compression practical for 7-billion-parameter models by removing duplicate data and splitting large temporary arrays that must be kept in main memory during training; cuts per-layer memory 130x, shrinking a 7-billion-parameter model from 12.6 GB to 2.5 GB at 3 bits per weight."
+          "gloss": "Removes duplicate data so dictionary compression fits a 7-billion-parameter model; shrinks memory from 12.6 to 2.5 GB at 3 bits per weight."
         },
         {
           "id": "hpca-2025-000",
           "name": "BitMoD",
-          "gloss": "Gives each group of 128 weights its own number format chosen from a small family of options, and runs all format types through a single bit-by-bit hardware path rather than needing separate circuits for each format; 1.69x faster than a prior adaptive-format accelerator at under 0.5% accuracy loss."
+          "gloss": "Each 128-weight group gets its own number format chosen from a small family; one shared hardware path handles all formats; 1.69x faster."
         }
       ]
     },
@@ -104,32 +104,32 @@
         {
           "id": "micro-2025-035",
           "name": "DECA",
-          "gloss": "Adds a small hardware block beside each processor core that unpacks rounded and skipped-number-format weight tiles in a three-stage pipeline, hiding that unpacking work behind a new instruction that fetches data early; on a server processor running a 70-billion-parameter model the unpacking was eating 95% of all instructions — DECA eliminates that bottleneck, giving 1.6 to 2.6x faster word-by-word output."
+          "gloss": "Unpacking consumed 95% of instructions; DECA offloads it to a dedicated hardware block; 1.6 to 2.6x faster word output."
         },
         {
           "id": "micro-2025-080",
           "name": "CAMP",
-          "gloss": "Adds a small extra multiplier to standard ARM and RISC-V processor math units so they can do 4-bit and 8-bit integer matrix math natively; uses only 1 to 4% extra chip area; up to 23x faster than an unmodified processor core on rounded-number matrix math."
+          "gloss": "Adds a tiny multiplier to processor math units for native 4-bit and 8-bit math; 1 to 4% extra area; 23x faster."
         },
         {
           "id": "micro-2025-011",
           "name": "HiPACK",
-          "gloss": "Solves the mismatch between 4-bit weights and 8-bit processor registers by pre-expanding the packed 4-bit data before the math loop, then arranging registers so one instruction can process two packed streams at once; up to 4.6x faster than a full-precision baseline on a Raspberry Pi 4."
+          "gloss": "Pre-expands 4-bit weights so one instruction handles two streams at once; up to 4.6x faster than full-precision on a Raspberry Pi 4."
         },
         {
           "id": "mlsys-2025-031",
           "name": "MEADOW",
-          "gloss": "Runs 8-bit rounded language model inference on a low-power 10-watt programmable chip by processing one attention head at a time rather than all at once, and packing weights so common values are fetched from fast on-chip memory; 1.5x faster word output and 2.5x faster reading-in-the-prompt than a straightforward implementation."
+          "gloss": "Fits 8-bit model inference on a 10-watt programmable chip, processing one block at a time; 1.5x faster word output, 2.5x faster prompt-reading."
         },
         {
           "id": "mlsys-2025-021",
           "name": "MiLo",
-          "gloss": "Compresses a model made of specialists — where different sub-networks activate for different inputs — to 3-bit weights without any calibration data, then adds small correction layers that restore accuracy; the 3-bit math routine wastes no bits in packing and supports processing multiple requests at once, which prior 3-bit routines could not; 1.2x throughput over the previous best approach."
+          "gloss": "Compresses a model of specialists to 3-bit with no calibration; packing wastes no bits; handles batched requests; 1.2x throughput over prior best."
         },
         {
           "id": "mlsys-2025-043",
           "name": "HyC-LoRA",
-          "gloss": "Compresses the temporary value buffers stored during fine-tuning — adapting a pre-trained model to a new task — to near 2 bits on average, protecting large outlier values around non-math operations and reordering computation so some buffers can be recomputed rather than stored; targets fine-tuning on a single consumer GPU."
+          "gloss": "Compresses fine-tuning's temporary value buffers to near 2 bits on average; recomputes some instead of storing them; targets a single consumer GPU."
         }
       ]
     },
@@ -140,32 +140,32 @@
         {
           "id": "isca-2025-042",
           "name": "LightNobel",
-          "gloss": "Handles the rapidly growing value arrays in protein structure prediction by sorting values by size and applying 4-bit rounding to ordinary values while keeping large outliers in 16-bit numbers; a reconfigurable hardware math unit dynamically assigns its compute lanes to each mix of precisions; 8.44x faster than a top data-center GPU on the most expensive step, with peak memory cut 120x for long protein sequences."
+          "gloss": "Rounds ordinary protein-prediction values to 4-bit while keeping outliers at 16-bit; 8.44x faster than a top data-center GPU; peak memory cut 120x."
         },
         {
           "id": "hpca-2025-047",
           "name": "Ditto",
-          "gloss": "Exploits the fact that neighboring steps in an image-generation model produce nearly identical outputs: the change from one step to the next is tiny and can be encoded in very few bits, often zero; a matched accelerator skips zero-change computations entirely; up to 1.5x faster with 17.7% energy savings."
+          "gloss": "Consecutive image-generation steps differ very little; their change encodes in nearly no bits; skips zero-change work; 1.5x faster, 17.7% energy savings."
         },
         {
           "id": "isca-2025-049",
           "name": "AQB8",
-          "gloss": "Rounds the tree of bounding boxes used in 3D ray tracing — the data structure that figures out which surfaces a light ray might hit — to 8-bit numbers at every level, so all intersection tests run in integer math with no conversion back to floating point; 1.82x faster than a standard GPU ray-tracing unit with 49% less energy and 70% fewer trips to memory chips."
+          "gloss": "Rounds 3D scene bounding boxes to 8-bit so surface-hit tests use integer math; 1.82x faster, 49% less energy, 70% fewer memory trips."
         },
         {
           "id": "hpca-2025-044",
           "name": "Panacea",
-          "gloss": "Fixes an incompatibility between offset-based rounding — which gives better accuracy — and bit-slice computation — which skips zero slices for efficiency: offset encoding produces many non-zero slices that a naive skip engine would miss; Panacea shifts the offset and picks bit slices to maximize zeros that can be skipped; 1.97x more energy-efficient than a prior bit-slice accelerator."
+          "gloss": "Offset-based rounding and zero-skipping conflict; Panacea shifts the offset to maximize skippable zeros; 1.97x more energy-efficient than a prior design."
         },
         {
           "id": "hpca-2025-111",
           "name": "NeuVSA",
-          "gloss": "Unifies two normally separate steps in a vector database search — turning a query into numbers, then finding the nearest stored entries — into one hardware design by recognizing that both steps reduce to the same dictionary-lookup operation; eliminates the data-format handoff between stages; 2.82 to 416x lower latency than CPU and GPU baselines."
+          "gloss": "A similarity search's two stages both reduce to dictionary-lookup; NeuVSA fuses them in one chip; 2.82 to 416x lower latency than CPU/GPU."
         },
         {
           "id": "isca-2025-126",
           "name": "AIM",
-          "gloss": "Fixes an unexpected problem on chips that do math inside the memory: the bit patterns of rounded weights determine how much electrical current spikes inside the chip, and big spikes cause errors; AIM adds an extra training signal that steers weights toward bit patterns with fewer '1' bits, reducing voltage spikes by up to 69% and improving chip throughput by 1.15x."
+          "gloss": "Weight bit-patterns cause current spikes inside math-in-memory chips; AIM steers weights toward fewer '1' bits, cutting spikes 69% and lifting throughput 1.15x."
         }
       ]
     }

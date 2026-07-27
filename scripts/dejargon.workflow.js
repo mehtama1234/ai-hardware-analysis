@@ -6,8 +6,7 @@ export const meta = {
 
 const ROOT = '/home/manishmehta/ui-projects/ai-hardware-analysis'
 const SECT = `${ROOT}/analysis/themes/sections`
-const KEYS = ['T1_attention','T2_quantization','T3_memory','T4_interconnect','T5_sparsity',
-  'T6_compiler','T7_security','T8_reliability','T9_specialized','T0_other']
+const KEYS = ['T2_quantization','T3_memory','T4_interconnect','T8_reliability','T9_specialized']
 
 function prompt(key) {
   const f = `${SECT}/${key}.json`
@@ -28,7 +27,15 @@ function prompt(key) {
     `"the wiring/messages between chips"), RoPE, TLB, MMIO, MSHR, BTB, prefetch (say "fetching data early"),`,
     `RTL/HLS (say "a chip blueprint"), chiplet/interposer/hybrid-bonding (say "stacking chips together"),`,
     `transformer (say "the model"), embedding, LUT (say "a lookup table"), FlashAttention/vLLM/A100/H100`,
-    `(say "the standard GPU software"/"a top data-center GPU"), INT4/INT8/FP8/W4A8/MXFP (say "4-bit"/"8-bit numbers").`,
+    `(say "the standard GPU software"/"a top data-center GPU"), INT4/INT8/FP8/W4A8/MXFP (say "4-bit"/"8-bit numbers"),`,
+    `Tensor Core (say "the GPU's math units"), GEMM (say "big matrix multiplication"), RowHammer (say "an attack that`,
+    `secretly flips bits in memory"), Spectre (say "tricking a chip's speed shortcut into leaking secrets"),`,
+    `TEE (say "a walled-off secure area on the chip"), FHE (say "computing on encrypted data without unlocking it"),`,
+    `ZKP (say "proving something is true without revealing it"), photonic (say "light-based"), systolic (say`,
+    `"a grid of tiny multipliers"), coherence (say "keeping many chips' copies of data in agreement"), wafer-scale`,
+    `(say "spanning a whole silicon wafer"), bit-serial (say "one bit at a time"), NMP (say "math done next to memory").`,
+    `A bare "kernel" meaning a GPU program must become "GPU program"; only keep "kernel" if it clearly means an`,
+    `operating-system kernel.`,
     ``,
     `RULES:`,
     `- Every gloss: 10-22 plain words. Say what the paper actually DOES and WHY, in words a curious outsider gets.`,
