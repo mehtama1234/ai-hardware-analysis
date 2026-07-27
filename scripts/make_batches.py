@@ -13,6 +13,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _as_author_list(authors):
+    if not authors:
+        return []
+    if isinstance(authors, list):
+        return [a.get("text", a) if isinstance(a, dict) else str(a) for a in authors]
+    if isinstance(authors, dict):
+        inner = authors.get("author", [])
+        if isinstance(inner, list):
+            return [a.get("text", "") for a in inner]
+        if isinstance(inner, dict):
+            return [inner.get("text", "")]
+    return []
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--conf", required=True)
@@ -45,7 +59,7 @@ def main():
                 with_text += has
                 f.write(json.dumps({
                     "id": r["id"], "title": r["title"], "venue": r["venue"],
-                    "authors": (r.get("authors") or [])[:8],
+                    "authors": _as_author_list(r.get("authors"))[:8],
                     "abstract": r.get("abstract"),
                     "text_path": str(tpath) if has else None,
                 }) + "\n")

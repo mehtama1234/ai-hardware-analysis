@@ -1,0 +1,6 @@
+{
+  "id": "micro-2025-011",
+  "confidence": "low",
+  "what_it_does": "Using smaller numbers to represent neural network weights (a technique called quantization — replacing full-precision values with rounded, compact ones) saves memory and speeds up AI on phones and laptops. ARM processors, which power most mobile devices, have a built-in feature called SIMD (Single Instruction Multiple Data) that applies one math operation to many numbers at once — but SIMD only works natively with numbers stored in at least 8 bits, while aggressive quantization often uses fewer bits (4 or 5). When you try to use sub-8-bit data with SIMD, the chip must first 'unpack' those tiny numbers back into wider ones, and that unpacking step happens right in the middle of the multiply operations, nullifying much of the speed gain. HiPACK reorders the work so that unpacking happens before the multiply loop begins, producing a pre-expanded layout that SIMD can consume without interruption; it then interleaves two streams of pre-expanded data in alternating registers (the Dual Interleaved Register trick) so the multiply units stay fully fed at all times. The result is that sub-8-bit convolutions (the core sliding-window multiply operation used in image recognition and similar AI tasks) run faster on ARM chips without any accuracy loss.",
+  "method_in_detail": ""
+}

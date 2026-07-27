@@ -52,12 +52,13 @@ def _get(url):
             raise
 
 
-def fetch(stream, year):
-    out, f = [], 0
+def fetch(stream, year, start_offset=0, existing=None):
+    out = list(existing or [])
+    f = start_offset
     while True:
         q = f"stream:{stream}: year:{year}"
-        url = "https://dblp.org/search/publ/api?" + urllib.parse.urlencode(
-            {"q": q, "h": 500, "f": f, "format": "json"}, quote_via=urllib.parse.quote)
+        url = "https://dblp.dagstuhl.de/search/publ/api?" + urllib.parse.urlencode(
+            {"q": q, "h": 100, "f": f, "format": "json"}, quote_via=urllib.parse.quote)
         d = _get(url)
         hits = d.get("result", {}).get("hits", {})
         batch = hits.get("hit", [])
@@ -94,10 +95,16 @@ def main():
     stream = a.stream or STREAMS.get(a.conf)
     if not stream:
         raise SystemExit(f"unknown conf '{a.conf}'; known: {sorted(STREAMS)} or pass --stream conf/<key>")
-    recs = fetch(stream, a.year)
+    outp = ROOT / "metadata" / f"{conf}-{a.year}-dblp.jsonl"
+    # resume: load existing partial results, start from where we left off
+    existing, start_off = [], 0
+    if outp.exists():
+        existing = [json.loads(l) for l in outp.open()]
+        start_off = len(existing)
+        print(f"  resuming from offset {start_off} ({len(existing)} already saved)")
+    recs = fetch(stream, a.year, start_offset=start_off, existing=existing)
     # keep only conference papers (drop editorials/proceedings shells)
     recs = [r for r in recs if r["type"] in ("Conference and Workshop Papers", None)]
-    outp = ROOT / "metadata" / f"{conf}-{a.year}-dblp.jsonl"
     with outp.open("w") as fh:
         for r in recs:
             fh.write(json.dumps(r) + "\n")

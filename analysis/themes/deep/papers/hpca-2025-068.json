@@ -1,0 +1,6 @@
+{
+  "id": "hpca-2025-068",
+  "confidence": "low",
+  "what_it_does": "Running large language models (AI chatbots and similar systems) on long documents or conversations requires storing a 'running notes' table called the KV cache (short for key-value cache — a record of everything the model has processed so far that it needs to refer back to). For long contexts or large batches of simultaneous users, this table can grow larger than the GPU's on-board memory (VRAM), forcing the system to offload data to SSDs. The problem is that SSDs connect to the GPU through a slot called PCIe, which has limited bandwidth; fetching the KV cache back across that narrow pipe for every answer generation step creates a bottleneck that tanks throughput. InstAttention sidesteps this by moving the attention computation itself (the step where the model 'reads' its running notes) into a Computational Storage Drive (CSD) — a specialized SSD that contains its own small processor. The KV cache stays inside the CSD and is processed there by a custom attention engine tailored to how flash memory is best read (in large sequential chunks). Only the final attention output — a much smaller result — travels back to the GPU, so PCIe congestion is largely avoided.",
+  "method_in_detail": ""
+}

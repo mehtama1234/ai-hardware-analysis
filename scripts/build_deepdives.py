@@ -173,7 +173,7 @@ def render_hub(stats):
     <div class="eyebrow" style="color:var(--demand)">AI hardware 2025 · deep dives</div>
     <h1 style="font-size:clamp(2.3rem,6vw,3.6rem);margin:.3em 0 .3em">Every theme, all the way down</h1>
     <div class="sub">Nine chapters. Each one builds the problem from first principles, walks the approaches, then explains every paper — the full method where the paper was openly available.</div>
-    <div class="count">619 papers · 503 analyzed · 120 read in full text</div>
+    <div class="count">719 papers · 603 analyzed · 120 read in full text</div>
   </header>
   <section><div class="cards">{"".join(cards)}</div></section>
   <footer>Start anywhere. Each chapter stands alone. · <a href="mlsys-2025-bigpicture.html">the one-page overview</a></footer>

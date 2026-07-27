@@ -1,11 +1,13 @@
 export const meta = {
   name: 'ai-hardware-deep-papers',
-  description: 'Per-paper deep writeups: "what it does" + "the method, in detail" (Sonnet)',
+  description: 'Per-paper deep writeups: "what it does" + "the method, in detail" (Sonnet) — wave mode',
   phases: [{ title: 'Full-text methods' }, { title: 'Abstract summaries' }],
 }
 
 const A = (() => { try { return typeof args === 'string' ? JSON.parse(args) : (args || {}) } catch { return {} } })()
 const NFT = A.ft || 24, NAB = A.ab || 24
+// Run this many agents at a time; keeps server rate limits happy
+const WAVE = A.wave || 6
 const ROOT = '/home/manishmehta/ui-projects/ai-hardware-analysis'
 const BDIR = `${ROOT}/analysis/themes/deep/batches`
 const ODIR = `${ROOT}/analysis/themes/deep/papers`
@@ -60,10 +62,30 @@ function abPrompt(bs) {
   ].join('\n')
 }
 
-const ftTasks = Array.from({ length: NFT }, (_, i) => String(i).padStart(3, '0')).map(bs => () =>
-  agent(ftPrompt(bs), { label: `ft:${bs}`, phase: 'Full-text methods', model: 'sonnet' }))
-const abTasks = Array.from({ length: NAB }, (_, i) => String(i).padStart(3, '0')).map(bs => () =>
-  agent(abPrompt(bs), { label: `ab:${bs}`, phase: 'Abstract summaries', model: 'sonnet' }))
+const ftBatches = Array.from({ length: NFT }, (_, i) => String(i).padStart(3, '0'))
+const abBatches = Array.from({ length: NAB }, (_, i) => String(i).padStart(3, '0'))
 
-const res = await parallel([...ftTasks, ...abTasks])
-return { fullText: NFT, abstract: NAB, completed: res.filter(Boolean).length }
+// Run full-text batches in waves of WAVE to avoid server rate limiting
+const ftResults = []
+for (let i = 0; i < ftBatches.length; i += WAVE) {
+  const wave = ftBatches.slice(i, i + WAVE)
+  log(`FT wave ${Math.floor(i/WAVE)+1}/${Math.ceil(ftBatches.length/WAVE)}: batches ${wave[0]}–${wave[wave.length-1]}`)
+  const waveRes = await parallel(wave.map(bs => () =>
+    agent(ftPrompt(bs), { label: `ft:${bs}`, phase: 'Full-text methods', model: 'sonnet' })
+  ))
+  ftResults.push(...waveRes)
+}
+
+// Run abstract batches in waves
+const abResults = []
+for (let i = 0; i < abBatches.length; i += WAVE) {
+  const wave = abBatches.slice(i, i + WAVE)
+  log(`AB wave ${Math.floor(i/WAVE)+1}/${Math.ceil(abBatches.length/WAVE)}: batches ${wave[0]}–${wave[wave.length-1]}`)
+  const waveRes = await parallel(wave.map(bs => () =>
+    agent(abPrompt(bs), { label: `ab:${bs}`, phase: 'Abstract summaries', model: 'sonnet' })
+  ))
+  abResults.push(...waveRes)
+}
+
+const allRes = [...ftResults, ...abResults]
+return { fullText: NFT, abstract: NAB, completed: allRes.filter(Boolean).length }
