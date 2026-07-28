@@ -1,0 +1,1031 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How it works — AI Hardware 2025</title>
+<style>
+:root{
+  --bg:#0A0E13; --panel:#10161D; --panel2:#0D131A; --line:#1D2A34; --grid:#141E27;
+  --ink:#E7EFF1; --mut:#8B9BA2; --dim:#586770;
+  --cyan:#38E1CF; --cyan2:#12A79A; --amber:#F5A65B; --coral:#FF6B5C; --violet:#9C8CFF;
+  --mono:ui-monospace,"SF Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;background-position:center top;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px}
+a{color:var(--cyan)}
+
+/* top nav */
+.topnav{padding:22px 0 0;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.back{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-decoration:none;letter-spacing:.04em}
+.back:hover{color:var(--cyan)}
+
+/* section nav pills */
+.secnav{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0;border-bottom:1px solid var(--line);margin-bottom:0}
+.secnav a{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;padding:4px 10px;border:1px solid var(--line);border-radius:20px;
+  transition:color .12s,border-color .12s}
+.secnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+
+/* hero */
+header{padding:66px 0 36px;position:relative}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(2.1rem,5.8vw,3.8rem);line-height:1.04;letter-spacing:-.03em;font-weight:800;margin:16px 0 0;
+  text-wrap:balance;background:linear-gradient(170deg,#EDF5F6 30%,#7AABAF);-webkit-background-clip:text;background-clip:text;color:transparent}
+header p.lede{font-size:1.1rem;color:var(--mut);max-width:58ch;margin:18px 0 0;line-height:1.7}
+header p.lede b{color:var(--ink);font-weight:600}
+
+/* sections */
+section{padding:48px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(1.45rem,3.4vw,2.05rem);letter-spacing:-.022em;font-weight:750;margin:0 0 6px;text-wrap:balance;color:var(--ink)}
+.sub{color:var(--mut);max-width:62ch;margin:0 0 22px;font-size:1.02rem;line-height:1.7}
+
+/* eye-label (00 · THEME · tag) */
+.eye{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;
+  gap:9px;margin-bottom:14px;letter-spacing:.04em}
+.eye .n{color:var(--dim)}
+.eye .stage{color:var(--amber)}
+.eye::before{content:"";width:22px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid var(--cyan2);border-radius:20px;padding:2px 9px;vertical-align:middle}
+
+/* canvas panels */
+.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:14px;padding:8px;position:relative;overflow:hidden}
+.panel canvas{display:block;width:100%;height:auto;border-radius:8px}
+.readout{font-family:var(--mono);font-size:11px;color:var(--mut);padding:9px 12px 5px;
+  display:flex;gap:20px;flex-wrap:wrap;letter-spacing:.03em}
+.readout b{color:var(--cyan);font-weight:600}
+.readout .amb{color:var(--amber)}
+
+/* notes grid */
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px 32px;margin-top:22px}
+@media(max-width:640px){.notes{grid-template-columns:1fr}}
+.notes h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 5px}
+.notes p{margin:0;font-size:.96rem;color:#C0CDD1;line-height:1.6}
+.corpus{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:14px;margin-top:6px;
+  font-size:.9rem;color:var(--mut);display:flex;gap:10px;align-items:baseline}
+.corpus b{color:var(--amber);font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+
+footer{border-top:1px solid var(--line);padding:40px 0 90px;color:var(--dim);font-family:var(--mono);font-size:11.5px;line-height:1.7}
+footer b{color:var(--mut)}
+.fnote{color:var(--mut);font-size:.98rem;font-family:var(--sans);max-width:62ch;margin:0 0 20px;line-height:1.65}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<div class="topnav">
+  <a class="back" href="index.html">← master narrative</a>
+  <a class="back" href="deepdives.html">deep dives</a>
+  <a class="back" href="synthesis.html">synthesis</a>
+  <a class="back" href="explorer.html">explorer</a>
+</div>
+<nav class="secnav">
+  <a href="#gap">00 the wall</a>
+  <a href="#quantize">01 quantization</a>
+  <a href="#kvcache">02 kv cache</a>
+  <a href="#pim">03 near-data compute</a>
+  <a href="#sparse">04 sparsity</a>
+  <a href="#allreduce">05 collective ops</a>
+  <a href="#fuse">06 graph fusion</a>
+  <a href="#synthesis">07 all nine</a>
+</nav>
+
+<header>
+  <div class="kicker">AI Hardware 2025 · one level down</div>
+  <h1>The one constraint,<br>seven ways around it</h1>
+  <p class="lede">The site explains these ideas in <b>words</b>. This page shows the <b>mechanism</b> — each one as a working diagram you watch move. Every technique below is directly grounded in the 1,769 papers across 10 venues we analyzed. The words tell you what; this shows you <b>how</b>.</p>
+</header>
+
+
+<!-- 00 · THE GAP ---------------------------------------------------------- -->
+<section id="gap">
+  <div class="eye"><span class="n">00</span> · The one organizing fact</div>
+  <h2>The chip is fast. The bus is slow. Almost everything follows from this.</h2>
+  <p class="sub">A modern AI chip can do a trillion multiplications per second. Main memory can deliver maybe one-hundredth of that in data to multiply. The chip spends most of its time <em>waiting</em> — idle, starving at the loading dock. Every technique on this page is a different way to shrink that gap.</p>
+  <div class="panel"><canvas data-anim="gap" height="300"></canvas>
+    <div class="readout">
+      <span>compute: <b>~1000 TOPS</b></span>
+      <span>memory bandwidth: <span class="amb">~1 TB/s</span></span>
+      <span>utilization when memory-bound: <span class="amb" id="gap-util">—</span></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>What you're seeing</h4><p>Each square is a compute unit. Bright teal = working. Dim amber = idle, waiting for data. One packet arrives from memory at a time. That's the ratio — 1 packet feeding 12 units means 11 are always waiting.</p></div>
+    <div><h4>Why it matters</h4><p>AI inference is almost always "memory-bandwidth limited," not "compute limited." Throwing more arithmetic at the problem doesn't help. You need to move data less, or move it shorter distances, or make it smaller.</p></div>
+    <div class="corpus"><b>corpus →</b> the organizing constraint behind all 1,769 papers across 10 venues. Every theme is a different attack on the same wall.</div>
+  </div>
+</section>
+
+
+<!-- 01 · QUANTIZATION ------------------------------------------------------- -->
+<section id="quantize">
+  <div class="eye"><span class="n">01</span> · <span class="stage">MOVE LESS</span> · T2 — smaller numbers <span class="tag">113 papers</span></div>
+  <h2>Same computation, fewer bits — four times the throughput</h2>
+  <p class="sub">Every number in a neural network lives in memory as a sequence of bits. Float32 uses 32 bits — fine grained but bulky. INT8 uses 8 bits — four times as many values fit in the same memory transfer. You lose precision; you gain speed and capacity. The question is how much precision the model can afford to lose.</p>
+  <div class="panel"><canvas data-anim="quantize" height="310"></canvas>
+    <div class="readout">
+      <span>precision: <b id="q-bits">—</b></span>
+      <span>max rounding error: <span class="amb" id="q-err">—</span></span>
+      <span>values per memory transfer: <b id="q-thru">—</b></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>Map the full float range onto a smaller integer range. Every real value rounds to the nearest step. Fewer bits = wider steps = more error, but also 2×–8× more values fit in each memory transfer — and many chips do 4 INT8 multiplications in the same cycle as 1 FP32.</p></div>
+    <div><h4>Why it matters</h4><p>The KV cache (theme T1) can consume hundreds of GB of DRAM during inference. Halving the bit width halves the cache size and doubles the serving throughput. INT4 is now production standard at most major labs.</p></div>
+    <div class="corpus"><b>corpus →</b> T2 spans ISCA, MICRO, HPCA, MLSys, ASPLOS. INT4 is the modal choice in 2025 papers; FP8 appears in training; INT2 is emerging for weight-only compression.</div>
+  </div>
+</section>
+
+
+<!-- 02 · KV CACHE ----------------------------------------------------------- -->
+<section id="kvcache">
+  <div class="eye"><span class="n">02</span> · <span class="stage">MOVE LESS</span> · T1 — attention <span class="tag">195 papers</span></div>
+  <h2>Generating each word means reading every prior word's stored notes</h2>
+  <p class="sub">A language model writes one word at a time. To do it, it re-reads summaries of every prior word — summaries it computed and cached the first time through (the "KV cache"). That cache grows with each word. By token 1000, generating one word means hauling 1000 pages of notes across the memory bus. Longer context = slower per-token generation.</p>
+  <div class="panel"><canvas data-anim="kvcache" height="320"></canvas>
+    <div class="readout">
+      <span>context: <b id="kv-n">—</b> tokens</span>
+      <span>data read per new token: <span class="amb" id="kv-reads">—</span></span>
+      <span>decoding is: <b>memory-bandwidth limited</b></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>Each new token generated requires reading the K and V vectors for every prior token in the sequence. As context grows from N to 2N, the data movement per token doubles. Serving a 128K-token context window means every single generated word reads 128,000 cached summaries from DRAM.</p></div>
+    <div><h4>Why it matters</h4><p>The memory bandwidth bottleneck (diagram 00) bites hardest here. Papers attack it by quantizing the KV cache, evicting cold entries, sharing prefixes across users, or tiling the attention computation so intermediate data stays in fast on-chip SRAM (FlashAttention).</p></div>
+    <div class="corpus"><b>corpus →</b> 47% of T1 papers name the KV cache as the primary bottleneck. ASPLOS, HPCA, and MLSys 2025 each have 10+ papers on KV cache management alone.</div>
+  </div>
+</section>
+
+
+<!-- 03 · PIM --------------------------------------------------------------- -->
+<section id="pim">
+  <div class="eye"><span class="n">03</span> · <span class="stage">SHORTEN THE TRIP</span> · T3 — memory wall <span class="tag">290 papers</span></div>
+  <h2>Stop hauling data — move the math to where it already lives</h2>
+  <p class="sub">The bus between memory and processor is where energy goes to die. Every byte that crosses it costs power and time. The radical answer: don't cross it at all. Put the computation units inside the memory itself. Multiply-accumulate happens at the storage cell. Zero bus traversal. Zero bus energy.</p>
+  <div class="panel"><canvas data-anim="pim" height="300"></canvas>
+    <div class="readout">
+      <span>bus traversal: <span class="amb">~100 pJ / operation</span></span>
+      <span>in-memory MAC: <b>~1 pJ / operation</b></span>
+      <span>energy ratio: <b id="pim-ratio">~100×</b></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>Processing-in-Memory (PIM) embeds simple compute logic — adders, multipliers, activation functions — inside or immediately adjacent to DRAM arrays. A matrix-vector product runs without moving data to the CPU/GPU at all. Analog variants use the physics of resistive memory to compute dot products electrically.</p></div>
+    <div><h4>Why it matters</h4><p>AI inference is 60–80% data movement energy, not arithmetic. PIM attacks that majority cost. The tradeoff: less programming flexibility, lower precision, and harder to debug than a GPU — so papers spend significant effort on correctness guarantees and quantization strategies.</p></div>
+    <div class="corpus"><b>corpus →</b> 27 ISCA 2025 papers focus on PIM/near-data processing. RRAM-based analog PIM appears repeatedly; hybrid digital-analog architectures dominate the advanced designs.</div>
+  </div>
+</section>
+
+
+<!-- 04 · SPARSITY ----------------------------------------------------------- -->
+<section id="sparse">
+  <div class="eye"><span class="n">04</span> · <span class="stage">MOVE LESS</span> · T5 — sparsity <span class="tag">96 papers</span></div>
+  <h2>Most of the weight matrix is zero — so skip it</h2>
+  <p class="sub">A trained neural network's weight matrix is mostly near-zero values that contribute almost nothing to the output. If you identify them and skip the computation entirely, you get the same answer with a fraction of the work. The catch: zeros are scattered unpredictably, and skipping irregular patterns is hard to parallelize on a GPU.</p>
+  <div class="panel"><canvas data-anim="sparse" height="300"></canvas>
+    <div class="readout">
+      <span>sparsity: <b id="sp-pct">—</b></span>
+      <span>computed: <b id="sp-done">—</b></span>
+      <span>skipped: <span class="amb" id="sp-skip">—</span></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>During or after training, weights below a threshold are zeroed out. At inference, a sparse compute unit checks each weight before multiplying: if zero, skip and move on. Structured sparsity (pruning whole channels or blocks) maps better to hardware; unstructured sparsity is higher accuracy but irregular to execute.</p></div>
+    <div><h4>Why it matters</h4><p>At 90% sparsity you do 10× less arithmetic and move 10× less data — if the hardware can exploit it. Nvidia's Ampere A100 supports 2:4 structured sparsity natively (2 non-zeros per 4 weights) for exactly 2× speedup. Papers push to higher ratios with accuracy recovery techniques.</p></div>
+    <div class="corpus"><b>corpus →</b> T5 spans ISCA, MICRO, HPCA. Structured sparsity (block, N:M) is now dominant over unstructured. Activation sparsity (sparse attention) is a rising 2025 theme.</div>
+  </div>
+</section>
+
+
+<!-- 05 · RING-ALLREDUCE ---------------------------------------------------- -->
+<section id="allreduce">
+  <div class="eye"><span class="n">05</span> · <span class="stage">MOVE IT RELIABLY</span> · T4 — interconnect <span class="tag">139 papers</span></div>
+  <h2>Training across hundreds of chips means getting them all to agree — over a wire</h2>
+  <p class="sub">During training, every GPU computes a gradient update on its own data slice. Before the next step, everyone needs the sum of all gradients — the "collective." A ring-allreduce does this by passing shards around a ring of GPUs, accumulating as they go. The bottleneck is the link between any two adjacent GPUs. Bandwidth there limits training throughput everywhere.</p>
+  <div class="panel"><canvas data-anim="allreduce" height="300"></canvas>
+    <div class="readout">
+      <span>phase: <b id="ar-phase">—</b></span>
+      <span>passes: <b id="ar-pass">—</b></span>
+      <span>link bandwidth: <span class="amb">the ceiling</span></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>Ring-allreduce in two phases: reduce-scatter (each GPU sends its shard clockwise, accumulates what arrives — after N-1 passes each GPU has one fully-summed shard) then all-gather (broadcast the fully-summed slices back around). Total data sent: 2×(N-1)/N × message size. For large N that approaches 2 messages regardless of cluster size.</p></div>
+    <div><h4>Why it matters</h4><p>Training a frontier model requires thousands of GPUs communicating constantly. If the interconnect can't keep up, GPUs idle waiting for gradient updates — the same compute-starvation problem from diagram 00, now between chips rather than between compute and memory. NVLink, InfiniBand, and custom topologies (Torus, Dragonfly) exist entirely to raise this ceiling.</p></div>
+    <div class="corpus"><b>corpus →</b> T4 is the dominant theme at SC 2025 (74 papers). Novel topologies (Zettafly, MeshSlice 2D-tensor) and traffic-shaping (NetCrafter) are the main 2025 contributions.</div>
+  </div>
+</section>
+
+
+<!-- 06 · GRAPH FUSION ------------------------------------------------------- -->
+<section id="fuse">
+  <div class="eye"><span class="n">06</span> · <span class="stage">SHORTEN THE TRIP</span> · T6 — compilers <span class="tag">140 papers</span></div>
+  <h2>Four operators → one kernel: the intermediate tensors never leave the chip</h2>
+  <p class="sub">When a compiler runs a neural network on a chip, it can execute each operator (Conv, ReLU, Norm, Add) as a separate kernel — each one writing its output to DRAM and the next reading it back. Or it can fuse them into a single kernel that keeps intermediate results in the chip's fast on-chip SRAM and only touches DRAM once. Same math. Radically less data movement.</p>
+  <div class="panel"><canvas data-anim="fuse" height="310"></canvas>
+    <div class="readout">
+      <span>unfused: <span class="amb" id="fu-dram">—</span> DRAM roundtrips</span>
+      <span>fused: <b>1 roundtrip</b></span>
+      <span>effective speedup: <b id="fu-spd">~3–4×</b></span>
+    </div>
+  </div>
+  <div class="notes">
+    <div><h4>Mechanism</h4><p>The compiler's job is to find chains of operators where all intermediate tensors fit in SRAM simultaneously, then merge them into one GPU kernel. The merged kernel reads its input once from DRAM, streams through all operations in registers/SRAM, writes output once. DRAM roundtrips collapse from N to 1.</p></div>
+    <div><h4>Why it matters</h4><p>DRAM bandwidth is the bottleneck (diagram 00). Fusion directly reduces the number of times data crosses the DRAM ↔ compute bus — which is the expensive operation. Modern ML compilers (XLA, TVM, Triton, MLIR) spend most of their optimization budget here. A 3–10× speedup from fusion alone is common on transformer workloads.</p></div>
+    <div class="corpus"><b>corpus →</b> T6 at ASPLOS, MLSys, DAC, CGO. Operator fusion + memory layout co-optimization is cited as the primary lever in 60%+ of T6 papers. MLIR-based passes are now the standard IR for this.</div>
+  </div>
+</section>
+
+
+<!-- 07 · SYNTHESIS --------------------------------------------------------- -->
+<section id="synthesis" style="border-bottom:1px solid var(--line)">
+  <div class="eye"><span class="n">07</span> · The map</div>
+  <h2>All nine themes, one constraint — each theme is an attack on a different part of the wall</h2>
+  <p class="sub">The six mechanisms above are not independent ideas. They're all attacks on the same wall from different angles. Place them on the system and the pattern is clear: some reduce how much data you move (T2, T5); some shorten how far it travels (T3, T6); some manage the chip-to-chip channel (T4); some add correctness and trust guarantees around the whole thing (T7, T8); some redesign the compute end entirely (T1, T9).</p>
+  <div class="panel"><canvas data-anim="synthesis" height="340"></canvas></div>
+  <p class="fnote" style="margin-top:22px;font-family:var(--sans);font-size:.97rem;color:var(--mut);max-width:62ch;line-height:1.65">
+    The through-line: every advance in 2025 buys <b style="color:var(--ink)">fewer bytes moved, or shorter distances traveled, or stronger guarantees on what arrives.</b> Arithmetic got cheap a decade ago. The field now optimizes the wire, not the math.
+  </p>
+  <div class="notes" style="margin-top:24px">
+    <div><h4>Themes that reduce data</h4><p><b style="color:var(--ink)">T2 quantization</b> — smaller numbers, fewer bits per transfer.<br><b style="color:var(--ink)">T5 sparsity</b> — zeros skipped, never fetched.<br><b style="color:var(--ink)">T1 attention</b> — KV cache compressed, prefixed, paged, tiled.</p></div>
+    <div><h4>Themes that shorten the trip</h4><p><b style="color:var(--ink)">T3 memory wall</b> — compute embedded in DRAM, data barely moves.<br><b style="color:var(--ink)">T6 compilers</b> — intermediate tensors stay in SRAM via fusion.<br><b style="color:var(--ink)">T9 specialized</b> — custom datapaths eliminate general-purpose overhead.</p></div>
+    <div><h4>Themes that protect the channel</h4><p><b style="color:var(--ink)">T4 interconnect</b> — topology, routing, and bandwidth between chips.<br><b style="color:var(--ink)">T7 security</b> — data in transit and at rest, adversarial and fault-driven.<br><b style="color:var(--ink)">T8 reliability</b> — correctness under lower power margins and faults.</p></div>
+    <div><h4>What's still open</h4><p>LLM inference at scale has no clean solution yet — 31 ISCA papers alone grapple with this. The KV cache memory crisis is a thousand-paper problem with no decisive answer. The field is early in understanding how to make the wall shorter rather than running faster at it.</p></div>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <p class="fnote">Seven mechanisms. All from the corpus — <b>1,769 papers</b> across MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC · ISSCC · Hot Chips · SC · VLSID. Diagrams are schematic, built to show mechanism and proportion, not to pixel-precise scale.</p>
+  <div>
+    <a href="index.html">master narrative</a> ·
+    <a href="deepdives.html">deep dives</a> ·
+    <a href="synthesis.html">cross-venue synthesis</a> ·
+    <a href="explorer.html">explorer</a>
+  </div>
+</div></footer>
+
+</div><!-- /wrap -->
+
+<script>
+(function(){
+  const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const C = {
+    cyan:'#38E1CF', cyan2:'#12A79A', amber:'#F5A65B', coral:'#FF6B5C', violet:'#9C8CFF',
+    ink:'#E7EFF1', mut:'#8B9BA2', dim:'#586770', line:'#243440', panel:'#0D131A',
+    teal2:'rgba(56,225,207,.18)', amber2:'rgba(245,166,91,.18)',
+  };
+
+  function fit(cv){
+    const dpr=Math.min(devicePixelRatio||1,2), w=cv.clientWidth, h=parseInt(cv.getAttribute('height'))||300;
+    cv.width=w*dpr; cv.height=h*dpr;
+    const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w,h};
+  }
+
+  function gText(ctx,s,x,y,col,size,font,align,base){
+    ctx.save();
+    ctx.font=(size||12)+'px '+(font||'ui-monospace,Menlo,monospace');
+    ctx.textAlign=align||'left'; ctx.textBaseline=base||'middle';
+    ctx.fillStyle=col; ctx.fillText(s,x,y);
+    ctx.restore();
+  }
+
+  function arrow(ctx,x1,y1,x2,y2,col,lw){
+    ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=lw||1.4;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1);
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-8*Math.cos(a-.4),y2-8*Math.sin(a-.4));
+    ctx.lineTo(x2-8*Math.cos(a+.4),y2-8*Math.sin(a+.4));
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  function roundRect(ctx,x,y,w,h,r,fill,stroke,lw){
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x,y,w,h,r);
+    else {ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw||1;ctx.stroke();}
+  }
+
+  const A = {};
+
+  /* ---- 00 GAP ---- */
+  A.gap = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+    const cols=4, rows=3, unitW=40, unitH=28, padX=18, padY=20;
+    const gridX=padX, gridY=(h-rows*unitH-(rows-1)*padY)/2;
+
+    // one packet crawls slowly from DRAM to compute
+    const busY=h/2;
+    const dramX=w*0.74, dramW=w*0.21, dramH=h*0.55, dramY=(h-dramH)/2;
+    const busX1=gridX+cols*unitW+(cols-1)*padX+16, busX2=dramX-4;
+
+    // draw DRAM
+    roundRect(ctx,dramX,dramY,dramW,dramH,8,'rgba(245,166,91,.07)','rgba(245,166,91,.4)',1.5);
+    gText(ctx,'DRAM',dramX+dramW/2,dramY-11,C.amber,10.5,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'memory',dramX+dramW/2,dramY+dramH+14,C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+
+    // draw narrow bus line
+    ctx.save();
+    ctx.strokeStyle=C.line; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(busX1,busY); ctx.lineTo(busX2,busY); ctx.stroke();
+    gText(ctx,'memory bus',( busX1+busX2)/2,busY+14,C.dim,9,'ui-monospace,Menlo,monospace','center');
+    ctx.restore();
+
+    // packet on bus — ONE packet at a time, moving slowly
+    const packetU=(t*0.09)%1;  // very slow
+    const px=busX1+(busX2-busX1)*packetU;
+    ctx.save();
+    ctx.fillStyle=C.cyan; ctx.shadowColor=C.cyan; ctx.shadowBlur=10;
+    ctx.beginPath(); ctx.arc(px,busY,4,0,7); ctx.fill();
+    ctx.restore();
+
+    // compute units — which one is "receiving" this cycle
+    const activeUnit = Math.floor(packetU*(cols*rows));
+    const totUnits=cols*rows;
+    let idleCount=0;
+
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const i=r*cols+c;
+        const ux=gridX+c*(unitW+padX), uy=gridY+r*(unitH+padY);
+        // active only for the brief moment packet arrives
+        const isActive = (i===activeUnit);
+        const glow=isActive?'rgba(56,225,207,.18)':'rgba(245,166,91,.04)';
+        const border=isActive?C.cyan:'rgba(245,166,91,.25)';
+        roundRect(ctx,ux,uy,unitW,unitH,5,glow,border,isActive?1.6:1);
+        if(!isActive) idleCount++;
+        gText(ctx,isActive?'×':'∅',ux+unitW/2,uy+unitH/2,isActive?C.cyan:'rgba(245,166,91,.4)',11,'ui-monospace,Menlo,monospace','center');
+      }
+    }
+
+    gText(ctx,'compute units',gridX+(cols*(unitW+padX)-padX)/2,gridY-13,C.dim,10,'ui-monospace,Menlo,monospace','center');
+
+    // utility readout
+    const util=Math.round((1/totUnits)*100);
+    const el=document.getElementById('gap-util');
+    if(el) el.textContent=util+'%  ('+idleCount+'/'+totUnits+' idle)';
+  };
+
+
+  /* ---- 01 QUANTIZE ---- */
+  A.quantize = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+    // cycle through FP32 → INT8 → INT4 → INT2 every 3 seconds
+    const period=3.5;
+    const phaseIdx=Math.floor((t/period)%4);
+    const tInPhase=(t%period)/period; // 0..1 within current phase
+
+    const configs=[
+      {bits:'FP32',steps:32,mul:1,label:'1×'},
+      {bits:'INT8',steps:8,mul:4,label:'4×'},
+      {bits:'INT4',steps:4,mul:8,label:'8×'},
+      {bits:'INT2',steps:2,mul:16,label:'16×'},
+    ];
+    const cfg=configs[phaseIdx];
+
+    const chartX=24, chartW=w*0.58, chartY=32, chartH=h-80;
+    const midY=chartY+chartH/2;
+
+    // true sine signal (dim)
+    ctx.save();
+    ctx.strokeStyle='rgba(139,155,162,.3)'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let px=0;px<=chartW;px++){
+      const x=chartX+px;
+      const u=px/chartW;
+      const y=midY-Math.sin(u*Math.PI*3+t*0.3)*(chartH*0.4);
+      if(px===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    gText(ctx,'true signal (FP32)',chartX,chartY-12,C.dim,9.5,'ui-monospace,Menlo,monospace','left');
+
+    // quantized step function
+    const N=cfg.steps;
+    const stepH=chartH*0.8/N;
+    ctx.save();
+    ctx.strokeStyle=cfg.bits==='FP32'?C.cyan:(cfg.bits==='INT8'?C.cyan:cfg.bits==='INT4'?C.amber:C.coral);
+    ctx.lineWidth=2.2;
+    ctx.beginPath();
+    for(let px=0;px<=chartW;px++){
+      const x=chartX+px;
+      const u=px/chartW;
+      const trueVal=Math.sin(u*Math.PI*3+t*0.3); // -1..1
+      const q=Math.round(trueVal*(N/2-0.5))/(N/2-0.5);
+      const y=midY-q*(chartH*0.4);
+      if(px===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // rounding error bracket at one sample
+    const sampleU=0.35;
+    const trueV=Math.sin(sampleU*Math.PI*3+t*0.3);
+    const qV=Math.round(trueV*(N/2-0.5))/(N/2-0.5);
+    const sy=midY-trueV*(chartH*0.4);
+    const qy=midY-qV*(chartH*0.4);
+    if(Math.abs(sy-qy)>2){
+      ctx.save();
+      ctx.strokeStyle='rgba(245,166,91,.6)'; ctx.lineWidth=1;
+      ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(chartX+sampleU*chartW,Math.min(sy,qy));
+      ctx.lineTo(chartX+sampleU*chartW,Math.max(sy,qy)); ctx.stroke();
+      gText(ctx,'error',chartX+sampleU*chartW+6,(sy+qy)/2,C.amber,9,'ui-monospace,Menlo,monospace','left');
+      ctx.restore();
+    }
+
+    // RIGHT: throughput packing diagram
+    const rightX=chartX+chartW+28, rightW=w-rightX-16;
+    gText(ctx,'values per transfer',rightX+rightW/2,chartY-12,C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+    const cellW=(rightW-8)/cfg.mul, cellH=Math.min(28,chartH/(configs[3].mul+2));
+    for(let i=0;i<cfg.mul;i++){
+      const cx=rightX+4+(i%Math.ceil(rightW/cellW))*(cellW+2);
+      const cy=chartY+12+Math.floor(i/Math.ceil(rightW/cellW))*(cellH+3);
+      const colFill=cfg.bits==='FP32'?'rgba(56,225,207,.15)':cfg.bits==='INT8'?'rgba(56,225,207,.2)':cfg.bits==='INT4'?'rgba(245,166,91,.2)':'rgba(255,107,92,.2)';
+      const colStroke=cfg.bits==='FP32'?C.cyan:cfg.bits==='INT8'?C.cyan:cfg.bits==='INT4'?C.amber:C.coral;
+      roundRect(ctx,cx,cy,cellW-1,cellH-1,3,colFill,colStroke,1.2);
+    }
+    gText(ctx,cfg.label+' throughput',rightX+rightW/2,chartY+12+Math.ceil(cfg.mul/Math.ceil(rightW/cellW))*(cellH+3)+14,
+      cfg.bits==='FP32'?C.cyan:cfg.bits==='INT8'?C.cyan:cfg.bits==='INT4'?C.amber:C.coral,
+      11,'ui-monospace,Menlo,monospace','center');
+
+    // bit-width label, big
+    gText(ctx,cfg.bits,chartX,h-20,C.ink,18,'ui-monospace,Menlo,monospace','left');
+    gText(ctx,'← '+cfg.steps+' quantization levels',chartX+56,h-20,C.dim,10,'ui-monospace,Menlo,monospace','left');
+
+    const eb=document.getElementById('q-bits'), ee=document.getElementById('q-err'), et=document.getElementById('q-thru');
+    if(eb) eb.textContent=cfg.bits;
+    if(ee){
+      const maxErr=1/(N-1);
+      ee.textContent=(maxErr*100).toFixed(1)+'% of range';
+    }
+    if(et) et.textContent=cfg.mul+'× ('+cfg.label+')';
+  };
+
+
+  /* ---- 02 KV CACHE ---- */
+  A.kvcache = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    // token count grows over 8-second cycle, resets
+    const MAX=16;
+    const cycle=t*0.6;
+    const N=Math.max(1, Math.min(MAX, Math.floor(cycle%MAX)+1));
+
+    const pageH=14, pageGap=2;
+    const stackX=24, stackW=100;
+    const stackBottom=h-38;
+    const computeX=w*0.62, computeY=h/2-10, computeW=w*0.22, computeH=40;
+
+    // label
+    gText(ctx,'KV cache',stackX,28,C.dim,9.5,'ui-monospace,Menlo,monospace','left');
+    gText(ctx,'(per-token stored summaries)',stackX,42,C.dim,8.5,'ui-monospace,Menlo,monospace','left');
+
+    // draw pages stacked bottom-up
+    for(let i=0;i<N;i++){
+      const py=stackBottom-(i+1)*(pageH+pageGap);
+      const age=i/MAX;
+      const col=i===N-1?C.cyan:'rgba(56,225,207,'+(0.15+0.2*(1-age))+')';
+      const border=i===N-1?C.cyan:'rgba(56,225,207,.3)';
+      roundRect(ctx,stackX,py,stackW,pageH,3,i===N-1?'rgba(56,225,207,.2)':'rgba(56,225,207,.05)',border,i===N-1?1.6:0.8);
+      if(i===N-1){
+        ctx.save();ctx.shadowColor=C.cyan;ctx.shadowBlur=8;
+        roundRect(ctx,stackX,py,stackW,pageH,3,null,C.cyan,1.6);
+        ctx.restore();
+        gText(ctx,'token '+N,stackX+6,py+7,C.ink,8,'ui-monospace,Menlo,monospace','left');
+      }
+    }
+
+    // "pages needed" label
+    gText(ctx,N+' pages stacked',stackX,stackBottom+16,C.mut,9,'ui-monospace,Menlo,monospace','left');
+
+    // COMPUTE box
+    roundRect(ctx,computeX,computeY-computeH/2,computeW,computeH,7,C.teal2,C.cyan2,1.4);
+    gText(ctx,'COMPUTE',computeX+computeW/2,computeY,C.ink,11,'ui-monospace,Menlo,monospace','center');
+
+    // draw arrows from each cached page to compute
+    // animate: arrows appear from bottom page first
+    const arrowPhase=(t*1.5)%N;
+    for(let i=0;i<N;i++){
+      const py=stackBottom-(i+1)*(pageH+pageGap);
+      const pageMidY=py+pageH/2;
+      const progress=Math.min(1,Math.max(0,arrowPhase-i));
+      if(progress<=0) continue;
+      // draw partial arrow
+      const ex=computeX;
+      const ey=computeY+(i-(N-1)/2)*2.5;
+      const startX=stackX+stackW;
+      const curX=startX+progress*(ex-startX);
+      const opacity=i===N-1?0.9:0.15+0.35*(i/N);
+      ctx.save();
+      ctx.globalAlpha=opacity;
+      ctx.strokeStyle=i===N-1?C.cyan:C.mut;
+      ctx.lineWidth=i===N-1?1.6:0.8;
+      ctx.setLineDash(i===N-1?[]:[2,3]);
+      ctx.beginPath();
+      ctx.moveTo(startX,pageMidY);
+      ctx.bezierCurveTo(startX+20,pageMidY,curX-20,ey,curX,ey);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // annotation: O(N) data movement
+    const annX=w*0.43, annY=h-28;
+    gText(ctx,'generating 1 word requires reading all '+N+' pages',annX,annY,C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'data moved per token grows with context length',annX,annY+14,C.amber,9,'ui-monospace,Menlo,monospace','center');
+
+    const en=document.getElementById('kv-n'), er=document.getElementById('kv-reads');
+    if(en) en.textContent=N;
+    if(er) er.textContent=N+' KV pages ('+Math.round(N*2*64/1024)+'KB per layer at d=64)';
+  };
+
+
+  /* ---- 03 PIM ---- */
+  A.pim = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    const midX=w/2;
+    // divider
+    ctx.save();ctx.strokeStyle='rgba(36,52,64,.7)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+    ctx.beginPath();ctx.moveTo(midX,24);ctx.lineTo(midX,h-24);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    gText(ctx,'classical (CPU+DRAM)',w*0.25,18,C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'in-memory computing (PIM)',w*0.75,18,C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+
+    // === LEFT PANEL: Classical ===
+    const lW=midX-20;
+    const cpuX=28,cpuY=h/2-20,cpuW=56,cpuH=40;
+    const dramX=lW-72,dramY=h/2-60,dramW=56,dramH=100;
+    const busY=h/2;
+
+    // DRAM (left)
+    roundRect(ctx,dramX,dramY,dramW,dramH,6,'rgba(245,166,91,.07)','rgba(245,166,91,.5)',1.5);
+    gText(ctx,'DRAM',dramX+dramW/2,dramY+dramH/2,C.amber,10,'ui-monospace,Menlo,monospace','center');
+
+    // CPU (left)
+    roundRect(ctx,cpuX,cpuY,cpuW,cpuH,6,'rgba(56,225,207,.07)',C.cyan2,1.5);
+    gText(ctx,'CPU',cpuX+cpuW/2,cpuY+cpuH/2,C.cyan,10,'ui-monospace,Menlo,monospace','center');
+
+    // BUS — draw as a pipe with energy ticks
+    const busX1=cpuX+cpuW, busX2=dramX;
+    ctx.save();
+    ctx.strokeStyle='rgba(139,155,162,.4)';ctx.lineWidth=10;ctx.lineCap='butt';
+    ctx.beginPath();ctx.moveTo(busX1,busY);ctx.lineTo(busX2,busY);ctx.stroke();
+    ctx.strokeStyle='rgba(245,166,91,.1)';ctx.lineWidth=8;
+    ctx.beginPath();ctx.moveTo(busX1,busY);ctx.lineTo(busX2,busY);ctx.stroke();
+    ctx.restore();
+    // energy tick marks
+    const nTicks=10;
+    for(let i=1;i<nTicks;i++){
+      const tx=busX1+(busX2-busX1)*(i/nTicks);
+      ctx.save();ctx.strokeStyle='rgba(245,166,91,.5)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(tx,busY-6);ctx.lineTo(tx,busY+6);ctx.stroke();ctx.restore();
+    }
+    gText(ctx,'memory bus  (every tick = energy)',((busX1+busX2)/2),busY+22,C.amber,8.5,'ui-monospace,Menlo,monospace','center');
+
+    // packet moving left (from DRAM to CPU)
+    const pktU=(t*0.25)%1;
+    const pktX=dramX+(busX1-dramX)*(1-pktU);
+    ctx.save();ctx.fillStyle=C.amber;ctx.shadowColor=C.amber;ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(pktX,busY,4.5,0,7);ctx.fill();ctx.restore();
+
+    // energy cost label
+    gText(ctx,'~100 pJ / op',cpuX+cpuW/2,cpuY-12,C.coral,9,'ui-monospace,Menlo,monospace','center');
+
+    // === RIGHT PANEL: PIM ===
+    const rOffX=midX+12;
+    const pimW=lW-20;
+    const pimDramX=rOffX+(pimW-80)/2, pimDramY=h/2-70, pimDramW=80, pimDramH=120;
+
+    // PIM DRAM block with embedded dots
+    roundRect(ctx,pimDramX,pimDramY,pimDramW,pimDramH,8,'rgba(245,166,91,.06)','rgba(245,166,91,.5)',1.5);
+    gText(ctx,'DRAM',pimDramX+pimDramW/2,pimDramY-12,C.amber,10,'ui-monospace,Menlo,monospace','center');
+
+    // embedded compute dots (PIM units)
+    const nDots=8;
+    for(let i=0;i<nDots;i++){
+      const dx=pimDramX+14+(i%4)*(pimDramW-28)/3;
+      const dy=pimDramY+22+Math.floor(i/4)*(pimDramH-44);
+      const active=Math.floor(t*2+i*0.7)%3===0;
+      ctx.save();
+      if(active){ctx.shadowColor=C.cyan;ctx.shadowBlur=10;}
+      ctx.fillStyle=active?C.cyan:'rgba(56,225,207,.35)';
+      ctx.beginPath();ctx.arc(dx,dy,active?5:3.5,0,7);ctx.fill();
+      if(active){
+        // spark/MAC happening
+        ctx.strokeStyle=C.cyan;ctx.lineWidth=1;ctx.globalAlpha=0.5;
+        ctx.beginPath();ctx.arc(dx,dy,9,0,7);ctx.stroke();
+      }
+      ctx.restore();
+    }
+    gText(ctx,'compute units embedded in DRAM',pimDramX+pimDramW/2,pimDramY+pimDramH+14,C.cyan,8.5,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'~1 pJ / op',pimDramX+pimDramW/2,pimDramY+pimDramH+26,C.cyan,8.5,'ui-monospace,Menlo,monospace','center');
+
+    // tiny flash of zero bus travel
+    const flash=0.4+0.3*Math.sin(t*2);
+    ctx.save();ctx.globalAlpha=flash*0.5;ctx.strokeStyle=C.cyan;ctx.lineWidth=1;ctx.setLineDash([2,3]);
+    ctx.beginPath();ctx.moveTo(pimDramX,h/2);ctx.lineTo(pimDramX+pimDramW,h/2);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    gText(ctx,'no bus crossing',pimDramX+pimDramW/2,h/2+14,C.dim,8.5,'ui-monospace,Menlo,monospace','center');
+  };
+
+
+  /* ---- 04 SPARSE ---- */
+  let _spSeed=null;
+  A.sparse = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    const COLS=20, ROWS=13;
+    const padX=24, padY=36;
+    const cellW=Math.min(28,(w-padX*2)/COLS-2), cellH=Math.min(20,(h-padY*2-32)/ROWS-2);
+    const totalW=COLS*(cellW+2)-2, totalH=ROWS*(cellH+2)-2;
+    const startX=(w-totalW)/2, startY=padY;
+
+    // generate sparse weight matrix once
+    if(!_spSeed){
+      _spSeed=[];
+      for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+        const v=Math.random()<0.14?Math.random()*0.8+0.2:0; // ~14% non-zero
+        _spSeed.push(v);
+      }
+    }
+    const weights=_spSeed;
+
+    // scan cursor position (cycles over all cells)
+    const totalCells=ROWS*COLS;
+    const scanIdx=Math.floor((t*18)%totalCells);
+
+    let computed=0, skipped=0;
+    for(let i=0;i<Math.min(scanIdx+1,totalCells);i++){
+      if(weights[i]>0) computed++; else skipped++;
+    }
+
+    // draw cells
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const i=r*COLS+c;
+        const v=weights[i];
+        const cx=startX+c*(cellW+2), cy=startY+r*(cellH+2);
+        const isScan=(i===scanIdx);
+        const isPast=(i<scanIdx);
+
+        let fill,stroke;
+        if(v>0){
+          // non-zero: teal
+          fill=isScan?'rgba(56,225,207,.45)':isPast?'rgba(56,225,207,.18)':'rgba(56,225,207,.09)';
+          stroke=isScan?C.cyan:isPast?'rgba(56,225,207,.5)':'rgba(56,225,207,.2)';
+        } else {
+          // zero: very dim
+          fill=isScan?'rgba(245,166,91,.12)':'rgba(139,155,162,.04)';
+          stroke=isScan?'rgba(245,166,91,.5)':'rgba(139,155,162,.08)';
+        }
+
+        roundRect(ctx,cx,cy,cellW,cellH,2,fill,stroke,isScan?1.4:0.8);
+
+        if(isScan){
+          if(v>0){
+            // compute flash
+            ctx.save();ctx.shadowColor=C.cyan;ctx.shadowBlur=12;
+            roundRect(ctx,cx,cy,cellW,cellH,2,null,C.cyan,1.6);
+            ctx.restore();
+            gText(ctx,'×',cx+cellW/2,cy+cellH/2,C.cyan,9,'ui-monospace,Menlo,monospace','center');
+          } else {
+            // skip mark
+            ctx.save();ctx.strokeStyle='rgba(245,166,91,.8)';ctx.lineWidth=1.5;
+            ctx.beginPath();ctx.moveTo(cx+4,cy+4);ctx.lineTo(cx+cellW-4,cy+cellH-4);
+            ctx.moveTo(cx+cellW-4,cy+4);ctx.lineTo(cx+4,cy+cellH-4);ctx.stroke();ctx.restore();
+          }
+        }
+      }
+    }
+
+    // bottom stats
+    const total=scanIdx+1;
+    const pct=total>0?Math.round((skipped/total)*100):0;
+    gText(ctx,'computing',startX,h-20,C.mut,9.5,'ui-monospace,Menlo,monospace','left');
+    gText(ctx,'only non-zero weights',startX+74,h-20,C.cyan,9.5,'ui-monospace,Menlo,monospace','left');
+    gText(ctx,'—',startX+200,h-20,C.dim,9.5,'ui-monospace,Menlo,monospace','left');
+    gText(ctx,pct+'% skipped so far',startX+218,h-20,C.amber,9.5,'ui-monospace,Menlo,monospace','left');
+
+    const ep=document.getElementById('sp-pct'), ed=document.getElementById('sp-done'), es=document.getElementById('sp-skip');
+    if(ep) ep.textContent=Math.round((1-0.14)*100)+'% zeros';
+    if(ed) ed.textContent=computed;
+    if(es) es.textContent=skipped+' ('+pct+'% so far)';
+  };
+
+
+  /* ---- 05 RING-ALLREDUCE ---- */
+  A.allreduce = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    const N=6;
+    const cx=w/2, cy=h/2+8, R=Math.min(w,h)*0.31;
+    const gpuW=44, gpuH=30;
+
+    // colors for 6 GPUs' gradient shards
+    const shardCols=[C.cyan,C.amber,C.violet,C.coral,'#78D97B','#D97898'];
+
+    // animation: 8-second cycle: 0-3s = reduce-scatter, 3-6s = all-gather, 6-8s = display complete
+    const CYCLE=8;
+    const tCycle=t%(CYCLE);
+    const phase=tCycle<4?0:tCycle<7?1:2; // 0=scatter, 1=gather, 2=done
+    const phaseT=phase===0?tCycle/4:phase===1?(tCycle-4)/3:1;
+
+    // GPU positions
+    const gpus=Array.from({length:N},(_, i)=>{
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      return {x:cx+R*Math.cos(a),y:cy+R*Math.sin(a),idx:i,a};
+    });
+
+    // Draw ring links
+    gpus.forEach((g,i)=>{
+      const next=gpus[(i+1)%N];
+      // is this the "bottleneck" link?
+      const isBottom=(i===0||i===N-1);
+      ctx.save();
+      ctx.strokeStyle=isBottom&&phase===0?'rgba(245,166,91,.6)':C.line;
+      ctx.lineWidth=isBottom&&phase===0?1.8:1.2;
+      if(phase===0&&isBottom){ctx.shadowColor=C.amber;ctx.shadowBlur=8;}
+      ctx.beginPath();ctx.moveTo(g.x,g.y);ctx.lineTo(next.x,next.y);ctx.stroke();
+      ctx.restore();
+    });
+
+    // Draw moving packets on links during phases
+    if(phase<2){
+      const passProgress=phaseT*(N-1); // 0..N-1 passes completed
+      const currentPass=Math.floor(passProgress);
+      const passT=passProgress-currentPass;
+      // packets on each link simultaneously
+      gpus.forEach((g,i)=>{
+        const next=gpus[(i+1)%N];
+        const px=g.x+(next.x-g.x)*passT;
+        const py=g.y+(next.y-g.y)*passT;
+        ctx.save();
+        ctx.fillStyle=shardCols[i];ctx.shadowColor=shardCols[i];ctx.shadowBlur=8;
+        ctx.beginPath();ctx.arc(px,py,4,0,7);ctx.fill();ctx.restore();
+      });
+    }
+
+    // Draw GPUs
+    gpus.forEach((g,i)=>{
+      const ux=g.x-gpuW/2, uy=g.y-gpuH/2;
+
+      // How many colors does this GPU have?
+      let colorsHeld;
+      if(phase===0){
+        const passCount=Math.floor(phaseT*(N-1));
+        colorsHeld=Math.min(N,1+passCount);
+      } else if(phase===1){
+        const passCount=Math.floor(phaseT*(N-1));
+        colorsHeld=Math.min(N,1+passCount);
+      } else {
+        colorsHeld=N;
+      }
+
+      // background
+      roundRect(ctx,ux,uy,gpuW,gpuH,5,'rgba(14,22,32,.8)',phase===2?C.cyan:'rgba(36,52,64,.9)',1.3);
+
+      // mini color bars inside
+      const barW=(gpuW-8)/Math.max(colorsHeld,1);
+      for(let k=0;k<colorsHeld;k++){
+        const bi=(i+k)%N;
+        const bx=ux+4+k*barW;
+        const by=uy+8;
+        const bh=gpuH-16;
+        const opacity=phase===2?0.9:0.5+0.4*(k/Math.max(colorsHeld-1,1));
+        ctx.save();ctx.globalAlpha=opacity;
+        ctx.fillStyle=shardCols[bi];
+        ctx.fillRect(bx,by,barW-1,bh);
+        ctx.restore();
+      }
+
+      // label
+      gText(ctx,'G'+i,g.x,g.y+gpuH/2+11,phase===2?C.cyan:C.dim,9,'ui-monospace,Menlo,monospace','center');
+    });
+
+    // bottleneck label
+    if(phase===0){
+      const botLink=gpus[0];
+      gText(ctx,'← link bandwidth limit',botLink.x+R*0.35,botLink.y+16,C.amber,9.5,'ui-monospace,Menlo,monospace','left');
+    }
+
+    // phase label
+    const phaseNames=['REDUCE-SCATTER: accumulating shards','ALL-GATHER: broadcasting full gradient','COMPLETE: all GPUs agree'];
+    gText(ctx,phaseNames[phase],cx,h-22,phase===2?C.cyan:C.mut,10,'ui-monospace,Menlo,monospace','center');
+
+    const ep=document.getElementById('ar-phase'), epp=document.getElementById('ar-pass');
+    if(ep) ep.textContent=['reduce-scatter','all-gather','complete'][phase];
+    if(epp) epp.textContent=phase<2?Math.min(N-1,Math.floor(phaseT*(N-1)))+' / '+(N-1):'done';
+  };
+
+
+  /* ---- 06 GRAPH FUSION ---- */
+  A.fuse = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    const midX=w/2-10;
+    ctx.save();ctx.strokeStyle='rgba(36,52,64,.7)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+    ctx.beginPath();ctx.moveTo(midX,20);ctx.lineTo(midX,h-20);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    gText(ctx,'unfused — 4 kernel launches',w*0.25,14,C.amber,9.5,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'fused — 1 kernel launch',w*0.76,14,C.cyan,9.5,'ui-monospace,Menlo,monospace','center');
+
+    const ops=['Conv','ReLU','Norm','Add'];
+    const boxW=66, boxH=26, dramW=54, dramH=18;
+    const colsL=midX-16;
+
+    // === LEFT: unfused ===
+    const lx=colsL/2-boxW/2;
+    const spacing=(h-56)/(ops.length+ops.length-1+1);
+    let prevBottom=0;
+    const roundtrips=[];
+
+    ops.forEach((op,i)=>{
+      const oy=30+i*(spacing*2);
+      // op box
+      roundRect(ctx,lx,oy,boxW,boxH,5,'rgba(56,225,207,.08)',C.mut,1.3);
+      gText(ctx,op,lx+boxW/2,oy+boxH/2,C.ink,11,'ui-monospace,Menlo,monospace','center');
+
+      // DRAM buffer below (if not last)
+      if(i<ops.length-1){
+        const dy=oy+boxH+spacing-dramH/2;
+        // animate: show the packet going out to DRAM and back
+        const pulse=0.3+0.3*Math.sin(t*2+i);
+        roundRect(ctx,lx+(boxW-dramW)/2,dy,dramW,dramH,4,'rgba(245,166,91,'+pulse*0.4+')',C.amber,1.4);
+        gText(ctx,'DRAM',lx+boxW/2,dy+dramH/2,C.amber,9,'ui-monospace,Menlo,monospace','center');
+        // arrows: op → DRAM, DRAM → next op
+        arrow(ctx,lx+boxW/2,oy+boxH,lx+boxW/2,dy-2,C.amber,1.2);
+        arrow(ctx,lx+boxW/2,dy+dramH,lx+boxW/2,dy+spacing,C.amber,1.2);
+        roundtrips.push(dy);
+      }
+    });
+
+    // "cost" annotation
+    gText(ctx,ops.length-1+' DRAM roundtrips = slow',colsL/2,h-20,C.amber,9.5,'ui-monospace,Menlo,monospace','center');
+
+    // === RIGHT: fused ===
+    const rx0=midX+12, rx=rx0+(w-rx0)/2-boxW/2-10;
+
+    // single fused op box (taller)
+    const fusedH=ops.length*boxH+(ops.length-1)*8;
+    const fy=(h-fusedH)/2-10;
+    roundRect(ctx,rx,fy,boxW+10,fusedH,8,'rgba(56,225,207,.12)',C.cyan,1.6);
+    gText(ctx,'Conv',rx+boxW/2+5,fy+boxH/2,C.ink,10,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'+',rx+boxW/2+5,fy+boxH+4,C.cyan2,9,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'ReLU',rx+boxW/2+5,fy+boxH*1.5+8,C.ink,10,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'+',rx+boxW/2+5,fy+boxH*2+12,C.cyan2,9,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'Norm',rx+boxW/2+5,fy+boxH*2.5+16,C.ink,10,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'+',rx+boxW/2+5,fy+boxH*3+20,C.cyan2,9,'ui-monospace,Menlo,monospace','center');
+    gText(ctx,'Add',rx+boxW/2+5,fy+boxH*3.5+24,C.ink,10,'ui-monospace,Menlo,monospace','center');
+
+    // SRAM badge inside
+    roundRect(ctx,rx+4,fy+fusedH-22,boxW+2,18,4,'rgba(56,225,207,.15)','rgba(56,225,207,.4)',1);
+    gText(ctx,'SRAM (on-chip)',rx+boxW/2+5,fy+fusedH-13,C.cyan,8,'ui-monospace,Menlo,monospace','center');
+
+    // one DRAM output
+    const outDY=fy+fusedH+26;
+    roundRect(ctx,rx+(boxW-dramW)/2+5,outDY,dramW,dramH,4,'rgba(245,166,91,.12)',C.amber,1.3);
+    gText(ctx,'DRAM',rx+boxW/2+5,outDY+dramH/2,C.amber,9,'ui-monospace,Menlo,monospace','center');
+    arrow(ctx,rx+boxW/2+5,fy+fusedH,rx+boxW/2+5,outDY-2,C.cyan,1.4);
+
+    gText(ctx,'1 DRAM roundtrip — intermediate data stays in SRAM',(rx0+w)/2,h-20,C.cyan,9.5,'ui-monospace,Menlo,monospace','center');
+
+    const ef=document.getElementById('fu-dram');
+    if(ef) ef.textContent=ops.length-1;
+  };
+
+
+  /* ---- 07 SYNTHESIS ---- */
+  A.synthesis = function(ctx,w,h,t){
+    ctx.clearRect(0,0,w,h);
+
+    // Draw the gap diagram at center (compact version of diagram 00)
+    const gapX=w*0.31, gapY=h*0.22, gapW=w*0.38, gapH=h*0.54;
+    const cpuX2=gapX+8, cpuW2=gapW*0.24, cpuH2=gapH*0.38, cpuY2=gapY+(gapH-cpuH2)/2;
+    const dW2=gapW*0.24, dH2=gapH*0.7, dX2=gapX+gapW-8-dW2, dY2=gapY+(gapH-dH2)/2;
+    const busY2=gapY+gapH/2;
+
+    // DRAM
+    roundRect(ctx,dX2,dY2,dW2,dH2,6,'rgba(245,166,91,.08)','rgba(245,166,91,.5)',1.5);
+    gText(ctx,'DRAM',dX2+dW2/2,dY2+dH2/2,C.amber,9.5,'ui-monospace,Menlo,monospace','center');
+
+    // CPU
+    roundRect(ctx,cpuX2,cpuY2,cpuW2,cpuH2,6,'rgba(56,225,207,.08)',C.cyan2,1.5);
+    gText(ctx,'compute',cpuX2+cpuW2/2,busY2,C.cyan,9,'ui-monospace,Menlo,monospace','center');
+
+    // Bus
+    ctx.save();ctx.strokeStyle='rgba(139,155,162,.3)';ctx.lineWidth=6;
+    ctx.beginPath();ctx.moveTo(cpuX2+cpuW2,busY2);ctx.lineTo(dX2,busY2);ctx.stroke();ctx.restore();
+    gText(ctx,'memory bus',gapX+gapW/2,busY2+18,C.dim,8.5,'ui-monospace,Menlo,monospace','center');
+
+    // Theme pills orbiting the diagram, lit up in sequence
+    const themes=[
+      {id:'T2',label:'T2 quantize',note:'fewer bits/transfer',angle:Math.PI*0.65,anchor:'bus',col:C.cyan},
+      {id:'T5',label:'T5 sparsity',note:'skip zeros = less data',angle:Math.PI*1.25,anchor:'bus',col:C.cyan},
+      {id:'T1',label:'T1 attention',note:'compress the KV cache',angle:Math.PI*0.0,anchor:'bus',col:C.cyan},
+      {id:'T3',label:'T3 near-data',note:'compute inside DRAM',angle:Math.PI*0.5,anchor:'dram',col:C.amber},
+      {id:'T6',label:'T6 compilers',note:'fuse ops, stay in SRAM',angle:Math.PI*1.5,anchor:'cpu',col:C.violet},
+      {id:'T9',label:'T9 specialized',note:'custom datapath',angle:Math.PI*1.2,anchor:'cpu',col:C.violet},
+      {id:'T4',label:'T4 interconnect',note:'chip-to-chip channel',angle:Math.PI*1.75,anchor:'bus',col:C.coral},
+      {id:'T7',label:'T7 security',note:'protect data in transit',angle:Math.PI*0.35,anchor:'bus',col:C.coral},
+      {id:'T8',label:'T8 reliability',note:'correct data, always',angle:Math.PI*1.92,anchor:'bus',col:C.coral},
+    ];
+
+    // light up one theme at a time (cycle every 1.5s)
+    const activeIdx=Math.floor(t/1.5)%themes.length;
+
+    themes.forEach((th,i)=>{
+      const isActive=(i===activeIdx);
+      // position around the gap diagram
+      const r=Math.min(w,h)*0.42;
+      const px=gapX+gapW/2+Math.cos(th.angle)*r*0.9;
+      const py=gapY+gapH/2+Math.sin(th.angle)*r*0.55;
+
+      const pillW=72, pillH=20;
+      const plx=px-pillW/2, ply=py-pillH/2;
+
+      // pill
+      roundRect(ctx,plx,ply,pillW,pillH,10,
+        isActive?th.col+'33':'rgba(14,22,32,.8)',
+        isActive?th.col:'rgba(36,52,64,.8)',
+        isActive?1.6:0.8);
+      gText(ctx,th.label,px,py,isActive?C.ink:C.dim,9.5,'ui-monospace,Menlo,monospace','center');
+
+      if(isActive){
+        // note label
+        gText(ctx,th.note,px,py+pillH/2+12,th.col,8.5,'ui-monospace,Menlo,monospace','center');
+        // connecting line to the gap diagram
+        ctx.save();ctx.strokeStyle=th.col;ctx.lineWidth=1;ctx.globalAlpha=0.4;ctx.setLineDash([2,3]);
+        ctx.beginPath();ctx.moveTo(px,ply);ctx.lineTo(gapX+gapW/2,busY2);ctx.stroke();
+        ctx.setLineDash([]);ctx.restore();
+        // glow on pill
+        ctx.save();ctx.shadowColor=th.col;ctx.shadowBlur=14;
+        roundRect(ctx,plx,ply,pillW,pillH,10,null,th.col,1.6);
+        ctx.restore();
+      }
+    });
+
+    // bottom key
+    const keyY=h-18;
+    const keys=[{col:C.cyan,label:'move less'},{col:C.amber,label:'shorten trip'},{col:C.violet,label:'optimize compute'},{col:C.coral,label:'protect channel'}];
+    const keyW=w/keys.length;
+    keys.forEach((k,i)=>{
+      ctx.save();ctx.fillStyle=k.col;ctx.beginPath();ctx.arc(keyW*(i+0.3)+12,keyY,4,0,7);ctx.fill();ctx.restore();
+      gText(ctx,k.label,keyW*(i+0.3)+20,keyY,C.mut,9.5,'ui-monospace,Menlo,monospace','left');
+    });
+  };
+
+
+  /* ---- runner ---- */
+  const running=new Map();
+
+  function start(cv){
+    if(running.has(cv)) return;
+    const anim=A[cv.dataset.anim]; if(!anim) return;
+    let dims=fit(cv), t0=performance.now(), raf;
+
+    function frame(now){
+      const t=(now-t0)/1000;
+      anim(dims.ctx,dims.w,dims.h,t);
+      raf=requestAnimationFrame(frame);
+    }
+
+    if(RM){ anim(fit(cv).ctx,cv.clientWidth,parseInt(cv.getAttribute('height'))||300,4.0); }
+    else { raf=requestAnimationFrame(frame); }
+
+    running.set(cv,()=>cancelAnimationFrame(raf));
+    cv._refit=()=>{ dims=fit(cv); };
+  }
+
+  function stop(cv){
+    const s=running.get(cv); if(s){ s(); running.delete(cv); }
+  }
+
+  const cvs=[...document.querySelectorAll('canvas[data-anim]')];
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting) start(e.target); else stop(e.target); });
+  },{threshold:0.08});
+  cvs.forEach(cv=>io.observe(cv));
+
+  let rt;
+  addEventListener('resize',()=>{
+    clearTimeout(rt);
+    rt=setTimeout(()=>cvs.forEach(cv=>cv._refit&&cv._refit()),150);
+  });
+
+})();
+</script>
+</body>
+</html>
