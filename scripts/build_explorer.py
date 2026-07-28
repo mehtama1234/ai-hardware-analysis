@@ -57,6 +57,8 @@ def build_rows():
         venue = raw_venue.split()[0].upper() if raw_venue else pid.split("-")[0].upper()
         if venue == "MLSYS":
             venue = "MLSys"
+        elif venue == "HOTCHIPS":
+            venue = "HotChips"
 
         rows.append({
             "id": pid,
