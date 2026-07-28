@@ -190,7 +190,27 @@ document.getElementById('fTheme').addEventListener('change',filter);
 document.getElementById('fHi').addEventListener('change',filter);
 document.getElementById('fLo').addEventListener('change',filter);
 
+function applyHash(){
+  const h=location.hash.replace(/^#/,'');
+  if(!h) return;
+  const params={};
+  h.split('&').forEach(p=>{const[k,v]=p.split('=');if(k&&v)params[k]=decodeURIComponent(v);});
+  if(params.venue){
+    const s=document.getElementById('fVenue');
+    for(let i=0;i<s.options.length;i++)if(s.options[i].value===params.venue){s.selectedIndex=i;break;}
+  }
+  if(params.theme){
+    const s=document.getElementById('fTheme');
+    for(let i=0;i<s.options.length;i++)if(s.options[i].value===params.theme){s.selectedIndex=i;break;}
+  }
+  if(params.q) document.getElementById('search').value=decodeURIComponent(params.q);
+  filter();
+  // scroll past header
+  document.querySelector('.topbar')?.scrollIntoView();
+}
+
 render(DATA);
+applyHash();
 </script>
 </body>
 </html>
