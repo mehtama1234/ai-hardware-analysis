@@ -61,8 +61,10 @@ h2{font-family:var(--serif);font-size:1.7rem;font-weight:600;color:var(--ink);
   margin:3em 0 .7em;padding-top:1.6em;border-top:1px solid var(--line2);
   line-height:1.15;text-wrap:balance}
 h2:first-of-type{border-top:none;margin-top:2em}
-h3{font-family:var(--serif);font-size:1.22rem;font-weight:600;color:var(--ink);
-  margin:2em 0 .5em;padding-left:14px;border-left:3px solid var(--teal)}
+h3{font-family:var(--serif);font-size:1.28rem;font-weight:600;color:var(--ink);
+  margin:2.2em 0 .5em;padding-left:14px;border-left:3px solid var(--teal)}
+h4{font-family:var(--serif);font-size:1.08rem;font-weight:600;color:var(--ink2);
+  margin:1.6em 0 .4em;padding-left:10px;border-left:2px solid var(--line)}
 /* prose */
 p{color:var(--ink2);margin-bottom:1.1em}
 p:last-child{margin-bottom:0}
@@ -128,6 +130,10 @@ def convert(md):
             close_lists()
             out.append(f'<h2>{inline(s[3:])}</h2>')
             continue
+        if s.startswith('#### '):
+            close_lists()
+            out.append(f'<h4>{inline(s[5:])}</h4>')
+            continue
         if s.startswith('### '):
             close_lists()
             out.append(f'<h3>{inline(s[4:])}</h3>')
@@ -157,7 +163,11 @@ def build_venue_nav(cur_conf, year):
     return '<nav class="venue-nav">' + ''.join(pills) + '</nav>'
 
 def build_page(md_path):
-    conf, year = md_path.stem.replace('-bigpicture', '').rsplit('-', 1)
+    stem = md_path.stem
+    if '-deepdive' in stem:
+        conf, year = stem.replace('-deepdive', '').rsplit('-', 1)
+    else:
+        conf, year = stem.replace('-bigpicture', '').rsplit('-', 1)
     short, domain = VENUES.get(conf, (conf.upper(), ""))
     md = md_path.read_text()
 
@@ -203,11 +213,23 @@ def build_page(md_path):
     return out, out.stat().st_size // 1024
 
 def main():
-    mds = sorted(SYNTH.glob("*-bigpicture.md"))
-    for md in mds:
+    # prefer deepdive over bigpicture for each venue
+    seen = {}
+    for md in sorted(SYNTH.glob("*-2025-*.md")):
+        if 'deepdive' not in md.stem and 'bigpicture' not in md.stem:
+            continue
+        stem = md.stem
+        if '-deepdive' in stem:
+            conf = stem.replace('-2025-deepdive', '')
+        else:
+            conf = stem.replace('-2025-bigpicture', '')
+        # deepdive wins over bigpicture
+        if conf not in seen or 'deepdive' in md.stem:
+            seen[conf] = md
+    for conf, md in sorted(seen.items()):
         out, kb = build_page(md)
         print(f"  {out.name} ({kb}KB)")
-    print(f"built {len(mds)} venue pages")
+    print(f"built {len(seen)} venue pages")
 
 if __name__ == "__main__":
     main()
