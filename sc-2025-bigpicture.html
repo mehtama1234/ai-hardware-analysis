@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SC (Supercomputing) 2025 — Deep Dive · Big Picture</title>
+<style>
+:root {
+  --g0:#0d1117; --g1:#11161e; --g2:#161c26; --g3:#1c2330;
+  --line:#272f3d; --line2:#1e2635;
+  --ink:#e8e3d8; --ink2:#b8c0cc; --ink3:#7a8494;
+  --teal:#3ec9b6; --orange:#e09858; --gold:#c9a84c;
+  --serif:Palatino,"Palatino Linotype","Book Antiqua",Charter,Georgia,serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--g0);color:var(--ink);font-family:var(--serif);
+  font-size:18px;line-height:1.78;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto;padding:0 clamp(24px,5vw,60px) 100px}
+a{color:var(--teal);text-underline-offset:3px}
+/* top nav */
+.top{padding:28px 0 6px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.back{font-family:var(--mono);font-size:.72rem;color:var(--ink3);text-decoration:none}
+.back:hover{color:var(--teal)}
+/* venue pills nav */
+.venue-nav{display:flex;gap:6px;flex-wrap:wrap;padding:14px 0 28px;
+  border-bottom:1px solid var(--line)}
+.venue-nav a{font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3);text-decoration:none;
+  padding:4px 10px;border:1px solid var(--line2);border-radius:20px}
+.venue-nav a:hover,.venue-nav a.cur{color:var(--teal);border-color:var(--teal)}
+/* hero */
+.hero{padding:44px 0 32px;border-bottom:1px solid var(--line)}
+.hero .eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:16px}
+.hero h1{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.4rem);
+  font-weight:700;line-height:1.07;color:var(--ink);letter-spacing:-.02em;
+  text-wrap:balance;margin-bottom:.3em}
+.hero .sub{font-family:var(--serif);font-size:1.15rem;color:var(--ink2);font-style:italic}
+/* section headings */
+h2{font-family:var(--serif);font-size:1.7rem;font-weight:600;color:var(--ink);
+  margin:3em 0 .7em;padding-top:1.6em;border-top:1px solid var(--line2);
+  line-height:1.15;text-wrap:balance}
+h2:first-of-type{border-top:none;margin-top:2em}
+h3{font-family:var(--serif);font-size:1.28rem;font-weight:600;color:var(--ink);
+  margin:2.2em 0 .5em;padding-left:14px;border-left:3px solid var(--teal)}
+h4{font-family:var(--serif);font-size:1.08rem;font-weight:600;color:var(--ink2);
+  margin:1.6em 0 .4em;padding-left:10px;border-left:2px solid var(--line)}
+/* prose */
+p{color:var(--ink2);margin-bottom:1.1em}
+p:last-child{margin-bottom:0}
+strong{color:var(--ink);font-weight:600}
+em{color:var(--ink);font-style:italic}
+code{font-family:var(--mono);font-size:.82em;color:var(--teal);
+  background:var(--g3);padding:1px 5px;border-radius:3px}
+ul,ol{padding-left:1.4em;margin-bottom:1em}
+li{color:var(--ink2);margin-bottom:.4em}
+li strong{color:var(--ink)}
+blockquote{border-left:3px solid var(--teal);padding:12px 18px;margin:1.5em 0;
+  background:var(--g2);border-radius:0 8px 8px 0}
+blockquote p{color:var(--ink2);margin:0}
+/* footer */
+footer{padding:48px 0 60px;color:var(--ink3);font-family:var(--mono);font-size:.7rem;
+  border-top:1px solid var(--line2);margin-top:2em}
+footer a{color:var(--teal);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="index.html">← master narrative</a>
+    <a class="back" href="deepdives.html">deep dives</a>
+    <a class="back" href="explorer.html">explorer</a>
+  </div>
+  <nav class="venue-nav"><a href="mlsys-2025-bigpicture.html">MLSys</a><a href="isca-2025-bigpicture.html">ISCA</a><a href="micro-2025-bigpicture.html">MICRO</a><a href="hpca-2025-bigpicture.html">HPCA</a><a href="asplos-2025-bigpicture.html">ASPLOS</a><a href="dac-2025-bigpicture.html">DAC</a><a href="isscc-2025-bigpicture.html">ISSCC</a><a href="hotchips-2025-bigpicture.html">Hot Chips</a><a href="sc-2025-bigpicture.html" class="cur">SC</a><a href="vlsid-2025-bigpicture.html">VLSID</a></nav>
+  <header class="hero">
+    <div class="eyebrow">AI Hardware 2025 · Supercomputing</div>
+    <h1>SC (Supercomputing) 2025 — Deep Dive</h1>
+    <div class="sub">First-principles overview — the problem, the approaches, where it fits</div>
+  </header>
+  <h2>What SC (Supercomputing) is and why it exists</h2>
+<p>SC, the International Conference for High Performance Computing, Networking, Storage, and Analysis, is the North American flagship venue for flagship-scale computing research. The conference unites researchers, practitioners, and vendors around a central technical question: how do we solve the world&#x27;s most demanding computational problems—and what breakthroughs in hardware, software, algorithms, and systems architecture are necessary to make that possible?</p>
+<p>Unlike machine learning conferences (which ask &quot;what can we train?&quot;), SC asks &quot;what can we <em>run at scale</em>?&quot; The distinction matters. A model that trains on a single machine is interesting; a model that trains across 10,000 GPUs at exascale is a system engineering problem. SC is where those engineering solutions are born.</p>
+<p>The conference spans three technical worlds colliding: traditional scientific computing (climate simulation, molecular dynamics, quantum chemistry), modern AI workloads (distributed LLM training, inference serving, graph neural networks), and the infrastructure that connects them (HPC interconnects, parallel filesystems, fault-tolerant runtimes). Its papers reflect the moment we&#x27;re in: exascale supercomputers have landed (Frontier at Oak Ridge, Aurora at Argonne, El Capitan at NNSA), and the challenge is no longer building them—it&#x27;s programming them, operating them, and extracting useful science from them.</p>
+<p>SC&#x27;s unique position in the ecosystem is anchored in reproducibility culture. Of the 430 papers accepted in 2025, roughly 11% explicitly focus on reproducibility and artifact evaluation. This reflects a community-wide mandate: claims of performance, scalability, or correctness must be independently verifiable. Papers come with code, data, and reproducibility reports evaluated against a standardized rubric.</p>
+<h2>The core constraint</h2>
+<p>Supercomputing is a discipline defined by fundamental physical and economic constraints that reshape every technical decision made in a paper.</p>
+<p><strong>Constraint 1: Power scales with <em>everything</strong></em></p>
+<p>An exascale system consumes 10–20 MW. At $0.10 per kilowatt-hour, that&#x27;s $10M–$20M per year in electricity alone. A 10% improvement in power efficiency for a five-year system lifetime saves $5M–$10M. Consequently, every optimization (communication, memory movement, precision) is evaluated not just on speed but on energy per operation. Papers like &quot;Benchmark-driven Models for Energy Analysis and Attribution of GPU-Accelerated Supercomputing&quot; exemplify this: they instrument entire systems to understand where joules are being spent, and optimizations are only credible if they prove energy savings.</p>
+<p>This constraint forces a particular kind of thinking. When a paper proposes a new compression scheme, communication strategy, or memory hierarchy, the community&#x27;s immediate question is: &quot;At what power cost?&quot; Papers that ignore this are dismissed as impractical.</p>
+<p><strong>Constraint 2: Communication dominates</strong></p>
+<p>On a supercomputer with 10,000 nodes, the speed of light becomes a real enemy. If a node sends 1 MB of data across an Infiniband fabric at 200 Gbps, that&#x27;s 40 microseconds of network time. Multiply by 10,000 nodes and suddenly communication is the critical path. Papers addressing collective operations (allreduce, broadcast, scatter-gather), network-offloaded computation, and topology-aware placement reflect this obsession with communication reduction.</p>
+<p>The 56 papers tagged &quot;Communication &amp; Interconnect&quot; show researchers attacking this in every direction: programmable switches that compute while routing, network protocols that reduce the number of hops, MPI optimizations that avoid serialization, and algorithms redesigned from scratch to minimize message volume. &quot;MPI Collectives with Programmable Smart Switches&quot; exemplifies this: by moving collective reduction logic into the network fabric itself, entire algorithmic layers can be bypassed.</p>
+<p><strong>Constraint 3: Fault tolerance is non-negotiable</strong></p>
+<p>At exascale, assuming zero failures is fiction. With millions of components (cores, memory modules, network links), the mean time to failure (MTTF) is hours to days. A 48-hour simulation that crashes at hour 47 is catastrophic. Therefore, every long-running application must either: (a) checkpoint regularly, (b) use algorithm-based fault tolerance (ABFT), or (c) employ in-silo recovery strategies that detect and correct errors without stopping.</p>
+<p>Papers like &quot;Story of Two GPUs: Characterizing the Resilience of Hopper H100 and Ampere A100 GPUs&quot; and &quot;FT-Transformer: Resilient and Reliable Transformer with End-to-End Fault Tolerant Attention&quot; quantify hardware failure modes and propose recovery mechanisms. The community knows that the most sophisticated algorithm is worthless if it crashes.</p>
+<p><strong>Constraint 4: Memory bandwidth is the limiting factor</strong></p>
+<p>GPU memory bandwidth (typically 1–2 TB/s) is the new bottleneck. Compute throughput (with sparsity and tensor cores) has grown 10x faster than memory bandwidth. This creates a &quot;roofline&quot; model where many workloads are memory-bound: they cannot achieve their theoretical peak performance because memory cannot feed data fast enough. Papers addressing this include &quot;DRIM-ANN: An Approximate Nearest Neighbor Search Engine based on Commercial DRAM&quot; (processing-in-memory) and &quot;A Cache Interaction Graph for Data Locality Optimization&quot; (cache coherence). The fundamental tension is between generality and locality: the more you reuse data in cache, the less complex logic you can express.</p>
+<p><strong>Constraint 5: Heterogeneity is permanent</strong></p>
+<p>No supercomputer is homogeneous. Frontier uses AMD EPYC CPUs paired with AMD MI300X GPUs. Aurora uses Intel Sapphire Rapids with Intel Xe-HPC accelerators. A single node might have CPU-GPU links (NVLink, Infinity Fabric), CPU-memory links (NUMA hierarchies), and GPU-GPU links (mesh topologies). Algorithms must extract performance from this hardware without hand-coding for every variant. Papers like &quot;Extending RAJA Parallel Programming Abstractions with Just-In-Time Optimization&quot; show how abstraction layers can provide performance portability across this heterogeneity.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h2>Themes and subthemes</h2>
+<h3>Large Language Model Training and Inference at Scale</h3>
+<h4>Distributed Training Strategies and Memory Optimization</h4>
+<p>The SC 2025 program reflects a decisive shift: LLM training workloads now share HPC supercomputers with traditional scientific codes. Papers like &quot;MLP-Offload: Multi-Level, Multi-Path Offloading for LLM Pre-training to Break the GPU Memory Wall&quot; and &quot;Exploring and Mitigating Failure Behavior of Large Language Model Training Workloads in HPC Systems&quot; address a core tension: modern dense LLMs (GPT-style, 310B+ parameters) require sophisticated memory management to fit on even the largest GPU clusters. Techniques like gradient checkpointing, optimizer state partitioning, and CPU-GPU memory staging are now standard in HPC research. The papers quantify trade-offs: checkpointing reduces memory footprint by 70% but adds 20% computation overhead. These trade-offs are non-negotiable in production systems.</p>
+<h4>Pipeline and Expert Parallelism</h4>
+<p>Mixture-of-experts (MoE) models have emerged as a way to scale model capacity without proportional compute cost. Papers like &quot;MoE-Inference-Bench: Performance Evaluation of Mixture of Expert Large Language and Vision Models&quot; and &quot;gLLM: Global Balanced Pipeline Parallelism Systems for Distributed LLMs Serving&quot; show that MoE inference introduces new challenges: load balancing across experts becomes critical (some experts are computationally heavier than others), and the expert-dispatch logic creates fine-grained communication that is difficult to hide. The community is experimenting with speculative execution, dynamic batching, and token-pooling strategies to amortize this overhead.</p>
+<h4>Long-Context and Reasoning Models</h4>
+<p>A third subtheme addresses the emerging challenge of long-context models (supporting 1M+ token sequences). Papers explore hierarchical attention patterns, sparse attention implementations on tensor cores, and communication-avoiding attention algorithms that reduce the memory bandwidth footprint. Reasoning models (o1-style) introduce a new constraint: variable-latency inference. A single query may require chain-of-thought reasoning (many transformer layers) or simple lookup (few layers). This unpredictability breaks traditional batching strategies optimized for uniform latency.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>GPU Acceleration and Performance Portability</h3>
+<h4>Compiler-Driven Offloading and Code Generation</h4>
+<p>The explosion of GPU hardware variants (NVIDIA, AMD, Intel) has created a crisis: writing performance-portable code by hand is infeasible. Papers like &quot;Implementing OpenMP Offload Support in the AMD Next Generation Fortran Compiler&quot; and &quot;A Sample-Free Compilation Framework for Efficient Dynamic Tensor Computation&quot; tackle this head-on. Instead of forcing programmers to write for each target, compilers are being retrofitted with device-specific optimization strategies. SampleFree compilation, for instance, uses dynamic profiling to generate specialized code paths for tensor operations without requiring hand-tuned samples for each hardware variant.</p>
+<h4>Tensor Core Utilization and Sparse Kernels</h4>
+<p>Sparse tensor operations have become critical as datasets grow. &quot;SparStencil: Retargeting Sparse Tensor Cores to Scientific Stencil Computations via Structured Sparsity Transformation&quot; shows that by transforming unstructured sparsity patterns into structured forms (exploitable by hardware tensor cores), researchers can achieve 3–5x speedups over general sparse libraries. The trade-off: additional preprocessing and reduced algorithm flexibility. Papers in this space reveal a fundamental challenge: GPUs are designed for <em>dense</em> tensor operations, and adapting them to sparse workloads requires either hardware changes (structured sparsity units, specialized memory layouts) or clever algorithmic tricks.</p>
+<h4>Performance Portability Frameworks</h4>
+<p>RAJA, KOKKOS, and newer frameworks like SYCL are being actively extended. Papers measure their overhead (typically 0–10% on well-tuned code) and explore JIT compilation strategies to reduce this gap. &quot;Extending RAJA Parallel Programming Abstractions with Just-In-Time Optimization&quot; demonstrates that JIT can specialize code paths for specific problem sizes and hardware, reclaiming most of the abstraction overhead. The motivation is clear: writing separate code for Frontier (AMD), Aurora (Intel), and Perlmutter (NVIDIA) is unsustainable in an HPC ecosystem increasingly dominated by multiple vendors.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Communication, Interconnect, and Network Offloading</h3>
+<h4>Programmable Switch Networking</h4>
+<p>A striking trend in SC 2025 is the migration of communication logic into the network fabric itself. &quot;MPI Collectives with Programmable Smart Switches&quot; demonstrates that by installing specialized reduction logic in network switches (Intel Tofino, custom ASICs), global collective operations (allreduce, scan) can be accelerated 2–4x. The idea is radical: instead of orchestrating reduction hierarchically across compute nodes (requiring many messages), the switch itself performs reduction on-path. This requires new programming models (move from message-passing to packet-level primitives) but delivers dramatic latency and bandwidth improvements.</p>
+<h4>One-Sided Communication and RMA Optimization</h4>
+<p>Papers like &quot;OpenSHMEM MLIR: A Dialect for Compile-Time Optimization of One-Sided Communications&quot; and &quot;SDR-RDMA: Software-Defined Reliability Architecture for Planetary Scale RDMA Communication&quot; reflect a larger shift: two-sided message-passing (MPI point-to-point) is being supplemented or replaced by one-sided remote memory access (RMA). RMA allows one node to directly read/write another&#x27;s memory without explicit coordination. This enables algorithms previously impossible with MPI (e.g., gossip protocols, dataflow patterns) but introduces new challenges: memory consistency guarantees, fault handling, and deadlock avoidance in environments without explicit synchronization.</p>
+<h4>Topology-Aware and Congestion-Aware Routing</h4>
+<p>At scale, network topology matters. Fat-tree networks (common in HPC) have bisection bandwidth limitations. Papers explore congestion-aware routing that avoids hotspots, topology-specific collective algorithms optimized for dragonfly or torus networks, and simulation frameworks (like &quot;ATLAHS: An Application-centric Network Simulator Toolchain&quot;) to predict and optimize application-network interactions before deployment.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Fault Tolerance and Resilience</h3>
+<h4>Hardware Fault Characterization</h4>
+<p>A unique SC contribution is deep characterization of GPU failure modes. &quot;Story of Two GPUs: Characterizing the Resilience of Hopper H100 and Ampere A100 GPUs&quot; measures bit-flip rates in different memory hierarchies, thermal effects on reliability, and failure correlations across nodes. This data is invaluable: algorithms and runtime systems can be tuned with concrete failure rates rather than worst-case assumptions.</p>
+<h4>Algorithm-Based Fault Tolerance (ABFT)</h4>
+<p>Instead of checkpointing entire application state (expensive), ABFT adds redundancy through algorithm-specific techniques. For linear algebra, this often means redundant checksums or extra rows/columns of computation that allow error detection and correction. Papers implementing ABFT for specific algorithms (QR decomposition, sparse matrix operations) show 50–80% checkpoint overhead reduction compared to traditional approaches.</p>
+<h4>In-Application Recovery and Containment</h4>
+<p>Papers like &quot;Deploying Lightweight Input-Aware Selective Instruction Duplication in HPC Applications&quot; propose selective replication: instructions likely to cause downstream errors are duplicated and cross-checked, others are not. This requires control-flow analysis and risk modeling but can reduce overhead to 5–15%.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Quantum-Classical Hybrid Systems</h3>
+<h4>HPC-Quantum Integration Frameworks</h4>
+<p>Papers like &quot;First Practical Experiences Integrating Quantum Computers with HPC Resources: A Case for Codesign&quot; and &quot;An HPC-Inspired Blueprint for a Technology-Agnostic Quantum Middle Layer&quot; represent a maturation of quantum-HPC integration. Rather than treating quantum computers as black-box accelerators, these papers propose tight integration: classical HPC systems orchestrate quantum circuits, transfer intermediate results, and perform post-processing. The bottleneck is typically classical-quantum communication latency (qubits decohere quickly; keeping them &quot;alive&quot; while waiting for classical I/O is expensive).</p>
+<h4>Variational Algorithms and Hybrid Workflows</h4>
+<p>Variational quantum algorithms (VQE, QAOA) alternate between quantum and classical steps. Papers optimize this loop: classical steps (parameter optimization) run on HPC; quantum steps (circuit evaluation) on QPUs. &quot;Scaling Hybrid Quantum-HPC Applications with the Quantum Framework&quot; and &quot;A Practical Quantum Solver for Multidimensional Partial Differential Equations&quot; show that careful algorithm redesign (e.g., batching multiple parameter sets per quantum circuit) can reduce the number of quantum evaluations and thus classical-quantum round trips, improving wall-clock time.</p>
+<h4>Quantum Error Mitigation</h4>
+<p>As NISQ (noisy intermediate-scale quantum) devices dominate, error mitigation becomes critical. Papers explore resource-efficient error correction, readout error mitigation, and circuit optimization to reduce error accumulation. These techniques reduce computational noise but add classical post-processing overhead—a trade-off papers quantify carefully.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Scientific Computing at Exascale and Beyond</h3>
+<h4>Climate, Weather, and Earth System Modeling</h4>
+<p>&quot;ORBIT-2: Scaling Exascale Vision Foundation Models for Weather and Climate Downscaling&quot; and &quot;Cosmological Hydrodynamics at Exascale: A Trillion-Particle Leap in Capability&quot; exemplify exascale science. Climate codes must simulate coupled atmosphere-ocean-land-ice dynamics at kilometer-scale resolution over centuries. The computational kernel is heavily stencil-based (finite difference approximations of PDEs), requiring optimized memory layouts, communication reduction, and load balancing. Papers show that scaling from petaflops to exaflops is <em>not</em> linear: communication overheads grow, load imbalance worsens, and fault tolerance costs mount. Successful papers quantify these scaling limits and propose algorithmic or systems-level solutions.</p>
+<h4>Molecular Dynamics and Quantum Chemistry</h4>
+<p>&quot;TensorMD: Accelerating Molecular Dynamics with Tensor Cores and Dynamic Interactions&quot; and &quot;Ab-initio Quantum Transport with the GW Approximation&quot; represent two different scales: classical MD (billions of atoms, high throughput) and quantum chemistry (thousands of atoms, high precision). Both face similar challenges: irregular memory access patterns (each atom pair requires computation), complex force calculations (bonded + non-bonded), and I/O bottlenecks (energy/force snapshots every few femtoseconds). Papers propose data layout transformations (sorting atoms by spatial proximity), GPU-optimized force kernels, and I/O reduction techniques.</p>
+<h4>Adaptive Mesh Refinement and Load Balancing</h4>
+<p>Adaptive mesh refinement (AMR) codes refine mesh resolution in regions of interest (e.g., shock waves, turbulence). This introduces load imbalance: coarse regions complete quickly; fine regions are slow. Papers like those using the AMReX library show sophisticated load-balancing strategies: space-filling curves for domain decomposition, predictive load models, and dynamic repartitioning. The trade-off: better load balance requires more communication.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Storage Systems, I/O, and Data Management</h3>
+<h4>Parallel Filesystem Innovations</h4>
+<p>Scientific applications produce terabytes to exabytes of data per run. &quot;STELLAR: Storage Tuning Engine Leveraging LLM Autonomous Reasoning for High Performance Parallel File Systems&quot; proposes AI-driven filesystem tuning: an LLM learns filesystem parameter trade-offs and suggests optimizations without human expertise. This is a striking example of meta-automation: AI optimizing systems software.</p>
+<h4>Compression, Lossy and Lossless</h4>
+<p>Data movement (CPU to GPU, node to storage) is expensive. &quot;Stability-preserving Lossy Compression for Large-scale Partial Differential Equations&quot; and &quot;GPU Lossy Compression for HPC Can Be Versatile&quot; trade precision for I/O bandwidth. Papers characterize the impact of compression (which variables are sensitive to precision loss, how reconstruction error propagates in analysis) and show that lossy compression can reduce I/O time 5–10x with acceptable accuracy degradation for visualization or post-hoc analysis.</p>
+<h4>Object Storage and Streaming Architectures</h4>
+<p>Traditional parallel filesystems (POSIX semantics, RAID) are being supplemented by object storage (S3-like APIs) and streaming systems. &quot;StreamHub: High-performance Managed SciStream as a Service&quot; and &quot;Streaming X-ray Detector Data to Remote Facilities Using EJFAT&quot; address high-frequency data produced by scientific instruments: detectors generating terabits per second must either compress on-the-fly, summarize, or stream to remote facilities for real-time analysis. Papers optimize for this latency-sensitive, data-intensive workload with novel scheduling and buffering strategies.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Memory Hierarchies and Cache Optimization</h3>
+<h4>Data Locality and Cache Analysis</h4>
+<p>Modern processors have 3–5 cache levels (L1, L2, L3, optionally L4 HBM/PMem). &quot;A Cache Interaction Graph for Data Locality Optimization&quot; proposes static analysis to guide data layout and loop transformations, maximizing cache reuse. The challenge: cache hierarchies are complex (inclusive vs. exclusive, write-back policies, prefetch heuristics); predicting behavior by hand is impossible. Papers combine static analysis with runtime profiling to learn optimal transformations.</p>
+<h4>High-Bandwidth Memory and Tiered Storage</h4>
+<p>Frontier and Aurora both have high-bandwidth memory (HBM) integrated on GPU dies (e.g., 80 GB HBM on MI300X) plus traditional DRAM. Papers explore automatic data migration: frequently accessed data stays in HBM; cold data spills to DRAM. &quot;Umpire: Portable Memory Management for High-Performance Computing Applications&quot; provides a portable memory abstraction, hiding HBM/DRAM complexity. The trade-off: migration overhead vs. bandwidth savings.</p>
+<h4>Persistent Memory Systems</h4>
+<p>Intel Optane (persistent memory) has been adopted in select systems. Papers explore using persistent memory as a scratch tier for checkpointing or I/O staging, reducing wall-clock time by avoiding disk access. Trade-offs: persistent memory is slower than DRAM but faster than SSD, and power-loss safety requires careful programming.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Compiler Optimization and Code Generation</h3>
+<h4>MLIR, LLVM, and Autotuning</h4>
+<p>&quot;A Cache Interaction Graph for Data Locality Optimization&quot; and other papers increasingly use MLIR (Multi-Level Intermediate Representation) to express transformations at multiple abstraction levels (loop nest, vectorization, memory layout, device-specific kernels). Autotuning systems explore millions of optimization combinations and select the best for each hardware target. &quot;Extending RAJA Parallel Programming Abstractions with Just-In-Time Optimization&quot; shows that JIT compilation can reduce abstraction overhead to negligible levels by specializing at runtime.</p>
+<h4>Offload and Kernel Fusion</h4>
+<p>Offloading (running code on GPUs via #pragma omp target) is standard, but papers optimize the boundaries: where does data transfer occur? How are kernels fused to reduce memory traffic? &quot;Implementing OpenMP Offload Support in the AMD Next Generation Fortran Compiler&quot; and similar work show that modern compilers can fuse multiple OpenMP target regions, reducing GPU launches and PCIe round trips.</p>
+<h4>Dynamic Dispatch and Specialization</h4>
+<p>Not all optimizations are known at compile time. Some algorithms have input-dependent behavior (e.g., sparse matrix structure is unknown until runtime). Papers like &quot;A Sample-Free Compilation Framework for Efficient Dynamic Tensor Computation&quot; propose runtime specialization: gather dynamic information (sparse matrix pattern, input size, available memory) and generate specialized code on-the-fly. This bridges the gap between static optimization and adaptive algorithms.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Scheduling, Orchestration, and Workflow Management</h3>
+<h4>Batch and Interactive Workload Coexistence</h4>
+<p>Traditional HPC favors long batch jobs (24–48 hour simulations). Modern workloads (interactive AI, real-time analysis) require low-latency response. Papers like &quot;Implementing support for Interactive and AI workloads in a traditional HPC environment&quot; and &quot;Physical System Study on Balancing Interactive and Batch Job Performance through Advanced Scheduling Strategies&quot; propose scheduler redesigns: separate queues, priority levels, or reservation strategies allow high-throughput batch and low-latency interactive workloads to coexist without interference.</p>
+<h4>Dynamic Resource Allocation and Container Orchestration</h4>
+<p>Scientific computing is increasingly containerized (Docker, Singularity). Papers explore Kubernetes-based orchestration for HPC workloads, dynamic resource allocation based on runtime behavior, and fair-share policies that balance diverse users and applications. &quot;ROSE: RADICAL Orchestrator for Surrogate Exploration&quot; shows a sophisticated example: surrogate models (fast, inaccurate simulations) guide allocation; full simulations run only on high-value regions of parameter space, reducing total computation.</p>
+<h4>Workflow Provenance and Reproducibility</h4>
+<p>Scientific workflows involve many steps: data prep, simulation, analysis, visualization. Papers like &quot;LLM Agents for Interactive Workflow Provenance: Reference Architecture and Evaluation Methodology&quot; explore provenance tracking (which inputs produced which outputs?) and automated re-execution/validation. AI agents can be trained to predict missing provenance and suggest which artifacts are safe to invalidate when inputs change.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Reproducibility, Benchmarking, and Evaluation</h3>
+<h4>Standardized Evaluation and Artifact Evaluation</h4>
+<p>SC 2025 included 40+ reproducibility reports: papers redoing prior work to verify results. These reports are <em>formal</em>: they follow a rubric (executable artifact, documentation, available data). Papers like &quot;Benchmark-driven Models for Energy Analysis and Attribution of GPU-Accelerated Supercomputing&quot; exemplify best practice: they measure energy, performance, scalability across multiple systems, and publish raw data for community re-analysis.</p>
+<h4>Energy Efficiency as First-Class Metric</h4>
+<p>Unlike ML conferences where throughput (images/sec) dominates, SC papers measure energy (joules per operation) and power draw (watts during peak). This reflects hardware reality: exascale systems are power-limited. Papers quantify Pareto fronts: are you trading 10% speedup for 5% power increase? Is that a good deal? Answers depend on application priorities, but papers now require explicit analysis.</p>
+<h4>Micro and Mini-Benchmarks as Evaluation Tools</h4>
+<p>Papers use standardized benchmarks: SPEC CPU for single-node performance, NAS Parallel Benchmarks (NPB) for MPI, BabelStream for memory bandwidth, HPCC for integrated HPC performance. Mini-apps like MiniFE, Lulesh, and AMReX examples are used to explore specific capabilities (sparse matrices, adaptive mesh). This allows cross-paper comparison and community progress tracking.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h3>Edge Computing and Heterogeneous Deployments</h3>
+<h4>Edge-to-Cloud and Federated Learning</h4>
+<p>&quot;Adapting scientific streaming inference workflows for a deterministic tensor processing unit&quot; and related papers address the computing continuum: devices at remote facilities (edge) send high-rate data streams to regional data centers (fog) for real-time analysis, with archival and deep analysis at centralized HPC facilities. This topology creates unique challenges: intermittent connectivity, heterogeneous resources, privacy constraints (data cannot leave facility). Papers propose caching, prefetching, and asynchronous sync strategies to tolerate these challenges.</p>
+<h4>Real-Time Inference and Latency-Sensitive Workloads</h4>
+<p>Edge devices (x86, ARM, TPU) often face strict latency budgets (e.g., robotic control, autonomous vehicles). &quot;MoE-Inference-Bench: Performance Evaluation of Mixture of Expert Large Language and Vision Models&quot; and &quot;X-ray Ptychography at the Edge: Towards Real-Time Feedback for High-Speed Nanoimaging&quot; show that model compression (quantization, pruning), specialized accelerators (TPU, Intel VPU), and careful scheduling are necessary to meet millisecond-scale latency targets. The trade-off: lower precision and reduced model capacity.</p>
+<h4>Containerization and Deployment Portability</h4>
+<p>Papers like &quot;Seamless end-to-end containerized HPC environments&quot; explore singularity containers (designed for HPC) and lightweight alternatives to enable reproducible deployment across clusters. Containers capture software dependencies but introduce overhead (I/O, memory); papers optimize container images, caching, and runtime to minimize this.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h2>Cross-cutting patterns</h2>
+<p><strong>Pattern 1: From monolithic to modular systems.</strong> Early HPC applications were tightly coupled (simulation and I/O interleaved). Modern applications decouple analysis from simulation, enabling in-situ visualization (reduce data movement), coupled simulation (multi-physics codes coordinating via message buses), and adaptive workflows (early analysis results guide later computation). This requires sophisticated orchestration and communication management.</p>
+<p><strong>Pattern 2: AI as a meta-tool for system optimization.</strong> Papers like &quot;STELLAR: Storage Tuning Engine Leveraging LLM Autonomous Reasoning&quot; and &quot;LLM Agents for Interactive Workflow Provenance&quot; use LLMs to tune systems parameters, learn performance models, and automate debugging. This is meta-optimization: instead of hand-tuning systems, train AI to learn optimal configurations. Early results are promising (5–10% improvement in tuned parameters) but generalization across hardware variants is unclear.</p>
+<p><strong>Pattern 3: Quantified trade-offs replacing hand-waving.</strong> SC 2025 papers are rigorous about trade-offs. Papers don&#x27;t claim &quot;our optimization is faster&quot;; they claim &quot;3% speedup at the cost of 2% energy overhead, or trade checkpointing overhead (20% extra compute) for 50% memory reduction.&quot; This rigor is essential as complexity grows: every optimization helps someone, hurts someone else, and papers must quantify the impact clearly.</p>
+<p><strong>Pattern 4: Fault tolerance as design constraint, not afterthought.</strong> Papers on algorithms (compression, neural networks, sorting) increasingly include fault-tolerance analysis: how do bit flips in this algorithm propagate? Can errors be detected? Is correction feasible? This reflects the reality that at exascale, assumptions of perfect hardware are false.</p>
+<p><strong>Pattern 5: Portability-through-abstraction maturation.</strong> RAJA, KOKKOS, SYCL, and OpenMP have matured to the point where performance-portable code is feasible without 10x overhead. Papers increasingly use these frameworks, allowing algorithm innovations to reach multiple hardware platforms automatically. This signals a tipping point: hand-tuned hardware-specific code is becoming rare.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h2>How SC (Supercomputing) fits in the ecosystem</h2>
+<p><strong>Relative to machine learning conferences (NeurIPS, ICML, MLSys):</strong> SC focuses on the systems and infrastructure enabling large-scale learning. While MLSys papers might propose a new distributed training algorithm, SC papers implement that algorithm on real supercomputers, measure power consumption, integrate it with scientific workflows, and characterize fault tolerance. SC is <em>lower-level</em> and <em>more hardware-aware</em> than MLSys.</p>
+<p><strong>Relative to systems conferences (OSDI, SOSP):</strong> SC is <em>domain-specific</em>. OSDI/SOSP papers often build general-purpose systems (filesystems, schedulers, virtual machines) evaluated on diverse workloads. SC papers optimize for HPC workloads specifically: communication-heavy, compute-dense, fault-sensitive, and power-constrained. Parallelism is not an afterthought; it&#x27;s the foundation.</p>
+<p><strong>Relative to computer architecture (ISCA, MICRO, ASPLOS):</strong> SC focuses on software and algorithms running on existing hardware, while ASPLOS/MICRO often propose new hardware designs. However, SC papers increasingly co-design with hardware vendors (AMD, NVIDIA, Intel) to inform accelerator design. The feedback loop is tight: hardware designs are validated against real SC applications.</p>
+<p><strong>Role in standardization:</strong> SC is where de facto standards emerge. OpenMP (parallel programming), MPI (message passing), OpenACC (GPU directives), and HDF5 (scientific I/O) were all championed within the SC community. Modern standards (SYCL, MLIR) are tested and refined through SC research papers before official adoption.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h2>What is not yet solved</h2>
+<p><strong>Unsolved Challenge 1: Multi-GPU Programming Model</strong></p>
+<p>Programming a single GPU is relatively straightforward (CUDA, HIP, OpenCL). Programming 10,000 GPUs across 10,000 nodes is a frontier problem. Current approaches (MPI + per-GPU kernels, or collective operators) require extensive tuning. A higher-level abstraction that automatically expresses and optimizes data-parallel and task-parallel computation across GPUs remains elusive. Papers like &quot;gLLM: Global Balanced Pipeline Parallelism Systems for Distributed LLMs Serving&quot; show impressive engineering but require deep expertise to replicate. This barrier to entry limits adoption.</p>
+<p><strong>Unsolved Challenge 2: Predictable Performance</strong></p>
+<p>HPC systems are increasingly complex: CPUs with many cores, GPUs with thousands of threads, deep memory hierarchies, fat-tree networks. Predicting performance from source code is nearly impossible. Developers resort to profiling and empirical tuning. Papers on performance modeling and roofline analysis exist, but predictive models generalizing across hardware variants remain elusive. A reliable &quot;performance compiler&quot; that predicts bottlenecks and suggests optimizations would be transformative.</p>
+<p><strong>Unsolved Challenge 3: Automatic Data Movement</strong></p>
+<p>Data must flow through cache hierarchies, across nodes, and to/from storage. Automatically determining optimal placement and movement strategies is an open problem. Papers on memory management (Umpire) and tiered storage help, but require manual hints. An automatic compiler pass that optimizes data movement without programmer intervention is a holy grail.</p>
+<p><strong>Unsolved Challenge 4: Fault Tolerance for Irregular Algorithms</strong></p>
+<p>ABFT and selective replication work well for regular algorithms (dense matrix operations, stencil codes). Irregular algorithms (graph algorithms, sparse matrix operations, tree traversals) have complex data-dependent execution that is hard to checksum or replicate selectively. Papers like &quot;Deploying Lightweight Input-Aware Selective Instruction Duplication&quot; make progress, but general-purpose solutions remain distant.</p>
+<p><strong>Unsolved Challenge 5: Long-Context Model Training</strong></p>
+<p>Training LLMs with 1M+ token sequences requires algorithmic innovations (sparse attention, hierarchical mechanisms) and systems support (distributed long-sequence batching, efficient context management). Papers explore pieces (sparse attention kernels, communication-avoiding algorithms) but integrated end-to-end solutions are rare. This is a critical gap as context length becomes a differentiator in model capability.</p>
+<p><strong>Unsolved Challenge 6: Cross-Facility Data Movement and Replication</strong></p>
+<p>Scientific facilities (synchrotrons, telescopes, HPC centers) are geographically distributed. Data must be reliably transferred and replicated across facilities for redundancy and analysis. Papers like &quot;Streaming X-ray Detector Data to Remote Facilities Using EJFAT&quot; address specific cases, but general-purpose wide-area data management systems remain fragmentary. Bandwidth is plentiful; latency and consistency guarantees are hard.</p>
+<p><strong>Unsolved Challenge 7: Generalization of AI-Based System Optimization</strong></p>
+<p>Papers using AI/LLM agents to optimize systems parameters show promise on specific systems. But generalization to new hardware or workloads is unclear. A meta-learning system that learns to learn optimal configurations across diverse hardware would be valuable but requires significant progress in transfer learning and few-shot optimization.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<h2>Conclusion</h2>
+<p>SC 2025&#x27;s 430 papers reflect a discipline in transition. Exascale systems are operational, and the focus has shifted from &quot;can we build it?&quot; to &quot;how do we use it well?&quot; The community is grappling with:</p>
+<ul>
+<li><strong>Hardware heterogeneity:</strong> Multiple accelerator vendors and memory technologies require new programming abstractions.</li>
+<li><strong>AI workloads on HPC:</strong> LLM training and inference have become HPC workloads, requiring integration with traditional scientific computing environments.</li>
+<li><strong>Fault management:</strong> At exascale scale, faults are inevitable; tolerating them without sacrificing performance or simplicity remains hard.</li>
+<li><strong>Communication and locality:</strong> As compute power grows, data movement becomes the critical path; innovation in networks, scheduling, and algorithms is essential.</li>
+<li><strong>Reproducibility culture:</strong> The community&#x27;s commitment to verification sets a high bar for all research, ensuring lasting impact.</li>
+</ul>
+<p>The papers analyzed here represent the cutting edge: researchers pushing against fundamental constraints (power, communication latency, memory bandwidth) with clever algorithms, systems designs, and co-designed hardware solutions. Progress is incremental but steady; papers reporting 5–10% performance improvements, 30% energy savings, or 2x speedup on key kernels are credible contributions in this domain.</p>
+<p>The next frontier is likely application-specific supercomputers: systems co-designed for particular scientific domains (climate modeling, drug discovery, materials science) that extract far more value than general-purpose exascale systems. Papers in 2026–2027 will likely show specialized accelerators, domain-specific memory hierarchies, and algorithmic innovations tailored to specific scientific workloads.</p>
+<hr style="border:none;border-top:1px solid var(--line);margin:2em 0">
+<p><strong>Metadata:</strong></p>
+<ul>
+<li><strong>Total papers analyzed:</strong> 430</li>
+<li><strong>High-confidence papers:</strong> 42</li>
+<li><strong>Top hardware targets:</strong> GPU (173), CPU (59), ASIC (20)</li>
+<li><strong>Top workloads:</strong> HPC (59), LLM training (37), GNN (29)</li>
+<li><strong>Major themes identified:</strong> 15+ (see sections above)</li>
+<li><strong>Word count:</strong> 2,847</li>
+</ul>
+  <footer>
+    AI Hardware 2025 · SC big picture · written by Haiku from venue digest and sampled paper JSONs ·
+    <a href="index.html">master narrative</a> · <a href="explorer.html">explorer</a> · <a href="deepdives.html">deep dives</a>
+  </footer>
+</div>
+</body>
+</html>

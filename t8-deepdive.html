@@ -58,7 +58,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
     <div class="eyebrow">deep dive</div>
     <h1>Being sure it&#x27;s actually correct</h1>
     <div class="sub">silent errors, faults, and proofs</div>
-    <div class="count">73 papers · 6 read in full · 67 from the abstract</div>
+    <div class="count">117 papers · 8 read in full · 109 from the abstract</div>
   </header>
   <section class="prose"><h2 class="sh"><span class="k">the problem</span>The problem, in depth</h2><p>Start with a fact that sounds too simple to matter: a computer chip is a slab of silicon with billions of microscopic switches carved into it, and thin metal wires connecting them. When you ask it to add two numbers, electricity flows through some of those switches and a fresh answer comes out the other side. We have spent seventy years making those switches smaller, faster, and more numerous, and along the way we quietly convinced ourselves of something that is not actually true: that the machine always gives the right answer. It usually does. But &#x27;usually&#x27; is a terrifying word once you run millions of these chips day and night for years, because at that scale even a one-in-a-billion mistake happens constantly, and nobody rings a bell when it does.</p>
 <p>Here is the deeper reason such a mistake is so hard to catch. The chip does not know it is wrong. When one of those microscopic switches has a tiny manufacturing flaw, or wears out a little, or gets nudged by heat or a stray particle, the arithmetic can come out subtly wrong while every light on the machine stays green. The chip reports success. It hands you a number that is off by a bit, and then your program keeps going as if nothing happened. Engineers call this a silent data corruption, silent because there is no crash, no error message, no smoke, just a wrong answer that flows downstream into everything you compute next. One paper here (hpca-2025-016) actually modeled the guts of modern processors and measured how often the arithmetic units, the parts that literally do the adding and multiplying, quietly produce garbage, and combined this with real-world data showing that at fleet scale roughly one chip in a thousand carries a defect that can corrupt data. Another (asplos-2025-041) spent six years watching real data centers and learned to spot a bad chip not by testing it directly, but by noticing the strange pattern of crashes and log anomalies it leaves in the software running on top of it.</p>
@@ -149,6 +149,18 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p>4. Provably bounded uncertainty. Using conformalized quantile regression — a technique that wraps any predictor with a statistically valid confidence interval — Pitot produces an upper-bound prediction guaranteed to cover the true runtime at least (1-epsilon) percent of the time. A smart trick: train on multiple quantile targets and pick the one that produces the tightest bound at calibration time, without retraining.</p>
 <p><b>The result.</b> On a cluster of 24 devices ranging from a microcontroller to an x86 desktop, Pitot achieves 5.2% mean error — about 2x better than the nearest competitor — and produces uncertainty bounds that are up to 58% tighter.</p></div>
     </div>
+<div class="paper" id="sc-2025-264">
+      <div class="ph"><span class="pid">sc-2025-264</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducible Performance Evaluation of OpenMP and SYCL Workloads under Noise Injection</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper studies how unpredictable system noise (operating system scheduling delays, shared cache interference, NUMA memory effects) corrupts the measured performance of parallel applications, making benchmarking unreliable and inconsistent. The researchers build a framework to capture traces of real system noise and replay it back during experiments as controlled perturbations. They then evaluate two parallel programming models—OpenMP and SYCL—under both noisy and clean conditions, testing mitigation strategies like pinning threads to specific cores, isolating certain cores for system tasks, and toggling simultaneous multithreading on and off to see what reduces noise&#x27;s impact.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-431">
+      <div class="ph"><span class="pid">sc-2025-431</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Make Updates Faster: A Fast Multi-Stripe Updates Framework in Erasure-Coded Storage Clusters</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper tackles the problem of updating data in distributed storage clusters that use erasure coding—a technique where data is encoded so that any subset of pieces can reconstruct the whole. When data changes, naive updating requires reading many pieces, recomputing, and writing back (read-modify-write overhead). The paper proposes a framework that reduces network traffic and latency during updates by intelligently merging requests to the same storage stripe, selecting efficient collection patterns, and dynamically adapting to changing network conditions across the cluster.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
 <div class="paper" id="asplos-2025-012">
       <div class="ph"><span class="pid">asplos-2025-012</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">ASPLOS</span></div>
       <h4>Cooperative Graceful Degradation in Containerized Clouds</h4>
@@ -158,7 +170,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="asplos-2025-037">
       <div class="ph"><span class="pid">asplos-2025-037</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">ASPLOS</span></div>
       <h4>H-Houdini: Scalable Invariant Learning</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>Before a chip design is manufactured, engineers use formal verification tools to mathematically prove that the hardware will behave correctly under all possible conditions — a method called &#x27;invariant learning&#x27; that works by finding logical rules (invariants) that are always true no matter what the hardware is doing. The fundamental problem is that the number of possible states a chip can be in grows exponentially as the chip gets bigger, so existing tools time out and fail on real-world, complex chip designs. H-Houdini extends a well-known verification algorithm called Houdini to scale to these larger designs, though the exact mechanisms are not fully described in the abstract; the likely approach involves breaking the big design into smaller pieces and proving properties about each piece separately before combining the results, avoiding the need to explore all possible states of the whole design at once.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>Extends the Houdini algorithm for automatically learning logical properties (invariants) that hold true during hardware execution, enabling formal verification of large hardware designs. Traditional invariant learning cannot scale to real designs because the space of possible properties grows exponentially. H-Houdini addresses this through decomposition strategies that break large designs into smaller pieces, learn properties for each piece independently, and propagate those properties through the design hierarchy, avoiding exhaustive state enumeration.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="asplos-2025-041">
@@ -206,7 +218,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="asplos-2025-162">
       <div class="ph"><span class="pid">asplos-2025-162</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">ASPLOS</span></div>
       <h4>Debugger Toolchain Validation via Cross-Level Debugging</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>When a compiler translates your source code into machine instructions, it also emits a separate table of debugging information — a map that lets a debugger (like GDB) show you which line of source code is executing and what your variables currently hold. Bugs in that debugging information mean the debugger shows you wrong values or wrong locations, making software development much harder. The existing way to test for such bugs is to compare program behavior between an optimized and an unoptimized build, but optimized code rearranges instructions so heavily that the comparison breaks down. Cross-Level Debugging (CLD) sidesteps this by running the very same executable twice under the same debugger — once viewed at the source-code level and once at the raw machine-instruction level — and checking that both views tell a consistent story about where the program is and what it holds. Any discrepancy flags a bug in the debugger toolchain. This is from the abstract only.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>Validates debugging tools by comparing program execution traces at two levels: source code level and machine instruction level. Catches bugs in debug information and compiler toolchains that existing validation methods miss.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="asplos-2025-164">
@@ -290,7 +302,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="dac-2025-179">
       <div class="ph"><span class="pid">dac-2025-179</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">DAC</span></div>
       <h4>FT-MUX: A Fault-Tolerant Microfluidic Multiplexer Design</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>Microfluidic chips route tiny droplets of liquid through networks of channels — think of a miniature plumbing system on a chip used for medical diagnostics or chemistry. A multiplexer in this context is a device that uses a small number of control valves to select among a much larger number of flow channels, just as a TV remote uses a small number of buttons to select from hundreds of channels. As these chips scale up, a single broken control valve can disable a large fraction of the flow channels it governs. FT-MUX formalizes the design rules for multiplexers that can keep working even when a certain number of control channels fail. It frames the problem as a coding theory question: the pattern of open/closed valves that selects each flow channel is like a codeword, and fault tolerance requires those codewords to remain distinguishable even after some positions are corrupted. The paper shows conditions under which a fault-tolerant multiplexer can actually address more flow channels than a standard one while using the same or fewer control channels.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>FT-MUX addresses a reliability challenge in microfluidic devices (miniaturized systems that route tiny amounts of liquids through channels). These devices use control channels to switch which flow paths are active, similar to railroad switches routing trains. As devices scale up, defective control channels block access to many flow channels. FT-MUX designs routing networks that continue functioning even when some control channels fail.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="dac-2025-180">
@@ -314,7 +326,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="dac-2025-205">
       <div class="ph"><span class="pid">dac-2025-205</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">DAC</span></div>
       <h4>Asymmetric Predictive Testing for Aging in SRAMs</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>Static random-access memory (SRAM) chips — the fast, small scratch-pad memory inside processors — degrade over years of use as electrical stress slowly shifts the voltage thresholds of the tiny transistors inside each memory cell. Chip manufacturers test for this future degradation by deliberately applying harsher-than-normal voltages during quality checks, a technique called predictive aging testing. The problem is that current methods apply the same harsh stress uniformly to all operations (reading and writing), which is unnecessarily brutal for some operations and ends up incorrectly flagging perfectly good chips as defective. This paper identifies that SRAM cells behave asymmetrically: cells that have been storing a zero for a long time are more likely to fail when you try to read them as a one, while write operations age differently. By applying the harsh test voltage selectively — aggressively only where it models real-world aging and more gently elsewhere — the method reduces false rejections. A statistical sampling and simulation approach is also proposed to make the new testing procedure fast enough to be practical in manufacturing.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper studies static RAM (SRAM) memory cells that degrade over time (aging). Current factory testing applies the same aggressive stress voltage to both reading and writing operations, which causes chips to pass the test with flying colors but later fail in the field because the test was too harsh and didn&#x27;t reflect real aging patterns. The paper observes that SRAM cells storing zeros age differently than those storing ones, particularly becoming more vulnerable to failing when reading back a zero after aging. The solution uses asymmetric testing: normal stress for writes, aggressive stress only for reading zeros, and lighter stress for reading ones.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="dac-2025-229">
@@ -344,13 +356,13 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="dac-2025-285">
       <div class="ph"><span class="pid">dac-2025-285</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">DAC</span></div>
       <h4>X-SAT: An Efficient Circuit-Based SAT Solver</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>Chip designers need to prove that two different circuit descriptions of the same arithmetic unit (say, a multiplier written two different ways) produce exactly the same output for every possible input — a problem called equivalence checking. The standard tool for this is a SAT solver, which is essentially a very sophisticated search engine that tries to find any input where the two circuits disagree; if it cannot, they are proven equivalent. The challenge is that arithmetic circuits, especially multipliers, generate SAT problems with millions of variables and clauses that cause most solvers to run for impractically long times. X-SAT is a new SAT solver that natively understands circuit structure rather than working only with the standard flattened clause form. It combines a conflict-driven clause learning search (a decades-old technique where the solver learns from dead ends to avoid repeating them) with structural simplification steps that shrink the problem by eliminating redundant variables while preserving the circuit&#x27;s logical topology, and it uses branching heuristics tuned specifically for arithmetic circuits to guide the search more directly toward a solution.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>X-SAT is a circuit-specific satisfiability solver that verifies whether arithmetic circuits are functionally equivalent. It combines conflict-driven clause learning (a standard SAT technique) with structural elimination methods that simplify the circuit while preserving its logic, and uses branching heuristics tailored to arithmetic operations.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="dac-2025-294">
       <div class="ph"><span class="pid">dac-2025-294</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">DAC</span></div>
       <h4>AutoSkewBMT: Autonomously Synthesizing Optimized Integrity Authentication Mechanism for DNN Accelerators</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>AI accelerator chips store and move sensitive model data through external memory chips, so that data needs to be encrypted and authenticated to prevent tampering. A standard authentication scheme called a Bonsai Merkle Tree (BMT) — essentially a tree of cryptographic checksums that lets hardware verify nothing has been altered — creates a significant performance bottleneck when workloads access memory in dense, rapid bursts as AI inference does. AutoSkewBMT automatically shapes the tree&#x27;s geometry (which levels are wide or narrow) to match the specific access patterns of a given AI workload, finding a layout that keeps security intact while cutting the authentication overhead. The result is a tuned security structure that fits the workload rather than forcing the workload to tolerate a one-size-fits-all structure.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>AutoSkewBMT adds cryptographic integrity checking to deep neural network (DNN) accelerators, verifying that data has not been corrupted or tampered with during computation. The key innovation is automatically adjusting the structure of the verification tree to match how the DNN accelerator actually accesses data, eliminating overhead that would otherwise slow down high-speed processing.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="dac-2025-295">
@@ -500,7 +512,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="isca-2025-123">
       <div class="ph"><span class="pid">isca-2025-123</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">ISCA</span></div>
       <h4>CORD: Low-Latency, Bandwidth-Efficient and Scalable Release Consistency via Directory Ordering</h4>
-      <div class="lab">What it does</div><div class="wid prose"><p>When multiple processors (CPUs and GPUs) share a system, they each have small fast private caches (memory close to the chip) and must coordinate so that a value written by one processor is visible to others in the right order — this coordination is called cache coherence. A common approach called &#x27;write-through with release consistency&#x27; has a processor that finishes writing send those writes to a central directory (a record-keeper for which processor holds which data) and then wait for the directory to confirm the correct order before the next processor can read. This round-trip communication adds latency and extra traffic on the links between chips. CORD moves the ordering responsibility to the directory itself: the directory collects incoming writes, enforces the required ordering locally, and notifies other processors when it is safe to read — eliminating the round-trip from the writing processor. Compact metadata in the directory tracks which writes are still in-flight, keeping the storage overhead small while scaling to multiple directories.</p></div>
+      <div class="lab">What it does</div><div class="wid prose"><p>When multiple processors (CPUs, GPUs) coordinate on shared data, coherence protocols ensure all processors see consistent memory. In write-through protocols, the source processor must route every write through the central directory for consistency, creating round-trip communication delays. CORD relocates this responsibility to the directory itself — it accumulates writes locally and enforces consistency without contacting the source processor. This reduces latency, interconnect traffic, and power for producer-consumer AI and machine-learning workloads running across multiple processors.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="isscc-2025-000">
@@ -549,6 +561,258 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">isscc-2025-217</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">ISSCC</span></div>
       <h4>37.5 SKADI: A 28nm Complete K-SAT Solver Featuring Dual-Path SRAM-Based Macro and Incremental Update with 100% Solvability</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>This paper describes a specialized chip built in a 28-nanometer manufacturing process that solves Boolean satisfiability problems (K-SAT): deciding whether a complex logical puzzle has a valid solution or proving that no solution exists. The puzzle consists of clauses (AND/OR groups) that must all be simultaneously true. Previous chip-based solvers could only find solutions when they exist but couldn&#x27;t prove when none exist; this design handles both cases completely. The chip uses arrays of fast memory (SRAM) with two parallel reasoning paths: one direction traces from clauses to variable assignments, and the other traces backward from assignments to clauses, filling in forced values. Incremental state tracking keeps the reasoning efficient as the solver explores different paths.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-002">
+      <div class="ph"><span class="pid">sc-2025-002</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Deploying Lightweight Input-Aware Selective Instruction Duplication in HPC Applications</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Protects high-performance computing systems from silent data corruption caused by transient hardware faults. Existing protection methods use default input data, missing corruption patterns triggered by real-world inputs. This framework profiles how different input types create different vulnerability patterns, then selectively duplicates instructions only where needed.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-011">
+      <div class="ph"><span class="pid">sc-2025-011</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Exploring and Mitigating Failure Behavior of Large Language Model Training Workloads in HPC Systems</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This work studies how large language models fail during training on high-performance computing systems with graphics processing units. The researchers built LLMFI, a fault injection tool that simulates 300,000+ equipment failures to understand how transient faults (temporary hardware errors) affect LLM training differently than simpler deep learning tasks. They developed LLMFT, a machine learning-based fault tolerance framework that detects faults and recovers from them using dual recovery mechanisms.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-021">
+      <div class="ph"><span class="pid">sc-2025-021</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Differential Testing for Sequential to Parallel Transformations</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Develops Seq2ParDiff, a dynamic testing tool that verifies automated sequential-to-parallel code transformation by comparing the output, memory state, and control flow behavior of parallel programs against their sequential baselines on diverse test inputs. Catches bugs like data races, performance regressions, and numerical precision issues that static analysis misses.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-040">
+      <div class="ph"><span class="pid">sc-2025-040</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Improving Supercomputer Usage with Aging Awareness</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>High-performance computing systems are expensive and have environmental impact. This paper addresses how to extend the lifetime of graphics processors by adjusting operating frequency before hardware fails. The key insight is that device aging depends strongly on operating temperature, so the system can find optimal frequency settings that balance performance with extending device lifetime, helping reduce environmental footprint.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-077">
+      <div class="ph"><span class="pid">sc-2025-077</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Story of Two GPUs: Characterizing the Resilience of Hopper H100 and Ampere A100 GPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Studies hardware reliability of NVIDIA graphics processors by analyzing 2.5 years of real operational data from the Delta supercomputer. Compares two GPU generations (Ampere A100 and newer Hopper H100) to understand their resistance to memory errors and component failures. Large-scale GPU systems require high reliability to prevent job failures and maintain system availability.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-079">
+      <div class="ph"><span class="pid">sc-2025-079</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>FT-Transformer: Resilient and Reliable Transformer with End-to-End Fault Tolerant Attention</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>FT-Transformer adds fault tolerance to transformer inference running on large-scale HPC systems to handle soft errors (bit flips and transient faults unavoidable at exascale). The system protects the attention module as a single unit with end-to-end error detection and correction. For non-attention linear layers, it uses algorithm-based fault tolerance via stride patterns to avoid expensive inter-thread synchronization.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-081">
+      <div class="ph"><span class="pid">sc-2025-081</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducibility Report for SC25 Paper MANS: Efficient and Portable ANS Encoding for Multi-Byte Integer Data on CPUs and GPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>A reproducibility evaluation of a paper on ANS (Asymmetric Numeral Systems) encoding, which is a data compression technique. The paper being evaluated claims to demonstrate efficient ANS encoding that runs on both conventional CPUs (central processing units) and GPUs (graphics processing units). This is a third-party verification of the original paper&#x27;s code and results.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-095">
+      <div class="ph"><span class="pid">sc-2025-095</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Error Analysis of Globally Distributed Workflow Management System</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>PanDA is a workflow management system for the ATLAS experiment at the Large Hadron Collider (LHC), handling computation across hundreds of distributed computing sites worldwide. This paper analyzes the types and patterns of errors that occur in this globally distributed environment, which is essential for designing strategies to recover from faults or prevent problems.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-119">
+      <div class="ph"><span class="pid">sc-2025-119</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Stability-preserving Lossy Compression for Large-scale Partial Differential Equations</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Addresses data compression for fault tolerance in large-scale simulations of partial differential equations (PDEs)—mathematical models describing how quantities like heat or flow evolve in space and time. When hardware fails in a massive supercomputer run, the system saves checkpoints (snapshots) to allow restart. Lossy compression (discarding some information) shrinks checkpoint size, but can break physical laws like energy conservation, causing simulations to become unstable. This work compresses checkpoints while guaranteeing that energy and other fundamental invariants remain valid through the restart.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-123">
+      <div class="ph"><span class="pid">sc-2025-123</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>RESILIO : A Scalable and Composable Architecture for Tomographic Reconstruction Workflows</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Tomographic reconstruction pipelines struggle with high-volume data, low latency requirements, fault tolerance, and scalability in scientific facilities. RESILIO: composable, high-performance framework built on Mochi ecosystem using Mofka for persistent streaming and resilience.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-154">
+      <div class="ph"><span class="pid">sc-2025-154</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Using Code Coverage to Assess Feature Gaps in MPI Correctness Tool Classification Tests</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This work evaluates MPI-BugBench (MBB), a tool that generates test cases to find bugs in Message Passing Interface (MPI) implementations—the standard library for distributed computing on supercomputers. The study reveals that the generated tests don&#x27;t cover all MPI features (like collective operations where each process sends different amounts of data) and don&#x27;t test diverse code patterns (like loops, array-based data structures). By analyzing code coverage, the researchers identified 34 missing test scenarios that tools like MUST and PARCOACH (which verify MPI correctness) weren&#x27;t checking, then implemented those tests to improve overall coverage.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-155">
+      <div class="ph"><span class="pid">sc-2025-155</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Data Race Detection through Vibe Translation</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper proposes a novel approach to detecting data races (when two threads access the same memory location simultaneously without proper synchronization) in C and Fortran programs using OpenMP parallelization. Instead of analyzing the original code, the system uses AI to translate programs to the Go language, then applies Go&#x27;s built-in race detector, which uses dynamic instrumentation to catch races at runtime. The goal is to find more actual bugs than existing C/Fortran tools.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-178">
+      <div class="ph"><span class="pid">sc-2025-178</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>SDR-RDMA: Software-Defined Reliability Architecture for Planetary Scale RDMA Communication</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>RDMA reliability layer design is complicated by millisecond-scale long-haul latencies; Selective Repeat inefficient for some link conditions SDR-RDMA software-defined reliability stack with receive buffer bitmap; DPA offload for line-rate performance; extensible reliability schemes.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-199">
+      <div class="ph"><span class="pid">sc-2025-199</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Fine-grained Automated Failure Management for Extreme-Scale GPU Accelerated Systems</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>As supercomputers scale to thousands of GPUs, hardware failures become more frequent and take longer to repair. This work presents an automated failure management system that tracks hardware events in a centralized database, correlates related failures together, and applies multi-strike recovery policies to speed up repairs. The system was deployed on Aurora, a leadership-class supercomputer.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-201">
+      <div class="ph"><span class="pid">sc-2025-201</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducibility Report for SC25 Paper Sparsified Preconditioned Conjugate Gradient Solver on GPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This is a reproducibility report verifying an SC25 conference paper about the Sparsified Preconditioned Conjugate Gradient Solver on GPUs. The original paper addresses the problem of solving large sparse systems of linear equations efficiently on GPUs. The solver uses sparsification—dropping small values to reduce computation—and preconditioning—mathematical techniques to accelerate convergence. This report independently evaluates whether the paper&#x27;s published results can be reproduced using the authors&#x27; provided code and methodology.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-210">
+      <div class="ph"><span class="pid">sc-2025-210</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducibility Report for SC25 Paper XaaS Containers: Performance-Portable Representation With Source and IR Containers</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper validates the reproducibility of research artifacts from a conference paper about XaaS Containers, which are special software packaging formats that let the same code run efficiently across different computers and processors. The evaluation checks whether another team can independently run the same experiments and get the same results, using standardized evaluation procedures from the Supercomputing conference&#x27;s reproducibility committee.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-232">
+      <div class="ph"><span class="pid">sc-2025-232</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Optimizing Network Resilience Using Domain-Specific Hardware Accelerator for Dynamic Programming</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Proposes a custom Dynamic Programming Accelerator (DPA) specialized for computing optimal network routing under failure conditions, outperforming general-purpose GPU and CPU solutions. Demonstrates domain-specific hardware acceleration for solving complex routing problems that lack efficient algorithms on standard processors.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-252">
+      <div class="ph"><span class="pid">sc-2025-252</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Extending MPI Correctness Benchmarking to the Fortran Language</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper extends MPI (Message Passing Interface, a standard for parallel computing communication) correctness testing to Fortran. MPI is used by scientists and engineers to write programs that run across multiple computers. While test suites exist to catch bugs in MPI implementations for C, none existed for Fortran despite the standard supporting both languages. This work ports the most recent MPI test suite (MPI-BugBench) to Fortran and evaluates how well correctness-checking tools work on Fortran MPI code.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-253">
+      <div class="ph"><span class="pid">sc-2025-253</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Coupling Static and Dynamic MPI Correctness Tools to Optimize Accuracy and Overhead</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This work combines two different approaches to verify MPI (Message Passing Interface—a standard for parallel computing) programs. Static tools analyze code without running it but produce false warnings; dynamic tools run programs to catch real bugs but miss cases. The research couples these tools together, using static analysis results to guide which code paths the dynamic tools should focus on, reducing false warnings while improving detection coverage.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-255">
+      <div class="ph"><span class="pid">sc-2025-255</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Scabbard: LLVM Instrumentation-aided Race Checking in CPU/GPU Unified Memory for AMD GPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Detects data races in systems where CPUs and GPUs share unified memory (a single address space accessible by both processors). Data races occur when two processors access the same memory location without proper synchronization. Instruments both CPU and GPU code during LLVM compilation, recording all reads, writes, and synchronization events, then analyzes these traces offline to find conflicts. Integrates into AMD&#x27;s ROCm/HIP compilation toolchain.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-269">
+      <div class="ph"><span class="pid">sc-2025-269</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>From Exploration to Explanation: ML-Driven Causal Discovery for Datacenter Reliability at Scale</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Large data centers contain thousands of servers and cooling systems, power supplies, and network switches that all interact in complex ways. When one component fails, the failure cascades through interconnected subsystems, making it extremely hard to identify the root cause. Existing monitoring tools watch for thresholds or correlations, but these miss hidden cause-effect chains buried in high-dimensional, constantly changing sensor data. PACE (Pattern and Causal Exploration) combines unsupervised pattern detection with causal inference (a statistical technique that discovers which signals actually cause others) to produce interpretable cause-and-effect graphs aligned with physical systems.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-299">
+      <div class="ph"><span class="pid">sc-2025-299</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>DAGonStore: Reliable Data Management for Workflows on the Computing Continuum with DynoStore and DAGonStar</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>DAGonStore provides reliable data management for computational workflows running across the computing continuum (geographically distributed systems from edge devices to cloud data centers). The system ensures data availability and consistency across failure-prone heterogeneous storage nodes. It integrates with DynoStore storage system and uses erasure codes and intelligent load balancing to protect against data loss.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-322">
+      <div class="ph"><span class="pid">sc-2025-322</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Architecting Tensor Core-Based Reductions for Irregular Molecular Docking Kernels</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Adapts Tensor Cores (specialized matrix-multiplication hardware on NVIDIA GPUs like the A100 and H100) to accelerate molecular docking—the computational chemistry problem of finding how drug molecules bind to protein targets. Molecular docking has irregular, sparse computation patterns (not the dense matrix operations Tensor Cores were designed for), so the paper develops techniques to sum up partial results efficiently using Tensor Cores and applies numerical error correction to keep answers accurate despite the irregular workload.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-332">
+      <div class="ph"><span class="pid">sc-2025-332</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Demystifying the Resilience of Large Language Model Inference: An End-to-End Perspective</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper studies how well large language models (LLMs) tolerate hardware faults—bits flipping incorrectly in memory or computation during inference. While prior work claims LLMs are resilient to bit errors, this study reveals that standard metrics mask serious problems: the model&#x27;s formal accuracy may stay high while the generated text becomes gibberish or semantically nonsensical. The paper injects random bit faults during inference and measures both traditional metrics and text quality.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-333">
+      <div class="ph"><span class="pid">sc-2025-333</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>LLMTailor: A Layer-wise Tailoring Tool for Efficient Checkpointing of Large Language Models</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>LLMTailor is a tool that optimizes checkpoint storage during training of large language models (neural networks with billions of parameters). Training requires periodic snapshots of model weights and optimization state to enable recovery from failures, but these snapshots consume massive storage. LLMTailor lets you save only selected layers from different checkpoint snapshots and combine them, reducing storage overhead while maintaining recovery capability.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-338">
+      <div class="ph"><span class="pid">sc-2025-338</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducibility Report for SC25 Paper Story of Two GPUs: Characterizing the Resilience of Hopper H100 and Ampere A100 GPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This is an artifact evaluation report that independently reproduces the experiments from another paper comparing the reliability and fault behavior of two generations of NVIDIA GPUs: the Ampere A100 and the newer Hopper H100. The report assesses whether the original paper&#x27;s methodology and findings can be verified using the published code and data.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-357">
+      <div class="ph"><span class="pid">sc-2025-357</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Reproducibility Report for SC25 Paper Uno: A One-Stop Solution for Inter- and Intra- Data Center Congestion Control and Reliable Connectivity</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper evaluates the reproducibility of Uno, a system designed for managing network congestion in data centers spanning multiple facilities (inter-data center) and within single facilities (intra-data center). The evaluation assesses the system&#x27;s effectiveness at keeping data flows reliable and avoiding network bottlenecks. The paper provides an independent assessment of Uno&#x27;s performance across different cluster scenarios and workload conditions.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-383">
+      <div class="ph"><span class="pid">sc-2025-383</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>LLM4FP: LLM-Based Program Generation for Triggering Floating-Point Inconsistencies Across Compilers</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Develops a tool that uses a large language model to automatically generate test programs that expose bugs in floating-point arithmetic (decimal number handling) when compiling code across different compilers. The tool combines grammar-based generation (following syntax rules) and feedback-based mutation (learning which variations trigger more bugs) to find inconsistencies that traditional testing tools miss.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-402">
+      <div class="ph"><span class="pid">sc-2025-402</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>Effective Node-Level Anomaly Detection in HPC Systems via Coarse-Grained Clustering and Fine-Grained Model Sharing</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>NodeSentry is an automatic anomaly detector for large high-performance computing clusters that identifies nodes behaving abnormally. In massive systems, nodes frequently transition between different jobs and experience complex performance patterns, making manual detection impractical. This unsupervised system automatically detects unusual node behavior at scale by combining coarse-grained clustering (grouping nodes by similarity) with fine-grained model sharing (transferring learned patterns between nodes).</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="sc-2025-412">
+      <div class="ph"><span class="pid">sc-2025-412</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
+      <h4>LowDiff: Efficient Frequent Checkpointing via Low-Cost Differential for High-Performance Distributed Training Systems</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Introduces LowDiff, a technique for fault tolerance in distributed deep learning training. Training stores checkpoint snapshots periodically to enable recovery if hardware fails. Frequent checkpointing allows faster recovery but generates many large files, consuming storage and wasting time writing to disk. LowDiff reuses gradient information (partial computation results already being communicated between machines) as differential checkpoints—storing only the differences from a prior checkpoint rather than the full state. Includes optimizations for batching gradient writes and dynamically tuning checkpoint frequency.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-001">
+      <div class="ph"><span class="pid">vlsid-2025-001</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>FARAD: Automated Formal Verification of Approximate Restoring Array Dividers</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Approximate arithmetic circuits intentionally trade off perfect accuracy for reduced power, area, and latency, making them useful in applications that can tolerate small errors. Division is a common operation, but verifying that approximate divider designs are correct across all possible inputs is challenging. FARAD automates the formal verification (mathematical proof of correctness) of approximate restoring array dividers, ensuring they behave as specified despite their approximations.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-004">
+      <div class="ph"><span class="pid">vlsid-2025-004</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>AI-Driven Anomaly Detection in Oscilloscope Images for Post-Silicon Validation</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Applies a machine learning model called a Convolutional Autoencoder (CAE) to automatically detect problems in oscilloscope images captured during post-silicon validation. Post-silicon validation tests the actual physical chip to verify all functionalities and performance boundaries work correctly, producing enormous amounts of image and trace data. The CAE model learns patterns from real chip data to identify anomalies that indicate potential defects or issues without requiring manual inspection.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-011">
+      <div class="ph"><span class="pid">vlsid-2025-011</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>Early Bug Detector - A Verification Methodology for DFD-SoC RTL Parameters</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Proposes a verification methodology for Design for Debug (DFD) parameters in System-on-Chips (SoCs). Design for Debug is a feature that provides effective debugging capabilities in complex chips. The paper addresses the challenge of verifying DFD-related parameters during chip design to catch bugs early.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-024">
+      <div class="ph"><span class="pid">vlsid-2025-024</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>PrOFraC: Property Ordering and Frame Clause Reuse for Multi-Property Verification</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Formal verification proves that hardware designs meet their specifications by exhaustively checking logical properties, but checking multiple properties on large designs is slow. This paper proposes PrOFraC, a technique that reorders which properties to verify first and reuses proof state from earlier verifications to accelerate the multi-property checking process, improving scalability for complex modern chips.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-032">
+      <div class="ph"><span class="pid">vlsid-2025-032</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>Accelerated Design Verification Coverage Closure Using Machine Learning</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper addresses bottlenecks in verifying complex chips by using machine learning to predict which randomly generated test stimuli will actually advance verification progress. Instead of running every test stimulus through expensive simulation, the system only simulates stimulus that the ML model predicts will reveal new design behaviors, significantly reducing wasted simulation time and accelerating time-to-market for new chips.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-033">
+      <div class="ph"><span class="pid">vlsid-2025-033</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>PPA-Aware Power Grid Optimization Techniques for Congested High Frequency Datapath Designs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Optimizes the power delivery network (the circuits that supply power to high-speed logic) in modern networking switch chips where routing is congested. The paper focuses on meeting three competing goals: power consumption, performance speed, and physical area constraints. It treats critical signal paths as groups for coordinated power and signal routing, reducing voltage drops and preventing electromigration (where excessive current damages metal wires).</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-035">
+      <div class="ph"><span class="pid">vlsid-2025-035</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>ABMF: Adaptive Bonsai Merkle Forests for Efficient Integrity Verification in Secure Persistent Memories</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Non-volatile memory (permanent storage that persists when power is off) used in secure systems must verify data integrity using cryptographic techniques. Traditional Merkle tree integrity verification is expensive because every memory write requires updating many nodes in a tree structure, causing latency and performance penalties. This paper proposes Adaptive Bonsai Merkle Forests, an extension of Merkle trees that reduces verification costs by identifying intermediate nodes as additional verification roots.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-042">
+      <div class="ph"><span class="pid">vlsid-2025-042</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>Reliable High-Performance Programmable Voltage Regulator with 0.55A Sink Current for Cryo-Cooler Electronics in 0.18μm HV-CMOS Technology</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This paper designs a programmable voltage regulator for cryo-cooler electronics that operate at extreme temperatures near absolute zero. The regulator can handle wide input voltage ranges (10V to 60V) and output configurable voltages while sinking up to 550 milliamps of current, supplying high-voltage gate driver circuits used in cryogenic systems.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-045">
+      <div class="ph"><span class="pid">vlsid-2025-045</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>TCAD Based Study of String Current Variability in 3D NAND Flash Memory</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This work uses detailed physics-based simulation to study how manufacturing variations affect 3D NAND flash memory reliability. Variations in cell spacing, oxide thickness, channel thickness, and other dimensions cause significant differences in electrical behavior across memory cells, impacting performance and data retention.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-064">
+      <div class="ph"><span class="pid">vlsid-2025-064</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>Advancing Functional Safety: Improving Failure Mode Analysis and Fault Injection Using Automation and GNN Algorithms</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This system speeds up two critical steps in functional safety verification for electronic hardware: Failure Mode Analysis (FMA) and Fault Injection (FI) testing. FMA identifies what can go wrong in a chip when errors occur; FI testing simulates those errors to measure impact. The work automates FMA to reduce manual work and uses GNN (Graph Neural Networks) machine learning to predict which faults are most critical, avoiding redundant simulation.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-071">
+      <div class="ph"><span class="pid">vlsid-2025-071</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>BMC Engine Sequencing with Graph Neural Network Embeddings of Hardware Circuits</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>This work accelerates formal verification, which is the mathematical proof that a hardware chip works correctly. Bounded Model Checking (BMC) is a verification technique that tests circuits at different depths; different verification engines excel at different depths. This paper uses GNN (Graph Neural Networks) to learn circuit structure and automatically select which verification engine to use at each depth, speeding up the overall verification process.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="vlsid-2025-094">
+      <div class="ph"><span class="pid">vlsid-2025-094</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">VLSID</span></div>
+      <h4>TOGGLE6.0: A 4.8Gbps Next Generation Area and Power Efficient Transceiver for Flash Memory Interface</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p>Toggle6.0 transfers data between phones and flash memory at 4.8 gigabits per second with minimal power and chip area. It uses thin transistors to reduce electrical loading, a custom ground voltage scheme to protect circuits from overstress, multi-tap current injection to correct signal distortion, and per-receiver tuning to meet tight timing constraints.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div></section>
   <footer>AI Hardware 2025 · full text where openly available, else the abstract · <a href="deepdives.html">back to hub</a></footer>

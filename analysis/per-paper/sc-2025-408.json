@@ -1,0 +1,55 @@
+{
+  "id": "sc-2025-408",
+  "title": "Phoenix: A Refactored I/O Stack for GPU Direct Storage without Phony Buffers",
+  "venue": "SC",
+  "problem": "GPU Direct Storage (GDS) employs phony buffers in host memory to interact with the Linux kernel, resulting in suboptimal I/O performance, extra resource consumption, and high deployment complexity.",
+  "motivation": "GDS is vital for GPU-based training and inference, but current implementations use indirect buffering that adds latency and overhead. Eliminating this intermediary layer could improve data transfer efficiency and reduce complexity.",
+  "method": "Phoenix leverages ZONE_DEVICE (Linux kernel 4.3+) to map GPU memory into the page table at system startup, eliminating the need for host-side phony buffers. The kernel module allocates user-space virtual memory and establishes direct mapping with designated GPU memory.",
+  "key_novelty": "Direct GPU memory mapping into the system page table using ZONE_DEVICE, eliminating intermediate host buffers while maintaining kernel compatibility.",
+  "contributions": [
+    "70.3% reduction in software processing overhead along the critical I/O path",
+    "2.29x improvement in small-size I/O performance (e.g., KV-cache operations)",
+    "4.11x improvement in large file loading performance (e.g., checkpoint loading)",
+    "Implementation for recently-released GPU and NPU models"
+  ],
+  "hardware_target": [
+    "NVIDIA GPUs",
+    "AMD NPUs",
+    "GPU systems with NVMe storage",
+    "AI/ML training and inference systems"
+  ],
+  "technique_category": [
+    "I/O optimization",
+    "Memory management",
+    "GPU-storage integration",
+    "Direct memory access"
+  ],
+  "workloads": [
+    "GPU-based model training",
+    "GPU inference",
+    "KV-cache operations",
+    "Model checkpoint loading",
+    "Small-size I/O operations",
+    "Large file I/O"
+  ],
+  "metrics": {
+    "software_overhead_reduction": "70.3% reduction in critical I/O path",
+    "small_io_speedup": "2.29x for KV-cache operations",
+    "large_file_speedup": "4.11x for checkpoint loading"
+  },
+  "baselines": [
+    "State-of-the-art GDS I/O stack (with phony buffers)"
+  ],
+  "limitations": "Full-text not available; analysis based on abstract. Evaluation may be limited to specific GPU models.",
+  "tags": [
+    "GPU storage",
+    "Direct I/O",
+    "page tables",
+    "memory mapping",
+    "I/O optimization",
+    "inference",
+    "training"
+  ],
+  "primary_theme": "GPU-centric I/O optimization for AI/ML workloads",
+  "confidence": "low"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "sc-2025-399",
+  "title": "TurboFNO: High-Performance Fourier Neural Operator with Fused FFT-GEMM-iFFT on GPU",
+  "venue": "SC",
+  "problem": "Fourier Neural Operators execute FFT, filtering, GEMM, and iFFT as separate stages, incurring multiple kernel launches and high memory traffic; lacks architecture-aware optimization.",
+  "motivation": "FNO is widely used for PDE solvers but performance is sub-optimal; fusing kernels can reduce memory overhead and improve throughput.",
+  "method": "Custom FFT and GEMM kernels from scratch; fused FFT-GEMM-iFFT with shared memory swizzling and zero-padding/pruning built-in.",
+  "key_novelty": "First fully fused FFT-GEMM-iFFT kernel; matches/exceeds closed-source cuBLAS and cuFFT; 100% shared memory bank utilization.",
+  "contributions": [
+    "Custom FFT kernel competitive with cuFFT with built-in optimizations",
+    "Custom GEMM kernel competitive with cuBLAS",
+    "Fused FFT-GEMM-iFFT kernel with 100% memory bank utilization",
+    "Up to 150% speedup vs. PyTorch, cuBLAS, cuFFT on A100"
+  ],
+  "hardware_target": [
+    "NVIDIA A100 GPU"
+  ],
+  "technique_category": [
+    "GPU Kernel Fusion",
+    "FFT Optimization",
+    "Memory Hierarchy Optimization"
+  ],
+  "workloads": [
+    "Fourier Neural Operators for PDE solving"
+  ],
+  "metrics": {
+    "speedup": "150% vs. PyTorch/cuBLAS/cuFFT"
+  },
+  "baselines": [
+    "PyTorch native FNO",
+    "cuBLAS",
+    "cuFFT"
+  ],
+  "limitations": "A100-specific; large engineering effort; may not generalize to other GPU architectures; narrow workload (FNO only).",
+  "tags": [
+    "GPU-kernels",
+    "fusion",
+    "FFT",
+    "GEMM",
+    "neural-operators"
+  ],
+  "primary_theme": "GPU Kernel Optimization",
+  "confidence": "low"
+}

@@ -366,7 +366,8 @@ def build_sidebar():
     links.append('<div class="nav-heading">By venue</div>')
     for conf, label in [("mlsys","MLSys"),("isca","ISCA"),("micro","MICRO"),
                         ("hpca","HPCA"),("asplos","ASPLOS"),("dac","DAC"),
-                        ("isscc","ISSCC"),("hotchips","Hot Chips")]:
+                        ("isscc","ISSCC"),("hotchips","Hot Chips"),
+                        ("sc","SC"),("vlsid","VLSID")]:
         links.append(f'<a class="nav-link theme" href="{conf}-2025-bigpicture.html">{label}</a>')
 
     links.append('''<div class="sidebar-links">

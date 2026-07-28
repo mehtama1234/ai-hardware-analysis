@@ -1,0 +1,31 @@
+{
+  "id": "sc-2025-086",
+  "title": "Redesigning GROMACS Halo Exchange: Improving Strong Scaling with GPU-initiated NVSHMEM",
+  "venue": "SC",
+  "problem": "GROMACS molecular dynamics simulations achieve strong scaling poorly on heterogeneous supercomputers. MPI's CPU-centric communication introduces latencies that hinder GPU utilization and scalability on latency-sensitive (sub-millisecond iteration) workloads.",
+  "motivation": "Time-to-solution for MD simulations often requires strong scaling (fixed problem). GROMACS peak iteration rates < 1ms, making communication latency critical. GPU-resident communication can reduce overhead.",
+  "method": "NVSHMEM-based GPU kernel-initiated redesign of domain decomposition halo-exchange. Fuses data packing and communication in GPU kernels. Leverages hardware latency-hiding (async copy engine over NVLink) for fine-grained overlap.",
+  "key_novelty": "GPU-initiated communication for halo exchange; kernel fusion of packing+communication; asynchronous NVLink copy engine utilization; multi-node NVSHMEM scaling; 1.5x intra-node, 2x multi-node (NVLink), 1.3x multi-node (InfiniBand) speedups.",
+  "contributions": [
+    "NVSHMEM-based GPU kernel-initiated halo-exchange redesign",
+    "Kernel fusion for packing and communication overlap",
+    "Asynchronous copy engine exploitation over NVLink",
+    "1.5x intra-node strong scaling improvement (NVLink)",
+    "2x multi-node strong scaling improvement (NVLink)",
+    "1.3x multi-node improvement (NVLink+InfiniBand)"
+  ],
+  "hardware_target": ["GPU clusters with NVLink", "NVIDIA A100/H100 systems", "Exascale supercomputers"],
+  "technique_category": ["GPU communication", "Molecular dynamics", "Strong scaling optimization", "One-sided communication"],
+  "workloads": ["Molecular dynamics (GROMACS)", "Strong scaling simulations"],
+  "metrics": {
+    "intra_node_speedup_NVLink": "1.5x",
+    "multi_node_speedup_NVLink": "2x",
+    "multi_node_speedup_NVLink_IB": "1.3x",
+    "iteration_latency": "Sub-millisecond (latency-sensitive)"
+  },
+  "baselines": ["MPI-based halo exchange", "CPU-initiated communication"],
+  "limitations": "Specific system/problem size not detailed; limited to GROMACS (generalization unclear); multi-node results combine NVLink+InfiniBand (mixed interconnect)",
+  "tags": ["GPU-communication", "NVSHMEM", "molecular-dynamics", "GROMACS", "strong-scaling", "latency-sensitive"],
+  "primary_theme": "GPU-Initiated One-Sided Communication for MD Strong Scaling",
+  "confidence": "low"
+}
