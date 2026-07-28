@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How compilers close the gap — AI Hardware 2025</title>
+<style>
+:root{
+  --bg:#0A0E13;--panel:#10161D;--panel2:#0D131A;--line:#1D2A34;--grid:#141E27;
+  --ink:#E7EFF1;--mut:#8B9BA2;--dim:#586770;
+  --cyan:#38E1CF;--cyan2:#12A79A;--amber:#F5A65B;--coral:#FF6B5C;--violet:#9C8CFF;--green:#4FC870;
+  --mono:ui-monospace,"SF Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;background-position:center top;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px}
+a{color:var(--cyan)}
+.topnav{padding:22px 0 0;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.back{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-decoration:none;letter-spacing:.04em}
+.back:hover{color:var(--cyan)}
+.secnav{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0 0;border-bottom:1px solid var(--line);margin-bottom:0}
+.secnav a{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);text-decoration:none;padding:4px 10px;border:1px solid var(--line);border-radius:20px;
+  transition:color .12s,border-color .12s}
+.secnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+header{padding:66px 0 36px}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(2.1rem,5.8vw,3.8rem);line-height:1.04;letter-spacing:-.03em;font-weight:800;margin:16px 0 0;
+  text-wrap:balance;background:linear-gradient(170deg,#EDF5F6 30%,#7AABAF);-webkit-background-clip:text;background-clip:text;color:transparent}
+header p.lede{font-size:1.1rem;color:var(--mut);max-width:58ch;margin:18px 0 0;line-height:1.7}
+header p.lede b{color:var(--ink);font-weight:600}
+section{padding:48px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(1.45rem,3.4vw,2.05rem);letter-spacing:-.022em;font-weight:750;margin:0 0 6px;text-wrap:balance;color:var(--ink)}
+.sub{color:var(--mut);max-width:62ch;margin:0 0 22px;font-size:1.02rem;line-height:1.7}
+.eye{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;align-items:center;
+  gap:9px;margin-bottom:14px;letter-spacing:.04em}
+.eye .n{color:var(--dim)}.eye .stage{color:var(--amber)}
+.eye::before{content:"";width:22px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+.panel{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+  border-radius:14px;padding:8px;overflow:hidden}
+.panel canvas{display:block;width:100%;height:auto;border-radius:8px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px 32px;margin-top:22px}
+@media(max-width:640px){.notes{grid-template-columns:1fr}}
+.notes h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0 0 5px}
+.notes p{margin:0;font-size:.96rem;color:#C0CDD1;line-height:1.6}
+footer{border-top:1px solid var(--line);padding:40px 0 90px;color:var(--dim);font-family:var(--mono);font-size:11.5px;line-height:1.7}
+footer b{color:var(--mut)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topnav">
+  <a class="back" href="index.html">← master narrative</a>
+  <a class="back" href="techniques.html">hardware mechanisms</a>
+  <a class="back" href="heatmap.html">theme × venue map</a>
+  <a class="back" href="deepdives.html">deep dives</a>
+  <a class="back" href="explorer.html">explorer</a>
+</div>
+<nav class="secnav">
+  <a href="#ir">00 IR levels</a>
+  <a href="#egraph">01 e-graphs</a>
+  <a href="#tiling">02 tiling</a>
+  <a href="#simd">03 SIMD</a>
+  <a href="#mte">04 MTE safety</a>
+  <a href="#regalloc">05 register alloc</a>
+  <a href="#jit">06 JIT</a>
+  <a href="#synth">07 synthesis</a>
+</nav>
+
+<header>
+  <div class="kicker">AI Hardware 2025 · compiler layer</div>
+  <h1>How compilers<br>close the gap</h1>
+  <p class="lede">Hardware mechanisms are half the story. The <b>compiler</b> is what makes them usable — translating high-level intent into efficient machine sequences. Each diagram below shows one transformation, exactly as it runs in the papers across CGO, ASPLOS, and MLSYS 2025.</p>
+</header>
+
+<!-- 00 IR LEVELS -->
+<section id="ir">
+  <div class="eye"><span class="n">00</span> · <span class="stage">architecture</span></div>
+  <h2>The IR bottleneck — and why MLIR uses many levels</h2>
+  <p class="sub">Traditional compilers squeeze everything through one narrow IR (LLVM IR), losing domain structure. MLIR keeps multiple levels: a TensorFlow dialect, a linalg dialect, an affine dialect — each lowering progressively without discarding information that enables better optimization.</p>
+  <div class="panel"><canvas data-anim="irLevels" height="240"></canvas></div>
+  <div class="notes">
+    <div><h4>The bottleneck problem</h4><p>A matrix multiply lowers to LLVM IR and looks like a generic loop — the tensor structure is gone. Passes that optimize tensors can't fire because they can't see tensors anymore.</p></div>
+    <div><h4>What MLIR does</h4><p>Multi-level IR keeps the tensor representation alive through Linalg → Affine → SCF, lowering one level at a time. Each stage can still see the structure the level above it understood.</p></div>
+  </div>
+</section>
+
+<!-- 01 E-GRAPH -->
+<section id="egraph">
+  <div class="eye"><span class="n">01</span> · <span class="stage">optimization</span></div>
+  <h2>Equality saturation — hold all equivalent programs, extract the cheapest</h2>
+  <p class="sub">A greedy optimizer commits to one rewrite at a time. If it picks wrong early, there's no recovery. An e-graph holds <em>all</em> equivalent forms simultaneously — then extracts the cheapest. DialEgg (CGO 2025) integrates Egglog directly into MLIR's pass pipeline.</p>
+  <div class="panel"><canvas data-anim="eGraph" height="250"></canvas></div>
+  <div class="notes">
+    <div><h4>Greedy optimizers get stuck</h4><p>If you first apply <code>a×4÷2 → a×2</code>, you may miss that <code>a&lt;&lt;1</code> is even cheaper. You committed before seeing the full picture.</p></div>
+    <div><h4>E-class extraction</h4><p>The e-graph grows until saturation (no new equivalences possible), then a cost-guided extraction picks the minimum-cost representative from each equivalence class.</p></div>
+  </div>
+</section>
+
+<!-- 02 TILING -->
+<section id="tiling">
+  <div class="eye"><span class="n">02</span> · <span class="stage">memory</span></div>
+  <h2>Loop tiling — the same computation, in cache-friendly order</h2>
+  <p class="sub">Row-major access sweeps across a large matrix, evicting each row before it's reused. Tiling restructures the loops into blocks that fit in L1: every element fetched is reused within the block before the next block starts. The arithmetic is identical; the cache behavior is not.</p>
+  <div class="panel"><canvas data-anim="tiling" height="230"></canvas></div>
+  <div class="notes">
+    <div><h4>Why row-major misses</h4><p>Matrix multiply accesses B column-by-column while iterating rows of A. Each B column access strides across memory — every element in a different cache line.</p></div>
+    <div><h4>What tiling achieves</h4><p>A tile of A and a tile of B both fit in L1. All C[i][j] updates for that tile complete before the tile evicts — converting cold misses to warm hits.</p></div>
+  </div>
+</section>
+
+<!-- 03 SIMD -->
+<section id="simd">
+  <div class="eye"><span class="n">03</span> · <span class="stage">parallelism</span></div>
+  <h2>Vectorization — prove independence, then run 8 at once</h2>
+  <p class="sub">A scalar loop executes one element per cycle. AVX2 can process 8 floats in a single instruction; AVX-512, 16. The vectorizer's job is to prove that N iterations have no data dependencies, then widen the loop — trading one 8-cycle scalar run for one 1-cycle SIMD instruction.</p>
+  <div class="panel"><canvas data-anim="vectorize" height="220"></canvas></div>
+  <div class="notes">
+    <div><h4>Dependency check</h4><p>If <code>a[i]</code> depends on <code>a[i-1]</code>, the loop can't be vectorized — the next iteration needs the previous result. Alias analysis determines whether memory accesses could overlap.</p></div>
+    <div><h4>Remainder handling</h4><p>If N isn't a multiple of 8, the vectorizer emits a scalar epilogue for the leftover elements, or uses a predicate mask to process a partial vector.</p></div>
+  </div>
+</section>
+
+<!-- 04 MTE -->
+<section id="mte">
+  <div class="eye"><span class="n">04</span> · <span class="stage">security</span></div>
+  <h2>ARM MTE — hardware memory tagging at ~5% overhead</h2>
+  <p class="sub">Software bounds-checking adds 2–3× overhead. ARM MTE stores a 4-bit color tag in the top bits of every pointer AND in shadow memory beside each allocation. Every load/store hardware-checks the tags in parallel — at ~5% overhead. Cage (CGO 2025) uses MTE + PAC to make WebAssembly heaps safe with no software checks.</p>
+  <div class="panel"><canvas data-anim="mteTag" height="220"></canvas></div>
+  <div class="notes">
+    <div><h4>How the tag is stored</h4><p>ARM's 64-bit address space has spare bits in the top byte (virtual addresses only use 48–52 bits). MTE repurposes 4 of those bits for the color tag — no change to pointer width.</p></div>
+    <div><h4>Use-after-free detection</h4><p>On <code>free()</code>, the allocator changes the shadow tag for that slot to a new random color. The stale pointer still holds the old tag. The next access finds a tag mismatch → hardware trap.</p></div>
+  </div>
+</section>
+
+<!-- 05 REGISTER ALLOC -->
+<section id="regalloc">
+  <div class="eye"><span class="n">05</span> · <span class="stage">code generation</span></div>
+  <h2>Register allocation — assigning variables to fast slots</h2>
+  <p class="sub">Variables that are alive at the same time cannot share a register — they interfere. The allocator builds an interference graph and finds a coloring: assign a register-color to each variable so no two interfering variables share one. When the graph needs more colors than registers exist, one variable spills to the stack.</p>
+  <div class="panel"><canvas data-anim="regAlloc" height="230"></canvas></div>
+  <div class="notes">
+    <div><h4>The NP-hard part</h4><p>Optimal register allocation (minimum spills) is NP-complete for general interference graphs. Every backend uses a greedy heuristic — Chaitin coloring or linear-scan — that gets close fast.</p></div>
+    <div><h4>Spill cost</h4><p>A spilled variable adds a store to memory on every write and a load on every read. In hot loops, spills dominate. The allocator weighs spill frequency against the cost of using a callee-saved register.</p></div>
+  </div>
+</section>
+
+<!-- 06 JIT -->
+<section id="jit">
+  <div class="eye"><span class="n">06</span> · <span class="stage">runtime</span></div>
+  <h2>JIT compilation — specialize for what actually runs</h2>
+  <p class="sub">An AOT compiler must handle all inputs: any type, any device, any shape. A JIT watches the actual runtime calls, identifies the dominant path, and emits a specialized native stub for exactly those conditions — removing every branch for other paths. Proteus (CGO 2025) does this for GPU kernels at the LLVM IR level.</p>
+  <div class="panel"><canvas data-anim="jitSpec" height="250"></canvas></div>
+  <div class="notes">
+    <div><h4>The trade-off</h4><p>JIT adds startup latency (compilation time) before the fast path is available. Short-lived programs pay the cost without benefiting from it. PyPy and V8 use tiered JIT: first interpret, then JIT the hot functions.</p></div>
+    <div><h4>Deoptimization</h4><p>If a rare input arrives that violates the JIT's assumptions, the stub must deoptimize — fall back to the generic interpreter. Good JITs handle this without crashing.</p></div>
+  </div>
+</section>
+
+<!-- 07 SYNTHESIS -->
+<section id="synth">
+  <div class="eye"><span class="n">07</span> · <span class="stage">search</span></div>
+  <h2>Synthesis as search — the compiler finds code it cannot write</h2>
+  <p class="sub">Some optimal programs can only be found, not hand-coded. A sorting network for N elements has exponentially many orderings — the optimal one is discovered by A* over the program space, guided by a cost function, pruning provably suboptimal branches. Synthesis of Sorting Kernels (CGO 2025) finds networks competitive with hand-tuned and AlphaDev results without TPU clusters.</p>
+  <div class="panel"><canvas data-anim="synthSearch" height="250"></canvas></div>
+  <div class="notes">
+    <div><h4>Why A* beats brute force</h4><p>A* uses a heuristic to prune branches where the best possible completion already exceeds the cost of the current best solution. It finds the optimum without exhaustive enumeration.</p></div>
+    <div><h4>Beyond sorting</h4><p>The same approach finds optimal hash functions (Automatic Synthesis of Specialized Hash Functions, CGO 2025) and quantum circuits (ASDF) — anywhere the compiler can express cost and constraints.</p></div>
+  </div>
+</section>
+
+<footer>
+  <b>AI Hardware 2025</b> · compiler mechanisms · 1,809 papers across 11 venues ·
+  <a href="techniques.html">hardware mechanisms</a> · <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a>
+</footer>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const C = {
+  bg:'#0A0E13',ink:'#E7EFF1',mut:'#8B9BA2',dim:'#586770',
+  cyan:'#38E1CF',cyan2:'#12A79A',amber:'#F5A65B',coral:'#FF6B5C',violet:'#9C8CFF',green:'#4FC870',
+  line:'#1D2A34',panel:'#10161D',
+};
+const MN = 'ui-monospace,"SF Mono",Menlo,Consolas,monospace';
+
+function fit(cv){
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.getBoundingClientRect().width;
+  const h=parseInt(cv.getAttribute('height')||'260');
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return{ctx,w,h};
+}
+
+function gt(ctx,txt,x,y,col,sz,align='center',base='middle'){
+  ctx.save();ctx.font=`${sz}px ${MN}`;ctx.fillStyle=col;
+  ctx.textAlign=align;ctx.textBaseline=base;ctx.fillText(txt,x,y);ctx.restore();
+}
+
+function rr(ctx,x,y,w,h,r,fill,stroke,lw=1){
+  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);
+  if(fill){ctx.fillStyle=fill;ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();}
+  ctx.restore();
+}
+
+function arr(ctx,x1,y1,x2,y2,col,lw=1.2){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+  if(len<1)return;
+  const ux=dx/len,uy=dy/len,hw=5;
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-ux*hw,y2-uy*hw);ctx.stroke();
+  ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*hw-uy*hw*0.6,y2-uy*hw+ux*hw*0.6);
+  ctx.lineTo(x2-ux*hw+uy*hw*0.6,y2-uy*hw-ux*hw*0.6);
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+
+const A={};
+
+/* ---- 00 IR LEVELS ---- */
+A.irLevels=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const mid=w/2;
+
+  // divider
+  ctx.save();ctx.strokeStyle='rgba(36,52,64,.5)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+  ctx.beginPath();ctx.moveTo(mid,8);ctx.lineTo(mid,h-8);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  // LEFT: traditional hourglass
+  gt(ctx,'traditional',mid*0.5,13,C.amber,9);
+  const topY=30,botY=h-20,neckY=h*0.5;
+  const lhalf=mid-16,lcx=lhalf/2,spread=lhalf*0.32;
+  const srcs=['Python','C/CUDA','ML DSL'],tgts=['x86','ARM','GPU'];
+
+  srcs.forEach((s,i)=>{
+    const sx=lcx+(i-1)*spread;
+    rr(ctx,sx-18,topY-7,36,14,3,'rgba(245,166,91,.08)','rgba(245,166,91,.25)',.7);
+    gt(ctx,s,sx,topY-1,C.dim,8);
+    ctx.save();ctx.strokeStyle='rgba(100,120,140,.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(sx,topY+7);ctx.lineTo(lcx,neckY-11);ctx.stroke();ctx.restore();
+  });
+  tgts.forEach((s,i)=>{
+    const sx=lcx+(i-1)*spread;
+    rr(ctx,sx-18,botY-7,36,14,3,'rgba(156,140,255,.08)','rgba(156,140,255,.25)',.7);
+    gt(ctx,s,sx,botY-1,C.dim,8);
+    ctx.save();ctx.strokeStyle='rgba(100,120,140,.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(lcx,neckY+11);ctx.lineTo(sx,botY-7);ctx.stroke();ctx.restore();
+  });
+
+  // neck — red bottleneck
+  const pulse=0.5+0.5*Math.sin(t*2.5);
+  ctx.save();ctx.shadowColor='#FF4444';ctx.shadowBlur=10*pulse;
+  rr(ctx,lcx-24,neckY-11,48,22,5,'rgba(220,60,60,.2)','#FF6B5C',1.4);
+  ctx.restore();
+  gt(ctx,'LLVM IR',lcx,neckY,C.ink,8.5);
+
+  // falling particle
+  const ph=(t*.28)%1;
+  const py=topY+ph*(botY-topY);
+  const atNeck=Math.abs(py-neckY)<16;
+  ctx.save();if(atNeck){ctx.shadowColor='#FF4444';ctx.shadowBlur=10;}
+  ctx.fillStyle=atNeck?'#FF6B5C':C.cyan;
+  ctx.beginPath();ctx.arc(lcx,py,3.5,0,Math.PI*2);ctx.fill();ctx.restore();
+  gt(ctx,'all info collapses here',lcx,h-10,C.dim,7.5);
+
+  // RIGHT: MLIR stack
+  gt(ctx,'MLIR multi-level',mid+(w-mid)*0.5,13,C.cyan,9);
+  const rx=mid+12,rw2=w-rx-12;
+  const layers=['TF / PyTorch','Linalg','Affine','SCF','LLVM IR'];
+  const lh=(h-30)/layers.length;
+  const bph=(t*.20)%1;
+  const activeL=Math.min(layers.length-1,Math.floor(bph*layers.length));
+  const blkY=24+bph*(h-30-lh);
+  layers.forEach((lay,i)=>{
+    const ly=24+i*lh;
+    const isA=i===activeL;
+    rr(ctx,rx,ly,rw2,lh-2,3,
+      isA?'rgba(56,225,207,.18)':'rgba(56,225,207,.04)',
+      isA?C.cyan2:'rgba(56,225,207,.12)',isA?1.3:.6);
+    gt(ctx,lay,rx+rw2/2,ly+lh/2-1,isA?C.ink:C.dim,8.5);
+  });
+  ctx.save();ctx.shadowColor=C.cyan;ctx.shadowBlur=7;
+  rr(ctx,rx+10,blkY+2,rw2-20,lh-6,4,'rgba(56,225,207,.25)',C.cyan,1.6);
+  ctx.restore();
+  gt(ctx,'▼ lowering',rx+rw2/2,blkY+lh/2-4,C.ink,7.5);
+  gt(ctx,'domain structure preserved at each level',mid+(w-mid)*0.5,h-10,C.cyan2,7.5);
+};
+
+/* ---- 01 E-GRAPH ---- */
+A.eGraph=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const cx=w/2,cy=h/2-8;
+  const R=Math.min(w,h)*0.29;
+  const sats=[
+    {expr:'a × (4÷2)',cost:7,ang:Math.PI*.08},
+    {expr:'a × 2',   cost:4,ang:Math.PI*.65},
+    {expr:'a + a',   cost:3,ang:Math.PI*1.08},
+    {expr:'a << 1',  cost:1,ang:Math.PI*1.6},
+  ];
+
+  // orbit ring
+  ctx.save();ctx.strokeStyle='rgba(56,225,207,.08)';ctx.lineWidth=1;ctx.setLineDash([2,5]);
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  // period: cycle through sats, pause on cheapest
+  const per=5.5;const ph=(t%per)/per;
+  let active;
+  if(ph<.65){active=Math.floor(ph/.65*sats.length)%sats.length;}
+  else{active=3;}
+
+  // connection lines
+  sats.forEach((n,i)=>{
+    const nx=cx+Math.cos(n.ang)*R,ny=cy+Math.sin(n.ang)*R;
+    const isA=i===active;
+    ctx.save();ctx.strokeStyle=isA?'rgba(56,225,207,.45)':'rgba(56,225,207,.08)';
+    ctx.lineWidth=isA?1.2:.7;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(nx,ny);ctx.stroke();ctx.restore();
+  });
+
+  // center node
+  ctx.save();ctx.shadowColor=C.amber;ctx.shadowBlur=8;
+  rr(ctx,cx-40,cy-13,80,26,5,'rgba(245,166,91,.15)',C.amber,1.4);
+  ctx.restore();
+  gt(ctx,'(a × 4) ÷ 2',cx,cy-2,C.amber,9.5);
+  gt(ctx,'original',cx,cy+10,C.dim,7.5);
+
+  // satellite nodes
+  sats.forEach((n,i)=>{
+    const nx=cx+Math.cos(n.ang)*R,ny=cy+Math.sin(n.ang)*R;
+    const isA=i===active,isCheap=n.cost===1;
+    let fill,stroke,sw;
+    if(isCheap&&isA){
+      fill='rgba(79,200,112,.22)';stroke=C.green;sw=2;
+    }else if(isA){
+      fill='rgba(56,225,207,.15)';stroke=C.cyan;sw=1.5;
+    }else{
+      fill='rgba(14,22,32,.65)';stroke='rgba(56,225,207,.18)';sw=.7;
+    }
+    ctx.save();if(isA){ctx.shadowColor=isCheap?C.green:C.cyan;ctx.shadowBlur=12;}
+    rr(ctx,nx-33,ny-13,66,26,5,fill,stroke,sw);ctx.restore();
+    gt(ctx,n.expr,nx,ny-2,isA?(isCheap?C.green:C.ink):C.mut,9);
+    const cCol=n.cost===1?C.green:n.cost<=3?C.cyan2:C.dim;
+    gt(ctx,`cost ${n.cost}`,nx,ny+11,cCol,7.5);
+  });
+
+  // extract label on cheapest
+  if(active===3){
+    const n=sats[3],nx=cx+Math.cos(n.ang)*R+38,ny=cy+Math.sin(n.ang)*R;
+    gt(ctx,'← extract: minimum cost',nx,ny,C.green,8.5,'left');
+  }
+
+  gt(ctx,'e-class holds all equivalents simultaneously — extract cheapest',cx,h-12,C.mut,8.5);
+};
+
+/* ---- 02 TILING ---- */
+A.tiling=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const N=6,T=2;
+  const cs=Math.min(24,Math.floor((h-64)/N));
+  const gw=N*cs;
+  const lcx=w*.27,rcx=w*.73;
+  const lgx=lcx-gw/2,rgx=rcx-gw/2,gy=30;
+
+  ctx.save();ctx.strokeStyle='rgba(36,52,64,.5)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+  ctx.beginPath();ctx.moveTo(w/2,6);ctx.lineTo(w/2,h-6);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  const per=8,ph=(t%per)/per;
+  const total=N*N,step=Math.floor(ph*total);
+  const lRow=Math.floor(step/N),lCol=step%N;
+
+  // tile access order
+  const tpr=Math.ceil(N/T);
+  const ti=Math.floor(step/(T*T)),inT=step%(T*T);
+  const tR=Math.floor(ti/tpr),tC=ti%tpr;
+  const rRow=Math.min(N-1,tR*T+Math.floor(inT/T));
+  const rCol=Math.min(N-1,tC*T+(inT%T));
+
+  const tileVisited=(r,c)=>{
+    const tR2=Math.floor(r/T),tC2=Math.floor(c/T);
+    const ti2=tR2*tpr+tC2,inT2=(r%T)*T+(c%T);
+    return ti2*T*T+inT2<step;
+  };
+
+  const drawGrid=(gx,hR,hC,visitFn,acc,lbl)=>{
+    gt(ctx,lbl,gx+gw/2,16,acc,9);
+    for(let r=0;r<N;r++){for(let c=0;c<N;c++){
+      const isH=r===hR&&c===hC,vis=visitFn(r,c);
+      const x=gx+c*cs+1,y=gy+r*cs+1,s=cs-2;
+      const fill=isH?acc+'55':vis?acc+'18':'rgba(14,22,32,.6)';
+      rr(ctx,x,y,s,s,2,fill,'rgba(40,60,80,.5)',.6);
+      if(isH){ctx.save();ctx.shadowColor=acc;ctx.shadowBlur=8;
+        rr(ctx,x,y,s,s,2,null,acc,1.5);ctx.restore();}
+    }}
+    // cache eviction count
+    const evicts=acc===C.coral?Math.floor(step/N)*Math.max(0,N-cs/8):Math.floor(step/(T*T));
+    gt(ctx,acc===C.coral?`cache misses ≈ many`:`cache misses ≈ ${Math.floor(step/(T*T))}`,
+      gx+gw/2,gy+N*cs+18,acc,8);
+  };
+
+  drawGrid(lgx,lRow,lCol,
+    (r,c)=>r*N+c<step,C.coral,'row-major  (untiled)');
+  drawGrid(rgx,rRow,rCol,tileVisited,C.cyan,'tiled  (2×2 blocks)');
+
+  gt(ctx,'same math · tiling stays in cache between reuses',w/2,h-10,C.mut,8.5);
+};
+
+/* ---- 03 VECTORIZE ---- */
+A.vectorize=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const N=8,mid=w/2;
+
+  ctx.save();ctx.strokeStyle='rgba(36,52,64,.5)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+  ctx.beginPath();ctx.moveTo(mid,6);ctx.lineTo(mid,h-6);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  const tick=Math.floor(t/0.65)%(N+3);
+  const rowH=(h-48)/N;
+  const lx=mid*.5,colW=mid*.55;
+
+  gt(ctx,'scalar  (1 per cycle)',mid*.5,13,C.amber,9);
+  for(let i=0;i<N;i++){
+    const isA=tick===i,done=tick>i&&tick<N+3;
+    const y=30+i*rowH;
+    ctx.save();if(isA){ctx.shadowColor=C.amber;ctx.shadowBlur=10;}
+    rr(ctx,lx-colW/2,y+1,colW,rowH-2,3,
+      isA?'rgba(245,166,91,.3)':done?'rgba(245,166,91,.07)':'rgba(14,22,32,.5)',
+      isA?C.amber:'rgba(56,76,96,.35)',isA?1.4:.6);
+    ctx.restore();
+    gt(ctx,`a[${i}] × b[${i}]`,lx,y+rowH/2,isA?C.ink:done?C.mut:C.dim,9);
+  }
+  const doneStr=tick>=N?`done · ${N} cycles`:`cycle ${tick+1} / ${N}`;
+  gt(ctx,doneStr,lx,h-14,tick>=N?C.mut:C.amber,8.5);
+  gt(ctx,'1 result/cycle',lx,h-3,C.dim,7.5);
+
+  // RIGHT: SIMD
+  gt(ctx,'SIMD  (8 per cycle)',mid+(w-mid)*.5,13,C.cyan,9);
+  const rx=mid+14,simdW=w-rx-14;
+  const simdDone=tick>=1;
+  const simdY=(h-48)/2+4,simdH=rowH*N*.7;
+  const laneW=simdW/N;
+
+  ctx.save();if(simdDone){ctx.shadowColor=C.cyan;ctx.shadowBlur=10;}
+  rr(ctx,rx,simdY,simdW,simdH,6,
+    simdDone?'rgba(56,225,207,.12)':'rgba(14,22,32,.5)',
+    simdDone?C.cyan:'rgba(56,100,120,.25)',simdDone?1.4:.7);
+  ctx.restore();
+
+  for(let i=0;i<N;i++){
+    if(i>0){ctx.save();ctx.strokeStyle='rgba(56,225,207,.18)';ctx.lineWidth=.7;
+      ctx.beginPath();ctx.moveTo(rx+i*laneW,simdY+5);ctx.lineTo(rx+i*laneW,simdY+simdH-5);ctx.stroke();ctx.restore();}
+    gt(ctx,`[${i}]`,rx+i*laneW+laneW/2,simdY+simdH/2,simdDone?C.cyan:C.dim,8.5);
+  }
+
+  gt(ctx,simdDone?'done · 1 cycle':'ready',mid+(w-mid)*.5,simdY+simdH+14,simdDone?C.cyan:C.dim,9);
+  ctx.save();if(simdDone){ctx.shadowColor=C.cyan;ctx.shadowBlur=6;}
+  gt(ctx,'8×',mid+(w-mid)*.5,h-20,C.cyan,20);ctx.restore();
+  gt(ctx,'throughput',mid+(w-mid)*.5,h-5,C.cyan2,8);
+};
+
+/* ---- 04 MTE TAG ---- */
+A.mteTag=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const per=7,ph=(t%per);
+  let label,ptag,stag,phase;
+  if(ph<1.6){label='malloc()';ptag=7;stag=7;phase='alloc';}
+  else if(ph<3.2){label='load  (valid)';ptag=7;stag=7;phase='valid';}
+  else if(ph<4.4){label='free()';ptag=7;stag=3;phase='free';}
+  else{label='use-after-free!';ptag=7;stag=3;phase='trap';}
+
+  const pCol=phase==='trap'?C.coral:phase==='free'?C.amber:C.cyan;
+  rr(ctx,w/2-56,8,112,22,4,'rgba(20,30,44,.8)',pCol+'55',1);
+  gt(ctx,label,w/2,19,pCol,9.5);
+
+  const tagColors={7:C.green,3:C.violet,5:C.amber};
+  const ptCol=tagColors[ptag]||C.cyan,stCol=tagColors[stag]||C.cyan;
+  const cy=h/2,boxW=84,boxH=46;
+  const px=w/2-130,mx=w/2+46;
+
+  // pointer box
+  ctx.save();ctx.shadowColor=ptCol;ctx.shadowBlur=8;
+  rr(ctx,px,cy-boxH/2,boxW,boxH,6,'rgba(14,22,32,.85)',ptCol,1.4);ctx.restore();
+  gt(ctx,'pointer',px+boxW/2,cy-boxH/2+11,C.mut,8);
+  gt(ctx,`tag: ${ptag}`,px+boxW/2,cy,ptCol,11);
+  gt(ctx,'0x…addr',px+boxW/2,cy+boxH/2-10,C.dim,7.5);
+  ctx.save();ctx.shadowColor=ptCol;ctx.shadowBlur=8;
+  rr(ctx,px+4,cy-boxH/2-10,26,18,3,ptCol+'33',ptCol,1.3);ctx.restore();
+  gt(ctx,`${ptag}`,px+17,cy-boxH/2-1,ptCol,8.5);
+
+  // memory slot box
+  ctx.save();ctx.shadowColor=stCol;ctx.shadowBlur=8;
+  rr(ctx,mx,cy-boxH/2,boxW,boxH,6,'rgba(14,22,32,.85)',stCol,1.4);ctx.restore();
+  gt(ctx,'memory slot',mx+boxW/2,cy-boxH/2+11,C.mut,8);
+  gt(ctx,`shadow: ${stag}`,mx+boxW/2,cy,stCol,11);
+  ctx.save();ctx.shadowColor=stCol;ctx.shadowBlur=8;
+  rr(ctx,mx+boxW-30,cy-boxH/2-10,26,18,3,stCol+'33',stCol,1.3);ctx.restore();
+  gt(ctx,`${stag}`,mx+boxW-17,cy-boxH/2-1,stCol,8.5);
+
+  // arrow
+  const match=ptag===stag;
+  const aCol=phase==='trap'?C.coral:match?C.green:C.coral;
+  arr(ctx,px+boxW+5,cy,mx-5,cy,aCol,1.5);
+
+  // result
+  const ry=cy+boxH/2+22;
+  if(phase==='alloc'){
+    gt(ctx,`tag ${ptag} assigned to pointer and shadow memory`,w/2,ry,C.green,9);
+  }else if(phase==='valid'){
+    ctx.save();ctx.shadowColor=C.green;ctx.shadowBlur=10;
+    gt(ctx,`✓  ${ptag} = ${stag}  →  access permitted`,w/2,ry,C.green,10);ctx.restore();
+  }else if(phase==='free'){
+    gt(ctx,`shadow tag flipped ${ptag} → ${stag}  (pointer still holds ${ptag})`,w/2,ry,C.amber,9);
+  }else{
+    const fl=0.5+0.5*Math.sin(t*9);
+    ctx.save();ctx.shadowColor=C.coral;ctx.shadowBlur=14*fl;
+    gt(ctx,`✗  ${ptag} ≠ ${stag}  →  HARDWARE TRAP`,w/2,ry,C.coral,11);ctx.restore();
+    gt(ctx,'use-after-free caught at ~5% overhead',w/2,ry+16,C.dim,8);
+  }
+
+  gt(ctx,'ARM MTE: 4-bit tag in pointer top bits + shadow memory · checked in hardware on every access',w/2,h-8,C.dim,7.5);
+};
+
+/* ---- 05 REGISTER ALLOC ---- */
+A.regAlloc=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const vars=[
+    {name:'a',range:[0,5],col:C.green},
+    {name:'b',range:[1,7],col:C.cyan},
+    {name:'c',range:[3,9],col:C.amber},
+    {name:'d',range:[6,10],col:C.violet},
+    {name:'e',range:[2,8],col:null},// spill
+  ];
+  const per=8,ph=(t%per);
+  const showEdges=ph>1.8,showColors=ph>3.6,showSpill=ph>5.2;
+  const barH=20,barPad=8,lx=44,rx=w-16,tlW=rx-lx-28,topY=28,tl=10;
+
+  gt(ctx,'variable lifetimes  →  register assignment',w/2,13,C.mut,9);
+
+  // timeline axis
+  ctx.save();ctx.strokeStyle='rgba(60,80,100,.4)';ctx.lineWidth=.7;
+  const axY=topY+vars.length*(barH+barPad)+4;
+  ctx.beginPath();ctx.moveTo(lx+18,axY);ctx.lineTo(lx+18+tlW,axY);ctx.stroke();ctx.restore();
+
+  // interference edges
+  if(showEdges){
+    const ea=Math.min(1,(ph-1.8)/.8);
+    for(let i=0;i<vars.length;i++)for(let j=i+1;j<vars.length;j++){
+      const a=vars[i],b=vars[j];
+      if(a.range[0]<b.range[1]&&b.range[0]<a.range[1]){
+        const yi=topY+i*(barH+barPad)+barH/2;
+        const yj=topY+j*(barH+barPad)+barH/2;
+        const xi=lx+18+(a.range[0]+a.range[1])/2/tl*tlW;
+        const xj=lx+18+(b.range[0]+b.range[1])/2/tl*tlW;
+        ctx.save();ctx.globalAlpha=ea*.35;ctx.strokeStyle=C.cyan2;ctx.lineWidth=.8;
+        ctx.setLineDash([2,3]);
+        ctx.beginPath();ctx.moveTo(xi,yi);ctx.lineTo(xj,yj);ctx.stroke();
+        ctx.setLineDash([]);ctx.restore();
+      }
+    }
+  }
+
+  vars.forEach((v,i)=>{
+    const y=topY+i*(barH+barPad);
+    const xs=lx+18+v.range[0]/tl*tlW,xe=lx+18+v.range[1]/tl*tlW,bw=xe-xs;
+    const isSpill=i===4&&showSpill;
+    const col=showColors?(v.col||(isSpill?C.coral:C.dim)):C.mut;
+
+    gt(ctx,v.name,lx+12,y+barH/2,showColors&&v.col?col:C.mut,10);
+
+    if(isSpill){
+      ctx.save();ctx.strokeStyle=C.coral;ctx.lineWidth=1.2;ctx.setLineDash([4,3]);
+      rr(ctx,xs,y,bw,barH,3,'rgba(255,107,92,.05)',null,0);
+      ctx.beginPath();ctx.roundRect(xs,y,bw,barH,3);ctx.stroke();
+      ctx.setLineDash([]);ctx.restore();
+      gt(ctx,'SPILL → stack',xs+bw/2,y+barH/2,C.coral,8);
+    }else{
+      ctx.save();if(showColors&&v.col){ctx.shadowColor=col;ctx.shadowBlur=6;}
+      rr(ctx,xs,y,bw,barH,3,
+        showColors&&v.col?col+'2a':'rgba(56,80,100,.2)',
+        showColors&&v.col?col:'rgba(80,100,120,.4)',showColors&&v.col?1.2:.7);
+      ctx.restore();
+      if(showColors&&v.col){
+        const reg=['r0','r1','r2','r3'][i%4];
+        gt(ctx,reg,xe+5,y+barH/2,col,8,'left');
+      }
+    }
+  });
+
+  const hint=showSpill?'e needs a 5th color → no register → spill to stack':
+    showColors?'4 colors = 4 registers — each color is a distinct register':
+    showEdges?'overlapping lifetimes = interference edges':'';
+  if(hint)gt(ctx,hint,w/2,axY+18,showSpill?C.coral:showColors?C.cyan:C.mut,8.5);
+  gt(ctx,'live-range overlap → interference graph → graph coloring → spill decision',w/2,h-8,C.dim,7.5);
+};
+
+/* ---- 06 JIT SPEC ---- */
+A.jitSpec=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const per=7,ph=(t%per);
+  const profiling=ph<2.6,specializing=ph>=2.6&&ph<4.5,specialized=ph>=4.5;
+  const profFrac=profiling?ph/2.6:1;
+
+  // tree position: left when specialized, center otherwise
+  const treeCX=specialized?w*.28:w*.5;
+
+  const nodes=[
+    {id:0,lbl:'type?',   x:treeCX,       y:34, hot:false},
+    {id:1,lbl:'int?',    x:treeCX-52,    y:80, hot:false},
+    {id:2,lbl:'float?',  x:treeCX+52,    y:80, hot:false},
+    {id:3,lbl:'GPU kern',x:treeCX-72,    y:126,hot:true},
+    {id:4,lbl:'CPU kern',x:treeCX-22,    y:126,hot:false},
+  ];
+  const edges=[[0,1],[0,2],[1,3],[1,4]];
+
+  const fade=(n)=>{
+    if(!specialized)return 1;
+    return n.hot?1:Math.max(0.08,1-(ph-4.5)/1.0);
+  };
+
+  edges.forEach(([f,tt])=>{
+    const fn=nodes[f],tn=nodes[tt];
+    const isHot=fn.hot||tn.hot,a=fade(tn);
+    ctx.save();ctx.globalAlpha=a*(isHot?.8:.35);
+    ctx.strokeStyle=isHot?C.cyan:'rgba(80,100,130,.6)';ctx.lineWidth=isHot?1.3:.8;
+    ctx.beginPath();ctx.moveTo(fn.x,fn.y+10);ctx.lineTo(tn.x,tn.y-10);ctx.stroke();
+    ctx.restore();
+  });
+
+  nodes.forEach(n=>{
+    const a=fade(n);
+    ctx.save();ctx.globalAlpha=a;
+    if(n.hot&&specialized){ctx.shadowColor=C.cyan;ctx.shadowBlur=10;}
+    rr(ctx,n.x-27,n.y-11,54,22,4,
+      n.hot?'rgba(56,225,207,.18)':'rgba(20,32,44,.7)',
+      n.hot?C.cyan:'rgba(80,100,130,.5)',n.hot?1.4:.8);
+    gt(ctx,n.lbl,n.x,n.y,n.hot?C.ink:C.mut,8.5);
+    ctx.restore();
+  });
+
+  // profile bar on hot path
+  if(profiling||specializing){
+    const barY=nodes[3].y+18,barX=nodes[3].x-34,barW=68;
+    gt(ctx,'int/GPU calls',nodes[3].x,barY-8,C.cyan2,7.5);
+    rr(ctx,barX,barY,barW,8,2,'rgba(14,22,32,.8)','rgba(56,225,207,.25)',.7);
+    rr(ctx,barX,barY,barW*profFrac,8,2,'rgba(56,225,207,.4)',null,0);
+    gt(ctx,`${Math.round(profFrac*100)}%`,nodes[3].x,barY+18,C.mut,8);
+  }
+
+  if(specializing){
+    const ja=Math.min(1,(ph-2.6)/.7);
+    ctx.save();ctx.globalAlpha=ja;ctx.shadowColor=C.amber;ctx.shadowBlur=10;
+    gt(ctx,'⚡ JIT fires',nodes[3].x,nodes[3].y+44,C.amber,11);ctx.restore();
+  }
+
+  // specialized code (right)
+  if(specialized){
+    const sa=Math.min(1,(ph-4.5)/.9);
+    const sx=w*.53,sw2=w-sx-16;
+    ctx.save();ctx.globalAlpha=sa;
+    gt(ctx,'specialized stub:',sx+sw2/2,22,C.cyan,9);
+    const steps=['int_mul_gpu(a,b)','launch_kernel()'];
+    steps.forEach((s,i)=>{
+      const sy=40+i*34;
+      ctx.save();ctx.shadowColor=C.cyan;ctx.shadowBlur=6;
+      rr(ctx,sx,sy,sw2,26,4,'rgba(56,225,207,.12)',C.cyan,1.2);ctx.restore();
+      gt(ctx,s,sx+sw2/2,sy+13,C.ink,8.5);
+    });
+    arr(ctx,nodes[3].x+28,nodes[3].y,sx-6,54,C.amber,1.5);
+    gt(ctx,'8 branches → 2 steps',sx+sw2/2,116,C.cyan,9.5);
+    gt(ctx,'all other paths eliminated',sx+sw2/2,130,C.dim,7.5);
+    ctx.restore();
+  }
+
+  gt(ctx,'JIT profiles hot path → emits straight-line specialized code',w/2,h-8,C.mut,8);
+};
+
+/* ---- 07 SYNTHESIS SEARCH ---- */
+A.synthSearch=(ctx,w,h,t)=>{
+  ctx.clearRect(0,0,w,h);
+  const per=7,ph=(t%per)/per;
+  const visible=Math.floor(ph/.65*7);
+  const showOpt=ph>.65,pruneOther=ph>.72;
+
+  const nodes=[
+    {id:0,lbl:'cmp(0,1)',dep:0,x:.50,opt:true, cost:1},
+    {id:1,lbl:'cmp(0,2)',dep:1,x:.25,opt:true, cost:2},
+    {id:2,lbl:'cmp(1,2)',dep:1,x:.75,opt:false,cost:2},
+    {id:3,lbl:'cmp(1,2)',dep:2,x:.14,opt:true, cost:3},
+    {id:4,lbl:'cmp(0,2)',dep:2,x:.36,opt:false,cost:4},
+    {id:5,lbl:'cmp(0,1)',dep:2,x:.64,opt:false,cost:3},
+    {id:6,lbl:'cmp(1,2)',dep:2,x:.86,opt:false,cost:4},
+  ];
+  const edges=[[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]];
+  const depY=[28,88,154];
+  const px=n=>n.x*(w-32)+16,py=n=>depY[n.dep];
+
+  edges.forEach(([f,tt])=>{
+    if(tt>=visible)return;
+    const fn=nodes[f],tn=nodes[tt];
+    const isOpt=fn.opt&&tn.opt,prune=pruneOther&&!tn.opt;
+    ctx.save();ctx.globalAlpha=prune?.1:(isOpt&&showOpt?1:.4);
+    ctx.strokeStyle=isOpt&&showOpt?C.amber:'rgba(80,100,130,.5)';
+    ctx.lineWidth=isOpt&&showOpt?2:.8;
+    ctx.beginPath();ctx.moveTo(px(fn),py(fn)+10);ctx.lineTo(px(tn),py(tn)-10);ctx.stroke();
+    ctx.restore();
+  });
+
+  nodes.forEach((n,i)=>{
+    if(i>=visible)return;
+    const nx=px(n),ny=py(n);
+    const prune=pruneOther&&!n.opt;
+    const a=prune?.12:1;
+    let fill,stroke,sw;
+    if(n.opt&&showOpt){fill='rgba(245,166,91,.2)';stroke=C.amber;sw=n.dep===2?2:1.4;}
+    else if(prune){fill='rgba(20,30,44,.5)';stroke='rgba(80,100,120,.3)';sw=.7;}
+    else{fill='rgba(20,30,44,.7)';stroke='rgba(56,225,207,.3)';sw=.9;}
+
+    ctx.save();ctx.globalAlpha=a;
+    if(n.opt&&showOpt){ctx.shadowColor=C.amber;ctx.shadowBlur=9;}
+    rr(ctx,nx-28,ny-10,56,20,4,fill,stroke,sw);
+    gt(ctx,n.lbl,nx,ny,n.opt&&showOpt?C.ink:prune?'rgba(80,90,100,.6)':C.mut,8);
+    if(!prune){
+      const cc=n.opt&&showOpt?C.amber:C.dim;
+      gt(ctx,`c=${n.cost}`,nx,ny+19,cc,7.5);
+    }
+    ctx.restore();
+
+    if(n.dep===2&&n.opt&&showOpt){
+      ctx.save();ctx.shadowColor=C.green;ctx.shadowBlur=10;
+      rr(ctx,nx-32,ny+28,64,22,4,'rgba(79,200,112,.15)',C.green,1.4);ctx.restore();
+      gt(ctx,'SORTED ✓',nx,ny+39,C.green,8.5);
+      gt(ctx,'3 comparisons',nx,ny+56,C.green,7.5);
+    }
+    if(n.dep===2&&!n.opt&&pruneOther){
+      gt(ctx,'✗ pruned',nx,ny+24,'rgba(255,107,92,.35)',7.5);
+    }
+  });
+
+  // A* label
+  gt(ctx,'A* search over comparison-network space — cost = comparisons used',w/2,h-22,C.mut,8.5);
+  gt(ctx,'compiler finds optimal program without writing it',w/2,h-9,C.dim,7.5);
+};
+
+
+/* ---- runner ---- */
+const running=new Map();
+function start(cv){
+  if(running.has(cv))return;
+  const anim=A[cv.dataset.anim];if(!anim)return;
+  let dims=fit(cv),t0=performance.now(),raf;
+  function frame(now){const t=(now-t0)/1000;anim(dims.ctx,dims.w,dims.h,t);raf=requestAnimationFrame(frame);}
+  if(RM){anim(fit(cv).ctx,cv.clientWidth,parseInt(cv.getAttribute('height'))||260,4.0);}
+  else{raf=requestAnimationFrame(frame);}
+  running.set(cv,()=>cancelAnimationFrame(raf));
+  cv._refit=()=>{dims=fit(cv);};
+}
+function stop(cv){const s=running.get(cv);if(s){s();running.delete(cv);}}
+const cvs=[...document.querySelectorAll('canvas[data-anim]')];
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)start(e.target);else stop(e.target);});
+},{threshold:0.08});
+cvs.forEach(cv=>io.observe(cv));
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>cvs.forEach(cv=>cv._refit&&cv._refit()),150);});
+})();
+</script>
+</body>
+</html>
