@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Memory Hierarchy &amp; Bandwidth · AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">← master narrative</a>
+    <a href="../../../t3-deepdive.html">T3 theme essay ↗</a>
+    <a href="index.html">← deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 · Memory Wall · Deep Reads</div>
+    <h1>Memory Hierarchy &amp; Bandwidth: Top Papers</h1>
+    <div class="sub">15 high-impact papers · Processing-in-memory, 3D-stacked DRAM, near-memory compute, memory compression</div>
+  </div>
+  <div class="section-h">Entropy-Based Compression</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Ecco: Improving Memory Bandwidth and Capacity for LLMs via Entropy-Aware Cache Compression</div>
+      <div class="pc-sub">Entropy-Based Compression</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference is severely memory-bandwidth-bound and memory-capacity-constrained due to large KV caches and weight tensors; the KV cache alone can consume 72.7% of GPU memory. Existing quantization schemes (AWQ, SmoothQuant, Quarot) reduce storage but introduce high runtime decompression overheads that negate bandwidth savings or compromise accuracy.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">As LLM decode is inherently memory-bound (low arithmetic intensity GEMV-dominated), cache-level lossy compression that operates transparently on the HBM-to-L2 data path can directly multiply effective bandwidth and capacity without altering compute kernels.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Ecco integrates a parallel compressor/decompressor pair between the GPU L2 cache and HBM. Weights and KV cache are compressed 4x using group-wise (group size 128) non-uniform k-means quantization with 64 shared k-means patterns per tensor, plus clipped/padded Huffman coding with 4 per-pattern codebooks; activations use a simpler 2x uniform INT8 scheme. The 4x decompressor deploys 64 parallel Huffman sub-decoders operating on overlapping 15-bit windows of the 512-bit compressed block, fused with a 6-stage tree-based concatenator and 128 parallel mappers. The compressor uses a bitonic sorter for scale factor / outlier extraction and a min/max fitness score to select among 16 shared k-means patterns online. Both components are replicated 20x to match the 5120 B/cycle L2 throughput, implemented in 28nm (scaled to 7nm).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 2.9x over TensorRT FP16 (avg), 2.9x over AWQ, 2.4x over Olive, 1.9x over SmoothQuant on LLaMA-13B decode</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 5.11 mm2 total hardware addition on A100 (826 mm2 die), &lt;1% area overhead; 7.36 W power (&lt;10% of A100 idle power)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** LLaMA2-7B perplexity 5.65 (W4A8KV4) vs AWQ 5.83; outperforms all baselines on LLaMA/LLaMA2 7B-70B</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 4x memory capacity enlargement for weights and KV cache; 2x for activations</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** TensorRT-LLM FP16; AWQ (W4A16, W4A8KV4); SmoothQuant (W8A8); Olive; QuaRot; QoQ; GPTQ-R</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU · **Workloads:** LLM-inference; attention</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A parallel multi-stage Huffman decoder that breaks the sequential decoding barrier using 64 overlapping sub-decoders fused with a tree concatenation stage, achieving two-orders-of-magnitude latency reduction and GPU L2-comparable throughput for a lossy, entropy-aware compression scheme.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Entropy-aware cache compression scheme combining group-wise non-uniform k-means quantization with shared patterns and Huffman coding, achieving 4x memory capacity expansion for LLM weights and KV cache..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Simulation validated only up to 4K sequence length due to slow simulation speed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• KV cache online compression uses a simplified min/max pattern selector (16 patterns) rather than the offline MSE-optimal 64-pattern search, potentially reducing compression efficiency.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** cache-compression, huffman-coding, llm-inference, kv-cache, quantization, gpu-memory</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">ISP-Memory Co-Processing</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">IRIS: Unleashing ISP-Software Cooperation to Optimize the Machine Vision Pipeline</div>
+      <div class="pc-sub">ISP-Memory Co-Processing</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Continuous Vision (CV) SoC pipelines capture entire scenes at uniform high resolution (e.g., 4K), wasting memory bandwidth and backend compute on low-information regions (sky, road) that do not require full-resolution processing, while the ISP discards intermediate computations (edge masks, motion vectors) that could guide resolution reduction.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mobile CV systems for autonomous driving and AR/VR face strict latency and energy constraints; uniform full-resolution capture causes both the frontend (ISP, memory bus) and backend (CPU/GPU) to process unnecessary data, and the ISP already generates the information needed to identify low-salience regions but discards it.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">IRIS augments the frontend ISP with three lightweight hardware units: (1) an IRIS Saliency Scorer that reuses ISP byproducts (the edge mask from Edge Enhancement and motion vectors from Temporal Denoising&#x27;s Block Matching Algorithm) to compute a per-region saliency score (ISS = EDM + alpha * EDM * MM) without any new image analysis; (2) a Quad Unit that applies a hierarchical quadtree-like grouping (16x16, 32x32, 64x64 pixel regions) and compares maximum quadblock ISS to a backend-provided threshold to decide resolution; and (3) a Downsampling Unit that reduces selected quadblocks from 32x32 or 64x64 to 16x16 in-pipeline. The resulting mixed-resolution frame with a Region Resolution Map metadata is stored in the framebuffer. On the backend, for Vision Transformers IRIS feeds a mixed-resolution tokenizer (Quadformer-style), and for visual localization (ORB-SLAM3) IRIS enables an iterative feature extraction algorithm that processes regions in descending ISS order and stops on diminishing marginal feature increase. The ISP extension is validated as cycle-accurate RTL that never stalls the ISP pipeline.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** Localization: 22.8% avg latency reduction, 10.5% tail latency reduction; Classification: 37.5% avg latency reduction, 9% tail latency reduction</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** Localization: 22.5% energy reduction; Classification: 41.5% energy reduction</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** Synthesized at 14nm with Synopsys; area overhead not quoted in headline but reported as negligible vs. ISP</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** ViT top-1 accuracy within 1% of baseline at ISS threshold 0.3; ORB-SLAM APE below 5mm at ISS=0.2, MFI=3%</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** ~70% average image size reduction at threshold 0.5; 55% image size reduction at threshold 0.3</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Baseline uniform-resolution ISP pipeline (no downsampling); Software-only saliency generation (VL-SO, ViT-SO) without ISP hardware</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** SoC · **Workloads:** vision; CNN; transformer</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Repurposing already-computed ISP internal byproducts (edge mask from Edge Enhancement and motion vectors from Temporal Denoising) as a zero-additional-compute saliency scorer to drive per-region adaptive spatial resolution downsampling in the ISP pipeline before framebuffer write.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: IRIS: ISP hardware augmentation with Saliency Scorer, Quad Unit, and Downsampling Unit that performs mixed-resolution imaging by repurposing ISP byproducts at negligible added cost.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Software-only saliency generation hurts performance (4.7% latency increase for small ViTs) because the overhead of computing saliency in software outweighs benefits, making IRIS dependent on ISP hardware augmentation that requires ISP redesign or cooperation from vendors.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** isp, computer-vision, mixed-resolution, adaptive-sampling, saliency, edge-inference</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">In-Cache Vector Processing</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">Multi-Dimensional Vector ISA Extension for Mobile In-Cache Computing</div>
+      <div class="pc-sub">In-Cache Vector Processing</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Existing long-vector ISA extensions (RISC-V RVV, Arm SVE) provide only 1D strided and random memory accesses, which cannot efficiently utilize the 8192-lane SIMD width of in-SRAM vector engines built from mobile L2 caches because mobile data-parallel kernels expose limited 1D parallelism (average 635 elements) across multiple multi-dimensional data structures.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In-cache computing repurposes SRAM cache arrays into wide vector engines at low area cost, but without multi-dimensional memory access instructions the instruction issue bottleneck and low lane utilization (23% for bit-serial with RVV) prevent realizing their throughput advantage over conventional 128-bit mobile SIMD units.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MVE (Multi-dimensional Vector ISA Extension) introduces up to 4D strided and random vector memory accesses, where each dimension can use stride modes: replicate (stride=0), sequential (stride=1), row-stride (stride=previous_dim x length), or arbitrary CR-configured stride. A dimension-level masked execution mechanism masks entire outer-dimension iterations using a compact mask control register, avoiding expensive per-lane scalar mask computation. The ISA operates on physical registers spanning all in-SRAM compute arrays (8192 lanes of 32-bit data), with a cache-geometry-hiding register abstraction. The MVE controller in the L2 cache flattens multi-dimensional logical register accesses to physical SRAM bitline coordinates, uses a Transpose Memory Unit (TMU) with 8T transpose bit-cells and a crossbar to route data into vertical bit-serial layout, and manages cache coherency by checking L1 presence bits and evicting L1 lines before in-cache writes. Compiler support includes liveness analysis for register width, list-hybrid instruction scheduling, and greedy register allocation to minimize in-cache register spills.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 2.9x vs Arm Neon; 9.3x vs Adreno 640 GPU; 2.0x vs RISC-V RVV on same in-cache engine; 1.5x vs Duality Cache (SIMT model)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 8.8x energy reduction vs Arm Neon; 5.2x energy reduction vs Adreno 640 GPU</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 3.6% area overhead to mobile core (at 7nm)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Arm Neon (Cortex-A76 128-bit ASIMD); Qualcomm Adreno 640 GPU; RISC-V RVV on same in-cache bit-serial engine; Duality Cache (SIMT in-cache model); VRAM (bit-parallel); EVE (bit-hybrid); CAPE (associative computing)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU; CIM (compute-in-memory); SoC · **Workloads:** CNN; vision; speech</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A multi-dimensional vector ISA (up to 4D strided + random memory accesses with dimension-level masked execution) that hides cache geometry from programmers while raising in-cache SIMD lane utilization from 23% to 60% for mobile workloads.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: MVE ISA with 4D strided and random memory accesses plus dimension-level masked execution, improving bit-serial in-cache utilization from 23% to 60% and performance by 3.8x over RISC-V RVV on the same engine.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• MVE requires flushing dirty L2 cache lines to switch between cache and compute modes (taking under 2% of execution time in benchmarks), and performance degrades for workloads with large scalar instruction fractions (e.g., zlib reduction kernel achieves only 37% improvement).</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** in-cache-computing, isa-extension, mobile-processor, sram-compute, multi-dimensional-vector, in-sram</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">In-Memory HTAP</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">PUSHtap: PIM-based In-Memory HTAP with Unified Data Storage Format</div>
+      <div class="pc-sub">In-Memory HTAP</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Hybrid transaction/analytical processing (HTAP) systems cannot simultaneously achieve workload-specific optimization, performance isolation, and data freshness because OLTP demands row-store format while OLAP demands column-store format, and existing solutions (single format, multi-instance with rebuilding, or mixed delta-store) compromise at least one goal.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The emergence of PIM (Processing-in-Memory) DRAM devices creates a new access dimension—CPU interleaving across devices (ADE) versus localized PIM access inside devices (IDE)—that can simultaneously satisfy row-access and column-access requirements in a single data instance without format replication.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">PUSHtap maps HTAP rows to the CPU&#x27;s interleaved access dimension (ADE) and columns to the PIM&#x27;s localized access dimension (IDE) in a single-instance DRAM store. A compact aligned format uses a bin-packing algorithm with a tunable threshold to group columns of similar width into parts, minimizing zero-padding while preserving alignment for both CPU and PIM bandwidth efficiency. Block-circulant placement rotates column-to-PIM-device mapping every 1024-row block, ensuring uniform PIM parallelism load balance across all columns. MVCC is implemented with a data region and delta region; snapshotting encodes row visibility as compact bitmaps that are written to each device in parallel, and defragmentation is offloaded to PIM units when row width exceeds a computed threshold. A modified memory controller adds a scheduler and polling module to support fine-grained interleaved CPU/PIM concurrent access, with a two-phase load/compute OLAP execution model that limits CPU access blocking to 300 microseconds per load phase.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 3.4x OLAP and 4.4x OLTP throughput vs. multi-instance PIM-based HTAP; PUSHtap (HBM) achieves 1.4x additional OLAP speedup vs. DIMM at 8M transactions</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** PIM effective bandwidth 97.4% at th=0.6; snapshot bitmap overhead 2.3% of storage; zero-padding overhead 0.8% of storage; memory controller derived at TSMC 90nm 2.4GHz</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** multi-instance PIM-based HTAP (MI, Polynesia-style); row-store single format; column-store single format; ideal (no MVCC overhead)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** PIM (processing-in-memory); CPU · **Workloads:** database</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Exploiting the orthogonality of CPU interleaved access (ADE, row-dimension) and PIM localized access (IDE, column-dimension) to implement a single unified data format that simultaneously serves both OLTP and OLAP without format duplication or rebuilding.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Unified HTAP data storage format combining compact aligned format (bin-packing) and block-circulant placement for co-optimized CPU and PIM bandwidth.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Block-circulant placement and compact aligned format assume a relatively stable OLAP query workload to classify key columns</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• highly dynamic query patterns requiring frequent threshold adjustment are not fully addressed.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** pim, htap, database, dram, mvcc, unified-format</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Instruction-Data Management</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Garibaldi: A Pairwise Instruction-Data Management for Enhancing Shared Last-Level Cache Performance in Server Workloads</div>
+      <div class="pc-sub">Instruction-Data Management</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Server workloads suffer from a &#x27;instruction victim&#x27; problem in the shared LLC: cold instruction cachelines are evicted by competing hot data cachelines, yet each instruction miss stalls the CPU frontend regardless of how much hot data is already resident in the LLC. Existing LLC management policies (Mockingjay, Hawkeye, DRRIP) optimize for data reuse distance and ignore the cost asymmetry between instruction and data misses.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Server workloads exhibit a many-to-few access pattern (many cold instruction lines each accessing a few hot data lines), which means that existing data-hotness-driven eviction policies systematically sacrifice instructions whose miss cost is highest, causing frontend stall cycles to dominate multi-core server CPI.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Garibaldi introduces a pairwise instruction-data LLC management scheme built on three mechanisms: (1) a pair table (16K direct-mapped entries, 194 KB total) that tracks each instruction physical address alongside the hotness (miss_cost counter, 6-bit saturating) of the data cachelines it triggers; (2) a selective instruction protection policy using a query-based selection (QBS) mechanism that, at eviction time, queries the pair table and overrides the replacement policy to retain any instruction line whose aged miss_cost exceeds a dynamically adjusted threshold; (3) a pairwise prefetch that, upon serving an unprotected instruction miss, proactively issues prefetch requests for the associated cold data lines recorded in the pair table. Dynamic threshold adjustment uses a synchronized l-bit coloring timer that tracks P(D_miss | I_miss) every 100K LLC accesses and raises or lowers the protection threshold accordingly.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 13.2% geomean over LRU baseline (6.1% over Mockingjay alone) on 40-core server; up to 65.2% on verilator</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 10.4% energy reduction vs LRU (5.0% below Mockingjay alone)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 193.9 KB total storage overhead for 40 cores (0.6% of 30 MB LLC)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 18% reduction in ifetch stall cycles vs LRU with Mockingjay+Garibaldi</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** LRU; DRRIP; Hawkeye; Mockingjay</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU · **Workloads:** database; HPC</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Garibaldi is the first LLC management scheme to quantify the opportunity cost of instruction misses in terms of the hotness of the data they trigger, propagating data-line hotness back to instruction lines via a pair table and using it to drive selective eviction protection and prefetching.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Identification and analysis of the instruction victim problem in shared LLCs for server workloads, showing 95-99% instruction miss rates in the LLC even with advanced prefetching..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Garibaldi can slightly hurt performance in workloads where both instructions and data are cold (e.g., kafka), and its pair table requires a large number of entries (16K) because instruction-data pairs do not share LLC sets, making set-sampling-based approaches inapplicable.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** llc, cache-replacement, server-workloads, instruction-cache, frontend-bottleneck, pairwise-management</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Mixed-Signal RRAM PIM</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Hybrid SLC-MLC RRAM Mixed-Signal Processing-in-Memory Architecture for Transformer Acceleration via Gradient Redistribution</div>
+      <div class="pc-sub">Mixed-Signal RRAM PIM</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Analog RRAM PIM using multi-level cells (MLC) can offer 2x storage density and higher compute throughput than single-level cells (SLC), but MLC&#x27;s non-linearity causes catastrophic accuracy degradation (e.g., 40% drop) in Transformer models, while brute-force hybrid SLC/MLC mapping fails to move enough weights into MLC to yield meaningful efficiency gains.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Transformers dominate inference workloads and are memory-bandwidth-limited; analog RRAM PIM can eliminate data movement and exploit massive parallelism, but accuracy sensitivity to MLC non-ideality has blocked analog PIM from covering the dominant fraction of transformer weights.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">HyFlexPIM uses a three-tier mixed-signal RRAM PIM architecture: (1) digital SLC RRAM PIM for attention Q·K^T and ×V operations that require high precision and write real-time vectors, (2) analog SLC RRAM PIM for the most critical static weight rows, and (3) analog MLC RRAM PIM (2-bit per cell) for the error-tolerant majority of static weights. A single analog PIM module is reconfigurable between SLC and MLC via a shared 6-b/7-b flexible SAR-ADC that bypasses the MSB comparison in SLC mode, adding less than 1% area/energy overhead. On the software side, gradient redistribution applies SVD to decompose each linear weight matrix, truncates to a hard threshold rank to maintain iso-computational cost, then fine-tunes for 1-3 epochs with AdamW; the fine-tuning process naturally concentrates gradient magnitude into the top 5-10% of singular values, making those rows clearly demarcated as SLC-critical while 90-95% of weights are safely mapped to MLC.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 1.86x max throughput over ASADI (SoA analog-digital hybrid PIM)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 1.45x energy efficiency improvement over ASADI</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 65nm technology node; &lt;1% area overhead for SLC/MLC reconfigurability</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** &lt;1% accuracy degradation for encoder (BERT) and vision (ViT); &lt;10% loss increase for decoder (GPT-2, Llama3)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 5-10% SLC protection rate sufficient for encoders; 5-20% for decoders</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** ASADI (FP32 analog-digital hybrid PIM, SLC only); ASADI† (INT8 variant); SPRINT (digital processor + analog PIM for attention only); TransPIM (NMP baseline with FIMDRAM+HBM); Non-PIM INT8 digital baseline</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CIM (compute-in-memory); ASIC · **Workloads:** LLM-inference; transformer; attention; vision</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Gradient redistribution via SVD truncation followed by fine-tuning actively reshapes gradient distributions to concentrate critical weight importance into 5-10% of parameters, enabling 90-95% of Transformer weights to be computed in efficient MLC RRAM while preserving less than 1% accuracy loss.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Reconfigurable hybrid SLC-MLC analog RRAM PIM module with a shared flexible 6-b/7-b SAR-ADC (&lt;1% area/energy overhead for dual-mode support).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• HyFlexPIM is optimized for inference only</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• the SVD fine-tuning step incurs a one-time preprocessing cost not counted in inference latency, and the 65nm process node used for comparison may not reflect leading-edge RRAM process feasibility.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** rram, pim, mixed-signal, transformer-inference, svd, gradient-redistribution, mlc-slc</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Near-Memory Genomics</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">NMP-PaK: Near-Memory Processing Acceleration of Scalable De Novo Genome Assembly</div>
+      <div class="pc-sub">Near-Memory Genomics</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">De novo genome assembly using De Bruijn graph (DBG) algorithms is both memory-latency-bound and memory-footprint-intensive: processing 10% of the human genome (38.3 GB input) requires 528 GB of DRAM, and the Iterative Compaction step—which dominates 48% of runtime—achieves only 2.5% of available memory bandwidth due to fine-grained, irregular access patterns across large, dynamic MacroNode data structures.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Genomic datasets are growing faster than Moore&#x27;s Law, and state-of-the-art distributed assemblers (e.g., PaKman) require tens of thousands of CPU cores and hundreds of terabytes of memory, making personalized medicine and microbiome analysis prohibitively costly on single-node systems.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">NMP-PaK places pipelined systolic Processing Elements (PEs) inside DIMM buffer chips (channel-level NMP) to exploit high internal memory bandwidth and reduce data movement latency. Each PE implements a 3-stage pipeline (Invalidation Check, TransferNode Extraction, Routing and Update) operating at MacroNode granularity, with an intra-DIMM crossbar switch and an inter-DIMM network bridge routing TransferNodes between PEs. Software optimizations complement the hardware: customized batch processing divides the genome into 10% batches to reduce peak memory footprint by 14x, pointer-aliasing deduplication eliminates redundant MacroNode copies, and a hybrid CPU-NMP strategy offloads large MacroNodes (&gt;1 KB) to the CPU to avoid PE buffer oversizing and workload imbalance.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 16x over CPU baseline; 5.7x over GPU (A100); 8.3x throughput vs PaKman supercomputer under same resources</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** 14x memory footprint reduction; 2.4x reduction in memory operations</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** Memory bandwidth utilization: 44% (NMP-PaK) vs 6.5% (CPU baseline)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Software-optimized PaKman CPU baseline (Intel Xeon Platinum 8380, 40 cores); NVIDIA A100 40GB GPU; PaKman on supercomputer (16,384 cores, 1,024 nodes)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** PIM (processing-in-memory); CPU · **Workloads:** genomics</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Channel-level NMP with pipelined systolic PEs co-designed specifically for the MacroNode data structure of DBG assembly, enabling parallel MacroNode-granular Iterative Compaction with inter-DIMM TransferNode routing and a hybrid CPU-NMP offload policy for irregular outliers.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Systematic analysis showing that PaKman&#x27;s Iterative Compaction is memory-latency-bound (54.2% stall time) with severely underutilized bandwidth (2.5% of 204.8 GB/s), making it suitable for channel-level NMP..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• NMP-PaK targets a single-node system</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• the 8.3x throughput advantage over the supercomputer reflects resource efficiency, not raw speed—the supercomputer completes full human genome assembly 123x faster in wall time.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** genomics, near-memory-processing, de-novo-assembly, dram-buffer-chip, hardware-software-codesign, de-bruijn-graph</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">On-Device HDC Learning</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HOTCHIPS</div>
+    <div>
+      <div class="pc-title">Clo-HDnn: Continual On-Device Learning Accelerator with Hyperdimensional Computing via Progressive Search</div>
+      <div class="pc-sub">On-Device HDC Learning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On-device continual learning requires efficient gradient-free training for edge devices with strict power and memory constraints.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Emerging edge AI applications demand continual learning without cloud connectivity; hyperdimensional computing offers a gradient-free alternative enabling efficient incremental model updates.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Clo-HDnn integrates hyperdimensional computing (HDC) with low-cost Kronecker encoding and weight clustering feature extraction (WCFE); progressive search reduces query complexity by 61% by encoding/comparing only partial query hypervectors in a gradient-free learning paradigm.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy efficiency fe:** 4.66 TFLOPS/W</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy efficiency classifier:** 3.78 TOPS/W</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup vs sota:** 7.77x (FE), 4.85x (classifier)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** SOTA ODL accelerators</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** ASIC; NPU · **Workloads:** CNN; recommendation</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Progressive search mechanism reducing HDC query complexity by partial hypervector encoding for efficient on-device continual learning.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Specialized accelerator for hyperdimensional computing and on-device continual learning.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Progressive search applicability limited to datasets where partial queries maintain classification confidence.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** hyperdimensional-computing, on-device-learning, continual-learning, edge-ai</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">On-Die AI Inference</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISSCC</div>
+    <div>
+      <div class="pc-title">2.2 IBM Telum II: Next Generation 5.5GHz Microprocessor with On-Die Data Processing Unit and Improved AI Accelerator</div>
+      <div class="pc-sub">On-Die AI Inference</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Enterprise server workloads (z/OS) require high single-thread performance, large on-chip cache capacity, and specialized acceleration for AI and data processing. Previous generations face memory bandwidth bottlenecks for data-intensive workloads and limited AI compute integration.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Enterprise AI adoption demands servers with integrated AI acceleration alongside high-performance general-purpose cores, large shared cache for memory-intensive workloads, and improved system scalability (multi-drawer coherency).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Telum II is a 600mm² die in Samsung 5nm containing 43B transistors and 8 cores per chip (CP) operating at 5.5GHz. Key enhancements: (1) new on-die Data Processing Unit (DPU) for AI and data acceleration, (2) cache expansion: 10 L2 instances (36MB each, 40% larger than Telum) plus 360MB L3 (vs 256MB prior), (3) core shrink enabling cache growth while maintaining area, (4) microarch improvements: branch prediction, I-cache prefetch, additional rename registers, TLB optimization, (5) fully coherent multi-drawer architecture (up to 32 CP chips via drawer interconnects).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 5.5GHz frequency</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 600mm² die, 43B transistors, 8 cores/CP, 2.88GB L4 per drawer (up from 2GB z16)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Prior Telum / z16 microprocessors</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU · **Workloads:** database; ai-inference; general-enterprise</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Integration of Data Processing Unit (DPU) with enhanced cache hierarchy and improved core microarchitecture enabling both high single-thread performance and on-chip AI/data acceleration.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: New on-die Data Processing Unit (DPU) for AI acceleration and data processing.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Not discussed.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** ibm-z-telum, enterprise-processor, data-processing-unit, high-cache, 5nm, high-frequency</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Post-Transformer PIM</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Pimba: A Processing-in-Memory Acceleration for Post-Transformer Large Language Model Serving</div>
+      <div class="pc-sub">Post-Transformer PIM</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Post-transformer LLMs (SSMs such as Mamba-2, linear attention, RNNs) and transformer-based LLMs both become memory-bandwidth-bound during batched inference due to state update and attention operations respectively, but the diverse primitives in state updates (element-wise multiply, outer product, GEMV) make per-bank PIM acceleration area-prohibitive, and existing LLM quantization formats degrade accuracy severely on SU-LLMs due to the swamping effect.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Hyperscalers are exploring post-transformer architectures as bandwidth-efficient complements to transformers for long-context serving; a unified hardware solution supporting both model families does not yet exist.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Pimba implements a PIM accelerator array where each State-update Processing Unit (SPU) is shared between two DRAM banks via access interleaving: while one bank is being read, the paired bank writes its result, enabling continuous utilization of a single pipelined SPU without throughput loss. Each SPU contains a State-update Processing Engine (SPE) with custom MX8 multipliers and adders (MX format with 8-bit shared exponent and 1-bit microexponents, 16 elements per group, using stochastic rounding). The four-stage SPE pipeline executes: (1) state fetch, (2) state decay plus outer product in parallel, (3) accumulate, (4) GEMV output and write-back. KV-cache attention is accelerated by reusing the same SPU logic in an attention mode dataflow. The system offloads state update and attention to PIM during the generation phase while the GPU handles prefill and other operations.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** up to 4.1x token generation throughput over LLM-optimized GPU; up to 2.1x over GPU+PIM baseline; 14.6x lower state-update latency vs GPU</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** Area overhead described as minimal on DRAM device; MX8 achieves near fp16 perplexity on Mamba-2/RetNet/GLA/HGRN2</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** A100 GPU (LLM-optimized); GPU+PIM systems (per-bank time-multiplexed and pipelined PIM designs)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** PIM (processing-in-memory); GPU · **Workloads:** LLM-inference; attention; MoE</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Sharing one pipelined SPU between two DRAM banks via access interleaving halves PIM area overhead compared to per-bank designs while maintaining the same throughput.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Systematic workload characterization showing state update operations in SU-LLMs are memory-bandwidth-bound and dominate generation latency at large batch sizes.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Evaluation is simulation-based</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• real DRAM integration with SPUs has not been taped out, and full system energy is not reported.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** pim, llm-inference, ssm, mamba, quantization, mx8, post-transformer</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Processing-in-Memory (PIM)</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">PIM Is All You Need: A CXL-Enabled GPU-Free System for Large Language Model Inference</div>
+      <div class="pc-sub">Processing-in-Memory (PIM)</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference is memory-bound (GEMV-dominated decoding stage with ~21% GPU compute utilization on Llama2-70B), yet modern GPU/TPU systems are optimized for compute throughput; simultaneously, large KV-cache requirements per user limit batch sizes, and CXL- or DRAM-density-reduced PIM architectures individually lack sufficient memory capacity or scalability for trillion-parameter LLMs.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Running Llama2-70B on 4x A100 GPUs costs ~$694K/day for ChatGPT-scale inference while compute utilization remains below 25%, driving the need for memory-bandwidth-optimized, cost-efficient alternatives as LLM parameter sizes scale toward trillion parameters.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">CENT (CXL-ENabled GPU-Free sysTem) uses a hierarchical PIM-PNM architecture deployed across 32 CXL devices interconnected via a CXL 3.0 switch. Each CXL device contains 16 GDDR6-PIM memory chips (two PIM channels each) housing near-bank MAC reduction-tree processing units (16 MAC units/PU, BF16, 32 GFLOPS/PIM channel), plus PNM units including 32 accumulators, 32 reduction trees, 32 Taylor-series exponent accelerators, and 8 BOOM-2-wide RISC-V cores for non-MAC operations. MAC operations (&gt;99% of arithmetic) execute near-bank; Softmax, RMSNorm, square root, and RoPE are handled by PNM. A custom CXL ISA (MAC_ABK, WR_GB, SEND_CXL, BCAST_CXL, etc.) orchestrates computation and data movement. LLM parallelism is implemented via pipeline parallel (PP: each transformer block to one CXL device, multiple prompts pipelined) and tensor parallel (TP: transformer block partitioned across all devices using broadcast/gather over CXL) mappings, with hybrid TP-PP for QoS balance. The CXL protocol is extended with a broadcast primitive via a reserved H-slot header code in port-based routing flits.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 2.3x end-to-end throughput over 4x A100 80GB GPUs (throughput-critical); 4.6x latency reduction (batch=1); 3.3x decoding throughput at 32K context</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 2.9x energy efficiency (tokens/joule) over 4x A100</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** CXL controller: 19.0 mm2 at 7nm; custom logic: 7.85 mm2 at 28nm</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 5.2x tokens per dollar (TCO); CENT owned TCO $0.73/hr vs GPU $1.76/hr; rental TCO $1.05/hr vs $5.45/hr</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** 4x NVIDIA A100 80GB GPU with NVLink 3.0 running vLLM (batch=128)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** PIM (processing-in-memory); RISC-V; SoC · **Workloads:** LLM-inference; attention</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A GPU-free hierarchical PIM-PNM architecture scaled via CXL 3.0 that exploits GDDR6-PIM internal bandwidth (512 TB/s aggregate) to achieve 2.3x higher LLM inference throughput than 4x A100 GPUs at 2.9x lower energy and 5.2x better TCO, with a novel CXL broadcast primitive enabling scalable collective communication across PIM devices.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: CENT: a GPU-free hierarchical PIM-PNM architecture over 32 CXL devices supporting full transformer block computation with 512 TB/s aggregate internal memory bandwidth..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• CENT underperforms GPU by 2x in the compute-intensive prefill stage due to lower peak FLOPS</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• current evaluation limited to Llama2 (7B/13B/70B) at up to 32K context</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• near-bank PIM memory density reduced to ~75% of standard GDDR6.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** PIM, CXL, LLM-inference, GPU-free, memory-bandwidth</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Programmable Data Access</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">DX100: Programmable Data Access Accelerator for Indirection</div>
+      <div class="pc-sub">Programmable Data Access</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Indirect memory accesses (A[B[i]] patterns) in scientific computing, graph analytics, and database workloads cause severe DRAM bandwidth underutilization because DRAM controllers have only a 32–128 request window to reorder commands, while the dependency chains of indirect loads limit the memory-level parallelism achievable by conventional cores. Prior prefetchers and fetcher units improve latency but do not reorder, coalesce, or interleave accesses for bandwidth efficiency.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Memory bandwidth is the dominant bottleneck for irregular data-intensive workloads—sparse linear algebra, graph algorithms, hash-join—and the growing gap between available DRAM bandwidth and bandwidth actually utilized (as low as 11% measured) represents a major opportunity; next-generation DoE supercomputers (ATS-5) explicitly prioritize overcoming the memory wall for such applications.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DX100 is a programmable, memory-mapped accelerator shared across CPU cores that offloads bulk indirect and streaming memory operations. An 8-instruction ISA supports indirect loads/stores/RMWs, streaming loads/stores, ALU operations, and range-loop fusion. The Indirect Access unit uses a Row Table (BCAM + SRAM) to reorder up to 16K indices per tile for DRAM row-buffer hit maximization, a Word Table for coalescing redundant column accesses, and a Request Generator that interleaves requests across DRAM channels and bank groups. Streaming accesses go to the LLC via Cache Interface; indirect accesses bypass the cache hierarchy and inject directly into DRAM controllers, with a Coherency Agent maintaining cache coherence by snooping directories during the fill stage. An MLIR-based compiler (using Polygeist for C/C++ lowering) automatically detects indirect accesses, performs loop tiling, hoists bulk operations, and emits DX100 API calls—covering over 99% of graph frontier nodes across evaluated benchmarks.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 2.6x over 4-core multicore baseline; 2.0x over DMP indirect prefetcher (geometric mean, 12 benchmarks)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 3.6x core instruction reduction (energy proxy); 777 mW power at 28nm</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 4.06 mm^2 at 28nm (~1.5 mm^2 at 14nm, 3.7% of 4-core processor area)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 3.9x average DRAM bandwidth utilization improvement; 2.7x row-buffer hit rate increase; 12.1x DRAM controller request buffer occupancy increase; 6.1x cache MPKI reduction</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** 4-core Intel Skylake-like multicore (gem5); DMP state-of-the-art indirect prefetcher</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU; ASIC · **Workloads:** HPC; graph-analytics; database</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DX100 uses a large (16K-entry) hardware Row Table that reorders the full tile of indirect indices before issuing DRAM requests, providing 500x more reordering visibility than DRAM controller request buffers (32 entries) and achieving near-peak DRAM bandwidth utilization regardless of index distribution.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: DX100 programmable data-access accelerator with 8-instruction ISA supporting indirect/streaming load, store, and RMW operations with conditional execution and multi-level indirection.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• DX100 requires alias-free indirect regions (no concurrent core writes to accelerated arrays) and does not support pointer-chasing with variable base addresses or workloads with too-small frontiers for bulk tile offloading.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** indirect-memory-access, dram-bandwidth, data-access-accelerator, mlir-compiler, memory-reordering, irregular-workloads</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Spatial Computing SoC</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISSCC</div>
+    <div>
+      <div class="pc-title">IRIS: A 8.55mJ/frame Spatial Computing SoC for Interactable Rendering and Surface-Aware Modeling with 3D Gaussian Splatting</div>
+      <div class="pc-sub">Spatial Computing SoC</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Interactive Spatial Computing (ISC) for mixed-reality (MR) requires real-time surface-aware modeling (SAM) and interactive photorealistic rendering (IPR) with tight latency budgets (15ms) and high computational demands. 3D Gaussian Splatting (3DGS) enables superior quality but faces three challenges: (1) massive external memory access (EMA) for unordered &gt;50MB parameters exceeds edge GPU L2 cache (4MB), (2) IPR requires three sequential stages (deform/reflect/render) causing 2.33x overhead vs. non-interactive rendering, (3) backpropagation for SAM consumes 55.8% of compute due to FP16 precision and limited reusability.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mixed-reality applications demand immersive, deformable 3D object manipulation in real-time on mobile/edge devices; NeRF accelerators cannot support surface extraction and deformation required for ISC, necessitating specialized 3DGS hardware.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">IRIS SoC implements Single-Embedding-Multi-MLP (SEMM)-based 3DGS compression reducing parameter size while preserving quality. The architecture features specialized datapath for SAM and IPR stages, optimized memory hierarchy to minimize EMA, and hardware reuse for backpropagation to reduce compute redundancy. Spatial computing-aware scheduling and memory orchestration keep all processing within tight 15ms latency budget.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 8.55mJ/frame</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 15ms latency for interactive rendering</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** SAM: &lt;20min (vs &gt;20min on edge GPU), IPR: &lt;400ms (vs &gt;400ms baseline)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Jetson Orin Nano edge GPU; NeRF accelerators</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** SoC; ASIC · **Workloads:** vision; 3d-graphics; neural-rendering</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First specialized edge SoC for interactive 3DGS-based MR, achieving 8.55mJ/frame through MLP-based compression and co-optimized SAM/IPR/backprop pipelines.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: SEMM-based 3DGS compression reducing EMA from 81.3% to 52.8% of system energy.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Not discussed.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** 3d-gaussian-splatting, mixed-reality, spatial-computing, edge-soc, neural-rendering, real-time-graphics</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Thermal-Aware DRAM</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">A TRRIP Down Memory Lane: Temperature-Based Re-Reference Interval Prediction For Instruction Caching</div>
+      <div class="pc-sub">Thermal-Aware DRAM</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Modern mobile CPU workloads (interpreters, JIT compilers, UI frameworks) have large instruction footprints with long reuse distances that defeat hardware-only cache replacement policies, causing persistent L2 instruction cache miss stalls even after PGO code layout optimization.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mobile code complexity and footprint grow faster than on-chip cache capacity; hardware-centric predictors see only short execution windows and cannot track the global temperature of code sections, leaving significant frontend stalls unaddressed.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TRRIP is a compiler-OS-hardware co-design cache replacement policy. The LLVM PGO compiler classifies basic blocks as hot/warm/cold by execution frequency and places them in separate ELF sections (.text.hot, .text.warm, .text.cold). The OS loader reads these ELF headers and encodes temperature (2 bits) into existing ARM PBHA bits in page table entries (PTEs), requiring no ISA changes. The MMU transfers temperature bits with every memory request to the L2 cache. The hardware replacement policy extends RRIP: hot instruction lines are inserted at Immediate re-reference priority (RRPV=0), warm lines at Near (RRPV=1), cold/data lines at Intermediate (RRPV=2) per the existing RRIP eviction scan. The variant TRRIP-2 additionally decelerates RRPV promotion for non-hot hits. No additional on-chip storage is required beyond existing PTE bits.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 3.9% geomean over SRRIP baseline (PGO-compiled mobile benchmarks)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** L2 instruction MPKI reduction of 26.5% (TRRIP-1) and 27.3% (TRRIP-2)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** SRRIP; BRRIP; DRRIP; SHiP; CLIP; Emissary; LRU</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU; SoC · **Workloads:** vision; speech</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Using existing ARM PBHA page-table bits as a zero-storage-overhead channel to pass compiler-derived hot/cold temperature to the L2 cache replacement policy without ISA modifications.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: Characterization of instruction cache miss patterns in PGO-optimized mobile system software showing persistent frontend stalls due to high hot-code reuse distance.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Evaluated only on a simulated mobile SoC using proxy benchmarks</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• real silicon results and interaction with proprietary system software are not shown.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** instruction-cache, cache-replacement, rrip, compiler-hw-codesign, mobile-cpu</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Tiered 3D-Stacked PIM</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving</div>
+      <div class="pc-sub">Tiered 3D-Stacked PIM</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MoE LLM inference is bottlenecked by the massive expert parameter volume (&gt;95% of model size in models like Mixtral 8x7B), which overwhelms GPU HBM bandwidth and capacity; HBM-based NMP approaches are further limited by coarse-pitch TSV interconnects (~10 µm) that cap internal bandwidth.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Monolithic 3D-Stackable DRAM (Mono3D DRAM) enables Cu-Cu hybrid bonding at 1 µm pitch—5x finer than HBM TSVs—delivering higher internal bandwidth, but its aggressive vertical scaling introduces layer-dependent access latency heterogeneity that naive designs waste.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Stratum integrates Mono3D DRAM with NMP logic via Cu-Cu hybrid bonding on a logic die, connected to GPU via 2.5D silicon interposer. Within the Mono3D DRAM stack, an in-memory tiering mechanism assigns expert weights to fast (low wordline-staircase latency) or slow tiers based on predicted access frequency. A lightweight topic classifier predicts which experts will be hot for a given batch of user queries and re-maps them to fast tiers before each batch via a row-swap buffer. The NMP processor on the logic die includes per-channel Processing Units (PUs) connected via a ring network, each containing near-bank PE clusters with tensor cores executing GeMM/GeMV, an intra-channel reducer, and a SIMD special-function engine for Softmax/SiLU. The prefill phase runs on the GPU (xPU) and decoding runs on Stratum NMP.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** up to 8.29x decoding throughput improvement vs. GPU baseline</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** up to 7.66x better energy efficiency vs. GPU baseline</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** Mono3D DRAM internal bandwidth: ~5x higher vertical interconnect density than HBM (1 µm vs 10 µm TSV pitch)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** NVIDIA H100 GPU-HBM baseline; NVIDIA RTX A6000 GPU-HBM baseline; AttAcc; Neupims; Duplex</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU; PIM; chiplet · **Workloads:** LLM-inference; MoE; attention</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In-memory tiering exploits inherent access-latency heterogeneity across Mono3D DRAM wordline layers, combined with topic-based expert usage prediction, to maximally concentrate hot expert weights in fast DRAM tiers without off-chip data movement.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper&#x27;s solution: First system-hardware co-design for MoE serving using Monolithic 3D-Stackable DRAM, integrating 3D hybrid bonding with 2.5D silicon interposer.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Mono3D DRAM is an emerging technology not yet in volume production</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• evaluation is simulation-based and assumes projected device parameters that may differ from eventual silicon.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** moe, llm-inference, near-memory-processing, 3d-dram, memory-tiering, chiplet</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+
+  <footer>
+    AI Hardware 2025 · Memory Hierarchy &amp; Bandwidth deep reads · 15 papers · click any card to expand ·
+    <a href="../../../index.html">master narrative</a> · <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '▲ collapse' : '▼ read analysis';
+  });
+});
+</script>
+</body>
+</html>

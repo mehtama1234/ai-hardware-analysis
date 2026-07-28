@@ -1,0 +1,37 @@
+# Ecco: Improving Memory Bandwidth and Capacity for LLMs via Entropy-Aware Cache Compression
+
+**Venue:** ISCA · **Theme:** Entropy-Based Compression
+
+## What It Does
+
+LLM inference is severely memory-bandwidth-bound and memory-capacity-constrained due to large KV caches and weight tensors; the KV cache alone can consume 72.7% of GPU memory. Existing quantization schemes (AWQ, SmoothQuant, Quarot) reduce storage but introduce high runtime decompression overheads that negate bandwidth savings or compromise accuracy.
+
+As LLM decode is inherently memory-bound (low arithmetic intensity GEMV-dominated), cache-level lossy compression that operates transparently on the HBM-to-L2 data path can directly multiply effective bandwidth and capacity without altering compute kernels.
+
+Ecco integrates a parallel compressor/decompressor pair between the GPU L2 cache and HBM. Weights and KV cache are compressed 4x using group-wise (group size 128) non-uniform k-means quantization with 64 shared k-means patterns per tensor, plus clipped/padded Huffman coding with 4 per-pattern codebooks; activations use a simpler 2x uniform INT8 scheme. The 4x decompressor deploys 64 parallel Huffman sub-decoders operating on overlapping 15-bit windows of the 512-bit compressed block, fused with a 6-stage tree-based concatenator and 128 parallel mappers. The compressor uses a bitonic sorter for scale factor / outlier extraction and a min/max fitness score to select among 16 shared k-means patterns online. Both components are replicated 20x to match the 5120 B/cycle L2 throughput, implemented in 28nm (scaled to 7nm).
+
+## The Key Experiment
+
+- **speedup:** 2.9x over TensorRT FP16 (avg), 2.9x over AWQ, 2.4x over Olive, 1.9x over SmoothQuant on LLaMA-13B decode
+- **energy or tops w:** None
+- **area:** 5.11 mm2 total hardware addition on A100 (826 mm2 die), <1% area overhead; 7.36 W power (<10% of A100 idle power)
+- **ppa:** None
+- **accuracy:** LLaMA2-7B perplexity 5.65 (W4A8KV4) vs AWQ 5.83; outperforms all baselines on LLaMA/LLaMA2 7B-70B
+- **other:** 4x memory capacity enlargement for weights and KV cache; 2x for activations
+
+**Compared against:** TensorRT-LLM FP16; AWQ (W4A16, W4A8KV4); SmoothQuant (W8A8); Olive; QuaRot; QoQ; GPTQ-R
+
+**Hardware:** GPU · **Workloads:** LLM-inference; attention
+
+## Why This Approach
+
+A parallel multi-stage Huffman decoder that breaks the sequential decoding barrier using 64 overlapping sub-decoders fused with a tree concatenation stage, achieving two-orders-of-magnitude latency reduction and GPU L2-comparable throughput for a lossy, entropy-aware compression scheme.
+
+This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper's solution: Entropy-aware cache compression scheme combining group-wise non-uniform k-means quantization with shared patterns and Huffman coding, achieving 4x memory capacity expansion for LLM weights and KV cache..
+
+## What It Leaves Open
+
+- Simulation validated only up to 4K sequence length due to slow simulation speed
+- KV cache online compression uses a simplified min/max pattern selector (16 patterns) rather than the offline MSE-optimal 64-pattern search, potentially reducing compression efficiency.
+
+**Tags:** cache-compression, huffman-coding, llm-inference, kv-cache, quantization, gpu-memory

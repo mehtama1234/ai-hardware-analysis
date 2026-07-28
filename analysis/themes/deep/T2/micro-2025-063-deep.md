@@ -1,0 +1,35 @@
+# MX+: Pushing the Limits of Microscaling Formats for Efficient Large Language Model Serving
+
+**Venue:** MICRO · **Theme:** Microscaling (MX) Formats
+
+## What It Does
+
+The 4-bit Microscaling (MXFP4) format suffers severe accuracy degradation when applied to LLM activation tensors because activation outlier values (Block Max, BM) are encoded with only 1 mantissa bit, causing large quantization errors that also corrupt the entire 32-element block via the shared exponent scale. This makes MXFP4 impractical for production LLM inference despite its potential bandwidth and compute savings.
+
+LLM inference is memory-bandwidth-bound, making 4-bit quantization critical for cost-effective serving, yet the current MXFP4 standard fails on activation quantization due to outliers—blocking industry adoption of the lowest-bit MX tier.
+
+MX+ repurposes the private exponent field of the Block Max (BM) element within each MX block as additional mantissa bits, since the BM's exponent is always set to the representable maximum by definition. For MXFP4+, this converts the BM from E2M1 to an effective E0M3 encoding (3 mantissa bits instead of 1) with no change to block size or other elements. An extra 8-bit index per 32-element block identifies the BM position (5 bits for index, 3 reserved). For software integration on GPUs lacking native MX support, MX+ decomposes BM into high/low halves (BMH, BML), each representable as E2M1, enabling a standard MMA operation plus one additional sparse MMA for BMH. For hardware integration into existing MX-capable Tensor Cores (e.g., NVIDIA Blackwell), a BM Detector, Forward and Swap Units (FSUs), and a BM Compute Unit (BCU) are added outside the dot-product engine pipeline to handle BM-related multiplications in parallel with the DPE, adding 0.020mm2 area at 28nm.
+
+## The Key Experiment
+
+- **accuracy:** MXFP4+ vs MXFP4: up to +42.15% task accuracy improvement on Llama-3.1-8B; perplexity reduced from 27.69 to ~9.5 (WikiText-2) for Llama-3.1-8B
+- **speedup:** Hardware integration: 0.38% slowdown vs MXFP4; software integration A-MXFP4+: 1.13x slowdown max at long output lengths
+- **area:** 0.020mm2 at 28nm per Tensor Core for MX+ hardware (BM Detector + FSU + BCU)
+- **other:** 0.25 bits/element storage overhead; end-to-end vLLM speedup over BF16 close to MXFP4 at decode-dominant inference
+
+**Compared against:** MXFP4; MXFP6 (E2M3); MXFP8 (E4M3); MSFP variants; SMX variants; A8W4 mixed precision; BF16
+
+**Hardware:** GPU · **Workloads:** LLM-inference
+
+## Why This Approach
+
+Repurposing the BM element's own exponent field as extended mantissa within the MX block encoding—requiring zero change to block structure, shared scale, or NBM elements—uniquely identifies and precisely represents the outlier without additional storage cost or software framework modification.
+
+This paper sits in the **quantization** subtheme. The core tension: lower precision = smaller model = less memory bandwidth, but at the cost of rounding error that compounds across layers. This paper's bet: MX+ format: non-intrusive extension to MX that represents BM outliers with additional mantissa precision (e.g., E0M3 vs E2M1 for MXFP4), with only 0.25 bits/element overhead.
+
+## What It Leaves Open
+
+- MX+ evaluation is limited to post-training quantization (direct-cast inference)
+- quantization-aware training results are only shown for smaller vision/CNN models, and the approach has not been validated on mixture-of-experts or very long-context LLMs.
+
+**Tags:** quantization, microscaling, llm-inference, block-floating-point, tensor-core, outlier

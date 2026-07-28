@@ -1,0 +1,36 @@
+# DX100: Programmable Data Access Accelerator for Indirection
+
+**Venue:** ISCA · **Theme:** Programmable Data Access
+
+## What It Does
+
+Indirect memory accesses (A[B[i]] patterns) in scientific computing, graph analytics, and database workloads cause severe DRAM bandwidth underutilization because DRAM controllers have only a 32–128 request window to reorder commands, while the dependency chains of indirect loads limit the memory-level parallelism achievable by conventional cores. Prior prefetchers and fetcher units improve latency but do not reorder, coalesce, or interleave accesses for bandwidth efficiency.
+
+Memory bandwidth is the dominant bottleneck for irregular data-intensive workloads—sparse linear algebra, graph algorithms, hash-join—and the growing gap between available DRAM bandwidth and bandwidth actually utilized (as low as 11% measured) represents a major opportunity; next-generation DoE supercomputers (ATS-5) explicitly prioritize overcoming the memory wall for such applications.
+
+DX100 is a programmable, memory-mapped accelerator shared across CPU cores that offloads bulk indirect and streaming memory operations. An 8-instruction ISA supports indirect loads/stores/RMWs, streaming loads/stores, ALU operations, and range-loop fusion. The Indirect Access unit uses a Row Table (BCAM + SRAM) to reorder up to 16K indices per tile for DRAM row-buffer hit maximization, a Word Table for coalescing redundant column accesses, and a Request Generator that interleaves requests across DRAM channels and bank groups. Streaming accesses go to the LLC via Cache Interface; indirect accesses bypass the cache hierarchy and inject directly into DRAM controllers, with a Coherency Agent maintaining cache coherence by snooping directories during the fill stage. An MLIR-based compiler (using Polygeist for C/C++ lowering) automatically detects indirect accesses, performs loop tiling, hoists bulk operations, and emits DX100 API calls—covering over 99% of graph frontier nodes across evaluated benchmarks.
+
+## The Key Experiment
+
+- **speedup:** 2.6x over 4-core multicore baseline; 2.0x over DMP indirect prefetcher (geometric mean, 12 benchmarks)
+- **energy or tops w:** 3.6x core instruction reduction (energy proxy); 777 mW power at 28nm
+- **area:** 4.06 mm^2 at 28nm (~1.5 mm^2 at 14nm, 3.7% of 4-core processor area)
+- **ppa:** None
+- **accuracy:** None
+- **other:** 3.9x average DRAM bandwidth utilization improvement; 2.7x row-buffer hit rate increase; 12.1x DRAM controller request buffer occupancy increase; 6.1x cache MPKI reduction
+
+**Compared against:** 4-core Intel Skylake-like multicore (gem5); DMP state-of-the-art indirect prefetcher
+
+**Hardware:** CPU; ASIC · **Workloads:** HPC; graph-analytics; database
+
+## Why This Approach
+
+DX100 uses a large (16K-entry) hardware Row Table that reorders the full tile of indirect indices before issuing DRAM requests, providing 500x more reordering visibility than DRAM controller request buffers (32 entries) and achieving near-peak DRAM bandwidth utilization regardless of index distribution.
+
+This paper sits in the **memory hierarchy** subtheme. The core constraint: compute starves waiting for data — arithmetic throughput far outpaces DRAM bandwidth. This paper's solution: DX100 programmable data-access accelerator with 8-instruction ISA supporting indirect/streaming load, store, and RMW operations with conditional execution and multi-level indirection.
+
+## What It Leaves Open
+
+- DX100 requires alias-free indirect regions (no concurrent core writes to accelerated arrays) and does not support pointer-chasing with variable base addresses or workloads with too-small frontiers for bulk tile offloading.
+
+**Tags:** indirect-memory-access, dram-bandwidth, data-access-accelerator, mlir-compiler, memory-reordering, irregular-workloads

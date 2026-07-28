@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Attention &amp; Transformers · AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">← master narrative</a>
+    <a href="../../../t1-deepdive.html">T1 theme essay ↗</a>
+    <a href="index.html">← deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 · Attention Efficiency · Deep Reads</div>
+    <h1>Attention &amp; Transformers: Top Papers</h1>
+    <div class="sub">15 high-impact papers · KV cache scheduling, hardware-fused kernels, sparse attention, prefix reuse</div>
+  </div>
+  <div class="section-h">Diffusion Model Serving</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">DiffServe: Efficiently Serving Text-to-Image Diffusion Models with Query-Aware Model Scaling</div>
+      <div class="pc-sub">Diffusion Model Serving</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Text-to-image diffusion model serving faces two simultaneous challenges: high-quality models (e.g., SDv1.5 at 50 steps) are 4.6-18x slower than lightweight variants (SD-Turbo, SDXS), limiting throughput; and query demand fluctuates, causing static resource provisioning to either waste capacity during off-peak or fail SLOs during peak.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">For 20-40% of queries, lightweight diffusion models produce images of equal or better quality than heavyweight models (&#x27;easy queries&#x27;). Routing these queries to lightweight models saves compute. However, existing metrics (CLIP Score, PickScore) cannot reliably identify easy queries (they perform no better than random routing), so a task-specific discriminator is needed. Dynamic resource allocation must co-optimize discriminator confidence threshold, model variant placement, and batch sizes.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DiffServe uses query-aware model cascades with two technical innovations: (1) Discriminator design - EfficientNet-V2 trained on binary real/fake classification (real = MSCOCO ground truth images, fake = generated images from both light and heavy models). At inference, confidence score (softmax output for &#x27;real&#x27; class) determines if lightweight model output is accepted or deferred to heavyweight model. Counterintuitive finding: using heavyweight model outputs as &#x27;real&#x27; training labels hurts performance; ground-truth images as &#x27;real&#x27; labels produce the best discriminator. (2) Resource allocation via MILP - Controller periodically solves a Mixed Integer Linear Program maximizing confidence threshold (proxy for quality) subject to latency constraints (execution time + Little&#x27;s Law queuing delay) and throughput constraints (device counts x per-device throughput &gt;= demand). Variables: x1, x2 (device counts for light/heavy models), b1, b2 (batch sizes), t (confidence threshold). Demand estimated via exponentially weighted moving average with 5% over-provisioning factor. MILP solved asynchronously (~10ms overhead) off critical path.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**quality vs proteus:** Up to 20% FID improvement vs Proteus (random query-agnostic routing)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**quality vs static:** Up to 24% FID improvement vs static configurations</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**slo violations vs static:** 19-70% lower SLO violation rate vs static provisioning</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**slo violations vs clipper heavy:** Up to 52x lower SLO violation vs Clipper-Heavy</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**milp runtime:** ~10ms MILP solver runtime (off critical path)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Clipper-Light (all queries to lightweight model); Clipper-Heavy (all queries to heavyweight model); Proteus (dynamic model selection, random query routing); DIFFSERVE-Static (discriminator but fixed allocation)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** NVIDIA A100 · **Workloads:** text-to-image-generation; diffusion-model-serving</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">EfficientNet-V2 discriminator repurposed from real/fake classification to route diffusion model queries; MILP formulation co-optimizing confidence threshold, batch sizes, and device allocation for cascaded diffusion serving under dynamic demand.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Query-aware model cascade for text-to-image diffusion serving using a trained discriminator.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Discriminator training requires curating real/fake image datasets and offline model profiling</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• MILP assumes deterministic execution times; variance in GPU execution affects queuing model accuracy</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Cascade depth limited to two models; extending to multi-stage cascades requires more complex MILP</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Reusing intermediate lightweight outputs in heavyweight inference showed mixed results (quality sometimes degraded)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** diffusion-models, model-serving, cascaded-inference, MILP, resource-allocation, text-to-image, SLO, query-routing</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">GPU Microarchitecture for Attention</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Dissecting and Modeling the Architecture of Modern GPU Cores</div>
+      <div class="pc-sub">GPU Microarchitecture for Attention</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Academic GPU microarchitecture simulators such as Accel-sim rely on pipeline models derived from NVIDIA Tesla (2006), missing 15+ years of GPU core evolution including compiler-guided dependency management, the L0 instruction cache, register file cache, and updated issue logic in Ampere-class SMs. This causes simulation inaccuracy that misleads research conclusions.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">GPU microarchitecture research requires accurate simulators; existing models diverge significantly from modern NVIDIA designs, producing flawed performance predictions for HPC and ML workloads.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The authors reverse-engineer the NVIDIA Ampere (RTX A6000) SM pipeline using hand-written SASS microbenchmarks that measure cycle-precise instruction timings. They uncover a software-hardware co-design dependency mechanism using per-warp Stall counters and six Dependence counters (SBx) encoded as ISA control bits replacing traditional scoreboards, a Compiler-Guided Greedy-Then-Youngest (CGGTY) warp issue policy, a two-bank register file without collector units, a compiler-managed 6-entry register file cache (RFC), an L0 instruction cache with a 16-entry stream buffer prefetcher, and detailed memory pipeline queue sizing and latencies. All findings are integrated into a rebuilt Accel-sim model validated against real hardware.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** 13.98% mean MAPE on NVIDIA RTX A6000 (Ampere); 18.24% MAPE improvement over Accel-sim baseline</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Accel-sim (prior state-of-the-art GPU simulator); GPGPU-Sim</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU · **Workloads:** HPC; LLM-inference; LLM-training</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Complete reverse-engineering of modern NVIDIA Ampere SM pipelines revealing that dependency management is handled entirely via compiler-encoded ISA control bits (Stall/Dependence counters), eliminating hardware scoreboards and collector units.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Full characterization of the CGGTY warp issue scheduler policy with readiness conditions and yield/stall control bits.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Experiments cover only same-CTA warp interactions</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• cross-CTA scheduling behavior and multi-SM interactions are not characterized.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** gpu-microarchitecture, reverse-engineering, warp-scheduling, register-file, simulation</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Hardware-Fused Attention</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Dadu-Corki: Algorithm-Architecture Co-Design for Embodied AI-powered Robotic Manipulation</div>
+      <div class="pc-sub">Hardware-Fused Attention</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Embodied AI robotic manipulation systems run LLM inference on a frame-by-frame basis, creating cumulative sequential latencies (LLM inference, robot control, data communication) that reach 249 ms per frame and prevent real-time operation at &gt;=30 Hz. LLM inference alone consumes 72.7% of latency and 95.8% of energy per frame.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM-controlled robots require real-time control (&gt;=30 Hz, preferably 100 Hz), but existing vision-centric frame-by-frame pipelines inherited from video processing violate the frequency-decoupled front-end/back-end principle standard in robotics.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Corki decouples LLM inference from robot control by replacing per-frame discrete action prediction with cubic polynomial trajectory prediction over multiple future steps, reducing LLM inference frequency by up to 5.1x. A custom dataflow ASIC accelerator implements task-space computed torque control (TS-CTC) with pipelined link-level computations (pose, velocity, acceleration, force units connected via FIFOs and line buffers) and an application-specific approximate computing unit that skips matrix recomputation when joint angular movement is below a threshold (saving &gt;51% of matrix updates). Communication latency is hidden by pipelining image capture and transmission concurrent with trajectory execution.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 5.9x end-to-end; 29x control acceleration on FPGA; LLM inference frequency reduced 5.1x</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 9.2x energy reduction (Corki-9 variant)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 13.6% DSP, 7.8% FF, 16.9% LUT, 6.6% BRAM on Xilinx Zynq-7000 ZC706</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** Success rate improvement up to 13.9% (up to 17.3% average job length improvement on seen tasks)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** None</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** RoboFlamingo on Nvidia V100 GPU with Intel Core i7-6770HQ CPU control</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** FPGA; ASIC; GPU · **Workloads:** LLM-inference; vision</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Replacing frame-by-frame discrete action prediction with cubic trajectory prediction decouples the LLM inference rate from the control rate, enabling a purpose-built TS-CTC hardware accelerator with approximate computing that achieves 29x control speedup on FPGA.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Corki algorithm: predict cubic polynomial robot trajectory for multiple future steps instead of per-frame discrete actions, reducing LLM inference frequency by up to 5.1x..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Currently limited to robotic arms with &lt;=9 DoF</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• trajectory-based decoupling requires algorithm retraining and may not generalize directly to higher-DoF humanoid robots.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** embodied-AI, robot-manipulation, LLM-inference, trajectory-prediction, algorithm-architecture-codesign, approximate-computing</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">MCBP: A Memory-Compute Efficient LLM Inference Accelerator Leveraging Bit-Slice-enabled Sparsity and Repetitiveness</div>
+      <div class="pc-sub">Hardware-Fused Attention</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference faces three simultaneous bottlenecks—GEMM computation in the prefill stage, weight loading during decoding (52.4% of short-prompt latency for LLaMA-7B), and KV cache loading for long contexts—which existing Transformer accelerators address in isolation at value granularity, missing fine-grained bit-level optimization opportunities.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Decoder-only LLMs in autoregressive decoding are severely memory-bound, yet quantized weights exhibit bit-slice-level sparsity up to 10x higher than value-level sparsity and bit-slice-level column repetitiveness that enables up to 5.1x computation reduction—properties that are invisible to value-level accelerators.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MCBP is an algorithm-hardware co-design operating at bit-slice (BS) granularity. Three key techniques: (1) BS-Repetitiveness-enabled Computation Reduction (BRCR): decomposes a k-bit weight matrix into k BS matrices, groups m rows into a Group matrix, identifies repeated column vectors via a Content Addressable Memory (CAM) unit, computes a Merged Activation Vector (MAV) for repeated activations (H*(1-bs) additions), and reconstructs output via an Enumeration matrix (m*2^(m-1) additions), achieving up to 12.1x computation reduction vs. value-sparsity. (2) BS-Sparsity-enabled Two-State Coding (BSTC): stores weights in sign-magnitude format; high-order bit-slice matrices (bits 3-7 in INT8) exhibit &gt;65% sparsity and are encoded with two states ({0} for zeros, {1,m-bit data} for non-zeros) at the same group granularity m as BRCR, achieving positive compression without requiring bit reordering for computation; low-order bits (1,2,8) remain uncompressed. (3) Bit-grained Progressive Prediction (BGPP): estimates attention scores MSB-to-LSB across multiple rounds; a radius-scaled filter (threshold = max(A_hat) - alpha * radius) eliminates Keys whose partial score falls below the threshold after each round, enabling early termination that reduces KV cache accesses by up to 50%. Hardware: CAM-based BRCR unit, lightweight parallel BSTC encoder/decoder, clock-gated BGPP prediction module, on-chip SRAM hierarchy (384KB token, 768KB weight, 96KB temp), and external HBM.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 9.43x vs. NVIDIA A100 GPU</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 22740 GOPS/W average energy efficiency; 31.1x vs. A100 GPU; 35x vs. Spatten; 5.2x vs. FACT; 3.2x vs. SOFA</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** BGPP reduces KV cache accesses by up to 50%; BRCR achieves 5.1x group-wise computation reduction vs. full-size merge across 5 LLMs</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** NVIDIA A100 GPU (with TensorRT-LLM); Spatten; FACT; SOFA; Sanger; SpAtten; A3; ELSA; DTATrans</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** ASIC; GPU · **Workloads:** LLM-inference; attention; transformer</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A unified bit-slice-granularity co-design that simultaneously exploits bit-level repetitiveness (via CAM-based grouped matching), bit-level sparsity in high-order weight planes (via two-state coding), and progressive bit-by-bit KV cache filtering (BGPP) to jointly address all three LLM inference bottlenecks at a finer granularity than any prior accelerator.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: BRCR: bit-slice repetitiveness-based GEMM computation reduction using CAM-based grouped column matching, achieving up to 12.1x computation reduction vs. value-sparsity and 3.8x vs. naive bit-serial.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• MCBP requires offline BSTC weight pre-compression, adding pre-deployment overhead</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• the BGPP progressive prediction introduces multi-round latency that must be overlapped with BRCR computation</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• optimal group size m is model-dependent and requires design-space exploration.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** llm-inference, bit-serial, sparsity, quantization, transformer-accelerator, kv-cache</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Hardware-Fused Attention Kernels</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving</div>
+      <div class="pc-sub">Hardware-Fused Attention Kernels</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference serving requires attention kernels that simultaneously handle heterogeneous KV-cache storage layouts (ragged, paged, tree-structured), diverse attention variants (GQA, MLA, sliding-window), and dynamic request batching, while remaining compatible with static CUDAGraph capture.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Existing attention kernels (FlashAttention, Triton-based backends) are optimized for a single storage format and static batch shapes; adapting them to production serving workloads with shared prefixes, paged memory, and mixed request types requires significant rewriting and yields suboptimal memory access and load imbalance.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FlashInfer introduces: (1) Block-Sparse Row (BSR) format as a unified KV-cache representation that encodes ragged, paged, and prefix-tree layouts via a single sparse block structure; (2) composable format decomposition that splits shared-prefix attention from unique-suffix attention and merges partial softmax accumulators; (3) a JIT compiler that instantiates CUDA attention templates per attention variant at first use, reusing compiled binaries across requests; (4) a load-balanced scheduler that uses a priority queue to assign work tiles to thread blocks while preserving CUDAGraph compatibility via a static wrapper that hides dynamic dispatch.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ITL reduction vs triton:** 29-69% inter-token latency reduction vs compiler backends on LLM serving benchmarks</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**long context latency:** 28-30% latency reduction for long-context inference</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**parallel generation speedup:** 13-17% speedup for LLM serving with parallel generation</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Triton attention backend; FlashAttention-2; vLLM paged attention; SGLang radix cache attention</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** NVIDIA GPU (A100, H100) · **Workloads:** llm-inference; long-context-inference; parallel-generation; prefix-caching</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">BSR as a single unifying KV-cache abstraction that collapses paged, ragged, and tree-structured layouts into one kernel path; CUDAGraph-compatible dynamic load balancing via a static-size priority queue indirection layer.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Block-sparse row format unifying heterogeneous KV-cache layouts for attention computation.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• JIT compilation adds first-request latency; warm-up required for production deployment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• BSR block size must be tuned per hardware; sub-optimal block sizes degrade performance</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Load-balanced scheduling overhead may dominate for very short sequences</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Composable format merging requires storing intermediate partial softmax states, increasing SRAM pressure</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** attention, KV-cache, BSR, JIT, CUDAGraph, LLM-serving, FlashInfer, load-balancing</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">KV Cache Compression</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">Rethinking Key-Value Cache Compression Techniques for Large Language Model Serving</div>
+      <div class="pc-sub">KV Cache Compression</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">KV cache compression algorithms are evaluated on naive transformer library (TRL) benchmarks with fixed response lengths, hiding three critical problems that prevent production deployment: suboptimal throughput under real serving frameworks (FlashAttention + PagedAttention), increased end-to-end latency due to compression-induced response length growth, and per-sample accuracy fragility on specific task types.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Researchers report memory reduction and TRL-based throughput speedup, but production systems use FlashAttention and PagedAttention which already optimize memory access; compression may not compose well with these. Response length is treated as fixed in throughput benchmarks, but lossy compression causes models to generate longer outputs (verbose compensation), eroding throughput gains. Per-sample analysis reveals that even minor average accuracy drops mask large per-instance failures on summarization and QA tasks.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Empirical study evaluating four representative KV cache compression methods (KIVI for quantization, GEAR for quantization with error correction, StreamingLLM for structured sparsity, H2O for dynamic attention-score-based sparsity) under three missing evaluation dimensions: (1) Throughput analysis - benchmarks on LMDeploy (with PagedAttention+FlashAttention) and TRL across batch sizes, prompt lengths, and tensor parallelism degrees for LLaMA-7B and LLaMA-70B; (2) Length distribution analysis - measures response length shift D = (Lun - Lcs)/Lun across 1000 ShareGPT samples; (3) Negative sample analysis - defines negative samples as benign inputs where compression causes &gt;10% accuracy drop on LongBench tasks; categorizes by task type (summarization, QA, code, few-shot, synthetic). Additionally provides three tools: throughput predictor (attention-layer profiling + Vidur runtime), length predictor (BERT-based classifier predicting response length given compression algorithm), and negative sample benchmark dataset.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**throughput under serving frameworks:** Compression speedup vanishes or turns negative at batch size &gt;4 and KV length &gt;=1024 when PagedAttention+FlashAttention are enabled</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**length increase:** More than 20% of samples show &gt;=1.5x response length increase from lossy compression</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**negative samples kivi:** 400-600 negative samples out of ~2000 evaluated at 10% threshold</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**negative samples h2o:** 600-800 negative samples at 10% threshold</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**throughput predictor accuracy:** &gt;85% across all four compression methods</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**length predictor accuracy:** &gt;85% across all four compression methods</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**tensor parallelism effect:** Compression speedup decreases or goes negative under tensor parallelism (TP=2,4) due to reduced memory bandwidth contention per GPU</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** KIVI (INT4 per-channel quantization); GEAR (quantization + low-rank error correction); StreamingLLM (initial + recent token sparsity); H2O (heavy hitter oracle sparsity); FP16 baseline on TRL, LMDeploy</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** NVIDIA A6000; NVIDIA H800 · **Workloads:** llm-inference; long-context-inference; production-serving</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Identification of three overlooked production deployment dimensions (throughput under serving frameworks, response length distribution, per-sample accuracy fragility) for KV compression evaluation; suite of tools (throughput predictor, length predictor, negative sample benchmark) for practical deployment.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Comprehensive survey of 40+ KV cache compression algorithms (Table 1) with evaluation setting analysis.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Only evaluates LLaMA and Mistral families; findings may not generalize to all model architectures</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Throughput analysis restricted to A6000 and H800; results may differ on other GPUs</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Length predictor is BERT-based and requires fine-tuning per compression algorithm</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Negative sample analysis uses threshold-based definition which is heuristic</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** KV-cache, compression, quantization, sparsity, benchmarking, FlashAttention, PagedAttention, production-serving</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">KV Cache Scheduling</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">Past-Future Scheduler for LLM Serving under SLA Guarantees</div>
+      <div class="pc-sub">KV Cache Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM serving frameworks using continuous batching suffer from either overestimation of memory consumption (conservative schedulers) or underestimation leading to harmful request evictions (aggressive schedulers), because neither accurately accounts for the dynamic memory release profile of concurrently running requests across future decoding steps.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">As LLM inference scales to thousands of GPUs serving tens of millions of requests per day under strict SLA constraints (TTFT, TPOT, MTPOT), maximizing goodput (SLA-satisfying throughput) requires precise KV-cache memory estimation that adapts to varying input-output length distributions across chatbot, code, and reasoning workloads.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The Past-Future scheduler combines two components: (1) output length distribution prediction that samples predicted output lengths from the empirical distribution of recent historical requests (a sliding window of ~1,000 finished requests), updating each running request&#x27;s predicted remaining length at every decode step using the conditional distribution P(l &gt; l_current); and (2) future required memory estimation that sorts running requests by estimated remaining length, computes memory occupancy at each future completion event, and determines peak future memory as max(M_t+1, M_t+2, ...) across all future completion times. A queued request is admitted only if adding it keeps peak future memory below hardware capacity. This is implemented in LightLLM with &lt;1% scheduling overhead using GPU-parallel computation.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 2-3x higher goodput over aggressive/conservative schedulers under heavy load</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** Memory utilization approaches theoretical optimum (93-94% vs 98% oracle) while eviction rate drops to ~3-7% vs 93% for aggressive at watermark=99%; 50-60% throughput improvement on multimodal LLaVA and Qwen-VL models</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** vLLM (aggressive scheduler); TGI (conservative scheduler); DeepSpeed-MII / FastGen (conservative); TensorRT-LLM (conservative)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU · **Workloads:** LLM-inference; attention</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The observation that LLM output length distributions are stable within adjacent time windows enables a parameter-free, model-agnostic historical-distribution sampling approach to precisely estimate peak future KV-cache memory demand for the entire running batch, eliminating both conservative underutilization and aggressive eviction.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Discovery that LLM request output length distributions are stable within adjacent time windows, validated on six real-world trace datasets including BurstGPT and Mooncake..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• The scheduler relies on distribution stationarity within adjacent time windows and may perform poorly if output length distributions shift abruptly (e.g., sudden workload type change)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• warm-up period needed at service startup.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** LLM-serving, KV-cache, scheduling, SLA, continuous-batching</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">DynamoLLM: Designing LLM Inference Clusters for Performance and Energy Efficiency</div>
+      <div class="pc-sub">KV Cache Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference clusters running on GPU-dense infrastructure consume excessive energy and incur high operational carbon emissions because existing systems provision resources for peak load at maximum GPU frequency and tensor parallelism, ignoring the strong heterogeneity in request types (input/output length variation) and diurnal load fluctuations that create large energy-saving opportunities.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLM inference workloads are rapidly becoming a dominant share of datacenter power consumption, and a single static cluster configuration cannot simultaneously serve the energy needs of short/low-compute and long/high-compute requests, leaving 35-53% energy savings on the table while meeting latency SLOs.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DynamoLLM is a hierarchical three-level energy management framework (Cluster Manager, Pool Manager, Instance Manager) that dynamically reconfigures a GPU cluster across three knobs: number of inference server instances (scale in/out), tensor parallelism (shard up/down), and GPU frequency (scale up/down). The cluster is partitioned into per-request-type instance pools (classified by input/output token length into SS/SM/.../LL buckets); a BERT-based output-length predictor routes requests to the appropriate pool. Configuration selection is formulated as a MILP optimization using offline energy-performance profiles, with a hierarchical approximation heuristic for real-time operation. Reconfiguration overheads are minimized by: pre-warming VMs from snapshots, direct NVLink weight re-sharding via a bipartite graph matching algorithm (minimizing weight transfers), and keeping nvidia-smi loaded in-memory for rapid GPU frequency changes.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** 53% energy saving, 38% carbon reduction vs. static SinglePool baseline</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** 61% cost reduction to customer; DynamoLLM vs. single-knob baselines: ScaleInst 4.1%, ScaleShard 7%, ScaleFreq 19%, DynamoLLM 35% energy reduction in cluster experiment</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** SinglePool (TP8, max frequency, static); MultiPool (per-type pools, no scaling); ScaleInst (scale instances only); ScaleShard (scale parallelism only); ScaleFreq (scale frequency only)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU · **Workloads:** LLM-inference</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A hierarchical multi-knob (instance count + tensor parallelism + GPU frequency) dynamic reconfiguration framework for LLM inference clusters that maintains per-request-type resource pools and minimizes reconfiguration overheads via weight-stationary NVLink re-sharding and proactive VM pre-warming.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Characterization of LLM inference energy-performance heterogeneity across request lengths, system load, model size, and SLO requirements using Azure production traces.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Evaluation assumes all GPUs are NVIDIA H100 (homogeneous hardware)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• heterogeneous GPU cluster scenarios and multi-tenant LLM co-location are not addressed.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** llm-inference, energy-management, gpu-cluster, tensor-parallelism, gpu-frequency-scaling, slo</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Insights into DeepSeek-V3: Scaling Challenges and Reflections on Hardware for AI Architectures</div>
+      <div class="pc-sub">KV Cache Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Training and serving 671B-parameter MoE LLMs at scale exposes critical hardware bottlenecks: HBM memory capacity growing &lt;50%/year versus &gt;1000%/year model memory demand, FP8 Tensor Core accumulation precision limited to 13 mantissa bits (FP22) causing numerical instability in large-scale training, NVLink bandwidth halved in H800 vs H100 (400 vs 900 GB/s) constraining tensor parallelism, and all-to-all expert parallelism (EP) communication consuming up to 20 GPU SMs for control-plane operations.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DeepSeek-V3, trained on only 2,048 H800 GPUs to state-of-the-art performance, demonstrates that hardware-software co-design can dramatically reduce the cost of frontier LLM training and inference, offering concrete lessons for next-generation hardware architects about where current GPU/network designs impose avoidable constraints.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The paper presents DeepSeek-V3&#x27;s production architecture and infrastructure as a case study, covering: (1) Multi-head Latent Attention (MLA) that compresses KV cache from 516 KB/token (LLaMA-3.1-405B) to 70 KB/token via low-rank KV projection; (2) DeepSeekMoE with Node-Limited Routing constraining expert token dispatch to at most 4 of 8 nodes to exploit the 4:1 NVLink/IB bandwidth ratio, reducing inter-node IB traffic; (3) FP8 mixed-precision training with tile-wise 1x128 activation quantization and block-wise 128x128 weight quantization using DeepGEMM, requiring workarounds for FP22 accumulation precision on Hopper; (4) DualPipe overlapping MLA and MoE computation with all-to-all EP dispatch/combine via InfiniBand GPUDirect Async (IBGDA); (5) a Multi-Plane Two-Layer Fat-Tree (MPFT) network replacing a standard three-layer fat-tree, using 8 independent IB planes per node to support up to 16,384 GPUs at the same cost-per-endpoint as a two-layer topology. Experimental data includes real cluster training throughput (272.8B tokens/day, MFU 43.7%), EP bandwidth (&gt;40 GB/s per GPU), and network latency comparisons (IB at 2.8 us same-leaf vs RoCE at 3.6 us).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** MTP module achieves 1.8x generation TPS vs. no MTP; EP dispatch/combine &gt;40 GB/s per GPU on MPFT; TPOT theoretical upper bound 67 tokens/s on H800 IB vs ~1200 tokens/s on GB200 NVL72</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** MFU 43.73% (non-causal) on 2048 H800 GPUs; 250 GFLOPS/token for 671B MoE vs 2448 for LLaMA-405B dense</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** FP8 training relative accuracy loss &lt;0.25% vs BF16</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** KV cache: 70 KB/token (MLA) vs 516 KB/token (LLaMA-405B GQA); training throughput 272.8B tokens/day; 2,048 H800 GPUs for full DeepSeek-V3 training</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** NVIDIA H800 GPU cluster (standard three-layer fat-tree / MRFT); LLaMA-3.1-405B (GQA KV cache); Qwen-2.5-72B; Dense model training (full-parameter activation)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU · **Workloads:** LLM-training; LLM-inference; MoE; attention</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Systematic hardware-software co-design analysis from a production 671B MoE LLM system that quantifies the bottlenecks in FP8 accumulation precision, NVLink/IB bandwidth asymmetry, and EP control-plane SM consumption, and proposes the Multi-Plane Fat-Tree topology as a cost-equivalent path to 8x scale-out beyond single-plane two-layer fat trees.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: MLA: low-rank KV projection reducing KV cache 7.4x vs. LLaMA-3.1-405B (70 KB vs 516 KB per token), enabling memory-efficient inference on constrained hardware..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Hardware suggestions (FP32 accumulators, native group-scaling Tensor Cores, unified NVLink/IB NIC) are forward-looking design recommendations not yet validated in silicon</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• regulatory constraints capped deployment at ~2,048 GPUs, preventing full characterization of MPFT at 16K+ GPU scale.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** llm-training, moe, fp8, interconnect, kv-cache, multi-plane-network</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Boosting Task Scheduling Data Locality with Low-latency, HW-accelerated Label Propagation</div>
+      <div class="pc-sub">KV Cache Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Hardware-accelerated task schedulers dispatch ready tasks to the first available core without locality awareness, causing cache misses when dependent tasks execute on different cores. Existing locality-aware policies require static programmer hints or incur high scheduling overhead incompatible with fine-grained tasks.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Fine-grained task-parallel workloads on many-core systems suffer from data cache misses that negate parallelism gains because conventional task schedulers ignore data dependency graphs when making placement decisions.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The paper introduces Task-LP, a hardware label propagation (LP) accelerator that clusters up to 128 in-flight tasks by running a semi-synchronous graph clustering algorithm on the dynamic task dependency graph built by Picos. Task-LP uses a bitmask adjacency matrix, color-iteration parallelism (First-Fit online graph coloring), and bitwise popcount to compute label popularity; it converges in under 300 cycles for typical inputs. A Task Placement Engine (TPE) combines LP cluster labels with core-idleness signals via a tunable relaxation policy (cycle-length parameter R_len) to balance locality and core utilization. The full system is prototyped on a 24-core RISC-V (Rocket Chip) mapped to an Alveo U55C FPGA, interfaced via custom RoCC instructions and the Phentos task scheduling API.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** up to 1.50x program execution time improvement on 24 cores</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** 0.313 mm2 at GF 12 nm for 128-node Task-LP configuration</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** 600+ MHz timing met in ASIC synthesis</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** clustering modularity statistically indistinguishable from software LP</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** LP accelerator 581x faster than equivalent software LP; task size reduction up to 1.81x</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Random Task Stealing (GNU OpenMP / Nanos baseline); Immediate Successor (IS) locality policy; software label propagation; Fast Greedy clustering</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** RISC-V; FPGA; ASIC · **Workloads:** graph-analytics; HPC</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A hardware label-propagation accelerator that clusters dynamic task dependency graphs in under 300 cycles (up to 581x faster than software), enabling runtime data-locality-aware task placement with negligible scheduling overhead.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Task-LP: a parametrized HW label-propagation accelerator clustering 128-node task graphs in under 600 cycles, synthesized at 0.313 mm2 in GF 12 nm.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• The 128-node context window limits visibility of long-range task dependencies</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• larger windows grow area super-linearly (~N^1.58), and gains diminish for compute-bound workloads where random placement already achieves high core utilization.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** task-scheduling, data-locality, graph-clustering, label-propagation, risc-v, fpga</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">FLStore: Efficient Federated Learning Storage for non-training workloads</div>
+      <div class="pc-sub">KV Cache Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Federated learning non-training workloads (scheduling, personalization, clustering, debugging, incentivization) impose high latency and cost because they access large volumes of metadata (model weights, hyperparameters, aggregated updates) stored in remote cloud object stores or in-memory caches without data locality.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FL non-training workloads exhibit access patterns that differ from training: they require low-latency reads of client update metadata, repeated access to aggregated model checkpoints, and correlation of historical round data. Existing aggregator-server designs serialise these accesses through a central bottleneck, incurring round-trip overheads that dominate total latency.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FLStore is a serverless cache framework that co-locates compute and data on the same cache tier. A Cache Engine (hash-table-based) routes requests to the cache node holding the relevant data based on a locality-aware key hashing. A Request Tracker maintains per-client access history to identify hot data. Four caching policies (P1-P4) are derived from a taxonomy of FL non-training workload types: P1 caches client model updates by round; P2 caches aggregated models; P3 caches derived metadata (gradients, loss) across rounds; P4 implements prefetching for predictable access patterns.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**latency vs objstore agg:** 71% average latency reduction vs cloud object store aggregator; 99.7% peak</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**cost vs objstore agg:** 92.45% cost reduction; 98.8% peak</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**latency vs cache agg:** 64.6% average latency reduction vs in-memory cloud cache aggregator</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**cost vs cache agg:** 98.83% cost reduction vs in-memory cache aggregator</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** ObjStore-Agg (S3-based aggregator); Cache-Agg (Redis/Memcached-based aggregator)</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** cloud-cpu; serverless-cache · **Workloads:** federated-learning; model-aggregation; scheduling; personalization</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Unified data+compute serverless cache tier with a four-policy taxonomy derived from a systematic analysis of FL non-training workload access patterns, enabling locality-aware execution without a central aggregator bottleneck.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Taxonomy of FL non-training workloads and their storage access characteristics.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Serverless cold-start latency when cache nodes are not warm</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Hash-based routing may cause hotspots for highly skewed client distributions</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Fault tolerance relies on replication which adds storage overhead</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Taxonomy and policies assume relatively stationary access patterns; concept drift requires policy re-tuning</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** federated-learning, caching, serverless, non-training-workloads, storage, FL</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Prefix Cache Reuse</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">Marconi: Prefix Caching for the Era of Hybrid LLMs</div>
+      <div class="pc-sub">Prefix Cache Reuse</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Hybrid LLMs combining Attention and SSM (State Space Model / Mamba) recurrent layers cannot use standard prefix caching because SSM layers use in-place state updates that preclude rolling back to partial sequence states; only exact-match cache hits are possible, causing an explosion in cache entries with low reuse, wasting memory and compute.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Pure-attention LLMs benefit from prefix caching (e.g., vLLM radix cache) because any prefix of a cached sequence can be reused. Hybrid LLMs break this because SSM state at token i depends on all tokens 1..i via recurrent updates; you cannot restore a mid-sequence SSM state without recomputing from the start. The correct caching unit changes: only checkpointed SSM states at token boundaries matter. Naive policies that treat all prefixes equally fill cache with entries that are unlikely to reuse.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Marconi maintains a unified radix tree storing both KV-cache blocks (for attention layers) and SSM state checkpoints (for recurrent layers) per sequence. Two key policies: (1) Admission: speculative insertion before prefill execution identifies branch points in the radix tree where SSM state checkpointing is needed; admits only entries in two reuse classes - (a) purely-input shared prefixes (system prompts, shared context) and (b) input+output prefixes (multi-turn conversation history). Entries not in these classes are rejected at admission time. (2) FLOP-aware eviction: utility score S(n) = recency(n) + alpha * flop_efficiency(n), where flop_efficiency(n) = FLOPs_saved_by_hit / bytes_of_cache_entry; alpha is tuned via grid search on a bootstrap period. Only leaf nodes and single-child intermediate nodes are eligible for eviction (evicting a branching node would invalidate its subtree). This prevents eviction cascades while prioritizing high-FLOP-return entries.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**token hit rate:** up to 34.4x higher token hit rates vs state-of-the-art prefix caching (vLLM+)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ttft reduction pct:** 71.1% lower P95 Time-To-First-Token vs vLLM+</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ttft reduction abs:** 617 ms lower P95 TTFT vs vLLM+</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** vLLM+ radix cache (attention-only prefix caching applied naively to hybrid models); LRU eviction without FLOP-awareness; No prefix caching</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** NVIDIA GPU (A100, H100) · **Workloads:** llm-inference; long-context-inference; conversational-inference; hybrid-llm</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First prefix caching system for hybrid Attention+SSM LLMs; FLOP-aware eviction metric (FLOPs saved per cache byte) that jointly considers compute savings and memory cost of cached states; speculative admission before prefill that identifies SSM checkpointing points without executing the model.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: First prefix caching system supporting hybrid Attention+SSM LLMs (Mamba, Jamba, etc.).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• SSM state checkpoints are large (proportional to state dimension times number of recurrent layers), consuming substantial cache memory</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Exact-match-only constraint means partial prefix overlaps yield zero reuse, unlike attention-only models</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Bootstrap period for alpha tuning requires representative workload samples before optimal eviction policy is active</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Speculative admission overhead not fully quantified for highly dynamic request patterns</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** prefix-caching, hybrid-LLM, SSM, Mamba, FLOP-aware-eviction, radix-tree, KV-cache</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">Sparse / MoE Attention</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">CoServe: Efficient Collaboration-of-Experts (CoE) Model Inference with Limited Memory</div>
+      <div class="pc-sub">Sparse / MoE Attention</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Collaboration-of-Experts (CoE) inference on memory-constrained edge devices (e.g., RTX 3080Ti with 12 GB GPU memory) requires serving hundreds of expert models (e.g., 300+ ResNet101/YOLOv5 experts totaling 60 GB) that cannot fit in GPU memory, forcing expert swapping from CPU or SSD where switching latency accounts for over 90% of total inference latency.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">CoE systems achieve higher accuracy than single large models (99.9% vs. 92% for circuit board defect detection) and must run at the edge for privacy and latency reasons, but the memory-constrained expert-switching bottleneck makes existing MoE-style management strategies (LRU, FCFS) severely inefficient for CoE&#x27;s deterministic routing structure.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">CoServe exploits expert dependency, a key property of CoE inference where the routing module determines expert sequences offline (unlike MoE where routing is runtime-only). Three mechanisms are combined: (1) dependency-aware request scheduling that groups requests using the same expert together within a queue window and assigns requests to minimize total inference time across parallel CPU+GPU executors; (2) dependency-aware expert management with a two-stage eviction policy that first evicts dependency-orphaned subsequent experts (sorted by memory footprint) and then evicts by ascending usage probability (computed offline from routing rules); (3) an offline profiler using microbenchmarks to determine optimal memory allocation (via a CDF-based sliding decay window search over expert count) and executor configuration per device.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** 4.5x to 12x throughput over Samba-CoE on NUMA and UMA devices</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** expert switching reduced by up to 93.87% (1060 to 65 switches); expert switching latency is 90%+ of total inference latency in baseline</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Samba-CoE (LRU+FCFS); Samba-CoE FIFO; Samba-CoE Parallel</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** GPU; CPU · **Workloads:** vision; CNN</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Exploiting the deterministic routing structure of CoE (pre-assessable expert usage probabilities and dependency graphs) to enable dependency-aware request scheduling and expert eviction that is impossible in MoE systems where routing is only known at runtime.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Identification of expert dependency as the key overlooked property enabling efficient CoE serving, distinct from MoE.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Evaluation uses only circuit board inspection workloads with ResNet101/YOLOv5 experts</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• generalization to language-model CoE or highly dynamic routing distributions is not demonstrated.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** collaboration-of-experts, edge-inference, expert-switching, memory-management, request-scheduling, heterogeneous-cpu-gpu</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">System Scheduling</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">Coach: Exploiting Temporal Patterns for All-Resource Oversubscription in Cloud Platforms</div>
+      <div class="pc-sub">System Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Cloud platforms remain significantly underutilized across all resource types (CPU, memory, network, storage) because existing oversubscription approaches target only a single resource (typically CPU), causing the oversubscribed bottleneck to shift to other resources and leaving overall utilization low. Memory oversubscription is especially difficult because memory is non-fungible — physical pages cannot be quickly reassigned between VMs.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Characterization of over 1 million Azure VMs shows that VMs lasting more than one day consume 96% of resource-hours, many exhibit predictable complementary temporal utilization patterns (daily peaks and valleys), and holistic multi-resource oversubscription can enable ~26% more VMs per server.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Coach introduces CoachVM, a general-purpose VM type that partitions each resource into a guaranteed portion (always allocated, PA-backed for memory) and an oversubscribed portion (allocated on demand from a shared pool, VA-backed for memory using zNUMA to deprioritize cold pages via guest NUMA policy). A prediction model (random forest regressor) predicts per-VM resource utilization in time windows (e.g., 3x8-hour daily windows) using VM configuration, weekday, subscription history, and customer-specific features, computing per-resource oversubscription rates per time window. The cluster scheduler uses these per-time-window predictions to colocate VMs with complementary temporal patterns, maximizing multiplexing savings. A per-server oversubscription agent monitors resource utilization and applies reactive mitigations (local resource reassignment) or proactive mitigations (VM migration) to prevent SLO violations when contention occurs.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**speedup:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**energy or tops w:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**area:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**ppa:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**accuracy:** None</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**other:** ~26% more VMs hosted per server with minimal performance degradation; 4x6hr time windows save ~15% memory and ~20% CPU vs single-lifetime-max allocation</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** no oversubscription; CPU-only oversubscription; CPU+memory oversubscription (non-temporal); Harvest VMs</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** CPU · **Workloads:** database; HPC</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Holistic all-resource oversubscription of cloud VMs using temporal utilization pattern prediction to colocate complementary workloads, with a PA/VA memory partition (zNUMA) that enables transparent memory oversubscription for unmodified guest VMs.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Characterization of resource utilization patterns across 1M+ Azure VMs revealing complementary temporal patterns, stranding, and multi-resource bottleneck shifts from CPU-only oversubscription..</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Memory oversubscription effectiveness depends on the availability of complementary temporal patterns which may not exist for all workload mixes</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• the approach does not handle GPU or NVMe SSD without hardware ATS/PRI support.</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** cloud-resource-management, oversubscription, memory-oversubscription, temporal-patterns, vm-scheduling, azure</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+<div class="section-h">vCPU / System Scheduling</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS 2025</div>
+    <div>
+      <div class="pc-title">ProtoRAIL: A Risk-cognizant Imitation Agent for Adaptive vCPU Oversubscription In the Cloud</div>
+      <div class="pc-sub">vCPU / System Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Cloud vCPU oversubscription policies must jointly minimize overloading risk (hot nodes) and maximize utilization (stranded resource recovery), but demand patterns vary dynamically across VM types and time, making static heuristic policies either too conservative (waste capacity) or too aggressive (cause overload).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Online RL cannot safely train on live cloud infrastructure and struggles to converge with two competing objectives (COGS benefit vs overloading risk). Supervised learning is unaware of environment interactions. Imitation learning from offline telemetry is feasible, but noisy data leads to sub-optimal policies. Prototypical IL exploits approximate symmetries in usage patterns across VM/service types, and active feedback from domain experts can de-risk policies without requiring online interaction.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">ProtoRAIL has three components: (1) Prototypical Imitation Learning - a trajectory encoder (LSTM or Transformer) maps CPU usage trajectories to embeddings; K prototype embeddings represent equivalence classes of usage patterns; policy is a linear layer over similarities to prototypes. Loss has four terms: Lrep (representativeness: L2 distance to nearest prototype), Ldiv (diversity: repel close prototypes), Lint (interpretability: anchor each prototype to a real trajectory), and LIMloss (imitation learning via behavior cloning or adversarial IL). (2) Active Knowledge-in-the-Loop (KITL) - identifies uncertain prototypes (high cluster entropy) and risky predictions (predicted oversubscription rate below actual usage) via a query framework; solicits feedback from domain experts (or LLMs) as up/down votes on prototypes and actions, plus merge/split operations on prototype clusters; feedback is applied via advice potential gates (exponential scaling of loss components) to steer training without explicit prior design. (3) Query scheduling - minimizes feedback budget by only querying at uncertain or risky stages.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Experiment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**hot node rate:** 0% hot node rate (vs 0.89-1.47% for baselines including Coop-MARL, GAIL, BC, DDPG)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**remain core benefit:** 8161 remain cores vs 7938 for best baseline (Dagger with 20 human steps)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**deployment utilization:** 9.4% vCPU utilization improvement on Microsoft internal cloud</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**deployment hot nodes:** 0% hot node rate on 300 deployed clusters</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**kitl query budget:** &lt;=10 total feedback queries to reach stable performance</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">**benefit risk ratio:** BRR 31.34 vs 18.95 for heuristics and 7.79 for manual</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Compared against:** Grid-search heuristic; Moving average heuristic; Behavior Cloning (BC); GAIL; Dagger (20 steps); DDPG; LSTM (ScroogeVM); Cooperative Multi-Agent RL</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Hardware:** cloud-cpu; datacenter · **Workloads:** cloud-vms; cpu-oversubscription; resource-scheduling</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Prototypical imitation learning for sequential decision-making with explicit interpretable pattern classes; active knowledge-in-the-loop with prototype-level feedback (merge/split/vote) to de-risk policies with minimal expert queries.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper sits in the **attention efficiency** subtheme. The core constraint: generating one token requires reading all past key-value vectors from memory — O(n) bandwidth per step. This paper&#x27;s angle: Prototypical imitation learning framework for oversubscription ratio prediction using usage trajectory equivalence classes.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Prototype count K must be tuned; wrong K causes redundant or missing coverage of usage patterns</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Active KITL requires human experts with domain knowledge; LLMs are inferior (87% vs 98% clustering accuracy)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Bootstrap period needed before alpha tuning and KITL convergence</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">• Airline ticket overbooking shows performance degradation due to COVID-19 distribution shift</p>
+<p style="font-size:.84rem;color:var(--cyan)">**Tags:** cloud-oversubscription, vCPU, imitation-learning, prototypical, active-learning, KITL, resource-management</p></div>
+  <div class="pc-toggle">▼ read analysis</div>
+</div>
+
+  <footer>
+    AI Hardware 2025 · Attention &amp; Transformers deep reads · 15 papers · click any card to expand ·
+    <a href="../../../index.html">master narrative</a> · <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '▲ collapse' : '▼ read analysis';
+  });
+});
+</script>
+</body>
+</html>
