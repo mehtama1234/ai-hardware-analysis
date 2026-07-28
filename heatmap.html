@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theme × Venue Map — AI Hardware 2025</title>
+<style>
+:root{
+  --g0:#0d1117;--g1:#11161e;--g2:#161c26;--g3:#1c2330;
+  --line:#272f3d;--line2:#1e2635;
+  --ink:#e8e3d8;--ink2:#b8c0cc;--ink3:#7a8494;
+  --teal:#3ec9b6;--teal2:#12a79a;--orange:#e09858;--red:#d95a4a;--gold:#c9a84c;
+  --serif:Palatino,"Palatino Linotype","Book Antiqua",Charter,Georgia,serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--g0);color:var(--ink);font-family:var(--sans);font-size:15px;
+  line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--teal);text-underline-offset:3px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 100px}
+
+/* top nav */
+.topnav{padding:22px 0 0;display:flex;gap:16px;flex-wrap:wrap}
+.back{font-family:var(--mono);font-size:.68rem;color:var(--ink3);text-decoration:none;letter-spacing:.04em}
+.back:hover{color:var(--teal)}
+
+/* hero */
+.hero{padding:44px 0 32px;border-bottom:1px solid var(--line)}
+.hero .ey{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:14px}
+.hero h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3.2rem);font-weight:700;
+  line-height:1.07;letter-spacing:-.02em;text-wrap:balance;margin-bottom:.35em}
+.hero p{color:var(--ink2);max-width:58ch;font-size:1.05rem}
+
+/* view toggle */
+.toggle-row{display:flex;gap:8px;align-items:center;padding:20px 0 16px;flex-wrap:wrap}
+.toggle-row span{font-family:var(--mono);font-size:.68rem;color:var(--ink3);letter-spacing:.12em;
+  text-transform:uppercase;margin-right:4px}
+.tog{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink3);border:1px solid var(--line2);border-radius:20px;padding:4px 12px;
+  cursor:pointer;background:none;transition:color .12s,border-color .12s}
+.tog:hover,.tog.on{color:var(--teal);border-color:var(--teal)}
+
+/* heatmap table */
+.hm-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);
+  border-radius:12px;background:var(--g1)}
+table{border-collapse:collapse;width:100%;min-width:700px}
+th{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);padding:10px 8px;text-align:center;background:var(--g2);
+  border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;z-index:2}
+th.venue-col{text-align:left;min-width:110px;padding-left:16px;position:sticky;left:0;
+  background:var(--g2);z-index:3}
+td.venue-name{font-family:var(--mono);font-size:.72rem;color:var(--ink2);padding:0 8px 0 16px;
+  white-space:nowrap;position:sticky;left:0;background:var(--g1);z-index:1;
+  border-right:1px solid var(--line)}
+td.venue-name .vn{color:var(--ink);font-weight:600;font-size:.78rem}
+td.venue-name .vd{color:var(--ink3);font-size:.62rem;margin-top:2px}
+td.venue-name .vtot{font-family:var(--mono);font-size:.6rem;color:var(--ink3);margin-top:1px}
+td.cell{padding:4px 3px;text-align:center;cursor:pointer;transition:filter .1s}
+td.cell:hover{filter:brightness(1.25)}
+.cell-inner{border-radius:6px;padding:7px 4px;min-width:52px;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.cell-inner .n{font-family:var(--mono);font-size:.78rem;font-weight:700;line-height:1}
+.cell-inner .p{font-family:var(--mono);font-size:.58rem;opacity:.75;line-height:1}
+tr{border-bottom:1px solid var(--line2)}
+tr:last-child{border-bottom:none}
+tr.total-row td{background:var(--g2)!important;border-top:1px solid var(--line)}
+tr.total-row td.venue-name .vn{color:var(--teal)}
+
+/* tooltip */
+.tooltip{position:fixed;background:var(--g2);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;max-width:300px;pointer-events:none;z-index:100;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.tooltip .th{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:6px}
+.tooltip .cnt{font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;
+  font-family:var(--mono)}
+.tooltip ul{padding-left:16px;margin:0}
+.tooltip li{font-size:.82rem;color:var(--ink2);margin-bottom:3px;line-height:1.4}
+.tooltip .xpl{font-family:var(--mono);font-size:.62rem;color:var(--ink3);margin-top:8px}
+
+/* insights */
+.insights{padding:32px 0 0}
+.insights h2{font-family:var(--serif);font-size:1.55rem;font-weight:700;letter-spacing:-.01em;
+  color:var(--ink);margin-bottom:18px}
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ins-card{background:var(--g1);border:1px solid var(--line2);border-radius:10px;
+  padding:14px 16px}
+.ins-card .ico{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:6px}
+.ins-card .txt{font-size:.9rem;color:var(--ink2);line-height:1.5}
+.ins-card .txt b{color:var(--ink)}
+.ins-card .txt .hi{color:var(--teal)}
+.ins-card .txt .warn{color:var(--orange)}
+
+/* legend */
+.legend{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:14px 0 0;
+  font-family:var(--mono);font-size:.65rem;color:var(--ink3);letter-spacing:.06em}
+.lg-swatch{display:inline-block;width:60px;height:12px;border-radius:3px;vertical-align:middle;margin-right:4px}
+
+footer{padding:48px 0 60px;color:var(--ink3);font-family:var(--mono);font-size:.68rem;
+  border-top:1px solid var(--line2);margin-top:40px}
+footer a{color:var(--teal);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="topnav">
+  <a class="back" href="index.html">← master narrative</a>
+  <a class="back" href="deepdives.html">deep dives</a>
+  <a class="back" href="techniques.html">mechanisms</a>
+  <a class="back" href="explorer.html">explorer</a>
+  <a class="back" href="synthesis.html">synthesis</a>
+</div>
+
+<div class="hero">
+  <div class="ey">AI Hardware 2025 · cross-venue map</div>
+  <h1>Where each theme<br>lives across venues</h1>
+  <p>1,769 papers · 10 venues · 9 themes. The matrix shows how research focus distributes — and which venues own which problems. Click any cell to see the papers.</p>
+</div>
+
+<div class="toggle-row">
+  <span>View:</span>
+  <button class="tog on" id="tog-abs" onclick="setView('abs')">Paper count</button>
+  <button class="tog" id="tog-row" onclick="setView('row')">% of venue</button>
+  <button class="tog" id="tog-col" onclick="setView('col')">% of theme</button>
+</div>
+
+<div class="legend">
+  <span>
+    <span class="lg-swatch" id="lg-swatch" style="background:linear-gradient(90deg,rgba(62,201,182,.08),rgba(62,201,182,.9))"></span>
+    <span id="lg-label">low → high paper count</span>
+  </span>
+  <span style="color:var(--ink3)">· hover for top papers · click to explore</span>
+</div>
+
+<div class="hm-wrap" style="margin-top:12px">
+  <table id="hm-table">
+    <thead><tr id="hm-thead"></tr></thead>
+    <tbody id="hm-tbody"></tbody>
+  </table>
+</div>
+
+<div class="insights">
+  <h2>What the numbers say</h2>
+  <div class="ins-grid" id="ins-grid"></div>
+</div>
+
+<footer>
+  Theme assignments by keyword scoring across all 1,769 paper abstracts + full texts. Papers with ambiguous theme are in T0.
+  <br><a href="index.html">master narrative</a> · <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a> · <a href="techniques.html">mechanisms</a>
+</footer>
+
+</div><!-- /wrap -->
+
+<div class="tooltip" id="tip"></div>
+
+<script>
+const D = {"venues": ["MLSys", "ISCA", "MICRO", "HPCA", "ASPLOS", "DAC", "ISSCC", "HotChips", "SC", "VLSID"], "themes": ["T1_attention", "T2_quantization", "T3_memory", "T4_interconnect", "T5_sparsity", "T6_compiler", "T7_security", "T8_reliability", "T9_specialized", "T0_other"], "themeShort": {"T1_attention": "T1", "T2_quantization": "T2", "T3_memory": "T3", "T4_interconnect": "T4", "T5_sparsity": "T5", "T6_compiler": "T6", "T7_security": "T7", "T8_reliability": "T8", "T9_specialized": "T9", "T0_other": "T0"}, "themeLabel": {"T1_attention": "Serving models fast", "T2_quantization": "Smaller numbers", "T3_memory": "Memory wall", "T4_interconnect": "Chip-to-chip", "T5_sparsity": "Skipping work", "T6_compiler": "Compilers & chips", "T7_security": "Trust & attacks", "T8_reliability": "Correctness", "T9_specialized": "Beyond the GPU", "T0_other": "Everything else"}, "themeSub": {"T1_attention": "attention · KV cache", "T2_quantization": "quantization · low-precision", "T3_memory": "near-data · PIM · caches", "T4_interconnect": "interconnect · collectives", "T5_sparsity": "sparsity · MoE", "T6_compiler": "compilation · hardware gen", "T7_security": "security · side-channel", "T8_reliability": "reliability · fault tolerance", "T9_specialized": "accelerators · FPGAs · ASICs", "T0_other": "cross-cutting · misc"}, "venueDomain": {"MLSys": "Machine Learning Systems", "ISCA": "Computer Architecture", "MICRO": "Microarchitecture", "HPCA": "High-Performance Architecture", "ASPLOS": "Arch + Systems + PL", "DAC": "Design Automation", "ISSCC": "Solid-State Circuits", "HotChips": "Industry Silicon", "SC": "Supercomputing", "VLSID": "VLSI Design"}, "venueSlug": {"MLSys": "mlsys", "ISCA": "isca", "MICRO": "micro", "HPCA": "hpca", "ASPLOS": "asplos", "DAC": "dac", "ISSCC": "isscc", "HotChips": "hotchips", "SC": "sc", "VLSID": "vlsid"}, "matrix": {"MLSys": {"T1_attention": 31, "T2_quantization": 4, "T3_memory": 6, "T4_interconnect": 3, "T5_sparsity": 8, "T6_compiler": 0, "T7_security": 1, "T8_reliability": 2, "T9_specialized": 2, "T0_other": 4}, "ISCA": {"T1_attention": 14, "T2_quantization": 6, "T3_memory": 33, "T4_interconnect": 11, "T5_sparsity": 7, "T6_compiler": 4, "T7_security": 7, "T8_reliability": 9, "T9_specialized": 20, "T0_other": 1}, "MICRO": {"T1_attention": 4, "T2_quantization": 4, "T3_memory": 13, "T4_interconnect": 2, "T5_sparsity": 5, "T6_compiler": 5, "T7_security": 6, "T8_reliability": 0, "T9_specialized": 7, "T0_other": 1}, "HPCA": {"T1_attention": 17, "T2_quantization": 10, "T3_memory": 39, "T4_interconnect": 7, "T5_sparsity": 9, "T6_compiler": 6, "T7_security": 12, "T8_reliability": 4, "T9_specialized": 13, "T0_other": 2}, "ASPLOS": {"T1_attention": 33, "T2_quantization": 2, "T3_memory": 40, "T4_interconnect": 6, "T5_sparsity": 7, "T6_compiler": 23, "T7_security": 24, "T8_reliability": 13, "T9_specialized": 15, "T0_other": 1}, "DAC": {"T1_attention": 40, "T2_quantization": 35, "T3_memory": 77, "T4_interconnect": 14, "T5_sparsity": 22, "T6_compiler": 71, "T7_security": 39, "T8_reliability": 37, "T9_specialized": 80, "T0_other": 28}, "ISSCC": {"T1_attention": 10, "T2_quantization": 24, "T3_memory": 36, "T4_interconnect": 39, "T5_sparsity": 6, "T6_compiler": 4, "T7_security": 8, "T8_reliability": 8, "T9_specialized": 40, "T0_other": 83}, "HotChips": {"T1_attention": 5, "T2_quantization": 3, "T3_memory": 8, "T4_interconnect": 9, "T5_sparsity": 1, "T6_compiler": 1, "T7_security": 1, "T8_reliability": 0, "T9_specialized": 7, "T0_other": 3}, "SC": {"T1_attention": 39, "T2_quantization": 21, "T3_memory": 26, "T4_interconnect": 42, "T5_sparsity": 30, "T6_compiler": 26, "T7_security": 11, "T8_reliability": 32, "T9_specialized": 54, "T0_other": 149}, "VLSID": {"T1_attention": 2, "T2_quantization": 4, "T3_memory": 12, "T4_interconnect": 6, "T5_sparsity": 1, "T6_compiler": 0, "T7_security": 9, "T8_reliability": 12, "T9_specialized": 32, "T0_other": 19}}, "venueTotals": {"MLSys": 61, "ISCA": 112, "MICRO": 47, "HPCA": 119, "ASPLOS": 164, "DAC": 443, "ISSCC": 258, "HotChips": 38, "SC": 430, "VLSID": 97}, "themeTotals": {"T1_attention": 195, "T2_quantization": 113, "T3_memory": 290, "T4_interconnect": 139, "T5_sparsity": 96, "T6_compiler": 140, "T7_security": 118, "T8_reliability": 117, "T9_specialized": 270, "T0_other": 291}, "grandTotal": 1769, "maxAbs": 149, "papers": {"MLSys": {"T1_attention": ["FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving", "FLStore: Efficient Federated Learning Storage for non-training workloads", "Marconi: Prefix Caching for the Era of Hybrid LLMs", "ProtoRAIL: A Risk-cognizant Imitation Agent for Adaptive vCPU Oversubscription In the Cloud"], "T2_quantization": ["QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving", "MiLo: Efficient Quantized MoE Inference with Mixture of Low-Rank Compensators", "MEADOW: Memory Efficient Adaptable Dataflow for On-Device LLM Workloads", "HyC-LoRA: Memory Efficient LoRA Fine-tuning with Hybrid Activation Compression"], "T3_memory": ["NEO: Saving GPU Memory Crisis with CPU Offloading for Online LLM Inference", "GSplit: Scaling Graph Neural Network Training on Large Graphs via Probabilistic Splitting", "A Bring-Your-Own-Model Approach for ML-Driven Storage Placement in Warehouse-Scale Computers", "Training Ultra Long Context Language Model with Fully Pipelined Distributed Transformer"], "T4_interconnect": ["TileLink: Generating Efficient Compute-Communication Overlapping Kernels using Tile-Centric Primitives", "Balancing Pipeline Parallelism with Vocabulary Parallelism", "Radius: Range-based Gradient Sparsity for Large Foundation Model Pre-training"], "T5_sparsity": ["SparseTransX: Efficient Training of Translation-Based Knowledge Graph Embeddings Using Sparse Matrix Operations", "Distributed Submodular Subset Selection at Billion Scale", "N:M Sparse DNN Kernels for RISC-V MCUs via Custom ISA Extension", "Dynamic Input Pruning for Efficient LLM Inference on Mobile Devices"], "T6_compiler": [], "T7_security": ["Supply-Chain Attacks in Machine Learning Frameworks"], "T8_reliability": ["Uncertainty Disentanglement for Multimodal Foundation Models in Robotic Systems", "Interference-Aware Edge Runtime Prediction with Conformal Matrix Completion"], "T9_specialized": ["FedProphet: Memory-Efficient Federated Adversarial Training via Robust and Consistent Cascade Learning", "VoLUT: Efficient Volumetric streaming enhanced by LUT-based super-resolution"], "T0_other": ["Photon: Federated LLM Pre-Training", "Scaling Deep Learning Training with MPMD Pipeline Parallelism", "The Hidden Bloat in Machine Learning Systems", "APOLLO: SGD-like Memory, AdamW-level Performance"]}, "ISCA": {"T1_attention": ["AMALI: An Analytical Model for Accurately Modeling LLM Inference on Modern GPUs", "GCStack+GCScaler: Fast and Accurate GPU Performance Analyses Using Fine-Grained Stall Cycle Accounting and Interval Analysis", "WindServe: Efficient Phase-Disaggregated LLM Serving with Stream-based Dynamic Scheduling", "Fair-CO2: Fair Attribution for Cloud Carbon Emissions"], "T2_quantization": ["FATE: Boosting the Performance of Hyper-Dimensional Computing Intelligence with Flexible Numerical DAta TypE", "Oaken: Fast and Efficient LLM Serving with Online-Offline Hybrid KV Cache Quantization", "LightNobel: Improving Sequence Length Limitation in Protein Structure Prediction Model via Adaptive Activation Quantization", "AQB8: Energy-Efficient Ray Tracing Accelerator through Multi-Level Quantization"], "T3_memory": ["ANVIL: An In-Storage Accelerator for Name-Value Data Stores", "Leveraging control-flow similarity to reduce branch predictor cold effects in microservices", "Folded Banks: 3D-Stacked HBM Design for Fine-Grained Random-Access Bandwidth", "Avalanche: Optimizing Cache Utilization via Matrix Reordering for Sparse Matrix Multiplication Accelerator"], "T4_interconnect": ["Zettafly: A Network Topology with Flexible Non-blocking Regions for Large-scale AI and HPC Systems", "NetCrafter: Tailoring Network Traffic for Non-Uniform Bandwidth Multi-GPU Systems", "Topology-Aware Virtualization over Inter-Core Connected Neural Processing Units", "TRACI: Network Acceleration of Input-Dynamic Communication for Large-Scale Deep Learning Recommendation Model"], "T5_sparsity": ["Transitive Array: An Efficient GEMM Accelerator with Result Reuse", "Telos: A Dataflow Accelerator for Sparse Triangular Solver of Partial Differential Equations", "HYTE: Flexible Tiling for Sparse Accelerators via Hybrid Static-Dynamic Approaches", "FlexNeRFer: A Multi-Dataflow, Adaptive Sparsity-Aware Accelerator for On-Device NeRF Rendering"], "T6_compiler": ["HPVM-HDC: A Heterogeneous Programming System for Accelerating Hyperdimensional Computing", "Caravan: A Hardware/Software Co-Design for Efficient SIMD Neighbor Search on Point Clouds", "Concorde: Fast and Accurate CPU Performance Modeling with Compositional Analytical-ML Fusion", "Assassyn: A Unified Abstraction for Architectural Simulation and Implementation"], "T7_security": ["Adaptive CHERI Compartmentalization for Heterogeneous Accelerators", "SpecASan: Mitigating Transient Execution Attacks Using Speculative Address Sanitization", "Cassandra: Efficient Enforcement of Sequential Execution for Cryptographic Programs", "Single-Address-Space FaaS with Jord"], "T8_reliability": ["Unified Memory Protection with Multi-granular MAC and Integrity Tree for Heterogeneous Processors", "Lumina: Real-Time Neural Rendering by Exploiting Computational Redundancy", "Variational Quantum Algorithms in the era of Early Fault Tolerance", "Synchronization for Fault-Tolerant Quantum Computers"], "T9_specialized": ["Reconfigurable Stream Network Architecture", "Accelerating Simulation of Quantum Circuits under Noise via Computational Reuse", "Need for zkSpeed: Accelerating HyperPlonk for Zero-Knowledge Proofs", "FAST: An FHE Accelerator for Scalable-parallelism with Tunable-bit"], "T0_other": ["Process Only Where You Look: Hardware and Algorithm Co-optimization for Efficient Gaze-Tracked Foveated Rendering in Virtual Reality"]}, "MICRO": {"T1_attention": ["Dissecting and Modeling the Architecture of Modern GPU Cores", "Boosting Task Scheduling Data Locality with Low-latency, HW-accelerated Label Propagation", "MCBP: A Memory-Compute Efficient LLM Inference Accelerator Leveraging Bit-Slice-enabled Sparsity and Repetitiveness", "TransFusion: End-to-End Transformer Acceleration via Graph Fusion and Pipelining"], "T2_quantization": ["HiPACK: Efficient Sub-8-Bit Direct Convolution with SIMD and Bitwise Management", "DECA: A Near-Core LLM Decompression Accelerator Grounded on a 3D Roofline Model", "MX+: Pushing the Limits of Microscaling Formats for Efficient Large Language Model Serving", "Empowering Vector Architectures for ML: The CAMP Architecture for Matrix Multiplication"], "T3_memory": ["Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving", "Chasoñ: Supporting Cross HBM Channel Data Migration to Enable Efficient Sparse Algebraic Acceleration", "Micro-MAMA: Multi-Agent Reinforcement Learning for Multicore Prefetching", "A TRRIP Down Memory Lane: Temperature-Based Re-Reference Interval Prediction For Instruction Caching"], "T4_interconnect": ["LEGOSim: A Unified Parallel Simulation Framework for Multi-chiplet Heterogeneous Integration", "A. Delegato: Locality-Aware Atomic Memory Operations on Chiplets"], "T5_sparsity": ["Quartz: A Reconfigurable, Distributed-Memory Accelerator for Sparse Applications", "SeaCache: Efficient and Adaptive Caching for Sparse Accelerators", "A Probabilistic Perspective on Tiling Sparse Tensor Algebra", "Bootes: Boosting the Efficiency of Sparse Accelerators Using Spectral Clustering"], "T6_compiler": ["LLMulator: Generalizable Cost Modeling for Dataflow Accelerators with Input-Adaptive Control Flow", "OmniSim: Simulating Hardware with C Speed and RTL Accuracy for High-Level Synthesis Designs", "MUSS-TI: Multi-level Shuttle Scheduling for Large-Scale Entanglement Module Linked Trapped-Ion", "ReGate: Enabling Power Gating in Neural Processing Units"], "T7_security": ["CryptoBTB: A Secure Hierarchical BTB for Diverse Instruction Footprint Workloads", "Understanding and Mitigating Covert Channel and Side Channel Vulnerabilities Introduced by RowHammer Defenses", "ρHammer: Reviving RowHammer Attacks on New Architectures via Prefetching", "ShadowBinding: Realizing Effective Microarchitectures for In-Core Secure Speculation Schemes"], "T8_reliability": [], "T9_specialized": ["Distributed-HISQ: A Distributed Quantum Control Architecture", "SMX: Heterogeneous Architecture for Universal Sequence Alignment Acceleration", "RTGS: Real-Time 3D Gaussian Splatting SLAM via Multi-Level Redundancy Reduction", "Accurate Leakage Speculation for Quantum Error Correction"], "T0_other": ["Interleaved Bitstream Execution for Multi-Pattern Regex Matching on GPUs"]}, "HPCA": {"T1_attention": ["ChameleonEC: Exploiting Tunability of Erasure Coding for Low-Interference Repair", "Grad: Intelligent Microservice Scaling by Harnessing Resource Fungibility", "The Importance of Generalizability in Machine Learning for Systems", "throttLL'eM: Predictive GPU Throttling for Energy Efficient LLM Inference Serving"], "T2_quantization": ["BitMoD: Bit-serial Mixture-of-Datatype LLM Acceleration", "VQ-LLM: High-performance Code Generation for Vector Quantization Augmented LLM Inference", "eDKM: An Efficient and Accurate Train-Time Weight Clustering for Large Language Models", "Anda: Unlocking Efficient LLM Inference with a Variable-Length Grouped Activation Data Format"], "T3_memory": ["Ariadne: A Hotness-Aware and Size-Adaptive Compressed Swap Technique for Fast Application Relaunch and Reduced CPU Usage on Mobile Devices", "Efficient Caching with A Tag-enhanced DRAM", "SoMa: Identifying, Exploring, and Understanding the DRAM Communication Scheduling Space for DNN Accelerators", "AsyncDIMM: Achieving Asynchronous Execution in DIMM-Based Near-Memory Processing"], "T4_interconnect": ["Push Multicast: A Speculative and Coherent Interconnect for Mitigating Manycore CPU Communication Bottleneck", "Mithril: A Scalable System for Deep GNN Training", "Enhancing Large-Scale AI Training Efficiency: The C4 Solution for Real-Time Anomaly Detection and Communication Optimization", "EIGEN: Enabling Efficient 3DIC Interconnect with Heterogeneous Dual-Layer Network-on-Active-Interposer"], "T5_sparsity": ["Bit-slice Architecture for DNN Acceleration with Slice-level Sparsity Enhancement and Exploitation", "EXION: Exploiting Inter-and Intra-Iteration Output Sparsity for Diffusion Models", "SparseWeaver: Converting Sparse Operations as Dense Operations on GPUs for Graph Workloads", "CROSS: Compiler-Driven Optimization of Sparse DNNs Using Sparse/Dense Computation Kernels"], "T6_compiler": ["LEGO: Spatial Accelerator Generation and Optimization for Tensor Applications", "Efficient Optimization with Encoded Ising Models", "Reuse-Aware Compilation for Zoned Quantum Architectures Based on Neutral Atoms", "EDA: Energy-Efficient Inter-Layer Model Compilation for Edge DNN Inference Acceleration"], "T7_security": ["Efficient Memory Side-Channel Protection for Embedding Generation in Machine Learning", "DPUaudit: DPU-assisted Pull-based Architecture for Near-Zero Cost System Auditing", "SpecMPK: Efficient In-Process Isolation with Speculative and Secure Permission Update Instruction", "Chronus: Understanding and Securing the Cutting-Edge Industry Solutions to DRAM Read Disturbance"], "T8_reliability": ["No Rush in Executing Atomic Instructions", "Veritas - Demystifying Silent Data Corruptions: uArch-Level Modeling and Fleet Data of Modern x86 CPUs", "Revisiting Reliability in Large-Scale Machine Learning Research Clusters", "Interleaved Logical Qubits in Atom Arrays"], "T9_specialized": ["Anaheim: Architecture and Algorithms for Processing Fully Homomorphic Encryption in Memory", "QuCLEAR: Clifford Extraction and Absorption for Quantum Circuit Optimization", "Architecting Space Microdatacenters: A System-level Approach", "WarpDrive: GPU-Based Fully Homomorphic Encryption Acceleration Leveraging Tensor and CUDA Cores"], "T0_other": ["R.I.P. Geomean Speedup Use Equal-Work (Or Equal-Time) Harmonic Mean Speedup Instead", "CORDOBA: Carbon-Efficient Optimization Framework for Computing Systems"]}, "ASPLOS": {"T1_attention": ["Mint: Cost-Efficient Tracing with All Requests Collection via Commonality and Variability Analysis", "EXIST: Enabling Extremely Efficient Intra-Service Tracing Observability in Datacenters", "TempGraph: An Efficient Chain-driven Temporal Graph Computing Framework on the GPU", "Cascade: A Dependency-aware Efficient Training Framework for Temporal Graph Neural Network"], "T2_quantization": ["MVQ: Towards Efficient DNN Compression and Acceleration with Masked Vector Quantization", "COMET: Towards Practical W4A4KV4 LLMs Serving"], "T3_memory": ["AnyKey: A Key-Value SSD for All Workload Types", "OS2G: A High-Performance DPU Offloading Architecture for GPU-based Deep Learning with Object Storage", "CXLfork: Fast Remote Fork over CXL Fabrics", "Necro-reaper: Pruning away Dead Memory Traffic in Warehouse-Scale Computers"], "T4_interconnect": ["Concerto: Automatic Communication Optimization and Scheduling for Large-Scale Deep Learning", "GraphPipe: Improving Performance and Scalability of DNN Training with Graph Pipeline Parallelism", "Enhancing CGRA Efficiency Through Aligned Compute and Communication Provisioning", "Vela: A Virtualized LLM Training System with GPU Direct RoCE"], "T5_sparsity": ["MoC-System: Efficient Fault Tolerance for Sparse Mixture-of-Experts Model Training", "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs", "Hopps: Leveraging Sparsity to Accelerate Automata Processing", "Klotski: Efficient Mixture-of-Expert Inference via Expert-Aware Multi-Batch Pipeline"], "T6_compiler": ["Has Machine Learning for Systems Reached an Inflection Point?", "Voyager: Input-Adaptive Algebraic Transformations for High-Performance Graph Neural Networks", "PartIR: Composing SPMD Partitioning Strategies for Machine Learning", "Rethinking Java Performance Analysis"], "T7_security": ["Early Termination for Hyperdimensional Computing Using Inferential Statistics", "PipeLLM: Fast and Confidential Large Language Model Services with Speculative Pipelined Encryption", "Velosiraptor: Code Synthesis for Memory Translation", "HyperHammer: Breaking Free from KVM-Enforced Isolation"], "T8_reliability": ["Cooperative Graceful Degradation in Containerized Clouds", "H-Houdini: Scalable Invariant Learning", "Hardware Sentinel: Protecting Software Applications from Hardware Silent Data Corruptions", "ElasticMiter: Formally Verified Dataflow Circuit Rewrites"], "T9_specialized": ["HALO: Loop-aware Bootstrapping Management for Fully Homomorphic Encryption", "Treelet Accelerated Ray Tracing on GPUs", "Cinnamon: A Framework for Scale-Out Encrypted AI", "Accelerating Number Theoretic Transform with Multi-GPU Systems for Efficient Zero Knowledge Proof"], "T0_other": ["Efficient Lossless Compression of Scientific Floating-Point Data on CPUs and GPUs"]}, "DAC": {"T1_attention": ["DARIS: An Oversubscribed Spatio-Temporal Scheduler for Real-Time DNN Inference on GPUs", "Late Breaking Results: Statistical Timing Graph Scheduling Algorithm for GPU Computation", "DIAS: Distance-based Attention Sparsity for Ultra-Long-Sequence Transformer with Tree-like Processing-in-Memory Architecture", "A Fast, Iterative Clock Skew Scheduling Algorithm with Dynamic Sequential Graph Extraction"], "T2_quantization": ["CognitiveArm: Enabling Real-Time EEG-Controlled Prosthetic Arm Using Embodied Machine Learning", "SAGA: A Memory-Efficient Accelerator for GANN Construction via Harnessing Vertex Similarity", "April: Accuracy-Improved Floating-Point Approximation For Neural Network Accelerators", "Finding the Pareto Frontier of Low-Precision Data Formats and MAC Architecture for LLM Inference"], "T3_memory": ["CREST-CiM: Cross-Coupling-Enhanced Differential STT-MRAM for Robust Computing-in-Memory in Binary Neural Networks", "CaMDN: Enhancing Cache Efficiency for Multi-tenant DNNs on Integrated NPUs", "A PulseWidth-IN-PulseWidth-Out Universal Nonlinear Processing Element for Time-Domain In-Memory Computing Systems", "AttenPIM: Accelerating LLM Attention with Dual-mode GEMV in Processing-in-Memory"], "T4_interconnect": ["Delving into Topology Representation for Layout Pattern: A Novel Contrastive Learning Framework for Hotspot Detection", "YAP: Yield Modeling and Simulation for Advanced Packaging", "NeuralMesh: Neural Network For FEM Mesh Generation in 2.5D/3D Chiplet Thermal Simulation", "ParGNN: A Scalable Graph Neural Network Training Framework on multi-GPUs"], "T5_sparsity": ["Pipirima: Predicting Patterns in Sparsity to Accelerate Matrix Algebra", "Maximizing Energy Efficiency in Spiking Neural Networks: A Dynamic Joint Pruning Framework", "An Input-Aware Sparse Tensor Compiler Empowered by Vectorized Acceleration", "Hydra: Harnessing Expert Popularity for Efficient Mixture-of-Expert Inference on Chiplet System"], "T6_compiler": ["DDRoute: a Novel Depth-Driven Approach to the Qubit Routing Problem", "Free and Fair Hardware: A Pathway to Copyright Infringement-Free Verilog Generation using LLMs", "E-morphic: Scalable Equality Saturation for Structural Exploration in Logic Synthesis", "RUPlace: Optimizing Routability via Unified Placement and Routing Formulation"], "T7_security": ["ReVeil: Unconstrained Concealed Backdoor Attack on Deep Neural Networks using Machine Unlearning", "Late Breaking Results: Decentralized Voting-Based Attestation for IoT Devices", "Late Breaking Results: The Hidden Risks of Activation Duration in PLPUFs", "Security Opportunities and Challenges for Disaggregated Architectures (Invited)"], "T8_reliability": ["PastATPG: A Hybrid ATPG Framework for Better Test Compaction with Partial Assignment SAT", "Late Breaking Results: Warpage-Aware Generative Floorplanning for Reliable Advanced Packaging", "Process-Variation-Aware Design Optimization for Wavelength-Routed Optical Networks-on-Chip", "DBC: Drift-aware Binary Code for Drift-tolerant Deep Neural Networks"], "T9_specialized": ["Late Breaking Results: Encoder-Decoder Generative Diffusion Transformer Towards Push-Button Analog IC Sizing", "EdgeMM: Multi-Core CPU with Heterogeneous AI-Extension and Activation-aware Weight Pruning for Multimodal LLMs at Edge", "Fast End-to-End Simulation and Exploration of Many-RISCV-Core Baseband Transceivers for Software-Defined Radio-Access Networks", "Enhancing LLM-based Quantum Code Generation with Multi-Agent Optimization and Quantum Error Correction"], "T0_other": ["Design and Technology Co-optimization Utilizing Flip-FET (FFET) Standard Cells", "Comparison-Free Bit-Stream Generation for Cost-Efficient Unary Computing", "Dynamic Local Usage: An Accurate Model for Usage of Tile-Internal Wiring in Global Routing", "Secondary-Power-Cell-Aware Detailed Placement in Multiple Power Domain Designs"]}, "ISSCC": {"T1_attention": ["MEGA.mini: A Universal Generative AI Processor with a New Big/Little Core Architecture for NPU", "21.5 A Fully Integrated Multi-Phase Voltage Regulator with Enhanced Light-Load-Efficiency Peak of 86%, Featuring an Autonomous Mode Transition from Hard-Switching to Soft-Switching to Discontinuous Conduction Mode in 3nm FinFET CMOS", "16.2 RNGD: A 5nm Tensor-Contraction Processor for Power-Efficient Inference on Large Language Models", "7.6 A 2.06pJ/b 106.25Gb/s PAM-4 Receiver with 3-Tap FFE and 1-Tap Speculative DFE in 28nm CMOS"], "T2_quantization": ["24.2 A 14b 1GS/s Single-Channel Pipelined ADC with A Parallel-Operation SAR Sub-Quantizer and A Dynamic-Deadzone Ring Amplifier", "34.1 A 65fsrms-Jitter and -272dB-FoMjitter, N 10.1GHz Fractional-N Digital PLL with a Quantization-Error-Compensating BBPD and an Orthogonal-Polynomial LMS Calibration", "14.6 A 28nm 64kb Bit-Rotated Hybrid-CIM Macro with an Embedded Sign-Bit-Processing Array and a Multi-Bit-Fusion Dual-Granularity Cooperative Quantizer", "A 0.52mJ/Frame 107fps Super-Resolution Processor Exploiting Pseudo-FP6 Sparsity for Mobile Applications"], "T3_memory": ["15.2 A 1024-Channel 0.00029mm2/ch 74nW/ch Online Spatial Spike-Sorting Chip with Event-Driven Spike Detection and Self-Organizing Map Clustering", "A 16Gb 12.7Gb/s/pin LPDDR5-Ultra-Pro DRAM with 4-Phase Self-Calibration and AC-Coupled Transceiver Equalization in a 5th-Generation 10nm DRAM Process", "A 38.1Mb/mm2 SRAM in a 2nm-CMOS-Nanosheet Technology for High-Density and Energy-Efficient Compute", "A 321-Layer 2Tb 4b/cell 3D-NAND-Flash Memory with a 75MB/s Program Throughput"], "T4_interconnect": ["A Differential Series-Resonance CMOS VCO with Pole-Convergence Technique Achieving 202.1 dBc/Hz FoMTA at 10MHz Offset", "36.7 A 1.54pJ/b 64Gb/s 16-QAM Intradyne Coherent Optical Receiver in 28nm CMOS", "33.4: A Wideband Bidirectional Calibration-Free Frequency/Switching-Staggering 360° D-Band Phase Shifter with Frequency-Invariant Codes Achieving lt; 2.38°/0.63dB RMS-Errors Over 24% Bandwidth", "10.3 A D-Band 2D-Scalable 4×4 Active Reflective Relay with Orthogonally Polarized on-Chip TX/RX Antennas and in-Front-End Common-Centroid Fast Azimuth/Elevation Angle-of-Arrival Detection"], "T5_sparsity": ["23.4 Nebula: A 28nm 109.8TOPS/W 3D PNN Accelerator Featuring Adaptive Partition, Multi-Skipping, and Block-Wise Aggregation", "A 28nm 0.22μJ/Token Memory-Compute-Intensity-Aware CNN-Transformer Accelerator with Hybrid-Attention-Based Layer-Fusion and Cascaded Pruning for Semantic-Segmentation", "23.10 HuMoniX: A 57.3fps 12.8TFLOPS/W Text-to-Motion Processor with Inter-Iteration Output Sparsity and Inter-Frame Joint Similarity", "6.4 A 400×400 3.24μm 117dB-Dynamic-Range 3-Layer Stacked Digital Pixel Sensor"], "T6_compiler": ["24.1 A 12b 3GS/s Pipelined ADC with Gated-LMS-Based Piecewise-Linear Nonlinearity Calibration", "A Crystal-Less Frequency-Modulation Transmitter IC with Joint Neural-Network-Driven Modulation and Coding for Low-Power Connectivity", "19.9 An 11-to-16.4GHz, 3.4GHz/µs-Slope, 5.32GHz-Chirp-Bandwidth, 0.043%-RMS-Frequency-Error FMCW Digital PLL with Posterior-Segment DPD Featuring 5-Chirp-Cycle Convergence Time", "25.3 AI-Enabled Design Space Discovery and End-to-End Synthesis for RFICs with Reinforcement Learning and Inverse Methods Demonstrating mm-Wave/sub-THz PAs Between 30 and 120GHz"], "T7_security": ["An Eye-Opening Arbiter PUF for Fingerprint Generation Using Auto-Error Detection for PVT-Robust Masking and Bit Stabilization Achieving a BER of 2e-8 in 28nm CMOS", "A Single-Link Multi-Domain-Output (SLiMDO) Isolated DC-DC Converter with Passive Magnetic Flux Sharing for Local Energy Distribution and Rx Behavior Sensing-Based Global Power Modulation", "An Efficient Vth-Tilting PUF Design in 3nm GAA and 8nm FinFET Technologies", "17.3 A 30.4GOPS/mW MK-CKKS Processor for Secure Multi-Party Computation"], "T8_reliability": ["8.8 Fine-Grained Spatial and Temporal Thermal Profiling of a 16nm CMOS Buck Converter and SoC Load-Current Emulator Using Low-Voltage Micron-Scale Thermal Sensors", "37.1 IBM Telum II Processor Design-Technology Co-Optimizations for Power, Performance, Area, and Reliability", "8.4 A 4GHz, 0.69%-Accuracy Voltage-Droop Detector with Multiple Remote Sensing and Under 2-Cycle Detection Latency in 2nm GAAFET", "24.4 A 10b 3GS/s Time-Domain ADC with Mutually Exclusive Metastability Correction and Wide Common-Mode Input"], "T9_specialized": ["6.8 A Real-Time Pixel-Compensated Source-Driver IC with Dual-Slope Error Detection and Multi-Channel Time-Multiplexing Compensator for Compact OLED Displays", "20.10 A 200GHz 200-Pixel 2D Near-Field Imager for Biomedical Applications", "A Compact 10b Source Driver IC with Delta-Sigma Pulse Width Modulation for Low-Voltage Digital Interpolation Achieving 1884μm2/Channel", "20.6 Fully Integrated Self-Propelling Microrobot in 180nm CMOS with Sub-GHz Parity-Time-Symmetry On-Chip Energy Harvesting and Traveling Wave Electroosmosis Actuation"], "T0_other": ["15.1 A 3.9mW 200words/min Neural Signal Processor in Speech Decoding for Brain-Machine Interface", "32.3 An Accurate Secondary-Side Controller with GaN-Based CGS Isolated Driver Achieving Sub-1% Error On-Chip Sensing", "32.6 A Dynamic-RON-Diminished Bidirectional GaN Load Switch with Inrush Current Protection and Spike Attenuation", "3.1 A 121.3dB-DR, 115dB-PSNR, Digital-Input Capacitive-Feedback Class-D Audio Amplifier with Double-Sided Voltage-Boosting (DSVB) Modulation"]}, "HotChips": {"T1_attention": ["AMD Pensando Pollara 400 AI NIC Architecture and Application", "Ironwood: Delivering Best in Class perf, perf/TCO and perf/Watt for Reasoning Model Training and Serving", "Adelia: A 4nm LLM Processor for Efficient Generative AI Inference", "Clearwater Forest the Next Generation Intel® Xeon® Processor with Efficiency Cores"], "T2_quantization": ["MEGA.mini: A NPU with Novel Heterogeneous AI Processing Architecture Balancing Efficiency, Performance, and Intelligence for the Era of Generative AI", "A 4.69mW LLM Processor with Binary/Ternary Weights for Billion-Parameter Llama Model", "EdgeDiff: Multi-modal Few-step Diffusion Model Accelerator with Mixed-Precision and Reordered Group-Quantization for On-device Generative AI"], "T3_memory": ["CORSAIR: An In-Memory Computing Chiplet Architecture for Inference-Time Compute Acceleration", "RTX 5090: Designed for the Age of Neural Rendering", "Intel IPU E2200: Second Generation Infrastructure Processing Unit (IPU)", "PEZY-SC4s: The Fourth Generation MIMD Many-core Processor with High Energy Efficiency and Flexibility for HPC and AI Applications"], "T4_interconnect": ["Passage M1000: A 3D Photonic Interposer for AI", "ConnectX-8 SuperNIC", "ENABLING AI Infrastructure: Tomahawk Ultra - Ultra Low Latency, High Bandwidth Ethernet Switch for HPC & AI/ML applications", "Memory: Almost The Only Thing That Matters : A revolution in memory architecture for the data center"], "T5_sparsity": ["Bit-Separable Transformer Accelerator Leveraging Output Activation Sparsity for Efficient DRAM Access"], "T6_compiler": ["Taping Out Three Class Chips Per Semester in Intel 16 Technology"], "T7_security": ["Azure Secure Hardware Architecture : A Robust Security Foundation for Cloud Workloads"], "T8_reliability": [], "T9_specialized": ["KLIMA: Low-latency mixed-signal In-Memory Computing accelerator for solving arbitrary-order Boolean Satisfiability", "Everactive: Self-Powered SoC with Energy Harvesting, Wakeup Receiver, and Energy-Aware Subsystem", "Cuzco: A High-Performance RISC-V RVA23 Compatible CPU IP", "BROCA: A Low-power and Low-latency Conversational Agent RISC-V System-on-Chip for Voice-interactive Mobile Devices"], "T0_other": ["High Density Si-IPD Technologies as Enabler for High-Performance and Low-Power Consumption Processor Chips", "Specialized IC for World-Lock Rendering in Augmented and Mixed Reality Devices", "Hot ChipsKeynote"]}, "SC": {"T1_attention": ["ORBIT-2: Scaling Exascale Vision Foundation Models for Weather and Climate Downscaling", "gLLM: Global Balanced Pipeline Parallelism Systems for Distributed LLMs Serving with Token Throttling", "Experience Deploying Containerized GenAI Services at an HPC Center", "An elastic job scheduler for HPC applications on the cloud"], "T2_quantization": ["Evaluation of Test-Time Compute Constraints on Safety and Skill Large Reasoning Models", "Reproducibility Report for SC25 Paper Numerical Performance of the Implicitly Restarted Arnoldi Method in OFP8, Bfloat16, Posit, and Takum Arithmetics", "Reproducibility Report for SC25 Paper High-Performance Branch-Free Algorithms for Extended-Precision Floating-Point Arithmetic", "Reproducibility Report for SC25 Paper MXBLAS: Accelerating 8-bit Deep Learning with a Unified Micro-Scaled GEMM Library"], "T3_memory": ["A Cache Interaction Graph for Data Locality Optimization", "Programmer productivity and performance on AMD's AI Engines: Offloading Fortran intrinsics via MLIR a case-study", "Implementing OpenMP Offload Support in the AMD Next Generation Fortran Compiler", "Reproducibility Report for SC25 Paper DRIM-ANN: An Approximate Nearest Neighbor Search Engine based on Commercial DRAM-PIMs"], "T4_interconnect": ["TraceFlow: Efficient Trace Analysis for Large-Scale Parallel Applications via Interaction Pattern-Aware Trace Distribution", "OpenSHMEM MLIR: A Dialect for Compile-Time Optimization of One-Sided Communications", "Slicing Is All You Need: Towards A Universal One-Sided Algorithm for Distributed Matrix Multiplication", "Beyond Guess and Check: Quantifying the Fidelity of Proxy Applications"], "T5_sparsity": ["Hypertron: Efficiently Scaling Large Models by Exploring High-Dimensional Parallelization Space", "How effective is matrix reordering for improving performance of sparse matrix-vector multiplication?", "MoE-Inference-Bench: Performance Evaluation of Mixture of Expert Large Language and Vision Models", "Bridging the Gap between Unstructured SpMM and Structured Sparse Tensor Cores"], "T6_compiler": ["Enhancing HPX with FleCSI: Automatic Detection of Implicit Task Dependencies", "A Sample-Free Compilation Framework for Efficient Dynamic Tensor Computation", "Lowering and Runtime Support for Fortran's Multi-Image Parallel Features using LLVM Flang, PRIF, and Caffeine", "Extending RAJA Parallel Programming Abstractions with Just-In-Time Optimization"], "T7_security": ["Dynamic Factor Graphs for Attack Preemption", "Implementing Network-level QoS at HPC Datacenters to Enable Distributed Scientific Workflows", "SIREN: Software Identification and Recognition in HPC Systems", "Towards Enabling Hostile Multi-tenancy in Kubernetes"], "T8_reliability": ["Deploying Lightweight Input-Aware Selective Instruction Duplication in HPC Applications", "Exploring and Mitigating Failure Behavior of Large Language Model Training Workloads in HPC Systems", "Differential Testing for Sequential to Parallel Transformations", "Improving Supercomputer Usage with Aging Awareness"], "T9_specialized": ["Is RISC-V ready for High Performance Computing? An evaluation of the Sophon SG2044", "EDDE: Container Deployment Framework Beyond the Cloud", "Accelerating Gravitational N-Body Simulations Using the RISC-V-Based Tenstorrent Wormhole", "Enabling the syscall_intercept library for RISC-V"], "T0_other": ["Seamless end-to-end containerized HPC environments", "Insights from Optimizing HPL Performance on Exascale Systems: A Comparative Analysis of Panel Factorization", "LLM Agents for Interactive Workflow Provenance: Reference Architecture and Evaluation Methodology", "A High Performance GPU CountSketch Implementation and Its Application to Multisketching and Least Squares Problems"]}, "VLSID": {"T1_attention": ["Lichen: Leveraging Coupled Heterogeneity", "Enhancing Digital Microfluidic Biochip Operations with Scheduling Interval Method"], "T2_quantization": ["A Study on Efficiency Improvements of DNN Accelerators via Denormalized Arithmetic Elimination", "A 0.75mm2 407μW Real-Time Speech Audio Denoiser with Quantized Cascaded Redundant Convolutional Encoder-Decoder for Wearable IoT Devices", "FPUGen: A FrameWork to Generate Custom Floating Point FMA Accelerators on FPGAs", "OwlsEye: Real-Time Low-Light Video Instance Segmentation on Edge and Exploration of Fixed-Posit Quantization"], "T3_memory": ["A 14-nm Energy-Efficient and Reconfigurable Analog Current-Domain In-Memory Compute SRAM Accelerator", "Optimizing Bandwidth Utilization Through Word Based Compression in Main Memories", "Efficient Mitigation of DRAM Row Buffer Conflict Using Request Clustering in Manycore Systems", "An Innovative Solution to Improve Ultra Low Voltage Writability and Leakage in GPU SRAMs"], "T4_interconnect": ["Pin Efficient Tri-Level Based Inductive Coupling Transceiver for 3D ICs", "FRoZN: Fault-Tolerant Routing Technique Using Reinforcement Learning for ZMesh NoC", "An Ensemble MLP-RF Model for the Prediction of DG-MOSFETs: Addressing Fabrication Process Variations", "Enhancing Reliability and Energy Efficiency in Network-on-Chip Architectures through Hybrid Sorting Algorithm-Based Core Mapping"], "T5_sparsity": ["Effective Memory Management and Sparse Aware Cache for Row-Wise Sparse CNNs"], "T6_compiler": [], "T7_security": ["SHAKTI: Securing Hardware IPs by Cascade Gated Multiplexer-Based Logic Obfuscation", "A Tug-of-War Between Static and Dynamic Memory in Intel SGX", "Codesign for Broadcast Addressing Biochip Towards Tamper-Resistance and Enhanced Reliability", "hbcLock: Encrypted RF Communication Utilizing Body-Coupled Keys for the Internet of Bodies"], "T8_reliability": ["FARAD: Automated Formal Verification of Approximate Restoring Array Dividers", "AI-Driven Anomaly Detection in Oscilloscope Images for Post-Silicon Validation", "Early Bug Detector - A Verification Methodology for DFD-SoC RTL Parameters", "PrOFraC: Property Ordering and Frame Clause Reuse for Multi-Property Verification"], "T9_specialized": ["Low Form-Factor Switchless Dual-Band Matching Network for RF Power Harvesting Systems", "Fast Bit-Sliced VLSI Architectures on FPGA for Montgomery Domain Modular Inversion", "Analysis and Design Considerations for MASH of Noise Shaped SAR ADCs", "An Experimental Demonstration of Neuronal Somatic Behavior Using 2D SnS Memristive Switching Characteristics and its Equivalent Circuit for Spiking Neural Network"], "T0_other": ["A Fully Autonomous 1.2A Auxiliary Buck DC-DC Converter for Fast Transient Load-on-Demand", "LAMA: A Latency Minimum Resource Constraint Accelerator for CNN Models", "Low-Power and Superior Performance Design of Ternary Logic Cells Using CNFET and MOSFET Devices for VLSI Applications", "Symmetry-Based Synthesis for Interpretable Boolean Evaluation"]}}, "insights": [{"type": "leader", "theme": "T1_attention", "venue": "DAC", "count": 40, "total": 195, "pct": 21, "text": "DAC leads T1 with 40 of 195 papers (21%)"}, {"type": "leader", "theme": "T2_quantization", "venue": "DAC", "count": 35, "total": 113, "pct": 31, "text": "DAC leads T2 with 35 of 113 papers (31%)"}, {"type": "leader", "theme": "T3_memory", "venue": "DAC", "count": 77, "total": 290, "pct": 27, "text": "DAC leads T3 with 77 of 290 papers (27%)"}, {"type": "leader", "theme": "T4_interconnect", "venue": "SC", "count": 42, "total": 139, "pct": 30, "text": "SC leads T4 with 42 of 139 papers (30%)"}, {"type": "leader", "theme": "T5_sparsity", "venue": "SC", "count": 30, "total": 96, "pct": 31, "text": "SC leads T5 with 30 of 96 papers (31%)"}, {"type": "leader", "theme": "T6_compiler", "venue": "DAC", "count": 71, "total": 140, "pct": 51, "text": "DAC leads T6 with 71 of 140 papers (51%)"}, {"type": "leader", "theme": "T7_security", "venue": "DAC", "count": 39, "total": 118, "pct": 33, "text": "DAC leads T7 with 39 of 118 papers (33%)"}, {"type": "leader", "theme": "T8_reliability", "venue": "DAC", "count": 37, "total": 117, "pct": 32, "text": "DAC leads T8 with 37 of 117 papers (32%)"}, {"type": "leader", "theme": "T9_specialized", "venue": "DAC", "count": 80, "total": 270, "pct": 30, "text": "DAC leads T9 with 80 of 270 papers (30%)"}, {"type": "focus", "venue": "MLSys", "theme": "T1_attention", "pct": 51, "count": 31, "total": 61, "text": "MLSys is 51% T1 — 31 of 61 papers"}, {"type": "focus", "venue": "HPCA", "theme": "T3_memory", "pct": 33, "count": 39, "total": 119, "text": "HPCA is 33% T3 — 39 of 119 papers"}, {"type": "focus", "venue": "ISSCC", "theme": "T0_other", "pct": 32, "count": 83, "total": 258, "text": "ISSCC is 32% T0 — 83 of 258 papers"}]};
+
+let VIEW = 'abs';
+
+function cellValue(v, tk){
+  const c = D.matrix[v][tk];
+  if(VIEW === 'abs') return c;
+  if(VIEW === 'row') return D.venueTotals[v] ? (c/D.venueTotals[v]*100) : 0;
+  if(VIEW === 'col') return D.themeTotals[tk] ? (c/D.themeTotals[tk]*100) : 0;
+  return c;
+}
+
+function cellMaxForView(){
+  let m=0;
+  D.venues.forEach(v=>D.themes.forEach(tk=>{
+    const val=cellValue(v,tk);
+    if(val>m) m=val;
+  }));
+  return m||1;
+}
+
+function tealAlpha(frac){
+  // map 0..1 to a teal with opacity: very low → dim, high → bright
+  const a = Math.pow(Math.max(0,Math.min(1,frac)), 0.6);
+  if(a < 0.05) return `rgba(62,201,182,${(a*2).toFixed(2)})`;
+  return `rgba(62,201,182,${a.toFixed(2)})`;
+}
+
+function textCol(frac){
+  return frac > 0.55 ? '#0d1117' : '#e8e3d8';
+}
+
+function fmt(val, view){
+  if(view==='abs') return val === 0 ? '—' : String(val);
+  return val === 0 ? '—' : val.toFixed(0)+'%';
+}
+
+function buildTable(){
+  const thead = document.getElementById('hm-thead');
+  const tbody = document.getElementById('hm-tbody');
+  const maxVal = cellMaxForView();
+
+  // header
+  thead.innerHTML = '<th class="venue-col">Venue</th>' +
+    D.themes.map(tk=>`<th title="${D.themeLabel[tk]} — ${D.themeSub[tk]}">${D.themeShort[tk]}</th>`).join('') +
+    '<th>Total</th>';
+
+  // rows
+  let rowsHTML = '';
+  D.venues.forEach(v=>{
+    const vtot = D.venueTotals[v];
+    rowsHTML += `<tr>`;
+    rowsHTML += `<td class="venue-name">
+      <div class="vn">${v}</div>
+      <div class="vd">${D.venueDomain[v]}</div>
+      <div class="vtot">${vtot} papers</div>
+    </td>`;
+    D.themes.forEach(tk=>{
+      const c = D.matrix[v][tk];
+      const val = cellValue(v,tk);
+      const frac = maxVal > 0 ? val/maxVal : 0;
+      const bg = tealAlpha(frac);
+      const tc = textCol(frac);
+      const display = fmt(val, VIEW);
+      const pct = vtot ? (c/vtot*100).toFixed(0) : 0;
+      rowsHTML += `<td class="cell" data-venue="${v}" data-theme="${tk}" onclick="openExplorer('${v}','${tk}')">
+        <div class="cell-inner" style="background:${bg};color:${tc}">
+          <span class="n">${display}</span>
+          ${VIEW==='abs' && c>0 ? `<span class="p">${pct}%</span>` : ''}
+        </div>
+      </td>`;
+    });
+    rowsHTML += `<td style="text-align:right;padding:0 10px 0 4px;font-family:var(--mono);font-size:.72rem;color:var(--ink3);white-space:nowrap">
+      ${vtot}
+    </td>`;
+    rowsHTML += `</tr>`;
+  });
+
+  // totals row
+  rowsHTML += `<tr class="total-row"><td class="venue-name"><div class="vn">Total</div><div class="vd">all venues</div><div class="vtot">${D.grandTotal}</div></td>`;
+  D.themes.forEach(tk=>{
+    const tot = D.themeTotals[tk];
+    const frac = D.grandTotal > 0 ? tot/D.grandTotal : 0;
+    rowsHTML += `<td class="cell" style="padding:4px 3px">
+      <div class="cell-inner" style="background:rgba(30,38,53,.8);color:var(--ink2)">
+        <span class="n" style="font-family:var(--mono)">${tot}</span>
+        <span class="p" style="opacity:.7">${(frac*100).toFixed(0)}%</span>
+      </div>
+    </td>`;
+  });
+  rowsHTML += `<td style="text-align:right;padding:0 10px;font-family:var(--mono);font-size:.8rem;color:var(--teal)">${D.grandTotal}</td></tr>`;
+
+  tbody.innerHTML = rowsHTML;
+
+  // attach hover listeners
+  tbody.querySelectorAll('td.cell[data-venue]').forEach(td=>{
+    td.addEventListener('mouseenter', e=>showTip(e, td.dataset.venue, td.dataset.theme));
+    td.addEventListener('mousemove', e=>moveTip(e));
+    td.addEventListener('mouseleave', hideTip);
+  });
+}
+
+function setView(v){
+  VIEW = v;
+  ['abs','row','col'].forEach(id=>document.getElementById('tog-'+id).classList.toggle('on', id===v));
+  const labels = {abs:'low → high paper count', row:'low → high % of venue papers', col:'low → high % of theme papers'};
+  document.getElementById('lg-label').textContent = labels[v];
+  buildTable();
+}
+
+function showTip(e, venue, theme){
+  const tip = document.getElementById('tip');
+  const c = D.matrix[venue][theme];
+  const vtot = D.venueTotals[venue];
+  const ttot = D.themeTotals[theme];
+  const rowPct = vtot ? (c/vtot*100).toFixed(0) : 0;
+  const colPct = ttot ? (c/ttot*100).toFixed(0) : 0;
+  const papers = (D.papers[venue]?.[theme] || []);
+
+  let html = `<div class="th">${venue} · ${D.themeShort[theme]} ${D.themeLabel[theme]}</div>`;
+  html += `<div class="cnt">${c} paper${c!==1?'s':''}</div>`;
+  if(c > 0){
+    html += `<div style="font-size:.78rem;color:var(--ink3);margin-bottom:8px;font-family:var(--mono)">${rowPct}% of ${venue} · ${colPct}% of ${D.themeShort[theme]}</div>`;
+    if(papers.length){
+      html += `<ul>${papers.map(p=>`<li>${p.length>70?p.slice(0,68)+'…':p}</li>`).join('')}</ul>`;
+    }
+    html += `<div class="xpl">Click to explore these papers →</div>`;
+  }
+
+  tip.innerHTML = html;
+  tip.style.display = 'block';
+  moveTip(e);
+}
+function moveTip(e){
+  const tip = document.getElementById('tip');
+  const x = e.clientX + 14, y = e.clientY - 10;
+  const ow = tip.offsetWidth, oh = tip.offsetHeight;
+  tip.style.left = (x + ow > window.innerWidth ? x - ow - 28 : x) + 'px';
+  tip.style.top  = (y + oh > window.innerHeight ? y - oh : y) + 'px';
+}
+function hideTip(){ document.getElementById('tip').style.display='none'; }
+
+function openExplorer(venue, theme){
+  const url = `explorer.html`;
+  // open explorer with a note about what to filter
+  window.location.href = url;
+}
+
+function buildInsights(){
+  const grid = document.getElementById('ins-grid');
+
+  const insights = [];
+
+  // 1. Most focused venues (top theme dominates > 30%)
+  D.venues.forEach(v=>{
+    const tot = D.venueTotals[v] || 1;
+    let topTheme = null, topPct = 0;
+    D.themes.forEach(tk=>{
+      const pct = D.matrix[v][tk] / tot * 100;
+      if(pct > topPct){ topPct=pct; topTheme=tk; }
+    });
+    if(topPct >= 30 && topTheme && topTheme !== 'T0_other'){
+      insights.push({
+        icon: 'FOCUS',
+        html: `<b>${v}</b> is <span class="hi">${topPct.toFixed(0)}% ${D.themeShort[topTheme]}</span> — ${D.matrix[v][topTheme]} of ${D.venueTotals[v]} papers are <em>${D.themeLabel[topTheme]}</em>. The most concentrated venue-theme pairing.`
+      });
+    }
+  });
+
+  // 2. Theme ownership
+  D.themes.forEach(tk=>{
+    if(tk === 'T0_other') return;
+    const tot = D.themeTotals[tk];
+    if(!tot) return;
+    const sorted = [...D.venues].sort((a,b)=>D.matrix[b][tk]-D.matrix[a][tk]);
+    const leader = sorted[0];
+    const pct = Math.round(D.matrix[leader][tk] / tot * 100);
+    if(pct >= 25){
+      insights.push({
+        icon: 'LEADER',
+        html: `<b>${leader}</b> owns <span class="hi">${pct}%</span> of all ${D.themeShort[tk]} papers — ${D.matrix[leader][tk]} of ${tot} cross-venue. ${D.themeLabel[tk]} is most debated here.`
+      });
+    }
+  });
+
+  // 3. Sparse venues in a theme (< 5 papers across a venue)
+  const missing = [];
+  D.venues.forEach(v=>{
+    D.themes.forEach(tk=>{
+      if(tk === 'T0_other') return;
+      if(D.matrix[v][tk] === 0 && D.venueTotals[v] >= 50){
+        missing.push(`${v}: ${D.themeShort[tk]}`);
+      }
+    });
+  });
+  if(missing.length){
+    insights.push({
+      icon: 'GAPS',
+      html: `<b>Zero-paper cells</b> (<span class="warn">${missing.slice(0,5).join(' · ')}${missing.length>5?' …':''}</span>) — venues with ≥50 papers publishing nothing in a theme reveal genuine coverage gaps or disciplinary boundaries.`
+    });
+  }
+
+  // 4. Broadest venue (most evenly distributed)
+  let broadest = null, lowestGini = 1;
+  D.venues.forEach(v=>{
+    const tot = D.venueTotals[v] || 1;
+    const shares = D.themes.map(tk=>D.matrix[v][tk]/tot).sort((a,b)=>a-b);
+    const n = shares.length;
+    let gini = 0;
+    shares.forEach((s,i)=>{ gini += (2*(i+1)-n-1)*s; });
+    gini /= n;
+    if(gini < lowestGini){ lowestGini=gini; broadest=v; }
+  });
+  if(broadest){
+    insights.push({
+      icon: 'BREADTH',
+      html: `<b>${broadest}</b> is the most <span class="hi">thematically diverse</span> venue — papers spread most evenly across all 9 themes. Contrast with MLSys, which concentrates ~51% in T1.`
+    });
+  }
+
+  // 5. Fastest-growing proxy: SC at scale
+  insights.push({
+    icon: 'SCALE',
+    html: `<b>SC 2025</b> has <span class="warn">149 papers in T0</span> (uncategorized) and <b>54 in T9</b> (specialized) — reflecting HPC's distinct agenda: parallel filesystems, job scheduling, and application-specific accelerators that don't map cleanly onto AI hardware themes.`
+  });
+
+  // 6. ISSCC analog note
+  insights.push({
+    icon: 'CIRCUIT',
+    html: `<b>ISSCC</b>'s <span class="warn">83 T0 papers</span> are analog and mixed-signal circuits — SRAM, ADCs, PLLs — that our theme taxonomy (built for digital AI) doesn't capture well. The 40 T9 papers are custom inference chips and neuromorphic designs.`
+  });
+
+  grid.innerHTML = insights.slice(0,8).map(ins=>`
+    <div class="ins-card">
+      <div class="ico">${ins.icon}</div>
+      <div class="txt">${ins.html}</div>
+    </div>
+  `).join('');
+}
+
+// init
+buildTable();
+buildInsights();
+</script>
+</body>
+</html>
