@@ -362,11 +362,17 @@ def build_sidebar():
     links.append('<hr class="nav-divider">')
     links.append('<a class="nav-link" href="#closing">Where it points</a>')
 
+    links.append('<hr class="nav-divider">')
+    links.append('<div class="nav-heading">By venue</div>')
+    for conf, label in [("mlsys","MLSys"),("isca","ISCA"),("micro","MICRO"),
+                        ("hpca","HPCA"),("asplos","ASPLOS"),("dac","DAC"),
+                        ("isscc","ISSCC"),("hotchips","Hot Chips")]:
+        links.append(f'<a class="nav-link theme" href="{conf}-2025-bigpicture.html">{label}</a>')
+
     links.append('''<div class="sidebar-links">
   <a href="deepdives.html">deep dives hub</a>
   <a href="explorer.html">paper explorer</a>
   <a href="synthesis.html">cross-venue synthesis</a>
-  <a href="mlsys-2025-bigpicture.html">MLSys overview</a>
 </div>''')
 
     return "\n".join(links)
