@@ -32,6 +32,8 @@ def main():
     ap.add_argument("--conf", required=True)
     ap.add_argument("--year", required=True)
     ap.add_argument("--per", type=int, default=15)
+    ap.add_argument("--include-title-only", action="store_true",
+                    help="Include papers with no abstract (analyze from title alone)")
     a = ap.parse_args()
     recs = [json.loads(l) for l in (ROOT / "metadata" / f"{a.conf}-{a.year}-corpus.jsonl").open()]
     tdir = ROOT / "conferences" / f"{a.conf}-{a.year}" / "text"
@@ -47,8 +49,9 @@ def main():
         tpath = tdir / f"{r['id']}.txt"
         has = tpath.exists() and tpath.stat().st_size > 2000
         if not has and not r.get("abstract"):
-            skipped_title_only += 1
-            continue
+            if not a.include_title_only:
+                skipped_title_only += 1
+                continue
         analyzable.append((r, tpath, has))
 
     n = with_text = 0
