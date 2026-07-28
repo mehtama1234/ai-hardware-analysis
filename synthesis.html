@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cross-Venue Synthesis · AI Hardware 2025</title>
+<style>
+:root{--g0:#0f1218;--g1:#14171d;--g2:#1a1f28;--g3:#222834;
+--line:#2b323d;--line2:#20262f;
+--ink:#e8e4dc;--ink2:#b0b8c4;--ink3:#737d8a;
+--teal:#3fbfb0;--orange:#e09050;--red:#d95a4a;
+--serif:Palatino,"Palatino Linotype",Charter,Georgia,serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+--sans:system-ui,-apple-system,"Segoe UI",sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--g0);color:var(--ink);font-family:var(--sans);font-size:16px;
+line-height:1.72;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto;padding:0 clamp(20px,5vw,40px) 80px}
+.top{padding:28px 0 6px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.back{font-family:var(--mono);font-size:.73rem;color:var(--ink3);text-decoration:none}
+.back:hover{color:var(--teal)}
+.nav-pills{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 28px;border-bottom:1px solid var(--line)}
+.nav-pills a{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+color:var(--ink3);text-decoration:none;padding:4px 10px;border:1px solid var(--line2);border-radius:20px}
+.nav-pills a:hover{color:var(--teal);border-color:var(--teal)}
+header.hero{padding:36px 0 28px;border-bottom:1px solid var(--line)}
+header.hero .ey{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+color:var(--orange);margin-bottom:.6em}
+header.hero h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3rem);font-weight:600;
+color:var(--ink);line-height:1.1;margin-bottom:.4em;text-wrap:balance}
+header.hero .sub{font-family:var(--serif);font-size:1.15rem;color:var(--ink2)}
+header.hero .meta{font-family:var(--mono);font-size:.72rem;color:var(--ink3);margin-top:14px}
+h2{font-family:var(--serif);font-size:1.65rem;font-weight:600;color:var(--ink);
+margin:3em 0 .7em;padding-top:1.5em;border-top:1px solid var(--line2);line-height:1.15;text-wrap:balance}
+h2:first-of-type{border-top:none;margin-top:2em}
+h3{font-family:var(--serif);font-size:1.22rem;font-weight:600;color:var(--ink);margin:1.8em 0 .5em}
+p{color:var(--ink2);margin-bottom:1em}
+strong{color:var(--ink);font-weight:600}
+em{color:var(--ink);font-style:italic}
+code{font-family:var(--mono);font-size:.82em;color:var(--teal);background:var(--g3);
+padding:1px 5px;border-radius:3px;white-space:nowrap}
+ul,ol{padding-left:1.4em;margin-bottom:1em}
+li{color:var(--ink2);margin-bottom:.35em}
+li strong{color:var(--ink)}
+li code{font-size:.8em}
+blockquote{border-left:3px solid var(--teal);padding:12px 18px;margin:1.5em 0;
+background:var(--g2);border-radius:0 8px 8px 0}
+blockquote p{color:var(--ink2);margin:0}
+hr{border:none;border-top:1px solid var(--line);margin:2.5em 0}
+.caveat{background:var(--g2);border:1px solid var(--line);border-left:3px solid var(--orange);
+border-radius:8px;padding:14px 18px;margin:1.5em 0}
+.caveat p{margin:0;color:var(--ink2);font-size:.9rem}
+footer{padding:40px 0 60px;color:var(--ink3);font-family:var(--mono);font-size:.73rem}
+a{color:var(--teal);text-underline-offset:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="deepdives.html">← deep dives</a>
+    <a class="back" href="explorer.html">explorer</a>
+    <a class="back" href="mlsys-2025-bigpicture.html">big picture</a>
+  </div>
+  <header class="hero">
+    <div class="ey">AI Hardware 2025 · Cross-venue analysis</div>
+    <h1>Cross-Venue Synthesis — AI Hardware 2025</h1>
+    <div class="sub">Six venues, one year: what the whole field is doing, where it agrees, where it diverges</div>
+    <div class="meta">MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC &nbsp;·&nbsp; 719 papers · 603 analyzed · 120 read in full</div>
+  </header>
+  <nav class="nav-pills"><a href="#s1">The big picture</a><a href="#s2">Per-venue character</a><a href="#s3">Shared themes</a><a href="#s4">What differs</a><a href="#s5">Cross-cutting</a><a href="#s6">Coverage</a></nav>
+  <p>Six top venues, one year: <strong>MLSys, ISCA, MICRO, HPCA, ASPLOS, DAC</strong>. This file reads the</p>
+<p>six per-venue deterministic digests and the MLSys theme taxonomy (its anchor), samples the</p>
+<p>per-paper JSON extractions to ground every claim in specific paper ids, and draws the real</p>
+<p>contrasts across the stack. Paper ids are cited as <code>venue-2025-nnn</code>.</p>
+<p><strong>Corpus:</strong> 719 papers total, 603 analyzed (120 full-text/<code>high</code>, 483 abstract-only/<code>low</code>),</p>
+<p>116 title-only NOT analyzed. See §6 for the honest coverage picture — the MICRO and DAC</p>
+<div class="caveat"><p>slices are meaningfully under-sampled and abstract-only records are shallower.</p></div>
+<hr>
+<h2>1. The one-paragraph picture</h2>
+<p>Across all six venues in 2025 the field is doing one thing above all others: **bending the</p>
+<p>entire hardware/software stack around the LLM transformer, and around attention and the</p>
+<p>KV-cache in particular.<em>* &quot;LLM-inference&quot; is the single most common workload at </em>every* venue</p>
+<p>— MLSys (26), ISCA (31), MICRO (16), HPCA (29), ASPLOS (37), DAC (14) — and the dominant</p>
+<p>mechanisms recur regardless of where the paper lands: fuse an algorithmic idea (a sparsity</p>
+<p>pattern, a quantization scheme, an attention variant, a prefill/decode split) directly into</p>
+<p>the datapath and its scheduler rather than treating them as separable layers. What changes is</p>
+<p>the <em>layer of the stack</em> each venue attacks. MLSys optimizes GPU software — kernels, serving</p>
+<p>schedulers, parallelism plans — on NVIDIA A100/H100 silicon it takes as given. The three</p>
+<p>architecture venues (ISCA, MICRO, HPCA) build the silicon MLSys stands on and carry the entire</p>
+<p>body of work MLSys structurally cannot touch: real ASICs and compute-in-memory, memory systems</p>
+<p>and cache coherence, on-chip interconnect, RowHammer and side-channel security, reliability</p>
+<p>and silent-data-corruption, and near-data/processing-in-memory. ASPLOS sits deliberately at</p>
+<p>the boundary, pairing compiler and OS/runtime work with hardware co-design and a heavy</p>
+<p>security/verification stream. DAC is the design-automation venue — it is where the <em>tools</em></p>
+<p>that build all of the above live: chip generators, EDA (placement, routing, timing, IR-drop),</p>
+<p>RTL simulation, verification, and increasingly LLM-for-chip-design. The collective reflex</p>
+<p>everywhere is <strong>co-design</strong>, and the collective blind spot — inherited straight from MLSys and</p>
+<p>only partly repaired by the architecture venues — is non-NVIDIA silicon and honest energy/PPA</p>
+<p>accounting.</p>
+<hr>
+<h2>2. Per-venue character</h2>
+<p><strong>MLSys — systems-for-LLMs on GPUs.</strong> MLSys is the software-systems venue for the NVIDIA GPU:</p>
+<p>42/61 papers name a GPU, A100/H100 are the de-facto harness, and non-NVIDIA silicon is almost</p>
+<p>absent (one Huawei DaVinci NPU, one RISC-V ASIC, no TPU, no AMD GPU). Workloads are</p>
+<p>overwhelmingly LLM-inference (26) and LLM-training (22). The work is kernels, serving</p>
+<p>schedulers, quantization-for-serving, parallelism plans, and offloading — never the silicon</p>
+<p>itself. Signature: <strong>mlsys-2025-000</strong> (FlashInfer, a unifying attention/KV-layout kernel</p>
+<p>compiler), <strong>mlsys-2025-003</strong> (QServe W4A8KV4 quantization co-designed with the Tensor-Core</p>
+<p>datapath), <strong>mlsys-2025-018</strong> (SOLA, per-iteration SLO-aware prefill/decode scheduling on</p>
+<p>vLLM). It is the anchor taxonomy (9 themes) the rest of this synthesis is measured against —</p>
+<p>and the venue whose gaps (no real silicon, little energy measurement) the architecture venues</p>
+<p>exist to fill.</p>
+<p><strong>ISCA — real silicon, memory systems, and the whole non-GPU frontier.</strong> ISCA is where the</p>
+<p>hardware actually gets built: ASIC dominates (49/112), with CIM (13), FPGA (10), SoC (10),</p>
+<p>plus photonic, PIM, analog, chiplet, and a single TPU. Its technique profile is memory-system</p>
+<p>(47), dataflow (39), near-data-processing (27), interconnect (17), reliability (12), and</p>
+<p>security (9) — an entire axis MLSys never touches. Workloads are broader too: alongside</p>
+<p>LLM-inference (31) sit HPC (28), GNN (23), database (18). Signature: <strong>isca-2025-079</strong> (LUT</p>
+<p>Tensor Core, a bit-serial LUT-based low-bit LLM datapath at 4–6× power/area vs MAC Tensor</p>
+<p>Cores), <strong>isca-2025-058</strong> (NMP-PaK, channel-level near-memory processing for genome assembly),</p>
+<p><strong>isca-2025-007</strong> (Oaken, an ASIC/NPU KV-cache quantization serving engine). ISCA also carries</p>
+<p>the quantum, cryptographic-accelerator (zkSNARK <strong>isca-2025-025</strong>, FHE), and carbon-accounting</p>
+<p>work that has no MLSys analogue.</p>
+<div class="caveat"><p><strong>MICRO — microarchitecture, security, and the memory subsystem (but under-sampled).</strong> MICRO</p></div>
+<p>is the microarchitecture venue: CPU (19) and ASIC (17) lead, and its center of gravity is the</p>
+<p>memory system (25) plus caches (8), prefetching (6), and a distinctive, deep <strong>DRAM-security</strong></p>
+<p>stream — RowHammer attack/defense (<strong>micro-2025-025</strong> ρHammer revives RowHammer via prefetch</p>
+<p>instructions on modern Intel; several defense papers). It is also where microarchitecture gets</p>
+<p><em>reverse-engineered</em> (<strong>micro-2025-043</strong>, dissecting NVIDIA Ampere SM pipelines — a genre MLSys</p>
+<p>would never publish). Signature also: <strong>micro-2025-057</strong> (Pimba, PIM for post-transformer LLM</p>
+<p>serving), <strong>micro-2025-087</strong> (automated RISC-V instruction-subset processor generation for</p>
+<p>extreme edge). Caveat: only 47 records and 76 title-only papers are excluded because IEEE</p>
+<div class="caveat"><p>withholds MICRO abstracts, so this is the <em>most</em> under-sampled venue (see §6).</p></div>
+<p><strong>HPCA — the largest architecture slice: memory, reliability, near-data, quantum.</strong> HPCA is the</p>
+<p>broadest architecture corpus here (119 records). Its technique histogram is memory-system (61),</p>
+<p>scheduling (54), dataflow (40), near-data-processing (24), cache (19), reliability (14),</p>
+<p>prefetching (13), security (13), interconnect (11). HPC (40) edges out LLM-inference (29) as</p>
+<p>the top workload — HPCA keeps a strong non-AI HPC/systems core. It owns coherent-interconnect</p>
+<p>work (<strong>hpca-2025-001</strong>, Push Multicast: a speculative coherent manycore interconnect),</p>
+<p>spatial-accelerator <em>generators</em> (<strong>hpca-2025-002</strong>, LEGO: affine-representation RTL generation</p>
+<p>for tensor apps), reliability at the microarchitecture level (silent-data-corruption modeling),</p>
+<p>and a large quantum-computing cluster. Signature also: <strong>hpca-2025-003</strong> (VQ-LLM,</p>
+<p>vector-quantized LLM code generation on GPU), <strong>hpca-2025-082</strong> (DynamoLLM, energy-aware LLM</p>
+<p>cluster reconfiguration — one of the few papers that actually measures Joules).</p>
+<p><strong>ASPLOS — the cross-layer venue: compilers, OS/runtime, security, and co-design.</strong> ASPLOS is</p>
+<p>the largest corpus (164) and deliberately spans the interfaces: CPU (81) and GPU (55) lead, and</p>
+<p>its technique profile is scheduling (81), memory-system (60), <strong>compiler (49)</strong>, parallelism</p>
+<p>(40), and a very heavy <strong>security (34)</strong> and reliability/verification (18) stream that the pure</p>
+<p>architecture venues carry more thinly. It is where confidential-computing (TEE/SEV-SNP side</p>
+<p>channels <strong>asplos-2025-134</strong>), RowHammer-to-hypervisor-escape (<strong>asplos-2025-027</strong>), FHE</p>
+<p>compilation (<strong>asplos-2025-029/042</strong>), and formal hardware verification live next to LLM</p>
+<p>serving. Signature: <strong>asplos-2025-105</strong> (FSMoE, overlapping inter- and intra-node MoE</p>
+<p>communication with compute), <strong>asplos-2025-049</strong> (Past-Future Scheduler, output-length-aware</p>
+<p>SLA-guaranteed LLM serving), <strong>asplos-2025-113</strong> (MOAT, provably secure per-row-activation</p>
+<p>RowHammer mitigation). ASPLOS is the bridge between MLSys-style systems and ISCA/MICRO/HPCA</p>
+<p>silicon.</p>
+<p><strong>DAC — the design-automation / EDA venue.</strong> DAC is categorically different: it is about the</p>
+<p><em>tools that build the chips</em>, not the chips as workloads. Its dominant technique is</p>
+<p><strong>circuit-design (38)</strong> plus compiler (25), and its tags are EDA-native — physical-design,</p>
+<p>routing, placement, IR-drop, verification, timing, VLSI, logic-synthesis. Signature EDA work:</p>
+<p><strong>dac-2025-035</strong> (iterative clock-skew scheduling with dynamic sequential-graph extraction),</p>
+<p><strong>dac-2025-020</strong> (GPU-accelerated statistical static timing analysis), <strong>dac-2025-042</strong> (GSIM,</p>
+<p>multi-abstraction-level RTL simulation, 19.9× speedup), <strong>dac-2025-090</strong> (IRGNN, graph-based</p>
+<p>per-node IR-drop prediction). A fast-growing DAC sub-stream is **AI-for-EDA and LLM-for-chip-</p>
+<p>design<strong>: </strong>dac-2025-006** (diffusion transformer for push-button analog IC sizing),</p>
+<p><strong>dac-2025-024</strong> (contrastive learning for lithographic hotspot detection), <strong>dac-2025-060</strong></p>
+<p>(ChipAlign, LLM instruction-alignment for chip design), <strong>dac-2025-018</strong> (multi-agent LLM</p>
+<p>quantum-code generation). DAC also carries hardware co-design for AI accelerators</p>
+<p>(<strong>dac-2025-072</strong> SQ-DM 4-bit diffusion accelerator) but always with the EDA/tool lens. Caveat:</p>
+<div class="caveat"><p>only 100/457 fetched (DBLP instability) — heavily under-sampled (§6).</p></div>
+<hr>
+<h2>3. Shared cross-venue themes</h2>
+<p>Themes that recur <strong>across</strong> venues, with the venues that carry them, the shared mechanism, and</p>
+<p>representative ids.</p>
+<h3>T1 — LLM attention &amp; KV-cache acceleration</h3>
+<p><em>All six venues.</em> The single most universal theme. The shared mechanism is **restructuring</p>
+<p>attention and the KV-cache to fit the target datapath**: unify KV layouts and generate kernels</p>
+<p>(<strong>mlsys-2025-000</strong> FlashInfer), split prefill/decode as opposite regimes and schedule them</p>
+<p>(<strong>mlsys-2025-018</strong>, ISCA dynamic scheduling for phase-disaggregated serving), and compress</p>
+<p>or quantize the KV-cache in hardware (<strong>isca-2025-007</strong> Oaken online-offline hybrid KV quant,</p>
+<p><strong>isca-2025-021</strong> Ecco entropy-aware KV compression with a parallel Huffman decoder,</p>
+<p><strong>mlsys-2025-025</strong> TurboAttention). On the silicon side the <em>same</em> problem becomes a</p>
+<p>purpose-built engine: <strong>micro-2025-057</strong> (Pimba PIM for post-transformer serving),</p>
+<p><strong>dac-2025-128</strong> (distance-based attention sparsity on hierarchical PIM for ultra-long context),</p>
+<p><strong>dac-2025-134</strong> (dual-mode PIM for asymmetric attention GEMV). MLSys writes the kernel; ISCA/</p>
+<p>MICRO/DAC build the accelerator; the bottleneck (attention + KV) is identical.</p>
+<h3>T2 — Quantization &amp; low-precision</h3>
+<p><em>All six venues.</em> Everyone drives precision down, but the <strong>co-design partner differs by venue.</strong></p>
+<p>MLSys co-designs precision with the <em>Tensor-Core datapath</em> (<strong>mlsys-2025-003</strong> W4A8KV4,</p>
+<p><strong>mlsys-2025-021</strong> INT3 MoE). The architecture venues build <em>custom low-bit datapaths</em>:</p>
+<p><strong>isca-2025-079</strong> (LUT Tensor Core), <strong>hpca-2025-003</strong> (VQ-LLM vector quantization),</p>
+<p><strong>micro-2025</strong> outlier-aware MX block-floating-point for 4-bit LLM inference and sub-8-bit SIMD</p>
+<p>convolution. HPCA adds per-group/variable-precision GEMM accelerators; ASPLOS contributes</p>
+<p>masked vector quantization (<strong>asplos-2025-079</strong> MVQ); DAC pairs quantization with sparsity in</p>
+<p>accelerators (<strong>dac-2025-072</strong> SQ-DM 4-bit diffusion, <strong>dac-2025-030</strong> SAGA mixed-precision).</p>
+<p>Shared mechanism: protect outliers, group/mix precision, and make the reduced precision</p>
+<p><em>natively executable</em> rather than dequantized back to FP32.</p>
+<h3>T3 — Memory hierarchy, near-data &amp; processing-in-memory</h3>
+<p><em>ISCA, MICRO, HPCA, ASPLOS, DAC (not MLSys at the silicon level).</em> This is the theme MLSys can</p>
+<p>only approximate in software (offloading a slow tier behind GPU compute — <strong>mlsys-2025-024</strong> NEO,</p>
+<p><strong>mlsys-2025-033</strong> FlexInfer). The architecture venues do the real thing: **near-data /</p>
+<p>processing-in-memory** is a first-class category (ISCA NDP 27, HPCA NDP 24, MICRO NDP 11). Shared</p>
+<p>mechanism: <strong>move compute to where the data lives</strong> to escape the bandwidth wall.</p>
+<p><strong>isca-2025-058</strong> (channel-level NMP genome assembly), <strong>micro-2025</strong> Mono3D DRAM NMP for MoE</p>
+<p>with in-memory tiering and locality-aware PIM-host cooperation for graphs, <strong>hpca-2025</strong> async</p>
+<p>host-NMA co-execution in DIMM-based near-memory and PIM for FHE modular arithmetic,</p>
+<p><strong>asplos-2025-170</strong> (PUSHtap PIM-based in-memory HTAP), <strong>dac-2025-141</strong> (retrieval-in-memory</p>
+<p>for RAG via hierarchical PIM). Compute-in-memory/CIM appears at every architecture venue</p>
+<p>(ISCA 13, HPCA 13, MICRO 6, DAC 6) — and <strong>micro-2025-118</strong> is a rare honest note: a real</p>
+<p>commercial compute-in-SRAM device is <em>still</em> bandwidth-bound without careful dataflow.</p>
+<h3>T4 — Interconnect, collectives &amp; communication overlap</h3>
+<p><em>MLSys, ISCA, HPCA, ASPLOS, DAC.</em> Distributed AI spends a large fraction of time in collectives;</p>
+<p>the shared mechanism is <strong>hide communication behind compute, or redesign the network.</strong> MLSys</p>
+<p>does it in software at tile granularity (<strong>mlsys-2025-002</strong> TileLink, <strong>mlsys-2025-055</strong> COMET</p>
+<p>MoE all-to-all overlap); ASPLOS does the same for MoE training (<strong>asplos-2025-105</strong> FSMoE dual</p>
+<p>inter/intra-node overlap) and auto-schedules the overlap. The architecture venues instead build</p>
+<p>the <em>network</em>: <strong>hpca-2025-001</strong> (Push Multicast speculative coherent interconnect),</p>
+<p><strong>isca-2025</strong> flexible non-blocking topology for large-scale AI/HPC interconnects, traffic</p>
+<p>shaping for non-uniform multi-GPU links, and topology-aware NPU virtualization.</p>
+<p>Collective-communication-driven fault detection for distributed training appears at both HPCA</p>
+<p>and MLSys.</p>
+<h3>T5 — Sparsity &amp; MoE</h3>
+<p><em>All six venues.</em> Shared mechanism: <strong>make irregular sparsity hardware-legible</strong> — decompose to</p>
+<p>supported N:M patterns, prune whole columns/tokens, or exploit temporal/output redundancy.</p>
+<p>MLSys: <strong>mlsys-2025-022</strong> (TASD unstructured→N:M), <strong>mlsys-2025-014</strong> (RISC-V N:M ISA). The</p>
+<p>architecture venues build sparse accelerators with on-chip memory adaptation: MICRO</p>
+<p>reconfigurable sparse accelerator with distributed on-chip memory and adaptive caching for</p>
+<p>sparse tensor accelerators; ISCA on-chip cache optimization for SpMM; HPCA joint input-weight</p>
+<p>bit-slice sparsity. Output/temporal sparsity is a distinct architecture-venue move:</p>
+<p><strong>hpca-2025-035</strong> (EXION inter/intra-iteration diffusion output sparsity), <strong>dac-2025-072</strong></p>
+<p>(temporal sparsity in diffusion). MoE-specific systems recur too (<strong>asplos-2025-105/133</strong>,</p>
+<p>MICRO Mono3D DRAM for MoE, MLSys COMET/MiLo).</p>
+<h3>T6 — Compilation, programming models &amp; accelerator generation</h3>
+<p><em>MLSys, ISCA, MICRO, HPCA, ASPLOS, DAC.</em> Shared mechanism: **raise the abstraction so one</p>
+<p>description targets many datapaths.<strong> MLSys: programmable attention (</strong>mlsys-2025-015**</p>
+<p>FlexAttention), tile-centric comm (TileLink), MPMD pipelines (JaxPP). The architecture venues</p>
+<p>generate the <em>hardware itself</em>: <strong>hpca-2025-002</strong> (LEGO affine-representation spatial-accelerator</p>
+<p>RTL generation), <strong>isca-2025-003</strong> (RSN circuit-switched streaming ISA for FPGA overlays),</p>
+<p><strong>micro-2025-087</strong> (automated RISC-V subset-processor generation), <strong>micro-2025-021</strong></p>
+<p>(LLMulator generalizable cost modeling for dataflow accelerators). ASPLOS carries the deepest</p>
+<p>compiler stream (49 papers: einsum-tree layout IR, differentiable e-graph extraction,</p>
+<p>inter-operator DNN compilers). DAC owns the RTL/EDA-tool end (<strong>dac-2025-042</strong> GSIM RTL</p>
+<p>simulation, logic-synthesis via equality saturation, <strong>dac-2025-060</strong> LLM-for-chip-design).</p>
+<h3>T7 — Security, side-channels &amp; reliability</h3>
+<p><em>ISCA, MICRO, HPCA, ASPLOS, DAC (essentially absent from MLSys).</em> This is a defining</p>
+<p>architecture/systems theme with no real MLSys presence. Shared sub-streams: <strong>RowHammer</strong></p>
+<p>attack-and-defense at every architecture venue (<strong>micro-2025-025</strong> ρHammer prefetch revival,</p>
+<p><strong>asplos-2025-113</strong> MOAT per-row-counter mitigation, <strong>asplos-2025-027</strong> RowHammer hypervisor</p>
+<p>escape, on-DRAM-die mitigations at HPCA); <strong>microarchitectural side channels</strong></p>
+<p>(<strong>asplos-2025-124</strong> SMaCk self-modifying-code I-cache attack, transient-execution mitigation via</p>
+<p>memory tagging at ISCA, secure BTB at MICRO); <strong>confidential computing</strong> (SEV-SNP contention</p>
+<p>channels <strong>asplos-2025-134</strong>, CXL-memory encryption for TEEs); and <strong>reliability</strong></p>
+<p>(silent-data-corruption modeling at HPCA and ASPLOS, low-voltage CIM error correction).</p>
+<p>DAC adds hardware-root-of-trust/PUF and backdoor work (<strong>dac-2025-107</strong> concealed backdoor via</p>
+<p>unlearning, PUF security). MLSys touches security only as ML-supply-chain/robustness, never as</p>
+<p>hardware side-channels.</p>
+<h3>T8 — Cryptographic &amp; quantum acceleration</h3>
+<p><em>ISCA, MICRO, HPCA, ASPLOS, DAC.</em> Two clusters with no MLSys footprint. **FHE / ZKP / PQC</p>
+<p>accelerators<strong>: </strong>isca-2025-025<strong> (zkSpeed HyperPlonk ZKP ASIC), </strong>isca-2025-086** (Finesse</p>
+<p>pairing-based crypto co-design), FHE accelerators and GPU-FHE kernels at HPCA/ASPLOS</p>
+<p>(<strong>asplos-2025-029/042</strong>, <strong>hpca-2025-027/037/070</strong>), loop-aware FHE bootstrapping compilation.</p>
+<p><strong>Quantum computing</strong> is a substantial recurring stream at ISCA (synchronization for</p>
+<p>fault-tolerant QC <strong>isca-2025-077</strong>), MICRO (distributed quantum control <strong>micro-2025-007</strong>,</p>
+<p>leakage speculation for QEC <strong>micro-2025-078</strong>), HPCA (Choco-Q constrained optimization</p>
+<p><strong>hpca-2025-101</strong>, Clifford extraction), ASPLOS (Micro Blossom MWPM decoder <strong>asplos-2025-148</strong>,</p>
+<p>Fat-Tree QRAM <strong>asplos-2025-154</strong>), and DAC (qubit routing, LLM quantum-code generation</p>
+<p><strong>dac-2025-018</strong>). Entirely outside the MLSys scope.</p>
+<h3>T9 — Serving scheduling, SLOs &amp; cluster energy</h3>
+<p><em>MLSys, ISCA, HPCA, ASPLOS, DAC.</em> Production LLM serving under SLOs recurs as its own theme.</p>
+<p>Shared mechanism: <strong>phase-aware / demand-aware reconfiguration.</strong> MLSys owns the software depth</p>
+<p>(<strong>mlsys-2025-018</strong> SOLA, <strong>mlsys-2025-023</strong> ThunderServe heterogeneous disaggregation);</p>
+<p>ASPLOS adds output-length-aware scheduling (<strong>asplos-2025-049</strong>) and CoE serving under memory</p>
+<p>limits (<strong>asplos-2025-133</strong>); HPCA adds the energy dimension the others omit (<strong>hpca-2025-082</strong></p>
+<p>DynamoLLM multi-knob energy-aware cluster reconfiguration); ISCA formalizes phase-disaggregated</p>
+<p>scheduling in hardware terms; DAC contributes real-time oversubscribed GPU DNN scheduling</p>
+<p>(<strong>dac-2025-007</strong> DARIS).</p>
+<h3>T10 — Edge / on-device co-design</h3>
+<p><em>MLSys, ISCA, MICRO, HPCA, DAC.</em> A distinct low-power frontier. Shared mechanism: **co-design at</p>
+<p>the ISA/dataflow/algorithm level for a tight energy/SRAM envelope.** MLSys: forward-only</p>
+<p>on-device training (<strong>mlsys-2025-019</strong>), FPGA long-context dataflow (<strong>mlsys-2025-031</strong>). The</p>
+<p>architecture venues push into real edge silicon: <strong>isca-2025-047</strong> (Dadu-Corki robotic-</p>
+<p>manipulation co-design), <strong>micro-2025-087</strong> (extreme-edge RISC-V generation), <strong>micro-2025-069</strong></p>
+<p>(RTGS real-time 3DGS SLAM on edge), <strong>hpca-2025-045</strong> (multi-dimensional vector ISA for mobile</p>
+<p>in-cache computing), <strong>hpca-2025-084</strong> (IRIS ISP-software co-design for machine vision). DAC adds</p>
+<p>edge deployment (<strong>dac-2025-016</strong> EEG-driven prosthetic edge ML, SNN pruning). 3D Gaussian</p>
+<p>Splatting SLAM on edge independently appears at ISCA, MICRO, and HPCA — a notable convergence.</p>
+<hr>
+<h2>4. What differs by venue</h2>
+<p><strong>What ISCA / MICRO / HPCA / DAC do that MLSys never touches:</strong></p>
+<ul>
+<li><strong>Real silicon and custom datapaths.</strong> ASIC is the #1 target at ISCA (49), HPCA (48), DAC (38)</li>
+</ul>
+<p>and #2 at MICRO; CIM/PIM/analog/photonic/chiplet appear across all four. MLSys has essentially</p>
+<p>one ASIC and one FPGA result — it optimizes <em>for</em> the GPU it is handed.</p>
+<ul>
+<li><strong>The memory subsystem as a first-class object.</strong> Cache-replacement policy</li>
+</ul>
+<p>(<strong>micro-2025-054</strong> temperature-aware, <strong>isca-2025-060</strong> pairwise instruction-data LLC),</p>
+<p>coherence protocols, DRAM microarchitecture, near-data/PIM (T3), and prefetching are a huge</p>
+<p>fraction of the architecture corpus and have no MLSys analogue (MLSys &quot;memory&quot; means GPU-HBM</p>
+<p>offloading in software).</p>
+<ul>
+<li><strong>On-chip interconnect and coherence</strong> (<strong>hpca-2025-001</strong>, ISCA topology/NoC work) — MLSys</li>
+</ul>
+<p>interconnect is NVLink/InfiniBand <em>usage</em>, never <em>design</em>.</p>
+<ul>
+<li><strong>Hardware security and reliability</strong> (T7) — RowHammer, side channels, TEEs, silent-data-</li>
+</ul>
+<p>corruption. MLSys is silent here.</p>
+<ul>
+<li><strong>Cryptographic and quantum acceleration</strong> (T8) — no MLSys presence at all.</li>
+<li><strong>Microarchitecture reverse-engineering</strong> (<strong>micro-2025-043</strong> Ampere SM) — a genre unique to</li>
+</ul>
+<p>the architecture venues.</p>
+<ul>
+<li><strong>EDA / design automation (DAC only)</strong> — placement, routing, timing, IR-drop, RTL simulation,</li>
+</ul>
+<p>logic synthesis, verification, and AI-for-EDA. None of the other five venues do chip-design</p>
+<p><em>tooling</em>; this is DAC&#x27;s exclusive territory.</p>
+<p><strong>What MLSys (and to a degree ASPLOS) do that the architecture venues barely touch:</strong></p>
+<ul>
+<li><strong>Large-scale distributed <em>training</em> systems</strong> — RLHF parameter reallocation</li>
+</ul>
+<p>(<strong>mlsys-2025-030</strong> ReaL), pipeline-bubble filling (<strong>mlsys-2025-010</strong>), vocabulary</p>
+<p>parallelism, 1M–2M-token context/sequence parallelism (<strong>mlsys-2025-050/051</strong>). The</p>
+<p>architecture venues touch distributed training mainly via interconnect/fault-detection, not</p>
+<p>the parallelization plan.</p>
+<ul>
+<li><strong>Production serving software depth</strong> — SLO-constrained per-iteration scheduling, prefix-cache</li>
+</ul>
+<p>reuse, constrained decoding (<strong>mlsys-2025-016</strong> XGrammar), heterogeneous-cloud disaggregation.</p>
+<p>ISCA/HPCA touch serving but at coarser (hardware-config) granularity.</p>
+<ul>
+<li><strong>Framework-level honesty checks</strong> — <strong>mlsys-2025-007</strong> shows KV-compression speedups vanish</li>
+</ul>
+<p>under real PagedAttention+FlashAttention at batch &gt; 4; this &quot;does it survive a real serving</p>
+<p>stack&quot; critique is a MLSys-native genre. HPCA&#x27;s analogue is methodological (correct statistical</p>
+<p>methodology for aggregate speedup reporting).</p>
+<p><strong>The through-line:</strong> MLSys optimizes the <em>software above</em> fixed NVIDIA silicon; the architecture</p>
+<p>venues build (and secure, and verify) the silicon <em>below</em>; DAC builds the <em>tools</em> that produce</p>
+<p>that silicon. The same LLM/attention/quantization/sparsity problems appear at every layer — each</p>
+<p>venue attacks them with the degrees of freedom available at its layer.</p>
+<hr>
+<h2>5. Cross-cutting observations</h2>
+<p><strong>The co-design reflex is universal.</strong> Nearly every high-confidence paper fuses an algorithmic</p>
+<p>idea into a datapath/schedule: quantization × Tensor-Core (<strong>mlsys-2025-003</strong>), LUT × bit-serial</p>
+<p>Tensor Core (<strong>isca-2025-079</strong>), gradient redistribution × RRAM PIM (<strong>isca-2025-098</strong>),</p>
+<p>trajectory prediction × robotic-control ASIC (<strong>isca-2025-047</strong>), sparsity × diffusion</p>
+<p>accelerator (<strong>hpca-2025-035</strong>, <strong>dac-2025-072</strong>). &quot;Algorithm-hardware co-design&quot; or</p>
+<p>&quot;software-hardware co-design&quot; is the most common phrase in the corpus.</p>
+<p><strong>Recurring baselines and harnesses.</strong> MLSys/serving work benchmarks against a near-standard</p>
+<p>harness: <strong>vLLM (+Outlines) / SGLang / TensorRT-LLM on A100/H100 with FlashAttention-2</strong>;</p>
+<p>quantization against GPTQ/MARLIN; training against Megatron-LM/DeepSpeed/FSDP. The architecture</p>
+<p>venues compare against <strong>their own prior accelerators</strong> and, tellingly, against **an A100/H100</p>
+<p>GPU as the &quot;to beat&quot; reference** even for ASIC/FPGA work (e.g. RSN-XNN vs A100/T4 in</p>
+<p><strong>isca-2025-003</strong>) — the GPU is the field&#x27;s universal yardstick across all six venues.</p>
+<p><strong>Consistent framings.</strong> <em>Prefill vs decode as opposite regimes</em> recurs from MLSys serving into</p>
+<p>ISCA phase-disaggregation. <em>Hide a slow tier behind a fast one</em> generalizes from MLSys</p>
+<p>PCIe/CPU-offload to architecture-venue near-data/PIM. <em>Dynamic/adaptive over static</em> appears as</p>
+<p>adaptive sparsity budgets, SLO-aware scheduling, and multi-knob cluster reconfiguration.</p>
+<p><strong>Tensions.</strong> (1) <em>Reported vs realized speedup</em> — <strong>mlsys-2025-007</strong> is the cautionary tale for</p>
+<p>the whole quantization/compression cluster; <strong>micro-2025-118</strong> is its silicon analogue (real</p>
+<p>compute-in-SRAM is still bandwidth-bound). (2) <em>Generality vs peak performance</em> — programming-</p>
+<p>model and accelerator-generator papers (FlexAttention, TileLink, LEGO, RSN) trade peak</p>
+<p>throughput for portability. (3) <em>Accuracy vs efficiency</em> — negotiated everywhere, rarely</p>
+<p>eliminated; &quot;near-lossless&quot; and explicit quality floors are ubiquitous.</p>
+<p><strong>Honest gaps.</strong></p>
+<ul>
+<li><strong>Non-NVIDIA silicon is under-represented even where it should not be.</strong> MLSys is</li>
+</ul>
+<p>GPU-monoculture; the architecture venues build ASIC/CIM but still benchmark against NVIDIA GPUs</p>
+<p>and rarely against each other&#x27;s or vendor (TPU/AMD/Groq/Cerebras) parts. TPU appears just once</p>
+<p>or twice per architecture venue.</p>
+<ul>
+<li><strong>Energy/PPA is unevenly measured.</strong> ISCA/MICRO/HPCA/DAC report area/power/EDP for ASIC/CIM</li>
+</ul>
+<p>work, but datacenter-GPU papers (most of MLSys, much of ASPLOS) report speedup/throughput and</p>
+<p>almost never Joules or TOPS/W. <strong>hpca-2025-082</strong> (DynamoLLM) and the edge papers are the</p>
+<p>exceptions that prove the rule.</p>
+<ul>
+<li><strong>Training numerics / convergence verification at scale is thin</strong> across all venues — systems</li>
+</ul>
+<p>are optimized for throughput/memory far more than their effect on convergence is validated.</p>
+<ul>
+<li><strong>MoE, hybrid/SSM, diffusion, and multimodal remain frontier</strong> relative to the deluge of</li>
+</ul>
+<p>dense-transformer attention work, though MoE is clearly growing at every venue.</p>
+<ul>
+<li><strong>Cross-venue commensurability is poor.</strong> Baselines, hardware, batch sizes, and sequence</li>
+</ul>
+<p>lengths differ so widely that headline multipliers are directional within a theme, not</p>
+<p>comparable across venues.</p>
+<hr>
+<h2>6. Coverage &amp; confidence — read this before trusting any count</h2>
+<p><strong>719 papers total; 603 analyzed; 116 title-only NOT analyzed.</strong> Of the 603 analyzed, **120 are</p>
+<p>full-text (<code>confidence: high</code>)<strong> and </strong>483 are abstract-only (<code>confidence: low</code>)**. Per-venue:</p>
+<p>| Venue  | Analyzed | high | low | Notes |</p>
+<p>|--------|---------:|-----:|----:|-------|</p>
+<p>| MLSys  | 61  | 61 |   0 | Fully full-text; the reliable anchor. |</p>
+<p>| ISCA   | 112 | 17 |  95 | Mostly abstract-only. |</p>
+<div class="caveat"><p>| MICRO  | 47  | 20 |  27 | <strong>76 title-only excluded</strong> — IEEE withholds MICRO abstracts. Most under-sampled. |</p></div>
+<p>| HPCA   | 119 |  8 | 111 | Almost entirely abstract-only. |</p>
+<p>| ASPLOS | 164 | 14 | 150 | Largest corpus, mostly abstract-only. |</p>
+<div class="caveat"><p>| DAC    | 100 |  0 | 100 | <strong>Only ~100/457 fetched</strong> (DBLP instability); zero full-text. Heavily under-sampled. |</p></div>
+<p><strong>What this means, stated plainly:</strong></p>
+<ul>
+<li><strong>Only MLSys is fully full-text.</strong> Its 9-theme taxonomy is high-confidence; everything cited</li>
+</ul>
+<p>from MLSys is grounded in a full extraction.</p>
+<ul>
+<li><strong>Abstract-only (<code>low</code>) analyses are shallower.</strong> For ISCA/HPCA/ASPLOS the <em>distributions</em></li>
+</ul>
+<p>(hardware targets, workloads, technique categories) are trustworthy in aggregate, but any</p>
+<p>individual <code>low</code> paper&#x27;s mechanism/metrics are read from an abstract, not the full text.</p>
+<p>High-confidence ids were preferred for every grounded claim above.</p>
+<ul>
+<li><strong>The MICRO picture is under-sampled.</strong> 76 MICRO papers are title-only (no abstract available),</li>
+</ul>
+<p>so 47 records is a partial view — MICRO&#x27;s true theme balance (especially its security and</p>
+<p>memory-system depth) is likely <em>understated</em> here.</p>
+<ul>
+<li><strong>The DAC picture is the most under-sampled.</strong> Roughly 100 of ~457 DAC papers were fetched</li>
+</ul>
+<p>due to DBLP instability, and <strong>none</strong> are full-text. DAC&#x27;s EDA/design-automation character is</p>
+<p>clear from those 100, but counts should be treated as a lower bound, not a census.</p>
+<ul>
+<li><strong>Do not overclaim.</strong> Cross-venue counts mix full-text and abstract-only records of uneven</li>
+</ul>
+<p>depth, and two venues are partial samples. The qualitative contrasts in §2–§4 are robust; the</p>
+<p>precise numeric shares (e.g. &quot;31 LLM-inference papers at ISCA&quot;) are directional, and the</p>
+<p>MICRO/DAC totals in particular under-count their true corpora.</p>
+  <footer>Six venues · 719 papers · Opus synthesis from per-venue digests and sampled paper JSONs ·
+  <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a></footer>
+</div>
+</body>
+</html>

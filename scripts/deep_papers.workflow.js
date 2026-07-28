@@ -1,6 +1,6 @@
 export const meta = {
   name: 'ai-hardware-deep-papers',
-  description: 'Per-paper deep writeups: "what it does" + "the method, in detail" (Sonnet) — wave mode',
+  description: 'Per-paper deep writeups: "what it does" (Haiku) + "the method, in detail" (Sonnet FT) — wave mode',
   phases: [{ title: 'Full-text methods' }, { title: 'Abstract summaries' }],
 }
 
@@ -82,7 +82,7 @@ for (let i = 0; i < abBatches.length; i += WAVE) {
   const wave = abBatches.slice(i, i + WAVE)
   log(`AB wave ${Math.floor(i/WAVE)+1}/${Math.ceil(abBatches.length/WAVE)}: batches ${wave[0]}–${wave[wave.length-1]}`)
   const waveRes = await parallel(wave.map(bs => () =>
-    agent(abPrompt(bs), { label: `ab:${bs}`, phase: 'Abstract summaries', model: 'sonnet' })
+    agent(abPrompt(bs), { label: `ab:${bs}`, phase: 'Abstract summaries', model: 'haiku' })
   ))
   abResults.push(...waveRes)
 }

@@ -1,0 +1,48 @@
+{
+  "id": "dac-2025-104",
+  "title": "Hydra: Harnessing Expert Popularity for Efficient Mixture-of-Expert Inference on Chiplet System",
+  "venue": "DAC",
+  "problem": "Mixture-of-Expert (MoE) models suffer from extensive all-to-all communication between tokens and expert replicas across chiplets, as well as redundant computations in softmax gating for underutilized experts. These bottlenecks degrade performance and energy efficiency on distributed chiplet architectures.",
+  "motivation": "MoE models enable massive LLM scaling with sparse activation (routing through gate function), but distribution across chiplets creates excessive cross-chiplet traffic and wasted computation. Optimizing for popularity-skewed expert usage patterns is critical.",
+  "method": "Hydra employs a popularity-aware expert mapping strategy in software: routing tokens to experts based on expected gating distribution to minimize all-to-all communication volume. In hardware, it uses Content Addressable Memory (CAM) to eliminate explicit token permutation operations (replacing expensive SpMM unscrambling) and introduces a redundant-calculation-skipping softmax engine that bypasses unnecessary exponential/division for low-probability experts.",
+  "key_novelty": "Hardware-software co-design that exploits expert popularity (non-uniform gating) through popularity-aware mapping and CAM-based permutation avoidance, combined with selective softmax computation.",
+  "contributions": [
+    "Popularity-aware expert mapping strategy reducing interchiplet communication",
+    "Content Addressable Memory (CAM) hardware eliminating token permutation overhead",
+    "Redundant-calculation-skipping softmax engine avoiding computation for low-probability experts",
+    "14.2× latency reduction vs. GPU, 3.5× vs. state-of-the-art MoE accelerator; 169.1× power reduction vs. GPU"
+  ],
+  "hardware_target": [
+    "chiplet",
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "scheduling",
+    "interconnect",
+    "circuit-design"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "MoE",
+    "transformer"
+  ],
+  "metrics": {
+    "speedup": "14.2× vs. GPU, 3.5× vs. MoE accelerator",
+    "energy_or_tops_w": "169.1× power reduction vs. GPU, 18.9× vs. MoE accelerator"
+  },
+  "baselines": [
+    "GPU-based MoE inference (baseline system)",
+    "State-of-the-art MoE accelerator (presumably recent ASIC designs)"
+  ],
+  "limitations": "Evaluation in 22 nm technology; scalability to advanced nodes and applicability to other sparse model architectures not discussed.",
+  "tags": [
+    "moe-inference",
+    "chiplet-architecture",
+    "llm-acceleration",
+    "expert-routing",
+    "communication-optimization"
+  ],
+  "primary_theme": "Chiplet-based MoE inference accelerator exploiting expert popularity for efficient communication and computation",
+  "confidence": "low"
+}

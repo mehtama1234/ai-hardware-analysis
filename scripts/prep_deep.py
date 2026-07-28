@@ -32,7 +32,9 @@ def main():
 
     ft, ab = [], []
     for pid, d in per.items():
-        row = {"id": pid, "title": d.get("title"), "venue": (d.get("venue") or "").split()[0],
+        v = (d.get("venue") or "").strip()
+        venue = v.split()[0] if v else pid.split("-")[0].upper()
+        row = {"id": pid, "title": d.get("title"), "venue": venue,
                "theme": theme_of.get(pid, "T0_other"), "c": d.get("confidence"),
                "abstract": None, "problem": d.get("problem"), "method": d.get("method"),
                "tp": text_path(pid)}

@@ -1,0 +1,27 @@
+{
+  "id": "dac-2025-118",
+  "title": "PASK: Cold Start Mitigation for Inference with Proactive and Selective Kernel Loading on GPUs",
+  "venue": "DAC",
+  "problem": "DNN inference suffers from significant cold-start latency when models are spawned from scratch (spot serving, serverless, edge computing), caused by kernel loading overhead where DL primitive libraries (cuDNN, MIOpen) prepare GPU code objects before execution.",
+  "motivation": "Frequent start-stop inference scenarios (serverless, spot instances, edge) make cold-start kernel loading a critical bottleneck, adding 5–10× latency overhead to inference.",
+  "method": "PASK is a kernel loading and reuse middleware that replaces reactive kernel scheduling with proactive loading: interleaves code loading, kernel issuing, and GPU computation to hide loading latency and improve hardware utilization. Kernels are categorically organized in a cache to enable efficient kernel reuse across DNN layers; the system recycles applicable kernels for operators instead of invoking new kernels per layer.",
+  "key_novelty": "Proactive and selective kernel loading strategy that hides code preparation overhead through pipelined interleaving with GPU computation and aggressive kernel reuse across layers.",
+  "contributions": [
+    "Proactive kernel loading strategy replacing reactive scheduling to interleave loading with computation",
+    "Categorical kernel cache organization for efficient kernel discovery and reuse",
+    "Selective kernel recycling across DNN operators to minimize new kernel invocations",
+    "5.62× average speedup on popular DNN models eliminating cold-start overhead"
+  ],
+  "hardware_target": ["GPU"],
+  "technique_category": ["scheduling", "compiler"],
+  "workloads": ["LLM-inference", "CNN"],
+  "metrics": {
+    "speedup": "5.62×",
+    "cold_start_mitigation": "primary metric"
+  },
+  "baselines": ["Existing DNN inference frameworks with reactive kernel scheduling"],
+  "limitations": "Evaluation limited to off-the-shelf GPUs; applicability to inference with dynamic shapes or custom kernels not fully discussed.",
+  "tags": ["gpu-inference", "cold-start", "kernel-caching", "serverless", "edge-compute", "latency-optimization"],
+  "primary_theme": "Proactive kernel loading to eliminate cold-start latency in GPU inference",
+  "confidence": "low"
+}

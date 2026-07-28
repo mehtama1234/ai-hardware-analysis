@@ -54,7 +54,7 @@ def build_rows():
 
         # normalize venue
         raw_venue = (p.get("venue") or "").strip()
-        venue = raw_venue.split()[0].upper()
+        venue = raw_venue.split()[0].upper() if raw_venue else pid.split("-")[0].upper()
         if venue == "MLSYS":
             venue = "MLSys"
 
