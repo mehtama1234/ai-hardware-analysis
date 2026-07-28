@@ -367,7 +367,7 @@ def build_sidebar():
     for conf, label in [("mlsys","MLSys"),("isca","ISCA"),("micro","MICRO"),
                         ("hpca","HPCA"),("asplos","ASPLOS"),("dac","DAC"),
                         ("isscc","ISSCC"),("hotchips","Hot Chips"),
-                        ("sc","SC"),("vlsid","VLSID")]:
+                        ("sc","SC"),("vlsid","VLSID"),("cgo","CGO")]:
         links.append(f'<a class="nav-link theme" href="{conf}-2025-bigpicture.html">{label}</a>')
 
     links.append('''<div class="sidebar-links">
@@ -401,12 +401,12 @@ def main():
     <header class="hero">
       <div class="eyebrow">AI Hardware 2025 · The master narrative</div>
       <h1>One constraint.<br>Nine answers.</h1>
-      <div class="sub">What 946 papers from six venues are all really about — and how they connect.</div>
-      <div class="meta">MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC &nbsp;·&nbsp; 946 papers · 945 deep writeups</div>
+      <div class="sub">What 1,809 papers from eleven venues are all really about — and how they connect.</div>
+      <div class="meta">MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC · ISSCC · Hot Chips · SC · VLSID · CGO &nbsp;·&nbsp; 1,809 papers</div>
     </header>
     {body_sections}
     <footer>
-      946 papers · 6 venues · First-principles narrative by Opus 4 from all theme intros and the cross-venue synthesis ·
+      1,809 papers · 11 venues · First-principles narrative by Opus 4 from all theme intros and the cross-venue synthesis ·
       <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a> · <a href="synthesis.html">cross-venue synthesis</a>
     </footer>
   </div>

@@ -34,6 +34,7 @@ VENUES = [
     ('HotChips', 'Industry Silicon',             'hotchips'),
     ('SC',       'Supercomputing',               'sc'),
     ('VLSID',    'VLSI Design',                  'vlsid'),
+    ('CGO',      'Compiler Optimization',        'cgo'),
 ]
 VENUE_KEYS   = [v[0] for v in VENUES]
 VENUE_DOMAIN = {v[0]: v[1] for v in VENUES}

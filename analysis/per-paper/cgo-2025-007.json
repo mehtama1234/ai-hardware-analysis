@@ -1,0 +1,27 @@
+{
+  "id": "cgo-2025-007",
+  "title": "Improving Native-Image Startup Performance",
+  "venue": "CGO 2025",
+  "problem": "Serverless/FaaS workloads have short lifetimes where startup time directly impacts service-level agreements. Despite AOT heap pre-initialization in GraalVM Native Image, startup remains suboptimal due to excessive page faults from poor binary layout.",
+  "motivation": "Cloud runtime initiates programs upon request; startup overhead directly impacts SLA. Reducing page faults is critical for FaaS performance where startup dominates execution time.",
+  "method": "Profile-guided binary reordering reorders code and objects in heap snapshots to minimize page faults. Proposes execution-order profiling to capture method and object access sequences. Three object ordering strategies reduce heap-related page faults. Matches profiled objects to built objects despite identity/persistence changes across Native Image builds.",
+  "key_novelty": "First profile-guided approach to reorder heap snapshot objects in AOT-compiled Native Image binaries to reduce page faults.",
+  "contributions": [
+    "Execution-order profiling for Native Image code and heap objects",
+    "Three object ordering strategies for heap snapshot optimization",
+    "Object matching technique across Native Image builds",
+    "1.61× average page fault reduction, 1.59× execution speedup"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["compiler", "memory-system"],
+  "workloads": [],
+  "metrics": {
+    "speedup": "1.59× average execution speedup",
+    "other": "1.61× page fault reduction"
+  },
+  "baselines": ["Default Native Image binary layout", "Standard GraalVM"],
+  "limitations": "Evaluation limited to startup phase; impact on longer-running workloads not discussed.",
+  "tags": ["native-image", "startup-optimization", "page-faults", "binary-layout", "aot", "graalvm"],
+  "primary_theme": "Profile-guided startup optimization via binary reordering",
+  "confidence": "low"
+}

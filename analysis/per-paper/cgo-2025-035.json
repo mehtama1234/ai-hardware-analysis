@@ -1,0 +1,29 @@
+{
+  "id": "cgo-2025-035",
+  "title": "GoFree: Reducing Garbage Collection via Compiler-Inserted Freeing",
+  "venue": "CGO",
+  "problem": "Garbage collection overhead is a significant performance bottleneck in memory-managed languages like Go; GC pauses and memory reclamation consume substantial CPU and power resources even though not all heap memory requires dynamic collection.",
+  "motivation": "Reducing GC frequency and cost directly improves application latency, throughput, and energy efficiency by reclaiming reachable-but-unused memory earlier through compiler-directed deallocation.",
+  "method": "GoFree performs escape analysis (O(n^2) time) to identify short-lived heap objects that can be safely deallocated explicitly via compiler-inserted freeing instructions, leveraging thread-safe primitives compatible with concurrent environments. The optimization operates transparently, preserving Go's memory-managed programming model while reducing peak heap usage and GC frequency.",
+  "key_novelty": "Designing a fast O(n^2) escape analysis that precisely identifies deallocatable objects and implementing thread-safe explicit freeing without GC modifications.",
+  "contributions": [
+    "A powerful and efficient escape analysis algorithm (O(n^2)) that identifies short-lived heap objects safe for explicit deallocation",
+    "A thread-safe freeing primitive suitable for concurrent environments",
+    "Empirical validation showing 7% reduction in GC frequency, 13% reduction in GC time, and 2% wall-clock improvement on real Go programs"
+  ],
+  "hardware_target": ["CPU"],
+  "technique_category": ["compiler", "memory-system"],
+  "workloads": [],
+  "metrics": {
+    "gc_frequency_reduction": "7%",
+    "gc_time_reduction": "13%",
+    "wall_clock_time_reduction": "2%",
+    "heap_size_reduction": "4%",
+    "memory_deallocated": "14% of allocated heap"
+  },
+  "baselines": ["Standard Go garbage collector (unoptimized)"],
+  "limitations": "Evaluation limited to 6 open-source Go programs; no analysis of compiler overhead breakdown or sensitivity to object lifetime patterns.",
+  "tags": ["garbage-collection", "memory-management", "escape-analysis", "compiler-optimization", "concurrent"],
+  "primary_theme": "Compiler-directed memory deallocation to reduce GC overhead",
+  "confidence": "low"
+}

@@ -152,8 +152,8 @@ def main():
 
     # Extract title and subtitle from first heading + corpus line
     title = "Cross-Venue Synthesis — AI Hardware 2025"
-    subtitle = "Six venues, one year: what the whole field is doing, where it agrees, where it diverges"
-    meta_line = "MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC &nbsp;·&nbsp; 719 papers · 603 analyzed · 120 read in full"
+    subtitle = "Eleven venues, one year: what the whole field is doing, where it agrees, where it diverges"
+    meta_line = "MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC · ISSCC · Hot Chips · SC · VLSID · CGO &nbsp;·&nbsp; 1,808 papers · 120 read in full"
 
     # Section nav
     sections = [
@@ -191,7 +191,7 @@ def main():
   </header>
   <nav class="nav-pills">{nav}</nav>
   {body}
-  <footer>Six venues · 719 papers · Opus synthesis from per-venue digests and sampled paper JSONs ·
+  <footer>Eleven venues · 1,808 papers · Opus synthesis from per-venue digests and sampled paper JSONs ·
   <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a></footer>
 </div>
 </body>

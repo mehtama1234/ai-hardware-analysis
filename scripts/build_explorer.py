@@ -212,9 +212,9 @@ function esc(s){{
 
 function renderDetail(r){{
   if(!r.detail) return '';
-  const paras = r.detail.split(/\n[\s]*\n|(?<=[.])[\s]*\n/).filter(Boolean).map(b=>{{
+  const paras = r.detail.split(/\n[\\s]*\n|(?<=[.])[\\s]*\n/).filter(Boolean).map(b=>{{
     b=b.trim();if(!b)return '';
-    const m=b.match(/^([A-Z][A-Za-z /\\-]{{1,30}}?[.:])([\s]+)(.*)$/s);
+    const m=b.match(/^([A-Z][A-Za-z /\\-]{{1,30}}?[.:])([ \\t]+)(.*)$/s);
     return m?`<p><b>${{esc(m[1])}}</b> ${{esc(m[3])}}</p>`:`<p>${{esc(b)}}</p>`;
   }}).join('');
   return `<div class="detail-box"><div class="lab">The method, in detail</div>${{paras}}</div>`;
