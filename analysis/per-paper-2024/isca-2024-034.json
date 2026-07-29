@@ -1,0 +1,44 @@
+{
+  "id": "isca-2024-034",
+  "title": "(MC)2: Lazy MemCopy at the Memory Controller",
+  "venue": "ISCA",
+  "year": 2024,
+  "problem": "Memory copy operations incur significant CPU overhead due to cache misses that stall the CPU in the critical path. This overhead is especially severe when copied data is sparsely accessed.",
+  "motivation": "Memory copy is ubiquitous in systems like Protobuf serialization and OS copy-on-write, and reducing its overhead can substantially improve overall performance.",
+  "method": "The system defers actual copying at memcpy invocation and tracks prospective copies at the memory controller level. When copied data is accessed by the CPU or cache, the memory controller uses this tracking information to lazily execute the copy. Implementation includes memory controller extensions, a new ISA instruction, and a software wrapper maintaining standard memcpy semantics.",
+  "key_novelty": "Placing lazy memcpy at the memory controller to intercept cache misses and asynchronously perform copies on-demand, eliminating CPU stalls as the primary memcpy overhead source.",
+  "contributions": [
+    "Lazy memcpy mechanism that defers copying until data access, reducing CPU overhead for sparsely accessed copies",
+    "Memory controller extensions to track and asynchronously execute prospective copies",
+    "New CPU instruction to expose lazy memcpy functionality",
+    "Software wrapper providing backward-compatible memcpy semantics"
+  ],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "cache"
+  ],
+  "workloads": [
+    "database"
+  ],
+  "metrics": {
+    "speedup": "43% on Google Protobuf",
+    "other": "250x lower latency on Linux huge page copy-on-write faults"
+  },
+  "baselines": [
+    "standard memcpy"
+  ],
+  "limitations": "Limitations not discussed in the abstract.",
+  "tags": [
+    "lazy-memcopy",
+    "memory-controller",
+    "asynchronous-execution",
+    "cache-optimization",
+    "cpu-overhead",
+    "copy-on-write"
+  ],
+  "primary_theme": "lazy memory copy at memory controller",
+  "confidence": "high"
+}
