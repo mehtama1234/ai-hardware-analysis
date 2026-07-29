@@ -1,0 +1,49 @@
+{
+  "id": "sc-2024-324",
+  "title": "Mille-feuille: A Tile-Grained Mixed Precision Single-Kernel Conjugate Gradient Solver on GPUs",
+  "venue": "SC",
+  "year": 2024,
+  "problem": "Existing GPU implementations of conjugate gradient and biconjugate gradient stabilized methods for sparse linear systems suffer from inefficiencies in mixed precision utilization, high kernel synchronization costs, and inability to adapt numerical precision based on partial convergence during iterations.",
+  "motivation": "Accelerating sparse linear system solvers on GPUs is critical for high-performance scientific computing, but current implementations waste performance through suboptimal kernel synchronization and precision strategies.",
+  "method": "The solver develops a tiled sparse format to enable tile-grained mixed precision computation. It consolidates the entire solving procedure into a single GPU kernel using atomic operations to eliminate kernel synchronization overhead. Runtime tile-wise dynamic precision conversion is implemented on-chip to adapt numerical precision based on convergence progress.",
+  "key_novelty": "Single-kernel architecture with atomic operations combined with tile-wise dynamic precision conversion, eliminating synchronization overhead while maintaining numerical stability through runtime precision adjustment.",
+  "contributions": [
+    "Analysis identifying three key inefficiencies in CG/BiCGSTAB: suboptimal mixed precision, high synchronization costs, and missed convergence-aware precision opportunities",
+    "Tiled sparse matrix format supporting fine-grained mixed precision at tile granularity",
+    "Single-kernel design using atomic operations to eliminate inter-kernel synchronization overhead",
+    "Tile-wise on-chip dynamic precision conversion mechanism for convergence-aware mixed precision strategy"
+  ],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "sparsity",
+    "kernel-fusion",
+    "parallelism",
+    "memory-system"
+  ],
+  "workloads": [
+    "HPC"
+  ],
+  "metrics": {
+    "speedup": "3.03x-8.77x (CG), 2.65x-7.51x (BiCGSTAB), 3.82x-40.38x (PCG), 1.79x-45.63x (PBiCGSTAB) over baselines"
+  },
+  "baselines": [
+    "cuSPARSE",
+    "hipSPARSE",
+    "PETSc",
+    "Ginkgo"
+  ],
+  "limitations": "Applicability to different sparse matrix structures, varying sparsity patterns, and extreme problem sizes are not discussed.",
+  "tags": [
+    "mixed-precision",
+    "sparse-solvers",
+    "gpu-optimization",
+    "single-kernel",
+    "conjugate-gradient",
+    "atomic-operations"
+  ],
+  "primary_theme": "tile-grained mixed precision sparse linear solvers",
+  "confidence": "high"
+}
