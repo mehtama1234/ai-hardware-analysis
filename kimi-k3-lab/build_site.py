@@ -19,7 +19,8 @@ SESSIONS = [
   "Gated DeltaNet", "Mamba-2 decay meets the delta rule. Real runs: a decay dial that forgets stale context (recall 0.46→0.02) while keeping fresh recall sharp, and the α^Δ survival law verified to 4 decimals.", "🎚️", "live"),
  ("06-kda.html", "06-kda-kimi-linear/out/index.html",
   "KDA / Kimi Linear", "Per-channel decay + MLA hybrid. Real runs: per-channel keeps AND forgets (goal 0.86 vs best scalar 0.16), and the 3 KDA:1 MLA interleave reproduces the paper's −75% KV cache.", "🧬", "live"),
- (None, None, "Kimi K3", "23×(3 KDA + 1 MLA) macrocycles, latent MoE, SiTU, Gated MLA, AttnRes. Capacity with a job.", "🌐", "soon"),
+ ("07-kimi-k3.html", "07-kimi-k3/out/index.html",
+  "Kimi K3", "The assembly: 23×(3 KDA + 1 MLA) macrocycles, latent MoE (18 of 898 fire), SiTU bounded activation, AttnRes across depth (recovery 0.83 vs 0.48). The whole ladder, connected.", "🌐", "live"),
 ]
 
 def nav(cur_title):

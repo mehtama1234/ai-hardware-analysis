@@ -29,14 +29,17 @@ with the explanation embedded, and a top-level `build_site.py` that assembles th
 
 Scope: the full ladder, built as an interactive lab with real runs. Sessions land one at a time.
 
-## Status
-- [x] **01 — Softmax baseline** (KV-cache growth, no-cache O(N²) vs cache O(N) recompute, the 22,580× framing)
-- [ ] 02 — Linear attention
-- [ ] 03 — DeltaNet
-- [ ] 04 — Chunked / parallel DeltaNet
-- [ ] 05 — Gated DeltaNet
-- [ ] 06 — KDA / Kimi Linear
-- [ ] 07 — Kimi K3
+## Status — all 7 sessions live
+- [x] **00 — The big picture** (no-jargon conceptual spine: memory as the one problem)
+- [x] **01 — Softmax baseline** (KV-cache growth, no-cache O(N²) vs cache O(N), the 22,580× framing)
+- [x] **02 — Linear attention** (fixed D×D board, exact re-association, needle-recall fade 0.65→0.08)
+- [x] **03 — DeltaNet** (overwrite: replace not average; needle recall holds far longer than linear)
+- [x] **04 — Chunked DeltaNet** (seq≡chunked to 7e-7, depth L→L/C, 3–22× faster, FLOP split)
+- [x] **05 — Gated DeltaNet** (decay dial forgets stale 0.46→0.02; α^Δ law verified to 4 dp)
+- [x] **06 — KDA / Kimi Linear** (per-channel keep+forget 0.86 vs scalar 0.16; hybrid −75% KV)
+- [x] **07 — Kimi K3** (23×(3 KDA+1 MLA), latent MoE 18/898, SiTU bounded, AttnRes 0.83 vs 0.48)
+
+Sources: ali's X worklog + Kimi Linear (arXiv 2510.26692) + Kimi K3 tech report — see `source/OFFICIAL-SOURCES.md`.
 
 ## Run
 ```bash
