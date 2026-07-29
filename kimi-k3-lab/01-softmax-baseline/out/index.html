@@ -1,0 +1,170 @@
+<title>Kimi K3 Lab · 01 — The softmax baseline</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--panel:#18212F;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;
+--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--viol:#9B8CE0;--serif:"Iowan Old Style",Palatino,Georgia,serif;
+--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7;font-size:17px}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}em{color:var(--ink);font-style:italic}
+.mono{font-family:var(--mono)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff;letter-spacing:-.02em}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:62ch}
+section{padding:44px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:16px 0}
+.why h3{margin:0 0 6px;font-size:13px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}.why p{margin:0;font-size:15px;color:var(--soft)}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:14px}
+.mini{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:10px;line-height:1.6}
+.run{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 18px;margin:16px 0}
+.run .rt{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.run p{margin:0;font-size:14.5px;color:var(--soft)}
+.stat{display:flex;gap:26px;flex-wrap:wrap;margin:22px 0 6px}
+.stat .s{}.stat .sn{font-family:var(--serif);font-size:38px;color:#fff;line-height:1}.stat .sl{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:6px;letter-spacing:.04em}
+.heat{display:inline-block;font-family:var(--mono);margin-top:6px;overflow-x:auto;max-width:100%}
+.hrow{display:flex}
+.hc{width:46px;height:32px;display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 auto}
+.hc.lab{color:var(--dim)}.hc.rlab{width:44px;justify-content:flex-end;padding-right:8px;color:var(--soft)}
+.hc.cell{border:1px solid rgba(10,15,25,.6);color:#eaf6f8;font-size:10px}
+.hc.cell.strong{box-shadow:inset 0 0 0 1px var(--accent);font-weight:700;color:#fff}
+.hc.cell.mask{color:var(--faint);background:rgba(150,170,205,.03)}
+.hc.corner{width:44px}
+.bar{display:flex;align-items:center;gap:12px;margin:9px 0;font-family:var(--mono);font-size:12.5px}
+.bar .bl{width:44px;color:var(--dim);text-align:right}
+.bar .bt{flex:1;height:20px;background:rgba(150,170,205,.06);border-radius:5px;overflow:hidden}
+.bar .bf{display:block;height:100%;background:linear-gradient(90deg,#2E6E7A,#4FA8B8)}
+.bar .bv{width:78px;color:var(--soft)}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13.5px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td.mo{font-family:var(--mono);color:var(--soft)}td.hi{font-family:var(--mono);color:var(--accent);font-weight:700}
+th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(--mono)}
+.panel{background:linear-gradient(180deg,#10161D,#0D131A);border:1px solid var(--line);border-radius:14px;padding:8px;margin-top:14px;overflow:hidden}
+.panel canvas{display:block;width:100%;height:auto;border-radius:8px}
+.readout{font-family:var(--mono);font-size:12px;color:var(--dim);padding:9px 12px 4px}.readout b{color:var(--accent)}
+.aha{font-family:var(--serif);font-size:22px;line-height:1.4;color:#fff;border-left:3px solid var(--accent);padding-left:18px;margin:8px 0}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:10px}
+.src{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.src a{color:var(--accent);text-decoration:none}
+</style>
+<div class="wrap">
+<header style="padding:64px 0 8px">
+  <div class="kick">Kimi K3, from first principles · Session 01 of 07</div>
+  <h1>22,580 GPT-2s in one Kimi&nbsp;K3.</h1>
+  <p class="dek">Seven years, a <b>22,580×</b> jump in parameters. ali's worklog asks the real question: <em>is it just scale?</em> This lab rebuilds the ladder from GPT-2 to K3 one rung at a time and <b>runs each rung for real</b>. We start at the bottom — plain softmax attention — and measure the single fact that every later rung is a reaction to: <b>the KV cache grows with the sequence, and that growth is a wall.</b></p>
+  <div class="stat">
+    <div class="s"><div class="sn">124.4M</div><div class="sl">GPT-2 (2019), computed here</div></div>
+    <div class="s"><div class="sn">2.8T</div><div class="sl">Kimi K3 (2026)</div></div>
+    <div class="s"><div class="sn">22,516×</div><div class="sl">ratio — thread says 22,580</div></div>
+  </div>
+  <div class="run"><div class="rt">▶ We ran it · the headline number</div>
+  <p>Our param math on GPT-2's config (vocab 50304, ctx 1024, 12 layers, d 768) lands at <b>124.4M</b> — the reported 124M. Against K3's 2.8T that's <b>22,516×</b>, within 0.3% of the worklog's 22,580 (we omit LayerNorm/bias). The number is real. The question is whether scale is <em>all</em> that changed.</p></div>
+</header>
+
+<section>
+  <div class="eye">The mechanism · GPT-2</div>
+  <h2>Softmax attention is a normalized read</h2>
+  <p>A decoder-only block does one interesting thing: every token builds a query, compares it against every token's key (a dot product), and <b>softmaxes</b> those scores into weights that sum to 1 — then reads a weighted blend of the values. The causal mask means token <span class="mono">i</span> may only look at tokens <span class="mono">≤ i</span>. Here's that computed for real on a length-6 sequence, one head:</p>
+  <div class="card"><div class='heat'><div class='hrow'><span class='hc corner'></span><span class='hc lab'>t0</span><span class='hc lab'>t1</span><span class='hc lab'>t2</span><span class='hc lab'>t3</span><span class='hc lab'>t4</span><span class='hc lab'>t5</span></div><div class='hrow'><span class='hc lab rlab'>t0</span><span class='hc cell strong' style='background:rgba(79,168,184,1.000)'>1.00</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t1</span><span class='hc cell strong' style='background:rgba(79,168,184,0.353)'>0.35</span><span class='hc cell strong' style='background:rgba(79,168,184,0.646)'>0.65</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t2</span><span class='hc cell ' style='background:rgba(79,168,184,0.185)'>0.19</span><span class='hc cell ' style='background:rgba(79,168,184,0.319)'>0.32</span><span class='hc cell strong' style='background:rgba(79,168,184,0.496)'>0.50</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t3</span><span class='hc cell strong' style='background:rgba(79,168,184,0.598)'>0.60</span><span class='hc cell ' style='background:rgba(79,168,184,0.146)'>0.15</span><span class='hc cell ' style='background:rgba(79,168,184,0.100)'>0.10</span><span class='hc cell ' style='background:rgba(79,168,184,0.156)'>0.16</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t4</span><span class='hc cell ' style='background:rgba(79,168,184,0.054)'>0.05</span><span class='hc cell ' style='background:rgba(79,168,184,0.186)'>0.19</span><span class='hc cell ' style='background:rgba(79,168,184,0.137)'>0.14</span><span class='hc cell strong' style='background:rgba(79,168,184,0.593)'>0.59</span><span class='hc cell ' style='background:rgba(79,168,184,0.030)'>0.03</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t5</span><span class='hc cell ' style='background:rgba(79,168,184,0.045)'>0.05</span><span class='hc cell ' style='background:rgba(79,168,184,0.023)'>0.02</span><span class='hc cell strong' style='background:rgba(79,168,184,0.434)'>0.43</span><span class='hc cell ' style='background:rgba(79,168,184,0.206)'>0.21</span><span class='hc cell ' style='background:rgba(79,168,184,0.198)'>0.20</span><span class='hc cell ' style='background:rgba(79,168,184,0.094)'>0.09</span></div></div></div>
+  <p class="mini">Lower-triangular by the mask. Every row is a probability distribution — row sums = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] (all exactly 1.0). <b>That "÷ by the sum" is the softmax's job</b>; hold onto it — linear attention (Session 2) keeps the divide but swaps the exponential for a cheaper feature map.</p>
+  <div class="why"><h3>Why this matters</h3><p>Softmax couples <em>every</em> query to <em>every</em> key — the nonlinearity lands <b>after</b> the q·k product, so you can't pre-fold the keys and values into a compact state. That coupling is what forces you to keep every past key and value around. Which is exactly the next problem.</p></div>
+</section>
+
+<section>
+  <div class="eye">The bottleneck · what grows</div>
+  <h2>The KV cache grows linearly — forever</h2>
+  <p>At decode step <span class="mono">t</span> you only need the logits at the last position. Without help, the model would re-project every previous token to get their keys and values again. The fix is the <b>KV cache</b>: store the K and V vectors of the past so each step only projects the <em>new</em> token. But that store keeps growing — one slot per token, per head, per layer:</p>
+  <div class="card">
+    <div class="mini" style="margin:0 0 10px"><b>KV cache size</b> for a K3-scale attention config (61 layers · 64 heads · d_head 128 · bf16), by context length:</div>
+    <div class='bar'><span class='bl'>1k</span><span class='bt'><span class='bf' style='width:0.8%'></span></span><span class='bv'>2.0 GB</span></div><div class='bar'><span class='bl'>4k</span><span class='bt'><span class='bf' style='width:3.1%'></span></span><span class='bv'>8.2 GB</span></div><div class='bar'><span class='bl'>16k</span><span class='bt'><span class='bf' style='width:12.5%'></span></span><span class='bv'>32.7 GB</span></div><div class='bar'><span class='bl'>64k</span><span class='bt'><span class='bf' style='width:50.0%'></span></span><span class='bv'>131.0 GB</span></div><div class='bar'><span class='bl'>128k</span><span class='bt'><span class='bf' style='width:100.0%'></span></span><span class='bv'>262.0 GB</span></div>
+  </div>
+  <p class="mini">Linear in N. For a big model at 128k context the KV cache alone is tens of GB — and every decode step must STREAM all of it from HBM. That bandwidth is the wall linear attention is built to remove by folding K,V into a fixed D x D state.</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · the tradeoff the cache makes</div>
+  <h2>No cache: O(N²) compute. Cache: O(N) memory.</h2>
+  <p>The cache isn't free — it swaps <em>redundant compute</em> for <em>growing memory you must stream every step</em>. To see the compute half, we decode the same sequence two ways on real tensors and count both FLOPs and wall-clock:</p>
+  <div class="panel"><canvas data-anim="decode" height="300"></canvas>
+    <div class="readout"><span id="dc-r">—</span></div>
+  </div>
+  <p class="mini">Left, <span style="color:var(--rose)">no cache</span>: each step re-lights the whole prefix — recompute. Right, <span style="color:var(--accent)">KV cache</span>: the past is stored (dim), only the new token is projected (bright). The counters are the cumulative work — one curve bends, one is a line.</p>
+  <div class="card" style="overflow-x:auto">
+  <table>
+    <tr><th>N</th><th>FLOPs no-cache</th><th>FLOPs cache</th><th>ratio</th><th>ms no-cache</th><th>ms cache</th><th>speedup</th></tr>
+    <tr><td>64</td><td class='mo'>89,440</td><td class='mo'>2,080</td><td class='hi'>43.0×</td><td class='mo'>26.46</td><td class='mo'>15.4</td><td class='hi'>1.72×</td></tr><tr><td>128</td><td class='mo'>707,264</td><td class='mo'>8,256</td><td class='hi'>85.67×</td><td class='mo'>74.65</td><td class='mo'>53.45</td><td class='hi'>1.4×</td></tr><tr><td>256</td><td class='mo'>5,625,216</td><td class='mo'>32,896</td><td class='hi'>171.0×</td><td class='mo'>331.66</td><td class='mo'>58.12</td><td class='hi'>5.71×</td></tr><tr><td>512</td><td class='mo'>44,870,400</td><td class='mo'>131,328</td><td class='hi'>341.67×</td><td class='mo'>2080.0</td><td class='mo'>150.41</td><td class='hi'>13.83×</td></tr>
+  </table>
+  </div>
+  <p class="mini">no-cache work ~ sum_t t = O(N^2); kv-cache work ~ sum_t 1 = O(N). The FLOP ratio grows ~linearly with N — that gap IS the redundant recompute the KV cache removes. The cache trades that compute for O(N) memory it must stream. The FLOP ratio ≈ N/2 — doubling context doubles the waste. This is the pressure that makes a <b>fixed-size</b> state so attractive.</p>
+</section>
+
+<section>
+  <div class="eye">The one-line aha</div>
+  <p class="aha">Softmax attention keeps a cache that grows with the sequence — so decoding either wastes O(N²) compute or streams O(N) memory every step. Everything from here to Kimi K3 is one idea attacked from different angles: <em>replace the growing cache with a fixed-size state you have to manage.</em></p>
+  <p class="next">Real code: <b>01-softmax-baseline/attn.py</b> → <b>out_softmax.json</b> · Source: ali, <em>"22580: From GPT-2 to Kimi K3, Explained"</em>.<br>
+  Next → <b>Session 02 · Linear attention</b>: swap the exponential for ELU+1 and fold all of K,V into one fixed <span class="mono">D×D</span> matrix — the cache stops growing. We'll run it and watch the fidelity you pay for it.</p>
+</section>
+<div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580: From GPT-2 to Kimi K3, Explained"</a> · thread archived in <span class="mono">source/</span>. Numbers on this page are produced by the code, not transcribed.</div>
+</div>
+<script>
+(function(){
+  const ROWS=[{"N": 64, "flops_no_cache": 89440, "flops_kv_cache": 2080, "flops_ratio": 43.0, "ms_no_cache": 26.46, "ms_kv_cache": 15.4, "speedup": 1.72}, {"N": 128, "flops_no_cache": 707264, "flops_kv_cache": 8256, "flops_ratio": 85.67, "ms_no_cache": 74.65, "ms_kv_cache": 53.45, "speedup": 1.4}, {"N": 256, "flops_no_cache": 5625216, "flops_kv_cache": 32896, "flops_ratio": 171.0, "ms_no_cache": 331.66, "ms_kv_cache": 58.12, "speedup": 5.71}, {"N": 512, "flops_no_cache": 44870400, "flops_kv_cache": 131328, "flops_ratio": 341.67, "ms_no_cache": 2080.0, "ms_kv_cache": 150.41, "speedup": 13.83}];
+  const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MONO='ui-monospace,Menlo,Consolas,monospace';
+  const C={accent:'#4FA8B8',rose:'#E0748A',ink:'#E7EFF1',mut:'#8B9BA2',dim:'#586770',line:'#243440'};
+  const cv=document.querySelector('canvas[data-anim=decode]'); if(!cv)return;
+  let ctx,w,h; const NCELL=14; // animate a length-14 toy decode
+  function fit(){const dpr=Math.min(devicePixelRatio||1,2);w=cv.clientWidth;h=parseInt(cv.getAttribute('height'))||300;
+    cv.width=w*dpr;cv.height=h*dpr;ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);}
+  fit();
+  function txt(s,x,y,col,sz,al,bold){ctx.save();ctx.font=(bold?'700 ':'')+sz+'px '+MONO;ctx.textAlign=al||'center';ctx.textBaseline='middle';ctx.fillStyle=col;ctx.fillText(s,x,y);ctx.restore();}
+  function cell(x,y,s,fill,stroke,alpha){ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=fill;ctx.strokeStyle=stroke;ctx.lineWidth=1.2;
+    ctx.beginPath();const r=4;ctx.moveTo(x+r,y);ctx.arcTo(x+s,y,x+s,y+s,r);ctx.arcTo(x+s,y+s,x,y+s,r);ctx.arcTo(x,y+s,x,y,r);ctx.arcTo(x,y,x+s,y,r);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}
+  function row(cx,step,mode,cs,gap){ // draw a strip of NCELL cells for current decode step
+    const total=NCELL*cs+(NCELL-1)*gap, x0=cx-total/2, y=h*0.44;
+    let work=0;
+    for(let i=0;i<NCELL;i++){
+      const x=x0+i*(cs+gap); const active=i<=step;
+      let fill='rgba(150,170,205,.05)',stroke=C.line,a=1;
+      if(active){
+        if(mode==='nocache'){ fill='rgba(224,116,138,.22)';stroke=C.rose; work++; }   // recompute ALL <=step
+        else { if(i===step){fill='rgba(79,168,184,.30)';stroke=C.accent;work++;}      // project only new
+                else {fill='rgba(79,168,184,.07)';stroke='rgba(79,168,184,.32)';a=.9;work++;} } // stored (streamed)
+      }
+      cell(x,y,cs,fill,stroke,a);
+    }
+    return {x0,y,total,work};
+  }
+  let cum={nc:0,kv:0};
+  function draw(t){
+    ctx.clearRect(0,0,w,h);
+    const period=RM?0:0.5; const step=RM?NCELL-1:Math.floor(t/period)%(NCELL);
+    if(step===0 && !RM){cum.nc=0;cum.kv=0;}
+    const cs=Math.min(20,(w/2-70)/NCELL-3), gap=3;
+    const lc=w*0.27, rc=w*0.73;
+    txt('no cache — recompute',lc,h*0.16,C.rose,12.5,'center',true);
+    txt('KV cache — store + read',rc,h*0.16,C.accent,12.5,'center',true);
+    const L=row(lc,step,'nocache',cs,gap), R=row(rc,step,'kvcache',cs,gap);
+    // per-step work counts
+    cum.nc+=(step+1); cum.kv+=1;
+    txt('step '+(step+1)+'/'+NCELL,lc,h*0.30,C.mut,11,'center');
+    txt('step '+(step+1)+'/'+NCELL,rc,h*0.30,C.mut,11,'center');
+    txt('this step: '+(step+1)+' tokens processed',lc,h*0.66,C.rose,11.5,'center');
+    txt('this step: 1 token projected',rc,h*0.66,C.accent,11.5,'center');
+    // cumulative bars
+    const maxc=NCELL*(NCELL+1)/2;
+    function cbar(cx,val,col){const bw=L.total, x0=cx-bw/2,y=h*0.80,bh=12;
+      ctx.save();ctx.fillStyle='rgba(150,170,205,.06)';ctx.fillRect(x0,y,bw,bh);
+      ctx.fillStyle=col;ctx.fillRect(x0,y,bw*Math.min(1,val/maxc),bh);ctx.restore();
+      txt('Σ work '+val,cx,y+bh+13,col,11,'center');}
+    cbar(lc,cum.nc,C.rose); cbar(rc,cum.kv,C.accent);
+    const el=document.getElementById('dc-r');
+    if(el) el.innerHTML='cumulative work after step '+(step+1)+': <b>no-cache '+cum.nc+'</b> vs <b>cache '+cum.kv+'</b> — the gap is the redundant recompute (O(N²) vs O(N)).';
+  }
+  let raf,t0=performance.now();function frame(now){draw((now-t0)/1000);raf=requestAnimationFrame(frame);}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){if(!raf){t0=performance.now();raf=requestAnimationFrame(frame);}}else{cancelAnimationFrame(raf);raf=0;}}),{threshold:.12});
+  if(RM)draw(99); else io.observe(cv);
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{fit();if(RM)draw(99);},150);});
+})();
+</script>

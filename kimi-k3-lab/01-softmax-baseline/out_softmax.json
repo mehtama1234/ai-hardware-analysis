@@ -1,0 +1,156 @@
+{
+  "attn_demo": {
+    "T": 6,
+    "d_head": 16,
+    "weights": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.3535,
+        0.6465,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.1854,
+        0.3185,
+        0.496,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.5982,
+        0.1463,
+        0.0997,
+        0.1557,
+        0.0,
+        0.0
+      ],
+      [
+        0.0542,
+        0.1857,
+        0.137,
+        0.5932,
+        0.0299,
+        0.0
+      ],
+      [
+        0.0454,
+        0.0227,
+        0.4341,
+        0.2064,
+        0.1978,
+        0.0936
+      ]
+    ],
+    "row_sums": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "note": "Lower-triangular: token i can only read tokens <= i (causal mask). Each row is a probability distribution over the visible past."
+  },
+  "kv_growth": {
+    "formula": "bytes = 2 * n_layer * n_head * d_head * N * 2(bf16)",
+    "gpt2_config": {
+      "n_layer": 12,
+      "n_head": 12,
+      "d_head": 64
+    },
+    "k3ish_config": {
+      "n_layer": 61,
+      "n_head": 64,
+      "d_head": 128
+    },
+    "N": [
+      1024,
+      4096,
+      16384,
+      65536,
+      131072
+    ],
+    "gpt2_MB": [
+      37.75,
+      150.99,
+      603.98,
+      2415.92,
+      4831.84
+    ],
+    "k3ish_GB": [
+      2.047,
+      8.187,
+      32.749,
+      130.997,
+      261.993
+    ],
+    "point": "Linear in N. For a big model at 128k context the KV cache alone is tens of GB \u2014 and every decode step must STREAM all of it from HBM. That bandwidth is the wall linear attention is built to remove by folding K,V into a fixed D x D state."
+  },
+  "decode": {
+    "config": {
+      "D": 128,
+      "n_head": 4,
+      "d_head": 32
+    },
+    "rows": [
+      {
+        "N": 64,
+        "flops_no_cache": 89440,
+        "flops_kv_cache": 2080,
+        "flops_ratio": 43.0,
+        "ms_no_cache": 26.46,
+        "ms_kv_cache": 15.4,
+        "speedup": 1.72
+      },
+      {
+        "N": 128,
+        "flops_no_cache": 707264,
+        "flops_kv_cache": 8256,
+        "flops_ratio": 85.67,
+        "ms_no_cache": 74.65,
+        "ms_kv_cache": 53.45,
+        "speedup": 1.4
+      },
+      {
+        "N": 256,
+        "flops_no_cache": 5625216,
+        "flops_kv_cache": 32896,
+        "flops_ratio": 171.0,
+        "ms_no_cache": 331.66,
+        "ms_kv_cache": 58.12,
+        "speedup": 5.71
+      },
+      {
+        "N": 512,
+        "flops_no_cache": 44870400,
+        "flops_kv_cache": 131328,
+        "flops_ratio": 341.67,
+        "ms_no_cache": 2080.0,
+        "ms_kv_cache": 150.41,
+        "speedup": 13.83
+      }
+    ],
+    "point": "no-cache work ~ sum_t t = O(N^2); kv-cache work ~ sum_t 1 = O(N). The FLOP ratio grows ~linearly with N \u2014 that gap IS the redundant recompute the KV cache removes. The cache trades that compute for O(N) memory it must stream."
+  },
+  "scale": {
+    "gpt2_params_computed": 124354560,
+    "gpt2_params_computed_M": 124.4,
+    "gpt2_reported_M": 124,
+    "kimi_k3_params": 2800000000000.0,
+    "kimi_k3_params_T": 2.8,
+    "ratio": 22516,
+    "thread_ratio": 22580,
+    "point": "~124M -> 2.8T is ~22,580x in 7 years. The worklog's question: is it JUST scale? The rest of the lab shows it is not \u2014 each rung adds capacity with a specific job."
+  }
+}
