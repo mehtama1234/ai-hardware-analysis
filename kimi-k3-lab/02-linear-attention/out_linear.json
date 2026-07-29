@@ -1,0 +1,112 @@
+{
+  "equivalence": {
+    "N": 48,
+    "d": 32,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "point": "The N\u00d7N 'score-first' form and the fixed-state 'fold-first' form agree to floating-point noise. Re-association is exact \u2014 linear attention's fixed state loses nothing relative to its own N\u00d7N form. (What it loses is vs SOFTMAX; see D.)"
+  },
+  "state_size": {
+    "d_head": 128,
+    "linear_state_floats": 16512,
+    "N": [
+      1024,
+      4096,
+      16384,
+      65536,
+      131072
+    ],
+    "kv_cache_floats": [
+      262144,
+      1048576,
+      4194304,
+      16777216,
+      33554432
+    ],
+    "ratio_kv_over_linear": [
+      15.9,
+      63.5,
+      254.0,
+      1016.1,
+      2032.1
+    ],
+    "point": "Linear attention's whole memory is one D\u00d7D board (+ a D-vector), the same size at 1k tokens or 128k. The softmax KV cache is already ~250\u00d7 larger by 65k tokens and keeps climbing. This is the \u221275% KV-cache / long-context win Kimi Linear reports."
+  },
+  "decode_cost": {
+    "d_head": 128,
+    "step": [
+      64,
+      256,
+      1024,
+      4096
+    ],
+    "softmax_flops_per_step": [
+      16384,
+      65536,
+      262144,
+      1048576
+    ],
+    "linear_flops_per_step": [
+      32768,
+      32768,
+      32768,
+      32768
+    ],
+    "point": "Softmax's per-step cost climbs with how much history it has; linear attention's per-step cost is flat \u2014 it always just updates and reads one fixed board. Flat cost per step over a long context is where the up-to-6\u00d7 decode throughput comes from."
+  },
+  "needle": {
+    "d": 64,
+    "metric": "cosine similarity of recalled output to the true needle value (1=perfect, 0=lost)",
+    "rows": [
+      {
+        "N": 4,
+        "softmax_recall_cos": 1.0,
+        "linear_recall_cos": 0.653,
+        "softmax_needle_weight": 0.994,
+        "over_capacity": false
+      },
+      {
+        "N": 8,
+        "softmax_recall_cos": 1.0,
+        "linear_recall_cos": 0.481,
+        "softmax_needle_weight": 0.99,
+        "over_capacity": false
+      },
+      {
+        "N": 16,
+        "softmax_recall_cos": 1.0,
+        "linear_recall_cos": 0.331,
+        "softmax_needle_weight": 0.983,
+        "over_capacity": false
+      },
+      {
+        "N": 32,
+        "softmax_recall_cos": 1.0,
+        "linear_recall_cos": 0.286,
+        "softmax_needle_weight": 0.969,
+        "over_capacity": false
+      },
+      {
+        "N": 64,
+        "softmax_recall_cos": 1.0,
+        "linear_recall_cos": 0.187,
+        "softmax_needle_weight": 0.945,
+        "over_capacity": false
+      },
+      {
+        "N": 128,
+        "softmax_recall_cos": 0.999,
+        "linear_recall_cos": 0.104,
+        "softmax_needle_weight": 0.905,
+        "over_capacity": true
+      },
+      {
+        "N": 256,
+        "softmax_recall_cos": 0.999,
+        "linear_recall_cos": 0.075,
+        "softmax_needle_weight": 0.85,
+        "over_capacity": true
+      }
+    ],
+    "point": "Query the needle's exact key. Softmax recalls its value PERFECTLY at every length (cos\u22481.0, and it keeps most of its weight on that one token) \u2014 because it still has every note on file, it can point at exactly the right one. Linear attention's recall starts weaker and FADES monotonically, 0.65\u21920.08, as N grows: every write lands on the same fixed board, so pulling one value back drags in a blur of all the others. That fade is a capacity limit, not a bug \u2014 and it's the exact problem DeltaNet (Session 03) fixes by ERASING a key's old value before writing the new one, and that K3 hedges by keeping a few full-attention (MLA) layers."
+  }
+}
