@@ -57,55 +57,55 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
 </header>
 
 <section>
-  <div class="eye">The move · a vector, not a scalar</div>
-  <h2>Decay becomes per-channel</h2>
-  <p>Everything else about the gated delta rule stays; the one change is that the decay <span class="mono">α</span> is no longer a single number multiplying the whole board — it's a vector, one rate per channel:</p>
-  <div class="eqn"><span class="g"># Gated DeltaNet — one α fades everything equally</span>
-S = <span class="a">α</span> · S + kᵀ u          <span class="g"># α is a scalar</span>
+  <div class="eye">The move · one fade dial per slot</div>
+  <h2>A separate fade for every slot</h2>
+  <p>Everything else stays the same; the one change is that the fade is no longer a single number for the whole page — it's one number per slot, each learned on its own:</p>
+  <div class="eqn"><span class="g"># before — one fade for the whole page</span>
+page = <span class="a">fade</span> × page + change            <span class="g"># a single number</span>
 
-<span class="g"># KDA — each channel c fades at its own learned rate</span>
-S = <span class="a">diag(α)</span> · S + kᵀ u     <span class="g"># α is a vector: α_c per channel</span></div>
-  <p>Now a "keep" channel can sit at α≈0.99 while a "forget" channel next to it runs at α≈0.7 — simultaneously. In the paper this is the "finer-grained gating mechanism ... enabling more effective use of limited finite-state memory," implemented with a hardware-efficient <b>Diagonal-Plus-Low-Rank (DPLR)</b> chunkwise kernel.</p>
+<span class="g"># now — a fade per slot: each slot keeps or forgets at its own rate</span>
+page = <span class="a">(fade-per-slot)</span> × page + change   <span class="g"># slot 1 might be 0.99, slot 2 might be 0.70</span></div>
+  <p>Now a "keep" slot can sit at 0.99 (barely fades) while a "forget" slot right next to it runs at 0.70 (fades fast) — at the same time. In the report this is the "finer-grained" forgetting that makes better use of a small fixed memory, and it is the heart of the system called Kimi Linear.</p>
 </section>
 
 <section>
   <div class="eye">We ran it · keep AND forget, at once</div>
-  <h2>A single scalar can't do both</h2>
-  <p>The test: a stored value whose first-half channels should be <span style="color:var(--accent)">kept</span> and whose second-half channels should be <span style="color:var(--rose)">forgotten</span>, after 15 steps. The <span style="color:var(--amber)">goal</span> is high only when it keeps the first AND clears the second:</p>
-  <div class="card"><div class='pcrow hero'><div class='pcl'>per-channel (KDA)</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:86%'></span></span><span class='pcv'>0.86</span></div></div></div><div class='pcrow'><div class='pcl'>scalar α=0.99</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:12%'></span></span><span class='pcv'>0.12</span></div></div></div><div class='pcrow'><div class='pcl'>scalar α=0.90</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:21%'></span></span><span class='pcv'>0.21</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:21%'></span></span><span class='pcv'>0.21</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:16%'></span></span><span class='pcv'>0.16</span></div></div></div><div class='pcrow'><div class='pcl'>scalar α=0.70</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:0%'></span></span><span class='pcv'>0.01</span></div></div></div></div>
-  <p class="mini">The task needs two things at once: hold the &#x27;keep&#x27; channels and clear the &#x27;forget&#x27; channels. Per-channel KDA does both (keep≈high, forget≈0) for a goal score far above any scalar. A single α is forced to choose: α=0.99 keeps everything (never forgets the clutter), α=0.70 forgets everything (loses what mattered). Fine-grained gating is strictly more expressive — the exact capacity gain that lets Kimi Linear beat full attention.</p>
+  <h2>A single dial can't do both</h2>
+  <p>The test: a stored value whose first-half slots should be <span style="color:var(--accent)">kept</span> and whose second-half slots should be <span style="color:var(--rose)">forgotten</span>, after fifteen steps. The <span style="color:var(--amber)">goal</span> score is high only when it keeps the first AND clears the second:</p>
+  <div class="card"><div class='pcrow hero'><div class='pcl'>a dial per slot</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:86%'></span></span><span class='pcv'>0.86</span></div></div></div><div class='pcrow'><div class='pcl'>one dial: 0.99</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:86%'></span></span><span class='pcv'>0.86</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:12%'></span></span><span class='pcv'>0.12</span></div></div></div><div class='pcrow'><div class='pcl'>one dial: 0.90</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:21%'></span></span><span class='pcv'>0.21</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:21%'></span></span><span class='pcv'>0.21</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:16%'></span></span><span class='pcv'>0.16</span></div></div></div><div class='pcrow'><div class='pcl'>one dial: 0.70</div><div class='pcbars'><div class='pcb'><span class='pct keep'>keep g1</span><span class='pctrack'><span class='pcf keep' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct forget'>forget g2</span><span class='pctrack'><span class='pcf forget' style='width:0%'></span></span><span class='pcv'>0.01</span></div><div class='pcb'><span class='pct goal'>goal</span><span class='pctrack'><span class='pcf goal' style='width:0%'></span></span><span class='pcv'>0.01</span></div></div></div></div>
+  <p class="mini">The task needs two things at once: hold the &#x27;keep&#x27; slots and clear the &#x27;forget&#x27; slots. Giving each slot its own dial does both (keep stays high, forget drops to near zero) for a goal score far above any single dial. One shared dial is forced to choose: set it to 0.99 and it keeps everything (never clears the clutter); set it to 0.70 and it forgets everything (loses what mattered). Per-slot control is simply more capable — the exact gain that lets this cheap memory match the keep-everything kind.</p>
 </section>
 
 <section>
   <div class="eye">We ran it · the hybrid, and the −75%</div>
-  <h2>Mostly KDA, a little full attention</h2>
-  <p>KDA is cheap but a fixed board still can't recall everything perfectly (Sessions 03–05). So Kimi Linear interleaves layers: mostly KDA, with a full-attention (MLA) layer every fourth. Only those MLA layers keep a KV cache that grows with context — so the memory bill drops by exactly the fraction of layers that are cheap:</p>
+  <h2>Mostly the cheap page, a little full memory</h2>
+  <p>The cheap fixed page still can't recall everything perfectly (Sessions 03–05). So the real system mixes two kinds of layer: mostly the cheap kind, with one full keep-everything layer every fourth. Only those full layers hold a store that grows with the text — so the memory bill drops by exactly the fraction of layers that are cheap:</p>
   <div class="card">
     <div class='stack'><span class='ly kda' title='layer 1: KDA'></span><span class='ly kda' title='layer 2: KDA'></span><span class='ly kda' title='layer 3: KDA'></span><span class='ly mla' title='layer 4: MLA (full attention)'></span><span class='ly kda' title='layer 5: KDA'></span><span class='ly kda' title='layer 6: KDA'></span><span class='ly kda' title='layer 7: KDA'></span><span class='ly mla' title='layer 8: MLA (full attention)'></span><span class='ly kda' title='layer 9: KDA'></span><span class='ly kda' title='layer 10: KDA'></span><span class='ly kda' title='layer 11: KDA'></span><span class='ly mla' title='layer 12: MLA (full attention)'></span><span class='ly kda' title='layer 13: KDA'></span><span class='ly kda' title='layer 14: KDA'></span><span class='ly kda' title='layer 15: KDA'></span><span class='ly mla' title='layer 16: MLA (full attention)'></span><span class='ly kda' title='layer 17: KDA'></span><span class='ly kda' title='layer 18: KDA'></span><span class='ly kda' title='layer 19: KDA'></span><span class='ly mla' title='layer 20: MLA (full attention)'></span><span class='ly kda' title='layer 21: KDA'></span><span class='ly kda' title='layer 22: KDA'></span><span class='ly kda' title='layer 23: KDA'></span><span class='ly mla' title='layer 24: MLA (full attention)'></span><span class='ly kda' title='layer 25: KDA'></span><span class='ly kda' title='layer 26: KDA'></span><span class='ly kda' title='layer 27: KDA'></span><span class='ly mla' title='layer 28: MLA (full attention)'></span><span class='ly kda' title='layer 29: KDA'></span><span class='ly kda' title='layer 30: KDA'></span><span class='ly kda' title='layer 31: KDA'></span><span class='ly mla' title='layer 32: MLA (full attention)'></span><span class='ly kda' title='layer 33: KDA'></span><span class='ly kda' title='layer 34: KDA'></span><span class='ly kda' title='layer 35: KDA'></span><span class='ly mla' title='layer 36: MLA (full attention)'></span><span class='ly kda' title='layer 37: KDA'></span><span class='ly kda' title='layer 38: KDA'></span><span class='ly kda' title='layer 39: KDA'></span><span class='ly mla' title='layer 40: MLA (full attention)'></span><span class='ly kda' title='layer 41: KDA'></span><span class='ly kda' title='layer 42: KDA'></span><span class='ly kda' title='layer 43: KDA'></span><span class='ly mla' title='layer 44: MLA (full attention)'></span><span class='ly kda' title='layer 45: KDA'></span><span class='ly kda' title='layer 46: KDA'></span><span class='ly kda' title='layer 47: KDA'></span><span class='ly mla' title='layer 48: MLA (full attention)'></span></div>
-    <div class="mini" style="margin:4px 0 14px"><span style="color:var(--accent)">▮</span> KDA (fixed state) &nbsp; <span style="color:var(--amber)">▮</span> MLA (full attention, keeps a cache) &nbsp;·&nbsp; 3 KDA : 1 MLA, 36+12 of 48 layers</div>
+    <div class="mini" style="margin:4px 0 14px"><span style="color:var(--accent)">▮</span> cheap page (fixed size) &nbsp; <span style="color:var(--amber)">▮</span> full memory (keeps everything, grows) &nbsp;·&nbsp; 3 cheap : 1 full, 36+12 of 48 layers</div>
     <div style="overflow-x:auto"><table>
-      <tr><th>context length</th><th>full-attention KV (GB)</th><th>hybrid KV (GB)</th><th>reduction</th></tr>
+      <tr><th>text length</th><th>keep-everything memory (GB)</th><th>mixed memory (GB)</th><th>reduction</th></tr>
       <tr><td>8,192</td><td class='mo'>12.9</td><td class='hi'>3.2</td><td class='hi'>−75%</td></tr><tr><td>32,768</td><td class='mo'>51.5</td><td class='hi'>12.9</td><td class='hi'>−75%</td></tr><tr><td>131,072</td><td class='mo'>206.2</td><td class='hi'>51.5</td><td class='hi'>−75%</td></tr><tr><td>1,048,576</td><td class='mo'>1,649.3</td><td class='hi'>412.3</td><td class='hi'>−75%</td></tr>
     </table></div>
   </div>
-  <p class="mini">KDA layers keep a fixed-size board, so only the 1-in-4 MLA layers hold a cache that grows with context. That&#x27;s a flat 75% KV-cache reduction at every context length — exactly the up-to-−75% Kimi Linear reports, and the same structure behind its up-to-6× decode throughput at 1M tokens. The MLA layers are the &#x27;keep a little perfect memory&#x27; hedge; KDA carries the rest cheaply.</p>
+  <p class="mini">The cheap layers keep a fixed-size page, so only the 1-in-4 full layers hold a store that grows with the text. That&#x27;s a flat 75% cut in memory at every length — exactly the up-to-75% smaller memory the Kimi Linear report gives, and the same structure behind its up-to-6× faster generation on very long text. The full layers are the &#x27;keep a little perfect memory&#x27; hedge; the cheap ones carry the rest.</p>
 </section>
 
 <section>
   <div class="eye">See it · channels on their own clocks</div>
   <h2>Some columns hold; others fade</h2>
-  <p>The board's columns, each decaying at its own rate. The left columns (α≈1) barely dim — they keep their memory; the right columns (small α) fade fast. One board, many different retention times — impossible with a single dial:</p>
+  <p>The page's slots, each fading at its own rate. The left slots (near 1) barely dim — they keep their memory; the right slots (small) fade fast. One page, many different holding times — impossible with a single dial:</p>
   <div class="panel"><canvas data-anim="kda" height="280"></canvas>
     <div class="readout"><span id="kda-r">—</span></div>
   </div>
-  <p class="mini">Each column has its own α, shown above it. Every step multiplies each column by its own rate; occasional writes flash a cell back to full. The decay <em>profile</em> across channels is learned per token.</p>
+  <p class="mini">Each slot (column) has its own fade rate, shown above it. Every step fades each column by its own amount; occasional writes flash a cell back to full. The pattern of rates across slots is learned, and shifts with the text.</p>
 </section>
 
 <section>
-  <div class="eye">The one-line aha</div>
-  <p class="aha">Turning the single decay dial into one-dial-per-channel lets a fixed board keep and forget at the same time — the small expressiveness gain that finally makes linear attention competitive with full attention, while a few interleaved full-attention layers cover what a fixed board still can't.</p>
-  <p class="next">Real code: <b>06-kda-kimi-linear/attn.py</b> → <b>out_kda.json</b> · Ground truth: <a href="https://arxiv.org/abs/2510.26692">Kimi Linear (arXiv 2510.26692)</a> — DPLR chunkwise KDA, KDA+MLA hybrid, −75% KV / up-to-6× decode.<br>
-  Next → <b>Session 07 · Kimi K3</b>: assemble everything — 23×(3 KDA + 1 MLA) macrocycles, a latent Mixture-of-Experts (16 of 896), SiTU, Gated MLA, and blockwise Attention Residuals.</p>
+  <div class="eye">The one-line takeaway</div>
+  <p class="aha">Turning the single forget dial into one-dial-per-slot lets a fixed page keep and forget at the same time — the small gain that finally makes this cheap memory competitive with the keep-everything kind, while a few full keep-everything layers cover what a fixed page still can't.</p>
+  <p class="next">Real code: <b>06-kda-kimi-linear/attn.py</b> → <b>out_kda.json</b> · Ground truth: <a href="https://arxiv.org/abs/2510.26692">Kimi Linear (arXiv 2510.26692)</a> — 75% smaller memory, up to 6× faster generation.<br>
+  Next → <b>Session 07</b>: assemble everything into the finished model — a mostly-cheap-memory spine, a crowd of small specialists, and a way to reach back across depth.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>; ground truth from Moonshot's <a href="https://arxiv.org/abs/2510.26692">Kimi Linear</a>. Numbers produced by the code.</div>
 </div>
@@ -133,7 +133,7 @@ S = <span class="a">diag(α)</span> · S + kᵀ u     <span class="g"># α is a 
     }
     ctx.clearRect(0,0,w,h);
     const cs=Math.min(28,(h-100)/G), bw=cs*G, gx=w/2-bw/2, gy=48;
-    for(let j=0;j<G;j++) txt('α'+(rates[j].toFixed(2)).slice(1),gx+j*cs+cs/2,gy-12,j<G/2?C.accent:C.rose,9,'center');
+    for(let j=0;j<G;j++) txt(rates[j].toFixed(2),gx+j*cs+cs/2,gy-12,j<G/2?C.accent:C.rose,9,'center');
     for(let i=0;i<G;i++)for(let j=0;j<G;j++){
       const v=cells[i*G+j];
       ctx.save();ctx.fillStyle='rgba(79,168,184,'+Math.max(0.03,v).toFixed(3)+')';
@@ -142,7 +142,7 @@ S = <span class="a">diag(α)</span> · S + kᵀ u     <span class="g"># α is a 
     }
     txt('left columns hold · right columns fade — same board, same step',w/2,gy+bw+24,C.mut,11.5,'center');
     const el=document.getElementById('kda-r');
-    if(el) el.innerHTML='each column decays at its own α (left ≈0.99 keep · right ≈0.86 forget). One board, many retention times — what a single scalar can\'t express.';
+    if(el) el.innerHTML='each column fades at its own rate (left ≈0.99 keep · right ≈0.86 forget). One page, many holding times — what a single shared dial can\'t do.';
   }
   let raf,t0=performance.now();function frame(now){draw((now-t0)/1000);raf=requestAnimationFrame(frame);}
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){if(!raf){t0=performance.now();raf=requestAnimationFrame(frame);}}else{cancelAnimationFrame(raf);raf=0;}}),{threshold:.12});

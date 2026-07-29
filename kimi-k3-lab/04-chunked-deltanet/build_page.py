@@ -5,7 +5,7 @@ def esc(s): return html.escape(str(s))
 
 def eqrows():
     return "".join(f"<tr><td>{r['C']}</td><td class='hi'>{r['max_abs_diff']:.1e}</td>"
-                   f"<td class='mo'>{'sequential loop' if r['C']==1 else ('full attention' if r['C']==EQ['N'] else 'chunked')}</td></tr>"
+                   f"<td class='mo'>{'one word at a time' if r['C']==1 else ('whole text in one block' if r['C']==EQ['N'] else 'in blocks')}</td></tr>"
                    for r in EQ["rows"])
 
 def speedrows():
@@ -19,8 +19,8 @@ def flopbars():
     out = ""
     for r in FS["rows"]:
         sp = r["state_flops"]/mx*100; scp = r["score_flops"]/mx*100
-        tag = " =full attn" if r["is_full_attention"] else ""
-        out += (f"<div class='fbar'><span class='fl'>C={r['C']}{tag}</span>"
+        tag = " = whole text" if r["is_full_attention"] else ""
+        out += (f"<div class='fbar'><span class='fl'>block {r['C']}{tag}</span>"
                 f"<span class='ft'><span class='ff st' style='width:{sp:.2f}%'></span>"
                 f"<span class='ff sc' style='width:{scp:.2f}%'></span></span>"
                 f"<span class='fv'>{r['total']/1e6:.1f}M</span></div>")
@@ -72,30 +72,31 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 <div class="wrap">
 <header style="padding:64px 0 8px">
   <div class="kick">Kimi K3, from first principles · Session 04 of 07</div>
-  <h1>Same delta rule — done in parallel.</h1>
+  <h1>The same work — done in parallel.</h1>
   <p class="dek">The last rung gave our model a memory it can correct in place — but it has to do that <em>one word at a time</em>, each step waiting on the one before it. On long text, that waiting makes training painfully slow. This rung changes <b>nothing about the answer</b> and everything about the speed: it reorganizes the very same work so a computer can do it in big parallel batches instead of a single-file line.</p>
   <div class="run"><div class="rt">▶ We ran it · the headline</div>
   <p>The one-at-a-time version and the batched version give the <b>same answer</b> (they differ by about <b>{max(r['max_abs_diff'] for r in EQ['rows']):.0e}</b> — pure rounding). The batched version shortens the chain of steps that must wait for each other by about <b>{SP['rows'][0]['depth_reduction']}×</b>, and ran <b>{SP['rows'][2]['speedup']:.0f}×</b> faster even on an ordinary computer.</p></div>
 </header>
 
 <section>
-  <div class="eye">The idea · two orders in one pass</div>
-  <h2>Attention inside a chunk, recurrence between chunks</h2>
-  <p>Split the sequence into chunks of size C. Within a chunk, do ordinary masked attention — a small C×C triangle, fully parallel. Between chunks, fold the finished chunk into the running state S and read S at the start of the next one. The only sequential dependency left is chunk-to-chunk, so the chain of ordered steps drops from L to L/C:</p>
-  <div class="eqn"><span class="g"># per chunk i — everything here is batched matmuls</span>
-u_i     = U_i − W_i · <span class="v">S</span>        <span class="g"># this chunk's delta corrections, given the incoming state</span>
-o_intra = tril(Q_i·K_iᵀ) · u_i   <span class="g"># real masked attention, inside the chunk</span>
-o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribution from everything before the chunk</span>
-<span class="v">S</span>       = <span class="v">S</span> + K_iᵀ · u_i       <span class="g"># fold the chunk into the state, hand to chunk i+1</span></div>
-  <p>The trick that makes <span class="mono">u_i</span> computable in one shot is a small triangular solve per chunk (it applies all C in-chunk corrections at once). We solve it for every chunk in parallel — only the <span class="mono">S</span> hand-off stays a loop.</p>
+  <div class="eye">The idea · careful work in blocks, a summary between them</div>
+  <h2>Do the bookkeeping inside a block, pass a summary between blocks</h2>
+  <p>Split the text into blocks of, say, a few dozen words. <b>Inside</b> a block, do the full careful bookkeeping among just those words — and because it's a small, self-contained group, a computer can do it all at once. <b>Between</b> blocks, fold the finished block into a short running <span class="mono">summary</span> and read that summary at the start of the next block. The only thing that still has to happen in order is block-to-block, so the chain of must-wait steps drops from one-per-word to one-per-block:</p>
+  <div class="eqn"><span class="g"># for each block, computed in one parallel burst:</span>
+corrections = this block's fixes, given the <span class="v">summary</span> handed in
+inside      = careful bookkeeping among the words in THIS block (all at once)
+carried-in  = what everything before the block contributes, read from the <span class="v">summary</span>
+output      = inside + carried-in
+<span class="v">summary</span>     = <span class="v">summary</span> + this block folded in      <span class="g"># handed to the next block</span></div>
+  <p>The one clever step is working out a block's corrections in a single shot instead of word by word — a small, self-contained calculation we can run for every block at the same time. After that, only the summary hand-off from one block to the next stays a loop.</p>
 </section>
 
 <section>
   <div class="eye">We ran it · it's the same function</div>
-  <h2>Every chunk size gives identical output</h2>
-  <p>We computed the plain sequential delta rule and the chunked form on the same inputs, sweeping C from 1 (pure recurrent) to N (one big chunk = full attention). The largest disagreement anywhere is floating-point noise:</p>
+  <h2>Every block size gives the same answer</h2>
+  <p>We ran the plain one-word-at-a-time version and the in-blocks version on the same input, sweeping the block size from a single word (which is just the one-at-a-time version) up to the whole text in one block. The biggest disagreement anywhere is rounding noise:</p>
   <div class="card" style="overflow-x:auto"><table>
-    <tr><th>chunk size C</th><th>max |seq − chunked|</th><th>what C means</th></tr>
+    <tr><th>block size</th><th>difference from one-at-a-time</th><th>what this size means</th></tr>
     {eqrows()}
   </table></div>
   <p class="mini">{esc(EQ['point'])}</p>
@@ -103,10 +104,10 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
 
 <section>
   <div class="eye">We ran it · the parallel win</div>
-  <h2>The must-run-in-order chain shrinks by C</h2>
-  <p>The number that actually matters for training is <b>sequential depth</b>: how many steps have to run one-after-another because each needs the last state. Chunking cuts it from L to L/C — and even in pure-Python CPU, replacing the L-step loop with L/C batched steps ran multiples faster:</p>
+  <h2>The chain of must-wait steps shrinks with block size</h2>
+  <p>The number that actually matters for training is how many steps must run one-after-another because each needs the result of the one before. Working in blocks cuts that chain from one-per-word to one-per-block — and even in plain Python on an ordinary computer, swapping the long word-by-word loop for a few block-sized batches ran several times faster:</p>
   <div class="card" style="overflow-x:auto"><table>
-    <tr><th>L</th><th>seq depth → chunk</th><th>depth cut</th><th>ms seq</th><th>ms chunk</th><th>wall speedup</th></tr>
+    <tr><th>text length</th><th>must-wait steps: word-by-word → in-blocks</th><th>shorter by</th><th>ms word-by-word</th><th>ms in-blocks</th><th>faster by</th></tr>
     {speedrows()}
   </table></div>
   <p class="mini">{esc(SP['point'])}</p>
@@ -114,28 +115,28 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
 
 <section>
   <div class="eye">We ran it · why C is a knob</div>
-  <h2>Fixed state work + growing score work</h2>
-  <p>Total compute splits in two: a <span style="color:#4FA8B8">state term (2·L·d²)</span> that doesn't care about C at all, and a <span style="color:var(--amber)">score term (2·L·C·d)</span> — the little in-chunk triangles — that grows with C. So C trades FLOPs for hardware utilization: tiny C is cheapest but all small ops; C=L is full quadratic attention:</p>
+  <h2>One fixed cost, plus a cost that grows with block size</h2>
+  <p>The total work splits in two. One part is <span style="color:#4FA8B8">fixed</span> — the running-summary bookkeeping — and doesn't care how big the blocks are. The other part is the <span style="color:var(--amber)">careful within-block work</span>, and it grows with the block size. So block size is a dial: tiny blocks do the least total work but in many small steps; a single block the size of the whole text is the old, expensive everything-compared-to-everything again:</p>
   <div class="card">{flopbars()}
-  <div class="leg"><span class="sw" style="background:#2E6E7A"></span>state 2·L·d² (fixed)<span class="sw" style="background:#E3A63A"></span>score 2·L·C·d (grows with C)</div></div>
+  <div class="leg"><span class="sw" style="background:#2E6E7A"></span>fixed summary work<span class="sw" style="background:#E3A63A"></span>within-block work (grows with block size)</div></div>
   <p class="mini">{esc(FS['point'])}</p>
 </section>
 
 <section>
   <div class="eye">See it · chunked prefill</div>
-  <h2>Chunks fill in parallel; the state passes along</h2>
-  <p>The sequence in chunks. Inside each chunk, the masked-attention triangle lights up all at once (parallel). Between chunks, the state <span style="color:var(--viol)">S</span> is handed forward — the one thread that stays sequential:</p>
+  <h2>Blocks fill in parallel; the summary passes along</h2>
+  <p>The text laid out in blocks. Inside each block, all the careful work lights up at once (in parallel). Between blocks, the running <span style="color:var(--viol)">summary</span> is handed forward — the one thread that still has to happen in order:</p>
   <div class="panel"><canvas data-anim="chunk" height="280"></canvas>
     <div class="readout"><span id="chunk-r">—</span></div>
   </div>
-  <p class="mini">Left-to-right = the sequence. Each block is a chunk doing full attention internally; the glowing S carries the running memory across the boundaries.</p>
+  <p class="mini">Left-to-right = the text. Each block does its full internal bookkeeping on its own; the glowing summary carries what's been learned so far across the block boundaries.</p>
 </section>
 
 <section>
-  <div class="eye">The one-line aha</div>
-  <p class="aha">Cut the sequence into chunks, do exact attention inside each and pass a running state between them, and the delta rule's one-step-at-a-time chain collapses from L links to L/C — the same answer, now shaped like something a GPU can actually train fast.</p>
-  <p class="next">Real code: <b>04-chunked-deltanet/attn.py</b> → <b>out_chunk.json</b> · Source: ali §"Parallelizing Linear Transformers with Delta Rule"; production form = Kimi Linear's DPLR chunkwise kernel.<br>
-  Next → <b>Session 05 · Gated DeltaNet</b>: DeltaNet can replace a fact it recognizes, but can't clear the board for a new topic. Add a decay dial (from Mamba-2) so the board can forget generally.</p>
+  <div class="eye">The one-line takeaway</div>
+  <p class="aha">Cut the text into blocks, do the exact same careful work inside each and pass a running summary between them, and the one-step-at-a-time chain collapses from one link per word to one per block — the same answer, now shaped like something a computer can train on fast.</p>
+  <p class="next">Real code: <b>04-chunked-deltanet/attn.py</b> → <b>out_chunk.json</b> · Source: ali's worklog, on doing the delta rule in parallel blocks.<br>
+  Next → <b>Session 05</b>: the memory can correct a fact it recognizes, but it can't clear itself for a brand-new topic. Add a dial that lets old material fade so it can forget on purpose.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>; production algorithm from Moonshot's <a href="https://arxiv.org/abs/2510.26692">Kimi Linear</a> (DPLR). Numbers produced by the code.</div>
 </div>
@@ -155,7 +156,7 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
     ctx.clearRect(0,0,w,h);
     const per=RM?0:0.85; const active=RM?NCH-1:Math.floor(t/per)%(NCH+1);
     const marg=40, gap=18, cw=(w-2*marg-(NCH-1)*gap)/NCH, cell=Math.min(15,(cw-8)/CS), gy=70;
-    txt('sequence  →',marg,28,C.dim,12,'left');
+    txt('the text  →',marg,28,C.dim,12,'left');
     let sx=marg;
     for(let i=0;i<NCH;i++){{
       const done=i<active, cur=i===active;
@@ -170,7 +171,7 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
         ctx.save();ctx.fillStyle='rgba(79,168,184,'+v.toFixed(3)+')';ctx.strokeStyle='rgba(10,15,25,.6)';ctx.lineWidth=.8;
         ctx.fillRect(bx+cc*cell,by+r*cell,cell-1.5,cell-1.5);ctx.strokeRect(bx+cc*cell,by+r*cell,cell-1.5,cell-1.5);ctx.restore();
       }}
-      txt('chunk '+(i+1),sx+cw/2,gy+cw+16,cur?C.accent:C.mut,11,'center',cur);
+      txt('block '+(i+1),sx+cw/2,gy+cw+16,cur?C.accent:C.mut,11,'center',cur);
       // state hand-off arrow from prev chunk
       if(i>0){{const ax=sx-gap, ay=gy+cw/2; const on=i<=active;
         ctx.save();ctx.globalAlpha=on?1:0.25;ctx.strokeStyle=C.viol;ctx.fillStyle=C.viol;ctx.lineWidth=2;
@@ -180,10 +181,10 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
       }}
       sx+=cw+gap;
     }}
-    txt('inside a chunk: full attention, all cells at once (parallel)',w/2,h-42,C.mut,11,'center');
-    txt('between chunks: the state S passes along (sequential — only '+NCH+' links, not '+(NCH*CS)+')',w/2,h-24,C.viol,11,'center');
+    txt('inside a block: all the careful work, at once (in parallel)',w/2,h-42,C.mut,11,'center');
+    txt('between blocks: the summary passes along (in order — only '+NCH+' links, not '+(NCH*CS)+')',w/2,h-24,C.viol,11,'center');
     const el=document.getElementById('chunk-r');
-    if(el) el.innerHTML='chunk '+Math.min(active+1,NCH)+' of '+NCH+' — its C×C triangle computes in parallel; state <b>S</b> carries memory to the next. Sequential depth = '+NCH+', not '+(NCH*CS)+'.';
+    if(el) el.innerHTML='block '+Math.min(active+1,NCH)+' of '+NCH+' — its internal work computes in parallel; the <b>summary</b> carries what has been learned to the next. Must-wait links = '+NCH+', not '+(NCH*CS)+'.';
   }}
   let raf,t0=performance.now();function frame(now){{draw((now-t0)/1000);raf=requestAnimationFrame(frame);}}
   const io=new IntersectionObserver(es=>es.forEach(e=>{{if(e.isIntersecting){{if(!raf){{t0=performance.now();raf=requestAnimationFrame(frame);}}}}else{{cancelAnimationFrame(raf);raf=0;}}}}),{{threshold:.12}});

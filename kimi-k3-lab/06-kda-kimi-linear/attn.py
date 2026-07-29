@@ -40,7 +40,7 @@ keep = slice(0, d // 2); forget = slice(d // 2, d)
 # per-channel: 0.99 on the "keep" channels, 0.70 on the "forget" channels
 a_perchan = torch.empty(d); a_perchan[keep] = 0.99; a_perchan[forget] = 0.70
 # scalar options: one number for ALL channels
-scalars = {"scalar α=0.99": 0.99, "scalar α=0.90": 0.90, "scalar α=0.70": 0.70}
+scalars = {"one dial: 0.99": 0.99, "one dial: 0.90": 0.90, "one dial: 0.70": 0.70}
 
 def score(surv):
     # goal: KEEP-channels survive (→1) AND FORGET-channels vanish (→0)
@@ -49,7 +49,7 @@ def score(surv):
 
 results = {}
 kk, ff, sc = score(retain(a_perchan, T))
-results["per-channel (KDA)"] = {"keep_retention": round(kk, 3), "forget_retention": round(ff, 3), "goal_score": sc}
+results["a dial per slot"] = {"keep_retention": round(kk, 3), "forget_retention": round(ff, 3), "goal_score": sc}
 for name, a in scalars.items():
     kk, ff, sc = score(retain(torch.full((d,), a), T))
     results[name] = {"keep_retention": round(kk, 3), "forget_retention": round(ff, 3), "goal_score": sc}
@@ -59,11 +59,11 @@ OUT["per_channel"] = {
     "keep_channels": "0.99 decay", "forget_channels": "0.70 decay",
     "goal": "keep_retention high AND forget_retention low  → goal_score = keep × (1 − forget)",
     "results": results,
-    "point": "The task needs two things at once: hold the 'keep' channels and clear the 'forget' channels. "
-             "Per-channel KDA does both (keep≈high, forget≈0) for a goal score far above any scalar. A single "
-             "α is forced to choose: α=0.99 keeps everything (never forgets the clutter), α=0.70 forgets "
-             "everything (loses what mattered). Fine-grained gating is strictly more expressive — the exact "
-             "capacity gain that lets Kimi Linear beat full attention.",
+    "point": "The task needs two things at once: hold the 'keep' slots and clear the 'forget' slots. Giving each "
+             "slot its own dial does both (keep stays high, forget drops to near zero) for a goal score far above "
+             "any single dial. One shared dial is forced to choose: set it to 0.99 and it keeps everything (never "
+             "clears the clutter); set it to 0.70 and it forgets everything (loses what mattered). Per-slot control "
+             "is simply more capable — the exact gain that lets this cheap memory match the keep-everything kind.",
 }
 
 # ----------------------------------------------------------------------------
@@ -87,12 +87,12 @@ for N in Ns:
                  "hybrid_GB": round(hybrid / 1e9, 2),
                  "reduction_pct": round((1 - hybrid / full) * 100, 1)})
 OUT["hybrid"] = {
-    "total_layers": TOTAL, "mla_layers": MLA, "kda_layers": KDA, "ratio": "3 KDA : 1 MLA",
+    "total_layers": TOTAL, "mla_layers": MLA, "kda_layers": KDA, "ratio": "3 cheap : 1 full",
     "rows": rows,
-    "point": "KDA layers keep a fixed-size board, so only the 1-in-4 MLA layers hold a cache that grows with "
-             "context. That's a flat 75% KV-cache reduction at every context length — exactly the up-to-−75% "
-             "Kimi Linear reports, and the same structure behind its up-to-6× decode throughput at 1M tokens. "
-             "The MLA layers are the 'keep a little perfect memory' hedge; KDA carries the rest cheaply.",
+    "point": "The cheap layers keep a fixed-size page, so only the 1-in-4 full layers hold a store that grows with "
+             "the text. That's a flat 75% cut in memory at every length — exactly the up-to-75% smaller memory the "
+             "Kimi Linear report gives, and the same structure behind its up-to-6× faster generation on very long "
+             "text. The full layers are the 'keep a little perfect memory' hedge; the cheap ones carry the rest.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))

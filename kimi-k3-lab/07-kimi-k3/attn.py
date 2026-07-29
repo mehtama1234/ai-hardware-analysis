@@ -53,10 +53,10 @@ def moe(E_routed=896, shared=2, k=16, T=1024, dm=64):
         "busiest_expert_tokens": int(load.max()), "quietest_expert_tokens": int(load.min()),
     }
 OUT["moe"] = {**moe(),
-    "point": "Of 898 experts, each token wakes only 18 (2 always-on shared + 16 routed) — under ~2% of the "
-             "expert pool, so the MoE feed-forward does ~2% of a dense model's work there. Whole-model, that's "
-             "the report's ~104B active of 2.8T (~3.7%). Enormous capacity on disk, a sliver of it per token. "
-             "Routing is uneven (load CV>0) — which is why the report emphasizes a STABLE LatentMoE for balance.",
+    "point": "Of 898 specialists, each word wakes only 18 (2 always-on + 16 chosen) — under 2% of the crowd, so "
+             "the specialist stage does about 2% of an ordinary model's work there. Across the whole model that's the "
+             "report's ~104 billion of 2.8 trillion parts active per word (~3.7%). Enormous total ability, a sliver "
+             "used per word. The chooser isn't perfectly even — keeping it balanced is a big focus of the real design.",
 }
 
 # ----------------------------------------------------------------------------
@@ -74,10 +74,10 @@ OUT["situ"] = {
     "situ": [round(float(v), 3) for v in situ_gate(xs)],
     "silu_at_6": round(float(silu_gate(torch.tensor(6.0))), 2),
     "situ_at_6": round(float(situ_gate(torch.tensor(6.0))), 2),
-    "point": "SiTU replaces SiLU's linear gate·σ(gate) with β·tanh(gate/β)·σ(gate): the tanh softly BOUNDS the "
-             "activation instead of letting it grow without limit (at x=6, SiLU≈5.99 keeps rising while SiTU≈0.99 "
-             "has saturated). Bounded activations are steadier at 2.8T scale. The report notes the unfused version "
-             "is ~3× slower — offset because K3's experts run in a compressed LATENT space, nearly halving their FLOPs.",
+    "point": "The new squash wraps the old one in a soft cap, so instead of climbing forever it levels off (far out, "
+             "the old one is near 6 and rising while the new one has settled near 1). A squash that can't run away keeps "
+             "the numbers steady in a model this size. The report notes the plain version is about 3× slower to compute "
+             "— offset because the specialists work in a compressed form that roughly halves their work.",
 }
 
 # ----------------------------------------------------------------------------
@@ -101,11 +101,11 @@ def attnres(N=8, Dm=64, trials=32):
     m = lambda z: round(sum(z) / len(z), 3)
     return {"N_blocks": N, "attnres_recovery": m(ra), "plain_residual_recovery": m(rm)}
 OUT["attnres"] = {**attnres(),
-    "point": "A plain residual stream mixes every earlier layer with equal weight, so one useful earlier "
-             "representation gets diluted 1/N. AttnRes runs a softmax over the DEPTH axis — the same file-and-match "
-             "trick, but across layers instead of across tokens — so a later block can reach back and pull the "
-             "specific earlier representation it needs (recovery ~0.9+ vs ~0.3 for the uniform blend). K3 applies it "
-             "every 12 layers (8 blocks) for ~1.25× compute advantage at ~2% latency, and to fight residual dilution.",
+    "point": "Normally a deep layer just gets an equal blend of everything the earlier layers produced, so one useful "
+             "earlier result is watered down among all the rest. Reaching back scores the earlier layers and pulls out "
+             "the one that matters — the same look-up trick, but across layers instead of across words — recovering it "
+             "far better than the equal blend. The model does this every 12 layers, for a small speed gain at tiny extra "
+             "cost, and to keep useful earlier results from getting lost in the blend.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))

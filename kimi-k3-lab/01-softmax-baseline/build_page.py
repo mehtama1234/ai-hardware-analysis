@@ -111,47 +111,47 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 </header>
 
 <section>
-  <div class="eye">The mechanism · GPT-2</div>
-  <h2>Softmax attention is a normalized read</h2>
-  <p>A decoder-only block does one interesting thing: every token builds a query, compares it against every token's key (a dot product), and <b>softmaxes</b> those scores into weights that sum to 1 — then reads a weighted blend of the values. The causal mask means token <span class="mono">i</span> may only look at tokens <span class="mono">≤ i</span>. Here's that computed for real on a length-{AD['T']} sequence, one head:</p>
+  <div class="eye">How it decides · the mechanism</div>
+  <h2>Score every earlier word, then blend</h2>
+  <p>To choose its next word, the model does one thing over and over: for the word it's on, it scores how relevant every earlier word is, turns those scores into weights that add up to 1, then blends the earlier words together in those proportions. A word may only look <em>backward</em> — never at words that come after it. Here are those weights, computed for real on a short sequence:</p>
   <div class="card">{heat(AD['weights'])}</div>
-  <p class="mini">Lower-triangular by the mask. Every row is a probability distribution — row sums = {esc(AD['row_sums'])} (all exactly 1.0). <b>That "÷ by the sum" is the softmax's job</b>; hold onto it — linear attention (Session 2) keeps the divide but swaps the exponential for a cheaper feature map.</p>
-  <div class="why"><h3>Why this matters</h3><p>Softmax couples <em>every</em> query to <em>every</em> key — the nonlinearity lands <b>after</b> the q·k product, so you can't pre-fold the keys and values into a compact state. That coupling is what forces you to keep every past key and value around. Which is exactly the next problem.</p></div>
+  <p class="mini">Only the lower triangle is filled — each word sees itself and the words before it, nothing after. Every row adds up to exactly 1.0 ({esc(AD['row_sums'])}), because the weights are shares of a whole. That "divide so the shares add to 1" step is the one piece the next rung keeps while making everything else cheaper.</p>
+  <div class="why"><h3>Why this matters</h3><p>This scoring ties <em>every</em> word to <em>every</em> other word in a way you can't work out ahead of time — which is exactly why the model is forced to keep every earlier word on hand. That is the problem the whole rest of the lab is escaping.</p></div>
 </section>
 
 <section>
   <div class="eye">The bottleneck · what grows</div>
-  <h2>The KV cache grows linearly — forever</h2>
-  <p>At decode step <span class="mono">t</span> you only need the logits at the last position. Without help, the model would re-project every previous token to get their keys and values again. The fix is the <b>KV cache</b>: store the K and V vectors of the past so each step only projects the <em>new</em> token. But that store keeps growing — one slot per token, per head, per layer:</p>
+  <h2>The pile of notes grows — forever</h2>
+  <p>To write each next word the model only has to work on the newest one — but to score it against the past, it needs every earlier word's details on hand. So it keeps them all in a stack of notes and adds one note per word. That stack never stops growing — a note for every word, kept separately in every layer of the model:</p>
   <div class="card">
-    <div class="mini" style="margin:0 0 10px"><b>KV cache size</b> for a K3-scale attention config ({KV['k3ish_config']['n_layer']} layers · {KV['k3ish_config']['n_head']} heads · d_head {KV['k3ish_config']['d_head']} · bf16), by context length:</div>
+    <div class="mini" style="margin:0 0 10px"><b>Size of that stack of notes</b> for a large, K3-scale model ({KV['k3ish_config']['n_layer']} layers), by how much text it has read:</div>
     {kvbars()}
   </div>
   <p class="mini">{esc(KV['point'])}</p>
 </section>
 
 <section>
-  <div class="eye">We ran it · the tradeoff the cache makes</div>
-  <h2>No cache: O(N²) compute. Cache: O(N) memory.</h2>
-  <p>The cache isn't free — it swaps <em>redundant compute</em> for <em>growing memory you must stream every step</em>. To see the compute half, we decode the same sequence two ways on real tensors and count both FLOPs and wall-clock:</p>
+  <div class="eye">We ran it · the trade the notes make</div>
+  <h2>Re-read everything, or keep the notes</h2>
+  <p>Keeping the notes isn't free — it trades wasted re-reading for a pile of memory the model has to carry and scan every step. To see the wasted re-reading, we generate the same text two ways and count the work:</p>
   <div class="panel"><canvas data-anim="decode" height="300"></canvas>
     <div class="readout"><span id="dc-r">—</span></div>
   </div>
-  <p class="mini">Left, <span style="color:var(--rose)">no cache</span>: each step re-lights the whole prefix — recompute. Right, <span style="color:var(--accent)">KV cache</span>: the past is stored (dim), only the new token is projected (bright). The counters are the cumulative work — one curve bends, one is a line.</p>
+  <p class="mini">Left, <span style="color:var(--rose)">re-read everything</span>: each step re-processes the whole passage so far. Right, <span style="color:var(--accent)">keep the notes</span>: the past is stored (dim), only the new word is worked on (bright). The counters are the running total of work — one curve bends upward, the other is a straight line.</p>
   <div class="card" style="overflow-x:auto">
   <table>
-    <tr><th>N</th><th>FLOPs no-cache</th><th>FLOPs cache</th><th>ratio</th><th>ms no-cache</th><th>ms cache</th><th>speedup</th></tr>
+    <tr><th>words</th><th>work: re-read all</th><th>work: keep notes</th><th>ratio</th><th>ms re-read</th><th>ms keep-notes</th><th>faster by</th></tr>
     {dectable()}
   </table>
   </div>
-  <p class="mini">{esc(DE['point'])} The FLOP ratio ≈ N/2 — doubling context doubles the waste. This is the pressure that makes a <b>fixed-size</b> state so attractive.</p>
+  <p class="mini">{esc(DE['point'])} The wasted-work ratio grows with the length — double the text and you roughly double the waste. That pressure is what makes a <b>fixed-size</b> memory so attractive.</p>
 </section>
 
 <section>
   <div class="eye">The one-line aha</div>
   <p class="aha">Softmax attention keeps a cache that grows with the sequence — so decoding either wastes O(N²) compute or streams O(N) memory every step. Everything from here to Kimi K3 is one idea attacked from different angles: <em>replace the growing cache with a fixed-size state you have to manage.</em></p>
   <p class="next">Real code: <b>01-softmax-baseline/attn.py</b> → <b>out_softmax.json</b> · Source: ali, <em>"22580: From GPT-2 to Kimi K3, Explained"</em>.<br>
-  Next → <b>Session 02 · Linear attention</b>: swap the exponential for ELU+1 and fold all of K,V into one fixed <span class="mono">D×D</span> matrix — the cache stops growing. We'll run it and watch the fidelity you pay for it.</p>
+  Next → <b>Session 02</b>: keep one fixed-size running summary instead of the ever-growing stack — the memory stops growing. We run it and watch the accuracy you trade for it.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580: From GPT-2 to Kimi K3, Explained"</a> · thread archived in <span class="mono">source/</span>. Numbers on this page are produced by the code, not transcribed.</div>
 </div>
@@ -191,15 +191,15 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
     if(step===0 && !RM){{cum.nc=0;cum.kv=0;}}
     const cs=Math.min(20,(w/2-70)/NCELL-3), gap=3;
     const lc=w*0.27, rc=w*0.73;
-    txt('no cache — recompute',lc,h*0.16,C.rose,12.5,'center',true);
-    txt('KV cache — store + read',rc,h*0.16,C.accent,12.5,'center',true);
+    txt('re-read everything',lc,h*0.16,C.rose,12.5,'center',true);
+    txt('keep the notes',rc,h*0.16,C.accent,12.5,'center',true);
     const L=row(lc,step,'nocache',cs,gap), R=row(rc,step,'kvcache',cs,gap);
     // per-step work counts
     cum.nc+=(step+1); cum.kv+=1;
     txt('step '+(step+1)+'/'+NCELL,lc,h*0.30,C.mut,11,'center');
     txt('step '+(step+1)+'/'+NCELL,rc,h*0.30,C.mut,11,'center');
-    txt('this step: '+(step+1)+' tokens processed',lc,h*0.66,C.rose,11.5,'center');
-    txt('this step: 1 token projected',rc,h*0.66,C.accent,11.5,'center');
+    txt('this step: '+(step+1)+' words re-read',lc,h*0.66,C.rose,11.5,'center');
+    txt('this step: 1 new word',rc,h*0.66,C.accent,11.5,'center');
     // cumulative bars
     const maxc=NCELL*(NCELL+1)/2;
     function cbar(cx,val,col){{const bw=L.total, x0=cx-bw/2,y=h*0.80,bh=12;
@@ -208,7 +208,7 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
       txt('Σ work '+val,cx,y+bh+13,col,11,'center');}}
     cbar(lc,cum.nc,C.rose); cbar(rc,cum.kv,C.accent);
     const el=document.getElementById('dc-r');
-    if(el) el.innerHTML='cumulative work after step '+(step+1)+': <b>no-cache '+cum.nc+'</b> vs <b>cache '+cum.kv+'</b> — the gap is the redundant recompute (O(N²) vs O(N)).';
+    if(el) el.innerHTML='total work after '+(step+1)+' words: <b>re-read everything '+cum.nc+'</b> vs <b>keep the notes '+cum.kv+'</b> — the gap is the wasted re-reading.';
   }}
   let raf,t0=performance.now();function frame(now){{draw((now-t0)/1000);raf=requestAnimationFrame(frame);}}
   const io=new IntersectionObserver(es=>es.forEach(e=>{{if(e.isIntersecting){{if(!raf){{t0=performance.now();raf=requestAnimationFrame(frame);}}}}else{{cancelAnimationFrame(raf);raf=0;}}}}),{{threshold:.12}});

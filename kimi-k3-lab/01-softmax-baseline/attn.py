@@ -42,8 +42,8 @@ OUT["attn_demo"] = {
     "T": T, "d_head": d,
     "weights": [[round(float(x), 4) for x in row] for row in att],
     "row_sums": [round(float(r.sum()), 4) for r in att],   # all 1.0 -> softmax is a normalized read
-    "note": "Lower-triangular: token i can only read tokens <= i (causal mask). "
-            "Each row is a probability distribution over the visible past.",
+    "note": "Only the lower triangle is filled: each word can read itself and the words before it, never after. "
+            "Each row's weights are shares of a whole, so they add up to 1.",
 }
 
 # ----------------------------------------------------------------------------
@@ -65,9 +65,9 @@ OUT["kv_growth"] = {
     "N": Ns,
     "gpt2_MB":  [round(kv_cache_bytes(N, **gpt2)  / 1e6, 2) for N in Ns],
     "k3ish_GB": [round(kv_cache_bytes(N, **k3ish) / 1e9, 3) for N in Ns],
-    "point": "Linear in N. For a big model at 128k context the KV cache alone is tens of GB — "
-             "and every decode step must STREAM all of it from HBM. That bandwidth is the wall "
-             "linear attention is built to remove by folding K,V into a fixed D x D state.",
+    "point": "The stack grows in a straight line with the amount of text. For a big model reading 128,000 words "
+             "it is already tens of gigabytes — and every new word means hauling that whole pile out of memory again. "
+             "That hauling is the wall; the next rung removes it by replacing the growing stack with one fixed-size summary.",
 }
 
 # ----------------------------------------------------------------------------
@@ -142,9 +142,10 @@ for N in seq_lens:
 OUT["decode"] = {
     "config": {"D": D, "n_head": NH, "d_head": DH},
     "rows": rows,
-    "point": "no-cache work ~ sum_t t = O(N^2); kv-cache work ~ sum_t 1 = O(N). "
-             "The FLOP ratio grows ~linearly with N — that gap IS the redundant recompute "
-             "the KV cache removes. The cache trades that compute for O(N) memory it must stream.",
+    "point": "Re-reading everything means each new word re-processes the whole passage so far, so the total work "
+             "piles up fast; keeping the notes means each word does a fixed small amount. The gap between them grows "
+             "with the length — that gap is the wasted re-reading the notes remove, in exchange for a pile of memory "
+             "the model has to carry.",
 }
 
 # ----------------------------------------------------------------------------
@@ -165,8 +166,9 @@ OUT["scale"] = {
     "kimi_k3_params_T": 2.8,
     "ratio": round(k3_params / gpt2_params),
     "thread_ratio": 22580,
-    "point": "~124M -> 2.8T is ~22,580x in 7 years. The worklog's question: is it JUST scale? "
-             "The rest of the lab shows it is not — each rung adds capacity with a specific job.",
+    "point": "124 million to 2.8 trillion internal settings is about 22,580 times bigger in seven years. The "
+             "question this lab answers: is being bigger the whole story? It is not — each rung adds a specific "
+             "new ability, in a specific place, for a specific job.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))

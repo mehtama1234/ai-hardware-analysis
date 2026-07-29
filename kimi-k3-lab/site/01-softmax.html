@@ -74,53 +74,53 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
 </section>
 
 <section>
-  <div class="eye">The mechanism · GPT-2</div>
-  <h2>Softmax attention is a normalized read</h2>
-  <p>A decoder-only block does one interesting thing: every token builds a query, compares it against every token's key (a dot product), and <b>softmaxes</b> those scores into weights that sum to 1 — then reads a weighted blend of the values. The causal mask means token <span class="mono">i</span> may only look at tokens <span class="mono">≤ i</span>. Here's that computed for real on a length-6 sequence, one head:</p>
+  <div class="eye">How it decides · the mechanism</div>
+  <h2>Score every earlier word, then blend</h2>
+  <p>To choose its next word, the model does one thing over and over: for the word it's on, it scores how relevant every earlier word is, turns those scores into weights that add up to 1, then blends the earlier words together in those proportions. A word may only look <em>backward</em> — never at words that come after it. Here are those weights, computed for real on a short sequence:</p>
   <div class="card"><div class='heat'><div class='hrow'><span class='hc corner'></span><span class='hc lab'>t0</span><span class='hc lab'>t1</span><span class='hc lab'>t2</span><span class='hc lab'>t3</span><span class='hc lab'>t4</span><span class='hc lab'>t5</span></div><div class='hrow'><span class='hc lab rlab'>t0</span><span class='hc cell strong' style='background:rgba(79,168,184,1.000)'>1.00</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t1</span><span class='hc cell strong' style='background:rgba(79,168,184,0.353)'>0.35</span><span class='hc cell strong' style='background:rgba(79,168,184,0.646)'>0.65</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t2</span><span class='hc cell ' style='background:rgba(79,168,184,0.185)'>0.19</span><span class='hc cell ' style='background:rgba(79,168,184,0.319)'>0.32</span><span class='hc cell strong' style='background:rgba(79,168,184,0.496)'>0.50</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t3</span><span class='hc cell strong' style='background:rgba(79,168,184,0.598)'>0.60</span><span class='hc cell ' style='background:rgba(79,168,184,0.146)'>0.15</span><span class='hc cell ' style='background:rgba(79,168,184,0.100)'>0.10</span><span class='hc cell ' style='background:rgba(79,168,184,0.156)'>0.16</span><span class='hc cell mask'>·</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t4</span><span class='hc cell ' style='background:rgba(79,168,184,0.054)'>0.05</span><span class='hc cell ' style='background:rgba(79,168,184,0.186)'>0.19</span><span class='hc cell ' style='background:rgba(79,168,184,0.137)'>0.14</span><span class='hc cell strong' style='background:rgba(79,168,184,0.593)'>0.59</span><span class='hc cell ' style='background:rgba(79,168,184,0.030)'>0.03</span><span class='hc cell mask'>·</span></div><div class='hrow'><span class='hc lab rlab'>t5</span><span class='hc cell ' style='background:rgba(79,168,184,0.045)'>0.05</span><span class='hc cell ' style='background:rgba(79,168,184,0.023)'>0.02</span><span class='hc cell strong' style='background:rgba(79,168,184,0.434)'>0.43</span><span class='hc cell ' style='background:rgba(79,168,184,0.206)'>0.21</span><span class='hc cell ' style='background:rgba(79,168,184,0.198)'>0.20</span><span class='hc cell ' style='background:rgba(79,168,184,0.094)'>0.09</span></div></div></div>
-  <p class="mini">Lower-triangular by the mask. Every row is a probability distribution — row sums = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] (all exactly 1.0). <b>That "÷ by the sum" is the softmax's job</b>; hold onto it — linear attention (Session 2) keeps the divide but swaps the exponential for a cheaper feature map.</p>
-  <div class="why"><h3>Why this matters</h3><p>Softmax couples <em>every</em> query to <em>every</em> key — the nonlinearity lands <b>after</b> the q·k product, so you can't pre-fold the keys and values into a compact state. That coupling is what forces you to keep every past key and value around. Which is exactly the next problem.</p></div>
+  <p class="mini">Only the lower triangle is filled — each word sees itself and the words before it, nothing after. Every row adds up to exactly 1.0 ([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), because the weights are shares of a whole. That "divide so the shares add to 1" step is the one piece the next rung keeps while making everything else cheaper.</p>
+  <div class="why"><h3>Why this matters</h3><p>This scoring ties <em>every</em> word to <em>every</em> other word in a way you can't work out ahead of time — which is exactly why the model is forced to keep every earlier word on hand. That is the problem the whole rest of the lab is escaping.</p></div>
 </section>
 
 <section>
   <div class="eye">The bottleneck · what grows</div>
-  <h2>The KV cache grows linearly — forever</h2>
-  <p>At decode step <span class="mono">t</span> you only need the logits at the last position. Without help, the model would re-project every previous token to get their keys and values again. The fix is the <b>KV cache</b>: store the K and V vectors of the past so each step only projects the <em>new</em> token. But that store keeps growing — one slot per token, per head, per layer:</p>
+  <h2>The pile of notes grows — forever</h2>
+  <p>To write each next word the model only has to work on the newest one — but to score it against the past, it needs every earlier word's details on hand. So it keeps them all in a stack of notes and adds one note per word. That stack never stops growing — a note for every word, kept separately in every layer of the model:</p>
   <div class="card">
-    <div class="mini" style="margin:0 0 10px"><b>KV cache size</b> for a K3-scale attention config (61 layers · 64 heads · d_head 128 · bf16), by context length:</div>
+    <div class="mini" style="margin:0 0 10px"><b>Size of that stack of notes</b> for a large, K3-scale model (61 layers), by how much text it has read:</div>
     <div class='bar'><span class='bl'>1k</span><span class='bt'><span class='bf' style='width:0.8%'></span></span><span class='bv'>2.0 GB</span></div><div class='bar'><span class='bl'>4k</span><span class='bt'><span class='bf' style='width:3.1%'></span></span><span class='bv'>8.2 GB</span></div><div class='bar'><span class='bl'>16k</span><span class='bt'><span class='bf' style='width:12.5%'></span></span><span class='bv'>32.7 GB</span></div><div class='bar'><span class='bl'>64k</span><span class='bt'><span class='bf' style='width:50.0%'></span></span><span class='bv'>131.0 GB</span></div><div class='bar'><span class='bl'>128k</span><span class='bt'><span class='bf' style='width:100.0%'></span></span><span class='bv'>262.0 GB</span></div>
   </div>
-  <p class="mini">Linear in N. For a big model at 128k context the KV cache alone is tens of GB — and every decode step must STREAM all of it from HBM. That bandwidth is the wall linear attention is built to remove by folding K,V into a fixed D x D state.</p>
+  <p class="mini">The stack grows in a straight line with the amount of text. For a big model reading 128,000 words it is already tens of gigabytes — and every new word means hauling that whole pile out of memory again. That hauling is the wall; the next rung removes it by replacing the growing stack with one fixed-size summary.</p>
 </section>
 
 <section>
-  <div class="eye">We ran it · the tradeoff the cache makes</div>
-  <h2>No cache: O(N²) compute. Cache: O(N) memory.</h2>
-  <p>The cache isn't free — it swaps <em>redundant compute</em> for <em>growing memory you must stream every step</em>. To see the compute half, we decode the same sequence two ways on real tensors and count both FLOPs and wall-clock:</p>
+  <div class="eye">We ran it · the trade the notes make</div>
+  <h2>Re-read everything, or keep the notes</h2>
+  <p>Keeping the notes isn't free — it trades wasted re-reading for a pile of memory the model has to carry and scan every step. To see the wasted re-reading, we generate the same text two ways and count the work:</p>
   <div class="panel"><canvas data-anim="decode" height="300"></canvas>
     <div class="readout"><span id="dc-r">—</span></div>
   </div>
-  <p class="mini">Left, <span style="color:var(--rose)">no cache</span>: each step re-lights the whole prefix — recompute. Right, <span style="color:var(--accent)">KV cache</span>: the past is stored (dim), only the new token is projected (bright). The counters are the cumulative work — one curve bends, one is a line.</p>
+  <p class="mini">Left, <span style="color:var(--rose)">re-read everything</span>: each step re-processes the whole passage so far. Right, <span style="color:var(--accent)">keep the notes</span>: the past is stored (dim), only the new word is worked on (bright). The counters are the running total of work — one curve bends upward, the other is a straight line.</p>
   <div class="card" style="overflow-x:auto">
   <table>
-    <tr><th>N</th><th>FLOPs no-cache</th><th>FLOPs cache</th><th>ratio</th><th>ms no-cache</th><th>ms cache</th><th>speedup</th></tr>
-    <tr><td>64</td><td class='mo'>89,440</td><td class='mo'>2,080</td><td class='hi'>43.0×</td><td class='mo'>26.46</td><td class='mo'>15.4</td><td class='hi'>1.72×</td></tr><tr><td>128</td><td class='mo'>707,264</td><td class='mo'>8,256</td><td class='hi'>85.67×</td><td class='mo'>74.65</td><td class='mo'>53.45</td><td class='hi'>1.4×</td></tr><tr><td>256</td><td class='mo'>5,625,216</td><td class='mo'>32,896</td><td class='hi'>171.0×</td><td class='mo'>331.66</td><td class='mo'>58.12</td><td class='hi'>5.71×</td></tr><tr><td>512</td><td class='mo'>44,870,400</td><td class='mo'>131,328</td><td class='hi'>341.67×</td><td class='mo'>2080.0</td><td class='mo'>150.41</td><td class='hi'>13.83×</td></tr>
+    <tr><th>words</th><th>work: re-read all</th><th>work: keep notes</th><th>ratio</th><th>ms re-read</th><th>ms keep-notes</th><th>faster by</th></tr>
+    <tr><td>64</td><td class='mo'>89,440</td><td class='mo'>2,080</td><td class='hi'>43.0×</td><td class='mo'>18.85</td><td class='mo'>7.45</td><td class='hi'>2.53×</td></tr><tr><td>128</td><td class='mo'>707,264</td><td class='mo'>8,256</td><td class='hi'>85.67×</td><td class='mo'>49.7</td><td class='mo'>19.38</td><td class='hi'>2.56×</td></tr><tr><td>256</td><td class='mo'>5,625,216</td><td class='mo'>32,896</td><td class='hi'>171.0×</td><td class='mo'>241.45</td><td class='mo'>63.05</td><td class='hi'>3.83×</td></tr><tr><td>512</td><td class='mo'>44,870,400</td><td class='mo'>131,328</td><td class='hi'>341.67×</td><td class='mo'>4635.06</td><td class='mo'>188.36</td><td class='hi'>24.61×</td></tr>
   </table>
   </div>
-  <p class="mini">no-cache work ~ sum_t t = O(N^2); kv-cache work ~ sum_t 1 = O(N). The FLOP ratio grows ~linearly with N — that gap IS the redundant recompute the KV cache removes. The cache trades that compute for O(N) memory it must stream. The FLOP ratio ≈ N/2 — doubling context doubles the waste. This is the pressure that makes a <b>fixed-size</b> state so attractive.</p>
+  <p class="mini">Re-reading everything means each new word re-processes the whole passage so far, so the total work piles up fast; keeping the notes means each word does a fixed small amount. The gap between them grows with the length — that gap is the wasted re-reading the notes remove, in exchange for a pile of memory the model has to carry. The wasted-work ratio grows with the length — double the text and you roughly double the waste. That pressure is what makes a <b>fixed-size</b> memory so attractive.</p>
 </section>
 
 <section>
   <div class="eye">The one-line aha</div>
   <p class="aha">The baseline remembers perfectly — right up until the pile of notes becomes too big and too slow to afford, which happens far sooner than you&#x27;d think.</p>
   <p class="next">Real code: <b>01-softmax-baseline/attn.py</b> → <b>out_softmax.json</b> · Source: ali, <em>"22580: From GPT-2 to Kimi K3, Explained"</em>.<br>
-  Next → <b>Session 02 · Linear attention</b>: swap the exponential for ELU+1 and fold all of K,V into one fixed <span class="mono">D×D</span> matrix — the cache stops growing. We'll run it and watch the fidelity you pay for it.</p>
+  Next → <b>Session 02</b>: keep one fixed-size running summary instead of the ever-growing stack — the memory stops growing. We run it and watch the accuracy you trade for it.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580: From GPT-2 to Kimi K3, Explained"</a> · thread archived in <span class="mono">source/</span>. Numbers on this page are produced by the code, not transcribed.</div>
 </div>
 <script>
 (function(){
-  const ROWS=[{"N": 64, "flops_no_cache": 89440, "flops_kv_cache": 2080, "flops_ratio": 43.0, "ms_no_cache": 26.46, "ms_kv_cache": 15.4, "speedup": 1.72}, {"N": 128, "flops_no_cache": 707264, "flops_kv_cache": 8256, "flops_ratio": 85.67, "ms_no_cache": 74.65, "ms_kv_cache": 53.45, "speedup": 1.4}, {"N": 256, "flops_no_cache": 5625216, "flops_kv_cache": 32896, "flops_ratio": 171.0, "ms_no_cache": 331.66, "ms_kv_cache": 58.12, "speedup": 5.71}, {"N": 512, "flops_no_cache": 44870400, "flops_kv_cache": 131328, "flops_ratio": 341.67, "ms_no_cache": 2080.0, "ms_kv_cache": 150.41, "speedup": 13.83}];
+  const ROWS=[{"N": 64, "flops_no_cache": 89440, "flops_kv_cache": 2080, "flops_ratio": 43.0, "ms_no_cache": 18.85, "ms_kv_cache": 7.45, "speedup": 2.53}, {"N": 128, "flops_no_cache": 707264, "flops_kv_cache": 8256, "flops_ratio": 85.67, "ms_no_cache": 49.7, "ms_kv_cache": 19.38, "speedup": 2.56}, {"N": 256, "flops_no_cache": 5625216, "flops_kv_cache": 32896, "flops_ratio": 171.0, "ms_no_cache": 241.45, "ms_kv_cache": 63.05, "speedup": 3.83}, {"N": 512, "flops_no_cache": 44870400, "flops_kv_cache": 131328, "flops_ratio": 341.67, "ms_no_cache": 4635.06, "ms_kv_cache": 188.36, "speedup": 24.61}];
   const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const MONO='ui-monospace,Menlo,Consolas,monospace';
   const C={accent:'#4FA8B8',rose:'#E0748A',ink:'#E7EFF1',mut:'#8B9BA2',dim:'#586770',line:'#243440'};
@@ -154,15 +154,15 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
     if(step===0 && !RM){cum.nc=0;cum.kv=0;}
     const cs=Math.min(20,(w/2-70)/NCELL-3), gap=3;
     const lc=w*0.27, rc=w*0.73;
-    txt('no cache — recompute',lc,h*0.16,C.rose,12.5,'center',true);
-    txt('KV cache — store + read',rc,h*0.16,C.accent,12.5,'center',true);
+    txt('re-read everything',lc,h*0.16,C.rose,12.5,'center',true);
+    txt('keep the notes',rc,h*0.16,C.accent,12.5,'center',true);
     const L=row(lc,step,'nocache',cs,gap), R=row(rc,step,'kvcache',cs,gap);
     // per-step work counts
     cum.nc+=(step+1); cum.kv+=1;
     txt('step '+(step+1)+'/'+NCELL,lc,h*0.30,C.mut,11,'center');
     txt('step '+(step+1)+'/'+NCELL,rc,h*0.30,C.mut,11,'center');
-    txt('this step: '+(step+1)+' tokens processed',lc,h*0.66,C.rose,11.5,'center');
-    txt('this step: 1 token projected',rc,h*0.66,C.accent,11.5,'center');
+    txt('this step: '+(step+1)+' words re-read',lc,h*0.66,C.rose,11.5,'center');
+    txt('this step: 1 new word',rc,h*0.66,C.accent,11.5,'center');
     // cumulative bars
     const maxc=NCELL*(NCELL+1)/2;
     function cbar(cx,val,col){const bw=L.total, x0=cx-bw/2,y=h*0.80,bh=12;
@@ -171,7 +171,7 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
       txt('Σ work '+val,cx,y+bh+13,col,11,'center');}
     cbar(lc,cum.nc,C.rose); cbar(rc,cum.kv,C.accent);
     const el=document.getElementById('dc-r');
-    if(el) el.innerHTML='cumulative work after step '+(step+1)+': <b>no-cache '+cum.nc+'</b> vs <b>cache '+cum.kv+'</b> — the gap is the redundant recompute (O(N²) vs O(N)).';
+    if(el) el.innerHTML='total work after '+(step+1)+' words: <b>re-read everything '+cum.nc+'</b> vs <b>keep the notes '+cum.kv+'</b> — the gap is the wasted re-reading.';
   }
   let raf,t0=performance.now();function frame(now){draw((now-t0)/1000);raf=requestAnimationFrame(frame);}
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){if(!raf){t0=performance.now();raf=requestAnimationFrame(frame);}}else{cancelAnimationFrame(raf);raf=0;}}),{threshold:.12});

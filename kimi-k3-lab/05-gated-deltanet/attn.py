@@ -72,11 +72,11 @@ for alpha in [1.0, 0.99, 0.97, 0.94, 0.90, 0.80]:
     rows.append({"alpha": alpha, "stale_A_recall": a_recall, "fresh_B_recall": b_recall})
 OUT["context_switch"] = {
     "d": 64, "N": 64, "needle_A_pos": 2, "needle_B_pos": 59, "rows": rows,
-    "point": "α=1 is ungated DeltaNet: the stale early needle (A) is still fully on the board, cluttering "
-             "the fresh late needle (B). As α drops, the old topic FADES (stale_A_recall falls — that's the "
-             "board forgetting) and the recent topic comes back CLEANER (fresh_B_recall rises) because the "
-             "early clutter has decayed away. Push α too low and even B starts to fade — decay is a dial, "
-             "and its best setting is data-dependent, which is exactly what the model learns.",
+    "point": "With forgetting off, the stale early topic is still fully on the page, cluttering the fresh "
+             "later one. As you turn forgetting up, the old topic fades (its recall falls — that is the page "
+             "letting go) and the recent topic comes back cleaner, because the early clutter has faded away. "
+             "Turn it up too far and even the fresh topic starts to fade — forgetting is a dial, and its best "
+             "setting depends on the text, which is exactly what the model learns.",
 }
 
 # ----------------------------------------------------------------------------
@@ -107,10 +107,10 @@ for alpha, Delta in [(0.9, 5), (0.9, 10), (0.9, 20), (0.95, 10), (0.99, 20)]:
                        "predicted_alpha_pow_Delta": predicted})
 OUT["decay_law"] = {
     "d": 48, "rows": decay_rows,
-    "point": "A value written then left untouched for Δ steps comes back scaled by the running product of "
-             "the decays — here a constant α, so exactly α^Δ. Measured matches predicted to a few thousandths. "
-             "This multiplicative discount is the 'cumulative decay' (γ) term: a token's influence shrinks "
-             "geometrically with how long ago it was written, unless it keeps getting refreshed.",
+    "point": "A value written and then left untouched comes back scaled by the fade multiplied together once "
+             "for every step waited — here a steady fade, so it's simply the fade raised to the number of steps. "
+             "Measured matches predicted to a few thousandths. It's a running discount: a word's influence shrinks "
+             "steadily the longer ago it was written, unless it keeps getting refreshed.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))

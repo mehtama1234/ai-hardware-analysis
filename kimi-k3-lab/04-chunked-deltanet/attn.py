@@ -76,10 +76,10 @@ for C in [1, 2, 4, 8, 16, 32, 64]:
     eq.append({"C": C, "max_abs_diff": float((o - ref).abs().max())})
 OUT["equivalence"] = {
     "N": N, "d": d, "rows": eq,
-    "point": "Every chunk size C reproduces the sequential delta rule to floating-point noise. "
-             "C=1 is literally the sequential loop; C=N is one big chunk (full attention). The "
-             "chunked form is not an approximation — it's the same function, re-scheduled so a GPU "
-             "can do big matmuls instead of a long scalar recurrence.",
+    "point": "Every block size gives back exactly the one-word-at-a-time answer, down to rounding. A block "
+             "of 1 word is literally the one-at-a-time version; a block the size of the whole text is the old "
+             "everything-compared-to-everything. The in-blocks form isn't an approximation — it's the same "
+             "calculation, just reorganized so a computer can do big batches instead of a long single-file chain.",
 }
 
 # ----------------------------------------------------------------------------
@@ -106,12 +106,12 @@ for L in [128, 256, 512, 1024]:
                  "speedup": round(t_seq/t_chk, 2)})
 OUT["speed"] = {
     "d": d, "chunk_size": CHUNK, "rows": rows,
-    "point": "The core win is the SEQUENTIAL DEPTH — the number of steps that must run one-after-another "
-             "because each needs the previous state. Sequential DeltaNet has depth L; the chunked form has "
-             "depth L/C (here 32× shorter), with all the within-chunk work as parallel matmuls. That shorter "
-             "dependency chain is why it trains fast — and it shows up even here: replacing the L-step Python "
-             "recurrence with L/C batched-matmul steps runs 8–20× faster on plain CPU. In production the same "
-             "idea rides a fused GPU kernel (Kimi Linear's DPLR chunkwise kernel) at C≈64–128.",
+    "point": "The real win is the length of the must-wait chain — the steps that have to run one after another "
+             "because each needs the result of the last. One-at-a-time has one link per word; in blocks it has "
+             "one link per block (here about 32× fewer), with all the within-block work done in parallel. That "
+             "shorter chain is why it trains fast — and it showed up even here: swapping the long word-by-word loop "
+             "for a handful of block-sized batches ran 8–20× faster on an ordinary computer. In a real system the "
+             "same idea runs on a purpose-built routine on the graphics chip, with blocks of about 64–128 words.",
 }
 
 # ----------------------------------------------------------------------------
@@ -127,10 +127,11 @@ for C in [1, 16, 64, 128, 512, L]:
                   "is_full_attention": C == L})
 OUT["flop_split"] = {
     "L": L, "d": d, "rows": split,
-    "point": "The fixed piece (2·L·d²) is the recurrent state work and ignores C entirely. The growing "
-             "piece (2·L·C·d) is the little masked-attention triangles on the diagonal. C=1 minimizes "
-             "FLOPs but is all tiny ops; C=L is full O(L²) attention. Kimi Linear picks C≈64–128 — big "
-             "enough to fill tensor cores (its DPLR chunkwise kernel), small enough to stay near-linear.",
+    "point": "One part of the cost is fixed — the running-summary bookkeeping — and doesn't care about block "
+             "size at all. The other part is the careful within-block work, and it grows with the block size. "
+             "Tiny blocks do the least total work but in many small steps; a block the size of the whole text is "
+             "the old, expensive everything-compared-to-everything. Real systems pick blocks of about 64–128 words "
+             "— big enough to keep the hardware busy, small enough to stay cheap.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))

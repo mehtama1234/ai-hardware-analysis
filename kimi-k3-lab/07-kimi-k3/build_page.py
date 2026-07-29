@@ -38,18 +38,18 @@ def situsvg():
     for gy in (0, 2, 4, 6):
         grid += f"<line x1='{pad}' y1='{Y(gy):.1f}' x2='{W-pad}' y2='{Y(gy):.1f}' stroke='rgba(150,170,205,.10)'/><text x='{pad-6}' y='{Y(gy)+3:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">{gy}</text>"
     zero = f"<line x1='{X((len(xs)-1)/2):.1f}' y1='{pad}' x2='{X((len(xs)-1)/2):.1f}' y2='{H-pad}' stroke='rgba(150,170,205,.10)'/>"
-    lab = (f"<text x='{W-pad}' y='{Y(silu[-1])-6:.1f}' fill='#E0748A' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">SiLU (unbounded)</text>"
-           f"<text x='{W-pad}' y='{Y(situ[-1])-6:.1f}' fill='#4FA8B8' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">SiTU (bounded)</text>")
+    lab = (f"<text x='{W-pad}' y='{Y(silu[-1])-6:.1f}' fill='#E0748A' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">the usual squash (climbs)</text>"
+           f"<text x='{W-pad}' y='{Y(situ[-1])-6:.1f}' fill='#4FA8B8' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">the new one (levels off)</text>")
     return f"<svg viewBox='0 0 {W} {H}' style='width:100%;height:auto'>{grid}{zero}{line(silu,'#E0748A')}{line(situ,'#4FA8B8')}{lab}</svg>"
 
 RUNGS = [
-    ("01", "Softmax", "keeps every note — perfect recall, but the KV cache grows forever"),
-    ("02", "Linear", "fold K,V into a fixed board — flat cost, but recall blurs"),
-    ("03", "DeltaNet", "erase-then-write — edit a fact in place instead of piling on"),
-    ("04", "Chunked", "same delta rule, re-scheduled to train fast on GPUs"),
-    ("05", "Gated", "a decay dial — forget stale context generally"),
-    ("06", "KDA", "per-channel decay — keep some, forget others, at once"),
-    ("07", "Kimi K3", "assemble it: KDA+MLA spine, latent MoE, SiTU, AttnRes"),
+    ("01", "Keep every note", "perfect recall — but the pile of notes grows forever"),
+    ("02", "One running summary", "fold everything into a fixed page — flat cost, but recall blurs"),
+    ("03", "Erase, then write", "replace a fact in place instead of piling on top"),
+    ("04", "Work in blocks", "the same thing, reorganized to train fast in parallel"),
+    ("05", "A forget dial", "fade the whole page to clear out stale material"),
+    ("06", "A dial per slot", "keep some kinds of memory while dropping others, at once"),
+    ("07", "Kimi K3", "put it together: mostly-cheap memory, a crowd of specialists, reach-back across depth"),
 ]
 def ladder():
     return "".join(
@@ -101,7 +101,7 @@ section{{padding:44px 0;border-top:1px solid var(--line)}}
 .rung{{display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}}
 .rung.cur{{background:rgba(79,168,184,.06);border-radius:8px;padding:9px 10px}}
 .rnn{{font-family:var(--mono);font-size:12px;color:var(--accent);width:22px;flex:0 0 auto}}
-.rnm{{font-family:var(--serif);font-size:18px;color:#fff;width:96px;flex:0 0 auto}}
+.rnm{{font-family:var(--serif);font-size:17px;color:#fff;width:150px;flex:0 0 auto}}
 .rnd{{font-size:14.5px;color:var(--soft)}}
 .aha{{font-family:var(--serif);font-size:23px;line-height:1.45;color:#fff;border-left:3px solid var(--accent);padding-left:20px;margin:10px 0}}
 .next{{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}}.next a{{color:var(--accent);text-decoration:none}}
@@ -121,42 +121,42 @@ section{{padding:44px 0;border-top:1px solid var(--line)}}
 </header>
 
 <section>
-  <div class="eye">The backbone · Sessions 02–06 made physical</div>
-  <h2>{B['macrocycles']} macrocycles of 3 KDA + 1 MLA</h2>
-  <p>The language spine is {B['macrocycles']} four-layer macrocycles = <b>{B['total_layers']} layers</b>. In each, three layers use <span style="color:var(--accent)">KDA</span> (the per-channel-gated fixed board from Session 06 — cheap, constant-state) and the fourth is <span style="color:var(--amber)">MLA</span> (full softmax retrieval — the "keep a little perfect memory" hedge). Every {B['attnres_every']} layers a block boundary marks where Attention Residuals mix depth ({B['attnres_blocks']} blocks):</p>
+  <div class="eye">The backbone · everything so far, stacked up</div>
+  <h2>Mostly cheap memory, with full memory mixed in</h2>
+  <p>The model's spine is {B['macrocycles']} repeating groups of four layers = <b>{B['total_layers']} layers</b>. In each group, three layers use the <span style="color:var(--accent)">cheap fixed-page memory</span> we built over the last rungs, and the fourth is a <span style="color:var(--amber)">full keep-everything layer</span> — the "keep a little perfect memory" hedge. Every {B['attnres_every']} layers a marker shows where the model is allowed to reach back across depth (more on that below):</p>
   <div class="card">{strip()}
-  <div class="mini" style="margin-top:10px"><span style="color:var(--accent)">▮</span> KDA (constant state) &nbsp; <span style="color:var(--amber)">▮</span> MLA (full attention) &nbsp; <span style="color:var(--viol)">▎</span> AttnRes block boundary (every {B['attnres_every']})</div></div>
-  <div class="why"><h3>Why this shape</h3><p>KDA carries most of the context at flat cost; the 1-in-4 MLA layers recover the sharp retrieval a fixed board can't (Sessions 02–03), giving the −75% KV / 6× decode of Session 06. The rest of this page is the three things K3 adds <em>on top</em> of this spine.</p></div>
+  <div class="mini" style="margin-top:10px"><span style="color:var(--accent)">▮</span> cheap page (fixed size) &nbsp; <span style="color:var(--amber)">▮</span> full memory (keeps everything) &nbsp; <span style="color:var(--viol)">▎</span> reach-back marker (every {B['attnres_every']} layers)</div></div>
+  <div class="why"><h3>Why this shape</h3><p>The cheap layers carry most of the text at flat cost; the 1-in-4 full layers recover the sharp recall a fixed page can't (Sessions 02–03), which is where the 75%-smaller memory and up-to-6× faster generation of Session 06 come from. The rest of this page is the three things the model adds <em>on top</em> of this spine.</p></div>
 </section>
 
 <section>
-  <div class="eye">We ran it · latent Mixture-of-Experts</div>
-  <h2>898 experts on disk, 18 awake per token</h2>
-  <p>A dense model runs every parameter for every token. A Mixture-of-Experts keeps hundreds of small expert networks and a router that sends each token to just a few — here 2 always-on shared experts + the router's top 16 of 896. Each dot is an expert; the lit ones fire for one token:</p>
+  <div class="eye">We ran it · a crowd of specialists</div>
+  <h2>898 specialists on hand, 18 awake per word</h2>
+  <p>An ordinary model runs every one of its internal parts for every word. This one instead keeps hundreds of small specialist sub-networks and a chooser that sends each word to just a few — here 2 that are always on, plus the chooser's top 16 of the other 896. Each dot is a specialist; the lit ones wake up for one word:</p>
   <div class="card">{moegrid()}
-  <div class="mini" style="margin-top:10px">{MO['active_experts_per_token']} of {MO['experts_total']} experts active = <b>{MO['expert_fire_fraction_pct']}%</b> of the pool → the MoE feed-forward does ~that fraction of a dense model's work. Whole-model active params ~{MO['reported_active_params_pct']}% (104B of 2.8T). Measured routing is uneven (load CV {MO['load_balance_cv']}, busiest expert {MO['busiest_expert_tokens']} vs quietest {MO['quietest_expert_tokens']} of {MO['tokens']} tokens) — the report's "Stable LatentMoE" is about keeping that balanced.</div></div>
+  <div class="mini" style="margin-top:10px">{MO['active_experts_per_token']} of {MO['experts_total']} specialists awake = <b>{MO['expert_fire_fraction_pct']}%</b> of them → the specialist stage does about that fraction of an ordinary model's work. Across the whole model, roughly {MO['reported_active_params_pct']}% of its parts run for any given word (104 billion of 2.8 trillion). The chooser isn't perfectly even (busiest specialist handled {MO['busiest_expert_tokens']} words, quietest {MO['quietest_expert_tokens']}, of {MO['tokens']}) — keeping that balanced is a big part of the real design.</div></div>
   <p class="mini">{esc(MO['point'])}</p>
 </section>
 
 <section>
-  <div class="eye">We ran it · SiTU activation</div>
-  <h2>A soft-bounded SiLU</h2>
-  <p>Inside each expert, K3 swaps the usual SiLU gate for <b>SiTU</b>: it wraps the gate in a <span class="mono">tanh</span> so the activation can't run off to infinity. We computed both — they track near zero, then SiLU keeps climbing while SiTU levels off:</p>
+  <div class="eye">We ran it · a self-limiting squash</div>
+  <h2>A squash that knows its own ceiling</h2>
+  <p>Deep inside, every model has a little "squash" step that reshapes each number before passing it on. The usual one keeps climbing without limit; this model swaps in a version (called SiTU) that levels off. We computed both — they match near zero, then the old one keeps rising while the new one flattens out:</p>
   <div class="card">{situsvg()}
-  <div class="mini" style="margin-top:6px">At x=6: SiLU ≈ {SI['silu_at_6']} (still rising) vs SiTU ≈ {SI['situ_at_6']} (saturated). Bounded activations stay numerically steady at 2.8T scale.</div></div>
+  <div class="mini" style="margin-top:6px">Far out (at 6): the old squash ≈ {SI['silu_at_6']} and still climbing, versus the new one ≈ {SI['situ_at_6']}, leveled off. A squash that can't run away keeps the numbers steady in a model this size.</div></div>
   <p class="mini">{esc(SI['point'])}</p>
 </section>
 
 <section>
-  <div class="eye">We ran it · Attention Residuals</div>
-  <h2>Attention across depth, not just time</h2>
-  <p>Every mechanism so far attends across <em>tokens</em>. AttnRes does the same file-and-match trick across <em>layers</em>: instead of a plain residual stream that blends every earlier block equally, a later block runs a softmax over the earlier block representations and pulls the one it needs. We hid a signal in one earlier block among noisy others and asked each method to recover it:</p>
+  <div class="eye">We ran it · reaching back across depth</div>
+  <h2>Reaching back to an exact earlier layer</h2>
+  <p>Every trick so far reached across <em>words</em>. This one (called attention residuals) does the same look-up across <em>layers</em>: instead of a deep layer getting an equal blend of everything the earlier layers produced, it can score them and pull out the one earlier result it actually needs. We hid a useful result in one earlier layer among noisy ones and asked each approach to recover it:</p>
   <div class="card">
     <div class="arbars">
-      <div class="arb"><span class="arl">AttnRes (softmax/depth)</span><span class="art"><span class="arf a" style="width:{AR['attnres_recovery']*100:.0f}%"></span></span><span class="arv">{AR['attnres_recovery']:.2f}</span></div>
-      <div class="arb"><span class="arl">plain residual (uniform)</span><span class="art"><span class="arf b" style="width:{AR['plain_residual_recovery']*100:.0f}%"></span></span><span class="arv">{AR['plain_residual_recovery']:.2f}</span></div>
+      <div class="arb"><span class="arl">reach back to the right layer</span><span class="art"><span class="arf a" style="width:{AR['attnres_recovery']*100:.0f}%"></span></span><span class="arv">{AR['attnres_recovery']:.2f}</span></div>
+      <div class="arb"><span class="arl">equal blend of all layers</span><span class="art"><span class="arf b" style="width:{AR['plain_residual_recovery']*100:.0f}%"></span></span><span class="arv">{AR['plain_residual_recovery']:.2f}</span></div>
     </div>
-    <div class="mini" style="margin-top:8px">recovery = cosine of the recovered vector to the hidden signal, over {AR['N_blocks']} blocks.</div>
+    <div class="mini" style="margin-top:8px">recovery = how close the recovered result is to the hidden one, across {AR['N_blocks']} layers (1 = exact).</div>
   </div>
   <p class="mini">{esc(AR['point'])}</p>
 </section>

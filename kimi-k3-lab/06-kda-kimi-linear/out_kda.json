@@ -6,34 +6,34 @@
     "forget_channels": "0.70 decay",
     "goal": "keep_retention high AND forget_retention low  \u2192 goal_score = keep \u00d7 (1 \u2212 forget)",
     "results": {
-      "per-channel (KDA)": {
+      "a dial per slot": {
         "keep_retention": 0.86,
         "forget_retention": 0.005,
         "goal_score": 0.856
       },
-      "scalar \u03b1=0.99": {
+      "one dial: 0.99": {
         "keep_retention": 0.86,
         "forget_retention": 0.86,
         "goal_score": 0.12
       },
-      "scalar \u03b1=0.90": {
+      "one dial: 0.90": {
         "keep_retention": 0.206,
         "forget_retention": 0.206,
         "goal_score": 0.163
       },
-      "scalar \u03b1=0.70": {
+      "one dial: 0.70": {
         "keep_retention": 0.005,
         "forget_retention": 0.005,
         "goal_score": 0.005
       }
     },
-    "point": "The task needs two things at once: hold the 'keep' channels and clear the 'forget' channels. Per-channel KDA does both (keep\u2248high, forget\u22480) for a goal score far above any scalar. A single \u03b1 is forced to choose: \u03b1=0.99 keeps everything (never forgets the clutter), \u03b1=0.70 forgets everything (loses what mattered). Fine-grained gating is strictly more expressive \u2014 the exact capacity gain that lets Kimi Linear beat full attention."
+    "point": "The task needs two things at once: hold the 'keep' slots and clear the 'forget' slots. Giving each slot its own dial does both (keep stays high, forget drops to near zero) for a goal score far above any single dial. One shared dial is forced to choose: set it to 0.99 and it keeps everything (never clears the clutter); set it to 0.70 and it forgets everything (loses what mattered). Per-slot control is simply more capable \u2014 the exact gain that lets this cheap memory match the keep-everything kind."
   },
   "hybrid": {
     "total_layers": 48,
     "mla_layers": 12,
     "kda_layers": 36,
-    "ratio": "3 KDA : 1 MLA",
+    "ratio": "3 cheap : 1 full",
     "rows": [
       {
         "context": 8192,
@@ -60,6 +60,6 @@
         "reduction_pct": 75.0
       }
     ],
-    "point": "KDA layers keep a fixed-size board, so only the 1-in-4 MLA layers hold a cache that grows with context. That's a flat 75% KV-cache reduction at every context length \u2014 exactly the up-to-\u221275% Kimi Linear reports, and the same structure behind its up-to-6\u00d7 decode throughput at 1M tokens. The MLA layers are the 'keep a little perfect memory' hedge; KDA carries the rest cheaply."
+    "point": "The cheap layers keep a fixed-size page, so only the 1-in-4 full layers hold a store that grows with the text. That's a flat 75% cut in memory at every length \u2014 exactly the up-to-75% smaller memory the Kimi Linear report gives, and the same structure behind its up-to-6\u00d7 faster generation on very long text. The full layers are the 'keep a little perfect memory' hedge; the cheap ones carry the rest."
   }
 }

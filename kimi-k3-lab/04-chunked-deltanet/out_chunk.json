@@ -32,7 +32,7 @@
         "max_abs_diff": 7.152557373046875e-07
       }
     ],
-    "point": "Every chunk size C reproduces the sequential delta rule to floating-point noise. C=1 is literally the sequential loop; C=N is one big chunk (full attention). The chunked form is not an approximation \u2014 it's the same function, re-scheduled so a GPU can do big matmuls instead of a long scalar recurrence."
+    "point": "Every block size gives back exactly the one-word-at-a-time answer, down to rounding. A block of 1 word is literally the one-at-a-time version; a block the size of the whole text is the old everything-compared-to-everything. The in-blocks form isn't an approximation \u2014 it's the same calculation, just reorganized so a computer can do big batches instead of a long single-file chain."
   },
   "speed": {
     "d": 32,
@@ -43,39 +43,39 @@
         "seq_depth": 128,
         "chunk_depth": 4,
         "depth_reduction": 32,
-        "ms_sequential": 5.29,
-        "ms_chunked": 0.57,
-        "speedup": 9.29
+        "ms_sequential": 4.59,
+        "ms_chunked": 0.6,
+        "speedup": 7.66
       },
       {
         "L": 256,
         "seq_depth": 256,
         "chunk_depth": 8,
         "depth_reduction": 32,
-        "ms_sequential": 19.48,
-        "ms_chunked": 1.98,
-        "speedup": 9.83
+        "ms_sequential": 11.14,
+        "ms_chunked": 1.91,
+        "speedup": 5.84
       },
       {
         "L": 512,
         "seq_depth": 512,
         "chunk_depth": 16,
         "depth_reduction": 32,
-        "ms_sequential": 44.67,
-        "ms_chunked": 2.05,
-        "speedup": 21.77
+        "ms_sequential": 28.75,
+        "ms_chunked": 1.19,
+        "speedup": 24.12
       },
       {
         "L": 1024,
         "seq_depth": 1024,
         "chunk_depth": 32,
         "depth_reduction": 32,
-        "ms_sequential": 100.02,
-        "ms_chunked": 27.99,
-        "speedup": 3.57
+        "ms_sequential": 68.6,
+        "ms_chunked": 5.41,
+        "speedup": 12.68
       }
     ],
-    "point": "The core win is the SEQUENTIAL DEPTH \u2014 the number of steps that must run one-after-another because each needs the previous state. Sequential DeltaNet has depth L; the chunked form has depth L/C (here 32\u00d7 shorter), with all the within-chunk work as parallel matmuls. That shorter dependency chain is why it trains fast \u2014 and it shows up even here: replacing the L-step Python recurrence with L/C batched-matmul steps runs 8\u201320\u00d7 faster on plain CPU. In production the same idea rides a fused GPU kernel (Kimi Linear's DPLR chunkwise kernel) at C\u224864\u2013128."
+    "point": "The real win is the length of the must-wait chain \u2014 the steps that have to run one after another because each needs the result of the last. One-at-a-time has one link per word; in blocks it has one link per block (here about 32\u00d7 fewer), with all the within-block work done in parallel. That shorter chain is why it trains fast \u2014 and it showed up even here: swapping the long word-by-word loop for a handful of block-sized batches ran 8\u201320\u00d7 faster on an ordinary computer. In a real system the same idea runs on a purpose-built routine on the graphics chip, with blocks of about 64\u2013128 words."
   },
   "flop_split": {
     "L": 4096,
@@ -124,6 +124,6 @@
         "is_full_attention": true
       }
     ],
-    "point": "The fixed piece (2\u00b7L\u00b7d\u00b2) is the recurrent state work and ignores C entirely. The growing piece (2\u00b7L\u00b7C\u00b7d) is the little masked-attention triangles on the diagonal. C=1 minimizes FLOPs but is all tiny ops; C=L is full O(L\u00b2) attention. Kimi Linear picks C\u224864\u2013128 \u2014 big enough to fill tensor cores (its DPLR chunkwise kernel), small enough to stay near-linear."
+    "point": "One part of the cost is fixed \u2014 the running-summary bookkeeping \u2014 and doesn't care about block size at all. The other part is the careful within-block work, and it grows with the block size. Tiny blocks do the least total work but in many small steps; a block the size of the whole text is the old, expensive everything-compared-to-everything. Real systems pick blocks of about 64\u2013128 words \u2014 big enough to keep the hardware busy, small enough to stay cheap."
   }
 }

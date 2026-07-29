@@ -5,7 +5,7 @@ def esc(s): return html.escape(str(s))
 
 # overwrite bars: 3 methods x (new v2, old v1)
 def owbars():
-    order = [("deltanet", "DeltaNet"), ("softmax", "Softmax"), ("linear", "Linear")]
+    order = [("deltanet", "Erase-first"), ("softmax", "Keep&nbsp;every&nbsp;note"), ("linear", "Add-only")]
     out = ""
     for key, label in order:
         r = OW["results"][key]
@@ -30,9 +30,9 @@ def needlesvg():
     grid = "".join(f"<line x1='{pad}' y1='{Y(g):.1f}' x2='{W-pad}' y2='{Y(g):.1f}' stroke='rgba(150,170,205,.10)'/>"
                    f"<text x='{pad-6}' y='{Y(g)+3:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">{g:.1f}</text>" for g in (0, 0.5, 1.0))
     xl = "".join(f"<text x='{X(i):.1f}' y='{H-8}' fill='#5A6577' font-size='10' text-anchor='middle' font-family=\"ui-monospace,monospace\">{r['N']}</text>" for i, r in enumerate(rows))
-    leg = ("<text x='%.0f' y='18' fill='#4FA8B8' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">softmax</text>"
-           "<text x='%.0f' y='34' fill='#9B8CE0' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">deltanet</text>"
-           "<text x='%.0f' y='50' fill='#E0748A' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">linear</text>") % (W-pad, W-pad, W-pad)
+    leg = ("<text x='%.0f' y='18' fill='#4FA8B8' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">keep every note</text>"
+           "<text x='%.0f' y='34' fill='#9B8CE0' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">erase-first</text>"
+           "<text x='%.0f' y='50' fill='#E0748A' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">add-only</text>") % (W-pad, W-pad, W-pad)
     return (f"<svg viewBox='0 0 {W} {H}' style='width:100%;height:auto'>{grid}"
             f"{line('linear','#E0748A')}{line('deltanet','#9B8CE0')}{line('softmax','#4FA8B8')}{xl}{leg}</svg>")
 
@@ -88,50 +88,50 @@ section{{padding:44px 0;border-top:1px solid var(--line)}}
 
 <section>
   <div class="eye">The rule · read, subtract, write</div>
-  <h2>A finite board needs an eviction policy</h2>
-  <p>Once memory is a fixed board, you can't keep adding forever — at some point new facts have to <em>take the place of</em> old ones. DeltaNet makes that explicit. For each token it treats the key as an address, reads what's there, and writes only the difference:</p>
-  <div class="eqn"><span class="g"># plain linear attention — blind addition</span>
-S = S + kᵀ v
+  <h2>A fixed page has to make room</h2>
+  <p>Once the memory is a single fixed page, you can't keep adding forever — sooner or later a new fact has to take the place of an old one. The trick is to treat each label as an address: before writing, look at what's already written under that label, and put down only the <em>difference</em>.</p>
+  <div class="eqn"><span class="g"># the old way — pile the new fact on top of whatever is already there</span>
+page = page + new-fact-under-its-label
 
-<span class="g"># DeltaNet — read the address first, write only the delta</span>
-v_old = <span class="c">k · S</span>            <span class="g"># what the board already says at key k</span>
-u     = β ( v − <span class="r">v_old</span> )   <span class="g"># the correction: only what's new (β = write strength)</span>
-S     = S + kᵀ <span class="c">u</span>          <span class="g"># same outer-product write, but of the delta</span></div>
-  <p>If you write the same key again, <span class="mono">v_old</span> is the value you stored last time — so the subtraction cancels it and you're left holding just the new value. Old information is removed and new information is written in its place. <span class="mono">β</span> (a learned, per-token write strength) controls how forcefully; β=1 is a full replace.</p>
+<span class="g"># the new way — read the label first, then write only what changed</span>
+<span class="c">already-there</span> = what the page currently says under this label
+change        = strength × ( new-value − <span class="r">already-there</span> )
+page          = page + <span class="c">change</span>-under-its-label</div>
+  <p>Write under the same label a second time and <span class="mono">already-there</span> is exactly what you stored the first time — so subtracting it cancels the old value and leaves only the new one. The old entry is gone; the new one sits in its place. The <span class="mono">strength</span> (the model learns one for every word) sets how hard it overwrites — turn it all the way up and it's a clean replace.</p>
 </section>
 
 <section>
   <div class="eye">We ran it · update vs accumulate</div>
-  <h2>Only DeltaNet actually updates a fact</h2>
-  <p>The same overwrite experiment, all three mechanisms side by side. Blue = how much the recalled value resembles the <b>new</b> v2; red = how much it still resembles the <b>stale</b> v1. You want tall blue, no red:</p>
+  <h2>Only the erase-first page actually updates a fact</h2>
+  <p>The same overwrite test, three memories side by side. Blue = how much the recalled answer resembles the <b>new</b> value; red = how much it still resembles the <b>old</b> one. You want tall blue, no red:</p>
   <div class="card">{owbars()}</div>
   <p class="mini">{esc(OW['point'])}</p>
 </section>
 
 <section>
   <div class="eye">We ran it · does it also fix the blur?</div>
-  <h2>Recall holds up far longer — but a single board still saturates</h2>
-  <p>Back to Session 02's needle test (store N pairs, query one by its exact key), now with DeltaNet added. Subtracting-before-writing keeps correlated writes from stacking into a blur, so DeltaNet recalls <em>much</em> better than plain linear while the board isn't overfull:</p>
+  <h2>Recall holds up far longer — but a single page still fills up</h2>
+  <p>Back to the recall test from before (store a batch of facts, then ask for one by its exact cue), now with the erase-first page added. Reading and subtracting before each write keeps similar facts from piling into a smear, so it recalls <em>much</em> better than the plain add-only page while the page isn't overfull:</p>
   <div class="card">{needlesvg()}
-  <div class="mini" style="margin-top:6px">x = number of stored tokens N. <span style="color:var(--accent)">softmax</span> keeps every note (flat ~1.0); <span style="color:var(--viol)">deltanet</span> holds high then falls as the fixed board saturates; <span style="color:var(--rose)">linear</span> fades from the start.</div></div>
-  <div class="why"><h3>The honest catch — and why the next rungs exist</h3><p>DeltaNet delays the blur but doesn't abolish it: one D×D board has finite capacity, so past ~d writes even DeltaNet's recall collapses (with a hard β=1 it can even churn the needle out entirely). It can replace a fact it has an address for, but it can't <em>fade the board generally</em> for a new topic. Those two gaps — needing to forget broadly, and needing finer control — are precisely what <b>gating</b> (Session 05) and <b>per-channel decay</b> (Session 06) add, and why K3 keeps a few full-attention layers on the side.</p></div>
+  <div class="mini" style="margin-top:6px">left-to-right = how many facts are stored. <span style="color:var(--accent)">keep every note</span> recalls perfectly (flat ~1.0); the <span style="color:var(--viol)">erase-first page</span> holds high, then slips as the fixed page fills; the <span style="color:var(--rose)">plain add-only page</span> fades from the start.</div></div>
+  <div class="why"><h3>The honest catch — and why the next rungs exist</h3><p>Erasing-before-writing delays the blur but doesn't abolish it: one fixed page only holds so much, so once you've stored more facts than it has room for, even this page's recall collapses (pushed to a full overwrite it can even scrub the target out entirely). It can replace a fact it has an address for, but it can't clear the page for a whole new subject. Those two gaps — forgetting broadly, and controlling what fades — are exactly what the next two rungs add, and why the final model keeps a little keep-everything memory on the side.</p></div>
 </section>
 
 <section>
   <div class="eye">See it · erase-then-write</div>
-  <h2>The delta, drawn</h2>
-  <p>Watch a repeated key. Linear (left) drops a second copy next to the first — two blobs, blurred readout. DeltaNet (right) first dims the old cell, then writes the new value into the same slot — one clean value:</p>
+  <h2>Erase-then-write, drawn</h2>
+  <p>Watch the same label written twice. The add-only page (left) drops a second copy beside the first — two blobs, a blurred read. The erase-first page (right) dims the old entry, then writes the new value into the same slot — one clean value:</p>
   <div class="panel"><canvas data-anim="delta" height="290"></canvas>
     <div class="readout"><span id="delta-r">—</span></div>
   </div>
-  <p class="mini">Same address written twice. Addition keeps both (and averages on read); the delta rule evicts the old before writing the new.</p>
+  <p class="mini">The same label written twice. Adding keeps both copies (and averages them when you read); erasing-first removes the old before writing the new.</p>
 </section>
 
 <section>
-  <div class="eye">The one-line aha</div>
-  <p class="aha">Reading a key's old value and subtracting it before you write turns a fixed board from an ever-blurrier sum into a memory you can actually <em>edit</em> — the difference between averaging two answers and correcting one.</p>
-  <p class="next">Real code: <b>03-deltanet/attn.py</b> → <b>out_delta.json</b> · Source: ali §DeltaNet / Fast Weight Programmers (Schlag).<br>
-  Next → <b>Session 04 · Parallelizing DeltaNet</b>: the delta rule is sequential (each step needs the current board) — a chunk-wise reparameterization makes it train fast on GPUs while computing the exact same thing.</p>
+  <div class="eye">The one-line takeaway</div>
+  <p class="aha">Reading a label's old value and subtracting it before you write turns a fixed page from an ever-blurrier sum into a memory you can actually <em>edit</em> — the difference between averaging two answers and correcting one.</p>
+  <p class="next">Real code: <b>03-deltanet/attn.py</b> → <b>out_delta.json</b> · Source: ali's worklog, on the delta rule (Fast Weight Programmers).<br>
+  Next → <b>Session 04</b>: this erase-first bookkeeping has to run one word at a time — a way of doing it in parallel blocks makes training fast while computing the exact same answer.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>. Numbers on this page are produced by the code, not transcribed.</div>
 </div>
@@ -156,8 +156,8 @@ S     = S + kᵀ <span class="c">u</span>          <span class="g"># same outer-
     ctx.clearRect(0,0,w,h);
     const per=RM?0:1.1, ph=RM?0.9:((t/per)%4)/4; // 0..1 across a 4-beat cycle
     const lc=w*0.27, rc=w*0.73, cy=h*0.46;
-    txt('linear — add a second copy',lc,26,C.rose,12.5,'center',true);
-    txt('DeltaNet — evict, then write',rc,26,C.viol,12.5,'center',true);
+    txt('add-only — keep both copies',lc,26,C.rose,12.5,'center',true);
+    txt('erase-first — replace in place',rc,26,C.viol,12.5,'center',true);
     // beat structure: write v1 (0-.25), write v2 same key (.25-.6), read (.6-1)
     const wrote1=ph>0.12, wrote2=ph>0.30, reading=ph>0.62;
     // LINEAR: two blobs appear and stay
@@ -177,7 +177,7 @@ S     = S + kᵀ <span class="c">u</span>          <span class="g"># same outer-
     }}
     if(reading) txt('read → v2  clean',rc,cy+52,C.accent,11,'center');
     const el=document.getElementById('delta-r');
-    if(el){{ let msg = !wrote1?'writing v1 at key k…' : !wrote2?'now writing v2 at the SAME key k…' : reading? 'read k: linear returns the average of v1,v2; DeltaNet returns v2.' : 'DeltaNet subtracts the old v1, writes v2 in its place…';
+    if(el){{ let msg = !wrote1?'filing the first answer under a label…' : !wrote2?'now filing a NEW answer under the same label…' : reading? 'read it back: add-only returns the average of both; erase-first returns just the new one.' : 'erase-first removes the old answer and writes the new one in its place…';
       el.innerHTML=msg; }}
   }}
   let raf,t0=performance.now();function frame(now){{draw((now-t0)/1000);raf=requestAnimationFrame(frame);}}

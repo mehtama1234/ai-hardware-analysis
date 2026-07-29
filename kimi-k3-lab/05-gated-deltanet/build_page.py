@@ -76,31 +76,31 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 </header>
 
 <section>
-  <div class="eye">The rule · decay, then write</div>
-  <h2>One number that fades the whole board</h2>
-  <p>The delta rule only touches the key it's writing. Mamba's contribution is the opposite reflex — shrink <em>everything</em> a little each step, so the board naturally makes room. Gated DeltaNet does both: decay first, then the delta write:</p>
-  <div class="eqn"><span class="g"># DeltaNet: correct one address, never fade</span>
-S = S + kᵀ u
+  <div class="eye">The rule · fade, then write</div>
+  <h2>One number that fades the whole page</h2>
+  <p>The erase-first rule only touches the one label it's writing. The idea borrowed here is the opposite reflex — shrink <em>everything</em> a little on every step, so the page naturally makes room. This rung does both: fade first, then write.</p>
+  <div class="eqn"><span class="g"># erase-first alone: fix one entry, never fade</span>
+page = page + change-under-its-label
 
-<span class="g"># Gated DeltaNet: fade the whole board by α, then write the delta</span>
-S = <span class="a">α</span> · S + kᵀ u        <span class="g"># α=1 → pure DeltaNet · α=0 → wipe the board</span></div>
-  <p>Because α multiplies the <em>entire</em> state each step, a value written at time t and read Δ steps later has been multiplied by α a total of Δ times → <span class="mono">α^Δ</span>. Recent writes are loud; distant ones fade geometrically unless refreshed. That's a general "forget" the delta rule couldn't express.</p>
+<span class="g"># with a forget dial: fade the WHOLE page a little, then write</span>
+page = <span class="a">fade</span> × page + change-under-its-label     <span class="g"># fade near 1 → barely forgets · fade 0 → wipes the page</span></div>
+  <p>Because the fade multiplies the <em>whole</em> page on every step, something written a while ago has been faded once for every step since — so its strength drops off steadily the longer ago it was written, unless it gets refreshed. Recent writing is loud; old writing quietly recedes. That is a general forgetting the erase-first rule alone could never do.</p>
 </section>
 
 <section>
   <div class="eye">We ran it · forget the old, keep the new</div>
-  <h2>Turning α down clears stale context</h2>
-  <p>We write an early "topic-A" needle, fill in with a later "topic-B" batch, then recall each. Watch what the decay dial does as we turn it from 1.0 (never forget) down toward 0.80 (forget fast): the <span style="color:var(--rose)">stale A</span> memory fades away, while <span style="color:var(--accent)">fresh B</span> stays sharp — until decay gets so aggressive it starts eating the present too.</p>
+  <h2>Turning the dial up clears stale material</h2>
+  <p>We write an early fact about one topic, fill in with a batch about a second topic, then ask for each back. Watch what the forget dial does as we turn it from off (never forget) toward strong (forget fast): the <span style="color:var(--rose)">stale first topic</span> fades away while the <span style="color:var(--accent)">fresh second topic</span> stays sharp — until the forgetting gets so aggressive it starts eating the present too.</p>
   <div class="card">{switchsvg()}</div>
   <p class="mini">{esc(CS['point'])}</p>
 </section>
 
 <section>
-  <div class="eye">We ran it · the α^Δ law</div>
+  <div class="eye">We ran it · the fading law</div>
   <h2>A memory's strength is a running discount</h2>
-  <p>To isolate the decay, we write one value, then take Δ steps that only fade (no new writes), and measure how much of it survives. It comes back scaled by exactly the running product of the decays — a constant α here, so α^Δ:</p>
+  <p>To isolate the fading, we write one value, then take a number of steps that only fade (no new writing), and measure how much of it survives. It comes back scaled by exactly the fade multiplied by itself once for every step waited:</p>
   <div class="card" style="overflow-x:auto"><table>
-    <tr><th>α</th><th>Δ steps</th><th>measured survival</th><th>α^Δ predicted</th><th>|diff|</th></tr>
+    <tr><th>fade per step</th><th>steps waited</th><th>measured survival</th><th>predicted</th><th>difference</th></tr>
     {decayrows()}
   </table></div>
   <p class="mini">{esc(DL['point'])}</p>
@@ -109,18 +109,18 @@ S = <span class="a">α</span> · S + kᵀ u        <span class="g"># α=1 → pu
 <section>
   <div class="eye">See it · the fade dial</div>
   <h2>Old writes dim; new writes stay bright</h2>
-  <p>The same board, now with a decay applied every step. Early cells (the old topic) dim toward black as time passes; the newest writes stay bright. That's what "forget generally" looks like — no address needed, the whole board just relaxes toward empty:</p>
+  <p>The same page, now with a fade applied every step. Early cells (the old topic) dim toward black as time passes; the newest writing stays bright. That's what forgetting-in-general looks like — no address needed, the whole page just relaxes toward empty:</p>
   <div class="panel"><canvas data-anim="gate" height="290"></canvas>
     <div class="readout"><span id="gate-r">—</span></div>
   </div>
-  <p class="mini">Each step multiplies every cell by α (&lt;1). A refreshed cell jumps back to full; an untouched one keeps fading. The dial α is learned and data-dependent — the model decides when to hold on and when to let go.</p>
+  <p class="mini">Each step multiplies every cell by the fade (just under 1). A cell that gets rewritten jumps back to full; one left alone keeps fading. The fade is learned and depends on what's being read — the model decides when to hold on and when to let go.</p>
 </section>
 
 <section>
-  <div class="eye">The one-line aha</div>
-  <p class="aha">One decay dial turns a memory that could only be overwritten into one that can also <em>forget</em> — fading the whole board a little each step so a new topic isn't buried under an old one. But α fades every feature by the same amount, and not all memories deserve the same fate.</p>
-  <p class="next">Real code: <b>05-gated-deltanet/attn.py</b> → <b>out_gated.json</b> · Source: ali §Gated Delta Net; decay from Mamba-2.<br>
-  Next → <b>Session 06 · KDA / Kimi Linear</b>: one global α is too blunt — give <em>every channel its own decay rate</em>. That fine-grained gating is the move that lets linear attention finally beat full attention.</p>
+  <div class="eye">The one-line takeaway</div>
+  <p class="aha">One forget dial turns a memory that could only be overwritten into one that can also <em>let go</em> — fading the whole page a little each step so a new topic isn't buried under an old one. But it fades everything by the same amount, and not all memories deserve the same fate.</p>
+  <p class="next">Real code: <b>05-gated-deltanet/attn.py</b> → <b>out_gated.json</b> · Source: ali's worklog; the fading idea comes from a model called Mamba.<br>
+  Next → <b>Session 06</b>: one dial for the whole page is still blunt — the next rung gives every kind of information its own fade rate, so it can keep some things while dropping others.</p>
 </section>
 <div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>. Numbers on this page are produced by the code, not transcribed.</div>
 </div>
@@ -148,7 +148,7 @@ S = <span class="a">α</span> · S + kᵀ u        <span class="g"># α=1 → pu
     }}
     ctx.clearRect(0,0,w,h);
     const cs=Math.min(30,(h-120)/G), bw=cs*G, gx=w/2-bw/2, gy=54;
-    txt('memory board — ×α every step',w/2,30,C.mut,12,'center');
+    txt('the memory page — faded a little every step',w/2,30,C.mut,12,'center');
     for(let i=0;i<G;i++)for(let j=0;j<G;j++){{
       const v=cells[i*G+j];
       ctx.save();ctx.fillStyle='rgba(227,166,58,'+Math.max(0.03,v).toFixed(3)+')';
@@ -156,10 +156,10 @@ S = <span class="a">α</span> · S + kᵀ u        <span class="g"># α=1 → pu
       ctx.fillRect(gx+j*cs,gy+i*cs,cs-2,cs-2);ctx.strokeRect(gx+j*cs,gy+i*cs,cs-2,cs-2);ctx.restore();
     }}
     ctx.save();ctx.strokeStyle=C.line;ctx.strokeRect(gx-5,gy-5,bw+10,bw+10);ctx.restore();
-    txt('α = '+alpha+'   (old writes fade to black · newest write = full)',w/2,gy+bw+28,C.amber,12,'center');
+    txt('fade = '+alpha+' each step   (old writing fades to black · newest = full)',w/2,gy+bw+28,C.amber,12,'center');
     const bright=cells.filter(v=>v>0.4).length;
     const el=document.getElementById('gate-r');
-    if(el) el.innerHTML='each step multiplies every cell by α='+alpha+'; one cell is refreshed to full. Bright (recent) cells: <b>'+bright+'</b> of '+(G*G)+' — the rest are fading away.';
+    if(el) el.innerHTML='each step fades every cell to '+alpha+' of its brightness; one cell is refreshed to full. Bright (recent) cells: <b>'+bright+'</b> of '+(G*G)+' — the rest are fading away.';
   }}
   let raf,t0=performance.now();function frame(now){{draw((now-t0)/1000);raf=requestAnimationFrame(frame);}}
   const io=new IntersectionObserver(es=>es.forEach(e=>{{if(e.isIntersecting){{if(!raf){{t0=performance.now();raf=requestAnimationFrame(frame);}}}}else{{cancelAnimationFrame(raf);raf=0;}}}}),{{threshold:.12}});

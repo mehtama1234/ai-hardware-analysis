@@ -89,10 +89,10 @@ def overwrite(d=64, N=40, trials=24):
 OUT["overwrite"] = {
     "d": 64, "N": 40, "writes": "(kap,v1) at t=5, then (kap,v2) at t=25; query kap at the end",
     "results": overwrite(),
-    "point": "DeltaNet returns the NEW value (high cos to v2, ~0 to v1) — the second write erased "
-             "the first. Softmax keeps both copies on file, so it AVERAGES them (similar cos to v1 and "
-             "v2 — it can't update, only accumulate). Plain linear blurs both into noise. This is what "
-             "'edit in place' buys: an association can be corrected, not just re-added.",
+    "point": "The erase-first page returns the new answer strongly and the old one barely at all — the "
+             "second write genuinely replaced the first. The keep-every-note memory still has both copies, "
+             "so it hands back an even mix of the two: it can't update, only pile on. The plain add-only page "
+             "blurs both into noise. That is what editing in place buys — a fact can be corrected, not just re-stated.",
 }
 
 # ----------------------------------------------------------------------------
@@ -117,10 +117,10 @@ for N in [4, 8, 16, 32, 64, 128, 256]:
 OUT["needle"] = {
     "d": DH, "metric": "cosine of recalled output to the true needle value (1=perfect)",
     "rows": rows,
-    "point": "Same needle test as Session 02, now with DeltaNet in the mix. DeltaNet recalls the "
-             "needle markedly better than plain linear at every length — subtracting the old reading "
-             "before each write keeps correlated writes from stacking into a blur. It still trails "
-             "softmax (which keeps every note), which is exactly why K3 keeps a few full-attention layers.",
+    "point": "The same recall test as before, now with the erase-first page added. It recalls a stored "
+             "fact far better than the plain add-only page at every length — reading and subtracting before "
+             "each write keeps similar facts from piling into a smear. It still trails keep-every-note (which "
+             "never throws anything away), which is exactly why the final model keeps a few keep-everything layers on the side.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))
