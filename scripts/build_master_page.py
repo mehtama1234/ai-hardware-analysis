@@ -401,12 +401,12 @@ def main():
     <header class="hero">
       <div class="eyebrow">AI Hardware 2025 · The master narrative</div>
       <h1>One constraint.<br>Nine answers.</h1>
-      <div class="sub">What 2,090 papers from twelve venues are all really about — and how they connect.</div>
-      <div class="meta">MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC · ISSCC · Hot Chips · SC · VLSID · CGO · ICCAD &nbsp;·&nbsp; 2,090 papers</div>
+      <div class="sub">What 2,191 papers from thirteen venues are all really about — and how they connect.</div>
+      <div class="meta">MLSys · ISCA · MICRO · HPCA · ASPLOS · DAC · ISSCC · Hot Chips · SC · VLSID · CGO · ICCAD · DATE &nbsp;·&nbsp; 2,191 papers</div>
     </header>
     {body_sections}
     <footer>
-      2,090 papers · 12 venues · First-principles narrative by Opus 4 from all theme intros and the cross-venue synthesis ·
+      2,191 papers · 13 venues · First-principles narrative by Opus 4 from all theme intros and the cross-venue synthesis ·
       <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a> · <a href="synthesis.html">cross-venue synthesis</a>
     </footer>
   </div>
