@@ -3,7 +3,7 @@
     "N": 48,
     "d": 32,
     "max_abs_diff": 3.5762786865234375e-07,
-    "point": "The N\u00d7N 'score-first' form and the fixed-state 'fold-first' form agree to floating-point noise. Re-association is exact \u2014 linear attention's fixed state loses nothing relative to its own N\u00d7N form. (What it loses is vs SOFTMAX; see D.)"
+    "point": "Reading the whole pile of notes and folding them into one board first give the same answer to rounding noise. Collapsing the pile into a board loses nothing \u2014 it is the exact same result, just stored as a running summary instead of a stack. (What blurs is single-fact recall; see the needle test below.)"
   },
   "state_size": {
     "d_head": 128,
@@ -29,7 +29,7 @@
       1016.1,
       2032.1
     ],
-    "point": "Linear attention's whole memory is one D\u00d7D board (+ a D-vector), the same size at 1k tokens or 128k. The softmax KV cache is already ~250\u00d7 larger by 65k tokens and keeps climbing. This is the \u221275% KV-cache / long-context win Kimi Linear reports."
+    "point": "The running-summary memory is one fixed grid, the same size whether you've read 1,000 words or 128,000. The keep-every-note memory is already ~250\u00d7 bigger by 65,000 words and keeps climbing. This is the 75%-smaller-memory, long-document win Kimi Linear reports."
   },
   "decode_cost": {
     "d_head": 128,
@@ -51,7 +51,7 @@
       32768,
       32768
     ],
-    "point": "Softmax's per-step cost climbs with how much history it has; linear attention's per-step cost is flat \u2014 it always just updates and reads one fixed board. Flat cost per step over a long context is where the up-to-6\u00d7 decode throughput comes from."
+    "point": "Keep-every-note pays more for each new word as its history grows; the running summary pays the same tiny amount every word \u2014 it always just updates and reads one fixed board. That flat per-word cost over a long document is where the up-to-6\u00d7 faster generation comes from."
   },
   "needle": {
     "d": 64,
@@ -107,6 +107,6 @@
         "over_capacity": true
       }
     ],
-    "point": "Query the needle's exact key. Softmax recalls its value PERFECTLY at every length (cos\u22481.0, and it keeps most of its weight on that one token) \u2014 because it still has every note on file, it can point at exactly the right one. Linear attention's recall starts weaker and FADES monotonically, 0.65\u21920.08, as N grows: every write lands on the same fixed board, so pulling one value back drags in a blur of all the others. That fade is a capacity limit, not a bug \u2014 and it's the exact problem DeltaNet (Session 03) fixes by ERASING a key's old value before writing the new one, and that K3 hedges by keeping a few full-attention (MLA) layers."
+    "point": "Hand back one fact's exact cue. Keep-every-note recalls its value PERFECTLY at every length (it still has that note on file, so it points straight at it). The running summary starts weaker and fades steadily, 0.65\u21920.08, the more you store: every fact lands on the same board, so pulling one back drags in a smear of all the others. That fade isn't a bug \u2014 it's the built-in limit of a fixed board, and it's the exact thing the next rung (DeltaNet) fixes by erasing a fact's old value before writing a new one, and that K3 hedges by keeping a few keep-every-note layers on the side."
   }
 }

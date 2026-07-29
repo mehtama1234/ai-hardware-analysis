@@ -65,9 +65,10 @@ op, orr = linear_parallel(q, k, v), linear_recurrent(q, k, v)
 OUT["equivalence"] = {
     "N": N, "d": d,
     "max_abs_diff": float((op - orr).abs().max()),
-    "point": "The N×N 'score-first' form and the fixed-state 'fold-first' form agree to "
-             "floating-point noise. Re-association is exact — linear attention's fixed "
-             "state loses nothing relative to its own N×N form. (What it loses is vs SOFTMAX; see D.)",
+    "point": "Reading the whole pile of notes and folding them into one board first give the same "
+             "answer to rounding noise. Collapsing the pile into a board loses nothing — it is the exact "
+             "same result, just stored as a running summary instead of a stack. (What blurs is single-fact "
+             "recall; see the needle test below.)",
 }
 
 # ----------------------------------------------------------------------------
@@ -84,9 +85,9 @@ OUT["state_size"] = {
     "N": Ns,
     "kv_cache_floats": [2 * N * D for N in Ns], # grows
     "ratio_kv_over_linear": [round(2 * N * D / lin_state, 1) for N in Ns],
-    "point": "Linear attention's whole memory is one D×D board (+ a D-vector), the same size "
-             "at 1k tokens or 128k. The softmax KV cache is already ~250× larger by 65k tokens "
-             "and keeps climbing. This is the −75% KV-cache / long-context win Kimi Linear reports.",
+    "point": "The running-summary memory is one fixed grid, the same size whether you've read 1,000 words "
+             "or 128,000. The keep-every-note memory is already ~250× bigger by 65,000 words and keeps "
+             "climbing. This is the 75%-smaller-memory, long-document win Kimi Linear reports.",
 }
 
 # ----------------------------------------------------------------------------
@@ -102,9 +103,9 @@ OUT["decode_cost"] = {
     "step": steps,
     "softmax_flops_per_step": [softmax_step_flops(t, D) for t in steps],
     "linear_flops_per_step": [linear_step_flops(D) for _ in steps],
-    "point": "Softmax's per-step cost climbs with how much history it has; linear attention's "
-             "per-step cost is flat — it always just updates and reads one fixed board. Flat cost "
-             "per step over a long context is where the up-to-6× decode throughput comes from.",
+    "point": "Keep-every-note pays more for each new word as its history grows; the running summary pays "
+             "the same tiny amount every word — it always just updates and reads one fixed board. That flat "
+             "per-word cost over a long document is where the up-to-6× faster generation comes from.",
 }
 
 # ----------------------------------------------------------------------------
@@ -151,13 +152,12 @@ OUT["needle"] = {
     "d": DH,
     "metric": "cosine similarity of recalled output to the true needle value (1=perfect, 0=lost)",
     "rows": rows,
-    "point": "Query the needle's exact key. Softmax recalls its value PERFECTLY at every length "
-             "(cos≈1.0, and it keeps most of its weight on that one token) — because it still has every "
-             "note on file, it can point at exactly the right one. Linear attention's recall starts weaker "
-             "and FADES monotonically, 0.65→0.08, as N grows: every write lands on the same fixed board, so "
-             "pulling one value back drags in a blur of all the others. That fade is a capacity limit, not a "
-             "bug — and it's the exact problem DeltaNet (Session 03) fixes by ERASING a key's old value "
-             "before writing the new one, and that K3 hedges by keeping a few full-attention (MLA) layers.",
+    "point": "Hand back one fact's exact cue. Keep-every-note recalls its value PERFECTLY at every length "
+             "(it still has that note on file, so it points straight at it). The running summary starts weaker "
+             "and fades steadily, 0.65→0.08, the more you store: every fact lands on the same board, so pulling "
+             "one back drags in a smear of all the others. That fade isn't a bug — it's the built-in limit of a "
+             "fixed board, and it's the exact thing the next rung (DeltaNet) fixes by erasing a fact's old value "
+             "before writing a new one, and that K3 hedges by keeping a few keep-every-note layers on the side.",
 }
 
 here = os.path.dirname(os.path.abspath(__file__))
