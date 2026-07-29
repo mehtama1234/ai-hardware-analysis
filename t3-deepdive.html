@@ -58,7 +58,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
     <div class="eyebrow">deep dive</div>
     <h1>The memory wall</h1>
     <div class="sub">moving the math to where the data already is</div>
-    <div class="count">338 papers · 28 read in full · 310 from the abstract</div>
+    <div class="count">341 papers · 30 read in full · 311 from the abstract</div>
   </header>
   <section class="prose"><h2 class="sh"><span class="k">the problem</span>The problem, in depth</h2><p>Start with a single, stubborn physical fact: it is cheap to do arithmetic, and expensive to fetch the numbers you want to do arithmetic on. Inside a computer chip there is a part that does the math — adding, multiplying, comparing — and a separate, much larger part that holds all the numbers: the memory. The math part is astonishingly fast. It can finish a multiplication in a sliver of a billionth of a second. But before it can multiply two numbers, those two numbers have to physically arrive from wherever they are stored. And they are usually stored far away, in a different chip on the same circuit board, connected by wires. The trip down those wires takes hundreds of times longer than the multiplication itself. So the math part spends most of its life not doing math. It sits idle, waiting for data to show up, like a chef with a perfect knife standing at an empty cutting board because the vegetables are still being trucked in from a warehouse across town.</p>
 <p>This is the root problem this entire chapter is about, and it has a name people use: the memory wall. The wall is the widening gap between how fast a chip can compute and how fast it can be fed. Over the past few decades, the ability to do arithmetic grew explosively, roughly doubling and doubling again. The ability to move data grew too, but far more slowly. Every year the chef got faster and the delivery truck barely did. The result is that for most real programs, the chip&#x27;s speed is decided almost entirely by the delivery truck — by memory — and almost not at all by the knife. If you want a faster computer today, making the arithmetic faster usually does nothing, because the arithmetic was never the thing you were waiting on.</p>
@@ -300,6 +300,18 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p><b>How it works.</b> At startup, YOUMU scans the Parquet metadata — no data is read yet — and builds a Global Page Index: a directory that maps every page across all files to its exact physical location on disk and its decompression instructions. Shuffling is done by randomly permuting a list of page IDs; a layered binary search translates each random ID into the file, chunk, and page needed, using only the in-memory index. The data plane then reads exactly that one page from the SSD, decompresses it on the fly using the metadata, and converts it to an array. An aggressive buffer strategy continuously refills a fixed-size in-memory queue as pages are consumed, shuffling rows inside the buffer with each new arrival — giving two levels of randomness (page order and within-buffer row order) while keeping memory use constant regardless of dataset size.</p>
 <p><b>The key design choice.</b> Operating at page granularity unifies the disk-access unit with the shuffle unit, eliminating the mismatch. No format conversion is ever needed; the original Parquet files are used directly.</p>
 <p><b>The result.</b> On a 200-billion-token dataset across 16 machines, YOUMU uses up to 82% less RAM than the best alternative (Ray Data), achieves the same throughput, and delivers model training accuracy almost indistinguishable from a perfect random shuffle — whereas the widely-used streaming approach degrades accuracy severely on some datasets.</p></div>
+    </div>
+<div class="paper" id="osdi-2025-016">
+      <div class="ph"><span class="pid">osdi-2025-016</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Achieving Low-Latency Graph-Based Vector Search via Aligning Best-First Search Algorithm with SSD</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-027">
+      <div class="ph"><span class="pid">osdi-2025-027</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Quake: Adaptive Indexing for Vector Search</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="sc-2025-218">
       <div class="ph"><span class="pid">sc-2025-218</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
@@ -1991,6 +2003,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">micro-2025-113</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">MICRO</span></div>
       <h4>ColumnDisturb: Understanding Column-based Read Disturbance in Real DRAM Chips and Implications for Future Systems</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>DRAM (the main memory chips that hold data while a computer is running) stores information as tiny electrical charges in cells arranged in rows and columns. A known security vulnerability called RowHammer showed that repeatedly reading from one row of memory can accidentally flip bits in the rows immediately above and below it, because the electrical noise bleeds into neighboring rows through the silicon substrate. This paper reports a newly discovered and more dangerous phenomenon called ColumnDisturb: activating a single row disturbs cells that share the same vertical wires (called bitlines or columns) across many separate sub-sections of the chip simultaneously — in some tested chips, a single row access can disturb up to 3,072 rows spread throughout the chip at once, which is vastly more destructive than classic RowHammer. The authors measured this effect on 216 DDR4 chips and 4 HBM2 chips (a high-bandwidth memory type used in GPUs) from three major manufacturers, varying temperature, data patterns, and timing settings. They also show that ColumnDisturb interacts dangerously with proposals to save power by skipping periodic memory refresh for cells that hold their charge for a long time, since ColumnDisturb can corrupt those cells before the extended refresh period expires.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-023">
+      <div class="ph"><span class="pid">osdi-2025-023</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Tiered Memory Management Beyond Hotness</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="sc-2025-000">

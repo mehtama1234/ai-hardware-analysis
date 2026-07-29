@@ -1,0 +1,47 @@
+{
+  "id": "osdi-2025-049",
+  "title": "BlitzScale: Fast and Live Large Model Autoscaling with O(1) Host Caching",
+  "venue": "OSDI",
+  "problem": "Model autoscaling faces a fundamental trade-off between scaling speed and storage/memory usage for parameter caching. The data plane is slow and blocking\u2014scaled instances halt while parameters load\u2014preventing frequent multi-host scaling.",
+  "motivation": "Model autoscaling is critical for serverless model-as-a-service platforms to dynamically handle varying workloads and serve large language models efficiently.",
+  "method": "BlitzScale loads parameters through the inter-GPU compute network with O(1) host caching, which is fast and underutilized. It shifts scaling from coarse-grained instance-level to fine-grained layer-level, enabling computation offload to scaled instances before parameters fully load. Network-optimized multicast handles multi-instance scaling without excessive caching.",
+  "key_novelty": "Leveraging the inter-GPU compute network for fast parameter loading with O(1) host caching, combined with layer-level scaling to enable live autoscaling without instance blocking.",
+  "contributions": [
+    "Fast data plane for loading model checkpoints via inter-GPU compute network with minimal host caching",
+    "Live autoscaling via layer-level scaling abstraction that offloads computation before parameters fully load",
+    "Network-optimized multicast approach for efficient multi-instance scaling",
+    "BlitzLoad: lightweight checkpoint engine for integration with vLLM and SGLang with minimal code changes"
+  ],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "scheduling",
+    "interconnect",
+    "memory-system",
+    "prefetching",
+    "cache"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
+  "metrics": {
+    "speedup": "94% lower tail latency vs ServerlessLLM; 49% lower serving GPU time vs DistServe and vLLM",
+    "other": "Achieves improvements while maintaining same SLA"
+  },
+  "baselines": [
+    "ServerlessLLM",
+    "DistServe",
+    "vLLM"
+  ],
+  "limitations": "Not discussed",
+  "tags": [
+    "autoscaling",
+    "llm-serving",
+    "gpu-cluster",
+    "network-optimized",
+    "parameter-loading"
+  ],
+  "primary_theme": "GPU cluster autoscaling for LLM inference",
+  "confidence": "high"
+}

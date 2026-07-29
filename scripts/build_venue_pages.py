@@ -24,6 +24,8 @@ VENUES = {
     "cgo":      ("CGO",       "Compiler Optimization"),
     "iccad":    ("ICCAD",     "EDA & Design Automation"),
     "date":     ("DATE",      "Design, Automation & Test in Europe"),
+    "osdi":     ("OSDI",     "Operating Systems & Systems Software"),
+    "usenix":   ("USENIX ATC", "Annual Technical Conference"),
 }
 
 CSS = """
@@ -103,6 +105,8 @@ ALL_VENUES_NAV = [
     ("cgo",      "CGO"),
     ("iccad",    "ICCAD"),
     ("date",     "DATE"),
+    ("osdi",     "OSDI"),
+    ("usenix",   "ATC"),
 ]
 
 def esc(s): return html.escape(str(s or ""))

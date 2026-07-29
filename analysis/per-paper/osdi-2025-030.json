@@ -1,0 +1,46 @@
+{
+  "id": "osdi-2025-030",
+  "title": "DecDEC: A Systems Approach to Advancing Low-Bit LLM Quantization",
+  "venue": "OSDI",
+  "problem": "Aggressive low-bit quantization (3-bit, 4-bit) of LLMs severely degrades model quality due to precision loss. Maintaining acceptable inference accuracy while preserving quantization's memory and latency benefits remains challenging for on-device deployment.",
+  "motivation": "Quantization enables LLM deployment on resource-constrained devices, but aggressive low-bit quantization currently causes unacceptable quality degradation, limiting practical adoption.",
+  "method": "DecDEC stores residual matrices (full-precision minus quantized weights) in CPU and dynamically identifies salient channels marked by activation outliers at each decoding step. Residuals are selectively fetched from CPU for these salient channels to correct quantization errors, enabling adaptation to dynamic activation distributions during inference.",
+  "key_novelty": "Dynamic identification of salient channels via activation outlier analysis enables selective residual correction that adapts to changing activation distributions at inference time.",
+  "contributions": [
+    "Proposes DecDEC inference scheme that improves low-bit quantized LLM quality while preserving GPU memory savings and latency reduction",
+    "Introduces dynamic salient channel identification based on input activation analysis for adaptive per-step error compensation",
+    "Demonstrates 3-bit Llama-3-8B-Instruct achieves 9.12 perplexity (vs 10.15 baseline), matching 3.5-bit quality with <0.0003% GPU memory overhead",
+    "Validates practical deployment on mobile GPU with only 1.7% inference slowdown on NVIDIA RTX 4050 Mobile"
+  ],
+  "hardware_target": [
+    "GPU",
+    "CPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "memory-system"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
+  "metrics": {
+    "accuracy": "3-bit perplexity 9.12 (reduced from 10.15), matches 3.5-bit quality",
+    "speedup": "1.7% inference slowdown",
+    "other": "<0.0003% GPU memory increase"
+  },
+  "baselines": [
+    "3-bit baseline quantization",
+    "3.5-bit quantization"
+  ],
+  "limitations": "Limitations not discussed in abstract.",
+  "tags": [
+    "quantization",
+    "llm-inference",
+    "mobile",
+    "residuals",
+    "low-bit",
+    "dynamic-adaptation"
+  ],
+  "primary_theme": "Adaptive residual correction for low-bit LLM quantization",
+  "confidence": "high"
+}
