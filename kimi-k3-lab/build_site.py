@@ -15,7 +15,8 @@ SESSIONS = [
   "DeltaNet", "The delta rule: read-old → subtract → write-new. Real runs: overwrite the same key twice (DeltaNet replaces cleanly, softmax only averages) + needle recall that holds far longer than linear.", "✏️", "live"),
  ("04-chunked.html", "04-chunked-deltanet/out/index.html",
   "Chunked DeltaNet", "Chunk-wise reparameterization → parallel prefill. Real runs: sequential vs chunked identical to 7e-7 across all C, sequential depth cut 32× (L→L/C), 3–22× faster, and the state/score FLOP split.", "🧩", "live"),
- (None, None, "Gated DeltaNet", "Mamba-2 decay meets the delta rule — forget generally, replace specifically.", "🎚️", "soon"),
+ ("05-gated.html", "05-gated-deltanet/out/index.html",
+  "Gated DeltaNet", "Mamba-2 decay meets the delta rule. Real runs: a decay dial that forgets stale context (recall 0.46→0.02) while keeping fresh recall sharp, and the α^Δ survival law verified to 4 decimals.", "🎚️", "live"),
  (None, None, "KDA / Kimi Linear", "Per-channel fine-grained gating + MLA hybrid. Linear attention that beats full attention.", "🧬", "soon"),
  (None, None, "Kimi K3", "23×(3 KDA + 1 MLA) macrocycles, latent MoE, SiTU, Gated MLA, AttnRes. Capacity with a job.", "🌐", "soon"),
 ]
