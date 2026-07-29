@@ -1,0 +1,71 @@
+{
+  "overwrite": {
+    "d": 64,
+    "N": 40,
+    "writes": "(kap,v1) at t=5, then (kap,v2) at t=25; query kap at the end",
+    "results": {
+      "softmax": {
+        "cos_to_new_v2": 0.684,
+        "cos_to_old_v1": 0.703
+      },
+      "linear": {
+        "cos_to_new_v2": 0.168,
+        "cos_to_old_v1": 0.232
+      },
+      "deltanet": {
+        "cos_to_new_v2": 0.779,
+        "cos_to_old_v1": 0.004
+      }
+    },
+    "point": "DeltaNet returns the NEW value (high cos to v2, ~0 to v1) \u2014 the second write erased the first. Softmax keeps both copies on file, so it AVERAGES them (similar cos to v1 and v2 \u2014 it can't update, only accumulate). Plain linear blurs both into noise. This is what 'edit in place' buys: an association can be corrected, not just re-added."
+  },
+  "needle": {
+    "d": 64,
+    "metric": "cosine of recalled output to the true needle value (1=perfect)",
+    "rows": [
+      {
+        "softmax": 1.0,
+        "linear": 0.653,
+        "deltanet": 0.977,
+        "N": 4
+      },
+      {
+        "softmax": 1.0,
+        "linear": 0.481,
+        "deltanet": 0.912,
+        "N": 8
+      },
+      {
+        "softmax": 1.0,
+        "linear": 0.331,
+        "deltanet": 0.839,
+        "N": 16
+      },
+      {
+        "softmax": 1.0,
+        "linear": 0.286,
+        "deltanet": 0.721,
+        "N": 32
+      },
+      {
+        "softmax": 1.0,
+        "linear": 0.187,
+        "deltanet": 0.466,
+        "N": 64
+      },
+      {
+        "softmax": 0.999,
+        "linear": 0.104,
+        "deltanet": 0.145,
+        "N": 128
+      },
+      {
+        "softmax": 0.999,
+        "linear": 0.075,
+        "deltanet": 0.013,
+        "N": 256
+      }
+    ],
+    "point": "Same needle test as Session 02, now with DeltaNet in the mix. DeltaNet recalls the needle markedly better than plain linear at every length \u2014 subtracting the old reading before each write keeps correlated writes from stacking into a blur. It still trails softmax (which keeps every note), which is exactly why K3 keeps a few full-attention layers."
+  }
+}
