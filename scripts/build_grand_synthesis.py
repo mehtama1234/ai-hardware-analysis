@@ -201,9 +201,9 @@ footer a{color:var(--supply);text-decoration:none}
     <h1>{esc(title)}</h1>
     <div class="thesis">Arithmetic intensity is the single number every paper in this corpus is fighting. Here is how nine research communities are attacking it from different angles — and where they conflict.</div>
     <div class="stats">
-      <span><b>2,090</b> papers analyzed</span>
+      <span><b>2,412</b> papers analyzed</span>
       <span><b>9</b> first-principles themes</span>
-      <span><b>13</b> venues · 2025</span>
+      <span><b>16</b> venues · 2025</span>
       <span><b>Opus 4</b> synthesis</span>
     </div>
   </header>
@@ -218,7 +218,7 @@ footer a{color:var(--supply);text-decoration:none}
   </div>
 
   <footer>
-    AI Hardware 2025 · Grand Synthesis · written by Claude Opus from all 9 first-principles essays and 2,090 paper analyses ·
+    AI Hardware 2025 · Grand Synthesis · written by Claude Opus from all 9 first-principles essays and 2,412 paper analyses ·
     <a href="index.html">master narrative</a> ·
     <a href="deepdives.html">all deep dives</a> ·
     <a href="explorer.html">explorer</a> ·
