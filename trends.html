@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2024 → 2025: What Moved · AI Hardware YoY Trends</title>
+<style>
+:root {
+  --g0:#0d1117; --g1:#11161e; --g2:#161c26; --g3:#1c2330;
+  --line:#272f3d; --line2:#1e2635;
+  --ink:#e8e3d8; --ink2:#b8c0cc; --ink3:#7a8494;
+  --teal:#3ec9b6; --orange:#e09858; --red:#d95a4a; --gold:#c9a84c;
+  --violet:#9c8cff;
+  --serif:Palatino,"Palatino Linotype","Book Antiqua",Charter,Georgia,serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--g0);color:var(--ink);font-family:var(--serif);
+  font-size:18px;line-height:1.78;-webkit-font-smoothing:antialiased;
+}
+
+/* layout */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:32px 20px 40px;border-right:1px solid var(--line);
+  background:var(--g1);display:flex;flex-direction:column;gap:0;
+}
+.main{padding:0 clamp(28px,6vw,80px) 120px;max-width:880px}
+
+/* sidebar */
+.site-label{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:24px;
+  padding-bottom:16px;border-bottom:1px solid var(--line2);
+}
+.nav-heading{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:8px;margin-top:20px;
+}
+.nav-link{
+  display:block;font-family:var(--sans);font-size:.82rem;
+  color:var(--ink3);text-decoration:none;padding:5px 8px;
+  border-radius:6px;line-height:1.35;margin-bottom:2px;
+  transition:color .15s,background .15s;
+}
+.nav-link:hover{color:var(--teal);background:var(--g2)}
+.nav-link.active{color:var(--teal);background:var(--g2)}
+.nav-divider{border:none;border-top:1px solid var(--line2);margin:16px 0}
+.sidebar-links{margin-top:auto;padding-top:20px;border-top:1px solid var(--line2)}
+.sidebar-links a{
+  display:block;font-family:var(--mono);font-size:.65rem;
+  color:var(--ink3);text-decoration:none;padding:4px 0;
+}
+.sidebar-links a:hover{color:var(--teal)}
+
+/* hero */
+.hero{padding:56px 0 44px;border-bottom:1px solid var(--line)}
+.hero .eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:20px;
+}
+.hero h1{
+  font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.4rem);
+  font-weight:700;line-height:1.06;color:var(--ink);
+  text-wrap:balance;margin-bottom:.4em;letter-spacing:-.02em;
+}
+.hero .sub{
+  font-family:var(--serif);font-size:1.15rem;color:var(--ink2);
+  font-style:italic;max-width:560px;margin-bottom:24px;
+}
+.hero .meta-row{
+  display:flex;gap:32px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:.7rem;color:var(--ink3);
+  font-variant-numeric:tabular-nums;
+}
+.hero .meta-row .stat b{color:var(--teal);font-weight:400}
+
+/* caveat banner */
+.caveat{
+  margin:40px 0 0;padding:18px 22px;
+  border-left:3px solid var(--gold);
+  background:rgba(201,168,76,.07);border-radius:0 6px 6px 0;
+}
+.caveat p{
+  font-family:var(--sans);font-size:.88rem;color:var(--ink2);
+  line-height:1.6;margin:0;
+}
+.caveat strong{color:var(--gold);font-weight:600}
+
+/* section headers */
+.section{padding:52px 0 40px;border-bottom:1px solid var(--line)}
+.section-label{
+  font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:block;
+}
+.section h2{
+  font-size:1.8rem;color:var(--ink);margin-bottom:.5em;
+  line-height:1.2;text-wrap:balance;
+}
+
+/* bar chart */
+.chart-wrap{
+  margin-top:32px;overflow-x:auto;
+  border:1px solid var(--line);border-radius:8px;background:var(--g1);
+  padding:28px 20px 20px;
+}
+.chart-legend{
+  display:flex;gap:24px;margin-bottom:24px;align-items:center;
+  font-family:var(--mono);font-size:.7rem;color:var(--ink3);letter-spacing:.04em;
+}
+.legend-dot{
+  display:inline-block;width:10px;height:10px;border-radius:2px;
+  margin-right:6px;vertical-align:middle;
+}
+#themeChart{display:block;width:100%;height:auto}
+
+/* top movers */
+.movers-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:16px;margin-top:28px;
+}
+.mover-card{
+  border:1px solid var(--line);border-radius:8px;padding:22px 20px;
+  background:var(--g1);position:relative;overflow:hidden;
+}
+.mover-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.mover-card.grow::before{background:var(--teal)}
+.mover-card.shrink::before{background:var(--red)}
+.mover-card.new::before{background:var(--violet)}
+.mover-label{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:10px;display:block;
+}
+.mover-card.grow .mover-label{color:var(--teal)}
+.mover-card.shrink .mover-label{color:var(--red)}
+.mover-card.new .mover-label{color:var(--violet)}
+.mover-theme{font-size:1.15rem;color:var(--ink);font-weight:600;margin-bottom:6px;line-height:1.25}
+.mover-stat{
+  font-family:var(--mono);font-size:1.9rem;font-weight:700;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1;
+  margin-bottom:8px;
+}
+.mover-card.grow .mover-stat{color:var(--teal)}
+.mover-card.shrink .mover-stat{color:var(--red)}
+.mover-card.new .mover-stat{color:var(--violet)}
+.mover-desc{font-family:var(--sans);font-size:.82rem;color:var(--ink3);line-height:1.5}
+
+/* venue small multiples */
+.venue-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;margin-top:28px;
+}
+.venue-card{
+  border:1px solid var(--line);border-radius:8px;padding:18px 16px 14px;
+  background:var(--g1);
+}
+.venue-name{
+  font-family:var(--mono);font-size:.75rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink2);margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.venue-name span{color:var(--ink3);font-size:.65rem;letter-spacing:.04em}
+.venue-bars{display:flex;flex-direction:column;gap:5px}
+.vbar-row{display:flex;align-items:center;gap:6px;min-height:16px}
+.vbar-key{
+  font-family:var(--mono);font-size:.6rem;color:var(--ink3);
+  width:28px;flex-shrink:0;text-align:right;
+}
+.vbar-tracks{display:flex;gap:2px;flex:1;align-items:center}
+.vbar{height:8px;border-radius:1px;min-width:1px;transition:width .3s}
+.vbar-24{background:var(--violet);opacity:.85}
+.vbar-25{background:var(--teal);opacity:.85}
+.venue-legend{
+  display:flex;gap:12px;margin-top:10px;
+  font-family:var(--mono);font-size:.58rem;color:var(--ink3);letter-spacing:.04em;
+}
+
+/* essay */
+.essay{padding:52px 0 40px;border-bottom:1px solid var(--line)}
+.essay h2{font-size:1.8rem;color:var(--ink);margin-bottom:.6em;text-wrap:balance}
+.essay h3{
+  font-size:1.25rem;color:var(--ink);margin:1.8em 0 .5em;
+  font-weight:600;
+}
+.essay p{color:var(--ink2);margin-bottom:1.1em;max-width:68ch}
+.essay p strong{color:var(--ink);font-weight:600}
+.essay .pull{
+  margin:2em 0;padding:0 0 0 24px;
+  border-left:2px solid var(--orange);
+  font-style:italic;color:var(--ink2);font-size:1.05rem;
+  max-width:56ch;
+}
+
+/* predictions */
+.predictions{padding:48px 0 40px;border-bottom:1px solid var(--line)}
+.predictions h2{font-size:1.8rem;color:var(--ink);margin-bottom:1em;text-wrap:balance}
+.pred-list{list-style:none;display:flex;flex-direction:column;gap:14px}
+.pred-list li{
+  display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;
+  font-family:var(--sans);font-size:.95rem;color:var(--ink2);line-height:1.55;
+}
+.pred-num{
+  font-family:var(--mono);font-size:.75rem;color:var(--teal);
+  font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;
+}
+.pred-list li strong{color:var(--ink)}
+
+/* footer nav */
+footer{
+  padding:36px 0 0;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:.72rem;color:var(--ink3);
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+}
+footer a{color:var(--ink3);text-decoration:none;transition:color .15s}
+footer a:hover{color:var(--teal)}
+
+@media(max-width:720px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:0 20px 80px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="sidebar">
+  <div class="site-label">AI Hardware Analysis</div>
+  <div class="nav-heading">Overview</div>
+  <a class="nav-link" href="index.html">Master narrative</a>
+  <a class="nav-link" href="grand-synthesis.html">Grand synthesis</a>
+  <a class="nav-link active" href="trends.html">Year-over-year trends</a>
+  <a class="nav-link" href="heatmap.html">Theme × venue heatmap</a>
+  <hr class="nav-divider">
+  <div class="nav-heading">Themes</div>
+  <a class="nav-link" href="t1-deepdive.html">T1 · Attention / LLM serving</a>
+  <a class="nav-link" href="t2-deepdive.html">T2 · Quantization</a>
+  <a class="nav-link" href="t3-deepdive.html">T3 · Memory / PIM</a>
+  <a class="nav-link" href="t4-deepdive.html">T4 · Interconnect</a>
+  <a class="nav-link" href="t5-deepdive.html">T5 · Sparsity / MoE</a>
+  <a class="nav-link" href="t6-deepdive.html">T6 · Compiler</a>
+  <a class="nav-link" href="t7-deepdive.html">T7 · Security</a>
+  <a class="nav-link" href="t8-deepdive.html">T8 · Reliability</a>
+  <a class="nav-link" href="t9-deepdive.html">T9 · Specialized silicon</a>
+  <hr class="nav-divider">
+  <div class="nav-heading">Venues 2025</div>
+  <a class="nav-link" href="mlsys-2025-bigpicture.html">MLSys</a>
+  <a class="nav-link" href="isca-2025-bigpicture.html">ISCA</a>
+  <a class="nav-link" href="micro-2025-bigpicture.html">MICRO</a>
+  <a class="nav-link" href="hpca-2025-bigpicture.html">HPCA</a>
+  <a class="nav-link" href="asplos-2025-bigpicture.html">ASPLOS</a>
+  <a class="nav-link" href="dac-2025-bigpicture.html">DAC</a>
+  <a class="nav-link" href="sc-2025-bigpicture.html">SC</a>
+  <div class="sidebar-links">
+    <a href="deepdives.html">deep dives hub</a>
+    <a href="explorer.html">paper explorer</a>
+    <a href="synthesis.html">cross-venue synthesis</a>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="eyebrow">AI Hardware · Year-over-year analysis</div>
+  <h1>2024 → 2025:<br>What Moved</h1>
+  <div class="sub">Six matched venues. 69 sampled 2024 papers against 1,264 full-coverage 2025 papers. Where the field's weight shifted — and what it means.</div>
+  <div class="meta-row">
+    <div class="stat">2024 corpus: <b>78 analyzed</b></div>
+    <div class="stat">2025 corpus: <b>2,412 papers</b></div>
+    <div class="stat">Matched venues: <b>ASPLOS · DAC · HPCA · MICRO · MLSys · SC</b></div>
+  </div>
+  <div class="caveat">
+    <p><strong>Coverage note:</strong> The 2024 figures come from an early, selective pass — 69 matched-venue papers versus 1,264 for 2025. Large percentage deltas reflect corpus coverage growth as much as field growth. The comparisons that hold up are theme <em>shares</em> at venues where coverage stayed consistent (notably MLSys), and the presence or absence of themes in the 2024 sample versus their weight in 2025.</p>
+  </div>
+</header>
+
+<!-- CHART SECTION -->
+<section class="section" id="chart">
+  <span class="section-label">Theme distribution</span>
+  <h2>Overall shift by theme</h2>
+  <p style="color:var(--ink3);font-family:var(--sans);font-size:.9rem;max-width:60ch;margin-top:-.2em">
+    Paper counts across the six matched venues. Violet = 2024 sample, teal = 2025 full coverage. Heights are proportional within year to preserve shape; absolute counts shown in labels.
+  </p>
+
+  <div class="chart-wrap">
+    <div class="chart-legend">
+      <span><span class="legend-dot" style="background:var(--violet)"></span>2024 sample</span>
+      <span><span class="legend-dot" style="background:var(--teal)"></span>2025 full coverage</span>
+    </div>
+    <svg id="themeChart" viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg" aria-label="Theme distribution bar chart, 2024 vs 2025">
+      <!-- Rendered by inline script below -->
+    </svg>
+  </div>
+</section>
+
+<!-- TOP MOVERS -->
+<section class="section" id="movers">
+  <span class="section-label">Top movers</span>
+  <h2>Biggest shifts</h2>
+  <div class="movers-grid">
+    <div class="mover-card grow">
+      <span class="mover-label">Biggest absolute gain</span>
+      <div class="mover-theme">T3 · Memory / PIM</div>
+      <div class="mover-stat">+186</div>
+      <div class="mover-desc">From 15 to 201 papers. Memory hierarchy research is the field's center of gravity — present as the plurality theme in the 2024 sample, still the plurality in 2025. The only comparison robust to the coverage gap.</div>
+    </div>
+    <div class="mover-card shrink">
+      <span class="mover-label">Biggest relative shrink</span>
+      <div class="mover-theme">T2 · Quantization at MLSys</div>
+      <div class="mover-stat">−17pp</div>
+      <div class="mover-desc">MLSys quantization share fell from 24% to 7%. The W4A8 recipe is established. Papers migrated downstream: DAC (circuit design) and HPCA (microarchitecture). The theme didn't shrink — it matured and moved.</div>
+    </div>
+    <div class="mover-card new">
+      <span class="mover-label">Emerging weight</span>
+      <div class="mover-theme">T7 · Security at ASPLOS</div>
+      <div class="mover-stat">0 → 24</div>
+      <div class="mover-desc">Zero security papers in the ASPLOS 2024 sample; 24 in 2025 (15% of the venue). Confidential computing meets LLM inference — the attack surface of in-memory processing is now an architecture problem.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VENUE BREAKDOWN -->
+<section class="section" id="venues">
+  <span class="section-label">Venue-by-venue</span>
+  <h2>Where each venue shifted</h2>
+  <p style="color:var(--ink3);font-family:var(--sans);font-size:.9rem;max-width:60ch;margin-bottom:0">
+    For each matched venue: theme split in 2024 (violet) and 2025 (teal). Bar width = share of total papers at that venue.
+  </p>
+  <div class="venue-grid" id="venueGrid"></div>
+</section>
+
+<!-- ESSAY -->
+<section class="essay" id="essay">
+  <span class="section-label" style="font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:block">Year-over-year analysis</span>
+  <h2>Migration, Not Growth</h2>
+
+  <p>The most honest interpretation of the 2024-to-2025 data is not "themes grew" but "themes migrated." The core problems that AI hardware research identified in 2024 — KV cache bandwidth, quantization math, near-data computation, specialized silicon efficiency — did not go away. They matured, and as they matured, they moved to different venues and deeper into the stack.</p>
+
+  <h3>T3 and T1: stable plurality, deepening problems</h3>
+  <p><strong>T3 (Memory hierarchy, PIM, HBM, CXL)</strong> is the largest theme in 2025 by matched-venue count: 201 papers. The 2024 matched sample had 15. Memory was the plurality theme in 2024, and it remains the plurality theme in 2025. This is the one comparison that holds up across the coverage gap — the weight was there before and the weight is still there. The field's central bet on near-data processing and CXL-attached memory appears in every matched venue: HPCA (39 papers, up from 2), DAC (77, up from 2), ASPLOS (40, up from 0), and MICRO (13, up from 3).</p>
+
+  <p><strong>T1 (Attention, LLM serving, KV-cache)</strong> had the largest raw 2024 presence: 17 matched papers, the single biggest theme in that sample. In 2025 it reaches 164, still the second-largest theme. The MLSys signal is clean: T1 grew from 11 to 31 papers (30% to 51% share) as the venue expanded from 37 to 61 analyzed papers. The serving stack — prefill/decode disaggregation, KV cache compression, speculative decoding — is concentrating, not dispersing.</p>
+
+  <div class="pull">MLSys has effectively become the primary venue for LLM inference systems research, with T1 now accounting for more than half its output.</div>
+
+  <h3>T2: quantization matured and migrated</h3>
+  <p><strong>T2 (Quantization)</strong> was 12 papers in the 2024 matched sample, second only to T1. In 2025 it is 76. But here is where the coverage gap bites hardest: MLSys 2024 had 9 T2 papers out of 37 analyzed (24%), while MLSys 2025 has only 4 T2 papers out of 61 (7%). This is a real signal, not a coverage artifact. MLSys has deprioritized pure quantization research, likely because the W4A8 recipe is now established. The quantization papers moved downstream to DAC (35 papers, where they become circuit-level problems) and HPCA (10 papers, where they become microarchitecture problems). The theme did not shrink; it matured and migrated.</p>
+
+  <h3>ASPLOS: the security turn</h3>
+  <p>ASPLOS shows the most dramatic theme shift in the matched set. The 2024 sample had zero security papers and zero reliability papers. In 2025 there are 24 security papers (15% of venue output) and 13 reliability papers (8%). ASPLOS has absorbed a significant slice of hardware security research that previously concentrated at security-specific venues. The driver is the intersection of confidential computing — SGX, TrustZone, ARM CCA — with LLM deployment: when you serve a model inside a TEE, you need both the security guarantee and the performance of near-memory computation, and ASPLOS sits at exactly that intersection.</p>
+
+  <h3>DAC: the integration venue</h3>
+  <p>DAC had even coverage across all themes in 2024 (about 1 paper per theme). In 2025 it is the most evenly distributed venue, with T9 (18%), T3 (17%), T6 (16%), T1 (9%), T2 (8%), T8 (8%), and T7 (9%) all represented. DAC in 2025 is the venue that covers the widest cross-section of AI hardware — effectively the systems integration conference where the problems that were solved at HPCA and MICRO get turned into manufacturable circuits. No theme dominates DAC because DAC is where everything converges before fabrication.</p>
+
+  <h3>SC: HPC absorbs the LLM workload</h3>
+  <p>SC in 2024 had only T3, T4, and T6 represented — memory, interconnect, compiler, the classic HPC stack. In 2025, T0 (catch-all systems) is the plurality at 35%, followed by T9 (13%), T4 (10%), T5 (7%), T3 (6%), and T8 (7%). SC has absorbed large language model workloads into the HPC scheduling and reliability stack: running training on 65,000-GPU clusters requires the same fault tolerance and collective communication infrastructure as traditional HPC, and SC is where that work lives. The appearance of T5 (sparsity/MoE) at SC — absent entirely in 2024 — reflects MoE training runs entering the HPC workload mix.</p>
+
+  <h3>MICRO: broadening beyond the memory wall</h3>
+  <p>MICRO in 2024 was led by T3 (memory) and T5 (sparsity). In 2025 T3 remains dominant at 28%, but T9 (specialized silicon, 15%) and T7 (security, 13%) grew significantly. MICRO is broadening beyond the memory wall to include the correctness and security implications of heterogeneous memory designs — a natural trajectory once the baseline hardware innovation is established. When a new memory technology ships, the next questions are always: what are the side-channel implications, and what formal guarantees do we have about the timing behavior?</p>
+</section>
+
+<!-- PREDICTIONS -->
+<section class="predictions" id="predictions">
+  <span class="section-label" style="font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:block">Forward projection</span>
+  <h2>What this suggests about 2026</h2>
+  <ul class="pred-list">
+    <li>
+      <span class="pred-num">01</span>
+      <span><strong>T3 and T1 deepen, not shift.</strong> Memory hierarchy research and attention acceleration are not approaching saturation — they are approaching commercial deployment, which generates more research problems, not fewer. The CXL memory tiering papers at HPCA 2025 will become silicon validation papers at DAC 2026 and production case studies at MLSys 2026.</span>
+    </li>
+    <li>
+      <span class="pred-num">02</span>
+      <span><strong>T7 (security) grows significantly at architecture venues.</strong> Every major cloud provider is now deploying confidential AI inference. The hardware architecture of a TEE-protected inference system — where the integrity tree lives, how you bound HBM access patterns, what memory encryption costs at KV-cache bandwidth — is a set of open questions that HPCA and MICRO will absorb over the next two years. The 24 security papers at ASPLOS 2025 are the leading edge.</span>
+    </li>
+    <li>
+      <span class="pred-num">03</span>
+      <span><strong>T6 (compiler) at ASPLOS will keep growing.</strong> The compiler layer for non-standard numeric formats — MX, FP8, block floating point — is unsolved. Neither is the HLS gap at FCCM, nor the auto-tuning problem for heterogeneous memory hierarchies. Compilers are the glue between hardware innovations and application workloads, and the hardware is currently innovating faster than the compilers can follow.</span>
+    </li>
+    <li>
+      <span class="pred-num">04</span>
+      <span><strong>The number to watch is energy efficiency's share as a primary metric.</strong> The shift from "how fast?" to "how efficiently fast?" — from ms/token to TOPS/W as the headline metric — is the leading indicator that the field is entering deployment phase, where edge and embedded constraints matter as much as datacenter throughput. When energy efficiency becomes primary at ISCA (currently a latency/throughput venue), the transition from research innovation to deployment engineering will be complete. That is probably 18 months away.</span>
+    </li>
+  </ul>
+</section>
+
+<footer>
+  <span>AI Hardware · YoY 2024 → 2025</span>
+  <a href="index.html">master narrative</a>
+  <a href="grand-synthesis.html">grand synthesis</a>
+  <a href="heatmap.html">theme × venue heatmap</a>
+  <a href="deepdives.html">deep dives</a>
+  <a href="explorer.html">paper explorer</a>
+</footer>
+
+</div><!-- .main -->
+</div><!-- .shell -->
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────────
+const THEMES = [
+  {key:'T1_attention',  short:'T1',  label:'Attention / LLM',   c24:17, c25:164},
+  {key:'T3_memory',     short:'T3',  label:'Memory / PIM',      c24:15, c25:201},
+  {key:'T2_quantization',short:'T2', label:'Quantization',      c24:12, c25:76},
+  {key:'T6_compiler',   short:'T6',  label:'Compiler',          c24:6,  c25:131},
+  {key:'T4_interconnect',short:'T4', label:'Interconnect',      c24:5,  c25:74},
+  {key:'T8_reliability',short:'T8',  label:'Reliability',       c24:2,  c25:88},
+  {key:'T7_security',   short:'T7',  label:'Security',          c24:4,  c25:93},
+  {key:'T5_sparsity',   short:'T5',  label:'Sparsity / MoE',   c24:4,  c25:81},
+  {key:'T9_specialized',short:'T9',  label:'Specialized',       c24:3,  c25:171},
+  {key:'T0_other',      short:'T0',  label:'Other / Systems',   c24:1,  c25:185},
+];
+
+const VENUE_DATA = [
+  {venue:'ASPLOS', total24:5, total25:164,
+   t24:{T0:0,T1:3,T2:1,T3:0,T4:0,T5:0,T6:1,T7:0,T8:0,T9:0},
+   t25:{T0:1,T1:33,T2:2,T3:40,T4:6,T5:7,T6:23,T7:24,T8:13,T9:15}},
+  {venue:'DAC', total24:10, total25:443,
+   t24:{T0:0,T1:1,T2:1,T3:2,T4:1,T5:0,T6:1,T7:1,T8:1,T9:2},
+   t25:{T0:28,T1:40,T2:35,T3:77,T4:14,T5:22,T6:71,T7:39,T8:37,T9:80}},
+  {venue:'HPCA', total24:5, total25:119,
+   t24:{T0:0,T1:1,T2:1,T3:2,T4:1,T5:0,T6:0,T7:0,T8:0,T9:0},
+   t25:{T0:2,T1:17,T2:10,T3:39,T4:7,T5:9,T6:6,T7:12,T8:4,T9:13}},
+  {venue:'MICRO', total24:7, total25:47,
+   t24:{T0:0,T1:1,T2:0,T3:3,T4:0,T5:2,T6:1,T7:0,T8:0,T9:0},
+   t25:{T0:1,T1:4,T2:4,T3:13,T4:2,T5:5,T6:5,T7:6,T8:0,T9:7}},
+  {venue:'MLSYS', total24:37, total25:61,
+   t24:{T0:1,T1:11,T2:9,T3:6,T4:1,T5:2,T6:2,T7:3,T8:1,T9:1},
+   t25:{T0:4,T1:31,T2:4,T3:6,T4:3,T5:8,T6:0,T7:1,T8:2,T9:2}},
+  {venue:'SC', total24:5, total25:430,
+   t24:{T0:0,T1:0,T2:0,T3:2,T4:2,T5:0,T6:1,T7:0,T8:0,T9:0},
+   t25:{T0:149,T1:39,T2:21,T3:26,T4:42,T5:30,T6:26,T7:11,T8:32,T9:54}},
+];
+
+const THEME_COLORS = {
+  T1:'#3ec9b6', T2:'#9c8cff', T3:'#e09858', T4:'#c9a84c',
+  T5:'#5bc4d8', T6:'#7acc70', T7:'#d95a4a', T8:'#d06cbf', T9:'#8fa8e0', T0:'#7a8494'
+};
+
+// ─── Bar chart (SVG) ────────────────────────────────────────────────────────
+(function buildChart() {
+  const svg = document.getElementById('themeChart');
+  const W = 820, H = 320;
+  const padL = 10, padR = 10, padT = 48, padB = 36;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const n = THEMES.length;
+  const groupW = chartW / n;
+  const barW = Math.min(groupW * 0.32, 24);
+  const gap = 4;
+
+  const max25 = Math.max(...THEMES.map(t => t.c25));
+  const max24 = Math.max(...THEMES.map(t => t.c24));
+  const maxAll = Math.max(max25, max24);
+
+  const scale = v => (v / maxAll) * chartH;
+
+  let html = `<g transform="translate(${padL},${padT})">`;
+
+  // Horizontal grid lines
+  const gridCounts = [50, 100, 150, 200];
+  gridCounts.forEach(g => {
+    if (g > maxAll) return;
+    const y = chartH - scale(g);
+    html += `<line x1="0" y1="${y}" x2="${chartW}" y2="${y}" stroke="#1e2635" stroke-width="1"/>`;
+    html += `<text x="-2" y="${y + 4}" text-anchor="end" font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="9" fill="#4a5568">${g}</text>`;
+  });
+
+  // Baseline
+  html += `<line x1="0" y1="${chartH}" x2="${chartW}" y2="${chartH}" stroke="#272f3d" stroke-width="1"/>`;
+
+  THEMES.forEach((theme, i) => {
+    const gx = i * groupW + groupW / 2;
+    const b24x = gx - barW - gap / 2;
+    const b25x = gx + gap / 2;
+    const h24 = scale(theme.c24);
+    const h25 = scale(theme.c25);
+
+    // 2024 bar (violet)
+    if (h24 > 0) {
+      html += `<rect x="${b24x}" y="${chartH - h24}" width="${barW}" height="${h24}" fill="#9c8cff" opacity="0.82" rx="1"/>`;
+    }
+    // 2025 bar (teal)
+    html += `<rect x="${b25x}" y="${chartH - h25}" width="${barW}" height="${h25}" fill="#3ec9b6" opacity="0.85" rx="1"/>`;
+
+    // Delta label above 2025 bar
+    const delta = theme.c25 - theme.c24;
+    const sign = delta >= 0 ? '+' : '';
+    const labelY = chartH - h25 - 8;
+    html += `<text x="${b25x + barW / 2}" y="${labelY}" text-anchor="middle" font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="9" fill="#3ec9b6" font-weight="600">${sign}${delta}</text>`;
+
+    // 2024 count inside or above violet bar
+    if (theme.c24 > 0) {
+      const c24LabelY = chartH - h24 - 4;
+      html += `<text x="${b24x + barW / 2}" y="${c24LabelY}" text-anchor="middle" font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="8" fill="#9c8cff" opacity="0.9">${theme.c24}</text>`;
+    }
+
+    // Short label below
+    html += `<text x="${gx}" y="${chartH + 18}" text-anchor="middle" font-family="ui-monospace,'SF Mono',Menlo,monospace" font-size="10" fill="#7a8494">${theme.short}</text>`;
+    // Full label (abbreviated) below short key
+    const abbr = theme.label.length > 12 ? theme.label.slice(0,11)+'…' : theme.label;
+    html += `<text x="${gx}" y="${chartH + 30}" text-anchor="middle" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="8.5" fill="#4a5568">${abbr}</text>`;
+  });
+
+  html += '</g>';
+  svg.innerHTML = html;
+})();
+
+// ─── Venue small multiples ───────────────────────────────────────────────────
+(function buildVenues() {
+  const grid = document.getElementById('venueGrid');
+  const KEYS = ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T0'];
+  const SHORTLABELS = {T0:'Sys',T1:'Attn',T2:'Quant',T3:'Mem',T4:'IC',T5:'Sparse',T6:'Cmplr',T7:'Sec',T8:'Rel',T9:'Spec'};
+
+  VENUE_DATA.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'venue-card';
+
+    const top = document.createElement('div');
+    top.className = 'venue-name';
+    top.innerHTML = `<strong>${v.venue}</strong><span>${v.total24} → ${v.total25} papers</span>`;
+    card.appendChild(top);
+
+    const bars = document.createElement('div');
+    bars.className = 'venue-bars';
+
+    KEYS.forEach(k => {
+      const c24 = v.t24[k] || 0;
+      const c25 = v.t25[k] || 0;
+      if (c24 === 0 && c25 === 0) return;
+
+      const maxForVenue = Math.max(v.total24, 1);
+      const maxForVenue25 = Math.max(v.total25, 1);
+      const pct24 = Math.round((c24 / maxForVenue) * 100);
+      const pct25 = Math.round((c25 / maxForVenue25) * 100);
+      const SCALE = 1.6; // max 100% -> ~160px
+
+      const row = document.createElement('div');
+      row.className = 'vbar-row';
+      row.innerHTML = `
+        <span class="vbar-key">${k}</span>
+        <div class="vbar-tracks">
+          <div class="vbar vbar-24" style="width:${Math.max(pct24 * SCALE, c24>0?2:0)}px" title="2024: ${c24}"></div>
+          <div class="vbar vbar-25" style="width:${Math.max(pct25 * SCALE, c25>0?2:0)}px" title="2025: ${c25}"></div>
+        </div>
+      `;
+      bars.appendChild(row);
+    });
+
+    card.appendChild(bars);
+
+    const leg = document.createElement('div');
+    leg.className = 'venue-legend';
+    leg.innerHTML = `<span style="color:var(--violet)">■ 2024</span><span style="color:var(--teal)">■ 2025</span><span>% of venue total</span>`;
+    card.appendChild(leg);
+
+    grid.appendChild(card);
+  });
+})();
+</script>
+</body>
+</html>
