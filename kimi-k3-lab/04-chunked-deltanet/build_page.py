@@ -1,0 +1,196 @@
+import json, html
+D = json.load(open("out_chunk.json"))
+EQ = D["equivalence"]; SP = D["speed"]; FS = D["flop_split"]
+def esc(s): return html.escape(str(s))
+
+def eqrows():
+    return "".join(f"<tr><td>{r['C']}</td><td class='hi'>{r['max_abs_diff']:.1e}</td>"
+                   f"<td class='mo'>{'sequential loop' if r['C']==1 else ('full attention' if r['C']==EQ['N'] else 'chunked')}</td></tr>"
+                   for r in EQ["rows"])
+
+def speedrows():
+    return "".join(f"<tr><td>{r['L']}</td><td class='mo'>{r['seq_depth']} → {r['chunk_depth']}</td>"
+                   f"<td class='hi'>{r['depth_reduction']}×</td>"
+                   f"<td class='mo'>{r['ms_sequential']:.1f}</td><td class='mo'>{r['ms_chunked']:.1f}</td>"
+                   f"<td class='hi'>{r['speedup']:.1f}×</td></tr>" for r in SP["rows"])
+
+def flopbars():
+    mx = max(r["total"] for r in FS["rows"])
+    out = ""
+    for r in FS["rows"]:
+        sp = r["state_flops"]/mx*100; scp = r["score_flops"]/mx*100
+        tag = " =full attn" if r["is_full_attention"] else ""
+        out += (f"<div class='fbar'><span class='fl'>C={r['C']}{tag}</span>"
+                f"<span class='ft'><span class='ff st' style='width:{sp:.2f}%'></span>"
+                f"<span class='ff sc' style='width:{scp:.2f}%'></span></span>"
+                f"<span class='fv'>{r['total']/1e6:.1f}M</span></div>")
+    return out
+
+P = f"""<title>Kimi K3 Lab · 04 — Chunked DeltaNet</title>
+<style>
+:root{{--bg:#0E1420;--bg2:#141D2C;--panel:#18212F;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;
+--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--viol:#9B8CE0;--serif:"Iowan Old Style",Palatino,Georgia,serif;
+--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:17px}}
+.wrap{{max-width:860px;margin:0 auto;padding:0 24px}}
+p{{color:var(--soft);margin:0 0 16px}}b{{color:var(--ink)}}em{{color:#fff;font-style:italic}}
+.mono{{font-family:var(--mono)}}
+.kick{{font-family:var(--mono);font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}}
+h1{{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff;letter-spacing:-.02em}}
+h2{{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}}
+.dek{{font-size:19px;color:var(--soft);margin-top:18px;max-width:62ch}}
+section{{padding:44px 0;border-top:1px solid var(--line)}}
+.eye{{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}}
+.why{{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}}
+.why h3{{margin:0 0 6px;font-size:12.5px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}}.why p{{margin:0;font-size:15px;color:var(--soft)}}
+.card{{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:14px}}
+.mini{{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:10px;line-height:1.6}}
+.run{{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 18px;margin:16px 0}}
+.run .rt{{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}}
+.run p{{margin:0;font-size:14.5px;color:var(--soft)}}
+.eqn{{font-family:var(--mono);font-size:13.5px;color:var(--ink);background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0;overflow-x:auto;white-space:pre;line-height:1.7}}
+.eqn .c{{color:var(--accent)}}.eqn .g{{color:var(--faint)}}.eqn .v{{color:var(--viol)}}
+table{{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}}
+th,td{{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}}
+th{{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}}
+td.mo{{font-family:var(--mono);color:var(--soft)}}td.hi{{font-family:var(--mono);color:var(--accent);font-weight:700}}
+th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(--mono)}}
+.fbar{{display:flex;align-items:center;gap:12px;margin:8px 0;font-family:var(--mono);font-size:12px}}
+.fl{{width:120px;color:var(--dim);text-align:right}}
+.ft{{flex:1;height:18px;background:rgba(150,170,205,.06);border-radius:5px;overflow:hidden;display:flex}}
+.ff{{display:block;height:100%}}.ff.st{{background:#2E6E7A}}.ff.sc{{background:#E3A63A}}
+.fv{{width:66px;color:var(--soft)}}
+.leg{{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px}}
+.leg .sw{{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin:0 4px 0 12px}}
+.panel{{background:linear-gradient(180deg,#10161D,#0D131A);border:1px solid var(--line);border-radius:14px;padding:8px;margin-top:14px;overflow:hidden}}
+.panel canvas{{display:block;width:100%;height:auto;border-radius:8px}}
+.readout{{font-family:var(--mono);font-size:12px;color:var(--dim);padding:9px 12px 4px;min-height:18px}}.readout b{{color:var(--accent)}}
+.aha{{font-family:var(--serif);font-size:22px;line-height:1.4;color:#fff;border-left:3px solid var(--accent);padding-left:18px;margin:8px 0}}
+.next{{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:10px}}.next a{{color:var(--accent);text-decoration:none}}
+.src{{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}}.src a{{color:var(--accent);text-decoration:none}}
+</style>
+<div class="wrap">
+<header style="padding:64px 0 8px">
+  <div class="kick">Kimi K3, from first principles · Session 04 of 07</div>
+  <h1>Same delta rule — done in parallel.</h1>
+  <p class="dek">DeltaNet has one flaw for training: it's <em>sequential</em>. Every step reads the current board to know what to erase, so you can't process a long prompt at once. The chunk-wise reparameterization fixes it — do <b>real attention inside a chunk</b>, carry a running state <b>across chunks</b>, and get the <em>exact same numbers</em>. Chunk size is a dial from pure-recurrent to full-attention.</p>
+  <div class="run"><div class="rt">▶ We ran it · the headline</div>
+  <p>Sequential and chunked outputs agree to <b>{max(r['max_abs_diff'] for r in EQ['rows']):.0e}</b> for every chunk size — same function, not an approximation. And it cuts the chain of must-run-in-order steps by <b>{SP['rows'][0]['depth_reduction']}×</b> (L → L/C), which ran <b>{SP['rows'][2]['speedup']:.0f}×</b> faster even here on plain CPU.</p></div>
+</header>
+
+<section>
+  <div class="eye">The idea · two orders in one pass</div>
+  <h2>Attention inside a chunk, recurrence between chunks</h2>
+  <p>Split the sequence into chunks of size C. Within a chunk, do ordinary masked attention — a small C×C triangle, fully parallel. Between chunks, fold the finished chunk into the running state S and read S at the start of the next one. The only sequential dependency left is chunk-to-chunk, so the chain of ordered steps drops from L to L/C:</p>
+  <div class="eqn"><span class="g"># per chunk i — everything here is batched matmuls</span>
+u_i     = U_i − W_i · <span class="v">S</span>        <span class="g"># this chunk's delta corrections, given the incoming state</span>
+o_intra = tril(Q_i·K_iᵀ) · u_i   <span class="g"># real masked attention, inside the chunk</span>
+o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribution from everything before the chunk</span>
+<span class="v">S</span>       = <span class="v">S</span> + K_iᵀ · u_i       <span class="g"># fold the chunk into the state, hand to chunk i+1</span></div>
+  <p>The trick that makes <span class="mono">u_i</span> computable in one shot is a small triangular solve per chunk (it applies all C in-chunk corrections at once). We solve it for every chunk in parallel — only the <span class="mono">S</span> hand-off stays a loop.</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · it's the same function</div>
+  <h2>Every chunk size gives identical output</h2>
+  <p>We computed the plain sequential delta rule and the chunked form on the same inputs, sweeping C from 1 (pure recurrent) to N (one big chunk = full attention). The largest disagreement anywhere is floating-point noise:</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>chunk size C</th><th>max |seq − chunked|</th><th>what C means</th></tr>
+    {eqrows()}
+  </table></div>
+  <p class="mini">{esc(EQ['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · the parallel win</div>
+  <h2>The must-run-in-order chain shrinks by C</h2>
+  <p>The number that actually matters for training is <b>sequential depth</b>: how many steps have to run one-after-another because each needs the last state. Chunking cuts it from L to L/C — and even in pure-Python CPU, replacing the L-step loop with L/C batched steps ran multiples faster:</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>L</th><th>seq depth → chunk</th><th>depth cut</th><th>ms seq</th><th>ms chunk</th><th>wall speedup</th></tr>
+    {speedrows()}
+  </table></div>
+  <p class="mini">{esc(SP['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · why C is a knob</div>
+  <h2>Fixed state work + growing score work</h2>
+  <p>Total compute splits in two: a <span style="color:#4FA8B8">state term (2·L·d²)</span> that doesn't care about C at all, and a <span style="color:var(--amber)">score term (2·L·C·d)</span> — the little in-chunk triangles — that grows with C. So C trades FLOPs for hardware utilization: tiny C is cheapest but all small ops; C=L is full quadratic attention:</p>
+  <div class="card">{flopbars()}
+  <div class="leg"><span class="sw" style="background:#2E6E7A"></span>state 2·L·d² (fixed)<span class="sw" style="background:#E3A63A"></span>score 2·L·C·d (grows with C)</div></div>
+  <p class="mini">{esc(FS['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">See it · chunked prefill</div>
+  <h2>Chunks fill in parallel; the state passes along</h2>
+  <p>The sequence in chunks. Inside each chunk, the masked-attention triangle lights up all at once (parallel). Between chunks, the state <span style="color:var(--viol)">S</span> is handed forward — the one thread that stays sequential:</p>
+  <div class="panel"><canvas data-anim="chunk" height="280"></canvas>
+    <div class="readout"><span id="chunk-r">—</span></div>
+  </div>
+  <p class="mini">Left-to-right = the sequence. Each block is a chunk doing full attention internally; the glowing S carries the running memory across the boundaries.</p>
+</section>
+
+<section>
+  <div class="eye">The one-line aha</div>
+  <p class="aha">Cut the sequence into chunks, do exact attention inside each and pass a running state between them, and the delta rule's one-step-at-a-time chain collapses from L links to L/C — the same answer, now shaped like something a GPU can actually train fast.</p>
+  <p class="next">Real code: <b>04-chunked-deltanet/attn.py</b> → <b>out_chunk.json</b> · Source: ali §"Parallelizing Linear Transformers with Delta Rule"; production form = Kimi Linear's DPLR chunkwise kernel.<br>
+  Next → <b>Session 05 · Gated DeltaNet</b>: DeltaNet can replace a fact it recognizes, but can't clear the board for a new topic. Add a decay dial (from Mamba-2) so the board can forget generally.</p>
+</section>
+<div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>; production algorithm from Moonshot's <a href="https://arxiv.org/abs/2510.26692">Kimi Linear</a> (DPLR). Numbers produced by the code.</div>
+</div>
+<script>
+(function(){{
+  const R={json.dumps(SP['rows'])};
+  const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MONO='ui-monospace,Menlo,Consolas,monospace';
+  const C={{accent:'#4FA8B8',amber:'#E3A63A',rose:'#E0748A',viol:'#9B8CE0',ink:'#E7EFF1',mut:'#8B9BA2',dim:'#586770',line:'#243440'}};
+  const cv=document.querySelector('canvas[data-anim=chunk]'); if(!cv)return;
+  let ctx,w,h; const NCH=4, CS=4; // 4 chunks of 4 tokens
+  function fit(){{const dpr=Math.min(devicePixelRatio||1,2);w=cv.clientWidth;h=parseInt(cv.getAttribute('height'))||280;
+    cv.width=w*dpr;cv.height=h*dpr;ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);}}
+  fit();
+  function txt(s,x,y,col,sz,al,bold){{ctx.save();ctx.font=(bold?'700 ':'')+sz+'px '+MONO;ctx.textAlign=al||'center';ctx.textBaseline='middle';ctx.fillStyle=col;ctx.fillText(s,x,y);ctx.restore();}}
+  function draw(t){{
+    ctx.clearRect(0,0,w,h);
+    const per=RM?0:0.85; const active=RM?NCH-1:Math.floor(t/per)%(NCH+1);
+    const marg=40, gap=18, cw=(w-2*marg-(NCH-1)*gap)/NCH, cell=Math.min(15,(cw-8)/CS), gy=70;
+    txt('sequence  →',marg,28,C.dim,12,'left');
+    let sx=marg;
+    for(let i=0;i<NCH;i++){{
+      const done=i<active, cur=i===active;
+      // chunk frame
+      ctx.save();ctx.strokeStyle=cur?C.accent:(done?'rgba(79,168,184,.4)':C.line);ctx.lineWidth=cur?1.8:1.2;
+      ctx.strokeRect(sx, gy, cw, cw); ctx.restore();
+      // in-chunk masked-attention triangle (lower-tri cells)
+      const bx=sx+(cw-cell*CS)/2, by=gy+(cw-cell*CS)/2;
+      for(let r=0;r<CS;r++)for(let cc=0;cc<CS;cc++){{
+        if(cc>r) continue;
+        const lit=done||cur; const v=lit?(0.25+0.6*((r*3+cc*5)%7)/7):0.05;
+        ctx.save();ctx.fillStyle='rgba(79,168,184,'+v.toFixed(3)+')';ctx.strokeStyle='rgba(10,15,25,.6)';ctx.lineWidth=.8;
+        ctx.fillRect(bx+cc*cell,by+r*cell,cell-1.5,cell-1.5);ctx.strokeRect(bx+cc*cell,by+r*cell,cell-1.5,cell-1.5);ctx.restore();
+      }}
+      txt('chunk '+(i+1),sx+cw/2,gy+cw+16,cur?C.accent:C.mut,11,'center',cur);
+      // state hand-off arrow from prev chunk
+      if(i>0){{const ax=sx-gap, ay=gy+cw/2; const on=i<=active;
+        ctx.save();ctx.globalAlpha=on?1:0.25;ctx.strokeStyle=C.viol;ctx.fillStyle=C.viol;ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(ax-gap+6,ay);ctx.lineTo(ax+4,ay);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(ax+4,ay);ctx.lineTo(ax-2,ay-4);ctx.lineTo(ax-2,ay+4);ctx.closePath();ctx.fill();ctx.restore();
+        if(on) txt('S',ax-gap/2,ay-10,C.viol,10,'center',true);
+      }}
+      sx+=cw+gap;
+    }}
+    txt('inside a chunk: full attention, all cells at once (parallel)',w/2,h-42,C.mut,11,'center');
+    txt('between chunks: the state S passes along (sequential — only '+NCH+' links, not '+(NCH*CS)+')',w/2,h-24,C.viol,11,'center');
+    const el=document.getElementById('chunk-r');
+    if(el) el.innerHTML='chunk '+Math.min(active+1,NCH)+' of '+NCH+' — its C×C triangle computes in parallel; state <b>S</b> carries memory to the next. Sequential depth = '+NCH+', not '+(NCH*CS)+'.';
+  }}
+  let raf,t0=performance.now();function frame(now){{draw((now-t0)/1000);raf=requestAnimationFrame(frame);}}
+  const io=new IntersectionObserver(es=>es.forEach(e=>{{if(e.isIntersecting){{if(!raf){{t0=performance.now();raf=requestAnimationFrame(frame);}}}}else{{cancelAnimationFrame(raf);raf=0;}}}}),{{threshold:.12}});
+  if(RM)draw(9); else io.observe(cv);
+  let rt;addEventListener('resize',()=>{{clearTimeout(rt);rt=setTimeout(()=>{{fit();if(RM)draw(9);}},150);}});
+}})();
+</script>
+"""
+open("out/index.html", "w", encoding="utf-8").write(P)
+print("wrote out/index.html ·", len(P)//1024, "KB · FFFD:", P.count("�"))

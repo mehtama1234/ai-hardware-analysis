@@ -1,0 +1,129 @@
+{
+  "equivalence": {
+    "N": 64,
+    "d": 32,
+    "rows": [
+      {
+        "C": 1,
+        "max_abs_diff": 4.76837158203125e-07
+      },
+      {
+        "C": 2,
+        "max_abs_diff": 4.76837158203125e-07
+      },
+      {
+        "C": 4,
+        "max_abs_diff": 5.960464477539062e-07
+      },
+      {
+        "C": 8,
+        "max_abs_diff": 5.960464477539062e-07
+      },
+      {
+        "C": 16,
+        "max_abs_diff": 5.960464477539062e-07
+      },
+      {
+        "C": 32,
+        "max_abs_diff": 7.152557373046875e-07
+      },
+      {
+        "C": 64,
+        "max_abs_diff": 7.152557373046875e-07
+      }
+    ],
+    "point": "Every chunk size C reproduces the sequential delta rule to floating-point noise. C=1 is literally the sequential loop; C=N is one big chunk (full attention). The chunked form is not an approximation \u2014 it's the same function, re-scheduled so a GPU can do big matmuls instead of a long scalar recurrence."
+  },
+  "speed": {
+    "d": 32,
+    "chunk_size": 32,
+    "rows": [
+      {
+        "L": 128,
+        "seq_depth": 128,
+        "chunk_depth": 4,
+        "depth_reduction": 32,
+        "ms_sequential": 5.29,
+        "ms_chunked": 0.57,
+        "speedup": 9.29
+      },
+      {
+        "L": 256,
+        "seq_depth": 256,
+        "chunk_depth": 8,
+        "depth_reduction": 32,
+        "ms_sequential": 19.48,
+        "ms_chunked": 1.98,
+        "speedup": 9.83
+      },
+      {
+        "L": 512,
+        "seq_depth": 512,
+        "chunk_depth": 16,
+        "depth_reduction": 32,
+        "ms_sequential": 44.67,
+        "ms_chunked": 2.05,
+        "speedup": 21.77
+      },
+      {
+        "L": 1024,
+        "seq_depth": 1024,
+        "chunk_depth": 32,
+        "depth_reduction": 32,
+        "ms_sequential": 100.02,
+        "ms_chunked": 27.99,
+        "speedup": 3.57
+      }
+    ],
+    "point": "The core win is the SEQUENTIAL DEPTH \u2014 the number of steps that must run one-after-another because each needs the previous state. Sequential DeltaNet has depth L; the chunked form has depth L/C (here 32\u00d7 shorter), with all the within-chunk work as parallel matmuls. That shorter dependency chain is why it trains fast \u2014 and it shows up even here: replacing the L-step Python recurrence with L/C batched-matmul steps runs 8\u201320\u00d7 faster on plain CPU. In production the same idea rides a fused GPU kernel (Kimi Linear's DPLR chunkwise kernel) at C\u224864\u2013128."
+  },
+  "flop_split": {
+    "L": 4096,
+    "d": 32,
+    "rows": [
+      {
+        "C": 1,
+        "state_flops": 8388608,
+        "score_flops": 262144,
+        "total": 8650752,
+        "is_full_attention": false
+      },
+      {
+        "C": 16,
+        "state_flops": 8388608,
+        "score_flops": 4194304,
+        "total": 12582912,
+        "is_full_attention": false
+      },
+      {
+        "C": 64,
+        "state_flops": 8388608,
+        "score_flops": 16777216,
+        "total": 25165824,
+        "is_full_attention": false
+      },
+      {
+        "C": 128,
+        "state_flops": 8388608,
+        "score_flops": 33554432,
+        "total": 41943040,
+        "is_full_attention": false
+      },
+      {
+        "C": 512,
+        "state_flops": 8388608,
+        "score_flops": 134217728,
+        "total": 142606336,
+        "is_full_attention": false
+      },
+      {
+        "C": 4096,
+        "state_flops": 8388608,
+        "score_flops": 1073741824,
+        "total": 1082130432,
+        "is_full_attention": true
+      }
+    ],
+    "point": "The fixed piece (2\u00b7L\u00b7d\u00b2) is the recurrent state work and ignores C entirely. The growing piece (2\u00b7L\u00b7C\u00b7d) is the little masked-attention triangles on the diagonal. C=1 minimizes FLOPs but is all tiny ops; C=L is full O(L\u00b2) attention. Kimi Linear picks C\u224864\u2013128 \u2014 big enough to fill tensor cores (its DPLR chunkwise kernel), small enough to stay near-linear."
+  }
+}
