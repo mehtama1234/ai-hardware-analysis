@@ -46,6 +46,15 @@ section{padding:44px 0;border-top:1px solid var(--line)}
   <div class="run"><div class="rt">▶ We ran it · overwrite the same key twice</div>
   <p>Write value v1 at a key, later write v2 at the <b>same</b> key, then ask for it. DeltaNet returns the new value cleanly (cos <b>+0.78</b> to v2, <b>+0.00</b> to the stale v1). Softmax can't update — it kept both copies and <b>averaged</b> them (+0.68 / +0.70, near-equal). Editing in place is the whole point.</p></div>
 </header>
+<section>
+  <div class="eye">In plain words · the problem, then the idea</div>
+  <h2>Erase before you write</h2>
+  <p>The last rung kept a single fixed-size board and blended every new fact smoothly into it. But blending had a cost: if the same label came up twice with different answers, the board just averaged them. It could not fix a fact or change its mind.</p>
+  <p><b>The problem.</b> Picture a whiteboard where the marker never fully wipes off. You write &#x27;the capital is Berlin&#x27;, later learn it should be &#x27;Vienna&#x27;, and all you can do is write over the first — what&#x27;s left is a smudge of both, pulled toward the middle. Ask the board later and it mumbles. In the run below, when a fact has been rewritten, the blend-only board hands back a 0.68 match to the new answer and a nearly identical 0.70 to the old one: it has forgotten nothing, and so remembers everything at once, as mush.</p>
+  <p><b>The idea.</b> Instead of just adding each new fact, look first. Before writing a value under a label, check what already sits under that label, remove it, and write the new value in its place. That&#x27;s not blending — it&#x27;s replacement: one fact per label, and when the fact changes, the label changes with it. The board stays clear because the old entry comes off before the new one goes down.</p>
+  <p><b>The name, translated.</b> Researchers call this the delta rule — &#x27;delta&#x27; means the difference, the change from old to new. It writes only the gap between what&#x27;s stored and what&#x27;s arriving. Models built around it are called DeltaNet.</p>
+  <div class="why"><h3>What it still can't do</h3><p>That cleanliness costs speed. To erase correctly you must look up the old value, work out the difference, then write — and you can&#x27;t shortcut that the way you can with plain addition. So every single word needs the same careful three-step dance, which makes training slow. The board is accurate now; the price is paid in time.</p></div>
+</section>
 
 <section>
   <div class="eye">The rule · read, subtract, write</div>
@@ -90,7 +99,7 @@ S     = S + kᵀ <span class="c">u</span>          <span class="g"># same outer-
 
 <section>
   <div class="eye">The one-line aha</div>
-  <p class="aha">Reading a key's old value and subtracting it before you write turns a fixed board from an ever-blurrier sum into a memory you can actually <em>edit</em> — the difference between averaging two answers and correcting one.</p>
+  <p class="aha">A memory you can rewrite is far more useful than one that can only pile up — being able to forget the old answer is worth the extra care it takes.</p>
   <p class="next">Real code: <b>03-deltanet/attn.py</b> → <b>out_delta.json</b> · Source: ali §DeltaNet / Fast Weight Programmers (Schlag).<br>
   Next → <b>Session 04 · Parallelizing DeltaNet</b>: the delta rule is sequential (each step needs the current board) — a chunk-wise reparameterization makes it train fast on GPUs while computing the exact same thing.</p>
 </section>

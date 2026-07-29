@@ -1,7 +1,35 @@
-import os, html
+import os, html, json, re
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.join(ROOT, "site")
 os.makedirs(SITE, exist_ok=True)
+
+# Rich plain-language "in plain words" sections (drafted by Haiku, curated), keyed by
+# output filename. Injected right after each page's <header>, plus the takeaway swap.
+_pw_path = os.path.join(ROOT, "plain_words.json")
+PLAIN = json.load(open(_pw_path, encoding="utf-8")) if os.path.exists(_pw_path) else {}
+
+def inject_plain_words(doc, fn):
+    e = PLAIN.get(fn)
+    if not e:
+        return doc
+    esc = html.escape
+    sec = (
+        '<section>\n'
+        '  <div class="eye">In plain words · the problem, then the idea</div>\n'
+        f'  <h2>{esc(e["heading"])}</h2>\n'
+        f'  <p>{esc(e["where"])}</p>\n'
+        f'  <p><b>The problem.</b> {esc(e["problem"])}</p>\n'
+        f'  <p><b>The idea.</b> {esc(e["idea"])}</p>\n'
+        f'  <p><b>The name, translated.</b> {esc(e["term"])}</p>\n'
+        f'  <div class="why"><h3>What it still can\'t do</h3><p>{esc(e["price"])}</p></div>\n'
+        '</section>'
+    )
+    doc = doc.replace('</header>', '</header>\n' + sec, 1)
+    if e.get("aha"):
+        doc = re.sub(r'(<p class="aha">).*?(</p>)',
+                     lambda m: m.group(1) + esc(e["aha"]) + m.group(2),
+                     doc, count=1, flags=re.S)
+    return doc
 
 # (out_file, source_html, title, subtitle, emoji, status)
 SESSIONS = [
@@ -37,6 +65,7 @@ for fn, src, t, sub, emoji, status in SESSIONS:
         continue
     doc = open(os.path.join(ROOT, src), encoding="utf-8").read()
     doc = doc.replace('<div class="wrap">', '<div class="wrap">\n' + nav(t), 1)
+    doc = inject_plain_words(doc, fn)
     open(os.path.join(SITE, fn), "w", encoding="utf-8").write(doc)
 
 # landing page

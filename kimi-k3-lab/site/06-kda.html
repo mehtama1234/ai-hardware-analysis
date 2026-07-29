@@ -56,6 +56,15 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
   <div class="run"><div class="rt">▶ We ran it · fine beats blunt</div>
   <p>On a task that needs "keep these channels <em>and</em> forget those," per-channel KDA scores <b>0.86</b> — the best any single scalar can manage is <b>0.16</b>, because one number must either keep everything or forget everything. And interleaving 3 KDA layers per MLA layer cuts the KV cache by a flat <b>−75%</b> at every context length — the paper's number, from first principles.</p></div>
 </header>
+<section>
+  <div class="eye">In plain words · the problem, then the idea</div>
+  <h2>Each kind of thing remembers at its own speed</h2>
+  <p>We had a single forget-dial that dims a fixed-size board evenly — everything fades together. That keeps the cost flat however long the text, but it&#x27;s blunt: the board treats a person&#x27;s name the same as a throwaway detail, so it drops what matters just to make room.</p>
+  <p><b>The problem.</b> Imagine listening to a mystery with one master volume knob. Turn it down to clear the background chatter and you also mute the detective&#x27;s key clue; leave it up to keep the clue and you drown in noise. One dial forces all-or-nothing. In a real passage a name or a plot twist should stick for the whole stretch, while what someone had for lunch can go almost immediately — but a single dial fades them at the same rate. The board can&#x27;t hold some things steady while clearing others in the same step.</p>
+  <p><b>The idea.</b> Give every separate slot on the board its own forget-dial. Now, as each word arrives, some slots fade slowly — holding names and key facts — while others fade fast, clearing small talk. The slot tracking &#x27;who is speaking&#x27; turns its dial down gently so that identity lives for dozens of words; a slot tracking something that resets constantly turns its dial down hard. Same fixed-size board, but now it can be selective: keep what serves the thread, drop what clutters it, all at once.</p>
+  <p><b>The name, translated.</b> Researchers call this per-slot (fine-grained) gating; in Moonshot&#x27;s Kimi Linear model it&#x27;s the core idea, named Kimi Delta Attention. Each slot simply gets its own fade-speed.</p>
+  <div class="why"><h3>What it still can't do</h3><p>Even with per-slot fading, a fixed board still can&#x27;t recall everything that ever happened. So the model keeps a few full keep-everything layers on the side for the moments that truly need exact recall — mixing one full layer in for every three cheap ones, which is what cuts the memory bill by about 75% in the real design.</p></div>
+</section>
 
 <section>
   <div class="eye">The move · a vector, not a scalar</div>
@@ -104,7 +113,7 @@ S = <span class="a">diag(α)</span> · S + kᵀ u     <span class="g"># α is a 
 
 <section>
   <div class="eye">The one-line aha</div>
-  <p class="aha">Turning the single decay dial into one-dial-per-channel lets a fixed board keep and forget at the same time — the small expressiveness gain that finally makes linear attention competitive with full attention, while a few interleaved full-attention layers cover what a fixed board still can't.</p>
+  <p class="aha">The moment each kind of information is allowed to fade at its own speed, cheap fixed-size memory starts to rival the expensive keep-everything kind — because matching the shape of the problem beats brute force.</p>
   <p class="next">Real code: <b>06-kda-kimi-linear/attn.py</b> → <b>out_kda.json</b> · Ground truth: <a href="https://arxiv.org/abs/2510.26692">Kimi Linear (arXiv 2510.26692)</a> — DPLR chunkwise KDA, KDA+MLA hybrid, −75% KV / up-to-6× decode.<br>
   Next → <b>Session 07 · Kimi K3</b>: assemble everything — 23×(3 KDA + 1 MLA) macrocycles, a latent Mixture-of-Experts (16 of 896), SiTU, Gated MLA, and blockwise Attention Residuals.</p>
 </section>

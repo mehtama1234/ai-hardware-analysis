@@ -43,6 +43,15 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
   <div class="run"><div class="rt">▶ We ran it · forgetting on a dial</div>
   <p>Write an old topic, then a new one, then recall. Ungated (α=1) leaves the stale topic fully present (recall <b>0.46</b>). Turn the dial to α=0.9 and the stale topic fades to <b>0.02</b> — forgotten — while the fresh topic stays sharp (<b>0.92</b>). And a memory left for Δ steps comes back scaled by exactly <b>α^Δ</b> (measured = predicted to 4 decimals).</p></div>
 </header>
+<section>
+  <div class="eye">In plain words · the problem, then the idea</div>
+  <h2>The board learns to let go</h2>
+  <p>The board can now recognize a fact it has seen and rewrite it in place. But it has no natural way to shed old material when the subject changes — yesterday&#x27;s plot details sit right next to today&#x27;s, getting in the way of what the model needs now.</p>
+  <p><b>The problem.</b> A whiteboard that never erases fills up. Old writing gets buried under new, but it&#x27;s still there, and you keep having to work around it. When you switch from a mystery novel to a cooking manual, your mind doesn&#x27;t instantly drop the plot — stale details linger and compete for room. The board has the same drag: it can fix a known fact, but it can&#x27;t choose to let go. Write about one topic, switch to another, then ask about the first, and the old words come back loud and present even though they&#x27;re useless now.</p>
+  <p><b>The idea.</b> Add one control: a dial that sits between reading the old board and writing the new fact. Before each update, turn the dial and the whole board fades a little — not erased, just dimmed, like breath slowly clearing from a window. Turn it toward &#x27;forget&#x27; and the board dims fast; toward &#x27;keep&#x27; and almost nothing fades. Now when a new subject arrives, the old one wears thin on its own, making room without any special rule to detect or delete it.</p>
+  <p><b>The name, translated.</b> Researchers call this a decay gate (or forget gate). The idea comes from an earlier design called Mamba, which found that simply letting the board fade by a fixed fraction each step is cheaper than deciding what to keep. The fade multiplies: at a setting of 0.9 the board is 90% as vivid after one step, 81% after two, about 35% after ten.</p>
+  <div class="why"><h3>What it still can't do</h3><p>One dial for the whole board is still crude. It fades names and dates at the same rate as passing details — everything dims together. A fact that matters can fade too fast while noise fades too slow. You&#x27;re still forcing a single pace onto every kind of memory.</p></div>
+</section>
 
 <section>
   <div class="eye">The rule · decay, then write</div>
@@ -87,7 +96,7 @@ S = <span class="a">α</span> · S + kᵀ u        <span class="g"># α=1 → pu
 
 <section>
   <div class="eye">The one-line aha</div>
-  <p class="aha">One decay dial turns a memory that could only be overwritten into one that can also <em>forget</em> — fading the whole board a little each step so a new topic isn't buried under an old one. But α fades every feature by the same amount, and not all memories deserve the same fate.</p>
+  <p class="aha">Turn the dial down after a chapter about a wizard&#x27;s tower and up before a recipe, and the old story melts away like ink in water while the new one stays sharp.</p>
   <p class="next">Real code: <b>05-gated-deltanet/attn.py</b> → <b>out_gated.json</b> · Source: ali §Gated Delta Net; decay from Mamba-2.<br>
   Next → <b>Session 06 · KDA / Kimi Linear</b>: one global α is too blunt — give <em>every channel its own decay rate</em>. That fine-grained gating is the move that lets linear attention finally beat full attention.</p>
 </section>

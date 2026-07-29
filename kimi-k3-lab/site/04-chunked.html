@@ -50,6 +50,15 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
   <div class="run"><div class="rt">▶ We ran it · the headline</div>
   <p>Sequential and chunked outputs agree to <b>7e-07</b> for every chunk size — same function, not an approximation. And it cuts the chain of must-run-in-order steps by <b>32×</b> (L → L/C), which ran <b>22×</b> faster even here on plain CPU.</p></div>
 </header>
+<section>
+  <div class="eye">In plain words · the problem, then the idea</div>
+  <h2>The same bookkeeping, reorganized to run in parallel</h2>
+  <p>The erase-then-write method is exactly right, but it has a punishing flaw: each word has to wait for the one before it to finish, so you can&#x27;t speed things up by working on many words at once.</p>
+  <p><b>The problem.</b> Imagine a workshop where each person can&#x27;t start until the person before them hands over their piece — a single-file line where nobody moves until the slowest link finishes. Training a model means doing this across millions of words. A modern computer is built to do hundreds of things at once, but the one-at-a-time rule forbids it. The bookkeeping itself isn&#x27;t slow; the waiting is. So training crawls.</p>
+  <p><b>The idea.</b> Inside a small block of text — say 32 words — the bookkeeping can all happen at once; you don&#x27;t have to finish word 1 before touching word 2 within the block. What must still be passed in order is only a short summary from the end of one block to the start of the next. So you do each block&#x27;s work in one parallel burst and hand a summary forward. The long chain of &#x27;wait for the previous word&#x27; becomes a short chain of &#x27;wait for the previous block&#x27; — and the answer comes out identical.</p>
+  <p><b>The name, translated.</b> Researchers call this working in chunks (a &#x27;chunk-wise&#x27; method): split the text into fixed-size blocks, do all the careful memory work inside each block at once, and pass only a brief summary between them.</p>
+  <div class="why"><h3>What it still can't do</h3><p>The memory is still one fixed-size board. It can blend and correct a labelled fact, but it can&#x27;t wipe itself clean when the topic changes completely — old facts will still bleed into a new chapter. Giving it a way to deliberately forget is the next rung.</p></div>
+</section>
 
 <section>
   <div class="eye">The idea · two orders in one pass</div>
@@ -106,7 +115,7 @@ o_inter = Q_i · <span class="v">S</span>            <span class="g"># contribut
 
 <section>
   <div class="eye">The one-line aha</div>
-  <p class="aha">Cut the sequence into chunks, do exact attention inside each and pass a running state between them, and the delta rule's one-step-at-a-time chain collapses from L links to L/C — the same answer, now shaped like something a GPU can actually train fast.</p>
+  <p class="aha">Re-scheduling the exact same calculation — not changing it — cut the chain of waiting from millions of words to dozens of blocks and ran 3 to 22 times faster, while the answer stayed true down to rounding noise.</p>
   <p class="next">Real code: <b>04-chunked-deltanet/attn.py</b> → <b>out_chunk.json</b> · Source: ali §"Parallelizing Linear Transformers with Delta Rule"; production form = Kimi Linear's DPLR chunkwise kernel.<br>
   Next → <b>Session 05 · Gated DeltaNet</b>: DeltaNet can replace a fact it recognizes, but can't clear the board for a new topic. Add a decay dial (from Mamba-2) so the board can forget generally.</p>
 </section>

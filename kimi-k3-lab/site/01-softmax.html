@@ -62,6 +62,15 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
   <div class="run"><div class="rt">▶ We ran it · the headline number</div>
   <p>Our param math on GPT-2's config (vocab 50304, ctx 1024, 12 layers, d 768) lands at <b>124.4M</b> — the reported 124M. Against K3's 2.8T that's <b>22,516×</b>, within 0.3% of the worklog's 22,580 (we omit LayerNorm/bias). The number is real. The question is whether scale is <em>all</em> that changed.</p></div>
 </header>
+<section>
+  <div class="eye">In plain words · the problem, then the idea</div>
+  <h2>The starting point: keep every note</h2>
+  <p>We begin at the beginning — GPT-2&#x27;s original design, before anyone had worked out how to stretch a model&#x27;s memory cheaply. To see why everything later exists, you first have to see the baseline: a model that keeps a record of every single word it has read and throws nothing away.</p>
+  <p><b>The problem.</b> Keeping one note for every word carries two bills that both keep climbing: the room to store the notes, and the effort to read all of them again for each new word. On a short text it&#x27;s nothing — a couple of gigabytes for something that fits on a laptop. On a long one — a manual, a transcript, a book — the pile swells past 260 gigabytes. And every time the model adds a word, it re-reads the whole pile to decide what matters. The effort doesn&#x27;t creep up; it explodes.</p>
+  <p><b>The idea.</b> For every earlier word the model keeps one note — a small record of that word and its context. To choose the next word, it makes a single pass over all the notes, scoring each for how relevant it is right now, and lets the strongest ones weigh most. Nothing is discarded, so recall is flawless — as if a writer could lay every earlier sentence on the table, take them all in at once, and naturally focus on the few that matter.</p>
+  <p><b>The name, translated.</b> Researchers call this full attention — the model &#x27;attends to&#x27; (scores and weighs) every note in its memory before it acts. The name is literal: it pays full attention to everything, every time.</p>
+  <div class="why"><h3>What it still can't do</h3><p>The trouble is that the re-reading grows with the square of the length: double the text and the work roughly quadruples. So the longer the document, the faster the cost races toward impossible — a hard ceiling baked into the design. The model itself also grew enormously (22,580 times larger from GPT-2 to Kimi K3), but the real bottleneck was never its width. It was always this pile of notes, and how expensive it became to carry and re-read.</p></div>
+</section>
 
 <section>
   <div class="eye">The mechanism · GPT-2</div>
@@ -102,7 +111,7 @@ th:first-child,td:first-child{text-align:left;color:var(--ink);font-family:var(-
 
 <section>
   <div class="eye">The one-line aha</div>
-  <p class="aha">Softmax attention keeps a cache that grows with the sequence — so decoding either wastes O(N²) compute or streams O(N) memory every step. Everything from here to Kimi K3 is one idea attacked from different angles: <em>replace the growing cache with a fixed-size state you have to manage.</em></p>
+  <p class="aha">The baseline remembers perfectly — right up until the pile of notes becomes too big and too slow to afford, which happens far sooner than you&#x27;d think.</p>
   <p class="next">Real code: <b>01-softmax-baseline/attn.py</b> → <b>out_softmax.json</b> · Source: ali, <em>"22580: From GPT-2 to Kimi K3, Explained"</em>.<br>
   Next → <b>Session 02 · Linear attention</b>: swap the exponential for ELU+1 and fold all of K,V into one fixed <span class="mono">D×D</span> matrix — the cache stops growing. We'll run it and watch the fidelity you pay for it.</p>
 </section>
