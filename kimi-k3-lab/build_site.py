@@ -17,7 +17,8 @@ SESSIONS = [
   "Chunked DeltaNet", "Chunk-wise reparameterization → parallel prefill. Real runs: sequential vs chunked identical to 7e-7 across all C, sequential depth cut 32× (L→L/C), 3–22× faster, and the state/score FLOP split.", "🧩", "live"),
  ("05-gated.html", "05-gated-deltanet/out/index.html",
   "Gated DeltaNet", "Mamba-2 decay meets the delta rule. Real runs: a decay dial that forgets stale context (recall 0.46→0.02) while keeping fresh recall sharp, and the α^Δ survival law verified to 4 decimals.", "🎚️", "live"),
- (None, None, "KDA / Kimi Linear", "Per-channel fine-grained gating + MLA hybrid. Linear attention that beats full attention.", "🧬", "soon"),
+ ("06-kda.html", "06-kda-kimi-linear/out/index.html",
+  "KDA / Kimi Linear", "Per-channel decay + MLA hybrid. Real runs: per-channel keeps AND forgets (goal 0.86 vs best scalar 0.16), and the 3 KDA:1 MLA interleave reproduces the paper's −75% KV cache.", "🧬", "live"),
  (None, None, "Kimi K3", "23×(3 KDA + 1 MLA) macrocycles, latent MoE, SiTU, Gated MLA, AttnRes. Capacity with a job.", "🌐", "soon"),
 ]
 
