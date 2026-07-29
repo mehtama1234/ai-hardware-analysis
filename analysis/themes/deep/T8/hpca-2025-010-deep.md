@@ -1,0 +1,25 @@
+# No Rush in Executing Atomic Instructions
+
+**Venue:** HPCA · **Subtheme:** Contention-Aware Atomic Instruction Scheduling
+
+## What It Does
+
+Modern x86 processors implement unfenced atomic read-modify-write (RMW) instructions—atomic instructions with no implicit memory fence—enabling eager execution as soon as the instruction's operands are ready. However, eager execution holds the cacheline lock from the moment the atomic is issued until the write completes, extending lock duration and delaying other cores attempting to acquire the same cache line. Conversely, lazy execution waits until the atomic is the oldest instruction in the load queue and the store buffer is empty before issuing the write, minimizing cacheline lock time but paying the full memory latency for non-contended accesses where early lock release provides no benefit.
+
+Rush or Wait (RoW) dynamically selects between eager and lazy modes via a hardware contention predictor: a 64-entry, 4-bit saturating-counter table indexed by XOR of the 12 least-significant bits of the instruction's PC. At issue, the predictor selects the mode; at completion, it updates using three progressively refined contention detection mechanisms. The Execution Window (EW) marks an atomic contended if an external cache coherence invalidation or downgrade arrives while the atomic holds the cacheline lock. The Ready Window (RW) extends tracking backward: once the atomic's operands become ready, the hardware computes the effective address eagerly, snoops an Atomic Queue to detect external requests targeting the same cacheline, and marks contention if any match. The Directory Latency variant (RW+Dir) further refines by checking if the cacheline arrives from another core's L3 cache with latency exceeding a 400-cycle threshold, catching contention that resolves before an external request reaches this core's request port. Total storage: 64 bytes (256 bits for the saturating-counter predictor + 256 bits for Atomic Queue augmentation). Store-to-load forwarding from older stores overrides lazy predictions to preserve atomic locality.
+
+## The Key Result
+
+On the Splash-4, PARSEC 3.0, and fine-grain synchronization benchmark suites (16 workloads), RoW with RW+Dir contention detection achieves 9.2% average execution time reduction over always-eager baseline, with peak improvements up to 43% on highly-contended synchronization workloads. On the same baselines, RoW+RW achieves 7.3% reduction, and RoW+EW achieves 5.5%. Modeled on 32-core Intel Alder Lake parameters with measured X86 atomic behavior via real hardware characterization. Storage overhead is merely 64 bytes per core, making the approach practical for modern CMP designs.
+
+## Why This Approach
+
+Atomic instructions are fundamental to parallel synchronization, but their performance under contention is highly workload-dependent: non-contended atomics (like the atomic loops in canneal or freqmine) benefit up to 2x from eager execution and suffer 2x slowdown from lazy execution, while heavily contended atomics (like centralized counters in pc or sps workloads) benefit 2x from lazy execution but suffer 2x from eager's prolonged lock holds. A static policy—either always-eager or always-lazy—always misses half the available benefit. Dynamic prediction addresses this by observing per-atomic contention patterns in real time. The three-tier detection hierarchy (EW → RW → RW+Dir) balances accuracy and latency: EW is the fastest but misses contention that resolves before external requests arrive; RW adds address-based snooping to catch earlier contention; RW+Dir adds L3 latency thresholds to disambiguate remote vs. local cache hits. The saturating-counter predictor is chosen for its simplicity (only 64 bytes) and because contention patterns are sticky per PC (same locks are reused across thousands of iterations).
+
+## What It Leaves Open
+
+- **Predictor aliasing limits benefit**: the 64-entry predictor with PC XOR indexing can alias disparate atomics, causing interference; workloads with many atomics per core (e.g., fine-grain task-parallel codes) see reduced accuracy and leave performance on the table.
+- **Mixed contention patterns within a PC unsupported**: if the same atomic instruction sometimes runs contended and sometimes non-contended (e.g., lock contention that varies dynamically), the predictor learns an average mode that may be suboptimal for both phases.
+- **Lazy mode overhead on out-of-order processors not fully characterized**: waiting for load queue age and store buffer drain introduces stalls that interact unpredictably with superscalar instruction dispatch; edge cases in deep pipelines (≥10-stage) are not fully explored.
+- **No integration with hyper-threading or SMT modes**: the evaluation assumes single-threaded execution per core; sharing the predictor or contention detection logic across SMT threads may cause interference.
+- **Evaluation limited to Splash-4/PARSEC workloads**: other synchronization patterns (e.g., lock-free data structures with compare-and-swap chains, TM abort patterns) are not tested, so generalization is uncertain.

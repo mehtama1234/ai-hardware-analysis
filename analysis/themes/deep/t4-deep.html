@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Interconnect & Communication &middot; AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">&#x2190; master narrative</a>
+    <a href="../../../t4-deepdive.html">T4 theme essay &#x2197;</a>
+    <a href="index.html">&#x2190; deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 &middot; Interconnect & Communication &middot; Deep Reads</div>
+    <h1>Interconnect &amp; Communication: Top Papers</h1>
+    <div class="sub">9 high-impact papers &middot; network-on-chip, cross-chip messaging, bandwidth walls, and the physics of moving data</div>
+  </div>
+  <div class="section-h">Dataflow &amp; NoC Optimization</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">Enhancing CGRA Efficiency Through Aligned Compute and Communication Provisioning</div>
+      <div class="pc-sub">Dataflow &amp; NoC Optimization</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Plaid addresses a fundamental inefficiency in Coarse-Grained Reconfigurable Arrays (CGRAs): existing designs pair each processing element with a full crossbar router to handle peak communication load, but in practice this router sits mostly idle. Instead of one router per PE, Plaid groups three ALUs into a Plaid Collective Unit (PCU) that shares a single lightweight local router handling all three-node communication patterns. These are exhaustive structural motifs discovered in dataflow graphs (fan-in, fan-out, unicast patterns) — recurring three-node subgraph structures. The PCU's local router handles all intra-motif data movement internally, while a global inter-PCU router connects different PCUs for longer-range communication. The Plaid compiler (built on the Morpher toolchain) automatically identifies motifs in kernel dataflow graphs, generates a hierarchical representation, and maps it onto the PCU array using flexible schedule templates that keep all three ALUs busy without buffering overhead.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key mechanism is recognizing that a 4×4 spatial CGRA (16 PEs, 16 routers) and a 2×2 Plaid CGRA (6 PCUs = 18 ALUs, 6 local routers + 1 global router) have the same functional capacity but fundamentally different communication patterns. By accepting that computation rarely occurs in truly arbitrary patterns and mostly flows through small repeating three-node structures, Plaid replaces 16 full crossbars with 7 smaller routers, eliminating the per-PE overprovisioning that wastes area and power.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On CNN, vision, and HPC workloads (30 kernels from TinyML, PolyBench, and image processing benchmarks), Plaid achieves 1.4× performance improvement over energy-efficient spatial CGRAs while matching the performance of high-performance spatio-temporal CGRAs. Energy-wise: 43% power reduction versus spatio-temporal CGRA; 27.7% energy reduction versus spatial CGRA; overall 42% total energy reduction versus spatio-temporal baseline. Area: 46% area savings versus spatio-temporal; 48% area savings versus spatial CGRA. PPA (power-performance-area): 1.22× energy efficiency and 1.25× area efficiency compared to domain-optimized spatio-temporal CGRA.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">CGRAs are valued for domain-agility but historically pay a heavy price: communication hardware (routers, buffers, multiplexers) consumes 44% of power and 46% of area in spatio-temporal designs, yet achieves only modest average utilization because individual PEs rarely communicate with every other PE in every cycle. Plaid leverages the structural observation that most practical computation flows through small three-node patterns — no kernel naturally produces a uniform random communication matrix. By designing the collective unit around these motifs and letting the compiler identify them, Plaid achieves both the adaptability of spatial dataflow CGRAs and the efficiency of specialized accelerators. The alternative (hand-design per-workload or accept high overprovisioning) does not scale; Plaid generalizes across all dataflow kernels without manual per-architecture tuning.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Kernels with very complex or long-distance data dependencies that cannot be captured by three-node motifs fall back to individual-node-to-node communication through the global router, losing the efficiency gain and potentially serializing across longer paths.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No investigation of how memory hierarchy (scratchpad/register file organization) interacts with the PCU-based communication; assumes sufficient local buffering.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to very large arrays (e.g., 16×16 PCUs) and whether motif density remains high in massive dataflow graphs is unexplored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Does not address reconfiguration time or dynamic re-mapping if workload phases demand different motifs; assumes static per-kernel mapping.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison limited to CGRAs; no evaluation against GPU tensor cores or specialized ML accelerators (Gemmini, TensorFlow TPU variants) on shared workloads.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Low-Latency Physical Interconnect</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISSCC</div>
+    <div>
+      <div class="pc-title">36.5 A Low-Latency 200Gb/s PAM-4 Heterogeneous Transceiver in 0.13µm SiGe BiCMOS and 28nm CMOS for Retimed Pluggable Optics</div>
+      <div class="pc-sub">Low-Latency Physical Interconnect</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This paper solves a fundamental conflict in AI data-center interconnects: 200G/lane serial links must transmit over very-short-reach (VSR) optical channels, which exhibit severe insertion loss (-14dB at 200Gbps). Traditional retimed solutions use analog-to-digital converters (ADCs) with digital signal processing (DSP) to compensate for channel loss, but DSP introduces pipeline delay — incompatible with ultra-low-latency AI inference. The paper proposes a heterogeneous transceiver that splits the burden: a 0.13µm SiGe BiCMOS analog front-end performs aggressive analog equalization (before ADC/DSP), while 28nm CMOS digital logic handles clock/data recovery and link-layer functions. The SiGe circuitry directly compensates the VSR insertion loss in the analog domain using precision equalization filters, eliminating the need for heavy DSP post-processing. 28nm CMOS handles the remaining clock synchronization and protocol overhead, which are latency-sensitive but computationally simpler. This split allows analog equalization to run in parallel with clock recovery, compressing overall receiver latency.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The data flow is: incoming 200Gbps PAM-4 signal → SiGe analog equalization front-end (compensates -14dB loss) → 28nm CMOS receiver (CDR, frame alignment, lane assembly) → AI cluster. By handling the highest-loss frequencies purely in analog, the architecture avoids the ADC quantization and DSP compute bottleneck, reducing end-to-end latency while maintaining link margin.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">200Gbps transmission rate over very-short-reach VSR optical channels with significantly lower latency than retimed DSP-based solutions. Energy efficiency is comparable to standard retimed approaches, but with near-zero additional latency penalty. This enables compliance with ultra-low-latency inference requirements (sub-microsecond fabric delays) while maintaining throughput density.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">AI inference workloads are latency-bound — a few microseconds of unexpected delay can render inference results stale or cause request timeouts. Standard 200G pluggable optics with DSP compensation add 10-20 cycles of pipeline delay to recover from severe VSR channel loss, which violates inference SLA requirements. The heterogeneous approach exploits a key insight: analog circuits are inherently lower-latency for equalization than digital ADC+DSP chains (analog filters respond in nanoseconds; ADC sampling + DSP convolution adds microseconds). By using mature 0.13µm SiGe BiCMOS technology (proven for analog RF/analog front-ends in telecom) alongside 28nm CMOS (for clock recovery and protocol), the design leverages each process node's strengths. SiGe provides the high-frequency analog performance needed for VSR equalization; 28nm CMOS provides the power-efficient digital integration. The alternative — scaling a fully digital DSP solution to sub-microsecond latency or using higher-bandwidth channels with additional fiber count — does not address the fundamental latency-throughput tradeoff.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No discussion of transceiver power consumption, area, or integration density compared to pure-digital retimed solutions or higher-bandwidth serial links (400G/lane).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Reliability and equalization robustness across temperature, voltage, and process corners for the analog front-end are not explored; analog circuits are process-sensitive.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability from single 200G lane to multi-lane deserializers (16x 200G on a single chip) and how die-to-die or package-level heat dissipation affects analog equalization margin.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Does not specify exact latency numbers (sub-microsecond claimed but no cycle count breakdown between SiGe equalization, CDR, and 28nm framing).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison of error rates or bit error ratio (BER) versus baseline retimed solutions across the full temperature/voltage envelope.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Coherence &amp; Chiplet Interconnect</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">A. Delegato: Locality-Aware Atomic Memory Operations on Chiplets</div>
+      <div class="pc-sub">Coherence &amp; Chiplet Interconnect</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Delegato addresses a performance cliff in chiplet-based multi-core systems: atomic memory operations (AMOs) — fine-grained synchronization primitives like compare-and-swap used in parallel workloads — become orders of magnitude slower when cache lines are split across chiplets. In monolithic designs, an AMO executes locally at the cache line's current owner (a few cycles). In dual-chiplet systems like NVIDIA Grace (two 16-core chiplets connected via 50ns NVLink interposer), every AMO that misses locally must either: (1) fetch the cache line to the requester's chiplet, execute it, and writeback (ping-pong traffic), or (2) send the RMW operation to a centralized directory ALU (adds directory latency). Delegato introduces two new coherence transactions: <b>Delegated AMOs</b> forward the RMW operation via a new SnpAMO snoop to the cache-line owner, which executes the operation locally and returns the result without transferring the line; <b>Migrating AMOs</b> transfer ownership of the cache line to the requester using an AtomicLoad request. The directory tracks cache-line state and chiplet location, then chooses between five static policies (All-Central, All-Migrate, Present-Central, Pinned-Owner, Unowned-Central) and a Chiplet-Aware policy. On top of these, <b>Delegato</b> adds a one-bit reuse_bit that the L2 cache piggybacks in every SnpAMO response back to the directory. This bit signals whether the cache line was used again by the same requester; the directory's Predictor Table uses this feedback to transition between policies over time, learning which AMO strategy minimizes round-trip latency for each cache line.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Requester on Chiplet A issues AMO → directory checks reuse_bit history → if "pinned" pattern detected, issues SnpAMO to Chiplet B owner → owner executes RMW in-place, returns result → Chiplet A receives result directly without fetching the line. This eliminates the inter-chiplet cache-line transfer.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On graph analytics and HPC benchmarks, Delegato achieves 1.13× speedup over DynAMO (state-of-the-art AMO predictor) and 1.07× speedup over All-Centralized AMOs, evaluated on 20+ benchmarks in gem5 with 32 out-of-order cores (dual 16-core chiplets) and AMBA 5 CHI protocol. Delegated AMOs reduce critical-path inter-chiplet messages from 4 to 2 in pathological worst-case scenarios. The atomic ALU extension requires only 2894 µm² at 7nm (0.11% of a Neoverse V1 core tile).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Chiplet scaling is now mandatory for large core counts (post-2020 CPUs and GPUs are all chiplet-based), but interposer latency (50ns for NVLink, 30-40ns for advanced interposers) makes traditional AMO execution strategies fail. Near AMOs (cache-line fetch) incur 2× interposer crossings (fetch + writeback). Centralized AMOs require directory involvement and ALU cycles, serializing all AMOs through a bottleneck. Delegato's insight is that fine-grained locality patterns exist: if a cache line is frequently accessed by one chiplet, it should stay pinned there and let remote AMOs delegate. The reuse_bit piggybacking mechanism captures this pattern at near-zero overhead (one bit in an existing snoop response) and lets the directory adapt per cache line. This beats static policies because different cache lines have different AMO access patterns. The alternative — increasing interposer bandwidth or accepting higher latency — scales poorly; Delegato exploits locality instead.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Delegated transactions currently assume single-owner scenarios; multi-sharer cases (multiple chiplets with cached copies) defer to centralized fallback, losing the delegation benefit.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Performance gains are modest (1.07x-1.13x geomean), reflecting the narrow optimization window — only a fraction of workload time is spent in AMO-heavy phases; further gains would require algorithmic changes at the application level.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The reuse_bit Predictor Table has a fixed size and replacement policy; no analysis of misprediction rates on workloads with many unique cache lines or thrashing patterns.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to two chiplets; scalability to 4+ chiplets and how directory predictor state explosion affects performance is unexplored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison with hardware transactional memory (HTM) or other alternatives to fine-grained AMOs on chiplet systems; assumes AMO-based workloads are unavoidable.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Compute-Communication Overlap</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">TileLink: Generating Efficient Compute-Communication Overlapping Kernels using Tile-Centric Primitives</div>
+      <div class="pc-sub">Compute-Communication Overlap</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TileLink solves a fundamental bottleneck in distributed LLM training: inter-GPU communication (all-reduce, all-gather, reduce-scatter) for tensor parallelism blocks GPU compute. The naive approach launches compute kernels, waits for completion, then launches communication. The expert approach fuses communication into compute kernels so that while one GPU thread group transfers tensors over NVLink, another thread group continues computing — but this requires ~2000 lines of hand-written CUDA exploiting NVSHMEM barriers and channel priorities, and is error-prone. TileLink provides a tile-centric abstraction: the programmer writes kernels using nine primitives at the tile (not individual element) level: producer_tile_notify/consumer_tile_wait synchronize tile-level data readiness; peer_tile_notify/peer_tile_wait coordinate cross-rank dependencies; tile_push_data/tile_pull_data transfer tiles between GPUs; rank_copy_data/rank_notify/rank_wait handle rank-level collective coordination. The backend then compiles these to overlapping kernels in three stages. First, <b>shape mapping</b> assigns tile dimensions to compute and communication workloads (e.g., a 256×128 tile for GEMM and a 128×256 slice for all-reduce). Second, <b>rank mapping</b> determines which GPU rank computes/receives each tile via either affine transforms (for regular collectives) or runtime lookup tables (for irregular patterns like expert dispatch). Third, <b>channel mapping</b> assigns each tile to a specific NVLink or InfiniBand channel to avoid congestion. The backend compiles these mappings to PTX via Triton extended with NVSHMEM primitives, generating a single CUDA kernel where compute threads and communication threads are interleaved at the warp granularity.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Input tensor arrives → rank_mapper determines tile ownership → compute threads execute GEMM on their assigned tile → at barrier, producer_tile_notify signals completion → peer_tile_wait on rank N+1 unblocks that rank's communication threads → tile_push_data sends result over NVLink channel → next rank overlaps receiving with its GEMM compute. The key is that no rank stalls; NVLink latency is hidden by compute overlap.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On LLM training workloads, TileLink achieves 1.17× to 20.76× speedup versus non-overlapping (sequential compute + communicate) baseline. Performance is comparable to FLUX (expert-written library) with approximately 200 Python lines of code versus ~2000 CUDA lines in FLUX. Demonstrates 10× code reduction while matching expert-tuned performance on GEMM+all-reduce, GEMM+all-gather, MoE expert dispatch, and attention+communication kernels.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Distributed LLM training spends 30-50% of iteration time on collective communication (all-reduce for gradient averaging in data parallelism, all-gather for tensor parallelism). Traditional distributed frameworks decompose this into separate stages: compute each layer, then synchronize and communicate. Even pipelined approaches that overlap one layer's communication with the next layer's compute leave a gap. The expert solution (FLUX) fuses communication directly into kernels, creating fine-grained interleaving, but this requires deep CUDA/NVSHMEM expertise and produces non-portable code. TileLink's tile-centric abstraction lifts this to a higher level: tiles are natural units that can be independently computed and communicated without global coordination. By exposing tile synchronization primitives, TileLink lets a compiler handle the scheduling complexity. The rank mapping abstraction handles both regular collectives (affine patterns) and irregular ones (expert routing), making it general-purpose. The alternative — requiring every distributed framework to hand-optimize kernels, or accepting lower utilization from simpler decomposition — limits innovation velocity and wastes GPU time.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Static shape mapping requires recompilation for different tensor dimensions; no adaptive tile sizing for multi-batch inference with varying sequence lengths.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Dynamic lookup-table mapping for irregular collectives (e.g., MoE expert dispatch) adds runtime overhead to build the rank mapping; scalability to thousands of tokens or experts unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">NVSHMEM dependency limits portability to non-NVIDIA platforms (AMD MI300, Intel GPU, CPU clusters); no path to generalize.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Tile granularity is architecture and model-dependent and must be tuned manually per model; no autotuning pass to search the tile-size design space.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation focuses on dense layers; sparse patterns (activation sparsity, token pruning in inference) and their interaction with tile-centric mapping not explored.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Communication Optimization for Distributed LLM Training</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Balancing Pipeline Parallelism with Vocabulary Parallelism</div>
+      <div class="pc-sub">Communication Optimization for Distributed LLM Training</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In pipeline-parallel LLM training, the model is vertically split across GPUs (early layers on GPU 0, middle on GPU 1, late on GPU 2, etc.) to reduce memory pressure and increase throughput through microbatching. However, embedding and output projection layers — especially with large vocabularies (32K-200K tokens) — contain massive parameter matrices (e.g., embedding: [200K vocab, 12288 hidden dims] = 2.4B parameters, output projection: [12288, 200K] = 2.4B parameters). When both are placed on the first/last pipeline stage, they create severe compute and memory imbalance: the first stage must compute the vocabulary embedding (expensive matrix-multiply), causing pipeline bubbles while other stages wait. Vocabulary Parallelism (VP) partitions the embedding and output layers evenly across all pipeline stages. For example, in a 4-stage pipeline: stage 0 computes embedding[:50K], stage 1 computes embedding[50K:100K], stage 2 computes embedding[100K:150K], stage 3 computes embedding[150K:200K]. This requires new forward and backward pass algorithms. <b>Algorithm 1</b> performs forward pass separately on each stage (each produces a partial embedding), then communicates results via all-reduce to gather the complete embedding, followed by standard transformer layers. Backward pass reverses this: each stage computes gradients for its partition, all-reduce sums them, each stage updates its partition. This reduces communication barriers from 3 to 2. <b>Algorithm 2</b> further optimizes by fusing online softmax (computing softmax incrementally as partial results arrive) with pre-computed gradient partial sums, reducing barriers to just 1. The result is that embedding computation no longer blocks the pipeline and load is perfectly balanced across stages.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow (Algorithm 2): Token IDs → Stage 0 computes embedding[:50K] (partial emb₀) in parallel with Stages 1-3 computing transformer layers downstream → all-reduce gathers partial embeddings → fused softmax computes final embedding → backward pass reuses partial gradients, reducing communication stalls.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On LLM pre-training with large vocabularies (32K-200K tokens), Vocabulary Parallelism achieves 5% to 51% throughput improvement versus naive pipeline parallelism (vocabulary on one stage). Algorithm 2 reduces communication barriers from 3 to 1. When combined with the V-Half pipeline schedule (which overlaps forward and backward passes), VP achieves perfect compute and memory balance across all pipeline stages with only small constant overhead in activation memory.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Pipeline parallelism is the standard scaling mechanism for LLM training (Megatron-LM, NVIDIA Transformer Engine, etc.), but the vocabulary layers (embedding and output projection) are a structural bottleneck. Concentrating them on one stage creates severe imbalance because vocabulary size is often 10-100× larger than hidden dimension. The alternative approaches don't work: (1) Tensor parallelism on vocabulary layers alone adds fine-grained all-reduce synchronization that is more expensive than piping; (2) sequence parallelism requires chunking sequences, adding communication per token; (3) data parallelism requires duplicating all parameters, negating memory savings. VP's insight is that vocabulary projection is associative and can be partitioned — each partition computes a subset of token embeddings independently, then results are combined via all-reduce. By combining this with online softmax (a streaming algorithm that computes softmax correctly from partial sums), VP eliminates the need for a third synchronization point, keeping the pipeline full. This is especially powerful because vocabulary size is typically constant regardless of model scale, making VP applicable to all LLM scales.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Small but measurable activation memory overhead from storing partial embeddings; impact on memory-constrained training (very large models with aggressive gradient checkpointing) not fully explored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Communication pattern becomes more complex (all-reduce after embedding); scalability beyond 8-16 pipeline stages and how all-reduce tree algorithms (binomial, etc.) interact with NVLink topology is not analyzed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Benefit scales with vocabulary size; for small vocabularies (8K tokens) or shared embedding-output layers, gain is marginal; no guidance on when to apply VP.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Requires modification to pipeline scheduler logic; implementation complexity and engineering effort to integrate into existing frameworks (Megatron, vLLM) not addressed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No evaluation with dynamic vocabularies or sparse token distributions (common in multilingual models); assumes uniform vocabulary access patterns.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Gradient Compression &amp; Communication Reduction</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Radius: Range-based Gradient Sparsity for Large Foundation Model Pre-training</div>
+      <div class="pc-sub">Gradient Compression &amp; Communication Reduction</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In data-parallel LLM pre-training on 64+ GPUs, every training step requires synchronizing gradients (averaging across all workers) via allreduce collective communication. For a 2B parameter model, that's 8GB of data per step, times 1000+ steps per hour = huge communication overhead (40% of training time). Naive gradient sparsification using top-k (send only the largest 40% of gradients, discard the rest) requires allgather (each worker sends its top-k indices to all others) because different workers compute different top-k sets — scalability is O(n) with worker count. Radius makes a key empirical observation: after 15-20% of pre-training warm-up, the top-k gradient indices stabilize — the set of "important" gradient dimensions remains nearly identical across training steps for hours. This means <b>all workers can reuse the same top-k index set for T steps (default T=200)</b>, eliminating the need for expensive allgather. Instead of: (worker 0 computes top-k, worker 1 computes top-k, allgather indices) → allreduce values; Radius does: (compute dense allreduce on all gradients once every T steps to find new indices) → for next T steps, allreduce only top-k values using the same shared index mask. The catch: AdamW optimizer (nearly universal in LLM training) internally tracks per-gradient statistics; if gradients are zeroed before reaching the optimizer, AdamW diverges. Radius applies <b>gradient correction</b>: it computes the effective gradient update that AdamW would apply (accounting for momentum buffers and learning-rate schedules) before selecting which gradients to keep, ensuring index selection reflects true model importance. It also uses <b>error feedback</b>: accumulate non-top-k gradients in a local buffer, adding them back every T steps during re-sampling to prevent gradient leakage.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Layer 0 computes gradients → apply gradient correction (simulate AdamW step) → compare against reused top-k mask → send only top-k values via allreduce → all workers receive same sparse gradient → apply AdamW with full state (momentum still tracks all dimensions, but only top-k receive updates) → accumulate non-top-k in error buffer → every T steps, full allreduce recomputes indices, error-feedback applies accumulated gradient → resume sparsification with new indices.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On GPT-2.0B pre-training with 40% sparsity (send only top 60% of gradients) across 64 A100 GPUs: 21% per-step time reduction, 19% overall pre-training speedup, 89.69% communication volume reduction. At 128 GPUs with 40% sparsity, scaling efficiency is 42.5% versus 32.8% for dense allreduce (communication savings compound at scale). Downstream task performance on GLUE, SuperGLUE, LAMBADA is preserved (no accuracy degradation). 5.14% faster than PowerSGD baseline.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Gradient communication is the fundamental scalability bottleneck for distributed LLM pre-training. Tensor parallelism and pipeline parallelism help, but they are used in conjunction with data parallelism, and data-parallel gradient exchange still dominates. Dense allreduce is unavoidable (baseline). Naive top-k with allgather breaks down at 64+ workers because allgather cost grows linearly with worker count (NVLink/Slingshot fabric becomes saturated). Radius' insight — indices are temporally stable — is validated empirically across GPT models of various scales. This stability comes from the training dynamics: once model predictions stabilize (after warm-up), gradient distributions also stabilize, and the "important" dimensions (largest magnitudes) remain consistent. By reusing indices, Radius eliminates the O(n) allgather bottleneck and replaces it with a periodic full allreduce (amortized over T steps), which scales as O(log n) with tree reductions. The gradient correction mechanism ensures compatibility with AdamW (unlike naive top-k which just zeros non-top-k, corrupting optimizer state). This is essential because AdamW is the standard optimizer; a method that requires algorithm changes is not deployable. The alternative — higher bandwidth interconnects, more compression (PowerSGD low-rank) — does not achieve the scaling efficiency that Radius provides.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Requires 15-20% warm-up training with full dense allreduce before sparsification activates; for very large models (70B+), warm-up cost is non-trivial (~25-30 hours on 128 GPUs).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Very high sparsity (d=0.1, only top 10% gradients) causes training instability and divergence; practical limit around d=0.4 (60% gradient retention); no clear theoretical understanding of why or how to predict stability boundaries.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Index resampling interval T is a hyperparameter (default T=200); no autotuning; suboptimal T causes either unnecessary communication (T too small) or gradient staleness (T too large).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to pure data-parallel training; integration with pipeline parallelism (Megatron-LM style) and tensor parallelism is open — gradient sparsification patterns differ in pipeline stages.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error feedback accumulation assumes bounded gradient magnitude; under extreme training dynamics (loss spikes, learning rate schedule changes), accumulated error could explode.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Distributed Computation &amp; Communication Scheduling</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Slicing Is All You Need: Towards A Universal One-Sided Algorithm for Distributed Matrix Multiplication</div>
+      <div class="pc-sub">Distributed Computation &amp; Communication Scheduling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Distributed matrix multiplication is fragmented across incompatible algorithm families: 1D partitioning (split rows or columns) suits sparse models; 2D partitioning (checkerboard split of A and B) minimizes communication for dense matmul; 1.5D and 2.5D variants trade communication for memory. When a model requires a different partitioning strategy (e.g., switching from column-parallel tensor parallelism to row-parallel), existing frameworks require explicit data redistribution (allgather + scatter), which incurs communication overhead. This paper proposes a universal one-sided algorithm that dynamically computes any partitioning using index arithmetic. Instead of precomputing which rank holds which tile, the algorithm uses <b>slicing</b> — dynamic index-space calculation — to determine tile ownership on-the-fly. For example, to multiply a [M×K] matrix A partitioned row-wise across N workers with a [K×N] matrix B partitioned column-wise, each worker i computes C[i<em>M/N:(i+1)</em>M/N, j<em>N/N:(j+1)</em>N/N] by locally performing a sparse inner-loop that only touches the required A rows and B columns. The key mechanism is one-sided communication: instead of synchronizing all ranks at redistribution points, each rank independently issues RDMA reads/puts to fetch its required tiles from other ranks (PGAS style), overlapping communication with local computation. The implementation uses a high-level PGAS C++ framework with direct GPU-GPU communication via intra-node interconnects (NVLink, PCIe), avoiding host CPU marshaling.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Worker 0 computes its tile of C → queries index-space mapping for which (A row, B column) pairs it needs → issues RDMA reads for A rows from workers 0-3 and B columns from workers 0-3 → while remote data arrives over NVLink, compute local contributions → aggregate partial results via one-sided put. This eliminates the synchronization barrier.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Competitive with PyTorch DTensor optimization on distributed matrix multiplication across all partitioning strategies (1D, 2D, 1.5D, 2.5D). Achieves this using a single universal algorithm rather than separate specialized implementations per partitioning type. GPU-GPU direct communication reduces latency versus host-mediated redistribution.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Modern distributed AI systems require flexible parallelism: tensor parallelism may use 1D column-parallel on one layer, row-parallel on another, 2D on bottleneck layers. Traditional frameworks support either one partitioning statically (JAX pjit with hardcoded parallelism) or require explicit redistribution between changes. Redistribution is expensive: a [8K×8K] matrix reshuffle costs ~10GB of communication, serializing computation. Slicing's index-arithmetic approach avoids redistribution by computing the required tile set per rank on-demand. One-sided communication (RDMA/PGAS) is key because it avoids global synchronization; each rank independently fetches its data when ready, allowing stragglers to overlap computation. This is critical for heterogeneous clusters where ranks have variable compute speed. The universal algorithm design (not 1D, 2D, 1.5D, 2.5D variants) simplifies compiler logic and enables dynamic partitioning policy changes mid-training. The alternative — hand-tuned per-partitioning kernels or barrier-synchronized redistribution — does not provide this flexibility.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Limited quantitative performance details; comparison mostly qualitative against PyTorch DTensor; exact speedup numbers on large-scale runs (128+ GPUs) not provided.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to very large models (175B+ parameters) and how one-sided communication cost scales with model depth and width unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Interaction with batched matrix multiplication (matmul with batch dimension, common in attention) and mixed precision (FP8 quantization) not explored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error handling for network failures or stragglers in one-sided communication not discussed; assumes reliable RDMA.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with gradient checkpointing and backward pass communication patterns (different slicing pattern for gradient computation) is open question.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Post-CMOS Interconnect &amp; Memory Bottlenecks</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Implications of Full-System Modeling for Superconducting Architectures</div>
+      <div class="pc-sub">Post-CMOS Interconnect &amp; Memory Bottlenecks</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Superconducting electronics offer tantalizing advantages: 100x higher clock frequency (100 GHz vs 1-5 GHz CMOS), zero power dissipation in the superconductive state. But do these speedups translate to realistic workloads? This paper constructs the first full-system simulation of a superconducting CPU in gem5, combining superconducting cores (100 GHz RISC-V) with cryogenic semiconductor cores (4 GHz, for memory controllers and I/O), multilevel caches, and the SRNoC superconducting interconnect (superconductive routers). The key finding: superconducting speedups are highly dependent on data width and memory pressure. For compute-intensive workloads (low memory traffic, arithmetic-heavy), superconducting cores achieve up to 24x speedup because the high clock frequency is not stalled by memory access. But for memory-intensive workloads, speedup drops to just 1.2x because: (1) superconducting cores stall on cache misses waiting for room-temperature DRAM (cryogenic DRAM doesn't exist yet); (2) SRNoC interconnect performance is extremely data-width dependent. When sending wide data (64-bit words), SRNoC becomes 1246x slower than its narrow-data design point because superconducting routers use flux-quanta to encode information (each flux quantum ≈ 2e⁻¹⁵ Weber), making wide-data transmission require exponentially more routers. The paper identifies 800 GB/s cache bandwidth as a critical design requirement to feed superconducting cores without stalling; conventional CMOS cache hierarchies cannot sustain this.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Superconducting core at 100 GHz issues load → hits L1 cache (4 cycles) → misses L2 → must fetch from room-temperature DRAM (100+ ns = 10,000+ cycles) → core stalls almost entirely. Meanwhile, SRNoC trying to send 256-bit wide data (normal for AI workloads) must split across 128 flux-quantum lanes, serializing transmission → effectively nullifies superconducting latency advantage.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On SPEC CPU2006 and compute-intensive benchmarks, superconducting cores achieve up to 24× speedup versus conventional CMOS. On memory-intensive workloads, speedup drops to 1.2× due to DRAM bottleneck. SRNoC interconnect demonstrates 35-73× energy efficiency advantage for narrow data paths (1-2 bits) but suffers 1246× performance degradation for wide data (64+ bits). Cache bandwidth requirement: 800 GB/s, far exceeding conventional hierarchies.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">As Moore's Law slows (process scaling stalling below 3nm, power density becoming unsustainable), the semiconductor industry explores alternatives: superconducting logic, optical interconnect, in-memory computing. Superconducting electronics are compelling in isolation — zero dissipation, high frequency — but the architectural implications are unexplored. Do superconducting CPUs make sense for general-purpose computing, or only for accelerators? Full-system simulation is essential to answer this because speedups compound (or don't) across the memory hierarchy. A 100x core speedup is pointless if DRAM latency is unchanged; the system speedup is determined by Amdahl's law: speedup = 1 / (memory stall fraction + compute time / 100). This paper demonstrates that conventional CMOS memory hierarchies and interconnects severely constrain superconducting benefits. The alternative — waiting for superconducting DRAM, designing superconducting memory controllers (not feasible in liquid helium), or entirely abandoning DRAM — is not practical in the near term.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Superconducting DRAM technology is not addressed; assumes room-temperature DRAM will forever remain the bottleneck, limiting applicability to specialized domains.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">SRNoC interconnect design decisions (flux quantum encoding, wide-data multicast) are presented as fixed; no exploration of alternative encodings (e.g., polarization, frequency modulation) that might scale better with data width.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Cryogenic semiconductor cores (4 GHz) are assumed necessary for memory controllers, but their design and memory-barrier integration is not detailed; unclear if they become a secondary bottleneck.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Workload evaluation limited to SPEC CPU2006 and generic compute-intensive benchmarks; no specialized workloads (cryptography, quantum simulation, signal processing) where superconducting properties might excel.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Area, yield, and cost of superconducting-CMOS heterogeneous integration not modeled; gem5 assumes perfect fabrication.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Power consumption breakdown not provided; though superconducting cores dissipate zero power in steady state, cooling overhead (dilution refrigerators for liquid helium) and cryogenic interconnect power are not quantified.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Communication Optimization for Scientific Computing</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Automatic Generation of Mappings for Distributed Fourier Operations</div>
+      <div class="pc-sub">Communication Optimization for Scientific Computing</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In distributed scientific computing, multi-dimensional Fourier transforms (used in fluid dynamics, weather simulation, quantum chemistry) are frequently fused with linear algebra operations (matrix multiply, solve). Traditional libraries like heFFTe (distributed FFT) and COSMA (distributed matmul) provide independent optimizations: heFFTe arranges MPI ranks in a process grid to minimize all-to-all transpose communication during the FFT; COSMA separately optimizes matmul. But they don't coordinate between operations. For example, if an FFT produces output in a [16×16] rank grid while matmul expects [8×32], an implicit reshape/transpose must occur, incurring 50% additional communication. This paper proposes automatic mapping generation: given a sequence of Fourier and linear algebra operations (e.g., FFT → A*x → inverse FFT), the system formulates a constraint satisfaction problem (CSP) in Z3 SMT solver to jointly optimize grid shape, Fourier decomposition strategy, and data layout across all operations. The key mechanism is <b>non-linear iterative formulation</b>: instead of fixing grid shapes per operation (standard library behavior), the optimizer searches across compatible grid shapes (e.g., 16×16, 8×32, 4×64 all equivalent for 256 ranks) and selects the path that minimizes cross-operation communication. For example: FFT produces [16×16] grid → optimizer recognizes that transposing to [8×32] costs 32 all-to-all messages but saving matmul setup via [8×32] avoids 64 messages → net savings 32 messages → selects [8×32]. The Z3 solver encodes Fourier dimension constraints (FFT dimensions must be powers of 2), linear algebra constraints (compatible matrix dimensions), and communication costs as weighted predicates, then outputs an execution plan specifying rank assignments per operation and global memory layout.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: Input array X [256×256] distributed 16×16 across ranks → FFT decomposes as 16 independent 1D FFTs per rank, then local transposition, then 16 more per-rank FFTs → intermediate [16×16] grid → cost minimizer chooses whether to reshape to [8×32] before matmul or absorb reshape into FFT itself → execute selected plan → output.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On coupled Fourier-linear algebra workloads, automatic mapping generation achieves 2-31× speedup compared to using heFFTe and COSMA together (standard practice). The wide speedup range (2-31x) reflects different workload compositions: workloads with many FFTs and few matmuls show larger gains (more communication saved through FFT optimization), while balanced workloads show moderate gains.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Scientific computing codes frequently interleave spectral methods (FFTs) with direct solvers or iterative methods (matrix operations). Each operation has its own optimal process grid for minimal communication: FFT prefers slab or pencil decompositions (Nx × Ny or Nx × 1); matmul prefers square 2D grids (sqrt(P) × sqrt(P)) for load balance. Switching between grids incurs expensive transpose-redistribute operations. Manually scheduling these transitions requires deep domain expertise (few researchers can optimize coupled Fourier-matmul workflows). The alternative — rigid library interfaces that force users to adapt algorithms — limits algorithmic innovation. Automatic mapping via SMT solving provides a general mechanism: express constraints (FFT can't use non-power-of-2 dimensions, matmul needs compatible shapes) and communication costs (transpose = O(P) messages), and let the solver find the globally optimal path. This is tractable because the constraint space, while large, has structure exploitable by modern SMT solvers (Z3 uses incremental SAT solving and theory-specific reasoning for arithmetic). The paper's key insight is that Fourier operations' communication patterns are "rigid" (fixed by algorithm) but "flexible" in grid shape (multiple equivalent grids for same computation), creating degrees of freedom that matmul scheduling can exploit.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Specific benchmarks, workload mixes, and cluster topologies not detailed in abstract; claims of 2-31× speedup range widely depending on problem structure.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability beyond 256-512 ranks and how SMT solver time grows with problem size (nonlinear solver can have exponential worst-case runtime); no analysis of solver time vs. execution time.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Heterogeneous interconnects (hierarchical bandwidth, non-uniform MPI latency) not modeled; assumes uniform bandwidth, which is unrealistic for high-dimensional torus topologies or slow inter-node links.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with fault tolerance and dynamic load balancing (if ranks have variable compute speed due to congestion, can the solver adapt in-flight) is unexplored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Does not address out-of-core or GPU-accelerated FFTs; assumes CPU-only distributed memory computation.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error feedback and numerical stability of grid reshaping not discussed; assumes stable transform across grid shapes (true mathematically, but floating-point precision may degrade under certain reshape sequences).</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+  <footer>
+    AI Hardware 2025 &middot; Interconnect & Communication deep reads &middot; 9 papers &middot; click any card to expand &middot;
+    <a href="../../../index.html">master narrative</a> &middot; <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '\u25b2 collapse' : '\u25bc read analysis';
+  });
+});
+</script>
+</body>
+</html>

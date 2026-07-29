@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Security & Isolation &middot; AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">&#x2190; master narrative</a>
+    <a href="../../../t7-deepdive.html">T7 theme essay &#x2197;</a>
+    <a href="index.html">&#x2190; deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 &middot; Security & Isolation &middot; Deep Reads</div>
+    <h1>Security &amp; Isolation: Top Papers</h1>
+    <div class="sub">8 high-impact papers &middot; rowhammer, side-channels, trusted execution, and keeping secrets safe on shared silicon</div>
+  </div>
+  <div class="section-h">DRAM Row-Hammer Attack Mitigation</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">MOAT: Securely Mitigating Rowhammer with Per-Row Activation Counters</div>
+      <div class="pc-sub">DRAM Row-Hammer Attack Mitigation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MOAT implements the JEDEC PRAC+ABO (Per-Row Activation Counting + Alert-Back-Off) Rowhammer mitigation standard as a proven, secure DRAM-side design. Instead of prior Panopticon's approach of maintaining multi-entry per-bank queues to track hot rows, MOAT replaces this with a minimal single-entry tracking register (Current Tracked Addr, or CTA) that always points to the row with the highest activation counter. Whenever a row reaches the ETH (Eligibility Threshold), MOAT triggers proactive mitigation during DRAM refresh cycles; when it hits the ATH (ALERT Threshold), the hardware enforces Alert-Back-Off: mandatory RFM (Refresh Forced Migration) cycles that prevent further hammering. The design maintains only two 7-byte registers per bank (CTA and Current Mitigated Addr/CMA) and a boundary-row counter register mechanism to safely reset row counters across refresh groups without losing integrity.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Critically, MOAT exposes and defeats the "Jailbreak" attack—a fundamental flaw in Panopticon where attackers exploit queuing behavior to hide high-activation-count rows, tricking the mitigation into permitting 9x more row activations (1,152) than the configured 128-activation threshold. MOAT's fixed-target design eliminates this vulnerability. The authors also analyze the "Ratchet" attack, which exploits inter-ALERT activation windows tolerated by JEDEC's ABO specification, and prove that with ATH=64, MOAT can safely tolerate a Rowhammer threshold of only 99 row activations—a 40x reduction from historical thresholds.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On SPEC2017 and GAP benchmarks with ATH=64 configuration, MOAT incurs only 0.28% average slowdown versus an unprotected baseline, with &lt;0.5% total DRAM energy increase despite 2.3% additional DRAM activations. Hardware overhead is minimal: 7 bytes of SRAM per bank. Rowhammer attack evaluation shows that while Panopticon fails catastrophically (allowing 1,152 activations), MOAT maintains a provably secure bound: under the Ratchet attack, ATH=64 safely tolerates TRH=99.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Rowhammer represents a fundamental DRAM vulnerability where repeated row activations within a refresh interval induce bit flips in adjacent rows, enabling privilege escalation and data theft. With thresholds dropping from 139K to 4.8K over the past decade and continuing to fall, DRAM-side in-silo mitigation is essential to avoid pervasive kernel compromises. MOAT addresses the gap between JEDEC's theoretical PRAC+ABO framework and real secure implementations: prior work (Panopticon) is provably broken. MOAT's single-entry design elegantly avoids Panopticon's queue-based information hiding; the Ratchet analysis quantifies JEDEC specification gaps (the inter-ALERT window) that impact tolerable thresholds. Alternative approaches like TRR (Targeted Row Refresh, DDR4) and DSAC require significantly higher SRAM overhead; MOAT trades single-entry tracking precision for minimal hardware while maintaining proven security against modern attacks.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">MOAT is restricted to ABO mitigation level 1 (single RFM per ALERT trigger), limiting ability to handle higher aggressiveness levels needed if thresholds fall below ~99.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">RowPress attacks (which exploit the refresh command path itself) are explicitly out of scope and not mitigated.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No analysis of interaction with DDR5 error-correction codes (ECC) or on-DIMM thermal sensors that may affect mitigation policy.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to much higher-density future DRAMs (e.g., HBM stacks) where even single-entry tracking per bank may become expensive is not addressed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Counter reset semantics across REFRESH groups introduce implicit ordering assumptions not proven against out-of-order external attackers.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Instruction Cache Side-Channel Attacks</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">SMaCk: Efficient Instruction Cache Attacks via Self-Modifying Code Conflicts</div>
+      <div class="pc-sub">Instruction Cache Side-Channel Attacks</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">SMaCk exploits the x86 processor's self-modifying code (SMC) detection mechanism—a security feature designed to maintain coherence when instructions in the L1i cache are overwritten—as a high-fidelity timing side channel. When an instruction executes a write (MOV, LOCK+INC, CLFLUSH, CLFLUSHOPT, PREFETCH, CLWB) to a cache line already resident in the L1i cache, the processor serializes all SMT sibling threads and flushes the entire pipeline, inducing an observable delay of 235–425 cycles. This is 100–350x larger than conventional L1i cache hit/miss differences (1–2 cycles). SMaCk constructs Prime+iProbe and Flush+iReload covert channels: the attacker primes L1i cache sets with nop-filled instructions, then probes using SMC-triggering writes. Evictions caused by the victim's instruction cache activity result in cache misses, which are detected via slow probe latencies. The authors reverse-engineer which x86 instructions trigger machine clears using hardware performance counters (MACHINE_CLEARS.SMC, CYCLE_ACTIVITY.STALLS_TOTAL) and validate SMC behavior across Intel Skylake through Raptor Lake and AMD Ryzen architectures.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">For attacks, the receiver primes L1i sets with NOP instructions on both SMT threads, then the attacker issues SMC-creating instructions while timing the victim's code execution. Variations include using selective flush instructions (clflush/clflushopt) to target specific cache lines and prefetch instructions (PREFETCHNTA, PREFETCHT2) to observe which cache lines the victim loads. The attack operates entirely unprivileged and can leak cryptographic operations, control flow, and speculative execution paths.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On RSA decryption (2048-bit Libgcrypt), SMaCk recovers 70% of key bits from just 10 side-channel traces using Prime+iFlush, outperforming the Mastik L1i toolkit (which requires many more traces). For OpenSSL SRP server authentication, a single trace leaks 65–90% of session key bits via instruction cache activity patterns, compared to 22–48% for Mastik. Flush+iReload achieves up to 670 Kbit/s covert channel bandwidth with &lt;1% error rate. ISpectre (a Spectre-v1 variant using L1i encoding) demonstrates up to 4105 B/s data exfiltration on AMD Ryzen 5. Performance counter-based detection (machine_clears.smc counter monitoring) achieves 99.36% F-score distinguishing attack from benign code.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Conventional L1i cache side-channel attacks suffer from extremely low signal-to-noise: a cache hit vs. miss is only 1–2 cycles, making cryptographic leakage unreliable and requiring dozens to thousands of traces. SMC pipeline flushes provide a 100–350x amplification of timing differences, enabling single-trace or few-trace attacks that were previously infeasible. The x86 SMC mechanism is ubiquitous—present across all modern Intel and AMD processors—and unavoidable for security reasons. SMaCk's contribution is recognizing that this security feature, designed to prevent instruction cache coherence violations, creates a larger side channel than the cache itself. Prior work focused on data caches (Spectre, Meltdown) or TLBs; exploiting instruction cache coherence is novel and affects all SMT-capable systems with self-modifying code detection.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Attack requires SMT (Hyper-Threading) to be enabled; systems with SMT disabled, or single-threaded systems, are resistant.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Effectiveness varies significantly across microarchitectures: AMD EPYC 7232P resists flush-based SMC conflicts, suggesting vendor-specific implementations may differ in vulnerability.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">For SRP key extraction, approximately 45% of key bits per single trace remain unrecoverable due to ambiguity in sliding-window decoding—multiple traces or additional side channels are needed for high-confidence key recovery.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No evaluation of SMC behavior on newer architectures (Intel Meteor Lake, Arrow Lake; AMD Zen 5) or on systems with future microcode patches that may reduce SMC pipeline flush penalties.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Defense via performance counter monitoring (99.36% F-score) is reactive; proactive defenses (e.g., randomizing SMC latency, removing SMC detection) are not evaluated.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Side-Channel Resistance Verification for Cryptographic Hardware</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">DATE</div>
+    <div>
+      <div class="pc-title">One More Motivation to Use Evaluation Tools This Time for Hardware Multiplicative Masking of AES</div>
+      <div class="pc-sub">Side-Channel Resistance Verification for Cryptographic Hardware</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work applies formal side-channel verification tools to evaluate prior hardware implementations of multiplicative masking for AES, a critical countermeasure against power analysis and differential fault attacks. Multiplicative masking—introduced by De Meyer et al. at CHES 2018—randomizes the AES S-box inputs and outputs using multiplicative constants in the underlying field to prevent attackers from correlating intermediate values with plaintext/ciphertext. The paper uses the PROLEAD evaluation tool under the glitch-and-transition-extended probing model to systematically search for information leakage in the first-order Kronecker delta function—a core component of the masking scheme that computes whether two values are equal without revealing the values themselves.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Through formal verification, the authors discover that the original Kronecker delta implementation permits information leakage under the transition-extended probing model: glitches and transition delays in the logic can expose the equality result or intermediate operands to a probing attacker. The paper proposes an improved randomness optimization—adjusting when random values are introduced and how intermediate computations are scheduled—to eliminate the identified leakage. The fix is then re-verified using PROLEAD to confirm closure of the vulnerability.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The paper demonstrates critical vulnerability in the prior state-of-the-art multiplicative masking design and validates an effective fix. While exact quantitative metrics (e.g., simulation time, area overhead of the fix) are not detailed, the formal verification methodology proves that the improved randomness optimization eliminates detectable leakage under the glitch-and-transition-extended probing model, achieving first-order security against a broader threat model than the original design.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">AES is the de facto encryption standard for critical infrastructure, finance, and national security. Side-channel attacks—exploiting power consumption, electromagnetic emissions, and timing—have broken AES implementations in the field; hardware masking is the standard mitigation. However, prior masking designs often have subtle bugs in helper functions (like equality testing) that are difficult to find through manual code review or simulation. Formal verification tools like PROLEAD enable exhaustive search over all possible input/state combinations and probing locations, finding vulnerabilities that human review misses. This work underscores that even SOTA designs require tool-assisted verification and that the evaluation model (glitch-and-transition extensions) matters critically—the original design may have passed simpler probing models but fails under more realistic hardware fault models.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The paper does not discuss the area, power, or latency overhead of the improved randomness optimization, making it unclear whether the fix is practical for resource-constrained embedded systems.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison of the proposed fix against other Kronecker delta implementations or alternative masking schemes (Boolean masking, threshold implementations).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to first-order masking; higher-order masking (d-order, for d &gt; 1) and its security guarantees are not addressed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The glitch-and-transition-extended probing model is formal but represents a specific threat model; real-world side-channel attacks (power analysis, EM side channels) may have different vulnerability profiles.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No discussion of randomness quality requirements or entropy costs for the improved optimization.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Fault-Attack Mitigation Without Recompilation</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">DATE</div>
+    <div>
+      <div class="pc-title">Hardware/Software Runtime for GPSA Protection in RISC-V Embedded Cores</div>
+      <div class="pc-sub">Fault-Attack Mitigation Without Recompilation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work implements Generalized Path Signature Analysis (GPSA)—a control-flow integrity verification scheme—as a hardware/software co-design that protects unmodified, off-the-shelf RISC-V binaries from fault injection attacks without requiring compiler modifications or binary recompilation. The approach adds dedicated hardware monitoring logic to the RISC-V core that observes every instruction execution and computes GPSA signatures: cryptographic fingerprints of the instruction sequence and jump targets taken during program execution. These signatures are computed in real time on the executing path (not a static pre-computed path) and validated against expected signatures; any divergence (caused by a fault flipping an instruction or corrupting a jump address) triggers a security exception, halting execution before the fault can corrupt the system.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key innovation is that the hardware monitors and generates signatures without requiring binary recompilation: the RISC-V processor maintains an internal model of expected control flow for any standard RISC-V binary. The monitoring is purely runtime-based, capturing indirect jumps (JAL, JALR, branches with register targets) that prior compiler-based approaches could not protect. The hardware/software interface uses a small RISC-V extension to configure which memory regions are protected and to define signature boundaries (e.g., function entry/exit points).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On a RISC-V embedded implementation, GPSA protection incurs 3.35× average slowdown and 1.86× area overhead for the monitoring and signature-computation logic. Despite the overhead, the system successfully protects unmodified binaries against fault injection attacks, supporting indirect jumps which prior CFI methods do not protect. The design demonstrates that comprehensive fault-attack defense is achievable without disrupting existing software supply chains.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Embedded systems and IoT devices are frequent targets for fault injection attacks: physical attacks (EM/laser pulses, power transients) induce bit flips in registers or memory, allowing attackers to bypass authentication, skip security checks, or corrupt cryptographic keys. Traditional countermeasures require compiler modifications (e.g., inserting software redundancy checks) or binary rewriting, both of which break compatibility with legacy code, complicate deployment, and introduce toolchain risks. GPSA-based hardware monitoring provides comprehensive protection without requiring software changes: any fault that alters the control-flow path (including indirect jumps) is detected. The hardware approach is inherently more reliable than software checks, which themselves can be faulted. RISC-V's modular ISA extension model makes adding GPSA hardware a clean architectural addition.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The 3.35× slowdown may be prohibitive for latency-critical real-time systems; the paper does not discuss techniques for reducing overhead (e.g., selective protection, signature caching).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Area overhead of 1.86× is significant; applicability to highly area-constrained embedded systems (microcontrollers) is unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Signature scheme details (hash function, key derivation) are not specified; crypto strength against advanced attackers with side-channel capabilities is not analyzed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No evaluation against higher-order fault attacks (e.g., multiple concurrent faults, EM glitching during signature computation itself).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other ISAs (ARM, x86) is not discussed; the design appears RISC-V-specific.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">DRAM Row-Hammer Attack Evolution Under Microarchitectural Defenses</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">ρHammer: Reviving RowHammer Attacks on New Architectures via Prefetching</div>
+      <div class="pc-sub">DRAM Row-Hammer Attack Evolution Under Microarchitectural Defenses</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">ρHammer introduces a novel prefetch-based Rowhammer attack that bypasses the microarchitectural defenses of recent Intel processors (Alder Lake, Raptor Lake) where conventional load-based Rowhammer attacks (using MOV instructions with CLFLUSHOPT) have become completely ineffective. The attack combines three coordinated techniques: (1) A reverse-engineering algorithm for DRAM address mappings using structured pairwise SBDR (Same-Bank Different-Row) timing measurements—a Duet/Trios/Quartet deduction process that recovers full bank interleaving functions in polynomial time without prior knowledge of bank bit assignments. (2) A prefetch-based hammering paradigm exploiting x86 PREFETCHT2/PREFETCHNTA instructions, which retire from the CPU pipeline after forwarding to the L1 LFB (Line Fill Buffer) without blocking the CPU, enabling asynchronous row activation. Crucially, prefetch instructions cannot be ordered by memory barriers (per Intel SDM), giving them orthogonal timing properties compared to loads. (3) A counter-speculation technique combining control-flow obfuscation (indirect addressing) and NOP-based pseudo-barriers that mitigate the impact of out-of-order execution and branch prediction reordering, which would otherwise scatter prefetch issuance and break the hammering pattern.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The attack works by issuing sequences of prefetch instructions targeting different DRAM rows in the same bank, exploiting multi-bank parallelism to maximize per-tREFI (refresh interval) row activation count while also spreading activations across banks to avoid triggering per-bank thresholds. Unlike load-based attacks which serialize on cache misses, prefetch instructions pipeline aggressively: the CPU issues many prefetches in quick succession, and the async LFB handles fetches in parallel. On Comet Lake and Rocket Lake, ρHammer achieves 187K and 47K bit flips per minute, respectively—112x and 47x higher than load-based baselines. Critically, ρHammer is the first to successfully demonstrate working Rowhammer attacks on Raptor Lake (14th-gen Intel), achieving 2,291 flips/minute where all prior load-based methods produce zero flips.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On Comet Lake, ρHammer achieves 187K bit flips per minute with prefetch-based hammering versus ~1.7K for conventional load-based attacks (112.4x improvement). On Rocket Lake, it achieves 47K flips/min vs. 1K for loads (47.1x). On Raptor Lake, ρHammer achieves 2,291 flips/min in 2-hour fuzzing sessions, enabling end-to-end exploitation—setting a critical baseline for modern CPU Rowhammer exploitability. The address mapping reverse-engineering completes in under 10 seconds on Alder/Raptor Lake systems where all existing reverse-engineering tools fail.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Rowhammer remains a fundamental DRAM vulnerability on every processor with out-of-order execution and prefetch engines. Prior attacks relied on high load throughput (many MOV + CLFLUSH sequences per refresh interval) to trigger bit flips. Modern CPUs mitigate this through: (1) load address prediction and reordering that disrupts hammering sequences, (2) more aggressive out-of-order execution that unpredictably orders memory operations, and (3) TRR (Targeted Row Refresh) firmware that detects suspicious row activation patterns. However, CPUs cannot easily disable prefetching—it is critical for performance—and prefetch instructions have asymmetric properties: they bypass memory barriers and retire asynchronously, making them harder to rate-limit with traditional countermeasures. ρHammer exploits this asymmetry. The prefetch-based paradigm is CPU-vendor agnostic (prefetching exists on all modern x86); address mapping reverse-engineering is generic (no prior knowledge of bank functions needed). This work demonstrates that architectural defenses must specifically account for prefetch instructions, and that Rowhammer remains a viable threat on the newest processors.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Reverse-engineering and attack execution require Linux pagemap access (root privileges); the attack does not work unprivileged on hardened systems with pagemap restrictions.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">DDR5 (with PRAC+ABO mitigation) and DDR4 with TRR are explicitly out of scope; unclear whether prefetch-based attacks generalize to these protected DRAM types.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">RowPress attacks (exploiting refresh command timing) are not addressed; complementary prefetch-based RowPress attacks are unexplored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Microarchitectural variation: the attack was demonstrated on Intel (Comet/Rocket/Raptor Lake) and AMD Ryzen, but effective prefetch patterns likely differ across other vendors and future architectures.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Defenses specific to prefetch-based attacks (e.g., rate-limiting prefetch queue depth, randomizing prefetch latencies) are not evaluated.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">ML-Specific Dependency Injection and Backdoor Threats</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Supply-Chain Attacks in Machine Learning Frameworks</div>
+      <div class="pc-sub">ML-Specific Dependency Injection and Backdoor Threats</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work demonstrates that Python's shared memory model and runtime introspection capabilities enable a novel class of supply-chain attacks specific to ML frameworks—attacks that evade conventional detection tools designed for non-ML software. The attack has two components: (1) Global variable overwriting, where a compromised upstream package (e.g., a PyTorch utility library) directly mutates global objects in PyTorch or TorchVision at import time. Examples include replacing the interpolation mode enum, swapping the softmax implementation, or hijacking the model.forward() method. These mutations affect all downstream code that imports PyTorch without requiring any explicit calls to the attacker's code. (2) Local variable overwriting using Python's inspect module and the undocumented PyFrame_LocalsToFast C API to modify in-scope variables in the call stack of downstream functions. This allows the attacker to insert backdoors or steal data from within executing functions without source-code visibility.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The paper demonstrates three concrete attack instances: (a) Backdoor injection via forward-function hijacking, where a model's forward() pass is replaced to output attacker-controlled values; (b) Pipeline vulnerability injection, where data preprocessing steps (e.g., image interpolation modes) are swapped to degrade model accuracy or inject poisoned samples; (c) Model weight stealing via steganographic encoding of weights into inference outputs (e.g., imperceptible variations in confidence scores), exfiltrating the model without direct network access. All three attacks evade conventional supply-chain detection tools that monitor system calls (fork, execve) and network traffic (socket connections); they operate entirely within Python's memory space.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Additionally, the paper conducts an LLM-assisted security awareness study: analyzing 549,635 GitHub issues and pull requests from the top 50 ML repositories (PyTorch, TensorFlow, HuggingFace, Keras, etc.) to quantify security-related discussions. Using GPT-3.5 for coarse filtering (97.8% recall against manual labels) and GPT-4 for fine-grained classification (78.9% precision, 0.85 Cohen's kappa), they measure the fraction of PRs/issues addressing security concerns and compare against the top 50 Linux repositories (non-ML baseline).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The three proof-of-concept attacks successfully inject backdoors, degrade model pipelines, and steal weights entirely through Python runtime mechanics without network communication or process spawning, bypassing all conventional supply-chain detection tools. The LLM-assisted security analysis finds that the ML community's security awareness is statistically similar to the non-ML community (Linux), despite ML frameworks having a larger dependency surface (PyTorch has 92 direct dependencies; Linux kernel monolith has fewer external dependencies). Notably, PyTorch security PRs are accepted at only 64.20%, lower than most other ML repositories, indicating reactive rather than proactive security posture.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">ML frameworks introduce unique supply-chain risks compared to traditional software: (1) PyTorch and TensorFlow each import 50-100 transitive dependencies, expanding the attack surface. (2) Python's dynamic typing and runtime introspection (globals(), inspect module, ctypes) make it easier to manipulate code at execution time compared to statically-linked C/C++ binaries. (3) ML models are often black-box weights that users run without code inspection; injecting a backdoor that changes model outputs is harder to detect than injecting an OS rootkit. (4) The ML community has historically focused on adversarial robustness and privacy-preserving learning (federated learning) rather than supply-chain security, leaving this attack surface unexplored. Conventional supply-chain defenses (software bill of materials, network monitoring, system-call auditing) are blind to this class of attacks because they operate in user space without OS interaction. The LLM-assisted analysis is novel because it enables large-scale measurement of security discourse across 549k artifacts—a scale impossible with manual annotation—and reveals a troubling parity between ML and non-ML communities despite ML's unique risks.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Analysis limited to public GitHub repositories; internal corporate ML projects, proprietary frameworks (Meta's Glow, Google's internal systems), and private model zoos are not captured.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The GitHub PR/issue percentage is a proxy for security awareness; it does not capture implicit security practices (internal threat modeling, pre-commit scanning) that companies may practice without public PRs.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The proof-of-concept attacks are demonstrations; real-world stealthiness depends on additional obfuscation (e.g., timing attacks that only manifest under specific inputs, encoding that compresses across many inference calls). The paper does not evaluate obfuscation techniques.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Proposed mitigation (static code analysis to detect cross-package variable overwrites at import time) is mentioned but not implemented or benchmarked.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No evaluation of defense mechanisms: type checkers (mypy, Pydantic), sandboxing (containers, VMs), signed package registries (PEP 480), or runtime integrity checks (code signing of critical functions).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The study compares ML and Linux communities, but does not analyze other high-risk frameworks (Node.js packages, Java Maven repositories) to contextualize ML risk relative to other ecosystems.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">HPC Security Monitoring and Proactive Threat Detection</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Dynamic Factor Graphs for Attack Preemption</div>
+      <div class="pc-sub">HPC Security Monitoring and Proactive Threat Detection</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work deploys a factor-graph-based dynamic security model at the NCSA Blue Waters supercomputer—a petascale HPC facility—to perform real-time anomaly detection and attack preemption. Factor graphs are probabilistic graphical models where nodes represent random variables (e.g., network flow characteristics, login patterns, process behavior) and edges encode dependencies (e.g., a suspicious login increases the probability of subsequent data exfiltration). The system ingests live network traffic (via Zeek IDS) and host-based signals (process creation, file access) to continuously update marginal probabilities on the graph: nodes representing attack indicators (ransomware activity, unauthorized privilege escalation) are driven by observed evidence, and nodes representing system state are updated dynamically.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key challenge in HPC is that defensive signals are extremely noisy: legitimate HPC jobs exhibit unusual I/O patterns (many processes accessing the same file, rapid process spawning) that superficially resemble attacks. Factor graphs handle this via probabilistic reasoning: rather than binary alert/no-alert decisions, the graph computes posterior probabilities for attack hypotheses, allowing operators to focus on high-confidence threats. The system is coupled with visualization tools that show the factor graph state and highlight which signals contributed most to an attack probability estimate, enabling human operators to understand why the system flagged a threat and make context-aware decisions.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The system characterizes 228+ security incidents from archived NCSA Blue Waters logs. In a pilot deployment, the factor-graph system detected a known ransomware family (infection attempt on compute nodes) with sufficient precision to improve the production Zeek IDS policies used operationally. The visualization tools provided operators with actionable insights into attack patterns. While the paper does not report quantitative metrics (e.g., false-positive rate, detection latency, time-to-remediation), it demonstrates feasibility of factor-graph-based detection in a production petascale environment.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Supercomputing systems are high-value targets for cyberattacks: national laboratories, universities, and industry run security-sensitive workloads (climate modeling, nuclear simulations, pharmaceutical research) on HPC resources. Traditional alert-based intrusion detection (Zeek IDS, Snort) generates thousands of daily alerts; most are false positives, overwhelming security operators. Manual triage of alerts is infeasible at scale. Factor graphs provide a probabilistic framework for combining noisy signals—network traffic (many anomalies are normal for HPC), host behavior (rapid process spawning is normal for parallel jobs), and context (which users, which systems)—to compute attack probabilities. This is fundamentally different from rule-based detection (if X and Y then alert), which is brittle in complex environments. The factor graph approach is also interpretable: operators can inspect the graph to understand why a particular threat probability is high, enabling them to make informed decisions and tune the model over time.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation is limited to a single ransomware family detection; the paper does not report generalized detection rates for diverse attack types (data exfiltration, privilege escalation, botnet activity, supply-chain compromises).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No quantitative metrics for false-positive rate, false-negative rate, or detection latency are reported; unclear whether the system meets operational SLAs for rapid response.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Factor graph structure and variable dependencies are not detailed; it is unclear whether the model captures HPC-specific correlations (e.g., job scheduling patterns, inter-node communication topologies) or generalizes only to non-HPC environments.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to exascale systems (Frontier, Aurora, FUGAKU) with 10x more nodes and 10x higher traffic volume is not discussed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison against other anomaly detection methods (isolation forests, autoencoders, rule-based Zeek policies) to establish whether factor graphs provide unique advantages over alternatives.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Privacy implications of continuous network/host monitoring are not discussed; storage and retention policies for attack logs are not specified.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Data-Movement Reduction via In-Storage Processing</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Secure In-Storage Execution of VTK Workloads on Modern Parallel NFS Data Servers</div>
+      <div class="pc-sub">Data-Movement Reduction via In-Storage Processing</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work offloads scientific visualization workloads (specifically VTK—Visualization Toolkit pipelines) from compute clients to pNFS (Parallel NFS) data servers, reducing data movement across the network. The architecture uses pNFS protocols to execute VTK filter operations (read, resample, threshold, clip) in-silo on storage servers where the data already resides. The client submits high-level VTK commands (e.g., "load dataset X, apply filter Y, return geometry only") to the storage server via a FUSE (Filesystem in Userspace) interface, which translates VTK requests into local file system operations on the storage server's NFS exports. The storage server executes the VTK pipeline locally, performs data reduction (e.g., thresholding drops 90% of grid points), and returns only the reduced result (geometry and scalar fields) to the client, avoiding terabyte-scale data transfers across network.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Critically, the system preserves security: user credentials and permission checks are passed through the pNFS client location awareness mechanism, and the FUSE interface enforces standard file-system access controls. The implementation leverages Linux kernel enhancements for efficient local pNFS access (avoiding unnecessary network roundtrips) and maintains backward compatibility with standard NFS clients.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On two large-scale scientific datasets, in-storage VTK execution achieves 6.1× end-to-end speedup (total time from filter initiation to result delivery) and 7.1× improvement in data loading time compared to client-side VTK processing. The speedup comes from two sources: (1) eliminating terabyte-scale network transfers (7.1× directly), and (2) overlapping network communication with computation. Despite the significant data-movement reduction, the paper does not report metrics for per-operation latency, intermediate memory usage, or scalability to many concurrent clients.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Scientific visualization is a critical bottleneck in data-intensive computing: climate simulations generate petabytes of data annually; analyzing even 1% requires filtering/reduction at the source. Moving terabytes across high-latency WAN or even LAN is prohibitively slow. In-silo compute (pushing computation to data, not pulling data to compute) is a well-established principle in data-center design, but has not been widely applied to scientific visualization. pNFS infrastructure already exists in HPC facilities (NERSC, OLCF, LLNL); repurposing it for in-storage VTK execution is cost-effective. The FUSE abstraction allows userspace VTK code to run on storage servers without kernel modifications, accelerating deployment. Alternative approaches (serverless compute on object storage, Spark on HDFS) introduce new dependencies and infrastructure; in-storage pNFS execution is closer to the existing HPC stack.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to two datasets; unclear how performance scales to more complex/higher-dimensional datasets or non-VTK workloads (ParaView, VisIt, custom visualization code).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Only tested on pNFS; applicability to other parallel storage systems (Lustre, GPFS, Ceph) is not discussed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Requires Linux kernel enhancements for efficient pNFS local access; deployability on older HPC systems or non-Linux storage servers is unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to many concurrent clients not evaluated; contention for CPU/memory on storage servers may degrade performance if multiple visualization jobs run simultaneously.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison against alternative data-reduction approaches (client-side sampling, server-side decimation, hierarchical data formats like HDF5 with partial I/O).</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Security model assumes trusted storage infrastructure; untrusted storage servers, encryption at rest, or encrypted data processing are not addressed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+  <footer>
+    AI Hardware 2025 &middot; Security & Isolation deep reads &middot; 8 papers &middot; click any card to expand &middot;
+    <a href="../../../index.html">master narrative</a> &middot; <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '\u25b2 collapse' : '\u25bc read analysis';
+  });
+});
+</script>
+</body>
+</html>

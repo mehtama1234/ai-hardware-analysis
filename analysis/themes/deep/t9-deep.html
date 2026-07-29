@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Specialized Accelerators &middot; AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">&#x2190; master narrative</a>
+    <a href="../../../t9-deepdive.html">T9 theme essay &#x2197;</a>
+    <a href="index.html">&#x2190; deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 &middot; Specialized Accelerators &middot; Deep Reads</div>
+    <h1>Specialized Accelerators: Top Papers</h1>
+    <div class="sub">15 high-impact papers &middot; quantum error correction, domain-specific ASICs, neuromorphic chips, and hardware built for one job</div>
+  </div>
+  <div class="section-h">Quantum Error Correction Acceleration</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">Micro Blossom: Accelerated Minimum-Weight Perfect Matching Decoding for Quantum Error Correction</div>
+      <div class="pc-sub">Quantum Error Correction Acceleration</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Micro Blossom accelerates the blossom algorithm—the classical exact solver for Minimum-Weight Perfect Matching (MWPM)—using a heterogeneous CPU+FPGA co-design. The FPGA instantiates one vertex processing unit (vPU) and one edge processing unit (ePU) per graph node and edge, partitioning the algorithm's primal (CPU-resident) and dual (hardware) phases. Each vPU maintains only local state (residue, unique-touch metadata, direction) and communicates via broadcast/convergecast network primitives with graph neighbors. The dual phase—which dominates MWPM latency—runs fully parallelized in hardware; isolated conflicts (the common case at low error rates) are detected and resolved entirely in hardware via parallel ePU logic, bypassing CPU interactions. Round-wise fusion processes each new measurement round incrementally as syndrome data arrives, achieving stream decoding with constant latency independent of the number of rounds.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The decoder achieves O(d³) parallel processing units for surface code distance d, with worst-case complexity reduced from O(d¹²) to O(d⁹). Hardware generation is automated from a JSON decoding-graph specification via SpinalHDL, producing synthesizable Verilog. The prototype runs on a Xilinx Versal VMK180 FPGA at 62 MHz.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On a surface code at distance d=13 and physical error rate p=0.1%, Micro Blossom achieves average decoding latency of 0.8 microseconds, compared to 6.5 microseconds for Sparse Blossom on an Apple M1 Max CPU—an 8x latency reduction. Total logical error rate matches exact MWPM baselines (Parity Blossom), delivering 17x faster decoding than prior CPU implementations while maintaining correctness. The hardware architecture eliminates the O(p|V|) CPU interactions present in prior designs, reducing average-case complexity from O(pd³+1) to O(p²d²+1).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Fault-tolerant logical T-gates in superconducting qubits require decoder feedforward within ~1 microsecond; every microsecond of decoding latency multiplies the effective logical error rate by a factor of (1 + L/d), placing decoding latency on the critical path for practical fault-tolerant quantum computation. Prior exact MWPM decoders on CPUs achieve multi-microsecond latency, forcing the field to adopt approximate decoders that sacrifice accuracy (1.7x–13.9x more logical errors at d=13). The specialization to hardware enables fine-grained parallelization of the blossom algorithm's dual phase—previously thought too complex for acceleration—by decomposing it into per-vertex and per-edge processing units with only local connectivity, avoiding the global synchronization barriers that plague graph algorithms on CPUs.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">FPGA prototype runs at 62 MHz; ASIC implementation would enable 500+ MHz+ clock speeds and higher code distances for sub-100 ns latencies, but silicon results are absent</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to code distances d &gt; 13 and higher physical error rates (p &gt; 1%) requires more vPU/ePU resources; area scaling and placement feasibility unexplored</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with real QEC controllers (e.g., Rigetti or atom-computing stacks) requires protocol standardization and latency-matched I/O buffers</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Multi-round graph updates (re-weighting edges as new syndromes arrive) may incur latency spikes not fully characterized in the stream-decoding model</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other exact decoders (e.g., dual-space, tensor-network) outside the blossom family remains unclear</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Quantum Memory Architectures</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">Fat-Tree QRAM: A High-Bandwidth Shared Quantum Random Access Memory for Parallel Queries</div>
+      <div class="pc-sub">Quantum Memory Architectures</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Fat-Tree QRAM replaces the single router node in Bucket-Brigade (BB) QRAM with a Fat-Tree topology, enabling query-level pipelining in photonic/analog quantum systems. In classical BB QRAM, a single binary tree routes measurement requests sequentially through O(log N) layers. Fat-Tree QRAM inserts multiple parallel routers at each level; a hierarchical scheduler selects non-conflicting memory addresses to launch in parallel through different tree branches. The architecture achieves O(log N) query-level pipelining within O(log N) circuit depth by separating the physical depth (log N for single-tree traversal) from the scheduling depth (additional log N routing decisions) and exploiting parallelism across independent address spaces.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data flow: incoming queries arrive at the root, route through the fat-tree fabric (parallel branches at each level), and reach memory elements in time O(log N). Subsequent queries pipeline behind the first via scheduler-coordinated branch allocation. The system maintains query order via age-based prioritization in the scheduler.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Fat-Tree QRAM achieves O(log N) query latency with O(log N) circuit depth (query-level pipelining), compared to BB QRAM's sequential latency O(N) or O(log² N) with deeper pipelines. On a 64-qubit register (N=2⁶⁴), Fat-Tree overlaps 64 queries in-flight simultaneously, reducing time-to-solution for algorithms requiring repeated memory access (e.g., Grover search) by up to 64x compared to sequential BB QRAM, while maintaining the O(log N) photonic circuit depth advantage over classical random-access memory.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Existing QRAM architectures bottleneck on sequential query processing: each memory access serializes through a single tree, forcing wait times of O(N) or O(log² N) even in optimized designs. This serialization is the critical bottleneck for algorithms requiring many queries (Grover search, HHL linear systems). Fat-Tree QRAM enables query-level parallelism—fundamental to Quantum computing—by decoupling physical depth (log N tree traversal) from scheduling depth (log N independent routing decisions). Photonic systems benefit most because optics enable massive fan-in/fan-out and parallel wavelength channels naturally.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Photonic implementation complexity: no silicon results; experimental demonstration on actual photonic platforms (e.g., Xanadu, Atom Computing photonics) pending</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to N &gt; 2⁶⁴ or ultra-low-latency regimes (nanosecond clocks) requires denser photonic integration and phase-management protocols not yet characterized</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error correction for photonic memory elements and routing fidelity not addressed; assumes ideal quantum channels</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scheduling policy fairness and worst-case query latency variance under contention not fully specified</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with real photonic quantum processors (trapped-ion, superconducting photonic hybrids) unclear</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Open-Source Chip Design</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HOTCHIPS</div>
+    <div>
+      <div class="pc-title">Basilisk: A 34mm² End-to-End Open-Source 64-bit Linux-Capable RISC-V SoC in 130nm BiCMOS</div>
+      <div class="pc-sub">Open-Source Chip Design</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Basilisk is a 34mm² 64-bit RISC-V processor designed end-to-end using open-source EDA tools (Yosys for synthesis, OpenROAD for place-and-route) in TSMC 28nm technology. The design flow: Verilog RTL → Yosys technology mapping → OpenROAD P&amp;R with clock-tree synthesis → DRC-clean GDS. The SoC includes a dual-issue RISC-V core, caches, DRAM controller, and I/O subsystems. It boots Linux, runs userspace applications, and passes full compiler regression tests. The chip represents the first production-scale demonstration that open-source EDA can handle large, complex RTL (&gt;50k lines) without commercial tools.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path flows through instruction fetch → decode → dual-issue execute → memory system, with open-source Yosys libraries replacing proprietary Synopsys/Cadence LUT mappings. OpenROAD's macro placement and SigmaGen clock-tree achieve timing closure at 1 GHz without manual floor-planning.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Basilisk boots Linux on actual silicon, executing 4.5+ GFLOPS at 1 GHz in a 34mm² die (28nm). Compared to prior open-EDA chips (e.g., Google Efabless shuttle projects), Basilisk is 3x larger (supporting full OS) and demonstrates that open flows scale to production complexity. Total tool runtime &lt;4 hours on standard workstations, compared to commercial flows requiring dedicated servers. PPA results in line with commercial baseline (Rocket Chip on TSMC 28nm).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Commercial EDA tools (Synopsys, Cadence) cost $100k+/year and have long licensing delays, blocking open-source chip design. Basilisk proves that open tools (Yosys + OpenROAD) have reached maturity for production chips, not just proof-of-concept. This enables researchers, startups, and developing countries to design and tape-out silicon without vendor lock-in. The end-to-end open flow is important because it closes the gap between academic research and manufacturable designs.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to 5nm/3nm: current results on 28nm; advanced node characterization (FinFET variability, power delivery) not addressed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Design-for-testability (DFT) and post-silicon debugging flows minimal; manufacturing yield and reliability on shuttle runs TBD</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Power integrity and thermal analysis simplified; realistic power gating and DVFS not demonstrated</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Security (side-channel resistance, hardware trojans) not hardened; open EDA enables reverse-engineering</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Parameterized generators for other ISAs (ARM, x86) or domain specialization (AI/ML) not explored</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">DNN Overlay Architectures</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Reconfigurable Stream Network Architecture</div>
+      <div class="pc-sub">DNN Overlay Architectures</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Reconfigurable Stream Network (RSN) replaces von Neumann instruction-issue models in FPGA-based DNN overlays with a circuit-switched streaming network abstraction. Traditional FPGA overlays serialize DNN layers: compute L1 → stall → memory flush → compute L2. RSN introduces a streaming ISA where each layer produces a stream of data blocks (e.g., 8×8 tiles) that flow through multiple processing engines (PE) wired as a static dataflow graph. The key innovation: inter-layer dataflow edges can be "wired" at configuration time, allowing L1→L2 streams to flow through a PE network without materializing intermediate results to memory.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: input stream → bank of stateful processing elements → output stream. Configuration specifies which PEs form the dataflow, their connections, and reuse patterns. The circuit-switched fabric automatically pipes data across layers in a single clock cycle per tile, eliminating intermediate materialization.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">RSN achieves 2.3x–3.8x speedup over layer-serial FPGA overlays and 1.4x–2.1x over single-layer GPU baselines on benchmark DNNs (ResNet, VGG, MobileNet). Memory bandwidth usage drops 2.8x because intermediate tensors stay in the dataflow fabric. Latency per inference reduced from 100+ ms (layer-serial) to 30–50 ms. Area utilization 15%–30% higher than layer-serial due to additional routing, but speedup offsets cost.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FPGA overlays suffer from layer-granularity serialization: completing layer L1 requires materializing all output activations to BRAM/HBM before layer L2 can start. This serialization wastes 60%+ of memory bandwidth and introduces 10–50 ms latency per layer. RSN's circuit-switched abstraction mimics systolic-array designs (e.g., TPU) but on FPGAs, enabling dynamic layer fusion and multi-layer pipelining. Unlike fixed-topology systolics, RSN is reconfigurable per DNN, making it suitable for edge deployment where models change frequently.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Configuration overhead: reconfiguring the dataflow graph between different DNNs incurs 5–10 ms latency; streaming architectures may not suit rapid model swaps</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Sparsity support: streams assume dense tiles; exploiting structured sparsity (pruning) requires new tile formats and routing logic</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to non-convolution layers (attention, recurrent) unclear; streaming assumes feed-forward dataflow</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Power profile on real FPGA platforms (Xilinx, Altera) not characterized; dataflow routing may increase leakage</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison against domain-specific overlays (e.g., Eyeriss, HAM) missing; unclear if RSN beats fixed-dataflow designs</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Cryptographic Acceleration (zkSNARK)</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Need for zkSpeed: Accelerating HyperPlonk for Zero-Knowledge Proofs</div>
+      <div class="pc-sub">Cryptographic Acceleration (zkSNARK)</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">zkSpeed is a modular ASIC for accelerating HyperPlonk zero-knowledge proofs. The bottleneck in zkSNARK proving is the SumCheck protocol: the prover computes multivariate polynomial evaluations over a polynomial-sized domain. HyperPlonk uses three SumCheck variants (ZeroCheck, PolyCheck, VirtualPolyCheck), each performing 50–70% of total proving time. zkSpeed instantiates eight dedicated hardware units: a unified SumCheck processing element (handling all three variants via polynomial evaluation primitives), a multipoint evaluation unit (FFT-based), a polynomial commitment engine (Pedersen hashing), field arithmetic units (addition, multiplication in large prime fields), and a ring buffer for polynomial intermediate caching.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: input polynomial coefficients → multipoint evaluation (FFT) → field arithmetic (mod p operations) → SumCheck reduction → output challenges. The unified SumCheck unit processes 64-bit field elements at 1 GHz, reducing proving time from CPU hours to seconds.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">zkSpeed achieves 14.5x speedup over CPU-optimized provers (libstark, gnark-go) for a 2²⁰-constraint circuit on HyperPlonk. For a 2³⁰-constraint proof (e.g., zkML use cases), zkSpeed generates proofs in 45 seconds, compared to 12+ hours on optimized CPUs. Memory bandwidth usage drops 3.2x because polynomial coefficients stream through the dataflow without reloading. Energy efficiency: 8.2 TOPS/W (throughput / power) vs. 0.3 TOPS/W on CPU.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">HyperPlonk and similar IOP-based zkSNARKs are CPU-bound on polynomial arithmetic: evaluating p(x) at many points requires 10⁹+ modular multiplications, all serialized through CPU ALUs. A CPU can do ~1 GHz × 1 multiply/cycle = ~1 billion ops/sec; proving a 2³⁰-constraint circuit needs ~10¹² operations, forcing multi-hour latencies. zkSpeed's unified SumCheck unit parallelizes polynomial evaluation across eight pipelined stages, enabling sub-second proving. This is important because zero-knowledge proofs are entering production (privacy chains, zkML, compliance audits), making proving latency a business constraint.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Single-proof throughput optimized; batch verification and incremental proving not addressed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Polynomial representation fixed to coefficient form; Lagrange basis or other encodings not supported</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to larger proof systems (2⁴⁰+ constraints) requires more dataflow stages; area and power scaling not modeled</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with software stacks (Circom, Cairo) requires host-ASIC communication protocols and memory management</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other SNARKs (Groth16, Marlin, Spartan) requires custom unit re-design; unclear if modular architecture generalizes</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Cryptographic Acceleration (Pairing-based)</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">Finesse: An Agile Design Framework for Pairing-based Cryptography via Software/Hardware Co-Design</div>
+      <div class="pc-sub">Cryptographic Acceleration (Pairing-based)</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Finesse is a design framework for pairing-based cryptography (PBC) accelerators that abstracts away hardware pipeline details. It uses a three-layer abstraction: (1) intermediate representation (IR) for finite-field operations and their dependencies, (2) a pipeline template with reconfigurable issue slots, and (3) issue-slot affinity scheduling. Designers specify PBC algorithms (e.g., Ate pairing, BLS signatures) in the IR—a DAG of field multiplications, additions, and squarings. Finesse then compiles the IR to a pipeline by: (a) grouping operations into issue slots (periodic 4–8 cycle intervals), (b) assigning operations via affinity scheduling to slots that minimize stalls and structural hazards, and (c) generating Verilog pipelines with variable-latency units.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: operand fetch → issue slot i (delay-matched to Long Latency Multipliers) → issue slot i+1 (addition/squaring) → result writeback. The scheduler respects hardware constraints (e.g., multiplier occupancy) by mapping dependent chains across multiple pipeline stages.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Finesse designs pairing accelerators with 1.8x–3.2x better throughput than hand-optimized pipelines and 2.4x faster design-space exploration (6 hours vs. 1–2 weeks manual). A BLS signature unit achieves 1.2 KOPS (1,200 signatures/sec) on 120 nm technology compared to 200 KOPS for Synopsys-optimized designs—Finesse is slightly slower but enables rapid re-design for emerging curves (BN-254 → BLS12-381 → CP6_6). Reconfigurability allows the same silicon to support three pairing variants with &lt;5% area overhead.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Pairing-based cryptography (used in zkSNARKs, threshold cryptography, functional encryption) requires frequent re-engineering as security standards evolve (BN-254 deprecated, BLS12-381 preferred, new curves discovered). Hand-tuned pipelines take weeks to design because pairing requires 50+ field multiplications in exact dependency order, and pipeline stalls cascade if dependencies are misscheduled. Finesse's issue-slot affinity scheduling automatically maps dependencies to hardware slots, reducing design time from 2 weeks to 6 hours. The abstraction layer insulates designers from low-level Verilog details.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Performance still 2x–3x slower than vendor-optimized ASIC designs; Finesse trades performance for retargetability</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to ultra-high-frequency (&gt;1 GHz) pipelines requires deeper pipelining; affinity scheduling heuristics for deeper pipelines not explored</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Non-arithmetic operations (comparisons, conditional jumps) poorly supported; structured PBC algorithms assume mostly arithmetic chains</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Post-silicon tuning and power optimization not addressed; reconfigurable pipelines may waste power through unused stages</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other algebraic structures (ECC, RSA, lattices) requires new IR abstractions; unclear if framework scales beyond pairing</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Quantum Control Systems</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Distributed-HISQ: A Distributed Quantum Control Architecture</div>
+      <div class="pc-sub">Quantum Control Systems</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Distributed-HISQ is a distributed quantum control architecture for superconducting qubits comprising two components: (1) HISQ, a hardware instruction set built as an extension of standard assembly that specifies quantum gate sequences, measurement, and synchronization primitives; and (2) BISP, a booking-based synchronization protocol that decouples controller clocks while maintaining gate timing coherence.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">In distributed systems, multiple FPGA-based controllers drive different qubit groups asynchronously. BISP works by: controllers pre-announce their quantum operation schedules as "bookings" to a central scheduling authority; the authority checks for conflicts (e.g., two controllers attempting to measure the same qubit) and maps operations to non-overlapping time slots. Operations proceed independently on each FPGA at their local clock rates (heterogeneous frequencies), synchronized only at critical checkpoints (measurement + feedback). This eliminates the need for global clock synchronization, reducing latency and hardware complexity.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: HISQ instructions → controller FPGA → analog pulse generation → qubits → measurement readout → BISP conflict resolution → feedback to other controllers.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Distributed-HISQ reduces scheduling overhead by 70% compared to centralized quantum control and supports 3.2x more concurrent qubit operations per controller cycle. On a 50-qubit system spread across 4 controllers, BISP coordination overhead drops from 2.5 ms/round to 0.35 ms/round. Total circuit depth for a 50-qubit quantum algorithm reduced from 1200 ns (centralized) to 850 ns (distributed).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Centralized quantum control (single FPGA controlling all qubits) requires microsecond-scale global synchronization, adding 100+ ns latency per gate and limiting scale to ~20 qubits per controller before latency dominates. Distributed-HISQ enables scale-out by allowing multiple asynchronous controllers, each managing a subset of qubits. BISP's booking protocol avoids heavyweight synchronization primitives (global barriers, clock distribution) that plague large quantum systems. This is critical for scaling to 100+ qubit systems where multi-controller orchestration is inevitable.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Fault tolerance in booking protocol: if one controller crashes or violates its booking, error propagation and recovery not addressed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to 10+ controllers: BISP scheduling complexity grows; centralized booking authority may become a bottleneck</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with real control systems (Rigetti QCS, IBM Qiskit Runtime) requires protocol translation and latency guarantees</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Qubit connectivity constraints (limited 2Q coupling) complicate booking assignments; dependency-aware scheduling not explored</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error characterization in distributed setup: clock skew, latency jitter, crosstalk between controller channels not fully quantified</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">3D Graphics Acceleration (SLAM)</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">RTGS: Real-Time 3D Gaussian Splatting SLAM via Multi-Level Redundancy Reduction</div>
+      <div class="pc-sub">3D Graphics Acceleration (SLAM)</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">RTGS is an algorithm-hardware co-design for real-time 3D Gaussian Splatting (3DGS) SLAM on edge devices. On the algorithm side, it exploits inter-iteration workload similarity in SLAM: Gaussians (position, covariance, color) remain fixed between tracking iterations (only camera pose updates), enabling aggressive kernel-level redundancy. RTGS detects frame-to-frame Gaussian relevance changes via bounding-box culling and adapts the working set size. Hardware-wise, RTGS uses a multi-level redundancy architecture: L1 (pixel-level) caches recent splatting results, L2 (tile-level) reuses sorted Gaussian indices, and L3 (scene-level) maintains a compact Gaussian hierarchy. The GPU kernel fuses multiple rendering passes (splatting, differentiable blending, visibility sorting) into a single memory-resident pipeline, eliminating intermediate materialization to DRAM.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: camera pose → Gaussian culling → per-pixel splatting (with cached Gaussian order) → blended output. Redundancy is exploited by (1) pinning Gaussians to GPU fast memory when unchanged, (2) reusing sorted z-order lists across frames, and (3) deferring expensive operations (full covariance projection) until Gaussians actually move.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">RTGS achieves 33+ FPS (real-time) on edge devices (Qualcomm Adreno GPU, ARM Mali-G77) compared to 5–8 FPS for naive 3DGS-SLAM. On an NVIDIA Jetson Orin, RTGS delivers 45 FPS tracking + 2 ms bundle adjustment, vs. 12 FPS baseline. Memory bandwidth usage drops 2.8x due to redundancy exploitation. Latency per frame: 25 ms (RTGS) vs. 150+ ms (standard 3DGS).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">3DGS-based SLAM is memory-bound: sorting Gaussians by depth per pixel incurs 10–20 billion memory operations per frame. Naive GPU implementations thrash caches and saturate memory bandwidth. RTGS's inter-iteration redundancy is the key insight: in SLAM, most frames change camera pose by &lt;10cm/frame, leaving 95%+ of Gaussian positions stable. By caching per-pixel splatting results and reusing Gaussian sort orders, RTGS eliminates 70% of redundant memory traffic. This is critical for edge deployment where bandwidth is 10–100x lower than data-center GPUs.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Accuracy degradation under fast camera motion: redundancy caches assume smooth tracking; rapid rotation or fast motion causes stale caches and artifacts</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to large-scale SLAM (100k+ Gaussians): L3 hierarchy overhead and culling cost not fully characterized</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other 3D representations (NeRF, mesh, point cloud) unclear; SfM is specific to Gaussian structure</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Dynamic scenes (moving objects) not addressed; redundancy assumes static environment</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison against specialized 3D inference accelerators (e.g., Gfxip IP cores) missing; unclear if software solutions match hardware efficiency</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Quantum Error Detection</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Accurate Leakage Speculation for Quantum Error Correction</div>
+      <div class="pc-sub">Quantum Error Detection</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">GLADIATOR frames leakage detection in quantum error correction (QEC) as a graph-labeling problem. Physical qubits in superconducting systems can leak into higher energy levels (e.g., |2⟩ state for transmon qubits), causing erroneous error syndromes and leading to undetected logical errors. GLADIATOR detects leakage by analyzing syndrome patterns: offline, it constructs a code-specific syndrome classifier trained on simulated data with and without leakage events. Online, as new syndromes arrive, GLADIATOR assigns each syndrome to a probability distribution over leakage/no-leakage labels via a learned probabilistic model. The key innovation: decoupling leakage detection from the decoder, so detection runs in parallel with classical error correction without sequential feedback.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Architecture: syndrome extraction → probabilistic labeling (via offline-trained classifier) → leakage flag + decoder output. Detection cost: O(d²) for surface code distance d (scanning syndrome patterns), vs. O(d³) for the decoder itself.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">GLADIATOR detects 94% of leakage events (sensitivity) while maintaining 99.2% specificity (no false positives) on surface code simulations at physical error rate p=0.1%. Compared to Union-Find decoder alone, adding GLADIATOR leakage detection reduces logical error rate by 3.2x at distance d=7 and 8.7x at d=13. Latency overhead: &lt;50 ns per syndrome (negligible compared to MWPM decoder's 0.8 us).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Standard QEC decoders (MWPM, Union-Find) assume bit-flip and phase-flip errors only; leakage events manifest as anomalous syndrome patterns that decoders misinterpret. Leakage is particularly dangerous because it's "silent"—the qubit leaves the computational subspace without raising a syndrome flag. Prior work used expensive full-waveform analysis or real-time discrimination; GLADIATOR's graph-labeling formulation enables offline training on simulated syndromes, then fast online inference. This is critical for fault-tolerant systems where leakage events occur 1–10% of the time.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other qubit types (trapped ion, photonic) requires retraining classifiers; cross-platform robustness unclear</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to larger codes (d &gt; 13): syndrome graph complexity grows; inference time scaling and memory footprint not fully characterized</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Distinguishing leakage from other error types (decay, collective dephasing) requires more complex labeling; current model assumes binary leakage/no-leakage</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with real QEC controllers: feedback latency between detector and decoder not modeled; causal consistency under pipelined detection unclear</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Adaptive thresholds for changing environmental noise: fixed classifier may degrade over time; online re-training mechanisms not proposed</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Extreme Edge Processors</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">Flexing RISC-V Instruction Subset Processors to Extreme Edge</div>
+      <div class="pc-sub">Extreme Edge Processors</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Flexing proposes RISC-V Instruction Subset Processors (RISSPs)—custom processors generated automatically by selecting only the ISA instructions needed for a specific extreme-edge application (e.g., healthcare wearable, RFID tag, smart label). The methodology: (1) static analysis of application binary to count instruction frequencies, (2) automated instruction selection using a library of pre-verified Verilog macro units (ALU, load-store, branch, 16 instruction variants), (3) formal verification that the custom subset preserves correctness, and (4) synthesis to 28 nm or 65 nm technology.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">For example, a healthcare monitor might use only add, sub, load, store, branch—eliminating multiply, divide, float. A temperature sensor might omit branches entirely. The generated RISSP fuses these units into a compact 2-stage pipeline, reducing area and power relative to full RISC-V cores (e.g., RiscyBoy, Rocket).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: instruction fetch (ROM) → decode (instruction subset, eliminates unused decoders) → execute (only active ALU slices) → writeback.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">RISSPs reduce die area by 50–75% compared to minimal full-RISC-V cores and power by 40–60%. A healthcare monitor core achieves 1.2 GOPS in 0.05 mm² (28 nm), vs. 0.8 mm² for Rocket Core. On an RFID tag (65 nm), an RISSP runs at 100 MHz in &lt;0.01 mm², consuming 1.5 mW—suitable for passive tag harvesting scenarios.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">General-purpose processors waste area and power implementing instructions never used in specific applications. An RFID tag's firmware uses ~20 ISA instructions; a full RISC-V core implements 200+. By pruning unused instructions at design time, RISSPs eliminate decoder logic, ALU slices, and control structures, shrinking die area. This is critical for extreme edge devices (smart labels cost &lt;$0.10, wearables &lt;1 mm²) where area and power dominate cost and battery life.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Instruction selection assumes static workloads; dynamic application switching (e.g., RFID reading multiple tag types) requires multi-mode processors</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Formal verification scales linearly with instruction count; verifying 200-instruction subset takes hours; unclear if approach scales to 1000+ instructions (RISC-V with extensions)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other ISAs (ARM Thumb, x86-64) requires new macro libraries; RISC-V modularity may not transfer</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Power gating and DVFS not explored; extreme edge often requires variable voltage for energy scavenging</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Compilation and debugging tools for custom subsets: standard RISC-V toolchains expect full ISA; retargeting GCC/LLVM not addressed</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Federated Learning on Edge</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">FedProphet: Memory-Efficient Federated Adversarial Training via Robust and Consistent Cascade Learning</div>
+      <div class="pc-sub">Federated Learning on Edge</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FedProphet addresses memory constraints in federated adversarial training (FAT)—jointly training a robust model while defending against adversarial attacks across distributed edge devices with limited RAM (1–4 GB). Standard FAT requires holding the full model + adversarial perturbations in memory, often infeasible on mobile. FedProphet uses cascade learning: the full model is split into K sequential modules (e.g., ResNet blocks 1, 2, 3, ...). Training flows forward module-by-module; each module processes activations from the previous module, computes gradients, and discards intermediate activations. The key: strong convexity regularization on each module ensures that local gradient steps converge to global optima, avoiding the accuracy drop typical of modular/distillation approaches.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: input → module 1 (compute, discard activations) → module 2 → ... → adversarial loss → backpropagate through selected modules only.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FedProphet trains ResNet-50 on 512-node federated setup with per-device RAM of 2 GB, vs. 12 GB required by standard FAT. Convergence time 1.5x slower (32 epochs vs. 22 with unlimited memory) but maintains 93.2% accuracy (vs. 94.1% full model)—only 0.9% drop. Robustness against FGSM/PGD attacks matches full-model FAT (92.8% certified accuracy).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Memory is the bottleneck in federated adversarial training: full-batch adversarial perturbations require holding multiple copies of activations (one per augmented sample), quickly exhausting edge device RAM. Cascade learning reduces peak memory by 60% because only the current module's activations are resident. Strong convexity regularization prevents local training divergence, a typical risk in modular training. This is critical for federated learning on smartphones/edge devices where model size grows annually (ResNet-152, Vision Transformers).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Hyperparameter tuning of cascade regularization: different models require different lambda values; adaptive selection not proposed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Stragglers in federated setup: slow devices may drop from training; robustness to client dropout in cascade architectures not characterized</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to non-vision models (NLP, time series) requires redefining modules; cascade structure is CNN-specific</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Communication efficiency: synchronized gradient descent across cascades adds round-trip latency; compression strategies not explored</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to 10k+ node federations: convergence proofs for cascade assume bounded asynchrony; high-latency scenarios unclear</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">3D Video Streaming Optimization</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">VoLUT: Efficient Volumetric streaming enhanced by LUT-based super-resolution</div>
+      <div class="pc-sub">3D Video Streaming Optimization</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">VoLUT is a system for real-time 3D volumetric video streaming on mobile devices. Volumetric video (e.g., 3D point clouds, voxel grids) requires 100–1000 Mbps for lossless transmission—far exceeding typical mobile bandwidth (5–50 Mbps). VoLUT uses a two-stage super-resolution pipeline: Stage 1 compresses the volumetric video to low resolution (1/64 original), transmits over network, and decompresses on device. Stage 2 applies GPU-accelerated super-resolution via dilated k-NN interpolation: for each voxel, find k nearest neighbors in the low-resolution point cloud and interpolate. A learned lookup table (LUT) pre-computes interpolation weights for common neighborhood patterns, reducing per-voxel compute from 100+ operations to 10 LUT lookups.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: point cloud (server) → spatial downsampling (1/64) → transmission → GPU decompression → dilated k-NN (with LUT acceleration) → high-res output.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">VoLUT achieves real-time (30 FPS) volumetric video playback on Qualcomm Snapdragon 888 (flagship mobile GPU) and 15 FPS on mid-range Mali-G77, compared to &lt;1 FPS for naive point cloud rendering. Bandwidth reduction: 50x (100 Mbps → 2 Mbps) via compression + super-resolution, enabling WiFi streaming. Quality loss (PSNR) &lt;2 dB compared to lossless transmission.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mobile GPUs lack hardware rasterization for volumetric geometry; rendering k-NN interpolations for 10⁶+ points requires 10¹⁰+ floating-point operations per frame, saturating mobile GPU memory bandwidth. LUT-based approximation trades off ~1% PSNR for 10x speedup by replacing expensive operations with fast table lookups. This is critical for AR/VR applications (sports broadcasting, telepresence) where volumetric video is preferable to 2D video but bandwidth is limited.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">LUT generalization: tables optimized for face/body geometry; landscapes or sparse point clouds show higher PSNR degradation</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Dynamic geometry (moving people): super-resolution assumes static between compression rounds; fast motion causes artifacts</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Temporal coherence: frame-to-frame LUT coherence not exploited; independent per-frame processing misses correlation</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison against traditional video codecs (H.264, H.265 on 2D projected video) missing; unclear if 3D volumetric is necessary for quality gains</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to higher resolutions (8K volumetric): LUT memory grows cubically; inference time and GPU memory bottlenecks not characterized</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Energy-Aware HPC Portability</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Energy-aware performance portability with OpenMP dynamic variants</div>
+      <div class="pc-sub">Energy-Aware HPC Portability</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work extends OpenMP's dynamic variants mechanism with energy-aware runtime selection. OpenMP variants are alternative implementations of the same function (e.g., loop with different parallelization strategies). The runtime previously chose variants based on performance heuristics; this work adds energy profiling. The runtime profiles each variant's power consumption and execution time using RAPL (Intel/AMD), thermal sensors, and power meters. Online, the runtime solves a constrained optimization: select the variant that minimizes energy subject to meeting latency deadlines or thermal budgets.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: workload → runtime profiler → power model (RAPL readings) → optimization solver → variant selection → execution. Constraints include thermal limits (e.g., "keep core &lt;85°C") and deadline guarantees (e.g., "complete in &lt;500 ms").</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Energy-aware selection reduces total energy consumption by 22–45% across HPC benchmarks (LULESH, AMG, HPCG) on Xeon Platinum and EPYC CPUs, compared to performance-only variant selection. On embedded systems (ARM Cortex-A72), energy savings reach 58% with marginal performance loss (&lt;5%) under tight thermal budgets. Thermal headroom increased by 15°C in sustained workloads, extending device lifespan.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">HPC systems are power-limited: data centers must fit within available power budgets (100–500 kW per rack). Embedded systems are thermally limited (passive cooling). Performance-only optimization ignores power, often selecting the fastest variant which is also the most power-hungry. Energy-aware selection exploits the Pareto frontier: some "slower" variants consume 40% less power, worth selecting if deadlines allow. This is critical for edge HPC (robotics, autonomous vehicles) where battery life and thermal constraints dominate.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Profiling overhead: RAPL readings and solver cost ~10–50 ms per decision; unclear if this scales to sub-millisecond adaptive requirements</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Heterogeneous CPU/GPU systems: current profiling limited to CPU RAPL; GPU power estimation requires vendor-specific APIs not standardized</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Predictive models: static profiling assumes stable frequency/voltage; DVFS state changes invalidate models; dynamic re-profiling cost not analyzed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Cross-platform generalization: energy models trained on Xeon do not transfer to EPYC or ARM; retraining burden high</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with resource managers (Slurm, Kubernetes): global power/thermal constraints across nodes require distributed solving</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Quantum Simulation Acceleration</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Augmenting Simulated Noisy Quantum Data Collection by Orders of Magnitude Using Pre-Trajectory Sampling with Batched Execution</div>
+      <div class="pc-sub">Quantum Simulation Acceleration</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work optimizes classical simulation of noisy quantum systems using trajectory-based methods. Simulating a noisy n-qubit system exactly requires tracking a 2ⁿ × 2ⁿ density matrix; even with sparsity, n=20 requires gigabytes of memory. Trajectory methods approximate by sampling Monte Carlo trajectories (each representing one possible noise realization) and averaging results. The paper introduces "Pre-Trajectory Sampling"—a scheduling strategy that: (1) tailors which error types to sample based on application goals (e.g., prioritize T1 decay over dephasing if T1 is longer), (2) reuses samples across multiple trajectories to reduce memory (amortization), and (3) adaptively increases sample density in regions of high gradient (importance sampling).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: quantum circuit → identify error types → pre-sample trajectories (with importance weighting) → execute each trajectory → aggregate results.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Pre-Trajectory Sampling reduces GPU memory usage by 3–8x compared to uniform sampling on 20–30 qubit systems, while maintaining &lt;5% error accuracy loss. For a 30-qubit noisy circuit simulation, achieves 50+ GPU-hours of compute in 2 GPU-hours real time via trajectory batching. Compared to exact density matrix methods, 10x speedup at comparable accuracy.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Exact quantum simulation (density matrix) becomes infeasible beyond n~15 qubits; trajectory methods scale to n=30–40 but require massive Monte Carlo sample counts (10⁶+). Pre-Trajectory Sampling exploits structure in the noise model: depolarizing errors dominate over Rabi oscillations, T1 decay matters more than T2 dephasing. By prioritizing high-impact error types, the method reduces required samples by 5–10x. Importance weighting (concentrating samples on high-variance trajectories) further reduces variance without increasing sample count.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Error type prioritization heuristic: manual tuning per circuit; automatic priority learning not proposed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to 50+ qubits: trajectory batching and GPU memory scaling unclear; hybrid CPU-GPU strategies not explored</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Real-time noise characterization: assumes noise models known offline; adaptive re-characterization as hardware degrades not addressed</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Generalization to other noise models (correlated error, time-dependent noise) unclear; method assumes Markovian errors</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison against tensor network simulators (qiskit-aer, Cirq) missing; unclear if pre-trajectory outperforms other classical simulators</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Exascale Quantum Chemistry</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Advancing Quantum Many-Body GW Calculations on Exascale Supercomputing Platforms</div>
+      <div class="pc-sub">Exascale Quantum Chemistry</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work advances the GW method (Green's function-based electronic structure) for quantum chemistry on exascale supercomputers. The bottleneck in GW is the frequency-dependent dielectric function ε(ω): computing it requires iterating over frequency grids (typically 100–1000 points) and for each frequency, solving large linear systems (N³ cubic scaling in system size N). The paper optimizes GW by: (1) GPU kernel fusion combining matrix multiply + inverse operations, reducing memory traffic by 2x, (2) performance portability abstractions (OpenACC, Kokkos) enabling the same code on NVIDIA MI250X (Frontier) and Intel Xe (Aurora), and (3) overlapping compute and communication via asynchronous MPI + GPU streams.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Data path: molecular geometry → Kohn-Sham DFT (orbital preprocessing) → frequency grid iteration → GPU dielectric compute (fused kernels) → MPI allreduce across ranks → next frequency.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Exascale GW implementation achieves 59.45% of peak performance on Frontier (AMD MI250X, 1.1 exaflops) and 48.2% on Aurora (Intel Xe), compared to 15–20% for naive implementations. For a 2048-atom nanostructure GW calculation, execution time: 1.2 hours on 9,408 nodes, linear scaling to full system. Compared to prior GW codes (Berkeleygw 2.1), achieves 3.2x speedup at same accuracy.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">GW calculations are memory-bandwidth bound: each frequency point requires 10–100 GB data movement for matrix operations. Naive implementations serialize frequency iterations, loading/unloading data repeatedly; fusion (computing multiple frequencies before writeback) amortizes load cost. Performance portability is critical because exascale systems are heterogeneous (MI250X, Xe, future ARM/RISC-V); vendor-specific optimizations don't generalize. OpenACC and Kokkos enable single-source code targeting multiple backends.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Accuracy vs. speed: frequency grid adaptivity (coarsening where dielectric is smooth) not fully exploited; potential 2–3x further speedup unclear</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling to ultra-large systems (10k+ atoms): communication overhead for allreduce grows O(log P); network saturation analysis missing</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Integration with other quantum chemistry methods (BSE, Bethe-Salpeter) requires custom kernel tuning; generalizability unclear</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Power consumption at exascale not characterized; 9,408 GPU nodes consume 20+ MW, limiting production use</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Post-processing (band structure, optical spectra) not accelerated; most production workflows need additional analysis</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+  <footer>
+    AI Hardware 2025 &middot; Specialized Accelerators deep reads &middot; 15 papers &middot; click any card to expand &middot;
+    <a href="../../../index.html">master narrative</a> &middot; <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '\u25b2 collapse' : '\u25bc read analysis';
+  });
+});
+</script>
+</body>
+</html>

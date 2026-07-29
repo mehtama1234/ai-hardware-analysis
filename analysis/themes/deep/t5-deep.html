@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Sparsity & MoE &middot; AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">&#x2190; master narrative</a>
+    <a href="../../../t5-deepdive.html">T5 theme essay &#x2197;</a>
+    <a href="index.html">&#x2190; deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 &middot; Sparsity & MoE &middot; Deep Reads</div>
+    <h1>Sparsity &amp; MoE: Top Papers</h1>
+    <div class="sub">14 high-impact papers &middot; sparse expert routing, pruning, conditional compute, and skipping the math you don&#x27;t need</div>
+  </div>
+  <div class="section-h">Communication Optimization in Distributed MoE Training</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">FSMoE: A Flexible and Scalable Training System for Sparse Mixture-of-Experts Models</div>
+      <div class="pc-sub">Communication Optimization in Distributed MoE Training</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">FSMoE addresses the core bottleneck in distributed MoE training: AlltoAll communication between devices accounts for 30-60% of total training time when tokens are routed to sparse sets of experts. The system decomposes each MoE layer into six sub-modules (Gate, Order, I-Order, Dispatch, Combine, Expert), then uses a two-phase profiler-scheduler that fits linear performance models for both GEMM operations and collective communication primitives (AllGather, ReduceScatter, AlltoAll). This model enables precise prediction of execution time across different configurations.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key innovation is a three-stream pipeline scheduler that simultaneously overlaps three execution streams: (1) inter-node AlltoAll dispatch/combine communication, (2) intra-node ESP-AllGather/ReduceScatter collective operations, and (3) expert computation. The scheduler classifies each MoE execution into four cases (dominated by inter-node comm, expert compute, AlltoAll, or intra-node comm) and uses SLSQP optimization to find the optimal pipeline chunk degree r for each case. Additionally, an adaptive gradient partitioning algorithm slices Gradient-AllReduce work into chunks and assigns them to overlappable windows across MoE and dense layers, decoupling forward and backward pipeline degrees.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On GPU clusters with up to 48 A6000/2080Ti GPUs connected via InfiniBand, FSMoE achieves 1.18x-1.22x speedup over Tutel+PipeMoE on 1458 configured MoE layer variants, and 1.19x-3.01x speedup over DeepSpeed-MoE on real-world GPT-2 and Mixtral models. Individual gating function benchmarks show up to 1.42x speedup versus DeepSpeed-MoE. The performance model itself achieves r² ≥ 0.9999 fitting accuracy across all collective operation types.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MoE systems are fundamentally communication-bound: sparse expert activation means only a subset of expert parameters are updated per step, but orchestrating token routing across multiple parallelism axes (data parallelism DP, model parallelism MP, expert parallelism EP, expert-split parallelism ESP) creates complex overlapping opportunities that existing systems (DeepSpeed-MoE, Tutel) cannot exploit. These systems use fixed or heuristic pipeline degrees and fail to co-design Gradient-AllReduce scheduling with MoE communication, leaving 50%+ communication overhead untapped. FSMoE's contribution is the modular abstraction with hooks for customizable routing functions combined with precise performance modeling and adaptive scheduling that collectively optimizes all three communication streams.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to clusters up to 48 GPUs; behavior on production-scale clusters (1000+ H100s with NVLink) is uncharacterized, which is critical for billion-parameter MoE models.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The SLSQP optimization finds locally optimal pipeline chunk degrees per phase, but lacks global cross-layer optimization considering heterogeneous network topologies.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Gradient partitioning uses differential evolution with greedy initialization, which may miss better partitions on cluster sizes beyond 48 nodes.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No analysis of how routing function diversity (beyond the four pre-built options) affects performance model accuracy or scheduling decisions.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Assumes homogeneous GPU hardware and network; heterogeneous clusters (mixed H100/A100) are not addressed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Activation Sparsity Prediction for Inference Optimization</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">DATE</div>
+    <div>
+      <div class="pc-title">SparseInfer: Training-free Prediction of Activation Sparsity for Fast LLM Inference</div>
+      <div class="pc-sub">Activation Sparsity Prediction for Inference Optimization</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">SparseInfer enables real-time sparsity prediction without requiring a separate trained predictor network. The method works by converting ReLU-fied LLMs (replacing SiLU activations with ReLU, which produces zero outputs for negative pre-activations) and then performing lightweight sign-bit comparison to predict which activations will be zero. For each token position, the predictor examines only the sign bits of input activations and weight matrices—if sign(input) and sign(weight) differ, the product contributes zero to the output. This binary logic suffices to identify sparse patterns without ever computing actual values or maintaining predictor state.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">An adaptive tuning mechanism adjusts the predictor's conservativeness as a control knob: the system can trade off between predicted sparsity aggressiveness (skipping more computation at risk of accuracy loss) and safety (conservative predictions preserve accuracy). This enables runtime optimization where the predictor adapts based on accuracy monitoring.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On LLM inference workloads, SparseInfer achieves approximately 21% faster inference compared to state-of-the-art sparsity predictor baselines while maintaining negligible accuracy loss within 1 percentage point.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Modern LLMs using SiLU activations exhibit minimal activation sparsity naturally, so replacing SiLU with ReLU is necessary to induce zero patterns. However, prior predictor methods required training a separate neural network to learn sparsity patterns, adding deployment overhead and latency. SparseInfer's sign-bit approach eliminates this training step entirely by exploiting the mathematical property that ReLU outputs are zero whenever the preactivation is negative—a condition directly observable from input and weight signs without any arithmetic. This is fundamentally more efficient than learned prediction because it operates at the bit level with trivial hardware cost, making it deployable immediately on inference hardware without retraining infrastructure.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Limited details on how sign-bit prediction handles quantized weights or mixed-precision activations common in deployed LLM inference.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No characterization of how prediction accuracy degrades as ReLU sparsity patterns vary across different model layers or prompt contexts.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Adaptive conservativeness tuning mechanism mentioned but not detailed; unclear how the system decides when to increase or decrease conservativeness.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation baseline ("state-of-the-art sparsity predictor") not specified; comparison methodology against learned predictors not described.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Compatibility with structured sparsity accelerators (N:M patterns, tensor cores) not discussed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Temporal and Structural Sparsity in Iterative Workloads</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">EXION: Exploiting Inter-and Intra-Iteration Output Sparsity for Diffusion Models</div>
+      <div class="pc-sub">Temporal and Structural Sparsity in Iterative Workloads</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">EXION is a software-hardware co-design that exploits two dimensions of sparsity in diffusion model inference. First, the FFN-Reuse algorithm identifies temporal redundancy across denoising iterations: diffusion models run the same transformer blocks 1000 times with gradually changing noise. EXION observes that within FFN (feed-forward network) layers, GELU outputs have low-magnitude elements that persist across iterations. The algorithm computes the GELU output fully in one "dense" iteration, then reuses that output by skipping computation for low-magnitude elements (identified via magnitude thresholding) in the next N "sparse" iterations, achieving 70-97% output sparsity in the first FFN layer and 52-85% operation reduction overall.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Second, an improved eager prediction algorithm with two-step leading-one detection (TS-LOD) predicts which attention scores will be negligible by approximating attention computation in log-domain (summing log magnitudes instead of actual values). This identifies Q and KV projections that can be skipped entirely within each iteration, achieving 20-95% intra-iteration sparsity.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The ConMerge data compaction mechanism converts unstructured sparse outputs into compact dense matrices: column condensing removes all-zero columns, and block merging combines sparse and dense tiled blocks using conflict-vector tracking to identify safe merge points. Dedicated ASIC hardware (Diffusion-Sparsity Aware Core, or DSC) includes a Sparse-Dense Unified Engine (SDUE) with a 16x16 DPU array that switches per-DPU inputs/weights/conflict vectors to support ConMerge-aware dataflow, plus specialized units for eager prediction and special functions. Synthesized at 14nm, 800MHz, 0.8V.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On a 14nm EXION ASIC with 24 DSC cores and 64MB global memory, the system achieves 3.2-379.3x speedup over an NVIDIA RTX 6000 Ada server GPU and 42.6-1090.9x speedup over an NVIDIA Jetson Orin Nano edge GPU across 7 diffusion model benchmarks. Energy efficiency gains are 45.1-3067.6x over RTX 6000 Ada and 196.9-4668.2x over edge GPU. Die area is 152.28 mm² (EXION24) versus 609 mm² for RTX 6000 Ada.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Diffusion models are 23.6x more energy-hungry than GANs due to repeated transformer execution across hundreds of iterations. Prior accelerators target only QKV projections and attention within a single iteration, ignoring both the iterative structure and the FFN layers (38-100% of transformer ops, up to 67% in some blocks). FFN-Reuse is the first algorithm to exploit that low-magnitude GELU outputs are temporally stable across iterations, enabling reuse without retraining. Two-step leading-one detection improves upon prior eager prediction by using log-domain arithmetic (not computing full magnitudes), reducing FLOPs in attention prediction itself. ConMerge solves the practical challenge: unstructured sparsity creates irregular data layouts that cause poor hardware utilization, so the mechanism compacts sparse patterns into dense matrices that maintain high DPU occupancy.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">ResBlock-containing architectures (Make-an-Audio, Stable Diffusion) don't benefit fully because sparsity optimizations apply only to transformer blocks, leaving ResBlocks unadjusted; efficiency gains are reduced for these models.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">FFN-Reuse assumes GELU outputs remain temporally coherent across iterations; applicability to other activation functions (Swish, GLU variants) is unexamined.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Two-step leading-one detection relies on log-domain approximation; accuracy impact on models with highly skewed attention patterns not characterized.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">ConMerge conflict-vector tracking adds area (0.94% of DSC) but overhead scales with matrix width; handling wider attention heads may introduce efficiency cliffs.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation on 7 model variants but evaluation on newer diffusion architectures (e.g., Flux, cascade models) not included.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Sparse Matrix Operations for Embedding Training</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">SparseTransX: Efficient Training of Translation-Based Knowledge Graph Embeddings Using Sparse Matrix Operations</div>
+      <div class="pc-sub">Sparse Matrix Operations for Embedding Training</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">SparseTransX reformulates translational knowledge graph embedding (KGE) training to replace fine-grained scatter/gather operations with bulk sparse matrix multiplication (SpMM). For each training triplet (head, relation, tail), the method constructs a sparse incidence matrix A where each row represents one triplet: +1 in the head entity column and -1 in the tail entity column (for head-tail expressions) or additionally +1 in the relation column at offset entity_count (for head+relation-tail expressions). Multiplying A (sparse, M × (N+R)) by the embedding matrix E (dense, (N+R) × d) directly computes batched (head - tail) or (head + relation - tail) expressions via a single SpMM call instead of M individual lookups.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The method supports four translational models: TransE (h+r-t computation with L2 norm), TransR (head-tail with per-relation projection matrices Mr applied separately), TransH (two head-tail computations with hyperplane projections), and TorusE (h+r-t with torus distance). The backward pass benefits equally: gradients reduce to SpMM on the transpose A^T, avoiding materialization of intermediate activation tensors. The library uses iSpLib (compressed sparse row CSR format, SIMD vectorized with loop unrolling and cache blocking) for CPU and DGL g-SpMM (coordinate COO format with WARP-level operations) for GPU acceleration.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On CPU (AMD EPYC 7763 64-core) and GPU (NVIDIA A100-SXM4 40GB), SparseTransX achieves up to 5.3x speedup on TransE training versus TorchKGE and up to 4.2x on GPU. For TransH specifically, GPU memory usage is reduced 11x (0.28 GB vs 3.1 GB), and total FLOPs drop from 483.87 billion to 220 billion on TransE. Cache miss rates improve from 29.37% (TorchKGE) to 26.54%.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">KGE training triplets are inherently sparse: each triplet touches only 2-3 entity/relation embeddings out of millions, yet existing frameworks (TorchKGE, DGL-KE, PyG) perform dense embedding lookups (indirection through global embedding tables) followed by element-wise operations. This creates irregular memory access patterns and high backpropagation overhead. Sparse matrix libraries (iSpLib, DGL g-SpMM) are highly optimized for exactly this access pattern—bulk extraction of rows/columns from dense matrices—and provide SIMD vectorization, WARP-level parallelism, and automatic cache blocking. By reformulating the computation as a single SpMM, SparseTransX unifies multiple embedding operations into one high-level primitive that the library can optimize globally, bypassing Python-level overheads and enabling loop unrolling that scattered lookups cannot achieve.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">TorusE speedup is lower than TransE because the torus L2 dissimilarity function (applied post-embedding-extraction) dominates compute time; the SpMM speedup is offset by expensive distance calculation per triplet.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">TransH shows only moderate speedup because the per-relation projection matrices Mr are applied separately after SpMM extraction, making SpMM a smaller fraction of total training time.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">TransR backward performance on CPU is slower than DGL-KE in some configurations because DGL-KE uses custom gradient implementations via the DGL graph API; sparse matrix transpose and multiply may not be faster than specialized kernels.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Distributed training results shown only as preliminary in Appendix F; not a primary evaluation focus, leaving scalability to multi-node training unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">COO format for GPU requires format conversion overhead; performance on different sparsity patterns and tensor sizes may vary with format conversion cost.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Data Selection and Pruning via Distributed Optimization</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Distributed Submodular Subset Selection at Billion Scale</div>
+      <div class="pc-sub">Data Selection and Pruning via Distributed Optimization</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work enables submodular subset selection (a combinatorial optimization task) to scale beyond centralized memory by distributing data across workers without requiring a central bottleneck. Submodular functions reward selecting diverse items: adding a new item gives decreasing marginal benefit as more items are already selected. For dataset pruning, this selects a high-quality training subset by greedily maximizing a diversity metric.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key mechanism is a distributed bounding algorithm: each worker computes local upper and lower bounds on marginal gains using "grow" steps (expanding bounds from already-selected items) and "shrink" steps (contracting bounds based on minimum/maximum utility values). These bounds are provably tight without requiring point-to-point communication between all data pairs. A multi-round partition-based greedy scheme aggregates global selections: in each round, workers perform local greedy selection within their partition, then the system uses adaptive repartitioning to adjust work distribution. The method is implemented on Apache Beam for large-scale distributed execution.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On 13 billion data points, the system achieves 98% of the quality achieved by centralized greedy maximization within 32 communication rounds. This scales to billion-point datasets on commodity clusters without a single machine holding all data simultaneously.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Centralized greedy submodular maximization requires materializing O(N) candidate points in a single machine's memory, making it infeasible at billion scale. Naive distributed approaches either lose quality (independent per-partition selection with no global coordination) or require dense pairwise communication (computing marginal gains for all global pairs). The bounding algorithm exploits the structure of submodular functions: marginal gains can be bounded from above (no point will improve more than the global upper bound) and below (each point improves at least the global lower bound), so workers compute these bounds locally without global synchronization. Adaptive repartitioning further reduces rounds by observing which partitions have high-quality selections and concentrating future rounds in those regions.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Quality degrades with fewer communication rounds; no formal analysis of the quality-round tradeoff curve provided beyond the 98%/32-round datapoint.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Bounding tightness depends critically on data distribution and partition quality; pathological distributions (highly non-uniform marginal gains) could require many more rounds to converge.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Apache Beam infrastructure required for deployment; method not evaluated on simple parameter servers or gossip-based systems, limiting accessibility.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Adaptive repartitioning adds coordination overhead; overhead cost not isolated or characterized separately from selection cost.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation focused on CIFAR-100 and ImageNet; generalization to other dataset selection tasks (e.g., active learning, noisy label filtering) unexamined.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Hardware-Accelerated Semi-Structured Sparsity on Edge</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">N:M Sparse DNN Kernels for RISC-V MCUs via Custom ISA Extension</div>
+      <div class="pc-sub">Hardware-Accelerated Semi-Structured Sparsity on Edge</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work introduces xDecimate, a custom RISC-V ISA instruction that performs hardware-accelerated N:M sparse selection and multiply-accumulate (MAC) in a single operation. N:M sparsity enforces that among every N consecutive weight values, at most M are nonzero (e.g., 2:4 means 2 nonzeros per 4 weights). Standard RISC-V cores lack primitives to exploit this pattern, so software extraction (checking which weights are nonzero, loading only those, adjusting indices) introduces 5-10x overhead.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The xDecimate instruction accepts an N:M weight vector, input activation values, and a sparsity pattern, then outputs the sparsity-reduced MAC result directly in hardware. Decimate Im2col reformulates 2D convolution to enable xDecimate on im2col-transformed feature maps: instead of multiple 1D convolutions, the input is flattened into a matrix where xDecimate can process multiple channels efficiently. The MATCH compiler generates xDecimate-aware kernels automatically. The design is synthesized at 22nm targeting the Vega PULP SoC (commercial product GAP9).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On ResNet-18 at 1:16 sparsity, xDecimate achieves 3.21x speedup over dense baseline inference. ViT achieves 1.81x speedup at the same sparsity ratio. The xDecimate hardware adds only 5% area overhead to a baseline RISC-V core, making it practical for area-constrained MCUs.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Decimate Im2col converts convolution kernels into a form where xDecimate naturally applies: each row of the im2col matrix contains one neuron's neighborhood, and consecutive columns group input channels, allowing xDecimate to process multiple channels' worth of sparse weights in one pass instead of iterating layer-by-layer.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">xDecimate requires retraining with N:M sparsity constraints; cannot be applied to pre-trained dense models without fine-tuning or pruning-aware retraining.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Speedup diminishes significantly for ViT (1.81x) compared to ResNet-18 (3.21x) due to attention's irregular memory access patterns; xDecimate cannot mask the core bottleneck of attention computation.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Custom ISA extension requires toolchain modifications (compiler, assembler); adoption limited to platforms with xDecimate support or willing to fork RISC-V toolchains.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to two model architectures (ResNet-18, ViT); results on RNNs, GRUs, or other sparsity-friendly architectures unknown.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Sparsity ratios tested only at 1:4, 1:8, 1:16; different sparsity granularities (2:8, 4:16) not evaluated.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Activation-Aware Pruning for Mobile Inference</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Dynamic Input Pruning for Efficient LLM Inference on Mobile Devices</div>
+      <div class="pc-sub">Activation-Aware Pruning for Mobile Inference</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Dynamic Input Pruning (DIP) exploits activation sparsity in SwiGLU MLP layers (the dominant bottleneck in modern LLMs on mobile). For each token, the MLP computes three projections: up (d → 2d expansion), gate (d → d), and down (2d → d contraction). All three weight matrices must be loaded from DRAM even though only a subset of inputs are significant. DIP applies top-K selection on input activation magnitudes: it selects the K largest elements of the input activation and prunes (skips) the corresponding columns in all three weight matrices, never loading irrelevant weights.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Crucially, DIP requires no separate predictor network: the magnitude selection is computed on-the-fly during inference. A cache-aware variant (DIP-CA) uses a gamma multiplier (gamma=0.2) to bias selection toward weight columns already resident in the L1/L2 cache, coordinating column selection with the hardware memory hierarchy. The method is compatible with LoRA adapters for accuracy recovery if needed.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On Apple A18 simulation (60 GB/s DRAM bandwidth, 1 GB/s Flash storage), DIP achieves 40% throughput increase and 46% DRAM reduction on Phi-3-Medium inference. Perplexity increases by less than 0.1 at optimal sparsity ratios, indicating negligible accuracy loss.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mobile SoCs like Apple A18 and Snapdragon have 60 GB/s DRAM bandwidth versus desktop/server GPUs with 900+ GB/s (NVLink) or 600+ GB/s (PCIe), making DRAM the critical bottleneck. SwiGLU MLPs are memory-bandwidth bound: the compute-to-bandwidth ratio is low, so every byte of weight loading directly impacts latency and energy. Existing approaches (e.g., DejaVu) train separate predictor networks to decide which columns to keep, but this adds inference latency and model size. DIP's key insight is that input magnitudes are a sufficient signal: large-magnitude inputs produce significant contributions regardless of weight values, so pruning low-magnitude input elements automatically minimizes impact. The top-K operation is trivial to compute on mobile CPUs/NPUs (sorting K=16 or K=32 elements is microseconds), avoiding predictor overhead entirely.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DIP-CA further optimizes by observing that mobile memory hierarchies are tiny (1-2 MB L2): if a weight column is already in cache (loaded for a previous token), loading it again is free, so the gamma multiplier biases selection to prefer cached columns, reducing DRAM refetch.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation is simulation-based on A18; no real hardware measurement on actual Apple devices or Snapdragon SoCs, leaving real-world DRAM/cache behavior uncertain.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Accuracy-efficiency tradeoff is data-dependent: optimal sparsity ratio varies by prompt, model size, and task; no adaptive mechanism to automatically tune K.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">DIP-CA benefit depends critically on cache hit rate and memory access patterns; behavior on different MLP sizes or batch configurations not characterized.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Currently only handles SwiGLU architecture; does not extend to attention layers (which also consume DRAM but with different access patterns), limiting applicability to full-model inference.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">LoRA adapter compatibility mentioned but not evaluated; impact on sparsity patterns and accuracy when LoRA is active unknown.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Memory-Efficient On-Device Training via Forward-Only Algorithms</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Efficient On-Device Machine Learning with a Biologically-Plausible Forward-Only Algorithm</div>
+      <div class="pc-sub">Memory-Efficient On-Device Training via Forward-Only Algorithms</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Bio-FO introduces a forward-only training algorithm that trains each neural network layer independently using only forward passes, eliminating backpropagation's memory overhead and biological implausibility. For each hidden layer l, the method attaches an auxiliary classifier with a fixed random projection matrix Bl that maps layer activations h_l to class predictions. During training, Bio-FO computes cross-entropy loss and gradient for layer l using only its own activations (h_{l-1} and h_l), then updates weights with this local gradient. Crucially, no inter-layer error signals flow backward (solving non-locality), no activation storage is needed (solving frozen activities), and no symmetric backward weight matrices are maintained (solving weight transport). A sparsity mask S_l enables extensions to locally connected and convolutional architectures.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The core mechanism: for layer l with inputs h_{l-1}, compute outputs h_l = σ(W_l h_{l-1}), then apply the fixed random classifier ŷ = B_l h_l, compute local loss L_l = cross_entropy(ŷ, y), and update W_l = W_l - α ∇_{W_l} L_l. Each layer operates independently, so updates proceed as data arrives (update locking resolved).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On NVIDIA Jetson Nano (128-core Maxwell GPU, 5-10W power envelope), Bio-FO achieves 3x memory reduction versus backpropagation (32 MB vs 96 MB at batch size 1) and up to 19.8x energy reduction on CIFAR-100 compared to Forward-Forward (FF). Accuracy: CIFAR-100 74.57% error (FF achieves 85.76%, PEPITA achieves 76.16%), and mini-ImageNet 67.39% error (versus 91.23% PEPITA, 74.58% CaFo). Convergence is fastest among forward-only methods (slowness parameter 0.156 on MNIST vs 0.541 for FF and 1.494 for DRTP).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Backpropagation requires materializing all intermediate activations (activation storage), implementing biological implausibility (weight transport via explicit backwards weights, non-locality via backpropagated error signals, update locking via layer-by-layer dependencies), and consuming 2-3x memory on edge devices with 32-96 MB budgets. Prior forward-only alternatives (FF, PEPITA, DRTP) address some but not all four issues: FF requires explicit symmetric backward weights; PEPITA allows prediction/update locking; DRTP uses predictive coding. Bio-FO is the first to address all four simultaneously by using fixed random projections as auxiliary classifiers, eliminating the need to learn backward weights, propagate errors globally, or store activations.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The key insight is that gradient information (∇L_l / ∂h_l) can be computed locally using only the layer's own activations and a fixed random projection—no learning required. Fixed random matrices are already proven effective in random projection theory (e.g., random features for kernel approximation), so Bio-FO applies them as lightweight auxiliary classifiers for local loss.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Accuracy gap versus backpropagation remains significant on large-scale datasets: mini-ImageNet 67.39% error vs 53.49% for BP—a 2.2x error ratio, making deployment on demanding tasks uncertain.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Fixed random auxiliary classifiers may be suboptimal for complex decision boundaries; no learned adaptation of the projection matrices, limiting expressiveness.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Not yet evaluated on hardware specifically designed for forward-only algorithms; all results on general-purpose GPUs (Jetson Nano), leaving performance on custom neuromorphic or analog hardware unknown.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Not extended to transformers, GANs, or graph neural networks; applicability to modern architectures unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Weight sharing in CNN extension (sparsity mask S_l) is not biologically plausible; this limits the claim of full biological fidelity to CNNs.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Bridging Unstructured and Structured Sparsity</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Enabling Unstructured Sparse Acceleration on Structured Sparse Accelerators</div>
+      <div class="pc-sub">Bridging Unstructured and Structured Sparsity</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TASD (Tensor Approximation via Structured Decomposition) decomposes any unstructured sparse tensor into a series of N:M structured sparse tensors, enabling unstructured sparse models (from conventional pruning pipelines) to run on structured sparse accelerators (e.g., NVIDIA 2:4 Tensor Cores) without fine-tuning. The method exploits the distributive property of tensor algebra: any weight matrix W can be approximated as a sum W ≈ W₁ + W₂ + ... + Wₖ where each Wᵢ is N:M structured.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TASD-W performs offline weight decomposition via greedy layer-wise search: for each layer, it iteratively extracts N:M patterns that maximize the sum of absolute values (keeping high-impact weights) while dropping low-value elements, maintaining 99% model quality. The algorithm is greedy within each layer and quality-constrained (stops when 99% quality is reached).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TASD-A handles dynamic runtime activation decomposition: as activations flow through the network, the system detects sparsity patterns and selects which N:M structured forms to apply, with pattern selection driven by sparsity degree (if activations have 50% zeros, select 2:4; if 75%, select 1:4).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">TTC (TASD Tensor Core) extends existing structured sparse accelerators (VEGETA, STC) to support multiple N:M patterns simultaneously via hardware modifications. A decomposition-aware dataflow keeps B/C tiles stationary while multiple A tile passes occur, amortizing the decomposition overhead across multiple structured sparse operations.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On NVIDIA RTX 3080 GPU (2:4 sparse Tensor Cores), TASD achieves 39% speedup over dense Tensor Core execution on unstructured sparse DNNs. Energy-delay product (EDP) improves up to 83% (dense DNNs) and 74% (sparse DNNs). Computation reduction reaches 40% while maintaining 99% model quality.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Greedy decomposition is efficient: at each iteration, the algorithm selects N:M weights that maximize value sum, leaving low-value elements in the residual for the next iteration. This maximizes information retention per decomposition step, requiring fewer total patterns (typically 2-4 patterns suffice for 99% quality).</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Decomposition introduces multiple passes over structured sparse hardware; each additional pattern multiplies the memory access cost, and decomposition overhead (tile reads/writes/adds) is not explicitly characterized.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Quality guarantee (99%) is a heuristic threshold, not a formal bound; deeper analysis of why 99% is sufficient or when it is insufficient missing.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">TASD-A runtime overhead (pattern detection latency) depends on sparsity pattern detection algorithms not fully specified; could add meaningful overhead if done in software.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation focused on 2:4 Tensor Cores; applicability to other structured patterns (2:8, 1:4 block sparsity) or non-N:M structured accelerators (block sparsity, row sparsity) unclear.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison baseline limited to dense and DSTC (dual-side sparse tensor core); other decomposition-based sparsity methods not compared.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Catastrophic Forgetting Mitigation in Structured Pruning</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">Self-Data Distillation for Recovering Quality in Pruned Large Language Models</div>
+      <div class="pc-sub">Catastrophic Forgetting Mitigation in Structured Pruning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses catastrophic forgetting in structured depth pruning of LLMs: removing decoder blocks (e.g., reducing a 32-layer Llama from 32 to 26 layers) degrades accuracy, and naive supervised fine-tuning (SFT) on the original fine-tuning dataset worsens forgetting because the pruned model now produces different outputs than the original.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The method uses angular cosine distance between consecutive transformer block outputs to identify redundant layers: layers with minimal output differences are pruned first. The unpruned model then rewrites the fine-tuning dataset by generating new target responses for each prompt, preserving semantic richness while remaining compatible with the pruned model's reduced capacity. Conditional selection keeps original responses for prompts where the pruned model already performs adequately. The pruned model is fine-tuned on this "self-distilled" dataset.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Post-training recovery uses SLERP (spherical linear interpolation) to blend pruned and unpruned model checkpoints in weight space, smoothing the transition. Additionally, the pruned model can be deployed as a speculative decoding draft model paired with the full model as verifier, recovering inference speed without accuracy loss.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On Llama3.1-8B with 6 decoder blocks pruned (from 32 to 26), the method achieves 91.24% accuracy retention versus 81.66% for standard SFT on OpenLLM Leaderboard v1. In speculative decoding, the pruned model achieves 1.70 average accepted token length at block size 10.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">SLERP model merging blends weight vectors in spherical space, which better preserves directional information than linear interpolation in weight space. This smooths the transition between pruned and unpruned models, extracting additional quality from both checkpoints.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Self-data distillation requires running inference on the full unpruned model, incurring substantial generation cost during the SFT dataset preparation phase; this cost is not quantified or amortized across the accuracy gain.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Angular cosine distance metric captures output alignment but may miss structural information relevant to pruning (e.g., layer roles in different tasks); metric optimality not proven.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation primarily on Llama3.1-8B and Mistral-7B (7-8B scale); behavior on larger models (70B+) or smaller models (3B) unknown—pruning tolerance and forgetting patterns may differ at different scales.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Conditional selection heuristic (when to keep original responses) not detailed; sensitivity to this threshold not characterized.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Speculative decoding application assumes runtime access to full model; applicability to edge/mobile inference of pruned models unclear.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Communication-Computation Overlap in Distributed MoE</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MLSYS</div>
+    <div>
+      <div class="pc-title">COMET: Fine-grained Computation-communication Overlapping for Mixture-of-Experts</div>
+      <div class="pc-sub">Communication-Computation Overlap in Distributed MoE</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">COMET optimizes distributed Mixture-of-Experts training by fine-grained overlapping of inter-device all-to-all token routing communication with expert computation. The bottleneck: sparse expert activation requires routing tokens to different GPUs via all-to-all collectives, occupying 30-47% of execution time. Naive pipelining chunks expert computation and communication, but granularity mismatch causes inefficiency—token-level communication (all-to-all happens atomically) and tile-level GEMM computation (matrix multiply processes 128×128 tiles) operate at different granularities, making deterministic scheduling difficult.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">COMET introduces two mechanisms: (1) Shared Tensor Based Dependency Resolving: analyzes the shared buffer (output token matrix) between communication producer (all-to-all dispatch) and computation consumer (expert layer GEMM), then decomposes this tensor along independent dimensions. For layer-0 GEMMs, decompose along M-axis (split output tokens into row groups); for layer-1 top-K selection, decompose along N-axis (split dimension for reduction). Then reschedule computation tiles to begin as early as possible using locally available data. (2) Adaptive Workload Assignment: fuses communication and computation in a single GPU kernel, then thread-block specialization isolates them in separate streaming multiprocessor (SM) groups. Adaptive thread-block allocation is profiled per input shape and parallelism strategy to determine the optimal split (e.g., 40% SMs for communication, 60% for computation, tuned per configuration).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Mechanically: fused kernel receives producer (all-to-all) and consumer (GEMM) operations as input, decomposes shared tensors into independent blocks, runs producer and consumer concurrently on separate SM groups, and uses NVSHMEM (GPU-initiated communication) for fine-grained remote data access. Hopper TMA (tensor memory accelerator) overlaps data movement with computation.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On NVIDIA H800 GPUs (NVLink) training Mixtral 8x7B and Qwen2-MoE, COMET achieves 1.96x speedup on a single MoE layer, 1.71x end-to-end speedup, and hides 86.5% of communication latency (versus 68.6% for Tutel and 29.2% for FasterMoE). Deployed in production on 10,000+ GPU clusters saving millions of GPU hours. Latency reduction versus Megatron-CUTLASS: 34.1%; versus Megatron-TE: 42.6%; versus FasterMoE: 44.4%.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Existing MoE systems (Tutel, FasterMoE, Megatron) treat all-to-all and expert computation as separate pipeline stages, missing fine-grained overlapping opportunities. Token routing collectives are all-to-all (all devices exchange tokens), creating data dependencies that span all devices; naive pipelining waits for the full all-to-all to complete before GEMM begins, leaving communication latency unexploited. COMET's insight is that GEMM can begin on the first tokens that arrive via all-to-all, before the full collective completes. Shared tensor decomposition enables this: by splitting output token matrix into M-axis or N-axis slices, the scheduler can identify which tile computations depend only on which token slices, then trigger GEMM tiles as soon as their data arrives.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Adaptive SM allocation further optimizes: communication (all-to-all dispatch) and computation (GEMM) both consume SM resources; if too many SMs do communication, computation stalls; if too few, communication takes all the time. COMET profiles per shape/parallelism configuration to find the optimal split. Hopper TMA hardware offloads memory copy work to a dedicated engine, freeing compute SMs for actual GEMM.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Requires pre-profiling per (input shape, parallelism configuration) to determine optimal thread-block split; profiling database size grows with model variants, and profiling must be rerun when hardware topology changes.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">NVSHMEM memory overhead is small but non-zero; impact on memory pressure in production clusters with large batch sizes not quantified.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Primarily validated on H800 (NVLink, high bandwidth); L20 (PCIe) gains much smaller (1.19-1.46x vs 1.28-2.37x on H100), indicating method sensitivity to network topology.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation focused on Mixtral-8x7B and Qwen2-MoE; behavior on other MoE variants (e.g., GShard, Switch Transformers with 2000+ experts) or mixture ratios unknown.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Assumes static expert assignment; dynamic load balancing (reassigning experts at runtime based on token distribution) not addressed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Preconditioner Sparsification for GPU Parallelism</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Sparsified Preconditioned Conjugate Gradient Solver on GPUs</div>
+      <div class="pc-sub">Preconditioner Sparsification for GPU Parallelism</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Preconditioned iterative sparse linear solvers (used extensively in scientific computing for systems Ax=b) suffer from data dependencies across iterations that limit GPU parallelization. Preconditioners (like ILU factorization) reduce iteration count but introduce sequential dependencies: computing iteration k+1 requires results from iteration k, creating a dependency chain that prevents full GPU parallelization.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The SPCG (Sparsified Preconditioned Conjugate Gradient) solver intentionally sparsifies the preconditioner: instead of using a full preconditioner P (which is dense in dependency), it uses a sparser version P' with many small-magnitude elements removed. This reduction in connectivity reduces iteration dependencies while maintaining convergence (though requiring slightly more iterations). The sparsified preconditioner enables fine-grained parallelism on GPUs with many cores (2000+ CUDA cores).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Evaluated with ILU(0) (incomplete LU factorization with zero fill) and ILU(K) (K levels of fill-in) preconditioners on symmetric positive definite (SPD) matrices.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On NVIDIA A100 GPUs, SPCG achieves 1.23x geometric mean speedup in the iterative phase with ILU(0) and 1.65x with ILU(K). End-to-end speedup: 1.68x with ILU(0) and 3.73x with ILU(K). These speedups come from reduced iteration dependencies enabling better GPU utilization despite additional iterations from sparsification.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Preconditioned conjugate gradient (PCG) solvers are backbone of large-scale scientific computing (CFD, structural mechanics, climate models) but are memory-bandwidth bound on GPUs. Preconditioners like ILU reduce iteration count dramatically (10-50x fewer iterations), but their sequential structure (forward/backward substitution in triangular solver) creates control dependencies that kill GPU parallelism. Naive GPU implementations serialize preconditioner application, leaving thousands of cores idle.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Sparsification breaks this bottleneck: by removing weak coupling (low-magnitude preconditioner entries), the dependency graph becomes sparser, enabling concurrent execution of more iterations. The cost is additional iterations (since preconditioner quality degrades slightly), but this trade is favorable on GPUs where iteration cost is low (matrix-vector multiply is memory-bandwidth limited anyway).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">ILU(K) shows larger gains (3.73x) than ILU(0) (1.68x) because ILU(K) is denser initially, so sparsification removes more dependencies. ILU(0) is already sparse, limiting gain from sparsification.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to symmetric positive definite (SPD) matrices; behavior on general unsymmetric matrices (which require GMRES or BiCG instead of CG) not characterized. SPD systems are important but represent a subset of sparse linear solver use cases.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Convergence analysis of sparsified preconditioners not rigorously provided; no formal bounds on iteration count increase as a function of sparsification level.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Sparsification strategy (which entries to drop) is not detailed; sensitivity to sparsification threshold unknown. A heuristic threshold (drop entries below τ in magnitude) likely underlies the method, but robustness to different thresholds not shown.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scaling behavior beyond A100 (e.g., on H100 or multi-GPU systems) not explored; gains may diminish if network bandwidth becomes bottleneck instead of GPU compute.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">No comparison with other GPU-accelerated preconditioners (e.g., polynomial preconditioners, approximate inverse) or modern hardware-efficient alternatives (e.g., multigrid methods).</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Flexible Sparse Solver Data Partitioning via Task Runtimes</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">KDRSolvers: Scalable, Flexible, Task-Oriented Krylov Solvers</div>
+      <div class="pc-sub">Flexible Sparse Solver Data Partitioning via Task Runtimes</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">KDRSolvers decouples sparse matrix storage format from Krylov solver algorithm implementation, enabling flexible data partitioning strategies without code refactoring. The core abstraction is dependent partitioning: the library represents sparse matrices using an abstract dependent partitioning that maps between three partitioning layers—domain (nonzero positions), range (output values), and entries (row/column indices). Universal co-partitioning operators automatically propagate partitioning decisions from matrices to vectors; the framework ensures that matrix partitions and vector partitions align without manual coordination.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">For example, if a user changes from row-block partitioning to 2D graph partitioning, the matrix partitioning adapts, and co-partitioning operators automatically adjust vector partitions—no algorithmic code changes required. Multi-operator systems handle non-contiguous data ingestion (e.g., if different rows come from different file formats or compression schemes).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The implementation targets the Legion task-based runtime, which schedules sparse matrix-vector multiply operations across heterogeneous systems (multi-GPU clusters, CPU nodes) while respecting dependencies.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On up to 1,024 NVIDIA GPUs, KDRSolvers achieves 9.6% reduction in iteration time versus PETSc/Trilinos baseline. Performance is competitive with established sparse solver frameworks while offering automatic partitioning propagation.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Traditional sparse solver frameworks (PETSc, Trilinos) require manual data partitioning: users specify how matrix rows are distributed, then manually ensure vector partitions match. Changing partitioning strategy (e.g., from 1D row-block to 2D graph partitioning for load balancing on heterogeneous systems) requires extensive code refactoring to align matrix and vector operations. This limits exploration of partitioning strategies for optimal performance on new hardware.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">KDRSolvers solves this by abstracting the partitioning as a dependent structure: the framework automatically derives vector partitioning from matrix partitioning via co-partitioning operators. Users specify the matrix partitioning once, and all operations (matrix-vector multiply, preconditioner application, dot products) automatically partition vectors correctly. This enables rapid prototyping of new partitioning strategies without rewriting solver code.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Task-based runtime (Legion) further helps by scheduling operations automatically across GPUs, hiding heterogeneity from the solver algorithm.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Speedup modest (9.6%); Legion runtime overhead not isolated or quantified separately, making it unclear whether speedup comes from better partitioning or just overhead reduction from abstraction.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability beyond 1,024 GPUs not tested; modern large-scale systems (10,000+ GPU datacenters) may expose additional scaling challenges not addressed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Limited evaluation on diverse problem types; focus on standard SPD/general linear systems, but performance on ill-conditioned problems, saddle point systems, or nonlinear (Newton-Krylov) problems unknown.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Dependent partitioning abstraction adds memory overhead for metadata; this overhead not quantified, particularly for systems with millions of nonzeros.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison limited to PETSc/Trilinos; modern alternatives (Ginkgo, MFEM with task-based backends) not evaluated.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Sparsity-Preserving Fine-Tuning on Specialized Hardware</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Enabling Unstructured Sparse Fine-Tuning and Inference for Foundation Models on Wafer-Scale Engine</div>
+      <div class="pc-sub">Sparsity-Preserving Fine-Tuning on Specialized Hardware</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Phoenix merges sparse pre-trained weights with low-rank adapters during fine-tuning to preserve sparsity structure across downstream task adaptation. Foundation models are often pre-trained with sparsity (e.g., magnitude pruning removes 50-60% of weights to reduce inference compute). However, task-specific fine-tuning on new datasets traditionally uses dense full-parameter updates (via SGD or Adam on all parameters), which fills in the pruned weights and negates sparsity savings.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Phoenix instead applies LoRA-style low-rank adapters on top of the sparse pre-trained weights: the adapter weights are initialized as low-rank matrices and trained, while the sparse pre-trained weights remain frozen. During inference, the final weight matrix is the sum of sparse pre-trained weights and the low-rank adapter, maintaining the original 50-60% sparsity pattern from pre-training. This preserves the efficiency of sparse pre-training while adapting the model to downstream tasks.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The method is deployed on Cerebras CS-2 (wafer-scale engine), which has native support for unstructured sparsity via sparse weight and activation buffers that efficiently skip zero computations.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">On Cerebras CS-2 with 50-60% sparsity, Phoenix maintains model accuracy comparable to dense fine-tuning while achieving approximately 2x FLOP reduction. Inference throughput is 1.7x higher than NVIDIA A100 GPU baseline.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Sparse pre-trained models hold significant efficiency promise: 50-60% weight sparsity reduces computation and memory directly. However, downstream task adaptation (fine-tuning on domain-specific data) traditionally requires dense fine-tuning to achieve good accuracy, negating sparsity savings. Prior approaches either (1) fine-tune densely, losing sparsity, or (2) retain sparsity structure but sacrifice adaptation quality (accuracy drops).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Phoenix's insight is to use low-rank adapters, which are widely proven effective (LoRA, QLoRA) for efficiency. By training only the low-rank adapter (small model) while keeping sparse pre-trained weights frozen, the method combines two efficiency mechanisms: (1) sparse pre-training reduces computation in the large pre-trained component, and (2) LoRA reduces parameters in the training component. The result is that total compute during fine-tuning is already reduced (relative to dense fine-tuning), and inference maintains the original sparsity, maximizing end-to-end efficiency.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Cerebras CS-2 hardware is particularly suited for this because its unstructured sparsity support natively handles arbitrary sparsity patterns without requiring N:M structure, so the 50-60% sparsity from pre-training maps directly to hardware efficiency.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Comparison limited to NVIDIA A100; Cerebras cost per compute unit, amortization over inference volume, and financial tradeoff versus dense GPU clusters not discussed.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scalability to larger models (100B+) unclear; fine-tuning experiments limited to smaller model scales in initial evaluation.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Applicability to other sparse pre-training methods (pruning-at-init, lottery ticket hypothesis, dynamic sparsity) not evaluated; method may be specific to magnitude pruning.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Low-rank adapter rank selection (how many dimensions in the adapter?) not optimized; whether adapters should be per-layer or global not explored.</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Accuracy recovery analysis missing: does the adapter fully recover downstream task performance, or is there a permanent accuracy gap versus dense fine-tuning?</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+  <footer>
+    AI Hardware 2025 &middot; Sparsity & MoE deep reads &middot; 14 papers &middot; click any card to expand &middot;
+    <a href="../../../index.html">master narrative</a> &middot; <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '\u25b2 collapse' : '\u25bc read analysis';
+  });
+});
+</script>
+</body>
+</html>

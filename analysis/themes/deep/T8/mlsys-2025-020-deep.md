@@ -1,0 +1,25 @@
+# Interference-Aware Edge Runtime Prediction with Conformal Matrix Completion
+
+**Venue:** MLSys 2025 · **Subtheme:** Multi-Tenant Interference Modeling for Heterogeneous Edge Runtime Prediction
+
+## What It Does
+
+Pitot predicts the execution time of workloads on heterogeneous edge platforms (ARM, x86, RISC-V microcontrollers) under multi-tenant contention, where direct measurement is sparse (not all workload-platform pairs are observed) and platforms vary widely in microarchitecture. The system models runtime prediction as a matrix-completion problem: rows are workloads, columns are platforms, entries are runtimes. Instead of hand-crafted features, Pitot uses two-tower MLPs with side information: each workload is represented by an opcode-count feature vector (histogram of instruction types: ALU, memory, branches extracted via binary instrumentation), and each platform is represented by hardware specs (cache sizes, clock frequency, memory bandwidth, ISA). The core model is matrix factorization with an interference term: given workload embedding w_i and platform embedding p_j, the predicted runtime is μ_ij = w_i^T · p_j + F_j, where F_j is a low-rank bilinear interference matrix that captures how workloads interact when running in parallel on platform j. The interference term F_j is embedded directly in the latent space, enabling joint completion of both the runtime matrix and the interference model.
+
+During training, the system minimizes log-residual loss (robust to outliers in sparse observations). At prediction time, uncertainty quantification uses conformalized quantile regression (CQR): the model predicts coverage-guaranteed prediction intervals via optimal quantile selection and per-platform calibration pools. Given a new workload-platform pair, Pitot outputs a runtime interval (e.g., [18ms, 25ms]) that is guaranteed to contain the true runtime with user-specified coverage probability (e.g., 95%).
+
+## The Key Result
+
+On CNN vision benchmarks and HPC Polybench across diverse edge platforms, Pitot achieves 5.2% mean absolute percentage error (MAPE), up to 48% lower prediction error and 44% tighter prediction intervals (narrower bounds at same coverage) compared to the next-best baseline. The system also achieves 2x error improvement over naive matrix factorization (no side information, no interference modeling). Prediction intervals maintain coverage guarantees across platforms with different noise profiles, a property none of the baseline methods provide.
+
+## Why This Approach
+
+Edge devices are heterogeneous and resource-constrained, making centralized profiling infeasible. Multi-tenant deployments mean workloads interfere with each other; single-workload runtime models (common in prior work) cannot predict actual performance. Sparse observation data (not all workload-platform pairs are benchmarked) rules out per-pair models. Matrix factorization naturally handles sparsity, but standard matrix factorization ignores interference—it assumes runtime is purely additive (w_i + p_j). The innovation is adding a low-rank interference term F_j directly in the embedding space: this allows the model to capture that some workloads (e.g., memory-intensive) interfere more than others (e.g., CPU-bound) on platform j, and interference profiles differ across platforms. Conformal prediction is chosen for uncertainty quantification because it provides statistical coverage guarantees without distributional assumptions—critical for edge systems where runtime tails can matter (deadline misses are safety-critical). The approach is chosen over single-platform models (e.g., per-ARM profiler) because edge deployments span many ISAs; over attention-based interference models because the low-rank structure is simpler and more interpretable; and over full Bayesian methods because coverage guarantees are essential.
+
+## What It Leaves Open
+
+- **Requires opcode-count feature extraction via binary instrumentation**: this is non-trivial on heterogeneous ISAs (RISC-V, ARM, x86) and may not be portable to all edge devices; features are also static and do not capture dynamic behavior (cache reuse, branch patterns).
+- **Calibration pool must be populated per platform before deployment**: each new platform requires benchmarking a representative subset of workloads to build the calibration set; cold-start performance on unseen platforms is not characterized.
+- **Assumes interference effect is low-rank in embedding space**: this assumption may not hold for all platforms; platforms with cache-hierarchy phase transitions or NUMA effects may require higher-rank models.
+- **Prediction intervals widen significantly under high contention**: narrow guarantees are only achievable with extensive calibration data; sparse deployments with few observed interference patterns see wider intervals.
+- **No adaptive re-calibration during deployment**: if the platform's behavior drifts (e.g., thermal throttling, background OS activity changes), the model is not retrained; applicability to long-lived edge systems is unclear.

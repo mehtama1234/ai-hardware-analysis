@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deep Reads: Compiler & Scheduling &middot; AI Hardware 2025</title>
+<style>
+:root {
+  --bg:#0A0E13; --bg2:#0F1520; --bg3:#141c28;
+  --ink:#E8E3D6; --ink2:#9AABB8; --ink3:#5B6B78;
+  --cyan:#38E1CF; --amber:#F5A65B; --violet:#9C8CFF; --coral:#FF6B5C;
+  --line:#1E2A38; --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:Palatino,'Palatino Linotype','Book Antiqua',Charter,Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px),
+    repeating-linear-gradient(90deg,transparent,transparent 43px,var(--line) 43px,var(--line) 44px);}
+.wrap{max-width:920px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+a{color:var(--cyan);text-underline-offset:3px;text-decoration:none}
+a:hover{text-decoration:underline}
+.topnav{padding:20px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.topnav a{font-family:var(--mono);font-size:.68rem;color:var(--ink3);border:1px solid var(--line);
+  padding:3px 9px;border-radius:12px}
+.topnav a:hover{color:var(--cyan);border-color:var(--cyan)}
+.hero{padding:32px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.hero .eyebrow{font-family:var(--mono);font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);
+  line-height:1.1;letter-spacing:-.02em;font-family:var(--serif)}
+.hero .sub{font-size:.95rem;color:var(--ink2);margin-top:8px;font-family:var(--serif);font-style:italic}
+.paper-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:18px 20px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.paper-card:hover{border-color:var(--cyan)}
+.paper-card .pc-head{display:flex;gap:12px;align-items:flex-start}
+.paper-card .pc-venue{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;padding-top:3px}
+.paper-card .pc-title{font-size:.97rem;font-weight:600;color:var(--ink);line-height:1.3}
+.paper-card .pc-sub{font-family:var(--mono);font-size:.62rem;color:var(--cyan);margin-top:4px}
+.paper-card .pc-summary{font-size:.88rem;color:var(--ink2);margin-top:10px;line-height:1.5;display:none}
+.paper-card.open .pc-summary{display:block}
+.paper-card .pc-toggle{font-family:var(--mono);font-size:.65rem;color:var(--ink3);margin-top:10px}
+.section-h{font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink3);margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+footer{padding:32px 0 48px;font-family:var(--mono);font-size:.65rem;color:var(--ink3);
+  border-top:1px solid var(--line);margin-top:32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <a href="../../../index.html">&#x2190; master narrative</a>
+    <a href="../../../t6-deepdive.html">T6 theme essay &#x2197;</a>
+    <a href="index.html">&#x2190; deep reads hub</a>
+    <a href="../../../explorer.html">explorer</a>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">AI Hardware 2025 &middot; Compiler & Scheduling &middot; Deep Reads</div>
+    <h1>Compiler &amp; Scheduling: Top Papers</h1>
+    <div class="sub">15 high-impact papers &middot; auto-tuning, kernel fusion, tiling, dataflow scheduling, and making hardware actually run fast</div>
+  </div>
+  <div class="section-h">Performance Scheduling &amp; Autotuning</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ASPLOS</div>
+    <div>
+      <div class="pc-title">DarwinGame: Playing Tournaments for Tuning Applications in Noisy Cloud Environments</div>
+      <div class="pc-sub">Performance Scheduling &amp; Autotuning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">DarwinGame is a tournament-based tuner that bypasses the inability to control cloud interference by co-locating multiple copies of the same application with different tuning configurations on the same VM, exposing all competing configurations to identical interference conditions simultaneously. Tournaments are structured across four phases: (1) Regional phase (Swiss-style): the search space is divided into 10,000 regions; configurations within each region compete in parallel with early termination when a clear winner emerges based on work-done execution score; (2) Global phase (double-elimination style): regional winners compete with losers given a second chance, with both execution score and consistency score (average 1/rank across games) used for judging; (3) Playoffs (barrage style): top survivors compete two-at-a-time without early termination; (4) Final: two finalists compete to produce the winning configuration. This multi-phase design identifies configurations with both low execution time and low performance variability under interference.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Co-locating multiple application copies with different tuning configurations in the same VM game to expose all candidates to identical interference, then using a multi-phase tournament structure (Swiss + double-elimination + barrage) to rank configurations robustly under noisy cloud conditions.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> &gt;27% reduction in execution time vs. OpenTuner/BLISS/ActiveHarmony in cloud environments</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Accuracy:</b> 4.2% above optimal on average (vs. 40%+ for next best tuner BLISS)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> &lt;0.5% performance variability; &gt;15% improvement when integrated with existing tuners</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Introduction of interference-aware cloud performance tuning as a new research area and first solution (DarwinGame).. Tournament-based design with Swiss, double-elimination, and barrage phases that systematically identify configurations with low execution time and low interference sensitivity.. Integration mechanism allowing DarwinGame to enhance existing tuners (OpenTuner, BLISS) as a subspace search oracle.. Evaluation on AWS (m5.8xlarge, 32 vCPUs) with Redis, GROMACS, FFmpeg, LAMMPS: &gt;27% execution time reduction over existing tuners, &lt;0.5% performance variability, &gt;15% improvement when integrated with existing tuners.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Existing application performance tuners (OpenTuner, ActiveHarmony, BLISS) implicitly assume a dedicated interference-free execution environment; when used as-is in shared cloud environments with unpre...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">DarwinGame targets static tunable parameters only and does not provide provable theoretical bounds on convergence due to the unpredictable nature of cloud interference; co-location within a VM introduces additional noise that can affect smaller configurations.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">Choco-Q: Commute Hamiltonian-based QAOA for Constrained Binary Optimization</div>
+      <div class="pc-sub">Performance Scheduling &amp; Autotuning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Choco-Q encodes constraints by selecting a driver Hamiltonian that commutes with the constraint operator (the commute Hamiltonian), exploiting the Heisenberg picture to guarantee that constraint expectation values remain invariant during quantum evolution, achieving 100% in-constraints rate. Three optimization passes reduce circuit complexity for NISQ deployment: (1) Hamiltonian serialization decomposes the global commute Hamiltonian into independent local sub-Hamiltonians (proven via Lemma 1 to preserve constraint satisfaction), reducing circuit depth from ~4000 to ~24; (2) equivalent decomposition converts each local commute Hamiltonian into control-phase gates and CX gates with linear O(n) time complexity and O(n) circuit depth (Lemma 2), replacing exponential Trotter-Suzuki decomposition; (3) variable elimination reduces the constraint matrix dimension by removing variables with the most non-zero solution entries, shrinking qubit count and circuit depth at the cost of additional classical measurements. Evaluation is conducted on IBMQ Fez (159-qubit Heron r2), Sherbrooke, and Osaka (127-qubit Eagle r3) platforms, plus a classical GPU simulator (A100).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Using the commute Hamiltonian as the QAOA driver Hamiltonian provides a universal hard-constraint encoding for arbitrary linear constraints, paired with a linear-complexity exact decomposition that makes it deployable on current NISQ hardware.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> 4.69x end-to-end over cyclic Hamiltonian-based QAOA on real IBMQ hardware</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Accuracy:</b> 235x improvement in success rate; 100% in-constraints rate; 658x improvement in approximation ratio gap vs. cyclic Hamiltonian</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> 10^6x decomposition time reduction; circuit depth reduction from ~10^4 to ~100; 2.65x in-constraints rate improvement on IBMQ</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First QAOA framework achieving 100% in-constraints rate for arbitrary linear equality constraints via commute Hamiltonian encoding. Hamiltonian serialization technique that decomposes the global commute Hamiltonian into local sub-Hamiltonians with provably preserved constraint satisfaction, reducing circuit depth from thousands to tens. Exact linear-complexity decomposition of local commute Hamiltonians into control-phase and CX gates, eliminating exponential Trotter approximation overhead (10^6x decomposition time reduction). Variable elimination technique for further circuit depth reduction on NISQ devices; overall 235x algorithmic improvement in success rate and 4.69x end-to-end speedup over cyclic Hamiltonian-based QAOA</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Existing QAOA approaches for constrained binary optimization based on penalty terms or cyclic Hamiltonian simulation fail to encode arbitrary linear constraints, yielding near-zero success rates (as l...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Circuit depth still grows linearly with problem size and number of constraints, limiting scalability to problems well within current NISQ qubit counts (tested up to 28 variables).</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">LLMulator: Generalizable Cost Modeling for Dataflow Accelerators with Input-Adaptive Control Flow</div>
+      <div class="pc-sub">Performance Scheduling &amp; Autotuning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LLMulator uses a pre-trained LLM (LLaMA-3.2-1B fine-tuned via LoRA) as the backbone for cost prediction with three novel mechanisms: (1) Progressive numeric encoding that tokenizes each decimal digit independently and uses categorical cross-entropy rather than regression to predict performance as digit-wise classification with beam-search error correction, enabling range-agnostic estimates; (2) Dynamic Prediction Calibration (DPC) using Direct Preference Optimization (DPO)-style reinforcement learning with a replay buffer, where the model is updated online from Verilator simulation feedback to adapt to runtime input variations in loop bounds and control-flow branching; (3) A progressive dataset synthesizer that generates multi-level training data via AST-based generation, dataflow-specific loop-tree mutation, and LLM-based augmentation, then formats data with intermediate RTL reasoning chains (via SiliconCompiler and OpenROAD) to teach the model compilation-level reasoning.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Treating hardware performance values as digit-wise categorical token sequences (rather than regression targets) enables confidence-aware, range-agnostic prediction that generalizes to out-of-distribution loop scales, combined with RL-based online calibration for input-adaptive control flows.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Accuracy:</b> 12.2% MAPE on ASIC scenarios; 9.7% error reduction from DPC over static; 16.7%–7.8% error reduction vs GNNHLS/TLP</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Progressive numeric modeling paradigm that tokenizes numerical program values digit-by-digit with categorical output and beam search, reducing edge-value prediction errors by 2.3%–13.6% over regression baselines.. Dynamic Prediction Calibration framework using DPO-based reinforcement learning from simulation feedback, converging to 11.2% cycle prediction error after a few iterations, a 9.7% improvement over static models.. Progressive data augmentation framework combining AST generation, dataflow-specific loop mutation, and LLM self-augmentation, with hardware mapping parameters (memory delays, loop unroll pragmas) to cover diverse hardware configs.. End-to-end LLMulator framework achieving 12.2% MAPE on ASIC design scenarios, reducing error by 16.7%–7.8% compared to GNNHLS and TLP state-of-the-art methods.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Existing performance prediction methods for dataflow-based accelerators (TPUs, NPUs, FPGAs) fail to generalize across three dimensions: unseen applications with extreme loop scales (errors exceeding 4...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Calibration via DPO requires repeated simulation runs (Verilator) per input, adding profiling overhead that may be prohibitive for very large dataflow programs; the method targets HLS-level (C-to-RTL) modeling and does not address post-place-and-route variability.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">MUSS-TI: Multi-level Shuttle Scheduling for Large-Scale Entanglement Module Linked Trapped-Ion</div>
+      <div class="pc-sub">Performance Scheduling &amp; Autotuning</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">MUSS-TI constructs a dependency graph (DAG) of the quantum circuit and applies a multi-level scheduling strategy analogous to classical memory scheduling: storage zones map to L0 (disk), operation zones to L1 (memory), and optical zones to L2 (CPU). Gate selection prioritizes immediately executable gates; qubit routing assigns each qubit to the nearest-level available zone; conflict handling uses an LRU eviction policy to relocate the least-recently-used qubit to a lower-level zone. A look-ahead SWAP insertion algorithm (k=8 layers) strategically inserts SWAP gates between different QCCD modules to reduce long-range shuttle counts; a SABRE-inspired bidirectional initial mapping further reduces overhead.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Applying the multi-level cache scheduling abstraction (LRU replacement, zone-level hierarchy) to trapped-ion qubit routing, where storage/operation/optical zones are treated as memory levels and qubit eviction mimics page replacement.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> 58.9% shorter execution time vs. baseline for small-scale circuits</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> Shuttle operation reduction: 41.74% (30-32 qubits), 73.38% (117-128 qubits), 59.82% (256-299 qubits)</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Multi-level shuttle scheduling framework (MUSS-TI) that maps EML-QCCD zones to memory hierarchy levels for efficient qubit routing. Zone-aware SWAP insertion algorithm using an 8-layer look-ahead weight table to reduce inter-QCCD shuttle operations. SABRE-based bidirectional initial qubit mapping adapted for EML-QCCD enhanced connectivity. Shuttle reduction of 41.74% (30-32 qubits), 73.38% (117-128 qubits), and 59.82% (256-299 qubits) vs. prior QCCD compilers, with 58.9% shorter execution time on small-scale benchmarks</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Compiling quantum circuits for Entanglement Module Linked Quantum Charge-Coupled Device (EML-QCCD) trapped-ion architectures is inefficient because existing compilers do not account for the distinct f...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The evaluation uses simulation with a fidelity model rather than real hardware; the approach is specific to EML-QCCD and does not generalize to other modular quantum architectures such as superconducting or photonic chips.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Hardware Simulation</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">DATE</div>
+    <div>
+      <div class="pc-title">Fast Interpreter-Based Instruction Set Simulation for Virtual Prototypes</div>
+      <div class="pc-sub">Hardware Simulation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Proposes Dynamic Basic Block Cache (DBBCache) to accelerate instruction processing and Load/Store Cache (LSCache) to speed up memory operations in interpreter-based RISC-V ISS; implemented on SystemC-based VP.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Combined DBBCache and LSCache optimization achieving high performance while maintaining interpreter comprehensibility and adaptability.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Mips:</b> 406.97</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Vs Original:</b> 8.98×</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Vs Spike:</b> 1.65×</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Dynamic Basic Block Cache for instruction processing acceleration. Load/Store Cache for memory operation optimization. Peak performance of 406.97 MIPS. 8.98× speedup over original VP, 1.65× over Spike simulator. RISC-V Zfh half-precision extension support. Open-source release</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Interpreter-based instruction set simulators for virtual prototypes have poor performance; optimizations often sacrifice comprehensibility and adaptability.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Not discussed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">OmniSim: Simulating Hardware with C Speed and RTL Accuracy for High-Level Synthesis Designs</div>
+      <div class="pc-sub">Hardware Simulation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">OmniSim introduces a multi-threaded simulation framework operating at the LLVM IR level. It classifies dataflow designs into three types (A: blocking-only/acyclic; B: non-blocking or cyclic but single-behavior; C: non-blocking with behavior depending on FIFO access outcome) and applies different simulation strategies accordingly. Key mechanisms: (1) one software thread per active dataflow module (Func Sim threads) plus a dedicated Performance Simulation thread (Perf Sim thread); (2) FIFO read/write timing tables that explicitly record the hardware cycle at which each FIFO event occurs, independent of OS thread scheduling; (3) a Query Pool where Func Sim threads pause on non-blocking FIFO accesses until the Perf Sim thread resolves the query by comparing hardware-cycle timestamps; (4) flexibly overlapped execution where Func Sim and Perf Sim threads run concurrently rather than in strict phases, yielding additional speedup. An LLVM pass instruments the IR to track basic block execution traces and rewrites dataflow functions to launch concurrent threads. Incremental simulation is supported to avoid full restarts when FIFO sizes change.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A tightly coupled, flexibly overlapped multi-thread simulation framework where a dedicated performance simulation thread synchronizes non-blocking FIFO events using hardware-cycle timestamps stored in FIFO tables, enabling correct simulation of previously unsupported Type B and C HLS dataflow designs at near-C speed.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> up to 35.9x over C/RTL co-simulation; up to 6.61x over LightningSim</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Accuracy:</b> near-RTL accuracy (99.9% cycle accuracy maintained for Type A, functionally correct for Types B and C)</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> Incremental FIFO-size DSE: 4 orders of magnitude speedup over full simulation; correctly simulates 11 designs previously unsupported by any HLS tool</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First taxonomy and classification of HLS dataflow designs into Types A/B/C based on FIFO access pattern and module dependency structure, with formal simulation requirements for each. OmniSim framework enabling correct functionality and cycle-accurate performance simulation of all dataflow types, including those explicitly declared unsupported by Vitis HLS and Catapult HLS. Up to 35.9x speedup over C/RTL co-simulation and up to 6.61x over LightningSim on its own benchmark suite. Deadlock detection and incremental FIFO-size DSE with four orders of magnitude speedup over full re-simulation</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: High-Level Synthesis (HLS) tools cannot correctly simulate complex dataflow designs at the C level—particularly those with non-blocking FIFO accesses (read_nb/write_nb), infinite loops, and cyclic mod...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">OmniSim requires static scheduling information from C synthesis (HLS tool must be run first); it does not detect livelocks, only deadlocks; and performance depends on the OS thread scheduler for the overlap between Func Sim and Perf Sim threads.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Timing Analysis</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">DATE</div>
+    <div>
+      <div class="pc-title">Handling Latch Loops in Timing Analysis with Improved Complexity and Divergent Loop Detection</div>
+      <div class="pc-sub">Timing Analysis</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Identifies strongly connected components (SCCs) in timing graph, levelizes them into stages; parallelizes arrival time propagation between SCCs while performing sequential iterations within each SCC; detects divergent loops to avoid unnecessary iterations.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">SCC-based approach reducing latch loop complexity from O(n²) to O(Σk_i²) with lookahead divergent loop detection.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Vs Primetime:</b> 10.31×</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Vs Opensta:</b> 8.77×</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Complexity reduction from O(n²) to O(Σk_i²). 10.31× speedup over PrimeTime on average. 8.77× speedup over OpenSTA on average. Divergent loop detection avoiding over-iteration</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Latch loops introduce feedback cycles in timing graphs disrupting static timing analysis; existing timers require global iterations with worst-case O(n²) complexity where n is number of pins.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Not discussed.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Dataflow Compilation</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">HPCA</div>
+    <div>
+      <div class="pc-title">LEGO: Spatial Accelerator Generation and Optimization for Tensor Applications</div>
+      <div class="pc-sub">Dataflow Compilation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">LEGO uses a relation-centric, affine-transformation-based hardware representation that maps temporal/spatial iteration indices to computation indices via linear matrices, fully decoupling computation logic, data paths, and memory from one another. The LEGO frontend solves integer linear equations to find FU interconnections exploiting data reuse, runs a Minimum Spanning Tree (Chu-Liu/Edmonds algorithm) to prune redundant connections, and applies a BFS-based heuristic to plan direct interconnections across multiple fused dataflows with conflict-free banked memory. The backend translates the FU-level Architecture Description Graph (ADG) into a primitive-level Detailed Architecture Graph (DAG) and applies linear-programming-based delay matching and pin rewiring passes to minimize pipeline register count and eliminate unused logic, yielding synthesizable RTL.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">A unified affine-transformation-based representation that decouples control flow from dataflow, enabling automatic generation of synthesizable RTL for any combination of spatial dataflows without hand-written templates, while reducing control logic overhead by 2x-6.5x versus prior polyhedral/STT approaches.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> 3.2x over Gemmini</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Energy Or Tops W:</b> 2.4x energy efficiency over Gemmini</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Area:</b> 35% area savings from backend optimization over naive RTL generation</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> 6.5x flip-flop savings and 5.0x LUT savings vs AutoSA; 2.0x area, 2.6x power savings vs TensorLib</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Relation-centric affine representation separating control flow from dataflow, eliminating division/modulo in prior representations and enabling shared control-signal propagation. Frontend interconnection analysis using integer linear equations, MST-based minimal connection selection, and BFS-based heuristic for multi-dataflow fusion with conflict-free memory banking. Backend primitive-level graph (DAG) with linear-programming-based delay matching and pin-rewiring optimization reducing register count and unused-logic overhead by 28-35%. 3.2x speedup and 2.4x energy efficiency improvement over Gemmini; generates one unified architecture for diverse foundation model kernels</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Existing spatial accelerator design frameworks either rely on a small set of hand-written RTL/HLS templates (limiting design space coverage) or cannot automatically generate synthesizable RTL, forcing...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">LEGO currently supports a set of predefined NoC structures; custom NoC topologies require additional integration; evaluation targets ASIC synthesis with Verilog but full tapeout results are not presented.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">ReGate: Enabling Power Gating in Neural Processing Units</div>
+      <div class="pc-sub">Dataflow Compilation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">ReGate uses hardware-software co-design differentiated by component. For systolic arrays (SAs): non-zero weight detection generates row/column bitmaps (col_nz, row_nz), and a prefix-sum circuit derives which rows/columns should be powered off; PE-level power gating then follows the diagonal weight-stationary dataflow — the PE_on signal propagates diagonally from the SA input, overlapping wake-up with computation to expose only single-PE wake-up latency. For ICI and HBM controllers: a lightweight hardware-based idle-detection state machine gates these units between collective operators (AllReduce, AllGather). For vector units and SRAM: a new NPU ISA extension adds setpm instructions with three modes (on/auto/off) that let the ML compiler insert power-management instructions at statically-known idle boundaries — the compiler determines VU idle gaps from instruction scheduling and SRAM capacity from tile-size analysis.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Diagonal-dataflow-aware cycle-level PE power gating in systolic arrays, where the PE_on signal propagates through the array following the inherent weight-stationary diagonal dataflow, enabling fine-grained power gating with only single-PE wake-up latency overhead.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Energy Or Tops W:</b> 8.5%-32.8% energy reduction (15.5% average) vs. no power gating</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> &lt;0.5% performance degradation; &lt;3.3% area overhead; 31.1%-62.9% carbon emission reduction at fleet scale</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First quantification of power-gating opportunities across all major NPU components (SA, VU, SRAM, ICI, HBM) using multi-generation TPU-derived simulators. Diagonal-dataflow-aware PE-level power gating for systolic arrays using row/column non-zero weight detection and PE_on signal propagation. NPU ISA extension (setpm instruction) enabling software-managed power gating for vector units and SRAM with on/auto/off modes. 15.5% average (up to 32.8%) energy reduction across LLM training/inference, DLRM, and stable diffusion workloads with &lt;0.5% performance overhead and &lt;3.3% area overhead at 7nm</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Modern NPU chips (e.g., Google TPU generations) waste 30-72% of their active energy on static (leakage) power because they lack fine-grained power management support; conventional CPU/GPU power-gating...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">The power-gating analysis excludes peripheral components (PCIe, chip management, control logic) that account for ~40% of static energy; evaluation is on a simulator validated against real TPU data rather than fabricated silicon.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">MICRO</div>
+    <div>
+      <div class="pc-title">StreamTensor: Make Tensors Stream in Dataflow Accelerators for LLMs</div>
+      <div class="pc-sub">Dataflow Compilation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">StreamTensor is an MLIR-based compiler that introduces an iterative tensor (itensor) type encoding element shape, iteration space, and iteration map to uniquely capture a kernel's stream access order. The compilation pipeline proceeds through: (1) Linalg tiling and conversion to dataflow IR with itensor-typed kernel boundaries; (2) stream-based kernel fusion that compares producer/consumer itensor types — matching types are connected by FIFOs directly, mismatched types get minimal ping-pong buffer layout converters sized analytically from itensor types; (3) itensor folding to merge adjacent producer-consumer buffers; (4) iterative tensor vectorization to align FIFO bandwidth with kernel parallelism; (5) LP-based FIFO sizing that formulates token flow as a scheduling problem and solves it with linear programming to minimize FIFO depth while preventing deadlock; and (6) ILP graph partitioning for resource allocation. Three hierarchical design spaces (Linalg tiling, kernel fusion, resource allocation) are explored with Optuna blackbox optimization, intensity-aware unrolling, and heuristic permutation.</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The iterative tensor (itensor) type system that explicitly encodes streaming access order (iteration space + iteration map), enabling automated correctness-verified stream-based kernel fusion, minimal layout converter generation, and LP-based FIFO sizing for dataflow accelerators.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> Up to 0.76x lower latency than state-of-the-art FPGA LLM accelerators; 0.64x lower latency than GPUs</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Energy Or Tops W:</b> Up to 1.99x higher energy efficiency compared to GPUs</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First PyTorch-to-device dataflow compiler (StreamTensor) that automatically generates stream-based dataflow accelerators and runtime systems from high-level models. Iterative tensor (itensor) type system encoding stream layout for automated kernel fusion, buffer sizing, and correctness verification. Three hierarchical design space exploration algorithms: intensity-aware Linalg tiling, heuristic kernel fusion with memory constraints, and LP-based FIFO sizing. Up to 0.76x lower latency vs. state-of-the-art FPGA LLM accelerators, 0.64x vs. GPUs, and 1.99x higher energy efficiency vs. GPUs on LLM benchmarks</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Dataflow accelerators for LLMs (e.g., AMD Versal, SambaNova SN40L, IBM AIU) require manual effort to wire together kernels via on-chip FIFOs, manage external DMA access patterns, size FIFOs to prevent...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluated only on FPGA platforms; the itensor type system and LP FIFO sizing scalability for very large LLMs or multi-chip systems is not demonstrated.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Parallel Programming Abstractions</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">ISCA</div>
+    <div>
+      <div class="pc-title">HPVM-HDC: A Heterogeneous Programming System for Accelerating Hyperdimensional Computing</div>
+      <div class="pc-sub">Parallel Programming Abstractions</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">The system provides two components: HDC++, a C++-based DSL built on Hetero-C++ that exposes 24 HDC-specific primitives (hypervector/hypermatrix ops, Hamming distance, cosine similarity, encoding/training/inference loop constructs) in a target-agnostic unified programming model; and HPVM-HDC, a heterogeneous compiler that extends LLVM/HPVM IR with HDC-specific intrinsics and compiles HDC++ to CPUs (via HPVM CPU backend), GPUs (via CUDA/cuBLAS/Thrust), a 40nm digital HDC ASIC (Hamming-distance pipelined, 0.78 TOPS/W), and a ReRAM HDC accelerator simulator. Two approximation optimizations exploit HDC error resilience: automatic binarization propagation (taint analysis reducing element bitwidth to 1 bit) and reduction perforation (strided or segmented loop iteration over hypervector dimensions for Hamming/cosine similarity and matmul operations).</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">HDC++'s high-level stage primitives (encoding_loop, training_loop, inference_loop) allow the same source to be lowered to coarse-grained accelerator instructions on ASICs/ReRAM and to fine-grained CUDA/HPVM IR on CPUs/GPUs, enabling the first execution of complete HDC applications on both a taped-out digital ASIC and a ReRAM accelerator.</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup:</b> 1.17x geomean over optimized CUDA on GPU; up to 3.4x with approximation optimizations</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> 1.6x reduction in total LOC across CPU+GPU baselines; first HDC application execution on digital ASIC and ReRAM accelerator</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">HDC++: first HDC-specific high-level programming language with 24 target-agnostic primitives including coarse-grain stage-level constructs for accelerator targeting. HPVM-HDC: first retargetable compiler for HDC generating code for CPUs, GPUs, a digital ASIC (40nm), and a ReRAM accelerator simulator from a single source. Automatic binarization and reduction perforation compiler optimizations exploiting HDC error resilience, achieving up to 3.4x GPU speedup with marginal accuracy loss. 1.17x geomean GPU speedup over optimized CUDA baselines and 1.6x reduction in total lines of code across 5 HDC applications</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Hyperdimensional Computing (HDC) programs are manually written in target-specific languages (CUDA, C++, Python) that cannot be retargeted to HDC-specific accelerators (digital ASICs, ReRAM devices), a...</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Approximation optimizations (binarization, reduction perforation) are not automatically selected — the programmer must specify them; automatic selection of optimal approximation configurations is left to future work.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Performance Modeling</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">OSDI</div>
+    <div>
+      <div class="pc-title">KPerfIR: Towards a Open and Compiler-centric Ecosystem for GPU Kernel Performance Tooling on Modern AI Workloads</div>
+      <div class="pc-sub">Performance Modeling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Integrated profiling infrastructure built directly into the Triton compiler, providing fine-grained kernel performance measurements with instrumentation at compile-time to minimize runtime overhead</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">First profiling system to integrate directly into Triton compiler pipeline with only 8.2% measurement overhead and 2% error tolerance, enabling closed-loop compiler optimization</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Other:</b> {'profiling_overhead': '8.2%', 'measurement_error': '2%'}</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Integrated profiling infrastructure in Triton compiler reducing measurement overhead to 8.2%. Measurement error reduced to 2% of true performance metrics. Enables compiler passes to directly use profiling data for performance-driven optimization decisions. Eliminates separate profiling passes, improving developer iteration time</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: GPU kernel profiling introduces significant overhead and measurement error, hindering performance analysis and optimization feedback during compiler-driven code generation</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Limited to Triton compiler ecosystem; measurement overhead still non-zero; applicability to other compiler frameworks unclear.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Extending RAJA Parallel Programming Abstractions with Just-In-Time Optimization</div>
+      <div class="pc-sub">Performance Modeling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Integration of Proteus JIT framework (LLVM-based) with RAJA portability layer; introduces dimension specialization optimization</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">JIT compilation for portable parallel loop bodies; dimension specialization replaces runtime queries with constants</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Amd:</b> 1.2x-23x</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Speedup Nvidia:</b> 1.1x-15x</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Extends RAJA to support JIT-deferred compilation. Introduces dimension specialization optimization. Demonstrates speedups on both AMD and NVIDIA GPUs</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: AOT parallel programming models cannot perform context-specific optimizations due to lack of runtime information</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Evaluation limited to RAJAPerf benchmarks; impact on real applications unclear.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Characterizing the Performance of Parallel Data-Compression Algorithms across Compilers and GPUs</div>
+      <div class="pc-sub">Performance Modeling</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Comprehensive empirical evaluation of 107,632 compression algorithms across compilers (NVCC, Clang, HIPCC) and platforms (NVIDIA, AMD)</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Large-scale empirical characterization showing compiler-hardware interaction effects on compression</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Algorithms Evaluated:</b> 107632</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Evaluates 107,632 compression algorithm variants. Identifies compiler-specific performance patterns (Clang slow compression, fast decompression). Provides guidance for compiler selection</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Compiler choice and GPU platform significantly affect data compression performance; unclear which combinations are optimal</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Empirical characterization; lacks root-cause analysis of performance differences.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+<div class="section-h">Compiler &amp; Code Generation</div>
+<div class="paper-card">
+  <div class="pc-head">
+    <div class="pc-venue">SC</div>
+    <div>
+      <div class="pc-title">Reproducibility Report for SC25 Paper ATLAHS: An Application-centric Network Simulator Toolchain for AI, HPC, and Distributed Storage</div>
+      <div class="pc-sub">Compiler &amp; Code Generation</div>
+    </div>
+  </div>
+  <div class="pc-summary"><p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Does</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Artifact Description and Evaluation review</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">N/A - reproducibility report</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">The Key Result</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px"><b>Reproducibility:</b> verified</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">Why This Approach</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">Artifact evaluation and verification</p>
+<p style="font-size:.84rem;color:var(--ink2);margin-top:6px">This work addresses the fundamental problem: Artifact evaluation and reproducibility verification</p>
+<p style="margin-top:12px;font-weight:700;color:var(--ink);font-size:.88rem">What It Leaves Open</p>
+<p style="font-size:.84rem;color:var(--ink2);padding-left:12px">Scope limited to original paper's artifacts.</p></div>
+  <div class="pc-toggle">&#x25BC; read analysis</div>
+</div>
+  <footer>
+    AI Hardware 2025 &middot; Compiler & Scheduling deep reads &middot; 15 papers &middot; click any card to expand &middot;
+    <a href="../../../index.html">master narrative</a> &middot; <a href="../../../explorer.html">explorer</a>
+  </footer>
+</div>
+<script>
+document.querySelectorAll('.paper-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('open');
+    const t = card.querySelector('.pc-toggle');
+    t.textContent = card.classList.contains('open') ? '\u25b2 collapse' : '\u25bc read analysis';
+  });
+});
+</script>
+</body>
+</html>

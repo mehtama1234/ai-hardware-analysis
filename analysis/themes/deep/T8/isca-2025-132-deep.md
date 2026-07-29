@@ -1,0 +1,25 @@
+# Resource Analysis of Low-Overhead Transversal Architectures for Reconfigurable Atom Arrays
+
+**Venue:** ISCA · **Subtheme:** Fault-Tolerant Quantum Architecture Design with Transversal Gate Optimization
+
+## What It Does
+
+Standard lattice-surgery gate schemes on neutral atom arrays require O(d) syndrome extraction (SE) rounds per logical gate, where d is the code distance, leading to multi-year run times for large-scale algorithms. This work designs an O(1) transversal-gate architecture that avoids this overhead: instead of lattice surgery (which moves patches around and causes decoherence), the architecture performs parallel optical rotations across blocks of atoms, implementing logical gates without intermediate SE rounds. The approach decomposes target algorithms (2048-bit Shor factoring as benchmark) into modular functional units: magic state factories (distill logical T gates via 8T-to-CCZ gadgets with |T⟩ cultivation), ripple-carry quantum adders (implement Cuccaro MAJ and UMA operations using CCZ teleportation), and quantum look-up tables (QROM via GHZ-state-assisted CNOT fan-out). All units use surface-code transversal implementations with explicit 2D physical layouts: atoms are shuttled locally via optical tweezers (moves ≤ √2·d·l per step) to bring ingredients into contact, operations execute in one round without intermediate measurements, and results are measured. A heuristic logical error model (calibrated against maximum-likelihood-estimation decoder numerics) captures the elevated noise from transversal CNOT operations via a decoding factor α ≈ 1/6, accounting for correlated errors during parallel gates.
+
+The architecture balances space and time via bridge qubits and time-optimal compute strategies: some segments run in parallel (ancilla preparation overlaps with data operations), others serialize (to minimize total atom shuffling), achieving a global resource budget of 19 million qubits and 5.6 days at 1 ms QEC cycle time.
+
+## The Key Result
+
+Against lattice-surgery baselines (Beverland et al. and Ref. [9]), the transversal architecture achieves approximately 50x run-time reduction for 2048-bit RSA factoring (5.6 days vs. ~250 days). Total qubit count remains at 19 million (no increase over lattice surgery), demonstrating that transversal gates do not require extra physical qubits, only different scheduling and layout. Code distance is d=27 (balancing error rates and physical qubit count). The framework supports up to 192 parallel magic state factories, enabling aggressive scheduling of independent sub-algorithms. Sensitivity analysis shows the architecture is robust to variations in physical error rates (0.05% to 0.5%), decoder performance (factor α varying ±20%), atom acceleration rates, and reaction-time offsets; a hybrid qLDPC code extension is also analyzed.
+
+## Why This Approach
+
+Transversal gates are the only practical way to break the O(d) barrier of lattice surgery on neutral atom arrays. Unlike superconducting qubits (where transversal gates are limited by connectivity constraints), neutral atoms support dynamically reconfigurable qubit-qubit connectivity and block-level optical control, enabling full-qubit-register transversal operations. However, no complete large-scale architecture existed: prior work either analyzed single transversal gates in isolation (without overall scheduler) or used concatenated codes (which increase physical qubit count dramatically). This paper provides the first end-to-end design: detailed functional-unit layouts, a calibrated error model matched to real decoherence measurements, and space-time optimization that keeps qubit count constant while collapsing time by 50x. The approach is chosen because neutral atoms are uniquely suited for it: superconducting and trapped-ion systems cannot achieve the same connectivity flexibility within similar physical parameter ranges.
+
+## What It Leaves Open
+
+- **Resource estimates are theoretical**: parameters assume 1 ms QEC cycle time, 0.1% physical error rate, and specific decoder performance (α ≈ 1/6); real hardware may deviate (cycle times ≥ 10 ms on current systems), requiring rescaled estimates.
+- **Layout assumes 2D grid topology**: optimizations for 3D arrays (if future technology enables them) or for irregular qubit geometries (due to fabrication defects) are not addressed.
+- **Full algorithm validation at scale is future work**: the framework is validated on Shor's algorithm; generalization to other algorithms (e.g., chemistry simulation, optimization) with different circuit structures and magic state consumption patterns is unexplored.
+- **Atom shuttle efficiency not fully characterized**: moves are bounded (≤ √2·d·l), but realistic move times depend on trap frequency and acceleration rates; real-time scheduling overhead under constrained trap bandwidth is not modeled.
+- **Correlated decoding factor α calibrated on limited data**: the model assumes α ≈ 1/6 for all transversal gates; real gates may have α varying by gate type (CNOT vs. T) or error regime (high vs. low physical error rate), requiring adaptive decoder models.

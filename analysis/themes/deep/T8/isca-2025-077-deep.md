@@ -1,0 +1,25 @@
+# Synchronization for Fault-Tolerant Quantum Computers
+
+**Venue:** ISCA · **Subtheme:** Decoherence Minimization via Distributed Idle Scheduling in Quantum Error Correction
+
+## What It Does
+
+In a fault-tolerant quantum computer (FTQC) using the surface code, logical qubits are encoded across multiple physical qubits, and errors are corrected via repeated syndrome extraction (SE) rounds. When merging two logical qubits via Lattice Surgery (a technique that physically moves and combines logical patches on the 2D array), all participating patches must be synchronized: each patch must complete its current SE round and enter the next round in lockstep before the merge operation begins. However, heterogeneous quantum processing elements—mixed QEC codes (color vs. standard surface), fabrication defects causing variable cycle times, and modular chip-to-chip latencies—cause patches to drift out of phase. When desynchronized patches attempt to merge, the leading patches must idle (do nothing) to wait for the lagging patches, accumulating decoherence errors during this forced inactivity.
+
+The paper proposes three synchronization policies to minimize idling errors. Passive synchronization (baseline) concentrates all the idle time into a single large stall immediately before the merge: the leading patch waits for the lagging patch to catch up. Active synchronization distributes the total idle slack across multiple QEC rounds by inserting small idle fragments after every syndrome round, spreading decoherence across many rounds rather than concentrating it into one large burst. Hybrid synchronization combines extra error-correction rounds (to reduce residual phase drift) with Active synchronization (to spread the remaining slack). Hardware support includes a Patch Counter Table (tracks each patch's phase relative to global clock), Phase Calculators (determine which patches are leading/lagging), and a Synchronization Slack Calculator (injects barrier instructions into the QEC controller schedule to enforce idling without adding critical-path latency).
+
+## The Key Result
+
+On simulated surface-code Lattice Surgery workloads (evaluated on IBM Brisbane 127-qubit and IBM Sherbrooke quantum processors), Active synchronization reduces logical error rate (LER) by up to 2.4x compared to Passive baseline (passive: LER ≈ 0.24%; active: LER ≈ 0.10%). Hybrid synchronization (extra-round correction + Active) achieves up to 3.4x LER reduction and up to 2.2x reduction in decoding latency. The improvements are validated via an open-source stabilizer circuit simulator integrated with Stim, enabling evaluation on real QEC code parameters and measured decoherence rates.
+
+## Why This Approach
+
+Synchronization idling is a primary source of logical errors in real FTQC experiments: Google's 2024 QEC paper lists idling as the second-highest error contributor (after gate errors), even when mitigated with dynamical decoupling pulses. Across practical workloads, 1–11 synchronization events occur per error-correction cycle, making this bottleneck unavoidable at scale. Distributed idle scheduling (Active) directly addresses the problem by recognizing that spreading small decoherence events across many rounds introduces less cumulative error than concentrating a large decoherence pulse into one round (because decoherence is not linear in stall duration due to syndrome measurement correlation). Hybrid additionally exploits the fact that some patches with different cycle times can perform extra error-correction work (at low additional cost) to converge their phase faster, reducing total slack. This approach is chosen over speculative synchronization (starting merge operations before full synchronization) because the surface code's error correction is deterministic and phase-dependent; partial synchronization would cause correlated errors that violate SWMR assumptions.
+
+## What It Leaves Open
+
+- **Evaluation limited to surface code and Lattice Surgery**: generalization to color codes and qLDPC codes is discussed conceptually but not fully evaluated; color codes have different syndrome extraction latencies and may require different idle distribution strategies.
+- **Hardware overhead of Patch Counter Table and Phase Calculators not quantified**: the paper assumes these structures are small (a few thousand bits for a 100k-qubit system) but detailed area estimates are absent.
+- **Assumes fixed QEC cycle time and gate latencies**: real quantum hardware has variable gate durations and calibration-dependent cycles; dynamic re-estimation of phase drift during execution is not addressed.
+- **Decoding latency reduction not explained mechanically**: the 2.2x decoding speedup is attributed to reduced error accumulation, but the link between lower LER and faster syndrome decoding time is indirect.
+- **Not validated on real FTQC hardware at scale**: simulations use realistic noise models, but end-to-end validation on a multi-logical-qubit algorithm (beyond Lattice Surgery merge primitives) on actual quantum hardware is missing.

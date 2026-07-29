@@ -1,0 +1,25 @@
+# Uncertainty Disentanglement for Multimodal Foundation Models in Robotic Systems
+
+**Venue:** MLSys 2025 · **Subtheme:** Uncertainty Quantification and Fault Mitigation in Robotic Perception-Action Loops
+
+## What It Does
+
+Multimodal foundation models (e.g., LLaVA-1.5-7B for vision-language tasks, CLIP for vision-text alignment) produce single point predictions that conflate two distinct sources of error: perception uncertainty (noise in sensor inputs, occlusions, poor lighting) and decision uncertainty (inherent ambiguity in the model's learned decision boundary). For robotic systems, this conflation is dangerous: a robot cannot distinguish whether a collision prediction failed due to a bad camera feed (fixable via repositioning) or due to model confusion (fixable via better training data). The framework formally disentangles these two types.
+
+Perception uncertainty is quantified via conformal prediction: for each multimodal input (image + text), the system constructs a calibrated prediction set (a confidence interval that is guaranteed, with high probability, to contain the true label). Formally, conformal prediction produces sets Q(x) such that P(y ∈ Q(x)) ≥ 1-δ for any unknown distribution, with δ tunable. Decision uncertainty is modeled via Formally-specified Markov Decision Processes (FMDP) using Kripke structures and temporal logic (e.g., LTL, STL) to specify desired robot behaviors (e.g., "if the robot detects an obstacle, it shall not move forward within 2 steps"). The FMDP formulation allows formal verification of whether the robot's policy satisfies these properties given the model's uncertainty estimates. Active sensing is triggered when perception uncertainty is high (prediction set is wide): the robot requests additional sensor data (e.g., rotate camera, use LiDAR) to narrow the prediction set. Automated model refinement is triggered when decision uncertainty is high (the robot's policy violates formal properties): the system updates the model via in-domain data collection and retraining.
+
+## The Key Result
+
+On autonomous driving tasks (Carla simulator and real-world driving data), the framework achieves 40% reduction in output variability compared to monolithic uncertainty estimation (no disentanglement). Formal specification satisfaction improves by 5%, and temporal logic compliance exceeds 95%+ on LLaVA-1.5-7B + CLIP. These improvements enable targeted interventions: when driving near pedestrians, active sensing triggers LiDAR to confirm pedestrian location (perception fix), while when the car misjudges stop-sign distance (decision uncertainty), model refinement retrains on close-range vision data. The framework is evaluated end-to-end on autonomous driving, a domain where both types of uncertainty matter.
+
+## Why This Approach
+
+Robotic reliability requires actionable diagnostics: knowing that a model is uncertain is not enough; the robot must know why and what to do about it. Monolithic uncertainty estimates (e.g., Bayesian networks, dropout-based epistemic uncertainty) conflate causes and obscure remedies. Perception uncertainty and decision uncertainty demand different fixes: poor sensor data calls for more/better sensors or repositioning; poor model generalization calls for retraining. Conformal prediction is chosen for perception uncertainty because it provides statistical guarantees (coverage holds for any distribution) without distributional assumptions. Formal methods (Kripke structures + LTL) are chosen for decision uncertainty because they enable verification of safety and liveness properties before deployment—critical for robotics. The combination is novel: prior work either quantifies uncertainty (without formal verification) or uses formal methods (without uncertainty quantification); this paper unifies both, enabling reliable autonomous systems.
+
+## What It Leaves Open
+
+- **FMDP requires expert-specified temporal logic properties**: encoding robot safety as LTL/STL formulas is manual and domain-specific; automating property synthesis from natural-language specifications is not addressed.
+- **Computational overhead of formal verification not quantified**: checking whether a policy satisfies LTL properties (e.g., via model checking) can be expensive; real-time applicability on resource-constrained robots (e.g., edge devices) is unclear.
+- **Evaluation limited to autonomous driving**: generalization to other robotics domains (manipulation, navigation, human-robot interaction) is unexplored; different domains have different uncertainty profiles (e.g., grasping uncertainty is mostly decision, while localization is mostly perception).
+- **Conformal prediction requires calibration data from target distribution**: the prediction sets are only valid if calibration data match the deployment distribution; distribution shift (e.g., new weather, new camera) degrades guarantees.
+- **Active sensing cost-benefit trade-off not analyzed**: requesting additional sensor data (LiDAR, multi-view imaging) incurs latency and energy; the paper does not quantify when active sensing is worth the cost vs. accepting wider prediction sets.
