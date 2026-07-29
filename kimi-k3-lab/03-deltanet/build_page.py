@@ -1,7 +1,24 @@
 import json, html
 D = json.load(open("out_delta.json"))
 OW = D["overwrite"]; ND = D["needle"]
+RW = json.load(open("out_realwords.json"))
 def esc(s): return html.escape(str(s))
+
+def rwrows():
+    order = ["erase-first (edit in place)", "keep every note", "add-only (one summary)"]
+    label = {"erase-first (edit in place)": "erase-first page",
+             "keep every note": "keep every note",
+             "add-only (one summary)": "add-only summary"}
+    out = ""
+    for key in order:
+        r = RW["results"][key]; hero = key.startswith("erase")
+        tk = max(0.0, r["sim_to_new_tokyo"]); pr = max(0.0, r["sim_to_old_paris"])
+        out += (f"<tr{' style=\"background:rgba(155,140,224,.08)\"' if hero else ''}>"
+                f"<td>{label[key]}</td>"
+                f"<td class='hi' style='font-family:var(--serif);font-size:17px'>{esc(r['recalled_word'])}</td>"
+                f"<td class='mo' style='color:var(--accent)'>{r['sim_to_new_tokyo']:+.2f}</td>"
+                f"<td class='mo' style='color:var(--rose)'>{r['sim_to_old_paris']:+.2f}</td></tr>")
+    return out
 
 # overwrite bars: 3 methods x (new v2, old v1)
 def owbars():
@@ -106,6 +123,17 @@ page          = page + <span class="c">change</span>-under-its-label</div>
   <p>The same overwrite test, three memories side by side. Blue = how much the recalled answer resembles the <b>new</b> value; red = how much it still resembles the <b>old</b> one. You want tall blue, no red:</p>
   <div class="card">{owbars()}</div>
   <p class="mini">{esc(OW['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · with real words</div>
+  <h2>Read the memory back as an actual word</h2>
+  <p>The bars above use random stand-in facts. Here's the same overwrite with <b>real word-meanings</b> ({RW['glove_dim']}-dimensional word vectors), so we can decode whatever each memory returns into its nearest real English word. We file <b>capital → Paris</b>, then re-file <b>capital → Tokyo</b> under the same label (with a few unrelated facts mixed in), and then ask for "capital":</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>memory</th><th>answers with</th><th>close to Tokyo (new)</th><th>close to Paris (old)</th></tr>
+    {rwrows()}
+  </table></div>
+  <p class="mini">{esc(RW['point'])}</p>
 </section>
 
 <section>
