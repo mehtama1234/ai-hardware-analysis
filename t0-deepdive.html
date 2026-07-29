@@ -58,7 +58,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
     <div class="eyebrow">deep dive</div>
     <h1>Everything else that keeps it running</h1>
     <div class="sub">scheduling, data, and infrastructure</div>
-    <div class="count">349 papers · 21 read in full · 328 from the abstract</div>
+    <div class="count">357 papers · 23 read in full · 334 from the abstract</div>
   </header>
   <section class="prose"><h2 class="sh"><span class="k">the problem</span>The problem, in depth</h2><p>Start with the one fact that governs everything in this book: a computer is fast at doing arithmetic and slow at fetching the numbers it needs to do arithmetic on. The part that does the math sits in one place. The numbers it works on live somewhere else — in memory chips, on disk, or on another machine across a network cable. Every calculation is really two steps: go get the numbers, then combine them. The &#x27;combine them&#x27; step is nearly free. The &#x27;go get them&#x27; step is where the time, the electricity, and the waiting all pile up. If you remember nothing else, remember this: modern machines are not limited by how much thinking they can do; they are limited by how much moving-around-of-data they have to do to keep the thinking fed.</p>
 <p>Most chapters of this book are about a single, sharp problem: how to make one chip multiply numbers faster, or how to store a model&#x27;s memory more cheaply. This chapter is the opposite. It is the drawer of important things that don&#x27;t fit in the other drawers — and what is striking is that when you lay them all out, they turn out to be different faces of that same one root problem. A tool that squeezes scientific data down to a third of its size is fighting data movement: less to move means less waiting. A system that trains a giant model across a dozen buildings on a slow internet link is fighting data movement: it can&#x27;t afford to shout every number to every building on every step. A trick that renders a video-game frame at full detail only where your eye happens to be looking is fighting data movement: why compute and shuttle around pixels no one will see? A method that stops a training run from keeping three private copies of every number is fighting data movement: fewer copies means they fit in the fast local memory instead of spilling out to the slow distant memory.</p>
@@ -132,6 +132,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p><b>The key design choice.</b> Using random projection instead of the expensive SVD decomposition (which finds the mathematically best low-rank approximation) that competing methods like GaLore require. The paper proves mathematically that random projection preserves the relative sizes of the scale factors up to a known ratio, which can be corrected with a simple scalar. This makes APOLLO both faster and cheaper than GaLore.</p>
 <p><b>APOLLO-Mini pushes further:</b> it uses a single scale factor for the entire weight matrix (rank-1 space), bringing optimizer memory to essentially zero — the same cost as simple gradient-descent with no statistics at all.</p>
 <p><b>The result.</b> On LLaMA-7B training across 8 GPUs, APOLLO uses 1.6 GB of optimizer state versus 28 GB for AdamW, enables 4x larger batches, and achieves 3x higher throughput — while producing a lower perplexity (a measure of model quality; lower is better). APOLLO-Mini fits LLaMA-13B pretraining on a single 80 GB GPU without any special distributed setup, something AdamW cannot do.</p></div>
+    </div>
+<div class="paper" id="osdi-2025-027">
+      <div class="ph"><span class="pid">osdi-2025-027</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Quake: Adaptive Indexing for Vector Search</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="sc-2025-025">
       <div class="ph"><span class="pid">sc-2025-025</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
@@ -227,6 +233,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">sc-2025-429</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>Minimizing Power Waste in Heterogenous Computing via Adaptive Uncore Scaling</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>In GPU-heavy computer systems, the uncore components (memory, cache, and interconnect hardware) typically stay at maximum frequency even when they&#x27;re not being fully used, wasting power. This work develops MAGUS, a runtime system that monitors memory access patterns to predict how intensive the workload is, detects when the system switches between different execution phases, and scales the uncore frequency up or down accordingly while maintaining smooth transitions. The system integrates with vendor power management tools and requires no changes from users.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-065">
+      <div class="ph"><span class="pid">usenix-2025-065</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Emulating Space Computing Networks with RHONE</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="asplos-2025-017">
@@ -1273,15 +1285,39 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="lab">What it does</div><div class="wid prose"><p>Regular expressions (patterns used to search text, like finding all email addresses in a document) can be compiled into compact bit-level programs that process many characters at once — a technique called bitparallel matching. GPUs (graphics chips repurposed for general computation) are good at running many such operations in parallel, but the naive approach loads each chunk of text from memory multiple times — once per pattern instruction — wasting bandwidth. This paper introduces an interleaved execution model where one chunk of text is loaded once and all pattern instructions are applied to it before moving on, dramatically improving data reuse. Three supporting techniques handle the tricky dependencies that arise between text chunks, reorganize the instruction order to reduce synchronization, and skip chunks that are guaranteed to produce all-zero (empty) results — cutting unnecessary work.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
-<div class="paper" id="osdi-2025-022">
-      <div class="ph"><span class="pid">osdi-2025-022</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
-      <h4>Understanding Stragglers in Large Model Training Using What-if Analysis</h4>
+<div class="paper" id="osdi-2025-001">
+      <div class="ph"><span class="pid">osdi-2025-001</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Tintin: A Unified Hardware Performance Profiling Infrastructure to Uncover and Manage Uncertainty</h4>
       <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
-<div class="paper" id="osdi-2025-025">
-      <div class="ph"><span class="pid">osdi-2025-025</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
-      <h4>Skybridge: Bounded Staleness for Distributed Caches</h4>
+<div class="paper" id="osdi-2025-002">
+      <div class="ph"><span class="pid">osdi-2025-002</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>WLB-LLM: Workload-Balanced 4D Parallelism for Large Language Model Training</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-006">
+      <div class="ph"><span class="pid">osdi-2025-006</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>EMT: An OS Framework for New Memory Translation Architectures</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-007">
+      <div class="ph"><span class="pid">osdi-2025-007</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Fork in the Road: Reflections and Optimizations for Cold Start Latency in Production Serverless Systems</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-009">
+      <div class="ph"><span class="pid">osdi-2025-009</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Decentralized, Epoch-based F2FS Journaling with Fine-grained Crash Recovery</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-022">
+      <div class="ph"><span class="pid">osdi-2025-022</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Understanding Stragglers in Large Model Training Using What-if Analysis</h4>
       <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
@@ -2081,6 +2117,18 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">sc-2025-420</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>InferCT: An Efficient and Generalizable Framework to Enable 3D Machine Learning for Computed Tomography</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>This paper tackles the challenge of running large 3D medical imaging neural networks on GPUs with limited memory. Medical CT scans are too large to fit in GPU memory at once, forcing researchers to choose between expensive hardware upgrades or reducing their models. This work splits CT volumes into smaller chunks that fit in memory, distributes them across multiple GPUs, and adds optimizations to minimize waiting time between data loading and computation.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-011">
+      <div class="ph"><span class="pid">usenix-2025-011</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>LEOCraft: Towards Designing Performant LEO Networks</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-042">
+      <div class="ph"><span class="pid">usenix-2025-042</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>The Koala Benchmarks for the Shell: Characterization and Implications</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="vlsid-2025-003">

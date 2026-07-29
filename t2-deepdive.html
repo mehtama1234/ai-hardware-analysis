@@ -58,7 +58,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
     <div class="eyebrow">deep dive</div>
     <h1>Using smaller numbers</h1>
     <div class="sub">rounding to save memory and time</div>
-    <div class="count">142 papers · 16 read in full · 126 from the abstract</div>
+    <div class="count">154 papers · 19 read in full · 135 from the abstract</div>
   </header>
   <section class="prose"><h2 class="sh"><span class="k">the problem</span>The problem, in depth</h2><p>Start with a single physical fact that almost nothing about modern computer chips makes sense without: a chip does not really think in one place. It is a tiny city. In one district there is a workshop that does arithmetic—adding and multiplying numbers. Somewhere else, often much farther away, there is a warehouse that stores the numbers. And between the workshop and the warehouse there are roads. When people say a chip is fast, they usually imagine the workshop working furiously. But the surprising truth, the one this whole chapter is built on, is that the workshop is almost never the bottleneck. The roads are. The chip spends most of its time and most of its energy not doing arithmetic, but hauling numbers back and forth between the warehouse and the workshop. Doing a multiplication is cheap. Fetching the two numbers you want to multiply, from a warehouse millimeters or centimeters away, is expensive—often ten or a hundred times more expensive in energy than the multiplication itself. This is the root problem of the entire field: computers are limited by moving data around, not by doing arithmetic.</p>
 <p>Why is moving data so costly? Because moving a number means pushing electric charge down a wire, and a wire has a kind of electrical stiffness—the longer and thinner the wire, the more energy it takes to change its state from a 0 to a 1 and back. A number sitting in the big off-chip warehouse (the main memory, built from cheap dense memory cells) is far away, down a long wire, behind a narrow doorway that only lets so many numbers through per second. That narrow doorway has a name in the trade—memory bandwidth—and it is the thing everyone is fighting. You can build a workshop that could multiply a trillion numbers a second, but if the doorway can only deliver a hundred billion numbers a second, your magnificent workshop sits idle nine-tenths of the time, waiting for the next delivery. The workshop is not the wall. The doorway is the wall.</p>
@@ -93,6 +93,18 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p>4. Masked gradient fine-tuning. After compression, the codewords are fine-tuned end-to-end, again applying masks during the backward pass so gradients from zero positions don&#x27;t corrupt the update.</p>
 <p><b>The key hardware design.</b> A custom chip uses a &#x27;codebook register file&#x27; (a small fast memory holding the ~512 codeword patterns on chip). When a weight is needed, the controller looks up the codeword from the register file using the stored index, then applies the sparsity mask to reconstruct the sparse weight — all on chip. The array of multiply-accumulate units (the grid of tiny math circuits) is redesigned to have only N/M active units per weight group instead of the full M, matching the sparsity pattern and cutting both transistor count and energy by 55%.</p>
 <p><b>The result.</b> On 40nm chip silicon, compared to the baseline dense accelerator: 2.3x energy efficiency improvement and 55% smaller compute array, at equivalent or better accuracy versus prior VQ methods at the same compression ratio (e.g., 22x compression on ResNet-18 with 0.6% less accuracy loss than the next-best method).</p></div>
+    </div>
+<div class="paper" id="fccm-2025-058">
+      <div class="ph"><span class="pid">fccm-2025-058</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>Microscaling Vision Transformers on FPGAs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-064">
+      <div class="ph"><span class="pid">fccm-2025-064</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>An Efficient FPGA-Based Hardware Accelerator of Fully Quantized Mamba-2</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="hotchips-2025-009">
       <div class="ph"><span class="pid">hotchips-2025-009</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">HOTCHIPS</span></div>
@@ -207,6 +219,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p>Inter-operator fix for fine-tuning quality. Each LoRA adapter contributes a small adjustment (XAB) on top of the main layer output (XW). If both are blended and then rounded, the adapter&#x27;s subtle signal gets damaged. HyC-LoRA reorders the computation: store the compressed main output (XW in 2-bit) and the tiny uncompressed LoRA intermediate (XA, which is tiny because the rank r is much smaller than the hidden dimension). During the backward pass, reconstruct XAB from XA by multiplying by B, then add it back before computing gradients. This costs almost no extra compute.</p>
 <p><b>Kernel fusion.</b> The compression and decompression steps are merged with the surrounding element-wise operations (like the SiLU activation function) into single GPU programs, so the values never need to be written to the slow off-chip memory (high-bandwidth DRAM) between steps.</p>
 <p><b>The result.</b> On Llama-2-7B, buffered activations shrink by up to 7.5x and end-to-end GPU memory by 1.6-4x. Accuracy drop is negligible — under 1.5 percentage points on math reasoning benchmarks — compared to 10+ point drops from naive 2-bit compression.</p></div>
+    </div>
+<div class="paper" id="osdi-2025-030">
+      <div class="ph"><span class="pid">osdi-2025-030</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>DecDEC: A Systems Approach to Advancing Low-Bit LLM Quantization</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="sc-2025-071">
       <div class="ph"><span class="pid">sc-2025-071</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
@@ -499,6 +517,60 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <div class="paper" id="date-2025-358">
       <div class="ph"><span class="pid">date-2025-358</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">DATE</span></div>
       <h4>SCALES: Boost Binary Neural Network for Image Super-Resolution with Efficient Scalings</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-000">
+      <div class="ph"><span class="pid">fccm-2025-000</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>FPGA-Based Approximate Multiplier for FP8</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-002">
+      <div class="ph"><span class="pid">fccm-2025-002</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>UltraFormer: An Efficient Transformer for FPGAs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-004">
+      <div class="ph"><span class="pid">fccm-2025-004</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>NeuraLUT-Assemble: Hardware-Aware Assembling of Sub-Neural Networks for Efficient LUT Inference</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-005">
+      <div class="ph"><span class="pid">fccm-2025-005</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>Ph.D. Project Hardware-Aware Neural Networks</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-009">
+      <div class="ph"><span class="pid">fccm-2025-009</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>An Energy-Efficient FPGA-Based Vision Transformer Accelerator via Software-Hardware Co-Design</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-019">
+      <div class="ph"><span class="pid">fccm-2025-019</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>ITERA-LLM: Boosting Sub-8-Bit Large Language Model Inference via Iterative Tensor Decomposition</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-031">
+      <div class="ph"><span class="pid">fccm-2025-031</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>BiKA: Binarized KAN-inspired Neural Network for Efficient Hardware Accelerator Designs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-033">
+      <div class="ph"><span class="pid">fccm-2025-033</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>EVO-QNN: Efficient Mixed-Precision Quantization Inference on RISC-V-Based Edge Device</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="fccm-2025-061">
+      <div class="ph"><span class="pid">fccm-2025-061</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>Ph.D. Project AIM: Accelerating Arbitrary-Precision Integer Multiplication on Heterogeneous Reconfigurable Computing Platform Versal ACAP</h4>
       <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>

@@ -58,7 +58,7 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
     <div class="eyebrow">deep dive</div>
     <h1>Serving language models fast</h1>
     <div class="sub">attention and the model&#x27;s running notes</div>
-    <div class="count">211 papers · 43 read in full · 168 from the abstract</div>
+    <div class="count">249 papers · 49 read in full · 200 from the abstract</div>
   </header>
   <section class="prose"><h2 class="sh"><span class="k">the problem</span>The problem, in depth</h2><p>Start with what a language model actually does when it writes for you. It produces text one word-piece at a time. To pick the next word-piece, it looks back at everything written so far — your question plus everything it has already said — and asks, for each earlier word, &quot;how much should this one influence what I say next?&quot; That looking-back-and-weighing step is the heart of the machine. It is the single operation that lets the model keep track of who did what to whom across a long passage. When people in this field say &quot;attention,&quot; that weighing step is what they mean: every new word pays a certain amount of attention to every earlier word.</p>
 <p>Here is the catch that shapes this entire theme. Every time the model reads an earlier word, it does not re-read the raw word. Instead, when that word first went by, the model computed and wrote down a little summary of it — two bundles of numbers, one that says &quot;here is what I offer for others to match against&quot; and one that says &quot;here is the content I carry.&quot; The model stores these summaries so it never has to recompute them. This growing pile of stored summaries is the model&#x27;s running notes: a notebook that gets one new page for every word-piece the model has ever seen in this conversation. In the jargon it is called the KV cache, but running notes is the honest name. The notebook is the reason a chatbot can hold a long thread in its head at all — and it is also the reason serving these models fast is so hard.</p>
@@ -110,6 +110,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p>During live operation, two mechanisms reduce unnecessary model swaps. First, the request scheduler groups requests that need the same model together in its execution queue — instead of serving them first-come-first-served, it sorts them so a model already loaded stays loaded for a cluster of back-to-back requests. When multiple parallel execution lanes exist (some on the GPU, some on the CPU), incoming requests are assigned to the lane that minimizes total wait time, not just per-request wait time. Second, when a model must be evicted to free memory for a new one, a two-stage rule applies: first evict &#x27;orphaned&#x27; subsequent models (those that cannot run yet because their prerequisite model is not loaded), sorted by size to free the most memory with the fewest evictions; only then evict based on ascending usage probability.</p>
 <p><b>The key design choice.</b> Memory is split between keeping models loaded and handling batch inference. CoServe uses a sliding-window search over a probability curve of model usage to find the optimal split automatically per device.</p>
 <p><b>The result.</b> On real circuit-board inspection workloads (300+ models, 60 GB total, on a 12 GB GPU), CoServe delivers 4.5× to 12× higher throughput compared to Samba-CoE, the previous state of the art, while reducing the number of model swaps by up to 94%.</p></div>
+    </div>
+<div class="paper" id="fccm-2025-018">
+      <div class="ph"><span class="pid">fccm-2025-018</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>InTAR: Inter-Task Auto-Reconfigurable Accelerator Design for High Data Volume Variation in DNNs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="hpca-2025-082">
       <div class="ph"><span class="pid">hpca-2025-082</span><span class="badge-wrap"><span class="badge hi">full text</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">HPCA</span></div>
@@ -489,6 +495,18 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
 <p><b>The key design choice.</b> Decomposing the joint column+slash selection into two independent problems reduces the search from N² combinations to N+N, making the selection fast enough to run at inference time without pre-profiling per attention head.</p>
 <p><b>The result.</b> On ChatGLM4-9B, Yi-9B, and InternLM2-7B tested across RULER, LongBench, and InfiniteBench benchmarks, SampleAttention consistently scores above 99% of full-attention accuracy while achieving 1.15x–5.29x speedup over FlashAttention2 as sequence length grows from 32k to 1M tokens.</p></div>
     </div>
+<div class="paper" id="osdi-2025-049">
+      <div class="ph"><span class="pid">osdi-2025-049</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>BlitzScale: Fast and Live Large Model Autoscaling with O(1) Host Caching</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-051">
+      <div class="ph"><span class="pid">osdi-2025-051</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>NanoFlow: Towards Optimal Large Language Model Serving Throughput</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
 <div class="paper" id="sc-2025-016">
       <div class="ph"><span class="pid">sc-2025-016</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>ORBIT-2: Scaling Exascale Vision Foundation Models for Weather and Climate Downscaling</h4>
@@ -505,6 +523,24 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">sc-2025-423</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>BOER: Enhancing Resource Utilization for Deep Learning Inference with Hybrid Spatial GPU Sharing</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>BOER addresses how to run multiple AI models on a single GPU more efficiently. When multiple models share a GPU, they interfere with each other and waste compute resources. BOER combines two GPU sharing technologies—MPS (Multi-Process Service) which shares one GPU partition across tasks, and MIG (Multi-Instance GPU) which divides a GPU into separate partitions. By stacking these technologies intelligently and using optimization algorithms, BOER decides which models to run together, how to partition the GPU, and how to distribute work across the shared resources.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-003">
+      <div class="ph"><span class="pid">usenix-2025-003</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Katz: Efficient Workflow Serving for Diffusion Models with Many Adapters</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-013">
+      <div class="ph"><span class="pid">usenix-2025-013</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>CrossPipe: Towards Optimal Pipeline Schedules for Cross-Datacenter Training</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-041">
+      <div class="ph"><span class="pid">usenix-2025-041</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>PPipe: Efficient Video Analytics Serving on Heterogeneous GPU Clusters via Pool-Based Pipeline Parallelism</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="asplos-2025-004">
@@ -957,6 +993,12 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
+<div class="paper" id="fccm-2025-025">
+      <div class="ph"><span class="pid">fccm-2025-025</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">FCCM</span></div>
+      <h4>Optimized Coding and Parameter Selection for Efficient FPGA Design of Attention Mechanisms</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
 <div class="paper" id="hotchips-2025-006">
       <div class="ph"><span class="pid">hotchips-2025-006</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">HOTCHIPS</span></div>
       <h4>AMD Pensando Pollara 400 AI NIC Architecture and Application</h4>
@@ -1287,6 +1329,48 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="lab">What it does</div><div class="wid prose"><p>Transformer models (the architecture behind ChatGPT and similar AI) consist of many repeated layers, each combining large matrix multiplications (multiplying two giant grids of numbers together), a normalization step, and an attention mechanism (which lets each word look at every other word). Previous chip designs tried to speed up individual pieces of these layers in isolation, but as models grew deeper and processed longer text, the cost of moving data between layers — shuffling numbers in and out of memory between each step — became the dominant bottleneck. TransFusion treats the entire stack of layers as one unified computation graph and pipelines it: while one layer&#x27;s results are being computed, the next layer&#x27;s inputs are already being loaded, and the memory layout of intermediate results is arranged to maximize reuse without spilling to slower memory. An algorithm called TileSeek (using a tree-search strategy similar to how game-playing AI explores moves) finds the best way to break computations into chunks that fit on-chip memory.</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
+<div class="paper" id="osdi-2025-005">
+      <div class="ph"><span class="pid">osdi-2025-005</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Low End-to-End Latency atop a Speculative Shared Log with Fix-Ante Ordering</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-010">
+      <div class="ph"><span class="pid">osdi-2025-010</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Kamino: Efficient VM Allocation at Scale with Latency-Driven Cache-Aware Scheduling</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-034">
+      <div class="ph"><span class="pid">osdi-2025-034</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Mako: Speculative Distributed Transactions with Geo-Replication</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-035">
+      <div class="ph"><span class="pid">osdi-2025-035</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>XSched: Preemptive Scheduling for Diverse XPUs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-040">
+      <div class="ph"><span class="pid">osdi-2025-040</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>To PRI or Not To PRI, That&#x27;s the question</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-044">
+      <div class="ph"><span class="pid">osdi-2025-044</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>OS Rendering Service Made Parallel with Out-of-Order Execution and In-Order Commit</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="osdi-2025-045">
+      <div class="ph"><span class="pid">osdi-2025-045</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">OSDI</span></div>
+      <h4>Decouple and Decompose: Scaling Resource Allocation with DeDe</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
 <div class="paper" id="sc-2025-037">
       <div class="ph"><span class="pid">sc-2025-037</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>Experience Deploying Containerized GenAI Services at an HPC Center</h4>
@@ -1501,6 +1585,150 @@ border:1px solid var(--line);border-radius:13px;padding:22px 24px}
       <div class="ph"><span class="pid">sc-2025-415</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">SC</span></div>
       <h4>RingX: Scalable Parallel Attention for Long-Context Learning on HPC</h4>
       <div class="lab">What it does</div><div class="wid prose"><p>Training large AI models with very long context (billions of tokens) requires computing attention—a mechanism that compares all input tokens to decide which ones matter most. Ring attention is a parallel strategy where each processor computes attention on a subset of tokens and passes intermediate results in a ring around the cluster, but this point-to-point communication pattern is inefficient on modern high-performance computing (HPC) networks that support collective operations (simultaneous communication among many processors). RingX redesigns ring attention to exploit HPC network topologies, improving workload balance, communication overlap, and support for bidirectional and causal attention patterns.</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-000">
+      <div class="ph"><span class="pid">usenix-2025-000</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>SpaceExit: Enabling Efficient Adaptive Computing in Space with Early Exits</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-002">
+      <div class="ph"><span class="pid">usenix-2025-002</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Toppings: CPU-Assisted, Rank-Aware Adapter Serving for LLM Inference</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-005">
+      <div class="ph"><span class="pid">usenix-2025-005</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Resource Multiplexing in Tuning and Serving Large Language Models</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-010">
+      <div class="ph"><span class="pid">usenix-2025-010</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>On-Demand Container Partitioning for Distributed ML</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-019">
+      <div class="ph"><span class="pid">usenix-2025-019</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Learning-Enhanced High-Throughput Pattern Matching Based on Programmable Data Plane</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-020">
+      <div class="ph"><span class="pid">usenix-2025-020</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>GPREEMPT: GPU Preemptive Scheduling Made General and Efficient</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-021">
+      <div class="ph"><span class="pid">usenix-2025-021</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Optimus: Accelerating Large-Scale Multi-Modal LLM Training by Bubble Exploitation</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-023">
+      <div class="ph"><span class="pid">usenix-2025-023</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Weaver: Efficient Multi-LLM Serving with Attention Offloading</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-029">
+      <div class="ph"><span class="pid">usenix-2025-029</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>STORM: a Multipath QUIC Scheduler for Quick Streaming Media Transport under Unstable Mobile Networks</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-031">
+      <div class="ph"><span class="pid">usenix-2025-031</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>DEEPSERVE: Serverless Large Language Model Serving at Scale</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-033">
+      <div class="ph"><span class="pid">usenix-2025-033</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Obscura: Concealing Recomputation Overhead in Training of Large Language Models with Bubble-filling Pipeline Transformation</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-053">
+      <div class="ph"><span class="pid">usenix-2025-053</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>XRT: An Accelerator-Aware Runtime for Accelerated Chip Multiprocessors</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-055">
+      <div class="ph"><span class="pid">usenix-2025-055</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Barre: Empowering Simplified and Versatile Programmable Congestion Control in High-Speed AI Clusters</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-056">
+      <div class="ph"><span class="pid">usenix-2025-056</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Burst Computing: Quick, Sudden, Massively Parallel Processing on Serverless Resources</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-062">
+      <div class="ph"><span class="pid">usenix-2025-062</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>CLONE: Customizing LLMs for Efficient Latency-Aware Inference at the Edge</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-067">
+      <div class="ph"><span class="pid">usenix-2025-067</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>GMI-DRL: Empowering Multi-GPU DRL with Adaptive-Grained Parallelism</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-070">
+      <div class="ph"><span class="pid">usenix-2025-070</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Colocating ML Inference and Training with Fast GPU Memory Handover</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-073">
+      <div class="ph"><span class="pid">usenix-2025-073</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>GREYHOUND: Hunting Fail-Slows in Hybrid-Parallel Training at Scale</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-082">
+      <div class="ph"><span class="pid">usenix-2025-082</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Cosmic: Cost-Effective Support for Cloud-Assisted 3D Printing</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-085">
+      <div class="ph"><span class="pid">usenix-2025-085</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Torpor: GPU-Enabled Serverless Computing for Low-Latency, Resource-Efficient Inference</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-090">
+      <div class="ph"><span class="pid">usenix-2025-090</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>Mitigating Resource Usage Dependency in Sorting-based KV Stores on Hybrid Storage Devices via Operation Decoupling</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-094">
+      <div class="ph"><span class="pid">usenix-2025-094</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>QFactory: Accelerating Quantized Large Language Model Serving with Qtile Graphs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-095">
+      <div class="ph"><span class="pid">usenix-2025-095</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>FlexPipe: Maximizing Training Efficiency for Transformer-based Models with Variable-Length Inputs</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
+      <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
+    </div>
+<div class="paper" id="usenix-2025-096">
+      <div class="ph"><span class="pid">usenix-2025-096</span><span class="badge-wrap"><span class="badge lo">from abstract</span></span><span style="color:var(--ink-mute);font-family:var(--mono);font-size:.7rem">USENIX</span></div>
+      <h4>MARC: Motion-Aware Rate Control for Mobile E-commerce Cloud Rendering</h4>
+      <div class="lab">What it does</div><div class="wid prose"><p class='note'>(summary pending)</p></div>
       <p class="note">Read from the abstract only — the full method wasn't available (this venue is paywalled).</p>
     </div>
 <div class="paper" id="vlsid-2025-026">
