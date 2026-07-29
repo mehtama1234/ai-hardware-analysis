@@ -125,6 +125,7 @@ page = <span class="a">(fade-per-slot)</span> × page + change   <span class="g"
     </table></div>
   </div>
   <p class="mini">{esc(HY['point'])}</p>
+  <div class="why"><h3>One more twist · even the full layers are cheap</h3><p>Those full keep-everything layers aren't the expensive original kind either. Before a note is stored, it's squeezed into a small shared summary — like keeping a photo instead of the whole video — so the kept notes take far less room than storing everything in full. Even the "expensive" layers come cheap. Researchers call this compressed keep-everything memory <b>Multi-head Latent Attention (MLA)</b>; "latent" just means that squeezed-down form.</p></div>
 </section>
 
 <section>

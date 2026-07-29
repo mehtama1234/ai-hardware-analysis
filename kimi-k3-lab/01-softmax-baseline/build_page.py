@@ -148,6 +148,12 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 </section>
 
 <section>
+  <div class="eye">A footnote · making the re-read cheap</div>
+  <h2>You can re-read without hauling the whole grid</h2>
+  <p>One fix is worth a footnote before we move on. Early on, doing this scoring meant building the <em>entire</em> word-by-word comparison grid in memory at once — and that grid, not the arithmetic, was the real cost as text grew. <b>FlashAttention</b> (2022) computes the exact same result without ever building the whole grid: it works through it in small tiles and keeps only a running result, so it moves far less data around. It doesn't change the answer, and it doesn't shrink the ever-growing pile of notes — it just makes the "re-read everything" step much cheaper to actually run. The pile is still the problem; that's what the next rung attacks.</p>
+</section>
+
+<section>
   <div class="eye">The one-line aha</div>
   <p class="aha">Softmax attention keeps a cache that grows with the sequence — so decoding either wastes O(N²) compute or streams O(N) memory every step. Everything from here to Kimi K3 is one idea attacked from different angles: <em>replace the growing cache with a fixed-size state you have to manage.</em></p>
   <p class="next">Real code: <b>01-softmax-baseline/attn.py</b> → <b>out_softmax.json</b> · Source: ali, <em>"22580: From GPT-2 to Kimi K3, Explained"</em>.<br>

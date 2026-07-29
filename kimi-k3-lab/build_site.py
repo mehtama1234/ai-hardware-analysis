@@ -49,6 +49,10 @@ SESSIONS = [
   "KDA / Kimi Linear", "Per-channel decay + MLA hybrid. Real runs: per-channel keeps AND forgets (goal 0.86 vs best scalar 0.16), and the 3 KDA:1 MLA interleave reproduces the paper's −75% KV cache.", "🧬", "live"),
  ("07-kimi-k3.html", "07-kimi-k3/out/index.html",
   "Kimi K3", "The assembly: 23×(3 KDA + 1 MLA) macrocycles, latent MoE (18 of 898 fire), SiTU bounded activation, AttnRes across depth (recovery 0.83 vs 0.48). The whole ladder, connected.", "🌐", "live"),
+ ("08-beyond.html", "08-beyond/out/index.html",
+  "Bonus · how it's trained", "The other half of the story: growing the reading length gradually, merging nine specialists into one, and designing the model and its hardware together — why the gains weren't just size.", "🎓", "bonus"),
+ ("glossary.html", "glossary/out/index.html",
+  "Words, translated", "Every plain phrase in the lab next to its real technical name, with links to the papers — the bridge from this lab to the literature.", "📖", "ref"),
 ]
 
 def nav(cur_title):
@@ -71,13 +75,17 @@ for fn, src, t, sub, emoji, status in SESSIONS:
 
 # landing page
 def card(i, fn, t, sub, emoji, status):
-    n = f"{i:02d}"
-    dis = status != "live"
+    special = status in ("bonus", "ref")
+    n = "＋" if special else f"{i:02d}"
+    dis = status not in ("live", "bonus", "ref")
+    badge = {"bonus": "bonus", "ref": "reference"}.get(status, "soon" if dis else "")
+    badge_html = (f'<span style="margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;'
+                  f'text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:2px 9px">{badge}</span>') if badge else ""
     inner = (f'<div style="display:flex;align-items:baseline;gap:10px">'
              f'<span style="font-family:var(--mono);font-size:12px;color:var(--accent)">{n}</span>'
              f'<span style="font-size:22px">{emoji}</span>'
              f'<span style="font-family:var(--serif);font-size:21px;color:#fff">{html.escape(t)}</span>'
-             f'{"" if not dis else "<span style=\"margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:2px 9px\">soon</span>"}'
+             f'{badge_html}'
              f'</div>'
              f'<p style="margin:10px 0 0;font-size:14.5px;color:var(--soft);line-height:1.6">{html.escape(sub)}</p>')
     style = ("display:block;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:14px;"
