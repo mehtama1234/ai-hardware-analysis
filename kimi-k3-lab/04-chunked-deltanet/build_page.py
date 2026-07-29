@@ -73,9 +73,9 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 <header style="padding:64px 0 8px">
   <div class="kick">Kimi K3, from first principles · Session 04 of 07</div>
   <h1>Same delta rule — done in parallel.</h1>
-  <p class="dek">DeltaNet has one flaw for training: it's <em>sequential</em>. Every step reads the current board to know what to erase, so you can't process a long prompt at once. The chunk-wise reparameterization fixes it — do <b>real attention inside a chunk</b>, carry a running state <b>across chunks</b>, and get the <em>exact same numbers</em>. Chunk size is a dial from pure-recurrent to full-attention.</p>
+  <p class="dek">The last rung gave our model a memory it can correct in place — but it has to do that <em>one word at a time</em>, each step waiting on the one before it. On long text, that waiting makes training painfully slow. This rung changes <b>nothing about the answer</b> and everything about the speed: it reorganizes the very same work so a computer can do it in big parallel batches instead of a single-file line.</p>
   <div class="run"><div class="rt">▶ We ran it · the headline</div>
-  <p>Sequential and chunked outputs agree to <b>{max(r['max_abs_diff'] for r in EQ['rows']):.0e}</b> for every chunk size — same function, not an approximation. And it cuts the chain of must-run-in-order steps by <b>{SP['rows'][0]['depth_reduction']}×</b> (L → L/C), which ran <b>{SP['rows'][2]['speedup']:.0f}×</b> faster even here on plain CPU.</p></div>
+  <p>The one-at-a-time version and the batched version give the <b>same answer</b> (they differ by about <b>{max(r['max_abs_diff'] for r in EQ['rows']):.0e}</b> — pure rounding). The batched version shortens the chain of steps that must wait for each other by about <b>{SP['rows'][0]['depth_reduction']}×</b>, and ran <b>{SP['rows'][2]['speedup']:.0f}×</b> faster even on an ordinary computer.</p></div>
 </header>
 
 <section>

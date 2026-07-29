@@ -70,9 +70,9 @@ th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(
 <header style="padding:64px 0 8px">
   <div class="kick">Kimi K3, from first principles · Session 05 of 07</div>
   <h1>Add a dial for forgetting.</h1>
-  <p class="dek">DeltaNet can correct a fact it recognizes — but it has no way to <em>let go</em> of old context when the subject changes. Gated DeltaNet adds one number, borrowed from Mamba: a decay <b>α</b> that gently fades the whole board every step before writing. Now the memory can forget on purpose, and old clutter stops crowding out new information.</p>
+  <p class="dek">Our model now keeps its memory as a single fixed-size page and can even correct an entry in place. But it has never been able to do one very ordinary thing: <em>forget</em>. When the subject changes, everything it wrote earlier just stays there, crowding out what matters now. This rung adds the missing skill — <b>a simple way to let old writing gently fade</b> so new material has room to land.</p>
   <div class="run"><div class="rt">▶ We ran it · forgetting on a dial</div>
-  <p>Write an old topic, then a new one, then recall. Ungated (α=1) leaves the stale topic fully present (recall <b>{r1['stale_A_recall']:.2f}</b>). Turn the dial to α={rlast['alpha']} and the stale topic fades to <b>{rlast['stale_A_recall']:.2f}</b> — forgotten — while the fresh topic stays sharp (<b>{rlast['fresh_B_recall']:.2f}</b>). And a memory left for Δ steps comes back scaled by exactly <b>α^Δ</b> (measured = predicted to 4 decimals).</p></div>
+  <p>Write about one topic, then a different one, then ask for the old one back. With forgetting turned off, the stale old topic is still fully present (a <b>{r1['stale_A_recall']:.2f}</b> match). Turn the forgetting up and it fades to <b>{rlast['stale_A_recall']:.2f}</b> — gone — while the fresh topic stays sharp (<b>{rlast['fresh_B_recall']:.2f}</b>). And a memory left alone for a while fades by an exactly predictable amount.</p></div>
 </header>
 
 <section>

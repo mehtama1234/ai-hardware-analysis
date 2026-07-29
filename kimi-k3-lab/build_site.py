@@ -66,6 +66,7 @@ for fn, src, t, sub, emoji, status in SESSIONS:
     doc = open(os.path.join(ROOT, src), encoding="utf-8").read()
     doc = doc.replace('<div class="wrap">', '<div class="wrap">\n' + nav(t), 1)
     doc = inject_plain_words(doc, fn)
+    doc = '<meta charset="utf-8">\n' + doc            # fix em-dash/α/× rendering
     open(os.path.join(SITE, fn), "w", encoding="utf-8").write(doc)
 
 # landing page
@@ -87,7 +88,8 @@ def card(i, fn, t, sub, emoji, status):
 
 cards = "\n".join(card(i, *s[:1]+s[2:]) if False else card(i, s[0], s[2], s[3], s[4], s[5]) for i, s in enumerate(SESSIONS))
 
-LAND = f"""<title>Kimi K3, from first principles — the lab</title>
+LAND = f"""<meta charset="utf-8">
+<title>Kimi K3, from first principles — the lab</title>
 <style>
 :root{{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;
 --line:rgba(150,170,205,.14);--accent:#4FA8B8;--serif:"Iowan Old Style",Palatino,Georgia,serif;

@@ -81,9 +81,9 @@ section{{padding:44px 0;border-top:1px solid var(--line)}}
 <header style="padding:64px 0 8px">
   <div class="kick">Kimi K3, from first principles · Session 03 of 07</div>
   <h1>Don't pile on. Overwrite.</h1>
-  <p class="dek">Linear attention's board blurs because every fact is just <em>added</em>. DeltaNet's fix is almost obvious once you see it: before writing a fact, first <b>read what's already stored there and subtract it</b>, so a new value <em>replaces</em> the old one instead of stacking beside it. That one change turns a fixed board from a smear into an editable memory.</p>
+  <p class="dek">By this point our model keeps its whole memory as one fixed-size page — a running summary it writes each new fact onto, so the memory never grows. Useful, but it has a real weakness: because it only ever <em>adds</em>, writing the same thing twice leaves a blur of both. This rung teaches it a smarter move — to <b>rub out the old version of a fact before writing the new one</b> — turning a memory it could only pile onto into one it can actually correct.</p>
   <div class="run"><div class="rt">▶ We ran it · overwrite the same key twice</div>
-  <p>Write value v1 at a key, later write v2 at the <b>same</b> key, then ask for it. DeltaNet returns the new value cleanly (cos <b>{DN['cos_to_new_v2']:+.2f}</b> to v2, <b>{DN['cos_to_old_v1']:+.2f}</b> to the stale v1). Softmax can't update — it kept both copies and <b>averaged</b> them ({SM['cos_to_new_v2']:+.2f} / {SM['cos_to_old_v1']:+.2f}, near-equal). Editing in place is the whole point.</p></div>
+  <p>File one answer under a label, then later file a <b>different</b> answer under the same label, and ask for it. The erase-first method returns the new answer cleanly — a <b>{DN['cos_to_new_v2']:+.2f}</b> match to it, only <b>{DN['cos_to_old_v1']:+.2f}</b> to the stale one it let go. The old add-only method kept both copies and hands back a blurred average ({SM['cos_to_new_v2']:+.2f} and {SM['cos_to_old_v1']:+.2f}, nearly the same) — it can't update, only accumulate.</p></div>
 </header>
 
 <section>
