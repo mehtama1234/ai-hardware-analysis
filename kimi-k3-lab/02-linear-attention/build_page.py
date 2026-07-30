@@ -2,7 +2,56 @@ import json, html
 D = json.load(open("out_linear.json"))
 EQ = D["equivalence"]; ST = D["state_size"]; DC = D["decode_cost"]; ND = D["needle"]
 GP = json.load(open("out_gpu.json"))
+CAP = json.load(open("out_capacity.json"))
+SW = json.load(open("out_gpusweep.json"))
 def esc(s): return html.escape(str(s))
+
+def sweepsvg():
+    rows = SW["rows"]; n = len(rows)
+    W, H, pad = 560, 220, 40
+    import math as _m
+    xs = [_m.log2(r["L"]) for r in rows]
+    x0, x1 = min(xs), max(xs)
+    mx = max(r["softmax_ms_per_tok"] for r in rows)
+    X = lambda lv: pad + (W-2*pad)*(lv-x0)/(x1-x0)
+    Y = lambda v: H-pad - (H-2*pad)*(v/mx)
+    def line(key, col):
+        pts = "M" + " L".join(f"{X(xs[i]):.1f},{Y(r[key]):.1f}" for i, r in enumerate(rows))
+        dots = "".join(f"<circle cx='{X(xs[i]):.1f}' cy='{Y(r[key]):.1f}' r='2.8' fill='{col}'/>" for i, r in enumerate(rows))
+        return f"<path d='{pts}' fill='none' stroke='{col}' stroke-width='2'/>{dots}"
+    grid = "".join(f"<line x1='{pad}' y1='{Y(g):.1f}' x2='{W-pad}' y2='{Y(g):.1f}' stroke='rgba(150,170,205,.10)'/>"
+                   f"<text x='{pad-6}' y='{Y(g)+3:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">{g:.0f}</text>" for g in (0, 2, 4, 6, 8))
+    lab = lambda L: (f"{L//1024}k" if L < 1048576 else f"{L//1048576}M")
+    xl = "".join(f"<text x='{X(xs[i]):.1f}' y='{H-12}' fill='#5A6577' font-size='9.5' text-anchor='middle' font-family=\"ui-monospace,monospace\">{lab(r['L'])}</text>" for i, r in enumerate(rows))
+    # speedup annotations at each softmax point
+    ann = "".join(f"<text x='{X(xs[i]):.1f}' y='{Y(r['softmax_ms_per_tok'])-8:.1f}' fill='#E0748A' font-size='10' text-anchor='middle' font-family=\"ui-monospace,monospace\">{r['speedup']:.0f}×</text>" for i, r in enumerate(rows) if r['speedup'] >= 2)
+    yaxis = f"<text x='{pad-6}' y='{pad-8}' fill='#8493A8' font-size='10' text-anchor='end' font-family=\"ui-monospace,monospace\">ms/word</text>"
+    leg = (f"<text x='{W-pad}' y='{Y(rows[-1]['softmax_ms_per_tok']):.1f}' fill='#E0748A' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">keep every note</text>"
+           f"<text x='{X(xs[-1]):.1f}' y='{Y(rows[-1]['linear_ms_per_tok'])-8:.1f}' fill='#4FA8B8' font-size='11' text-anchor='end' font-family=\"ui-monospace,monospace\">running summary (flat)</text>")
+    return f"<svg viewBox='0 0 {W} {H}' style='width:100%;height:auto'>{grid}{yaxis}{line('softmax_ms_per_tok','#E0748A')}{line('linear_ms_per_tok','#4FA8B8')}{xl}{ann}{leg}</svg>"
+
+def capsvg():
+    rows = CAP["rows"]; n = len(rows); d = CAP["d"]
+    W, H, pad = 560, 200, 34
+    X = lambda i: pad + (W-2*pad)*i/(n-1)
+    Y = lambda v: H-pad - (H-2*pad)*max(0, min(1, v))
+    def line(key, col):
+        pts = "M" + " L".join(f"{X(i):.1f},{Y(r[key]):.1f}" for i, r in enumerate(rows))
+        dots = "".join(f"<circle cx='{X(i):.1f}' cy='{Y(r[key]):.1f}' r='2.6' fill='{col}'/>" for i, r in enumerate(rows))
+        return f"<path d='{pts}' fill='none' stroke='{col}' stroke-width='2'/>{dots}"
+    grid = "".join(f"<line x1='{pad}' y1='{Y(g):.1f}' x2='{W-pad}' y2='{Y(g):.1f}' stroke='rgba(150,170,205,.10)'/>"
+                   f"<text x='{pad-6}' y='{Y(g)+3:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">{g:.1f}</text>" for g in (0, 0.5, 1.0))
+    # mark the board-width line (where N == d)
+    di = next((i for i, r in enumerate(rows) if r["N"] == d), None)
+    marker = ""
+    if di is not None:
+        marker = (f"<line x1='{X(di):.1f}' y1='{pad}' x2='{X(di):.1f}' y2='{H-pad}' stroke='#E3A63A' stroke-width='1' stroke-dasharray='3 3'/>"
+                  f"<text x='{X(di):.1f}' y='{pad-4}' fill='#E3A63A' font-size='10' text-anchor='middle' font-family=\"ui-monospace,monospace\">room runs out (d={d})</text>")
+    xl = "".join(f"<text x='{X(i):.1f}' y='{H-10}' fill='#5A6577' font-size='9.5' text-anchor='middle' font-family=\"ui-monospace,monospace\">{r['N']}</text>" for i, r in enumerate(rows))
+    lab = (f"<text x='{X(1):.1f}' y='{Y(rows[1]['erase_first_recall'])-8:.1f}' fill='#9B8CE0' font-size='11' font-family=\"ui-monospace,monospace\">erase-first</text>"
+           f"<text x='{X(1):.1f}' y='{Y(rows[1]['add_only_recall'])+16:.1f}' fill='#E0748A' font-size='11' font-family=\"ui-monospace,monospace\">add-only</text>")
+    return (f"<svg viewBox='0 0 {W} {H}' style='width:100%;height:auto'>{grid}{marker}"
+            f"{line('add_only_recall','#E0748A')}{line('erase_first_recall','#9B8CE0')}{xl}{lab}</svg>")
 
 def gpurows():
     out = ""
@@ -152,6 +201,15 @@ answer =   question · ( <span class="c">board</span> )      <span class="g"># b
 </section>
 
 <section>
+  <div class="eye">We ran it · push the context way out</div>
+  <h2>Watch the gap climb past 6×</h2>
+  <p>So we pushed it — same GPU, same decode, but out to a quarter-million words of context. The running summary's time per word doesn't budge ({SW['rows'][0]['linear_ms_per_tok']:.2f} ms the whole way); keep-every-note climbs and climbs. The gap sails past the paper's headline 6× and keeps going:</p>
+  <div class="card">{sweepsvg()}
+  <div class="mini" style="margin-top:6px">Each red mark is how many times faster the running summary is at that length. It crosses <b>6×</b> around 50,000 words and reaches <b>{SW['rows'][-1]['speedup']:.0f}×</b> at {SW['rows'][-1]['L']//1024}k.</div></div>
+  <div class="why"><h3>Why ours overshoots the paper's 6×</h3><p>Our pure summary-vs-keep-everything race climbs to {SW['rows'][-1]['speedup']:.0f}× because it's exactly that — pure. The real model's "up to 6×" is a whole-model figure that still includes a few keep-everything layers (they're what makes recall sharp), so it doesn't run away this far. Same shape, though: the advantage is small at short context and grows without bound as the text gets longer — which is the entire reason to build a fixed-size memory.</p></div>
+</section>
+
+<section>
   <div class="eye">We ran it · the price of a fixed board</div>
   <h2>Ask for one exact memory — and watch it blur</h2>
   <p>Now the price, measured head-on. We store a batch of facts — each one a cue and the thing filed under it — then hand back the <em>exact cue</em> of one early fact and ask how faithfully its value comes back (1.0 = recalled perfectly, 0 = lost in the noise). Keep-every-note still has that fact on file, so it points straight at it. The running summary folded everything onto one board — so asking for one value drags in a smear of all the rest, and it gets worse the more you've stored:</p>
@@ -163,6 +221,15 @@ answer =   question · ( <span class="c">board</span> )      <span class="g"># b
     {needletable()}
   </table></div>
   <div class="why"><h3>Why this one chart sets up everything next</h3><p>{esc(ND['point'])}</p></div>
+</section>
+
+<section>
+  <div class="eye">We ran it · the capacity cliff</div>
+  <h2>How much can one page actually hold?</h2>
+  <p>A fixed page has a hard limit — so where is it? We store more and more facts on a page {CAP['d']} slots wide, then ask for them back and score the recall. Two memories: the plain <span style="color:var(--rose)">add-only</span> board, and the <span style="color:var(--viol)">erase-first</span> board (the trick from the next rung). Watch what happens as the number of facts crosses the page's width:</p>
+  <div class="card">{capsvg()}
+  <div class="mini" style="margin-top:6px">left-to-right = facts stored. The dashed line is where the count reaches the page's width ({CAP['d']} slots) — past it, there's simply no more room, and recall falls off a cliff.</div></div>
+  <p class="mini">{esc(CAP['point'])}</p>
 </section>
 
 <section>

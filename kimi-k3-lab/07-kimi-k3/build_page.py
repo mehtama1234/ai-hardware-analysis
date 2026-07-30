@@ -1,7 +1,20 @@
 import json, html
 D = json.load(open("out_k3.json"))
 B = D["backbone"]; MO = D["moe"]; SI = D["situ"]; AR = D["attnres"]
+ME = json.load(open("out_moe.json"))
 def esc(s): return html.escape(str(s))
+
+def loadbars():
+    # per-expert usage, both ways, sorted descending — show the lopsided profile
+    def bars(usage, col):
+        u = sorted(usage, reverse=True); mx = max(u)
+        return "".join(f"<span style='display:inline-block;width:{100/len(u):.2f}%;height:{max(2,v/mx*46):.0f}px;"
+                       f"background:{col};vertical-align:bottom'></span>" for v in u)
+    nb = ME["no_balance"]["usage_per_expert"]; wb = ME["with_balance"]["usage_per_expert"]
+    return (f"<div style='margin:6px 0'><div class='mini' style='margin:0 0 4px'>no balancing — busiest {ME['no_balance']['busiest_expert_share_pct']}% ({ME['no_balance']['max_over_mean_load']}× fair)</div>"
+            f"<div style='height:48px;display:flex;align-items:flex-end;gap:1px'>{bars(nb,'#E0748A')}</div></div>"
+            f"<div style='margin:12px 0 0'><div class='mini' style='margin:0 0 4px'>with balancing — busiest {ME['with_balance']['busiest_expert_share_pct']}% ({ME['with_balance']['max_over_mean_load']}× fair)</div>"
+            f"<div style='height:48px;display:flex;align-items:flex-end;gap:1px'>{bars(wb,'#4FA8B8')}</div></div>")
 
 # macrocycle strip: 92 layers, every 4th = MLA, AttnRes boundary every 12
 def strip():
@@ -136,6 +149,14 @@ section{{padding:44px 0;border-top:1px solid var(--line)}}
   <div class="card">{moegrid()}
   <div class="mini" style="margin-top:10px">{MO['active_experts_per_token']} of {MO['experts_total']} specialists awake = <b>{MO['expert_fire_fraction_pct']}%</b> of them → the specialist stage does about that fraction of an ordinary model's work. Across the whole model, roughly {MO['reported_active_params_pct']}% of its parts run for any given word (104 billion of 2.8 trillion). The chooser isn't perfectly even (busiest specialist handled {MO['busiest_expert_tokens']} words, quietest {MO['quietest_expert_tokens']}, of {MO['tokens']}) — keeping that balanced is a big part of the real design.</div></div>
   <p class="mini">{esc(MO['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · why the crowd needs balancing</div>
+  <h2>Left alone, the load goes lopsided</h2>
+  <p>There's a catch to a crowd of specialists, and we can train a small one to show it. Real text is uneven — some kinds of word are far more common — so if the chooser just follows demand, a few popular specialists get swamped while the rest sit nearly idle. We trained a small chooser on deliberately lopsided data, once with no balancing and once with a small "spread the load" incentive. Each bar is one specialist's share of the work, tallest first:</p>
+  <div class="card">{loadbars()}</div>
+  <p class="mini">{esc(ME['point'])}</p>
 </section>
 
 <section>
