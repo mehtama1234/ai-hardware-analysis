@@ -51,6 +51,8 @@ SESSIONS = [
   "Kimi K3", "The assembly: 23×(3 KDA + 1 MLA) macrocycles, latent MoE (18 of 898 fire), SiTU bounded activation, AttnRes across depth (recovery 0.83 vs 0.48). The whole ladder, connected.", "🌐", "live"),
  ("08-beyond.html", "08-beyond/out/index.html",
   "Bonus · how it's trained", "The other half of the story: growing the reading length gradually, merging nine specialists into one, and designing the model and its hardware together — why the gains weren't just size.", "🎓", "bonus"),
+ ("09-serving.html", "09-serving/out/index.html",
+  "Bonus · the hardware bill", "What it costs to actually run a 2.8T model: real 4-bit (MXFP4) quantization (5.6→1.5 TB, measured error), the conversation's own memory, and spreading 898 experts across machines. Bridges to this repo's hardware focus.", "🖥️", "bonus"),
  ("glossary.html", "glossary/out/index.html",
   "Words, translated", "Every plain phrase in the lab next to its real technical name, with links to the papers — the bridge from this lab to the literature.", "📖", "ref"),
 ]

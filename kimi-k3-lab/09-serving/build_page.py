@@ -1,0 +1,119 @@
+import json, html
+Q = json.load(open("out_quant.json"))
+def esc(s): return html.escape(str(s))
+
+def quantrows():
+    out = ""
+    for r in Q["rows"]:
+        hero = r["scheme"].startswith("MXFP4")
+        style = " style=\"background:rgba(79,168,184,.08)\"" if hero else ""
+        out += (f"<tr{style}><td>{esc(r['scheme'])}</td>"
+                f"<td class='mo'>{r['bits_per_param']}</td>"
+                f"<td class='mo' style='color:var(--rose)'>{r['rel_error_pct']}%</td>"
+                f"<td class='hi'>{r['cosine']:.4f}</td>"
+                f"<td class='hi'>{r['model_TB']} TB</td>"
+                f"<td class='mo'>{r['H100_gpus_needed']}</td></tr>")
+    return out
+
+# a simple bit-ladder bar for each scheme (memory)
+def membars():
+    mx = max(r["model_TB"] for r in Q["rows"])
+    out = ""
+    for r in Q["rows"]:
+        pct = r["model_TB"]/mx*100
+        col = "#4FA8B8" if r["scheme"].startswith("MXFP4") else ("#5A6577" if r["bits_per_param"]>8 else "#2E6E7A")
+        out += (f"<div class='mbar'><span class='ml'>{esc(r['scheme'].split(' (')[0])}</span>"
+                f"<span class='mt'><span class='mf' style='width:{pct:.1f}%;background:{col}'></span></span>"
+                f"<span class='mv'>{r['model_TB']} TB</span></div>")
+    return out
+
+fp = next(r for r in Q["rows"] if r["scheme"].startswith("fp16"))
+mx = next(r for r in Q["rows"] if r["scheme"].startswith("MXFP4"))
+
+P = f"""<title>Kimi K3 Lab · Serving — the hardware bill</title>
+<style>
+:root{{--bg:#0E1420;--bg2:#141D2C;--panel:#18212F;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;
+--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--viol:#9B8CE0;--serif:"Iowan Old Style",Palatino,Georgia,serif;
+--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.75;font-size:17px}}
+.wrap{{max-width:820px;margin:0 auto;padding:0 24px}}
+p{{color:var(--soft);margin:0 0 16px}}b{{color:var(--ink)}}em{{color:#fff;font-style:italic}}
+.mono{{font-family:var(--mono)}}
+.kick{{font-family:var(--mono);font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}}
+h1{{font-family:var(--serif);font-size:clamp(32px,6vw,52px);line-height:1.05;margin:14px 0 0;color:#fff;letter-spacing:-.02em}}
+h2{{font-family:var(--serif);font-size:26px;margin:0 0 8px;color:#fff}}
+.dek{{font-size:19px;color:var(--soft);margin-top:18px;max-width:62ch}}
+section{{padding:44px 0;border-top:1px solid var(--line)}}
+.eye{{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}}
+.why{{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}}
+.why h3{{margin:0 0 6px;font-size:12.5px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}}.why p{{margin:0;font-size:15px;color:var(--soft)}}
+.run{{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 18px;margin:16px 0}}
+.run .rt{{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}}.run p{{margin:0;font-size:14.5px;color:var(--soft)}}
+.card{{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:14px}}
+.mini{{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:10px;line-height:1.6}}
+table{{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}}
+th,td{{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line)}}
+th{{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}}
+td.mo{{font-family:var(--mono);color:var(--soft)}}td.hi{{font-family:var(--mono);color:var(--accent);font-weight:700}}
+th:first-child,td:first-child{{text-align:left;color:var(--ink);font-family:var(--mono)}}
+.mbar{{display:flex;align-items:center;gap:12px;margin:8px 0;font-family:var(--mono);font-size:12.5px}}
+.mbar .ml{{width:96px;color:var(--dim);text-align:right}}
+.mbar .mt{{flex:1;height:20px;background:rgba(150,170,205,.06);border-radius:5px;overflow:hidden}}
+.mbar .mf{{display:block;height:100%}}.mbar .mv{{width:66px;color:var(--soft)}}
+.codes{{font-family:var(--mono);font-size:13px;color:var(--accent);background:#0C1119;border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;overflow-x:auto;white-space:nowrap}}
+.aha{{font-family:var(--serif);font-size:22px;line-height:1.4;color:#fff;border-left:3px solid var(--accent);padding-left:18px;margin:8px 0}}
+.next{{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}}.next a{{color:var(--accent);text-decoration:none}}
+.src{{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}}.src a{{color:var(--accent);text-decoration:none}}
+</style>
+<div class="wrap">
+<header style="padding:60px 0 8px">
+  <div class="kick">Kimi K3, from first principles · Bonus · the hardware bill</div>
+  <h1>What it takes to actually run it.</h1>
+  <p class="dek">The rest of the lab is about how the model <em>thinks</em>. This page is about what it costs to <em>run</em> — because a 2.8-trillion-setting model doesn't fit anywhere by default, and the tricks that make it servable are as much a part of the design as the memory tricks. We measure the two that matter most: squeezing every number down to 4 bits, and the memory math of holding a conversation.</p>
+</header>
+
+<section>
+  <div class="eye">The problem · it doesn't fit</div>
+  <h2>5.6 terabytes, before you do anything</h2>
+  <p>Each of the model's 2.8 trillion internal settings is normally a 16-bit number. That's <b>{fp['model_TB']} TB</b> just to hold the model still — {fp['H100_gpus_needed']} of the top-end 80&nbsp;GB accelerators, before a single word is generated. No one serves it that way. The first thing you do is <b>shrink every number</b>.</p>
+  <div class="card">{membars()}</div>
+</section>
+
+<section>
+  <div class="eye">We ran it · 4-bit quantization</div>
+  <h2>Squeeze each number to 4 bits — and measure what breaks</h2>
+  <p>The modern squeeze is a <b>tiny 4-bit float</b> shared across small blocks (the format K3-class models use). Each number keeps only 4 bits, and every group of 32 shares one scale — about 4.25 bits per number, a 4× cut. The 4-bit values aren't evenly spaced; they cluster near zero, where most real numbers live:</p>
+  <div class="codes">representable magnitudes: {" · ".join(str(c) for c in Q['mxfp4_codes'])}</div>
+  <p>We implemented this for real, squeezed {Q['n_values_quantized']:,} actual number values with it, and measured how far the squeezed versions drift from the originals — against 16-bit, 8-bit, and plain 4-bit integers for comparison:</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>how it's stored</th><th>bits/number</th><th>drift from original</th><th>faithfulness</th><th>whole model</th><th>80GB GPUs</th></tr>
+    {quantrows()}
+  </table></div>
+  <p class="mini">{esc(Q['point'])}</p>
+  <div class="why"><h3>The honest read</h3><p>Our run found the 4-bit float is <em>not</em> more faithful than plain 4-bit integers — its power-of-two shared scale wastes a little range. It ships anyway because that scale is almost free to apply in hardware and 4-bit floats run natively on the chips, so at the same size it's faster and cheaper to serve. And per-number drift isn't the same as getting answers wrong: the errors are scattered and mostly wash out, and real systems keep the few most sensitive parts at higher precision.</p></div>
+</section>
+
+<section>
+  <div class="eye">The other bill · the conversation itself</div>
+  <h2>Holding the conversation costs memory too</h2>
+  <p>Shrinking the model is only half the bill. The <em>other</em> half is the running memory of the conversation so far — the very thing Sessions 1–2 measured. In the plain full-attention design that memory grows with every word and, on real hardware, we clocked it ballooning to hundreds of megabytes and then gigabytes as the context got long. That's memory that has to sit on the accelerator <em>next to</em> the model, and be re-read for every new word.</p>
+  <div class="why"><h3>Why K3's memory design is a serving decision</h3><p>This is the payoff of the whole ladder, seen from the machine room. K3 carries most of its context in the cheap fixed-size memory (Sessions 2–6), so the conversation's memory <b>stops growing</b> — the accelerator's room and bandwidth go to serving more users and longer chats instead of to an ever-bigger cache. The 4× squeeze frees room for the model; the fixed-size memory frees room for the conversation. Together they're what turns a 5.6&nbsp;TB research artifact into something you can actually put behind an API.</p></div>
+</section>
+
+<section>
+  <div class="eye">The crowd, spread across machines</div>
+  <h2>898 specialists don't fit on one chip either</h2>
+  <p>Even squeezed, the specialists (Session 7's mixture-of-experts) are far too many for one accelerator, so they're spread across many — a few experts per chip. But each word needs a specific handful of them, scattered across the machines, so every word triggers a quick round of chips <b>shipping pieces to each other</b> to gather the right experts. That shuffle is a real cost, and it's why serving these models is as much a networking problem as a math one — and why the model and the machines it runs on (Session 8's bonus) have to be designed together.</p>
+</section>
+
+<section>
+  <div class="eye">The one-line takeaway</div>
+  <p class="aha">A 2.8-trillion-setting model is a hardware problem before it's an intelligence problem: shrink every number to 4 bits ({fp['model_TB']}→{mx['model_TB']} TB), keep the conversation's memory from growing, and spread the specialists across machines — the same memory ideas from the ladder, now measured as the electricity bill.</p>
+  <p class="next">Real code: <b>09-serving/quant.py</b> → <b>out_quant.json</b> · Serving figures build on the real GPU runs in <a href="02-linear.html">Session 02</a>.<br>
+  ← Back to <a href="index.html">the lab</a> · the training story is <a href="08-beyond.html">the other bonus</a> · look up any term in <a href="glossary.html">Words, translated</a>.</p>
+</section>
+<div class="src">Companion to ali (@waterloo_intern), <a href="https://x.com/waterloo_intern/status/2081762065392541951">"22580"</a>; serving details informed by Moonshot's <a href="https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf">Kimi K3 report</a> (MXFP4, algorithm–system co-design). The quantization numbers are produced by the code, not transcribed.</div>
+</div>
+"""
+open("out/index.html", "w", encoding="utf-8").write(P)
+print("wrote out/index.html ·", len(P)//1024, "KB · FFFD:", P.count("�"))

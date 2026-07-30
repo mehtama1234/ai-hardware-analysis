@@ -1,0 +1,54 @@
+{
+  "n_values_quantized": 1000000,
+  "block_size": 32,
+  "total_params": 2800000000000.0,
+  "mxfp4_codes": [
+    0.0,
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    6.0
+  ],
+  "rows": [
+    {
+      "scheme": "fp16 (16 bit)",
+      "bits_per_param": 16.0,
+      "rel_error_pct": 0.021,
+      "cosine": 1.00001,
+      "model_TB": 5.6,
+      "L4_gpus_needed": 234,
+      "H100_gpus_needed": 70
+    },
+    {
+      "scheme": "int8 (8 bit)",
+      "bits_per_param": 8.0,
+      "rel_error_pct": 1.786,
+      "cosine": 0.99994,
+      "model_TB": 2.8,
+      "L4_gpus_needed": 117,
+      "H100_gpus_needed": 35
+    },
+    {
+      "scheme": "int4 block (4 bit)",
+      "bits_per_param": 4.25,
+      "rel_error_pct": 10.774,
+      "cosine": 0.99426,
+      "model_TB": 1.49,
+      "L4_gpus_needed": 62,
+      "H100_gpus_needed": 19
+    },
+    {
+      "scheme": "MXFP4 (4 bit)",
+      "bits_per_param": 4.25,
+      "rel_error_pct": 12.396,
+      "cosine": 0.99232,
+      "model_TB": 1.49,
+      "L4_gpus_needed": 62,
+      "H100_gpus_needed": 19
+    }
+  ],
+  "point": "Stored the normal 16-bit way, the 2.8-trillion-setting model is 5.6 TB \u2014 it would take 70 top-end 80GB accelerators just to hold it. Squeezing each setting to ~4 bits cuts the model to 1.5 TB (19 accelerators), a ~4\u00d7 drop, while the numbers stay 99.2% faithful to the originals. Honest surprise from our run: MXFP4 is NOT more accurate than plain 4-bit integers here (12.396% error vs 10.774%) \u2014 its power-of-two shared scale wastes a little range. MXFP4 wins for a different reason: that power-of-two scale is almost free to apply in hardware and 4-bit floats run natively on the tensor cores, so it's faster and cheaper to serve at the same size. (Per-weight error isn't end-task accuracy: real serving also keeps the few most sensitive parts at higher precision.)"
+}
