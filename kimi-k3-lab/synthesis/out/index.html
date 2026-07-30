@@ -1,0 +1,191 @@
+<title>Kimi K3 Lab · Kimi K3 is a hardware paper</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--panel:#18212F;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;
+--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--viol:#9B8CE0;--serif:"Iowan Old Style",Palatino,Georgia,serif;
+--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.78;font-size:17px}
+.wrap{max-width:820px;margin:0 auto;padding:0 24px}
+p{color:var(--soft);margin:0 0 17px}b{color:var(--ink)}em{color:#fff;font-style:italic}
+.mono{font-family:var(--mono)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6.5vw,56px);line-height:1.04;margin:14px 0 0;color:#fff;letter-spacing:-.02em}
+h2{font-family:var(--serif);font-size:29px;margin:0 0 6px;color:#fff}
+.pnum{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.dek{font-size:20px;color:var(--soft);margin-top:20px;max-width:64ch;font-family:var(--serif);line-height:1.5}
+section{padding:46px 0;border-top:1px solid var(--line)}
+.lead{font-family:var(--serif);font-size:21px;line-height:1.5;color:#fff;margin:0 0 18px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:20px 0}
+.why h3{margin:0 0 6px;font-size:12.5px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}.why p{margin:0;font-size:15.5px;color:var(--soft)}
+.measure{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:12px;padding:14px 18px;margin:18px 0}
+.measure .mt{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+.measure p{margin:0;font-size:14.5px;color:var(--soft)}
+.papers{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0}
+.papers .pt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.papers ul{margin:0;padding-left:0;list-style:none}
+.papers li{font-size:13.5px;color:var(--soft);margin:5px 0;padding-left:14px;text-indent:-14px}
+.papers .v{font-family:var(--mono);font-size:11px;color:var(--accent);margin-right:6px}
+.big{display:flex;gap:26px;flex-wrap:wrap;margin:22px 0 6px}
+.big .n{font-family:var(--serif);font-size:34px;color:#fff;line-height:1}.big .l{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:6px}
+.aha{font-family:var(--serif);font-size:24px;line-height:1.45;color:#fff;border-left:3px solid var(--accent);padding-left:20px;margin:14px 0}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:14px}.next a{color:var(--accent);text-decoration:none}
+.src{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}.src a{color:var(--accent);text-decoration:none}
+.toc{font-family:var(--mono);font-size:13px;color:var(--dim);margin:22px 0 0;line-height:2}
+.toc a{color:var(--soft);text-decoration:none}.toc a:hover{color:var(--accent)}
+.toc b{color:var(--accent);font-weight:400}
+</style>
+<div class="wrap">
+<header style="padding:64px 0 8px">
+  <div class="kick">Kimi K3, from first principles · The grand synthesis</div>
+  <h1>Kimi K3 is a hardware paper that happens to produce language.</h1>
+  <p class="dek">Read the architecture ladder one way and it's a story about memory and meaning. Read it the way this repository reads its conferences — ISCA, MICRO, HPCA, ASPLOS, ISSCC, DAC, SC — and every rung turns out to be a well-known move from computer-architecture research, applied to one model. This is the long version of that second reading: each of K3's choices traced back to the hardware limit it exists to dodge, with the numbers we measured ourselves as evidence, and the papers this corpus has already mined as the field it comes from.</p>
+  <div class="toc">
+    <a href="#thesis"><b>I.</b> The one wall everything is built against</a><br>
+    <a href="#roofline"><b>II.</b> First principles: the roofline, and why generating text is a memory problem</a><br>
+    <a href="#precision"><b>III.</b> The precision axis — shrinking every number (MXFP4)</a><br>
+    <a href="#bandwidth"><b>IV.</b> The bandwidth axis — the cache that must not grow (KDA)</a><br>
+    <a href="#compute"><b>V.</b> The compute axis — do less by waking fewer (MoE)</a><br>
+    <a href="#comm"><b>VI.</b> The bottleneck moves — from arithmetic to the network</a><br>
+    <a href="#kernels"><b>VII.</b> The memory hierarchy — fused kernels and the SRAM you never see</a><br>
+    <a href="#parallel"><b>VIII.</b> The training machine — exposing parallelism</a><br>
+    <a href="#codesign"><b>IX.</b> The meta-principle: designing the model and the machine as one thing</a><br>
+    <a href="#coda"><b>X.</b> Coda: one vector's journey through the machine</a>
+  </div>
+</header>
+
+<section id="thesis">
+  <div class="pnum">Part I</div>
+  <h2>The one wall everything is built against</h2>
+  <p class="lead">For fifty years the central fact of computer architecture has been that arithmetic got cheap far faster than moving data got cheap.</p>
+  <p>Chips can multiply numbers at a staggering rate. What they cannot do is <em>feed themselves</em> at the same rate — pulling the numbers to multiply out of memory and pushing the results back lags further behind every generation. Architects named this the <b>memory wall</b> decades ago, and it has only grown taller. Most of what a modern accelerator's engineering budget buys is not more multipliers; it is ever more elaborate ways to avoid waiting on memory: deep cache hierarchies, high-bandwidth memory stacked on the die, keeping data on-chip as long as possible.</p>
+  <p>Generating text with a large model runs straight into that wall — and, crucially, on the <em>wrong side</em> of it. When a model produces one word, it must read a great many stored numbers (the model's own settings, and its memory of the conversation so far) and do comparatively little math with each one before it needs the next. It is nearly all fetching, barely any computing. So the speed of text generation is set almost entirely by <b>how many bytes you have to haul out of memory per word</b> — not by how fast the chip can multiply.</p>
+  <p>Hold that sentence, because it is the key to everything below. Kimi K3 looks, from a distance, like a collection of clever ideas about intelligence. Up close, nearly every one of those ideas is a way to <b>haul fewer bytes per word</b>, or to keep the bytes it does haul closer to the arithmetic, or to spread them across more machines. The intelligence is real. But the shape of the design is dictated by the wall.</p>
+  <div class="why"><h3>Why this reframing is worth the trouble</h3><p>Once you see the memory wall as the organizing constraint, K3 stops being a grab-bag of tricks and becomes a single, coherent argument — the same argument the hardware conferences have been making for a decade, now written in the language of a language model. The rest of this page is that argument, one axis at a time.</p></div>
+</section>
+
+<section id="roofline">
+  <div class="pnum">Part II</div>
+  <h2>First principles: the roofline, and why generating text is a memory problem</h2>
+  <p>Architects have a simple picture for "is this workload limited by math or by memory?" — the <b>roofline</b>. Plot, for any computation, how much arithmetic it does per byte it moves (call it the work-per-byte). If a computation does a lot of work per byte, the chip's multipliers are the bottleneck and you are "compute-bound." If it does little work per byte, memory is the bottleneck and you are "memory-bound" — the multipliers sit idle waiting for data, and buying faster multipliers changes nothing.</p>
+  <p>Training a model is compute-bound: you push huge batches of text through at once, reusing each stored number across many examples, so the work-per-byte is high. But <em>generating</em> text is the opposite. You produce one word at a time, and for that single word you must read essentially the entire model and the entire memory of the conversation — using each fetched number just once. The work-per-byte is dismal. Generation lives far down in the memory-bound corner of the roofline, and that is not a detail to optimize away; it is the defining fact of serving a model.</p>
+  <p>This is exactly the framing the accelerator community now designs around. In this repository's own corpus you can watch it become the explicit target of silicon:</p>
+  <div class="papers"><div class="pt">From this corpus — the memory-bound framing, in silicon</div><ul>
+    <li><span class="v">ISSCC</span>A 28nm 0.22μJ/Token <b>Memory-Compute-Intensity-Aware</b> CNN-Transformer Accelerator with Hybrid-Attention</li>
+    <li><span class="v">ISCA</span>Hybrid SLC-MLC RRAM Mixed-Signal <b>Processing-in-Memory</b> Architecture for Transformer Acceleration</li>
+    <li><span class="v">ICCAD</span>AccelStack: A Cost-Driven Analysis of <b>3D-Stacked</b> LLM Accelerators</li>
+  </ul></div>
+  <p>Notice what these are reaching for. A chip that is "memory-compute-intensity-aware" is one that knows some phases are memory-bound and schedules around it. "Processing-in-memory" and "3D-stacked" are attempts to move the arithmetic <em>to</em> the data instead of hauling the data to the arithmetic — because the haul is the cost. K3 attacks the same problem from the other side: instead of new silicon that moves bytes better, it is a model architecture designed to <b>need fewer bytes moved</b>. Same wall, two directions of assault.</p>
+</section>
+
+<section id="precision">
+  <div class="pnum">Part III</div>
+  <h2>The precision axis — shrinking every number</h2>
+  <p>The most direct way to haul fewer bytes is to make each byte carry more. If the model's settings take fewer bits each, there is simply less to move — and less to store. This is the oldest lever in the book, and the hardware-arithmetic community (ISSCC especially) has spent years on the question of <em>how few bits you can get away with</em>.</p>
+  <p>K3-class models ship at roughly <b>four bits per setting</b>, using a format called MXFP4 — a tiny four-bit floating-point number, with small groups of them sharing one scale factor. We implemented that format for real and squeezed a million actual numbers with it (Session 9). The result is the precision axis made concrete:</p>
+  <div class="big">
+    <div><div class="n">5.6 TB</div><div class="l">the model at 16 bits/setting</div></div>
+    <div><div class="n">1.5 TB</div><div class="l">the model at ~4 bits/setting</div></div>
+    <div><div class="n">~4×</div><div class="l">fewer bytes to store and stream</div></div>
+    <div><div class="n">~99%</div><div class="l">faithful to the originals</div></div>
+  </div>
+  <div class="measure"><div class="mt">what we measured, and the honest surprise</div><p>The four-bit float was <em>not</em> more accurate than plain four-bit integers in our run (about 12% per-number drift versus 11%). Its scale factor is constrained to a power of two, which wastes a little range. It ships anyway — and that is the whole lesson of the precision axis. The four-bit <b>float</b> wins not on accuracy but because its power-of-two scale is almost free to apply in hardware and four-bit floats run natively on the tensor cores. The choice is made by the silicon, not the statistics.</p></div>
+  <p>That is the tell that this is a hardware story. A format is chosen not because it represents numbers best, but because it costs the least to move and multiply. The corpus is thick with the same reasoning — precision as a systems knob, not a math one:</p>
+  <div class="papers"><div class="pt">From this corpus — precision as a hardware knob</div><ul>
+    <li><span class="v">ICCAD</span>MoE-OPU: An FPGA Overlay Processor Leveraging Expert Parallelism for MoE-based Large Language Models</li>
+    <li><span class="v">DAC</span>DM-Tune: Quantizing Diffusion Models with Mixture-of-Gaussian Guided Noise Tuning</li>
+    <li><span class="v">ISSCC</span>(and dozens more) accelerators quoting energy <em>per token</em> — the unit that only makes sense once you accept every bit moved has a cost</li>
+  </ul></div>
+</section>
+
+<section id="bandwidth">
+  <div class="pnum">Part IV</div>
+  <h2>The bandwidth axis — the cache that must not grow</h2>
+  <p class="lead">Shrinking the model is the easy half. The hard half is the conversation's own memory — and it is where K3's most important idea lives.</p>
+  <p>Recall the wall: generation is limited by bytes-per-word. The model's settings are a fixed cost you pay every word no matter what. But the <em>other</em> thing you must read every word is the memory of everything said so far — and in the original design that memory <b>grows with every word</b>. Sessions 1 and 2 measured it: a keep-every-word memory climbs to hundreds of megabytes and then gigabytes as a conversation lengthens, and all of it must be streamed off memory for each new word. On the roofline, this is the worst possible workload: enormous byte traffic, almost no arithmetic per byte.</p>
+  <p>This single quantity — the growing conversation memory (the "KV cache") — is the number-one reason long-context serving is expensive, and the corpus shows the field throwing everything at it: pruning it, compressing it, re-sharding it, building custom memory for it:</p>
+  <div class="papers"><div class="pt">From this corpus — fighting the growing cache</div><ul>
+    <li><span class="v">DAC</span>UniCAIM: A Unified CAM/CIM Architecture with <b>Static-Dynamic KV Cache Pruning</b> for Efficient Long-context</li>
+    <li><span class="v">DAC</span>DIAS: <b>Distance-based Attention Sparsity</b> for Ultra-Long-Sequence Transformer</li>
+    <li><span class="v">MLSYS</span>Seesaw: High-throughput LLM Inference via Model Re-sharding</li>
+    <li><span class="v">SC</span>SlimPipe: Memory-Thrifty and Efficient Pipeline Parallelism for <b>Long-Context</b> LLM Training</li>
+  </ul></div>
+  <p>Those papers make the growing cache <em>cheaper</em>. K3's answer is more radical: make it <b>stop growing at all</b>. Its main memory (KDA — the fixed-size running summary built over Sessions 2 through 6) holds the whole conversation in a state whose size never changes, however long the text runs. So the bytes streamed per word for the conversation memory go from climbing-forever to <b>flat</b>. We watched this happen on a real GPU (Session 2):</p>
+  <div class="big">
+    <div><div class="n">0.27 ms</div><div class="l">fixed-summary time per word — flat at every length</div></div>
+    <div><div class="n">8.2 ms</div><div class="l">keep-every-word at 256k tokens — and climbing</div></div>
+    <div><div class="n">30×</div><div class="l">the resulting speed gap at long context</div></div>
+    <div><div class="n">256×</div><div class="l">less memory held (0.5 MB vs 134 MB at 16k)</div></div>
+  </div>
+  <div class="why"><h3>The point, in roofline terms</h3><p>KDA does not make the model "smarter about attention." It changes the workload's <b>work-per-byte</b>: a fixed state read with a matrix multiply has far better arithmetic intensity than gathering an ever-larger cache. K3 takes the worst-positioned workload on the roofline and drags it upward. The few full-recall layers it keeps (MLA) are themselves compressed so even they stream less. This is the bandwidth axis, and it is the heart of the machine.</p></div>
+</section>
+
+<section id="compute">
+  <div class="pnum">Part V</div>
+  <h2>The compute axis — do less by waking fewer</h2>
+  <p>Having fought the byte traffic, there is still the arithmetic itself. A model's capacity — how much it can know — tends to scale with its number of settings, but running every setting for every word is expensive. The architecture community's long-standing answer is <b>conditional computation</b>: build a large machine but only switch on the part you need. In neural networks this is the mixture-of-experts — hundreds of specialist sub-networks, of which a router wakes only a few per word.</p>
+  <p>K3 has 898 experts and wakes 18 per word (Session 7): roughly 3.7% of the model runs for any given word. Capacity scales with the full count; cost scales with the woken few. This is <b>structured sparsity</b> — and the corpus is full of hardware built specifically to exploit exactly this pattern, because sparsity is only a win if the silicon can skip the sleeping parts without wasting the skip:</p>
+  <div class="papers"><div class="pt">From this corpus — sparsity and experts as a hardware target</div><ul>
+    <li><span class="v">ICCAD</span>MoE-OPU: An FPGA Overlay Processor <b>Leveraging Expert Parallelism</b> for MoE-based LLMs</li>
+    <li><span class="v">DAC</span>PIMoE: Towards Efficient <b>MoE Transformer Deployment on NPU-PIM</b> System through Throttle-Aware Tasking</li>
+    <li><span class="v">SC</span>Compression Error Sensitivity Analysis for <b>Different Experts in MoE</b> Model Inference</li>
+    <li><span class="v">ICCAD</span>DANCE: Dual-Side Agile <b>N:M Sparse</b> Compressed Digital CiM Accelerator</li>
+  </ul></div>
+  <p>But conditional computation is never quite free, and here the story takes its most interesting turn — because sparsity does not remove the bottleneck. It <em>moves</em> it.</p>
+</section>
+
+<section id="comm">
+  <div class="pnum">Part VI</div>
+  <h2>The bottleneck moves — from arithmetic to the network</h2>
+  <p class="lead">Solve the compute problem and you inherit a communication problem. This is the frontier the conferences are actually on right now.</p>
+  <p>898 experts, even squeezed to four bits, are far too many to fit on one accelerator. So they are spread across many chips — a few experts per chip. But each word needs its own particular handful of experts, scattered across the machines. So every word triggers a burst of chips <b>shipping pieces of the computation to each other</b> to gather the right experts and scatter the results back. This collective shuffle (an "all-to-all") happens at every expert layer, and its cost is set by the <em>interconnect</em> between chips — the network — not by any chip's math.</p>
+  <p>This is why the newest and most expensive-looking work in the corpus is not about multipliers at all. It is about wires, links, and photons — moving the bottleneck's home from the compute die to the fabric between dies:</p>
+  <div class="papers"><div class="pt">From this corpus — the bottleneck's new home is the network</div><ul>
+    <li><span class="v">SC</span>Scaling <b>All-to-All</b> Operations Across Emerging Many-Core Supercomputers</li>
+    <li><span class="v">HotChips</span>UB-mesh: A New <b>Interconnection Technology</b> for Large AI SuperNode</li>
+    <li><span class="v">HotChips</span>A <b>UCIe Optical I/O</b> Retimer Chiplet for AI Scale-up</li>
+    <li><span class="v">ICCAD</span>Waferscale Silicon Photonics Systems: A Cost-Benefit Analysis and Optimization</li>
+  </ul></div>
+  <p>And this is where our own MoE experiment (Session 7) turns out to be a <em>systems</em> result in disguise. We trained a router on lopsided demand and watched, without a balancing incentive, one expert swell to 4.2× its fair share of the traffic. On a single machine that is merely wasteful. Spread across chips it is fatal: a collective operation runs only as fast as its slowest participant, so one overloaded expert-chip stalls <b>every other chip</b> waiting for it — the classic straggler problem. The load-balancing nudge (which cut the busiest share to 2.9×) is not about model quality; it is about keeping the network's collective from stalling on a hot spot. Moonshot open-sourced a dedicated MoE communication library for exactly this reason.</p>
+  <div class="why"><h3>The deep pattern</h3><p>Each axis, solved, exposes the next. Shrinking precision and flattening the cache made the model <em>fit and stream</em>; sparsity made it <em>compute little</em>; and that pushed the cost onto the <em>network</em>. This staircase — compute bottleneck → memory bottleneck → communication bottleneck — is the exact trajectory the architecture field has walked, and K3 stands at the current top step.</p></div>
+</section>
+
+<section id="kernels">
+  <div class="pnum">Part VII</div>
+  <h2>The memory hierarchy — fused kernels and the SRAM you never see</h2>
+  <p>Underneath the whole model is a subtler version of the memory wall: even <em>within</em> a single chip there is a hierarchy — a tiny pool of very fast on-chip memory (SRAM) next to the multipliers, and the large, slower main memory (HBM) a long way off. Moving data between those two is itself a big share of the cost. The winning move, over and over, is to <b>keep intermediate results in the fast pool</b> and never write them out to the slow one.</p>
+  <p>The famous example is FlashAttention (Session 1's footnote): computing attention without ever building the full word-by-word comparison grid in main memory — it works through the grid in small tiles that fit in the fast pool, keeping only a running result. Same answer, a fraction of the data movement. K3's own fixed-summary memory ships as a similar hand-fused kernel (the DPLR chunkwise routine of Session 4), and its bounded activation (SiTU, Session 7) is noted to be about three times slower <em>unless</em> it is fused into one kernel — a detail that is meaningless as mathematics and decisive as engineering. The corpus treats this dataflow-and-fusion problem as first-class:</p>
+  <div class="papers"><div class="pt">From this corpus — keeping data close to the arithmetic</div><ul>
+    <li><span class="v">ISCA</span>RAGO: Systematic Performance Optimization for Retrieval-Augmented Generation Serving</li>
+    <li><span class="v">ICCAD</span>HRAMTran: A Hybrid-RAM Transformer Accelerator with Dynamic Sparsity Floating-Point CIM</li>
+    <li><span class="v">DAC</span>Adora Compiler: End-to-End Optimization for High-Efficiency Dataflow Acceleration</li>
+  </ul></div>
+  <p>The through-line: a computation is not just its arithmetic; it is <em>where the arithmetic's inputs and outputs live</em>. Two mathematically identical operations can differ by an order of magnitude in speed depending on whether their data stayed in the fast pool. K3's kernels are written to keep it there.</p>
+</section>
+
+<section id="parallel">
+  <div class="pnum">Part VIII</div>
+  <h2>The training machine — exposing parallelism</h2>
+  <p>Everything so far has been about serving. Training flips the roofline (it is compute-bound), but it introduces its own hardware constraint: an accelerator is a machine for doing thousands of things <em>at once</em>, and it starves if you hand it work that must be done strictly one step after another. The enemy in training is a long chain of dependent steps — the sequential scan.</p>
+  <p>K3's fixed-summary memory is, at heart, a running update — read the state, write the state, one word at a time — which is exactly the kind of strictly-sequential chain a parallel machine hates. Session 4 measured the fix: a chunked reformulation that computes the identical result but cuts the chain of must-wait steps from one-per-word to one-per-block (a 32× shorter chain), running 8–20× faster on an ordinary processor even before specialized hardware. This is the classic move of <b>trading a little redundant arithmetic for a lot of exposed parallelism</b> — spend more multiplies to shorten the dependency chain, because on this hardware idle multipliers are the real waste. Keeping those multipliers busy (the field calls the fraction of peak you actually achieve "utilization") is what the chunk size is tuned for.</p>
+  <div class="measure"><div class="mt">measured, Session 4</div><p>Sequential and chunked forms agree to seven parts in ten million — the same function, re-scheduled purely to give the hardware something parallel to chew on. The architecture choice is invisible in the output and decisive in the wall-clock.</p></div>
+</section>
+
+<section id="codesign">
+  <div class="pnum">Part IX</div>
+  <h2>The meta-principle: designing the model and the machine as one thing</h2>
+  <p class="lead">Every axis above points at one idea, and it is the idea the field has been converging on for a decade.</p>
+  <p>For a long time the division of labor was clean: researchers designed models, engineers made them run. That division is gone. Each of K3's choices — four-bit floats, a non-growing memory, sparse experts, chunked updates, fused kernels — was made <em>because of</em> what the memory hierarchy, the tensor cores, and the interconnect can do cheaply. The model was shaped to the machine, and (through custom kernels and comm libraries) the machine was shaped to the model. K3's own report calls this <b>algorithm–system co-design</b>, and treats it not as an afterthought but as the reason the gains are real: about 2.5× more capability per unit of computing than the previous generation, from the combination — architecture and training and hardware together — rather than from raw size (Session 8).</p>
+  <p>This is precisely the direction the conferences in this corpus have turned. A decade ago a hardware paper accelerated a fixed model. Now the papers co-design: the accelerator assumes a sparse, low-precision, long-context workload, and the model assumes a memory-bound, communication-limited, tensor-core machine. They are writing to each other. K3 is one of the clearest artifacts of that conversation — which is exactly why it belongs in a repository that reads hardware conferences.</p>
+  <div class="why"><h3>The claim, stated plainly</h3><p>The 22,580× growth from GPT-2 to K3 is real but it is the <em>least</em> interesting thing about the model. What made it possible to build and to run is a stack of decisions, each one a known answer to a known hardware limit: the memory wall, the roofline, precision, bandwidth, sparsity, interconnect, the memory hierarchy, parallelism. Strip the language away and K3 reads as a systems paper.</p></div>
+</section>
+
+<section id="coda">
+  <div class="pnum">Part X</div>
+  <h2>Coda: one vector's journey through the machine</h2>
+  <p>Follow a single word as the model generates the next one, and watch the hardware story unfold in order. The word arrives as a vector. To place it, the model reads its settings — <b>four-bit floats</b> (Part III), a quarter the bytes they would otherwise be, streamed from main memory. It consults its memory of the conversation — held in a <b>fixed-size summary</b> (Part IV) that is the same size now as ten thousand words ago, so the read is flat and cheap, kept mostly in the fast on-chip pool by a <b>fused kernel</b> (Part VII). It needs a few specialists, so a router wakes <b>18 of 898 experts</b> (Part V), most of which live on <em>other chips</em>, triggering a quick <b>all-to-all</b> across the interconnect (Part VI) — balanced so no one chip stalls the rest. The chosen experts do their small, bounded computation and the result folds back into the running summary. One word out. Then the next.</p>
+  <p>At no point in that journey was raw multiplication the limit. Every step was shaped by a byte that had to move, a memory that had to fit, or a message that had to cross a wire. That is what it means to say the model is a hardware paper: its intelligence is genuine, but its <em>form</em> — every architectural choice on the ladder you just climbed — is the shape of a machine pushing against the memory wall.</p>
+  <p class="aha">The road from GPT-2 to Kimi K3 was a search for a way to remember cheaply and think sparsely — and "cheaply" and "sparsely" are not statements about mathematics. They are statements about hardware. Read that way, this whole lab has been a computer-architecture paper in disguise, and so has the model it describes.</p>
+  <p class="next">This synthesis draws on every session's real runs · Sources: ali's worklog + <a href="https://arxiv.org/abs/2510.26692">Kimi Linear</a> + <a href="https://github.com/MoonshotAI/Kimi-K3/blob/main/k3_tech_report.pdf">Kimi K3 report</a> · cited papers are from this repository's analyzed ISCA/MICRO/HPCA/ASPLOS/ISSCC/DAC/SC/ICCAD/MLSys corpus.<br>
+  ← Back to <a href="index.html">the lab</a> · the serving numbers are in <a href="09-serving.html">the hardware bill</a> · terms in <a href="glossary.html">Words, translated</a>.</p>
+</section>
+<div class="src">The grand synthesis for the Kimi K3 lab, tying the plain-language architecture ladder to this repository's hardware-conference corpus. Every quantitative claim about K3 is produced by the lab's own code (Sessions 1–9); every cited paper is a real entry in the analyzed corpus.</div>
+</div>

@@ -53,6 +53,8 @@ SESSIONS = [
   "Bonus · how it's trained", "The other half of the story: growing the reading length gradually, merging nine specialists into one, and designing the model and its hardware together — why the gains weren't just size.", "🎓", "bonus"),
  ("09-serving.html", "09-serving/out/index.html",
   "Bonus · the hardware bill", "What it costs to actually run a 2.8T model: real 4-bit (MXFP4) quantization (5.6→1.5 TB, measured error), the conversation's own memory, and spreading 898 experts across machines. Bridges to this repo's hardware focus.", "🖥️", "bonus"),
+ ("synthesis.html", "synthesis/out/index.html",
+  "The grand synthesis · K3 is a hardware paper", "The long read: every rung of the ladder traced to the computer-architecture limit it dodges (memory wall, roofline, precision, bandwidth, sparsity, interconnect), grounded in 15 real papers from this repo's ISCA/MICRO/ISSCC/DAC/SC corpus + the lab's own measurements.", "🏛️", "bonus"),
  ("glossary.html", "glossary/out/index.html",
   "Words, translated", "Every plain phrase in the lab next to its real technical name, with links to the papers — the bridge from this lab to the literature.", "📖", "ref"),
 ]
