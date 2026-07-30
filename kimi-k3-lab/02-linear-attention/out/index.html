@@ -81,6 +81,17 @@ answer =   question · ( <span class="c">board</span> )      <span class="g"># b
 </section>
 
 <section>
+  <div class="eye">We ran it · on a real GPU (NVIDIA L4)</div>
+  <h2>Flat time, tiny memory — measured on real hardware</h2>
+  <p>The counts above are arithmetic. Here it is on an actual graphics chip: we generate text one word at a time, both ways, on a 2048-wide model, and measure the real time per word and the real memory used as the text gets longer. Watch the two columns — the running summary's time <b>never moves</b>, while keep-every-note's climbs:</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>words of context</th><th>keep-every-note ms/word</th><th>running summary ms/word</th><th>summary faster by</th><th>keep-every-note memory</th><th>summary memory</th><th>less memory</th></tr>
+    <tr><td>1,024</td><td class='mo'>0.21</td><td class='hi'>0.27</td><td class='mo'>0.76×</td><td class='mo'>8 MB</td><td class='hi'>0.5 MB</td><td class='hi'>16×</td></tr><tr><td>4,096</td><td class='mo'>0.18</td><td class='hi'>0.27</td><td class='mo'>0.65×</td><td class='mo'>34 MB</td><td class='hi'>0.5 MB</td><td class='hi'>64×</td></tr><tr><td>16,384</td><td class='mo'>0.38</td><td class='hi'>0.28</td><td class='hi'>1.4×</td><td class='mo'>134 MB</td><td class='hi'>0.5 MB</td><td class='hi'>256×</td></tr>
+  </table></div>
+  <div class="why"><h3>Read it honestly</h3><p>At short context, keeping every note is actually a touch <em>faster</em> — the running summary has a small fixed overhead that dominates when there's little history. But its time per word stays <b>flat (0.27 ms) at every length</b>, while keep-every-note's climbs (0.18 → 0.38 ms) as the pile grows — so the summary pulls ahead by 16,384 words (1.4× faster) and keeps widening. Meanwhile its memory is <b>fixed at 0.5 MB</b> while the kept notes balloon to 134 MB — 256× more. Push the context to a million words and that flat line is exactly where the paper's "up to 6× faster" comes from.</p></div>
+</section>
+
+<section>
   <div class="eye">We ran it · the price of a fixed board</div>
   <h2>Ask for one exact memory — and watch it blur</h2>
   <p>Now the price, measured head-on. We store a batch of facts — each one a cue and the thing filed under it — then hand back the <em>exact cue</em> of one early fact and ask how faithfully its value comes back (1.0 = recalled perfectly, 0 = lost in the noise). Keep-every-note still has that fact on file, so it points straight at it. The running summary folded everything onto one board — so asking for one value drags in a smear of all the rest, and it gets worse the more you've stored:</p>

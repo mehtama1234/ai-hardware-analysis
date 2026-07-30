@@ -1,7 +1,22 @@
 import json, html
 D = json.load(open("out_linear.json"))
 EQ = D["equivalence"]; ST = D["state_size"]; DC = D["decode_cost"]; ND = D["needle"]
+GP = json.load(open("out_gpu.json"))
 def esc(s): return html.escape(str(s))
+
+def gpurows():
+    out = ""
+    for r in GP["rows"]:
+        faster = f"{r['speedup']}×" if r['speedup'] >= 1 else f"{r['speedup']}×"
+        hi = "hi" if r['speedup'] >= 1 else "mo"
+        out += (f"<tr><td>{r['L']:,}</td>"
+                f"<td class='mo'>{r['softmax_ms_per_tok']:.2f}</td>"
+                f"<td class='hi'>{r['linear_ms_per_tok']:.2f}</td>"
+                f"<td class='{hi}'>{faster}</td>"
+                f"<td class='mo'>{r['softmax_kv_MB']:.0f} MB</td>"
+                f"<td class='hi'>{r['linear_state_MB']:.1f} MB</td>"
+                f"<td class='hi'>{r['mem_ratio']:.0f}×</td></tr>")
+    return out
 
 def statebars():
     Ns, kv = ST["N"], ST["kv_cache_floats"]; ls = ST["linear_state_floats"]; mx = max(kv)
@@ -123,6 +138,17 @@ answer =   question · ( <span class="c">board</span> )      <span class="g"># b
   <div class="card">{statebars()}
   <div class="mini" style="margin-top:12px">Floats stored per head (d_head={ST['d_head']}). {esc(ST['point'])}</div></div>
   <p class="mini">And to write each new word, the keep-every-note memory has to scan everything it has stored (more work the longer the text), while the running summary just updates and reads its one board — the <b>same</b> tiny amount of work every time: {DC['softmax_flops_per_step'][0]:,} → {DC['softmax_flops_per_step'][-1]:,} operations for keep-every-note across lengths where the summary stays flat at {DC['linear_flops_per_step'][0]:,}. That flat per-word cost over a long document is where Kimi Linear's up-to-6× faster generation and 75% smaller memory come from.</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · on a real GPU ({esc(GP['gpu'])})</div>
+  <h2>Flat time, tiny memory — measured on real hardware</h2>
+  <p>The counts above are arithmetic. Here it is on an actual graphics chip: we generate text one word at a time, both ways, on a {GP['d_model']}-wide model, and measure the real time per word and the real memory used as the text gets longer. Watch the two columns — the running summary's time <b>never moves</b>, while keep-every-note's climbs:</p>
+  <div class="card" style="overflow-x:auto"><table>
+    <tr><th>words of context</th><th>keep-every-note ms/word</th><th>running summary ms/word</th><th>summary faster by</th><th>keep-every-note memory</th><th>summary memory</th><th>less memory</th></tr>
+    {gpurows()}
+  </table></div>
+  <div class="why"><h3>Read it honestly</h3><p>At short context, keeping every note is actually a touch <em>faster</em> — the running summary has a small fixed overhead that dominates when there's little history. But its time per word stays <b>flat (0.27 ms) at every length</b>, while keep-every-note's climbs (0.18 → 0.38 ms) as the pile grows — so the summary pulls ahead by {GP['rows'][-1]['L']:,} words ({GP['rows'][-1]['speedup']}× faster) and keeps widening. Meanwhile its memory is <b>fixed at {GP['linear_state_MB']:.1f} MB</b> while the kept notes balloon to {GP['rows'][-1]['softmax_kv_MB']:.0f} MB — {GP['rows'][-1]['mem_ratio']:.0f}× more. Push the context to a million words and that flat line is exactly where the paper's "up to 6× faster" comes from.</p></div>
 </section>
 
 <section>
