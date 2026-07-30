@@ -41,6 +41,16 @@ Scope: the full ladder, built as an interactive lab with real runs. Sessions lan
 
 Sources: ali's X worklog + Kimi Linear (arXiv 2510.26692) + Kimi K3 tech report — see `source/OFFICIAL-SOURCES.md`.
 
+**Bonus pages:** `08-beyond` (how K3 is trained) · `glossary` (plain phrases → real terms).
+
+**Extra experiments** (beyond the one-per-rung runs):
+- S02 · **capacity cliff** (`capacity.py`) — recall vs #facts; the cliff at the memory's width.
+- S02 · **long-context GPU sweep** (`gpu_sweep.py`, Colab L4) — speedup crosses 6× ~50k, 30× at 256k.
+- S02 · **real-GPU decode** (`gpu_bench.py`, L4) — flat vs climbing ms/word, measured.
+- S03 · **associative recall, learned** (`recall_task.py`) — train models on "latest value wins": erase-first 100%, add-only 57%.
+- S03 · **real-words overwrite** (`realwords.py`, GloVe) — decode recall to an actual word.
+- S07 · **MoE load balance** (`moe_collapse.py`) — busiest expert 4.2×→2.9× fair share with balancing.
+
 ## Run
 ```bash
 V=/home/manishmehta/projects/llm-from-scratch-lab/.venv-torch   # torch 2.13 CPU, py3.12 — reused

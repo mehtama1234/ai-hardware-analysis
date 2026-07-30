@@ -2,7 +2,37 @@ import json, html
 D = json.load(open("out_delta.json"))
 OW = D["overwrite"]; ND = D["needle"]
 RW = json.load(open("out_realwords.json"))
+RC = json.load(open("out_recall.json"))
 def esc(s): return html.escape(str(s))
+
+def recallsvg():
+    res = RC["results"]
+    series = [("erase_first", "#9B8CE0", "erase-first"),
+              ("gated", "#4FA8B8", "with a forget dial"),
+              ("add_only", "#E0748A", "add-only")]
+    W, H, pad = 560, 210, 40
+    curves = {k: res[k]["curve"] for k, _, _ in series}
+    steps = [c["step"] for c in curves["add_only"]]
+    xmax = max(steps)
+    X = lambda s: pad + (W-2*pad)*s/xmax
+    Y = lambda a: H-pad - (H-2*pad)*a
+    grid = "".join(f"<line x1='{pad}' y1='{Y(g):.1f}' x2='{W-pad}' y2='{Y(g):.1f}' stroke='rgba(150,170,205,.10)'/>"
+                   f"<text x='{pad-6}' y='{Y(g)+3:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">{int(g*100)}%</text>" for g in (0, 0.5, 1.0))
+    # chance line
+    ch = RC["chance"]
+    chance = (f"<line x1='{pad}' y1='{Y(ch):.1f}' x2='{W-pad}' y2='{Y(ch):.1f}' stroke='#5A6577' stroke-width='1' stroke-dasharray='2 3'/>"
+              f"<text x='{W-pad}' y='{Y(ch)-4:.1f}' fill='#5A6577' font-size='9' text-anchor='end' font-family=\"ui-monospace,monospace\">guessing ({int(ch*100)}%)</text>")
+    out = grid + chance
+    for k, col, lab in series:
+        c = curves[k]
+        pts = "M" + " L".join(f"{X(p['step']):.1f},{Y(p['acc']):.1f}" for p in c)
+        out += f"<path d='{pts}' fill='none' stroke='{col}' stroke-width='2'/>"
+        out += "".join(f"<circle cx='{X(p['step']):.1f}' cy='{Y(p['acc']):.1f}' r='2.4' fill='{col}'/>" for p in c)
+        last = c[-1]
+        out += f"<text x='{X(last['step'])+4:.1f}' y='{Y(last['acc'])+3:.1f}' fill='{col}' font-size='10.5' font-family=\"ui-monospace,monospace\">{lab} {int(res[k]['final_acc']*100)}%</text>"
+    xl = "".join(f"<text x='{X(s):.1f}' y='{H-12}' fill='#5A6577' font-size='9' text-anchor='middle' font-family=\"ui-monospace,monospace\">{s}</text>" for s in steps[::3])
+    xaxis = f"<text x='{W/2:.0f}' y='{H-1}' fill='#8493A8' font-size='9.5' text-anchor='middle' font-family=\"ui-monospace,monospace\">training steps →</text>"
+    return f"<svg viewBox='0 0 {W} {H}' style='width:100%;height:auto'>{out}{xl}{xaxis}</svg>"
 
 def rwrows():
     order = ["erase-first (edit in place)", "keep every note", "add-only (one summary)"]
@@ -134,6 +164,15 @@ page          = page + <span class="c">change</span>-under-its-label</div>
     {rwrows()}
   </table></div>
   <p class="mini">{esc(RW['point'])}</p>
+</section>
+
+<section>
+  <div class="eye">We ran it · can it actually LEARN this?</div>
+  <h2>Train it on "remember the latest value"</h2>
+  <p>Everything above shows the mechanism working by hand. Here's the real test: we <b>train</b> tiny one-layer models from scratch, each with a different memory, on a task that demands overwriting. We stream {RC['pairs_per_seq']} facts whose keys come from a small set — so a key shows up several times with different values, like a fact being updated — then ask for one key, and the right answer is its <em>latest</em> value. Watch the accuracy climb as they train:</p>
+  <div class="card">{recallsvg()}</div>
+  <p class="mini">{esc(RC['point'])}</p>
+  <div class="why"><h3>This is the whole lab's argument, learned</h3><p>The erase-first memory doesn't just <em>store</em> better — it can <em>learn a task the add-only memory cannot</em>, because keeping the current value for each key is impossible if all you can do is pile writes on top of each other. Every rung after this adds a similar new ability: not a bigger memory, a memory that can do something the last one couldn't.</p></div>
 </section>
 
 <section>

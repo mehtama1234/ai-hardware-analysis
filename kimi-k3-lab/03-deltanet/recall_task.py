@@ -5,10 +5,11 @@ Everything else in the lab measures storage geometry. This one is different: we
 actually TRAIN tiny one-layer models and watch which memory designs can learn a
 task that is all about memory — associative recall.
 
-The task (the canonical one these papers use): show the model a stream of
-(key, value) pairs, then at the end show one key again and ask it to produce that
-key's value. To win, the model must, in a single fixed-size memory, write each
-pair as it streams by and read the right one back on demand.
+The task: stream (key, value) pairs where keys come from a small set — so the same
+key shows up several times with different values, as facts do when they get updated.
+Then ask for one key, and the right answer is the value from its LATEST appearance.
+To win, the model must not just store pairs but keep the CURRENT value for each key
+as new ones overwrite the old — the exact thing the delta rule is built for.
 
 We train three memories with identical everything-else:
   - add-only   : linear attention, just sums writes (no eviction)
@@ -26,18 +27,25 @@ import torch.nn.functional as F
 
 torch.manual_seed(0)
 
-NK = 12          # number of distinct keys (= vocab of keys)
-NV = 12          # number of distinct values
-D  = 64          # model width
-PAIRS = 8        # pairs shown per sequence before the query
+NK = 4           # SMALL key vocab, so keys repeat within a stream (overwrites happen)
+NV = 16          # distinct values
+D  = 48          # model width
+PAIRS = 10       # pairs streamed before the query — keys repeat, so "latest wins"
 
 def make_batch(B, gen):
-    # each sequence: PAIRS random (key,value) pairs, then a query = one of the keys.
+    # each sequence: PAIRS (key,value) pairs with keys drawn from a SMALL set, so a
+    # key usually appears several times with different values. The query asks for a
+    # key, and the correct answer is the value from its LAST occurrence — so the
+    # model must UPDATE, not just accumulate.
     keys = torch.randint(0, NK, (B, PAIRS), generator=gen)
     vals = torch.randint(0, NV, (B, PAIRS), generator=gen)
-    qpos = torch.randint(0, PAIRS, (B,), generator=gen)
-    qkey = keys[torch.arange(B), qpos]
-    target = vals[torch.arange(B), qpos]
+    qkey = torch.randint(0, NK, (B,), generator=gen)
+    target = torch.zeros(B, dtype=torch.long)
+    for b in range(B):
+        occ = (keys[b] == qkey[b]).nonzero()
+        if len(occ) == 0:                       # ensure the queried key appears
+            keys[b, -1] = qkey[b]; occ = (keys[b] == qkey[b]).nonzero()
+        target[b] = vals[b, occ[-1].item()]     # value of the LAST occurrence
     return keys, vals, qkey, target
 
 class RecallModel(nn.Module):
@@ -74,7 +82,7 @@ class RecallModel(nn.Module):
         read = torch.einsum('bi,bij->bj', q, S)                  # (B,D)
         return self.out(read)
 
-def train(kind, steps=400, B=256):
+def train(kind, steps=250, B=96):
     gen = torch.Generator().manual_seed(0)
     m = RecallModel(kind); opt = torch.optim.Adam(m.parameters(), lr=3e-3)
     curve = []
@@ -83,13 +91,12 @@ def train(kind, steps=400, B=256):
         logits = m(keys, vals, qkey)
         loss = F.cross_entropy(logits, target)
         opt.zero_grad(); loss.backward(); opt.step()
-        if step % 40 == 0 or step == steps - 1:
+        if step % 25 == 0 or step == steps - 1:
             with torch.no_grad():
                 acc = (logits.argmax(-1) == target).float().mean().item()
             curve.append({"step": step, "acc": round(acc, 3)})
-    # final eval on fresh data
     with torch.no_grad():
-        keys, vals, qkey, target = make_batch(2048, gen)
+        keys, vals, qkey, target = make_batch(1024, gen)
         acc = (m(keys, vals, qkey).argmax(-1) == target).float().mean().item()
     return round(acc, 3), curve
 
@@ -97,15 +104,15 @@ OUT = {"n_keys": NK, "n_values": NV, "pairs_per_seq": PAIRS, "d": D, "chance": r
 for kind in ("add_only", "erase_first", "gated"):
     acc, curve = train(kind)
     OUT["results"][kind] = {"final_acc": acc, "curve": curve}
-    print(f"{kind:>12}: final accuracy {acc:.3f}  (chance {1/NV:.3f})  curve {[c['acc'] for c in curve]}")
+    print(f"{kind:>12}: final accuracy {acc:.3f}  (chance {1/NV:.3f})  curve {[c['acc'] for c in curve]}", flush=True)
 
 r = OUT["results"]
-OUT["point"] = (f"Chance is {1/NV:.0%}. The plain add-only memory barely beats guessing "
-                f"({r['add_only']['final_acc']:.0%}) — with every write just summed on top of the others, it can't "
-                f"cleanly read one pair back. The erase-first memory LEARNS the task ({r['erase_first']['final_acc']:.0%}), "
-                f"because replacing a key's value in place keeps the pairs separable. Adding a learned forget dial "
-                f"({r['gated']['final_acc']:.0%}) does about as well here and helps more as streams get longer. The gap "
-                "is the whole argument: eviction and forgetting aren't polish — they're what makes remembering learnable.")
+OUT["point"] = (f"Random guessing scores {1/NV:.0%}. The plain add-only memory reaches only "
+                f"{r['add_only']['final_acc']:.0%}: because it just sums every write, when a key appears several times "
+                f"it ends up holding a blur of all that key's values and can't say which was latest. The erase-first "
+                f"memory reaches {r['erase_first']['final_acc']:.0%} — writing each value in place of the old one keeps "
+                f"only the current answer. The learned forget dial reaches {r['gated']['final_acc']:.0%}. The gap is the "
+                "whole argument: being able to overwrite isn't polish, it's what makes 'remember the latest value' learnable at all.")
 
 here = os.path.dirname(os.path.abspath(__file__))
 json.dump(OUT, open(os.path.join(here, "out_recall.json"), "w"), indent=2)
