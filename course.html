@@ -1,0 +1,99 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Hardware From First Principles</title>
+<style>
+:root{--g0:#0d1117;--g1:#11161e;--g2:#161c26;--line:#272f3d;--line2:#1e2635;--ink:#e8e3d8;--ink2:#b8c0cc;--ink3:#7a8494;--teal:#3ec9b6;--orange:#e09858;--serif:Palatino,"Palatino Linotype","Book Antiqua",Charter,Georgia,serif;--mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--g0);color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.76;-webkit-font-smoothing:antialiased}.wrap{max-width:860px;margin:0 auto;padding:0 clamp(22px,5vw,48px)}
+header{background:var(--g1);border-bottom:1px solid var(--line);padding:48px 0 42px}.bug{font-family:var(--mono);font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:16px}h1{font-size:clamp(2.4rem,6vw,4rem);line-height:1.04;letter-spacing:-.025em;margin:0 0 .3em}header p{max-width:66ch;color:var(--ink2);font-style:italic;font-size:1.16rem}
+nav{position:sticky;top:0;z-index:2;background:rgba(13,17,23,.96);border-bottom:1px solid var(--line)}.navwrap{display:flex;gap:8px;overflow:auto;padding-top:10px;padding-bottom:10px}nav a{white-space:nowrap;font-family:var(--mono);font-size:.68rem;color:var(--ink3);text-decoration:none;background:var(--g1);border:1px solid var(--line2);border-radius:999px;padding:5px 9px}nav a:hover{color:var(--teal)}
+.intro{background:var(--g1);border-left:3px solid var(--orange);border-radius:0 10px 10px 0;padding:20px 24px;margin:28px 0 18px}.intro p{color:var(--ink2);margin:0 0 12px}.intro p:last-child{margin-bottom:0}.path{border:1px solid var(--line);background:var(--g1);border-radius:10px;padding:16px 20px;margin:18px 0 24px}.path b{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}.path a{display:inline-block;margin:4px 12px 4px 0;color:var(--teal);font-family:var(--sans);font-size:.92rem;text-decoration:none;border-bottom:1px solid rgba(62,201,182,.45)}
+.part{border-bottom:1px solid var(--line);padding:34px 0}.kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--orange)}h2{font-size:clamp(1.75rem,4vw,2.35rem);line-height:1.12;letter-spacing:-.02em;margin:8px 0 8px}.summary{color:var(--ink3);font-family:var(--sans);font-size:1rem;margin:0 0 17px}.essay p{color:var(--ink2);margin:0 0 14px}.uses{background:var(--g1);border:1px solid var(--line2);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:15px 20px;margin-top:18px}.uses h3{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px}.uses ul{margin:0;padding-left:20px}.uses li{color:var(--ink2);margin:5px 0}
+footer{padding:34px 0 70px;color:var(--ink3);font-family:var(--mono);font-size:.72rem}footer a{color:var(--teal);text-decoration:none}@media(max-width:720px){body{font-size:17px}.wrap{padding:0 20px}}
+</style></head><body>
+<header><div class="wrap"><div class="bug">AI hardware course spine</div><h1>AI Hardware From First Principles</h1><p>A plain-language course spine for MLSys, ISCA, MICRO, HPCA, ASPLOS, DAC, ISSCC, Hot Chips, SC, VLSID, CGO, ICCAD, DATE, OSDI, ATC, and FCCM.</p></div></header>
+<nav><div class="wrap navwrap"><a href="#s1">1. Start</a><a href="#s2">2. Numbers</a><a href="#s3">3. Memory</a><a href="#s4">4. Topology</a><a href="#s5">5. Skipping</a><a href="#s6">6. Compilers</a><a href="#s7">7. Many Chips</a><a href="#s8">8. Correctness</a><a href="#s9">9. Security</a><a href="#s10">10. Fields</a></div></nav>
+<main class="wrap">
+  <div class="intro"><p>AI hardware is about one simple pressure: modern models want more work than ordinary machines can cheaply provide.</p><p>The work is not only arithmetic. The machine must store numbers, move them, line them up, reuse them, check them, protect them, cool the chip, and keep many chips acting like one larger machine.</p><p>This page explains the conference map in ordinary words. It treats each topic as a physical question first, then shows why the same question appears across chips, compilers, datacenters, devices, and AI systems.</p></div>
+  <div class="path"><b>Read next</b><a href="index.html">Master narrative</a><a href="deepdives.html">Theme deep dives</a><a href="grand-synthesis.html">Grand synthesis</a><a href="heatmap.html">Theme and venue map</a><a href="explorer.html">Paper explorer</a><a href="compiler.html">Compiler mechanisms</a></div>
+  
+<section class="part" id="s1">
+  <div class="kicker">Start</div>
+  <h2>1. The Whole Field Is About Work, Movement, And Limits</h2>
+  <p class="summary">A model is a long recipe for turning numbers into new numbers. Hardware decides how fast and cheaply that recipe can run.</p>
+  <div class="essay"><p>An AI model looks abstract on paper, but on a machine it becomes a stream of simple actions: read numbers, multiply them, add them, write results, repeat. Each action costs time and energy.</p><p>The surprising cost is often not the multiply. It is moving the numbers to the place where the multiply happens. Moving data across a chip, between memory and a processor, or across a network can cost more than the arithmetic itself.</p><p>This is why the conferences keep returning to the same question: where should the numbers live, where should the work happen, and how can the machine avoid moving data that does not matter?</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Training large models needs many chips to share work without waiting on each other.</li><li>Phone and laptop AI needs useful results inside a small power and heat budget.</li><li>Scientific computing needs large machines where memory, storage, and networks stay balanced.</li></ul></div>
+</section>
+
+<section class="part" id="s2">
+  <div class="kicker">Numbers</div>
+  <h2>2. Using Smaller Numbers Saves Space And Time</h2>
+  <p class="summary">If a model can use shorter numbers without losing the answer, the machine moves less data and uses less energy.</p>
+  <div class="essay"><p>A number can be stored with many bits or few bits. More bits can represent more detail. Fewer bits take less space, move faster, and use less energy.</p><p>The hard question is where detail matters. Some parts of a model need careful numbers. Other parts tolerate rounding. Hardware papers study how far the numbers can be shortened before the answer changes too much.</p><p>This is not only a math trick. It changes memory size, wire traffic, chip area, battery life, heat, and how many requests a server can handle.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Inference servers use shorter weights and caches to fit more users on the same hardware.</li><li>Edge devices use smaller numbers to keep speech, vision, and language models local.</li><li>Custom chips add arithmetic units built for the exact number sizes the model can tolerate.</li></ul></div>
+</section>
+
+<section class="part" id="s3">
+  <div class="kicker">Memory</div>
+  <h2>3. The Memory Wall Is A Distance Problem</h2>
+  <p class="summary">The machine slows down when useful numbers are far from the place that needs them.</p>
+  <div class="essay"><p>A processor may be ready to work, but the data may be sitting far away. That wait is the memory wall. It is a wall because adding more arithmetic does not help if the arithmetic units are waiting for data.</p><p>Caches, high-bandwidth memory, processing near memory, and better layouts are all attempts to shorten the trip. The goal is to reuse data nearby and avoid long movement whenever possible.</p><p>The same idea appears at many scales: inside a core, across chip memory, across GPU memory, across server memory, and across storage.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Language model serving is often limited by reading the stored context again and again.</li><li>Graph and database work can be limited by scattered memory reads.</li><li>Scientific simulations can spend more time moving arrays than computing on them.</li></ul></div>
+</section>
+
+<section class="part" id="s4">
+  <div class="kicker">Topology</div>
+  <h2>4. Topology Means Which Parts Are Connected And Which Paths Data Can Take</h2>
+  <p class="summary">In hardware, topology is the shape of connections: wires, networks, memory banks, chiplets, racks, and failure paths.</p>
+  <div class="essay"><p>In plain words, topology asks what connects to what. Can this chip reach that memory directly, or must the data pass through another chip? Is there one path or many? If one link fails, does the machine split into isolated parts?</p><p>On a chip, topology includes where blocks sit and how wires run between them. Long wires cost time and energy. Crowded crossings make layout harder. A better placement can make the same design faster without changing the arithmetic.</p><p>In a datacenter, topology includes how GPUs, CPUs, memory, storage, and network switches connect. A training job can slow down if many chips must share one narrow path. A better network shape lets more chips exchange data at once.</p><p>Topology also appears in reliability. If one memory bank, link, or server fails, the system needs another path or a way to keep enough pieces connected to finish the job.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Chip design uses topology when placing compute blocks, memory blocks, and wires.</li><li>Supercomputers use topology when choosing network shapes that avoid traffic jams.</li><li>Chiplet systems use topology when deciding how many small dies should connect and where.</li><li>Security uses topology when deciding which data paths must be isolated from an attacker.</li></ul></div>
+</section>
+
+<section class="part" id="s5">
+  <div class="kicker">Skipping</div>
+  <h2>5. The Fastest Work Is Work The Machine Does Not Do</h2>
+  <p class="summary">Many model numbers are zero, repeated, unneeded, or less important for a given input.</p>
+  <div class="essay"><p>If a number is zero, multiplying by it adds no useful information. If two requests share the same prefix, computing the shared part twice wastes time. If only a few experts are needed for one token, running every expert wastes energy.</p><p>Skipping is easy to say and hard to build. The machine must know what can be skipped, skip it without spending more overhead than it saves, and still produce the correct answer.</p><p>Hardware, compilers, and serving systems all participate. A model may expose the possible skips, but the system must turn them into real saved time.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Sparse models route only part of the model for each input.</li><li>Serving systems reuse cached work when many users ask related questions.</li><li>Accelerators skip zero or near-zero values when the format makes those values easy to detect.</li></ul></div>
+</section>
+
+<section class="part" id="s6">
+  <div class="kicker">Compilers</div>
+  <h2>6. A Compiler Is The Translator Between Idea And Machine</h2>
+  <p class="summary">The model says what should be computed; the compiler decides how to arrange that work on real hardware.</p>
+  <div class="essay"><p>A model description is not yet a good machine schedule. The compiler breaks work into pieces, chooses memory layouts, fuses steps, places loops, assigns registers, and decides which hardware unit should do which part.</p><p>This matters because two programs that compute the same answer can have very different costs. One may move data constantly. Another may keep useful values nearby and reuse them.</p><p>Compiler papers matter more as hardware becomes less uniform. CPUs, GPUs, custom accelerators, memory engines, and network devices all have different strengths. The translator has to know the body it is targeting.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>ML compilers turn model graphs into kernels that fit the target chip.</li><li>Hardware design tools turn a high-level circuit description into gates and wires.</li><li>Serving systems compile requests into batches and schedules that reduce waiting.</li></ul></div>
+</section>
+
+<section class="part" id="s7">
+  <div class="kicker">Many Chips</div>
+  <h2>7. A Cluster Is A Machine Made Of Smaller Machines</h2>
+  <p class="summary">Large AI runs need many chips to share one job without wasting time waiting.</p>
+  <div class="essay"><p>One chip is not enough for the largest training and serving jobs. The system becomes a group of chips, boards, racks, switches, storage devices, and cooling equipment.</p><p>The hard part is coordination. Each chip must receive the right data, finish its share, exchange results, and keep pace with the rest. If one part waits, the whole job may slow down.</p><p>This is why interconnects, scheduling, storage, and failure recovery are part of AI hardware. The computer is no longer just a chip. It is the whole path from power to cooling to network to software.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Training frontier models depends on fast links between accelerators.</li><li>Inference services depend on routing requests to available memory and compute.</li><li>High-performance computing depends on storage and networks that keep processors fed.</li></ul></div>
+</section>
+
+<section class="part" id="s8">
+  <div class="kicker">Correctness</div>
+  <h2>8. Fast Is Not Enough If The Answer Cannot Be Trusted</h2>
+  <p class="summary">Hardware can fail silently, and design mistakes can be built into millions of chips.</p>
+  <div class="essay"><p>A hardware error is different from a software error. Once a chip is fabricated, fixing it can be costly or impossible. Even after the design is correct, radiation, wear, heat, and manufacturing variation can flip bits or change timing.</p><p>Correctness work asks how to know the machine did what it was supposed to do. Reliability work asks how the machine keeps going when parts fail. The two are connected: both are about protecting the answer.</p><p>AI adds pressure because models can tolerate some numeric noise but not arbitrary failure. The system needs to know which errors matter, which can be corrected, and which require stopping.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Datacenters use error correction and checkpointing to survive long training runs.</li><li>Chip design uses verification to catch mistakes before manufacturing.</li><li>Safety-critical devices need bounds on timing, power, and failure behavior.</li></ul></div>
+</section>
+
+<section class="part" id="s9">
+  <div class="kicker">Security</div>
+  <h2>9. The Machine Must Protect The Work It Runs</h2>
+  <p class="summary">Speedups can create side doors if data, timing, or shared hardware leaks information.</p>
+  <div class="essay"><p>A shared machine can leak information even when programs never directly read each other&#x27;s data. Timing, cache use, power, faults, or speculative work can reveal clues.</p><p>Security papers study how attacks use the physical and shared parts of the machine. They also study defenses: isolation, checking, safer instructions, safer memory, and designs that remove the signal an attacker would measure.</p><p>The tension is that protection costs resources. The design has to keep the machine useful while closing the paths that leak or corrupt information.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Cloud AI services need isolation between users sharing accelerators.</li><li>Phones and laptops need to protect private data while running local models.</li><li>Critical systems need hardware that resists both software attacks and physical probing.</li></ul></div>
+</section>
+
+<section class="part" id="s10">
+  <div class="kicker">Fields</div>
+  <h2>10. Why This Matters Outside Hardware</h2>
+  <p class="summary">Hardware choices shape what AI, robotics, science, medicine, and public systems can afford to do.</p>
+  <div class="essay"><p>A better algorithm may not matter if it cannot run within the time, memory, energy, and cost limits of the real system. Hardware sets those limits.</p><p>Robotics needs efficient chips because a robot carries its own power and must react quickly. Speech and vision need local chips because some tasks must run with low delay and private data. Search and recommendation need serving systems that handle many users without wasting power.</p><p>Topology connects this hardware story to other fields. In networks, it is which machines can reach each other. In city systems, it is how routes connect. In biology, it is how folded structures and pathways are connected. In AI hardware, it is the shape that data can move through.</p></div>
+  <div class="uses"><h3>Where this shows up</h3><ul><li>Medicine gains faster imaging, lab automation, and local privacy-preserving models.</li><li>Climate and science gain larger simulations and more efficient data analysis.</li><li>Consumer devices gain AI features that run without sending every request to a server.</li><li>Public infrastructure gains systems that can monitor, predict, and respond under real power and cost limits.</li></ul></div>
+</section>
+  <footer>Part of the AI Hardware 2025 conference analysis. Continue to <a href="index.html">master narrative</a>, <a href="deepdives.html">deep dives</a>, or <a href="explorer.html">paper explorer</a>.</footer>
+</main></body></html>

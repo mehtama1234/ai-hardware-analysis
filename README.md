@@ -55,6 +55,9 @@ IEEE withholds its abstracts from OpenAlex *and* Crossref and many papers aren't
 76/123 are title-only and unanalyzed. Cross-venue synthesis:
 [`analysis/syntheses/cross-venue-2025-themes.md`](analysis/syntheses/cross-venue-2025-themes.md).
 Big-picture conceptual page: [`mlsys-2025-bigpicture.html`](mlsys-2025-bigpicture.html).
+Plain-language course spine: [`course.html`](course.html), covering the first-principles
+story across hardware venues, including topology as wiring, placement, network shape, and
+failure paths.
 
 (2026 editions of most venues are not yet indexed on DBLP — scale on the latest complete
 editions, upgrading a venue once DBLP shows its full list.)

@@ -338,6 +338,8 @@ def render_section(anchor, h2_text, body):
 def build_sidebar():
     links = []
     links.append('<div class="site-label">AI Hardware 2025</div>')
+    links.append('<a class="nav-link" href="course.html">Course spine</a>')
+    links.append('<hr class="nav-divider">')
     links.append('<div class="nav-heading">On this page</div>')
     links.append('<a class="nav-link" href="#constraint">The one constraint</a>')
     links.append('<a class="nav-link" href="#bridge">Nine answers</a>')
@@ -372,6 +374,7 @@ def build_sidebar():
 
     links.append('''<div class="sidebar-links">
   <a href="deepdives.html">deep dives hub</a>
+  <a href="course.html">course spine</a>
   <a href="explorer.html">paper explorer</a>
   <a href="synthesis.html">cross-venue synthesis</a>
 </div>''')
@@ -407,7 +410,7 @@ def main():
     {body_sections}
     <footer>
       2,412 papers · 16 venues · First-principles narrative by Opus 4 from all theme intros and the cross-venue synthesis ·
-      <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a> · <a href="synthesis.html">cross-venue synthesis</a>
+      <a href="course.html">course spine</a> · <a href="deepdives.html">deep dives</a> · <a href="explorer.html">explorer</a> · <a href="synthesis.html">cross-venue synthesis</a>
     </footer>
   </div>
 </div>
