@@ -4,17 +4,25 @@
   "venue": "ASPLOS",
   "problem": "PagedAttention enables dynamic KV cache allocation during LLM inference by breaking virtual memory contiguity, but this non-contiguous virtual memory layout for KV caches introduces non-trivial programming complexity and performance overheads in attention kernels and memory management logic. The changes to virtual memory layout require rewriting attention kernels and force suboptimal memory access patterns.",
   "motivation": "LLM serving throughput is critically dependent on maximizing batch size via dynamic KV cache memory allocation, and PagedAttention's current approach imposes unnecessary software complexity and kernel performance penalties that limit throughput.",
-  "method": "vAttention leverages OS virtual memory primitives (specifically, demand paging and virtual address space reservation) to provide contiguous virtual address spaces for KV caches while still allowing on-demand physical memory allocation. Instead of managing non-contiguous page tables in user space as PagedAttention does, vAttention reserves large contiguous virtual address ranges for KV caches upfront and relies on the OS to back them with physical pages on demand. This preserves contiguous virtual memory semantics seen by attention kernels, enabling use of standard (unmodified) CUDA attention kernels while still preventing physical memory fragmentation.",
-  "key_novelty": "Achieving dynamic KV cache memory allocation with a contiguous virtual address layout by exploiting OS demand-paging, eliminating the need for custom non-contiguous memory management in attention kernels.",
+  "method": "vAttention uses operating system memory management primitives—specifically demand paging (where memory is only loaded when actually accessed) and virtual address reservation—to give key-value caches continuous virtual memory addresses while allocating actual physical memory on demand. Unlike PagedAttention, which manually manages fragmented memory locations, vAttention reserves large contiguous virtual address ranges upfront and lets the operating system provide the underlying physical memory as needed. This approach preserves the contiguous virtual memory layout that standard GPU (CUDA) attention kernels expect, so they can run unchanged. It also prevents physical memory fragmentation that would otherwise degrade performance.",
+  "key_novelty": "vAttention achieves dynamic key-value cache allocation with contiguous virtual addresses by using operating system demand paging, eliminating custom non-contiguous memory management.",
   "contributions": [
     "Analysis of the programming and performance overheads introduced by PagedAttention's non-contiguous virtual memory layout.",
     "vAttention design that uses OS virtual memory reservation and demand paging for dynamic KV cache allocation without breaking virtual memory contiguity.",
     "Compatibility with unmodified high-performance attention kernels (FlashAttention, etc.) since the KV cache virtual address space remains contiguous.",
     "Throughput improvements in LLM serving compared to PagedAttention-based systems (e.g., vLLM)."
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["memory-system", "virtualization"],
-  "workloads": ["LLM-inference", "attention"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "virtualization"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "attention"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +31,18 @@
     "accuracy": null,
     "other": "throughput improvement over vLLM (PagedAttention); specific numbers not in abstract"
   },
-  "baselines": ["vLLM (PagedAttention)"],
+  "baselines": [
+    "vLLM (PagedAttention)"
+  ],
   "limitations": "The OS demand-paging approach may introduce latency variability on page faults; specific overhead characterization not available from abstract.",
-  "tags": ["llm-serving", "kv-cache", "virtual-memory", "pagedattention", "dynamic-allocation", "attention"],
+  "tags": [
+    "llm-serving",
+    "kv-cache",
+    "virtual-memory",
+    "pagedattention",
+    "dynamic-allocation",
+    "attention"
+  ],
   "primary_theme": "OS-based contiguous virtual memory for LLM KV cache management",
   "confidence": "low"
 }

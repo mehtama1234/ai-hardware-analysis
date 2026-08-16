@@ -5,12 +5,12 @@
   "year": 2024,
   "problem": "Self-attention mechanisms in transformers contain substantial row-level redundancies that cause computational waste. Attention scores exhibit high similarity within rows, enabling redundant computation that can be eliminated.",
   "motivation": "Self-attention accounts for a significant portion of transformer computation, making optimization critical for throughput and energy efficiency at scale.",
-  "method": "SpARC exploits row-level redundancies through row-wise clustering where attention scores are calculated once per cluster rather than per token, achieving approximate attention. The approach is implemented as a fully pipelined accelerator architecture with a dedicated memory hierarchy optimized for high parallelism of the clustering-based computation.",
-  "key_novelty": "Row-wise clustering approach that reduces self-attention computation by exploiting token similarity patterns within attention matrix rows.",
+  "method": "Transformers normally calculate attention scores for each token individually, but many scores within the same row are similar—wasted computation. SpARC groups tokens by similarity within rows and calculates attention scores once per cluster instead of per token, achieving an approximate form of attention. The system uses a dedicated accelerator architecture with pipelined stages (processing steps overlapping in parallel) and an optimized memory hierarchy to run this clustering-based computation efficiently.",
+  "key_novelty": "Clustering tokens by similarity within each row of the attention matrix, so attention scores are calculated once per cluster instead of per token.",
   "contributions": [
     "Row-wise clustering method for approximate sparse attention achieving 85-90% sparsity with negligible accuracy loss",
     "Fully pipelined accelerator architecture with dedicated memory hierarchy and high parallelism support",
-    "4\u00d7 core attention speedup and 6\u00d7 energy efficiency improvement over prior sparse attention accelerators"
+    "4× core attention speedup and 6× energy efficiency improvement over prior sparse attention accelerators"
   ],
   "hardware_target": [
     "ASIC"
@@ -28,8 +28,8 @@
     "LLM-inference"
   ],
   "metrics": {
-    "speedup": "4\u00d7",
-    "energy_or_tops_w": "6\u00d7",
+    "speedup": "4×",
+    "energy_or_tops_w": "6×",
     "accuracy": "negligible loss"
   },
   "baselines": [

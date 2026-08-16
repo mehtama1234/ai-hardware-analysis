@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Barrier-Enabled IO Stack (BEIOS) exhibits performance degradation in multi-threaded scenarios because barrier write commands scale linearly with thread count, making it inefficient for concurrent IO operations in Android systems.",
   "motivation": "Efficient order-preserving IO operations are critical for data consistency in storage systems, and reducing barrier command overhead improves both mobile and server application performance.",
-  "method": "LazyBarrier introduces an Order-Preserving Write (OPW) Model based on Finite Automata that defines state transitions for ordering semantics. The Lazy Issue algorithm minimizes barrier write commands through deferred issuance. F2FS is modified to support OPW natively. Barrier Scheduling coordinates ordering in multi-queue block layers.",
-  "key_novelty": "The Lazy Issue algorithm minimizes barrier write commands through lazy issuance, eliminating the linear scaling of BWCs with thread count.",
+  "method": "LazyBarrier redesigns how write ordering is enforced using an Order-Preserving Write Model—a state machine (Finite Automata) that tracks which operations must remain ordered—to identify which barrier write commands are actually required. The Lazy Issue algorithm cuts the number of barrier write commands by delaying their issuance rather than sending one per thread; F2FS (Android's file system) is modified to support this, and Barrier Scheduling in the multi-queue storage layer ensures ordering is maintained correctly.",
+  "key_novelty": "The Lazy Issue algorithm delays barrier write command issuance, eliminating the linear scaling where more barrier commands were needed for each additional thread.",
   "contributions": [
     "OPW Model based on Finite Automata defining order-preserving write semantics",
     "Lazy Issue algorithm minimizing barrier write command overhead",

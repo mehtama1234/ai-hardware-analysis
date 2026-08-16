@@ -10,10 +10,10 @@ Reasoning models (e.g., OpenAI o1, DeepSeek-R1) require massive compute for both
 Reasoning models fundamentally change workload characteristics (longer token sequences, more compute per token, novel memory access patterns); existing GPUs/TPUs may not be optimized for reasoning-specific compute and memory requirements.
 
 ## Method
-Ironwood likely combines enhanced memory bandwidth for extended compute/token reasoning traces, optimized matrix multiplication for reasoning compute patterns, and possibly novel interconnect/collective operation support tailored to reasoning model parallelization strategies.
+Ironwood increases memory bandwidth—the rate at which data flows between the processor and memory—to support reasoning models that work through many intermediate thinking steps before producing an answer. It optimizes matrix multiplication (the core mathematical operation in neural networks) specifically for reasoning model compute patterns. It also improves communication between multiple processors through enhanced interconnect and collective operations (coordinated mathematics across multiple chips), ensuring these components don't become bottlenecks when training or serving reasoning models at scale.
 
 ## Key Novelty
-Hardware architecture specifically optimized for reasoning model training and serving, balancing performance, cost, and energy efficiency.
+Ironwood is a processor architecture built specifically for reasoning models rather than adapted from general-purpose AI chips, designed to optimize three priorities simultaneously: performance, cost-efficiency (performance per dollar), and energy-efficiency.
 
 ## Contributions
 - Hardware optimized for reasoning model compute and memory patterns

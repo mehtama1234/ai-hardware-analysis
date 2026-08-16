@@ -4,8 +4,8 @@
   "venue": "ISCA",
   "problem": "Embodied AI robotic manipulation systems run LLM inference on a frame-by-frame basis, creating cumulative sequential latencies (LLM inference, robot control, data communication) that reach 249 ms per frame and prevent real-time operation at >=30 Hz. LLM inference alone consumes 72.7% of latency and 95.8% of energy per frame.",
   "motivation": "LLM-controlled robots require real-time control (>=30 Hz, preferably 100 Hz), but existing vision-centric frame-by-frame pipelines inherited from video processing violate the frequency-decoupled front-end/back-end principle standard in robotics.",
-  "method": "Corki decouples LLM inference from robot control by replacing per-frame discrete action prediction with cubic polynomial trajectory prediction over multiple future steps, reducing LLM inference frequency by up to 5.1x. A custom dataflow ASIC accelerator implements task-space computed torque control (TS-CTC) with pipelined link-level computations (pose, velocity, acceleration, force units connected via FIFOs and line buffers) and an application-specific approximate computing unit that skips matrix recomputation when joint angular movement is below a threshold (saving >51% of matrix updates). Communication latency is hidden by pipelining image capture and transmission concurrent with trajectory execution.",
-  "key_novelty": "Replacing frame-by-frame discrete action prediction with cubic trajectory prediction decouples the LLM inference rate from the control rate, enabling a purpose-built TS-CTC hardware accelerator with approximate computing that achieves 29x control speedup on FPGA.",
+  "method": "Corki replaces per-frame discrete action decisions with trajectory prediction (smooth cubic paths calculated over multiple steps), reducing how often the LLM needs to run by up to 5.1x. A custom dataflow ASIC accelerator runs task-space computed torque control (a method that calculates joint forces and torques), using pipelined stages (breaking the calculation into parallel steps connected by FIFOs and line buffers) and an approximate computing unit that skips matrix recalculation when robot joints move below a threshold (saving >51% of matrix updates). Communication latency is hidden by overlapping image capture and transmission with trajectory execution.",
+  "key_novelty": "Replacing frame-by-frame action prediction with cubic trajectory planning decouples the LLM inference rate from the control rate, enabling an FPGA hardware accelerator with task-space computed torque control and approximate computing to achieve 29x control speedup.",
   "contributions": [
     "Corki algorithm: predict cubic polynomial robot trajectory for multiple future steps instead of per-frame discrete actions, reducing LLM inference frequency by up to 5.1x.",
     "Adaptive trajectory length selection via curvature-based waypoint identification enabling runtime trade-off between accuracy and latency.",
@@ -13,9 +13,21 @@
     "Application-specific approximate computing that reuses previously computed matrices when joint movement is small, reducing >51% of matrix updates without accuracy loss.",
     "System pipeline that parallelizes image communication with robot trajectory execution, hiding communication latency; end-to-end speedup up to 5.9x with 13.9% success rate improvement over RoboFlamingo."
   ],
-  "hardware_target": ["FPGA", "ASIC", "GPU"],
-  "technique_category": ["dataflow", "approximation", "scheduling", "parallelism"],
-  "workloads": ["LLM-inference", "vision"],
+  "hardware_target": [
+    "FPGA",
+    "ASIC",
+    "GPU"
+  ],
+  "technique_category": [
+    "dataflow",
+    "approximation",
+    "scheduling",
+    "parallelism"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "vision"
+  ],
   "metrics": {
     "speedup": "5.9x end-to-end; 29x control acceleration on FPGA; LLM inference frequency reduced 5.1x",
     "energy_or_tops_w": "9.2x energy reduction (Corki-9 variant)",
@@ -24,9 +36,18 @@
     "accuracy": "Success rate improvement up to 13.9% (up to 17.3% average job length improvement on seen tasks)",
     "other": null
   },
-  "baselines": ["RoboFlamingo on Nvidia V100 GPU with Intel Core i7-6770HQ CPU control"],
+  "baselines": [
+    "RoboFlamingo on Nvidia V100 GPU with Intel Core i7-6770HQ CPU control"
+  ],
   "limitations": "Currently limited to robotic arms with <=9 DoF; trajectory-based decoupling requires algorithm retraining and may not generalize directly to higher-DoF humanoid robots.",
-  "tags": ["embodied-AI", "robot-manipulation", "LLM-inference", "trajectory-prediction", "algorithm-architecture-codesign", "approximate-computing"],
+  "tags": [
+    "embodied-AI",
+    "robot-manipulation",
+    "LLM-inference",
+    "trajectory-prediction",
+    "algorithm-architecture-codesign",
+    "approximate-computing"
+  ],
   "primary_theme": "Algorithm-architecture co-design for real-time LLM-controlled robotic manipulation",
   "confidence": "high"
 }

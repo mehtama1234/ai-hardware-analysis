@@ -10,10 +10,10 @@ Battery-powered IoT and edge devices suffer from limited lifetime; Everactive pr
 IoT device deployment at scale requires minimizing maintenance and replacement costs; energy harvesting enables perpetual operation, critical for remote sensor networks and autonomous monitoring.
 
 ## Method
-Everactive integrates energy harvesting circuits (RF rectifier, thermoelectric, piezoelectric), a wakeup receiver for low-power event detection, and an energy-aware subsystem that dynamically manages compute and memory based on harvested power availability.
+Everactive harvests energy from three ambient sources—radio waves (RF rectifier), heat (thermoelectric), and vibration (piezoelectric)—to power itself. A wakeup receiver detects events while using minimal power, and an energy-aware subsystem dynamically adjusts computing and memory use based on how much harvested power is available.
 
 ## Key Novelty
-Self-powered SoC architecture with integrated energy harvesting and dynamic power management enabling perpetual operation without battery.
+A chip that powers itself by harvesting ambient energy and dynamically adjusts its power use, enabling indefinite operation without a battery.
 
 ## Contributions
 - Integrated energy harvesting from RF, thermal, and mechanical sources

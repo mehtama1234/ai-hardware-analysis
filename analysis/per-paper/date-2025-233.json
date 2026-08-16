@@ -4,8 +4,8 @@
   "venue": "DATE",
   "problem": "Recommendation model training suffers from redundant embedding updates; even after separating popular and non-popular embeddings, certain popular embeddings saturate early and undergo minimal subsequent variation.",
   "motivation": "Recommendation systems are resource-intensive to train; eliminating redundant gradient updates reduces CPU-GPU bandwidth and memory access, improving training throughput.",
-  "method": "Slipstream framework identifies stale embeddings (those that have saturated and stopped changing) on-the-fly and skips their gradient updates. Monitors embedding variation during training and detects saturation. Combines with existing popular/non-popular classification for greater savings.",
-  "key_novelty": "On-the-fly saturation detection for embeddings, skipping updates to non-varying embeddings while maintaining model accuracy.",
+  "method": "Slipstream tracks how much each embedding (learned numbers representing different items) changes during training and detects saturation—when it stops learning. When an embedding saturates, Slipstream skips its gradient updates (computationally expensive calculations that adjust the learned numbers), since they no longer provide improvement. Combined with existing techniques that categorize embeddings as popular or non-popular, this delivers greater savings.",
+  "key_novelty": "Detecting when embeddings have saturated and skipping their gradient updates reduces training work while maintaining model accuracy.",
   "contributions": [
     "2x speedup vs Baseline XDL",
     "2.4x speedup vs Intel-optimized DRLM",
@@ -14,15 +14,34 @@
     "Maintains accuracy while discarding redundant updates",
     "Optimizes CPU-GPU bandwidth and memory access"
   ],
-  "hardware_target": ["GPU", "CPU"],
-  "technique_category": ["dataflow", "optimization"],
-  "workloads": ["recommendation", "DLRM"],
+  "hardware_target": [
+    "GPU",
+    "CPU"
+  ],
+  "technique_category": [
+    "dataflow",
+    "optimization"
+  ],
+  "workloads": [
+    "recommendation",
+    "DLRM"
+  ],
   "metrics": {
     "speedup": "2x vs XDL, 2.4x vs DRLM, 1.2x vs FAE, 1.175x vs Hotline"
   },
-  "baselines": ["Baseline XDL", "Intel-optimized DRLM", "FAE", "Hotline"],
+  "baselines": [
+    "Baseline XDL",
+    "Intel-optimized DRLM",
+    "FAE",
+    "Hotline"
+  ],
   "limitations": "Evaluation limited to specific recommendation models and datasets; generalization to other sparse embedding workloads unclear.",
-  "tags": ["recommendation-systems", "training-acceleration", "embedding-optimization", "dlrm"],
+  "tags": [
+    "recommendation-systems",
+    "training-acceleration",
+    "embedding-optimization",
+    "dlrm"
+  ],
   "primary_theme": "recommendation training via stale embedding skipping",
   "confidence": "low"
 }

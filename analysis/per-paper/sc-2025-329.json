@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "LLM inference services face cost/efficiency challenges: GPUs must handle bursty requests, leading to underutilization and high costs; models must be swapped between GPU and host memory.",
   "motivation": "Large-scale inference is expensive; dynamic model loading/unloading via hot-swapping can reduce costs if engine-agnostic; recent GPU drivers enable transparent checkpointing.",
-  "method": "SwapServeLLM: engine-agnostic hot-swapping using GPU checkpointing. Mechanisms: (1) demand-aware preemption via concurrent request info, (2) memory-aware routing with minimized latency.",
-  "key_novelty": "Engine-agnostic hot-swapping for LLM inference using transparent GPU checkpointing; unified approach across vLLM, Ollama, etc.",
+  "method": "SwapServeLLM saves model checkpoints to GPU, enabling hot-swapping (moving models in and out without stopping service) between fast GPU memory and slower host memory as requests arrive. It analyzes incoming request patterns to decide which models should stay on GPU, and directs requests to minimize response delays. The same checkpointing approach works across different serving engines like vLLM and Ollama without needing engine-specific code, letting providers pause underutilized models and reactivate them when demand increases.",
+  "key_novelty": "The core innovation is using a single checkpointing technique to swap models between GPU and host memory identically across any serving engine, eliminating engine-specific engineering.",
   "contributions": [
     "SwapServeLLM hot-swapping method",
     "31x faster model loading (vs vLLM)",

@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Symmetric Sparse Matrix-Vector Multiplication exploits matrix symmetry to reduce memory but incurs data conflicts when concurrently writing to the output vector. Previous approaches fail to handle these conflicts efficiently.",
   "motivation": "Exploiting matrix symmetry while maintaining parallel efficiency can significantly accelerate memory-bound computations.",
-  "method": "DCS-SpMV recursively partitions the matrix-induced conflict graph into independent subgraphs for parallel execution. The algorithm splits the input matrix into low-conflict and high-conflict parts, using a hybrid approach that applies DCS-SpMV to low-conflict regions and traditional SpMV to high-conflict regions. A machine learning model predicts the optimal hybrid configuration for a given matrix and architecture.",
-  "key_novelty": "Conflict-aware divide-and-conquer recursive partitioning of the conflict graph to eliminate data races in parallel symmetric SpMV.",
+  "method": "The algorithm builds a conflict graph—a map showing which matrix operations will interfere when trying to write to the output vector at the same time. It then recursively breaks this graph into isolated subgraphs where operations don't conflict with each other. For subgraphs with few conflicts, it processes them in parallel using divide-and-conquer; for those with many conflicts, it falls back to traditional sequential processing. A machine learning model predicts which strategy is optimal for a given matrix and hardware.",
+  "key_novelty": "The innovation is using recursive divide-and-conquer partitioning of the conflict graph—the map of which operations interfere—to eliminate data races (simultaneous writes to the same memory location) in parallel symmetric matrix multiplication.",
   "contributions": [
     "DCS-SpMV algorithm for efficient symmetric SpMV with automatic conflict detection and handling",
     "Hybrid execution strategy combining conflict-aware and traditional SpMV approaches",

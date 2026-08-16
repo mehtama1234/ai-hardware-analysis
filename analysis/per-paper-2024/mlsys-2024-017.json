@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "LLM inference is bottlenecked by synchronization overhead between kernel operations and inefficient GEMM (general matrix multiplication) memory access patterns. Current decoding implementations use suboptimal scheduling that leaves hardware resources underutilized.",
   "motivation": "Reducing inference latency is critical for deploying large language models in latency-sensitive production systems where token generation speed directly impacts user experience.",
-  "method": "The system eliminates synchronization barriers through asynchronous kernel execution that enables operations to proceed without waiting for completion. Flat GEMM optimization transforms strided memory layouts into contiguous layouts to improve cache efficiency and throughput. Heuristics adaptively choose scheduling strategies and batch sizes based on hardware characteristics and current workload properties.",
-  "key_novelty": "Combining asynchronization with flat GEMM layouts to reduce synchronization stalls and improve memory efficiency simultaneously in token generation workloads.",
+  "method": "The system avoids synchronization overhead by running operations asynchronously—letting them proceed without waiting for each other to complete. It optimizes matrix multiplication (GEMM) by improving the memory layout: instead of accessing memory in a scattered way that skips around (strided pattern), data is arranged to be read sequentially (contiguous layout), which improves cache efficiency and throughput. Heuristics then adaptively adjust the scheduling strategy and batch sizes based on the hardware and workload, preventing underutilization.",
+  "key_novelty": "Combining asynchronous kernel execution with flat GEMM optimization to simultaneously reduce synchronization stalls and improve memory efficiency in token generation.",
   "contributions": [
     "Asynchronous execution framework decoupling token-generation kernels to hide synchronization latency",
     "Flat GEMM optimization eliminating strided memory access patterns in matrix multiplications",

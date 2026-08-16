@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Deploying MoE mechanisms for transformers on resource-constrained FPGAs is challenging due to heavy memory footprints and impractical runtime costs introduced by the MoE architecture. The mechanism requires significant bandwidth and compute resources that standard FPGA platforms struggle to handle efficiently.",
   "motivation": "MoE-based transformers achieve improved model capacity and generalization capabilities, but require efficient hardware acceleration to be practical for deployment on resource-constrained platforms like FPGAs.",
-  "method": "FLAME leverages two key observations: expert weights are heavy but cold (enabling sparsity), and expert activation paths are skewed (enabling prefetching). The framework applies N:M pruning to reduce expert weight sparsity, proposes a Circular Expert Prediction and Prefetching (CEPR) strategy to prefetch expert weights from external storage to on-chip cache before activation indices are known, and introduces a Pruning-Aware Expert Buffering (PA-BUF) mechanism to co-optimize both sparsity dimensions.",
-  "key_novelty": "Circular Expert Prediction (CEPR) strategy that anticipatorily prefetches expert weights to on-chip cache before the activated expert index is determined.",
+  "method": "FLAME exploits two characteristics of Mixture of Experts (MoE) models: expert weights (the neural network parameters) consume enormous memory but many are rarely used, and the model tends to repeatedly activate the same experts. It applies N:M pruning—removing unused connections in a pattern that keeps the hardware efficient—to reduce memory consumption. Since expert usage is predictable and repetitive, FLAME guesses which experts will be needed next and preloads their weights into the chip's fast local cache before the model actually decides which experts to use, using a Circular Expert Prediction and Prefetching strategy (CEPR). A Pruning-Aware Expert Buffering mechanism (PA-BUF) orchestrates this preloading while accounting for both weight sparsity and usage patterns.",
+  "key_novelty": "FLAME predicts which experts a model will need before it actually makes its selection—possible because experts are used in predictable, repetitive patterns—then preloads their weights into fast on-chip cache to avoid delays from fetching slower external storage, using a technique called Circular Expert Prediction and Prefetching (CEPR).",
   "contributions": [
     "N:M pruning algorithm for expert weights maintaining model accuracy",
     "Circular Expert Prediction and Prefetching (CEPR) strategy for proactive weight buffering",
@@ -32,7 +32,7 @@
     "attention"
   ],
   "metrics": {
-    "speedup": "4.12\u00d7 vs CPU, 1.49\u00d7 vs GPU",
+    "speedup": "4.12× vs CPU, 1.49× vs GPU",
     "accuracy": "84.4% expert prediction accuracy"
   },
   "baselines": [

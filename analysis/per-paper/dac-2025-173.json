@@ -4,22 +4,34 @@
   "venue": "DAC",
   "problem": "Accurate power prediction for new designs requires time-consuming back-end processing and commercial tool simulation; delays design optimization cycles and prevents rapid power-driven exploration.",
   "motivation": "Early power estimation at netlist stage with layout accuracy could enable fast design exploration and optimization, but existing methods lack cross-design generalization or time-based simulation accuracy.",
-  "method": "ATLAS employs pre-training and fine-tuning paradigm customized for circuit power. Uses self-supervised learning to predict ultimate layout-stage power from gate-level netlist without layout information. Targets golden per-cycle power from commercial simulation tools, handling separate prediction for clock tree, registers, and combinational logic.",
-  "key_novelty": "First cross-design time-based power model achieving near-layout accuracy from netlist with no layout information via domain-customized deep learning.",
+  "method": "ATLAS trains a deep learning model to predict per-cycle power (power at each clock cycle) at the layout stage using only the gate-level netlist, without requiring physical layout. It uses self-supervised learning (extracting training patterns by predicting missing information within the data) in a two-stage approach: pre-training across many circuits to learn general power patterns, then fine-tuning to specific designs. To work from incomplete information, it makes three separate power predictions for the clock network, registers (memory storage), and combinational logic (computation gates), using per-cycle power measurements from commercial simulation tools as training targets.",
+  "key_novelty": "ATLAS is the first model to predict per-cycle power across different chip designs with near-layout accuracy from gate-level netlists without physical layout, using circuit-specific deep learning.",
   "contributions": [
     "MAPE of 0.58% (clock tree), 0.45% (register), 5.12% (combinational) with <1% total design power MAPE",
     "Inference speed significantly faster than commercial tools",
     "Generalizes across designs without requiring layout data"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["compiler", "power"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "compiler",
+    "power"
+  ],
   "workloads": [],
   "metrics": {
     "other": "MAPE <1% for total power, 0.58%/0.45%/5.12% per component"
   },
-  "baselines": ["commercial power simulation tools"],
+  "baselines": [
+    "commercial power simulation tools"
+  ],
   "limitations": "Not discussed; applicability to advanced technology nodes or unusual circuit topologies unclear.",
-  "tags": ["power-estimation", "machine-learning", "netlist", "design-optimization"],
+  "tags": [
+    "power-estimation",
+    "machine-learning",
+    "netlist",
+    "design-optimization"
+  ],
   "primary_theme": "Self-supervised cross-design power modeling from netlist",
   "confidence": "low"
 }

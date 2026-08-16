@@ -4,26 +4,45 @@
   "venue": "DAC",
   "problem": "Transformer decode stage suffers from memory bandwidth bottleneck in attention and massive KV cache memory overhead; conventional attention sparsity methods degrade accuracy on ultra-long sequences (>1M tokens).",
   "motivation": "Long-context LLM inference is critical for applications but memory bandwidth and capacity are fundamental bottlenecks; sparsity must maintain accuracy while reducing computation and data movement.",
-  "method": "Distance-based irregular attention sparsity (DIAS) with approximate top-K attention (AKAttention) via graph-based search; tree-like PIM (TreePIM) architecture isolating KV cache into PIM units to improve both memory capacity and bandwidth.",
-  "key_novelty": "First distance-based attention sparsity method maintaining accuracy on ultra-long sequences combined with hierarchical PIM architecture for KV cache.",
+  "method": "Instead of computing attention (relevance between all token pairs) for every position, the method only computes it fully for nearby tokens and uses approximate top-K search (AKAttention) to select important distant ones, reducing computation significantly. The key-value cache needed during decoding is stored in a tree-structured processing-in-memory architecture (TreePIM), where computation happens inside memory units rather than moving data to the processor, improving both memory capacity and access speed.",
+  "key_novelty": "The core innovation is using distance to select which token pairs to compute attention for, combined with a hierarchical processing-in-memory architecture for storing the key-value cache, while maintaining accuracy on ultra-long sequences over 1 million tokens.",
   "contributions": [
     "Distance-based irregular attention sparsity approach (DIAS)",
     "Approximate top-K attention scoring via graph-based search",
     "TreePIM architecture: scalable hierarchical processing-in-memory for KV cache",
     "75x speedup vs SOTA LLM accelerators on 1M sequence Llama3-405B with <1% accuracy drop"
   ],
-  "hardware_target": ["PIM", "processing-in-memory"],
-  "technique_category": ["sparsity", "near-data-processing", "memory-system"],
-  "workloads": ["LLM-inference", "transformer", "attention"],
+  "hardware_target": [
+    "PIM",
+    "processing-in-memory"
+  ],
+  "technique_category": [
+    "sparsity",
+    "near-data-processing",
+    "memory-system"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "transformer",
+    "attention"
+  ],
   "metrics": {
     "speedup": "75x vs SOTA LLM accelerators",
     "test_sequence_length": "1M tokens",
     "accuracy_drop": "<1%",
     "test_model": "Llama3-405B"
   },
-  "baselines": ["state-of-the-art LLM accelerators"],
+  "baselines": [
+    "state-of-the-art LLM accelerators"
+  ],
   "limitations": "Evaluation limited to Llama3-405B; generalization to other models and sequence length scaling behavior not explored.",
-  "tags": ["attention-sparsity", "long-context", "pim", "llm-inference", "kv-cache"],
+  "tags": [
+    "attention-sparsity",
+    "long-context",
+    "pim",
+    "llm-inference",
+    "kv-cache"
+  ],
   "primary_theme": "Distance-based attention sparsity with hierarchical PIM for ultra-long LLM inference",
   "confidence": "low"
 }

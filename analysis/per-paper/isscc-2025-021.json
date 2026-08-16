@@ -4,25 +4,47 @@
   "venue": "ISSCC",
   "problem": "Hybrid compute-in-memory (HCIM) designs face three key challenges: (1) optimally defining the digital-analog boundary without sacrificing accuracy or overhead, (2) handling sign-bit processing overhead in bit-rotated schemes, and (3) wasting energy on low-accuracy-contributed low-bit quantization in analog portions.",
   "motivation": "Hybrid CIM combines digital precision with analog efficiency for inference workloads; addressing these three challenges enables better accuracy-area-power tradeoffs than pure digital or analog approaches.",
-  "method": "A 64 kb hybrid CIM macro using bit-rotated feature-in scheme that considers sign-bits in the first product-wise adder, eliminating error-pollution problems from bit-parallel/serial approaches. An embedded sign-bit-processing array handles signed-unsigned compression. A multi-bit-fusion dual-granularity cooperative quantizer dynamically allocates precision between analog and digital portions based on bit-significance.",
-  "key_novelty": "Bit-rotated HCIM with integrated sign-bit-processing array that addresses the digital-analog boundary problem, plus dual-granularity cooperative quantization that minimizes wasted energy from low-accuracy analog bits.",
+  "method": "The design uses a 64 kilobyte hybrid compute-in-memory block (hardware that stores and processes data in the same place) that feeds input features one bit at a time in a rotating pattern (bit-rotated). It processes the sign bit (the +/−) right at the first multiply-and-add step, avoiding the accuracy loss that occurs when other approaches handle signs separately—whether processing all bits at once or one at a time. An embedded sign-bit-processing array efficiently handles compression between positive and negative numbers. A multi-bit-fusion dual-granularity cooperative quantizer then dynamically allocates precision between fast analog hardware and precise digital hardware, based on each bit's significance (how much it contributes to accuracy).",
+  "key_novelty": "The core innovation is integrating sign-bit processing into the first computation step and using bit-significance to dynamically balance precision between analog and digital, eliminating wasted energy on low-significance bits.",
   "contributions": [
     "Bit-rotated feature-in scheme with first-stage sign-bit handling, avoiding error pollution",
     "Embedded sign-bit-processing array reducing digital overhead vs. separate solutions",
     "Multi-bit-fusion cooperative quantizer with dynamic precision allocation",
     "28 nm implementation achieving balanced accuracy-energy-area for inference"
   ],
-  "hardware_target": ["CIM"],
-  "technique_category": ["quantization", "circuit-design", "memory-system", "precision-optimization"],
-  "workloads": ["neural-inference", "CNN", "DNN"],
+  "hardware_target": [
+    "CIM"
+  ],
+  "technique_category": [
+    "quantization",
+    "circuit-design",
+    "memory-system",
+    "precision-optimization"
+  ],
+  "workloads": [
+    "neural-inference",
+    "CNN",
+    "DNN"
+  ],
   "metrics": {
     "capacity": "64 kb",
     "technology": "28 nm",
     "accuracy": "improved via dual-granularity quantization"
   },
-  "baselines": ["pure digital CIM", "pure analog CIM", "prior bit-parallel HCIM with accuracy loss", "prior bit-serial HCIM with error pollution"],
+  "baselines": [
+    "pure digital CIM",
+    "pure analog CIM",
+    "prior bit-parallel HCIM with accuracy loss",
+    "prior bit-serial HCIM with error pollution"
+  ],
   "limitations": "Specific energy, throughput, and accuracy metrics (e.g., inference accuracy on benchmarks) not provided in abstract.",
-  "tags": ["compute-in-memory", "hybrid-cim", "quantization", "inference-accelerator", "digital-analog"],
+  "tags": [
+    "compute-in-memory",
+    "hybrid-cim",
+    "quantization",
+    "inference-accelerator",
+    "digital-analog"
+  ],
   "primary_theme": "Hybrid CIM with sign-bit processing and cooperative quantization for efficient neural inference",
   "confidence": "low"
 }

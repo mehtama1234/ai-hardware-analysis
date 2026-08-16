@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "3D Gaussian Splatting rendering faces a fundamental trade-off: large tile sizes reduce redundant sorting but increase unnecessary rasterization computations, limiting real-time performance in novel view synthesis.",
   "motivation": "3D Gaussian Splatting is faster than NeRF with high image quality, but cannot meet real-time FPS demands due to inefficient sorting-rasterization interaction across tile boundaries.",
-  "method": "GS-TG uses tile grouping during sorting to share operations across small tiles (creating virtual large tiles) while using bitmasks during rasterization to identify relevant small tiles. This enables sorting efficiency of large tiles with rasterization efficiency of small tiles, a lossless technique requiring no retraining.",
-  "key_novelty": "First accelerator addressing the sorting-rasterization trade-off in 3D-GS via tile grouping and bitmask-based rasterization, achieving 1.54x speedup without retraining or parameter tuning.",
+  "method": "GS-TG groups small rectangular image tiles together during sorting—the phase that arranges which pixels to compute—to reduce redundant work, then uses binary flags during rendering (converting the scene to pixels) to identify which tiles actually need processing. This hybrid approach combines the efficiency of handling large regions together during sorting with the efficiency of computing only necessary regions during rendering, without requiring model retraining.",
+  "key_novelty": "GS-TG is the first to address the sorting-rendering trade-off in 3D Gaussian Splatting through tile grouping and binary-flag identification, achieving 1.54x speedup without retraining.",
   "contributions": [
     "Tile grouping strategy during sorting to reduce redundant operations across small tiles.",
     "Bitmask-based rasterization enabling efficient sharing of sorting results across tile groups.",

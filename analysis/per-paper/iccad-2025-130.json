@@ -4,16 +4,26 @@
   "venue": "ICCAD",
   "problem": "MoE-based LLM inference on edge devices faces severe token allocation imbalances among experts, causing storage and computational burdens; lack of integration between expert-aware pruning and parallel scheduling leads to suboptimal resource utilization.",
   "motivation": "Enable scalable MoE-LLM inference on resource-constrained FPGA devices for edge deployment.",
-  "method": "FPGA overlay processor with three innovations: (1) N:M sparsity (1:4/2:4/4:8/6:8/8:8) and mixed-precision quantization (BF16/FP8/INT4) guided by expert activation frequency; (2) lightweight prediction network for next-layer hot expert prediction (83.4% hit rate); (3) reconfigurable multi-core systolic array supporting sparse/mixed-precision computation with parallel concatenation.",
-  "key_novelty": "Expert-activation-frequency-guided sparsity and predictive expert scheduling for MoE inference on FPGA.",
+  "method": "The processor speeds up MoE inference on an FPGA using three coordinated techniques. First, it removes unimportant weights from experts based on how often each expert gets used (keeping 25–75% depending on the usage pattern, expressed as ratios like 1:4 to 8:8), and stores numbers in space-saving formats (16-bit, 8-bit, or 4-bit precision). Second, it predicts which experts the next layer will need with an 83.4% success rate, so the hardware can load them in advance. Third, it uses a reconfigurable grid of processing cores (a systolic array) that can efficiently compute with both sparse weights and mixed-precision numbers in parallel.",
+  "key_novelty": "It predicts which experts to use next and removes weights from rarely-used experts, both strategies guided by expert activation patterns, so prediction and pruning work as one system.",
   "contributions": [
     "Activation-frequency-guided N:M sparsity and mixed-precision quantization",
     "Lightweight prediction network for proactive expert scheduling",
     "Reconfigurable systolic array architecture for efficient MoE computation"
   ],
-  "hardware_target": ["FPGA"],
-  "technique_category": ["sparsity", "quantization", "dataflow", "scheduling"],
-  "workloads": ["LLM-inference", "MoE"],
+  "hardware_target": [
+    "FPGA"
+  ],
+  "technique_category": [
+    "sparsity",
+    "quantization",
+    "dataflow",
+    "scheduling"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "MoE"
+  ],
   "metrics": {
     "speedup": "6.78× vs NVIDIA A100, 13.37× vs RTX 4090, 7.85× vs Xilinx U200 FPGA",
     "energy_or_tops_w": null,
@@ -22,9 +32,20 @@
     "accuracy": "1.53% average accuracy drop after fine-tuning",
     "other": "2.76× parameter size reduction"
   },
-  "baselines": ["NVIDIA A100 GPU", "RTX 4090", "Xilinx U200 FPGA"],
+  "baselines": [
+    "NVIDIA A100 GPU",
+    "RTX 4090",
+    "Xilinx U200 FPGA"
+  ],
   "limitations": "Specific to MoE architectures; may not generalize to other sparse model types.",
-  "tags": ["moe-llm", "fpga-acceleration", "sparsity", "quantization", "llm-inference", "edge-deployment"],
+  "tags": [
+    "moe-llm",
+    "fpga-acceleration",
+    "sparsity",
+    "quantization",
+    "llm-inference",
+    "edge-deployment"
+  ],
   "primary_theme": "FPGA acceleration for MoE-based LLMs",
   "confidence": "low"
 }

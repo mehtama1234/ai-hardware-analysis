@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Heap temporal memory safety violations (use-after-free) continue to threaten C and C++ software security. Prior CHERI-based approaches like Cornucopia achieved temporal safety but incurred impractical 'stop-the-world' pause times, limiting practical deployment.",
   "motivation": "Temporal memory safety violations pose a significant ongoing security threat, and practical systems require acceptable performance overhead to enable real-world adoption.",
-  "method": "Introduces load barriers as a mechanism to improve heap temporal safety on CHERI without stop-the-world pauses. Load barriers intercept memory operations to efficiently track heap object lifetimes and enable safe reclamation. The approach maintains CHERI capability-based protections while reducing garbage collection synchronization overhead.",
-  "key_novelty": "Load barriers enable CHERI heap temporal safety with acceptable pause times, overcoming Cornucopia's fundamental performance limitation.",
+  "method": "The approach uses load barriers—checks inserted when the program reads from memory—to track which heap objects are still in use. When an object is freed, CHERI capabilities (hardware features that restrict what memory code can access) mark it invalid, so any later attempts to use it are caught. Unlike prior approaches that pause the entire program periodically to reclaim memory, load barriers enable cleanup to happen gradually in the background, keeping pause times short and practical.",
+  "key_novelty": "Load barriers enable CHERI heap temporal safety with pause times practical enough for real systems, solving the performance limitation that made earlier approaches impractical.",
   "contributions": [
     "Load barrier mechanism for efficient heap temporal safety in CHERI",
     "Significant reduction in garbage collection pause times compared to Cornucopia",

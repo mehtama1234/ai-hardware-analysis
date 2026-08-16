@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Existing tensor partitioning systems for LLM training use incomplete partitioning space where sub-operator distribution is limited to spatial dimension, restricting opportunities to avoid collective communication across devices and optimize memory usage during distributed training.",
   "motivation": "Training increasingly large transformer-based LLMs requires novel parallel training techniques, and more efficient tensor partitioning can significantly improve both training throughput and memory efficiency.",
-  "method": "PrimePar introduces a spatial-temporal tensor partition primitive that distributes sub-operators along both spatial and temporal dimensions to avoid collective communication and overlap device-to-device communication with computation. An optimization algorithm efficiently searches this broader partitization space to find optimal parallel configurations within acceptable time.",
-  "key_novelty": "Introducing temporal dimension into tensor partitioning alongside spatial dimension creates a broader parallelization space that reduces communication overhead and memory footprint in LLM training.",
+  "method": "PrimePar splits the training work two ways: across hardware devices (spatial dimension) and across time steps (temporal dimension). By splitting both ways instead of just spatially, it avoids forcing all devices to pause and sync their data, and instead overlaps data transfer between devices with ongoing computation. An optimization algorithm efficiently searches this expanded set of configurations to find the fastest one.",
+  "key_novelty": "Using both temporal and spatial dimensions for partitioning—instead of just spatial—opens up more ways to divide the work, which reduces inter-device communication overhead and memory usage during training.",
   "contributions": [
     "Novel spatial-temporal tensor partitioning primitive extending beyond spatial-only partitioning",
     "Demonstrates communication avoidance opportunities through temporal distribution of sub-operators",
     "Efficient optimization algorithm for finding optimal parallel solutions in spatial-temporal space",
-    "Achieves up to 1.68\u00d7 training throughput improvement with 69% peak memory occupancy reduction"
+    "Achieves up to 1.68× training throughput improvement with 69% peak memory occupancy reduction"
   ],
   "hardware_target": [
     "GPU"
@@ -28,7 +28,7 @@
     "attention"
   ],
   "metrics": {
-    "speedup": "1.68\u00d7 single-GPU throughput, 1.30\u00d7 geo-mean speedup at 32 GPUs, 1.46\u00d7 with 3D parallelism",
+    "speedup": "1.68× single-GPU throughput, 1.30× geo-mean speedup at 32 GPUs, 1.46× with 3D parallelism",
     "other": "69% peak memory occupancy vs state-of-the-art"
   },
   "baselines": [

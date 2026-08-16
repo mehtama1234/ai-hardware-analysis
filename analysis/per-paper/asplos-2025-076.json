@@ -4,17 +4,28 @@
   "venue": "ASPLOS",
   "problem": "Predicting GPU performance for deep learning workloads on unseen GPU models (new GPU on existing model, or existing model on new GPU) is inaccurate with prior ML-based approaches, which attempt to predict end-to-end kernel latency directly and suffer >100% error on new model-GPU pairs.",
   "motivation": "Access to new GPU hardware is limited, making performance prediction for new model-GPU combinations essential for resource planning, model architecture decisions, and procurement.",
-  "method": "NeuSight decomposes a single DL kernel prediction into smaller working sets called 'tiles' that correspond to the GPU's SM-level execution granularity. Tile-granularity predictions are made by a learned ML model, then aggregated across tiles to estimate end-to-end latency. The approach is bounded by fundamental performance laws (roofline model) and incorporates both GPU hardware parameters and software library optimizations (cuDNN, cuBLAS heuristics) to constrain the prediction space, enabling generalization to unseen GPUs by parameterizing hardware characteristics rather than encoding GPU identity.",
-  "key_novelty": "Decomposing DL kernel latency prediction to tile granularity aligned with SM execution, bounding predictions via performance laws, enabling accurate cross-GPU generalization without running code on the target hardware.",
+  "method": "NeuSight breaks down the task of predicting how long a deep-learning kernel (a single GPU operation) will take into smaller pieces called \"tiles\" that match the GPU's streaming multiprocessors—the parallel processing units it actually uses to execute work. A machine-learning model predicts the execution time for each tile, and these predictions are added together to estimate the total time. The predictions stay realistic by constraining them with fundamental performance limits (the roofline model, which describes the maximum speed possible given the hardware design) and by incorporating actual GPU specifications plus optimization tricks from libraries like cuDNN and cuBLAS. This approach works on new, unseen GPU models by learning their core hardware properties rather than encoding specific GPU identities, so it can predict performance without running code on the target hardware.",
+  "key_novelty": "The core idea is decomposing deep-learning kernel predictions into tiles matching the GPU's execution units and constraining them with performance laws, which enables those predictions to generalize to new GPU models without requiring code execution.",
   "contributions": [
     "NeuSight framework for GPU performance forecasting on unseen model-GPU combinations",
     "Tile-level decomposition of kernel prediction bounded by roofline performance laws",
     "Incorporation of GPU hardware parameters and software library optimization models",
     "Reduction of prediction error from 121.4% (prior work) to 2.3% for GPT-3 on H100"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["compiler", "scheduling", "approximation"],
-  "workloads": ["LLM-training", "LLM-inference", "CNN", "transformer"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "compiler",
+    "scheduling",
+    "approximation"
+  ],
+  "workloads": [
+    "LLM-training",
+    "LLM-inference",
+    "CNN",
+    "transformer"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +34,17 @@
     "accuracy": "GPT-3 inference latency error reduced from 30.8% (SOTA) to 2.3% on H100; training error reduced from 121.4% to 2.3%",
     "other": "evaluated across diverse DL workloads and up-to-date GPUs including H100"
   },
-  "baselines": ["prior ML-based GPU performance prediction frameworks"],
+  "baselines": [
+    "prior ML-based GPU performance prediction frameworks"
+  ],
   "limitations": "Tile decomposition assumes regular, dense compute kernels; accuracy for highly irregular or sparse workloads not discussed.",
-  "tags": ["performance-prediction", "gpu", "roofline", "llm", "simulation"],
+  "tags": [
+    "performance-prediction",
+    "gpu",
+    "roofline",
+    "llm",
+    "simulation"
+  ],
   "primary_theme": "tile-level ML-based GPU performance forecasting for unseen hardware",
   "confidence": "low"
 }

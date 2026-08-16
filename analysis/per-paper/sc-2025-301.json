@@ -4,24 +4,44 @@
   "venue": "SC",
   "problem": "Workflow orchestration systems struggle with strict I/O boundaries that enforce file synchronization barriers between workflow phases, limiting the ability to implement end-to-end streaming across multi-stage applications.",
   "motivation": "Eliminating artificial I/O boundaries can enable continuous dataflow processing without phase synchronization delays, improving throughput and reducing memory footprint for large-scale scientific workflows.",
-  "method": "Introduce a double-sided streaming methodology combining control-plane streaming (dispel4py) with data-plane streaming (CAPIO). Extend CAPIO with a new commit rule for streaming over dynamically generated file sets, enabling hybrid in-memory and file-based dataflows.",
-  "key_novelty": "Novel commit rule enabling streaming across dynamic file sets without modifying existing workflow logic; seamless integration of control and data-plane streaming without artificial boundaries.",
+  "method": "Instead of waiting for one stage to finish completely before the next stage starts, this approach enables continuous streaming of data between stages. It uses two complementary strategies: dispel4py manages the workflow execution logic (which tasks run when and in what order), while CAPIO handles the actual data movement. The key technical contribution is adding a new rule to CAPIO that allows streaming even when files are created dynamically—you don't need to specify all files upfront. This hybrid approach keeps some data in memory for speed while using disk storage when needed.",
+  "key_novelty": "The key innovation is a new commit rule that enables streaming over dynamically generated files without rewriting existing workflow code.",
   "contributions": [
     "Double-sided streaming architecture combining control and data planes",
     "Extension to CAPIO supporting streaming over dynamically generated file sets",
     "Elimination of file synchronization barriers in multi-stage workflows",
     "23-40% performance improvement on seismic cross-correlation workload"
   ],
-  "hardware_target": ["Multi-core CPUs", "Distributed storage systems"],
-  "technique_category": ["Workflow orchestration", "Data streaming", "I/O optimization"],
-  "workloads": ["Seismic cross-correlation", "Scientific workflows", "Multi-stage dataflows"],
+  "hardware_target": [
+    "Multi-core CPUs",
+    "Distributed storage systems"
+  ],
+  "technique_category": [
+    "Workflow orchestration",
+    "Data streaming",
+    "I/O optimization"
+  ],
+  "workloads": [
+    "Seismic cross-correlation",
+    "Scientific workflows",
+    "Multi-stage dataflows"
+  ],
   "metrics": {
     "performance_improvement": "23-40%",
     "metric_type": "throughput"
   },
-  "baselines": ["Traditional file-based workflow orchestration", "Single-plane streaming approaches"],
+  "baselines": [
+    "Traditional file-based workflow orchestration",
+    "Single-plane streaming approaches"
+  ],
   "limitations": "Evaluation limited to single seismic workflow; scalability on very large distributed systems not explored.",
-  "tags": ["workflow", "I/O", "streaming", "orchestration", "HPC"],
+  "tags": [
+    "workflow",
+    "I/O",
+    "streaming",
+    "orchestration",
+    "HPC"
+  ],
   "primary_theme": "I/O Optimization & Workflow Orchestration",
   "confidence": "low"
 }

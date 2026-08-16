@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Serving multiple LoRA-fine-tuned model variants for different tenants requires inefficient memory and compute resources, as each tenant's adapted weights cannot easily share a single base model inference path without serialization overhead.",
   "motivation": "Multi-tenant serving enables efficient delivery of customized language models to many users while amortizing base model computation and memory costs across requests.",
-  "method": "Punica multiplexes requests from different LoRA adapters into shared batches, uses a hierarchical memory layout to keep LoRA weights in high-bandwidth memory, and applies dynamic scheduling to batch incompatible LoRA requests while maintaining throughput.",
-  "key_novelty": "Efficient batching and scheduling mechanism that enables high-throughput multi-tenant LoRA serving by sharing base model computation across tenants with different adapter weights.",
+  "method": "Punica combines requests from different customers' LoRA adapters (lightweight customizations of a base model) into larger processing batches that run together. It stores the LoRA weights in high-bandwidth memory (the fastest available memory tier), eliminating the overhead of shuffling data between slower storage. When certain adapter combinations can't run in the same batch, dynamic scheduling (real-time reordering) intelligently groups compatible requests together while maintaining high throughput.",
+  "key_novelty": "Combining requests from different customers into shared processing batches lets them run the same base model computation together, even though each customer has different weight customizations, cutting per-request overhead.",
   "contributions": [
     "System design for multi-tenant LoRA inference with request batching across different adapters",
     "Memory hierarchy optimization to efficiently manage LoRA weight placement and access",

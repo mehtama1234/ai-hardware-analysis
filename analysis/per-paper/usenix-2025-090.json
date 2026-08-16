@@ -2,10 +2,10 @@
   "id": "usenix-2025-090",
   "title": "Mitigating Resource Usage Dependency in Sorting-based KV Stores on Hybrid Storage Devices via Operation Decoupling",
   "venue": "USENIX",
-  "problem": "Sorting-based key-value stores (LSM-tree based) on hybrid storage experience tight coupling where concurrent operations\u2014background compaction, foreground writes, and reads\u2014compete for the same DRAM cache and I/O bandwidth, creating resource dependencies that limit throughput and predictability.",
+  "problem": "Sorting-based key-value stores (LSM-tree based) on hybrid storage experience tight coupling where concurrent operations—background compaction, foreground writes, and reads—compete for the same DRAM cache and I/O bandwidth, creating resource dependencies that limit throughput and predictability.",
   "motivation": "Hybrid storage systems combining DRAM and SSDs are ubiquitous in modern data centers, but tightly coupled operations waste bandwidth and cause performance degradation under concurrent mixed workloads.",
-  "method": "The approach decouples operations by isolating their resource usage: compaction, writes, and reads are scheduled and serviced independently with separate memory pools and distinct I/O scheduling policies. This allows each operation type to optimize its resource utilization without interfering with others.",
-  "key_novelty": "Decoupling operations in LSM-tree based KV stores to eliminate resource usage dependencies between background compaction and foreground operations on hybrid storage tiers.",
+  "method": "The system decouples operations by giving compaction (the background process that reorganizes data in LSM-tree structures), writes, and reads their own separate memory pools so they don't fight over DRAM cache. It also assigns each operation type distinct I/O scheduling rules—separate policies controlling which operation gets to transfer data between memory and hybrid storage (the mix of different-speed storage devices) at any moment. This works because when operations aren't competing for the same resources, each can run efficiently without being blocked or slowed down by the others.",
+  "key_novelty": "The core innovation is isolating background data reorganization (compaction) from foreground reads and writes by giving each operation type its own memory pool and I/O scheduling in LSM-tree key-value stores on hybrid storage.",
   "contributions": [
     "Operation decoupling framework that isolates resource demands between operation types",
     "Independent scheduling policies for compaction, writes, and reads to minimize interference",

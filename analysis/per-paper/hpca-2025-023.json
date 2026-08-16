@@ -4,17 +4,27 @@
   "venue": "HPCA",
   "problem": "Existing bit-slice DNN accelerator architectures exploit sparsity only at coarse granularity — either input or weight sparsity independently — failing to simultaneously leverage both input and weight sparsity at fine (bit-slice chunk) granularity, leaving substantial computational savings unrealized.",
   "motivation": "Bit-slice architectures offer high reconfigurability for mixed-precision DNN inference, but their fine-grained sparsity potential is underutilized due to hardware complexity in jointly handling both input and weight slice-level zeros.",
-  "method": "BADA (Bit-slice Architecture for DNN Acceleration) introduces a front-end unit that generates bit-slices from operands and selectively gathers only non-zero slices using a packed-nonzero selection mechanism, forwarding them to a back-end signed MAC unit. The architecture skips computation for (a) bit-slice chunks containing all zeros (coarse-grained) and (b) any operand pair where either input or weight bit-slice is zero (fine-grained joint sparsity). Two algorithmic optimizations complement the hardware: (1) a novel 8-bit data bit-slice representation with no additional hardware overhead (vs. 6-7 bit limits in prior work); (2) a training-time weight distribution narrowing technique that increases the proportion of zero-valued higher-order bit-slices, enhancing slice-level weight sparsity.",
-  "key_novelty": "Joint exploitation of both input and weight sparsity at the bit-slice chunk granularity using a front-end non-zero selection unit, combined with a training-aware weight distribution narrowing to amplify higher-order slice sparsity.",
+  "method": "The BADA architecture splits numbers into bit-slices (the individual bit layers within each number) and uses a front-end unit (the first processing stage) to select only non-zero slices before computation. It skips calculations in two ways: when an entire chunk of bits is zero, and when either the input or weight has a zero bit-slice at any position (catching both types of empty space at once). The system represents each bit-slice using 8 bits without needing extra hardware—better than the 6-7 bit limit in earlier designs—and during training it adjusts weight distributions to create more zeros in higher-order bit-slices, amplifying the sparsity gains.",
+  "key_novelty": "The core innovation is using a front-end selection mechanism to exploit both input and weight sparsity simultaneously at the bit-slice level, paired with training that concentrates zeros into higher-order bit-slices.",
   "contributions": [
     "BADA architecture jointly leveraging coarse- and fine-grained input and weight sparsity at the bit-slice level.",
     "Front-end non-zero slice selection unit enabling skip of any operand pair with a zero input or weight slice.",
     "8-bit data representation for bit-slice architectures without additional hardware overhead (vs. 6-7 bit in prior art).",
     "Training-time weight distribution narrowing to increase zero-valued higher-order bit-slice proportion; 2.67x throughput, 1.52x area efficiency, 2.15x energy efficiency vs. LUTein."
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["sparsity", "quantization", "circuit-design", "dataflow"],
-  "workloads": ["CNN", "transformer"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "sparsity",
+    "quantization",
+    "circuit-design",
+    "dataflow"
+  ],
+  "workloads": [
+    "CNN",
+    "transformer"
+  ],
   "metrics": {
     "speedup": "2.67x throughput vs. LUTein (state-of-the-art bit-slice architecture)",
     "energy_or_tops_w": "2.15x energy efficiency vs. LUTein",
@@ -23,9 +33,18 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["LUTein (state-of-the-art bit-slice DNN accelerator)"],
+  "baselines": [
+    "LUTein (state-of-the-art bit-slice DNN accelerator)"
+  ],
   "limitations": "The weight distribution narrowing training technique adds training-time cost and may reduce model accuracy for tasks where weight magnitude diversity is important; evaluation scope (specific DNN models) is not detailed in the abstract.",
-  "tags": ["bit-slice", "sparsity", "dnn-accelerator", "mixed-precision", "weight-sparsity", "asic"],
+  "tags": [
+    "bit-slice",
+    "sparsity",
+    "dnn-accelerator",
+    "mixed-precision",
+    "weight-sparsity",
+    "asic"
+  ],
   "primary_theme": "Joint input-weight bit-slice sparsity exploitation for DNN acceleration",
   "confidence": "low"
 }

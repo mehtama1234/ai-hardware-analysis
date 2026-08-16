@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Industrial recommendation models have heterogeneous embedding computation workloads across feature fields, but existing solutions apply identical schedules to all fields, leading to suboptimal performance. Different feature fields require varied optimal code schedules for efficient execution.",
   "motivation": "Optimizing embedding computation is critical for industrial recommendation systems that process numerous feature fields.",
-  "method": "RecFlex generates fused kernels with distinct schedules for different feature fields using an interference-aware schedule tuner and heterogeneous schedule fusion compiler. It employs a two-stage interference-simulated tuning strategy to determine optimal schedules for each field within the fused kernel. To handle dynamic workloads, RecFlex combines compile-time schedule tuning with runtime kernel thread mapping.",
-  "key_novelty": "Generating heterogeneous fused kernels with feature-field-specific schedules instead of applying uniform schedules across all fields.",
+  "method": "RecFlex combines computations for different feature fields into one optimized program (a fused kernel), giving each field its own schedule—the order and timing of operations—rather than forcing all fields to use the same strategy. To determine the best schedule for each field, it uses a two-stage tuner that simulates interference: how the fields slow each other down when competing for shared processor resources. A compiler then combines these different schedules into the single fused kernel. Since recommendation workloads vary during execution, RecFlex also adjusts how tasks are mapped to processor cores at runtime, not just at compile time.",
+  "key_novelty": "RecFlex creates fused kernels where each feature field gets its own customized execution schedule, instead of applying one uniform schedule across all fields.",
   "contributions": [
     "Interference-aware schedule tuner that optimizes distinct schedules for different feature fields",
     "Heterogeneous schedule fusion compiler that generates fused kernels with multiple schedules",

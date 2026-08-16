@@ -4,17 +4,28 @@
   "venue": "ASPLOS",
   "problem": "LLM decoding kernels dynamically shift between memory-bound and compute-bound behavior as request parameters (batch size, sequence length, sampling strategy) change at runtime, making static assignment of kernels to either PIM units or GPU-like compute accelerators suboptimal. Furthermore, existing PIM units are designed with a one-size-fits-all approach that fails to exploit the heterogeneity within memory-bound LLM kernels.",
   "motivation": "LLM inference is increasingly deployed at scale and throughput/latency are bottlenecked by the need to move billions of model parameters across the memory bus every decoding step, yet the dynamic workload character invalidates static hardware partitioning strategies.",
-  "method": "PAPI introduces a heterogeneous computing system combining PIM units embedded in DRAM with compute-centric accelerators (GPU-like), and a runtime that dynamically profiles kernel characteristics and remaps each kernel to the most suitable processing element at runtime. The PIM units are co-designed with awareness of intra-PIM heterogeneity to efficiently handle diverse memory-bound kernel patterns (e.g., matrix-vector products, attention, gating). A dynamic parallelism scheduler dispatches work to PIM or compute units based on real-time parameter changes driven by user or system demands.",
-  "key_novelty": "Runtime dynamic kernel-to-hardware mapping that responds to changing LLM decoding workload characteristics, combined with heterogeneity-aware PIM unit design to exploit intra-PIM variance in memory-bound kernels.",
+  "method": "PAPI combines two types of processors: PIM units (processors built directly into memory chips to reduce how much data moves around) and traditional compute accelerators (like GPUs), plus a runtime system that watches what the LLM is doing and automatically sends each piece of work to whichever processor is best suited for it at that moment. The PIM units are designed specifically to handle different kinds of memory-heavy operations—like multiplying matrices by single vectors, computing attention (where the model weighs which past tokens matter most), and applying gates (switches that control information flow)—because these operations behave differently. A scheduler watches as parameters change during execution (like batch size or sequence length) and steers work to either the PIM or compute units based on what would be fastest right now.",
+  "key_novelty": "The system automatically reassigns work between memory-embedded and traditional processors based on real-time workload changes, using specialized memory-embedded processor designs that efficiently handle different types of memory-intensive operations.",
   "contributions": [
     "Characterization of dynamic compute/memory-bound transitions in LLM decoding kernels under varying runtime parameters.",
     "Heterogeneity-aware PIM unit architecture tailored to the diversity within memory-bound LLM kernels.",
     "Dynamic scheduling framework (PAPI) that remaps kernels to PIM or compute accelerators at runtime.",
     "Demonstration that dynamic mapping outperforms static heterogeneous mapping for LLM decoding throughput."
   ],
-  "hardware_target": ["PIM (processing-in-memory)", "GPU"],
-  "technique_category": ["near-data-processing", "scheduling", "parallelism", "memory-system"],
-  "workloads": ["LLM-inference", "attention"],
+  "hardware_target": [
+    "PIM (processing-in-memory)",
+    "GPU"
+  ],
+  "technique_category": [
+    "near-data-processing",
+    "scheduling",
+    "parallelism",
+    "memory-system"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "attention"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +34,18 @@
     "accuracy": null,
     "other": "Not stated in abstract"
   },
-  "baselines": ["static PIM+GPU heterogeneous mapping systems", "GPU-only LLM serving"],
+  "baselines": [
+    "static PIM+GPU heterogeneous mapping systems",
+    "GPU-only LLM serving"
+  ],
   "limitations": "Quantitative speedup and energy results are not reported in the abstract.",
-  "tags": ["pim", "llm-decoding", "dynamic-scheduling", "heterogeneous-architecture", "memory-bound"],
+  "tags": [
+    "pim",
+    "llm-decoding",
+    "dynamic-scheduling",
+    "heterogeneous-architecture",
+    "memory-bound"
+  ],
   "primary_theme": "dynamic PIM-GPU scheduling for LLM decoding",
   "confidence": "low"
 }

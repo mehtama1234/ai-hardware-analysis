@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "MoE LLMs require massive parameter transfers from secondary memory to GPU that exceed GPU memory capacity, creating expensive communication overhead during inference. Parameter offloading becomes a critical bottleneck for large sparse expert models.",
   "motivation": "Reducing parameter movement overhead enables efficient MoE LLM inference on memory-constrained hardware and significantly improves system throughput.",
-  "method": "MoNDE partitions experts into hot (frequently used) and cold (rarely used) groups, transferring only hot experts to GPU memory while computing cold experts in host memory. Instead of transferring massive expert parameters between memories, the system moves small activation tensors, substantially reducing communication volume while maintaining computation efficiency through near-data processing.",
-  "key_novelty": "Using selective hot/cold expert partitioning combined with near-data computation to replace expensive expert parameter transfers with efficient activation movement in MoE inference.",
+  "method": "MoNDE divides experts (specialized neural network components) into two groups—frequently-used ones on the GPU, rarely-used ones in main computer memory. During inference, instead of transferring massive expert parameters between GPU and memory, it only moves small intermediate results called activations. Since activations are far smaller than full expert parameters, computing cold experts in place (near-data processing) eliminates unnecessary transfers, substantially reducing communication overhead while keeping computation efficient.",
+  "key_novelty": "MoNDE's key innovation is splitting experts between GPU and main memory by usage frequency, then moving only small activations between them instead of massive expert parameters, substantially reducing communication overhead.",
   "contributions": [
     "Identifies parameter movement as the critical bottleneck in MoE LLM inference",
     "Proposes MoNDE framework with hot/cold expert partitioning and near-data computation",

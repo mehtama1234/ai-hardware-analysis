@@ -4,8 +4,8 @@
   "venue": "ISSCC",
   "problem": "LLM inference accelerators face a challenge: traditional matrix-multiplication-based architectures fail to fully exploit parallelism and data locality inherent in tensor contractions, limiting throughput and efficiency for LLM workloads.",
   "motivation": "LLMs require accelerators combining high memory bandwidth and dense compute with minimal power; traditional matrix multiplication approaches do not naturally map the tensor contraction primitive, leaving parallelism and temporal reuse on the table.",
-  "method": "RNGD uses tensor contraction as the primitive computational unit instead of matrix multiplication, enabling massive parallelism and time-axis pipelining similar to vector processors; processing elements can be dynamically split into smaller slices with configurable fetch networks for flexible parallelism.",
-  "key_novelty": "Tensor contraction as computational primitive with dynamic slice-level parallelism and pipelined fetch networks for flexible LLM inference execution.",
+  "method": "RNGD uses tensor contraction—a generalized operation that multiplies and sums arrays along specific dimensions—as its core computational unit instead of traditional matrix multiplication, which exposes far more opportunities for parallel work. Execution pipelines like a vector processor: each processing stage finishes and immediately passes its results to the next stage while earlier stages keep working, rather than waiting for entire operations to complete. The hardware's processing elements can split dynamically into smaller independent slices with adjustable data-fetch networks, letting the accelerator adapt to different tensor shapes and sizes without losing parallelism.",
+  "key_novelty": "The core idea is using tensor contraction—with dynamically split processing elements and pipelined data flow—as the fundamental building block instead of matrix multiplication, enabling efficient and flexible LLM inference.",
   "contributions": [
     "Tensor contraction primitive replacing matrix multiplication",
     "Dynamic PE slicing for flexible parallelism",
@@ -13,17 +13,34 @@
     "Deterministic cost models for performance/energy optimization",
     "Power-efficient LLM inference"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["dataflow", "parallelism", "kernel-fusion"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "parallelism",
+    "kernel-fusion"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "technology": "5nm",
     "architecture": "tensor-contraction-based",
     "optimization": "deterministic cost models"
   },
-  "baselines": ["Matrix-multiplication-based LLM accelerators"],
+  "baselines": [
+    "Matrix-multiplication-based LLM accelerators"
+  ],
   "limitations": "Abstract-only; power/performance measurements, comparison with other LLM accelerators, supported LLM architectures/sizes, and latency/throughput not discussed.",
-  "tags": ["llm-inference", "tensor-contraction", "dataflow", "5nm", "asic", "power-efficiency"],
+  "tags": [
+    "llm-inference",
+    "tensor-contraction",
+    "dataflow",
+    "5nm",
+    "asic",
+    "power-efficiency"
+  ],
   "primary_theme": "Tensor-contraction processor for efficient LLM inference",
   "confidence": "low"
 }

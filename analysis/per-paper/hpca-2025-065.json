@@ -4,17 +4,27 @@
   "venue": "HPCA",
   "problem": "Tensor cores integrated into RISC-V GPGPU architectures (e.g., Vortex) are severely under-utilized in many configurations, and simply increasing compute capacity does not yield proportional performance gains due to memory bandwidth limitations and warp divergence.",
   "motivation": "Open-source RISC-V GPGPU platforms lack efficient tensor core designs with principled analysis of the relationship between GPU system parameters and tensor core configuration, limiting research and customization beyond NVIDIA's closed ecosystem.",
-  "method": "The paper integrates a tensor core into the open-source Vortex RISC-V GPGPU with a suite of GEMM intrinsics. Analysis of utilization identifies that memory bandwidth and warp-level resource contention bottleneck performance. The proposed cooperative warp execution mechanism allows multiple warps to share a single tensor core invocation, reducing per-warp memory requirements for GEMM operands and enabling better pipelining of data movement and computation. Hardware warp cooperation support is added to the tensor core datapath to manage the cooperative scheduling.",
-  "key_novelty": "Cooperative warp execution in tensor core that allows multiple warps to collaboratively share a tensor core operation, reducing memory pressure and improving utilization by up to 3x over the baseline tensor core.",
+  "method": "The researchers added a tensor core (specialized hardware for matrix multiplications) to the open-source Vortex RISC-V GPU and identified two bottlenecks slowing it down: memory bandwidth (how quickly data can move) and warp contention (multiple thread groups competing for the single tensor core). Their solution lets multiple warps share a single tensor core operation at the same time, which reduces the memory each warp must handle and allows the GPU to overlap data movement with computation. The hardware tensor core control system was enhanced to schedule and manage this sharing between warps.",
+  "key_novelty": "Multiple warps can share a single tensor core operation simultaneously, reducing each warp's memory requirements and improving tensor core utilization by up to 3x compared to running separately.",
   "contributions": [
     "First open-source tensor core integration into RISC-V Vortex GPGPU with GEMM intrinsics",
     "Systematic analysis linking GPU architectural parameters to tensor core utilization",
     "Cooperative warp execution mechanism enabling hardware-supported warp cooperation in tensor core",
     "Up to 3x performance improvement over baseline tensor core implementation"
   ],
-  "hardware_target": ["RISC-V", "GPU"],
-  "technique_category": ["dataflow", "parallelism", "scheduling"],
-  "workloads": ["CNN", "transformer"],
+  "hardware_target": [
+    "RISC-V",
+    "GPU"
+  ],
+  "technique_category": [
+    "dataflow",
+    "parallelism",
+    "scheduling"
+  ],
+  "workloads": [
+    "CNN",
+    "transformer"
+  ],
   "metrics": {
     "speedup": "up to 3x over baseline tensor core implementation",
     "energy_or_tops_w": null,
@@ -23,9 +33,17 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["Vortex RISC-V GPGPU baseline tensor core without cooperative warp execution"],
+  "baselines": [
+    "Vortex RISC-V GPGPU baseline tensor core without cooperative warp execution"
+  ],
   "limitations": "Not discussed; evaluation is limited to Vortex simulation and may not capture all real silicon trade-offs.",
-  "tags": ["risc-v", "gpgpu", "tensor-core", "warp-cooperation", "gemm"],
+  "tags": [
+    "risc-v",
+    "gpgpu",
+    "tensor-core",
+    "warp-cooperation",
+    "gemm"
+  ],
   "primary_theme": "cooperative warp tensor core for open-source RISC-V GPGPU",
   "confidence": "low"
 }

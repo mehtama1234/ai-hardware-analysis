@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "RPC serialization/deserialization overhead constitutes significant datacenter CPU tax in microservice architectures. Protocol Buffer deserialization in gRPC adds substantial host CPU consumption during RPC processing.",
   "motivation": "Offloading RPC processing to specialized hardware reduces host CPU overhead, improving overall datacenter efficiency and resource utilization.",
-  "method": "RPC server logic including Protocol Buffer deserialization is offloaded to Data Processing Units (DPUs). The DPU intercepts incoming RPC requests, performs deserialization of Protocol Buffers, and passes processed results to the host where application business logic executes, removing deserialization work from the host CPU datapath.",
-  "key_novelty": "Offloading Protocol Buffer deserialization to DPUs in the gRPC RPC datapath to eliminate host CPU overhead while maintaining performance parity with traditional approaches.",
+  "method": "Incoming RPC requests are intercepted by a Data Processing Unit (DPU), a specialized processor separate from the main CPU, which deserializes (converts from a compact binary format to usable objects) Protocol Buffers. This deserialization work no longer consumes host CPU cycles because it happens on the DPU instead. The processed data reaches the host where the application's business logic executes, freeing the CPU to do more valuable work.",
+  "key_novelty": "Offloading Protocol Buffer deserialization to Data Processing Units (DPUs) eliminates this CPU overhead from the RPC datapath.",
   "contributions": [
     "Demonstrates feasibility of offloading RPC server logic including deserialization to DPUs",
     "Shows DPU-based RPC offloading achieves performance comparable to traditional host-based methods",

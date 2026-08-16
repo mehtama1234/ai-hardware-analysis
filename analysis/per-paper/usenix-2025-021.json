@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Training multimodal LLMs is inefficient due to substantial GPU bubbles caused by heterogeneous modality models and complex data dependencies in 3D parallelism. The scheduling of encoder and LLM computations leads to idle GPU time.",
   "motivation": "Multimodal LLMs extend LLMs to handle multiple data types and are deployed across many domains, making training efficiency critical for practical large-scale deployment.",
-  "method": "Optimus schedules encoder computation within LLM bubbles by searching separate parallel plans for encoder and LLM components and applying a bubble scheduling algorithm. The system decomposes encoder layer computation into kernels, analyzes bubble patterns in 3D parallelism, and optimizes sub-millisecond level scheduling while preserving data dependencies.",
-  "key_novelty": "The key insight that encoder computation can be scheduled within LLM bubbles, coupled with practical algorithms that enable this scheduling across all GPUs without breaking data dependencies in the MLLM architecture.",
+  "method": "Optimus works by finding idle GPU time that occurs when different parts of a multimodal LLM (processing both images and text) finish computing at different times. It creates separate execution plans for the image encoder and language model, then uses a scheduling algorithm to fit encoder work into GPU idle gaps. The system breaks encoder operations into small units (kernels), identifies idle moments in the parallel GPU setup (called 3D parallelism), and schedules encoder tasks into those gaps at sub-millisecond precision while maintaining correct data flow between components.",
+  "key_novelty": "Because multimodal LLMs have idle GPU time while the language model runs, you can fill that time by scheduling encoder work, and this works across all GPUs without disrupting data flow.",
   "contributions": [
     "Principled analysis showing that scheduling encoder computation within LLM bubbles reduces end-to-end training time",
     "Bubble scheduling algorithm that exploits LLM idle time while maintaining original data dependencies",

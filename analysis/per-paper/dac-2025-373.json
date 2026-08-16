@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "Design space exploration for tensor accelerator dataflows is time-consuming and lacks architectural insight; optimal memory communication bounds for fused operators are not well characterized.",
   "motivation": "Tensor accelerators require efficient dataflow to minimize memory bandwidth which is a critical bottleneck; principled optimization replaces expensive DSE.",
-  "method": "Proposes principles for dataflow optimization that provide communication lower bounds for tensor operators; derives optimal tiling, scheduling, mapping for intra/inter-operator dataflow; introduces FuseCU architecture supporting profitable operator fusion.",
-  "key_novelty": "First principle-based approach to determine communication lower bounds for tensor dataflows; identifies all profitable operator fusions for memory communication savings.",
+  "method": "The paper develops mathematical principles that determine the minimum amount of data that must move through memory for any tensor operation (the theoretical lower bound), regardless of how you arrange the computation. Using these principles, it finds the optimal way to divide work into chunks (tiling), order the computations (scheduling), and assign them to hardware resources (mapping). It then proposes a hardware architecture called FuseCU that combines multiple operations so they pass data directly to each other rather than writing intermediate results back to memory, reducing overall data movement.",
+  "key_novelty": "Using mathematical principles to calculate the theoretical minimum data movement required for any tensor operation, it identifies which operator combinations can be merged to achieve that minimum.",
   "contributions": [
     "Dataflow optimization principles providing communication lower bounds",
     "Optimal tiling, scheduling, and mapping derivation",
@@ -13,16 +13,37 @@
     "FuseCU architecture for profitable fusion support",
     "63.6% data movement saving vs TPUv4i, 1.33x speedup, open-sourced"
   ],
-  "hardware_target": ["TPU", "ASIC"],
-  "technique_category": ["dataflow", "kernel-fusion", "memory-system"],
-  "workloads": ["transformer", "CNN", "tensor-operations"],
+  "hardware_target": [
+    "TPU",
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "kernel-fusion",
+    "memory-system"
+  ],
+  "workloads": [
+    "transformer",
+    "CNN",
+    "tensor-operations"
+  ],
   "metrics": {
     "speedup": "1.33x vs TPUv4i, 1.25x vs Gemmini, 1.14x vs Planaria",
     "other": "63.6% data movement saving vs TPUv4i"
   },
-  "baselines": ["TPUv4i", "Gemmini", "Planaria"],
+  "baselines": [
+    "TPUv4i",
+    "Gemmini",
+    "Planaria"
+  ],
   "limitations": "Not discussed",
-  "tags": ["tensor-accelerator", "dataflow", "operator-fusion", "memory-bandwidth", "tpu"],
+  "tags": [
+    "tensor-accelerator",
+    "dataflow",
+    "operator-fusion",
+    "memory-bandwidth",
+    "tpu"
+  ],
   "primary_theme": "principle-based dataflow optimization with operator fusion",
   "confidence": "low"
 }

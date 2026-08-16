@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "GPUs face underutilization in DNN inference workloads due to coarse-grained scheduling that cannot exploit fine-grained spatial and temporal concurrency.",
   "motivation": "Real-time DNN inference demands require meeting deadlines while maximizing GPU utilization in edge and inference-focused deployments.",
-  "method": "DARIS uses priority-based real-time scheduling combining NVIDIA MPS (Multi-Process Service) for spatial sharing and CUDA streaming for temporal partitioning. Synchronization-based staging enables zero-delay DNN migration between GPU partitions. Oversubscription mechanism analyzes GPU concurrency.",
-  "key_novelty": "Oversubscribed spatial-temporal scheduling for real-time DNNs combining MPS and CUDA streaming with zero-delay migration.",
+  "method": "DARIS is a scheduler that decides what work runs on a GPU when. It combines two techniques: NVIDIA's Multi-Process Service (MPS) lets multiple tasks share different parts of the same GPU at the same time (space-sharing), while CUDA streams run tasks at different times in sequence (time-sharing). The system synchronizes these tasks so work can move between GPU sections instantly without waiting. By analyzing how tasks can run concurrently, it packs more work onto the GPU than conventional approaches allow.",
+  "key_novelty": "The core insight is combining GPU space-sharing (via MPS) and time-sharing (via CUDA streams) with zero-delay work migration, which lets you run more real-time neural network tasks on one GPU than standard scheduling methods.",
   "contributions": [
     "15% throughput improvement over batching baseline",
     "11.5% throughput improvement over state-of-the-art schedulers",
@@ -13,16 +13,32 @@
     "All high-priority tasks meet deadlines; low-priority miss rate under 2%",
     "33% better high-priority response times vs low-priority tasks"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["scheduling"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "scheduling"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "15% over batching, 11.5% over state-of-the-art",
     "other": "deadline miss rate <2% for low-priority"
   },
-  "baselines": ["batching", "state-of-the-art real-time schedulers"],
+  "baselines": [
+    "batching",
+    "state-of-the-art real-time schedulers"
+  ],
   "limitations": "Evaluation primarily on GPUs; generalization to other accelerators not discussed.",
-  "tags": ["gpu-scheduling", "real-time", "dnn-inference", "resource-sharing", "priority-scheduling", "edge-ai"],
+  "tags": [
+    "gpu-scheduling",
+    "real-time",
+    "dnn-inference",
+    "resource-sharing",
+    "priority-scheduling",
+    "edge-ai"
+  ],
   "primary_theme": "Oversubscribed spatio-temporal scheduling for real-time DNN inference",
   "confidence": "low"
 }

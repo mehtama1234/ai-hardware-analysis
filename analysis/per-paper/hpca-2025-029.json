@@ -4,25 +4,43 @@
   "venue": "HPCA",
   "problem": "Weight-only quantized LLMs retain floating-point (FP) activations for accuracy, which shifts the energy and latency bottleneck to costly FP memory accesses and FP-INT GEMM computation; existing LLM accelerators optimize computation alone without jointly addressing data representation and movement for FP activations.",
   "motivation": "FP-INT GEMM dominates LLM inference cost, and the FP activation format is simultaneously memory-bandwidth-hungry and compute-inefficient; a co-designed adaptive format can cut both footprints without sacrificing accuracy.",
-  "method": "Anda proposes a new adaptive activation data type with a group-shared exponent and dynamically allocated mantissa bits per group, enabling variable precision per LLM module. An iterative post-training precision search algorithm determines per-module bit-widths to balance accuracy and efficiency without retraining. On the hardware side, Anda uses a bit-plane-based data organization, bit-serial computation processing elements, and a runtime bit-plane compressor to simultaneously shrink storage, computation, and memory footprint. The result is a hardware-software co-designed accelerator targeting FP-INT GEMM in LLMs.",
-  "key_novelty": "The Anda data type: a variable-length grouped format with shared exponent and dynamic mantissa allocation that adapts precision per LLM module, jointly optimizing FP data movement and computation for FP-INT GEMM.",
+  "method": "Anda compresses floating-point activation data by grouping values with a shared scale (exponent) per group but variable precision (bits) per value, letting different network layers use different precision without retraining. It automatically searches for the best precision per layer by testing accuracy and efficiency after training. The hardware organizes data by individual bits, processes them sequentially in specialized units, and compresses on-the-fly as the model runs. Together, these co-designed software and hardware changes reduce data storage and the floating-point-to-integer calculations that currently bottleneck large language model inference.",
+  "key_novelty": "Anda uses a grouped data format with a shared scale per group but variable precision per value, automatically tuning precision per layer to simultaneously reduce data storage, bandwidth, and the floating-point-to-integer math that bottlenecks large language model inference.",
   "contributions": [
     "Anda adaptive data format with group-shared exponent and dynamic mantissa bit allocation for variable-precision FP activations.",
     "Iterative post-training precision search algorithm for per-module bit-width optimization without retraining.",
     "Hardware suite: bit-plane data organization, bit-serial Anda-enhanced processing units, and runtime bit-plane compressor.",
     "2.4x speedup, 4.0x area efficiency, and 3.1x energy efficiency improvement over GPU-like FP-FP baseline on OPT, LLaMA, LLaMA-2."
   ],
-  "hardware_target": ["ASIC", "NPU"],
-  "technique_category": ["quantization", "memory-system", "dataflow", "compiler"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "ASIC",
+    "NPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "memory-system",
+    "dataflow",
+    "compiler"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "2.4x over GPU-like FP-FP baseline (FP-INT GEMM)",
     "energy_or_tops_w": "3.1x energy efficiency improvement",
     "area": "4.0x area efficiency improvement"
   },
-  "baselines": ["GPU-like FP-FP baseline for FP-INT GEMM"],
+  "baselines": [
+    "GPU-like FP-FP baseline for FP-INT GEMM"
+  ],
   "limitations": "Evaluated only on FP-INT GEMM operations (weight-only quantization setting); does not address fully quantized (INT-INT) or purely FP inference scenarios.",
-  "tags": ["llm-inference", "activation-quantization", "adaptive-precision", "bit-serial", "fp-int-gemm"],
+  "tags": [
+    "llm-inference",
+    "activation-quantization",
+    "adaptive-precision",
+    "bit-serial",
+    "fp-int-gemm"
+  ],
   "primary_theme": "Adaptive variable-precision activation data format and accelerator for efficient FP-INT LLM GEMM",
   "confidence": "low"
 }

@@ -4,24 +4,44 @@
   "venue": "SC",
   "problem": "Accelerators (GPUs, TPUs, NPUs) increasingly shared for multiple concurrent deep learning inference services. Inference requests with sequences of short-duration kernels create challenges for online schedulers maintaining Quality of Service (QoS) guarantees with target latency requirements.",
   "motivation": "Inference workloads widely deployed for production services requiring strict latency SLAs. Online scheduling struggles with fine-grained kernel sequences. Compile-time approaches could eliminate scheduling burden by pre-determining resource partitioning.",
-  "method": "QoSlicer framework performing compile-time QoS management via kernel slicing: (1) Generate multiple pre-determined slicing plans at compile time, (2) Enable lightweight online scheduling from predetermined plans, (3) Heuristic search identifies optimal slicing plans, (4) Performance estimation validates plans against target latencies.",
-  "key_novelty": "First compile-time QoS management approach for inference, shifting scheduling burden from runtime to compile time through pre-computed kernel slicing plans.",
+  "method": "QoSlicer breaks inference computations (kernels—tasks run on the GPU) into flexible pieces. Before running (at compile time), the system pre-computes multiple slicing plans and uses heuristic search to find which plan best meets each inference's latency target (maximum completion time). Performance estimation (test-run measurement) validates each plan will work. At runtime, the scheduler simply activates the right pre-computed plan, keeping decisions fast.",
+  "key_novelty": "By pre-computing how to slice inference computations at compile time, QoSlicer guarantees latency targets without runtime scheduling overhead.",
   "contributions": [
     "Compile-time kernel slicing framework for QoS guarantees",
     "Heuristic search algorithm for optimal slicing plan generation",
     "Robust performance estimation models validating plans against latency targets",
     "20.2% average throughput improvement on 75 diverse workload combinations"
   ],
-  "hardware_target": ["NVIDIA GPUs", "TPUs", "NPUs"],
-  "technique_category": ["Inference optimization", "Quality of service", "Scheduling", "Kernel optimization"],
-  "workloads": ["Deep learning inference", "Multi-tenant inference serving"],
+  "hardware_target": [
+    "NVIDIA GPUs",
+    "TPUs",
+    "NPUs"
+  ],
+  "technique_category": [
+    "Inference optimization",
+    "Quality of service",
+    "Scheduling",
+    "Kernel optimization"
+  ],
+  "workloads": [
+    "Deep learning inference",
+    "Multi-tenant inference serving"
+  ],
   "metrics": {
     "throughput_improvement": "20.2%",
     "workload_combinations_tested": "75"
   },
-  "baselines": ["State-of-the-art online scheduling techniques"],
+  "baselines": [
+    "State-of-the-art online scheduling techniques"
+  ],
   "limitations": "Abstract-only; specific inference models, latency targets, and deployment scenarios not detailed.",
-  "tags": ["QoS", "inference", "kernel-slicing", "scheduling", "throughput"],
+  "tags": [
+    "QoS",
+    "inference",
+    "kernel-slicing",
+    "scheduling",
+    "throughput"
+  ],
   "primary_theme": "Compile-time optimization for inference QoS",
   "confidence": "low"
 }

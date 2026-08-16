@@ -4,26 +4,48 @@
   "venue": "SC",
   "problem": "Sparse, block-structured applications on GPUs require efficient communication of irregular ghost zones. MPI-based approaches require buffer packing overhead; neighbor indexing complexity limits performance.",
   "motivation": "One-sided communication (NVSHMEM) can reduce latency and overhead, but needs appropriate data structure design for sparse/irregular applications. Weak scaling evaluation on modern GPU clusters necessary.",
-  "method": "Presents HashBrick library using brick-based layout with hash-based neighbor indexing. Uses NVIDIA NVSHMEM one-sided communication for GPU-GPU ghost brick exchange. Tests on NVIDIA GH200 cluster with high-order CFD application and Jacobi iteration benchmark.",
-  "key_novelty": "Hash-based indexing for irregular brick distribution; NVSHMEM one-sided communication for ghost zones; brick-aggregation avoiding buffer packing; weak scaling analysis on GH200.",
+  "method": "The HashBrick library organizes data into rectangular blocks called bricks and uses hashing to quickly find neighboring blocks that need to exchange data. Instead of the usual message-passing approach that requires copying data into buffers, it uses NVIDIA NVSHMEM, a method where one GPU can directly read data from another GPU's memory without needing the other GPU to actively participate in sending it. This avoids the packing overhead and complex neighbor lookups that slow down traditional approaches. The approach is tested on an NVIDIA GH200 cluster using a computational fluid dynamics (CFD) application and a Jacobi iteration benchmark.",
+  "key_novelty": "Hash-based indexing of irregularly distributed bricks combined with one-sided NVSHMEM communication enables efficient ghost-zone (boundary-data) exchange between GPUs without buffer-packing overhead.",
   "contributions": [
     "HashBrick library for sparse block-structured GPU applications",
     "Hash-based neighbor indexing hiding distribution complexity",
     "NVSHMEM integration for efficient irregular ghost communication",
     "Weak scaling demonstration showing MPI 64-84% higher wall-clock time than NVSHMEM"
   ],
-  "hardware_target": ["NVIDIA GH200 clusters", "GPU accelerators", "NVLink interconnect"],
-  "technique_category": ["GPU communication", "Data structures", "One-sided communication", "Sparse applications"],
-  "workloads": ["High-order CFD", "Jacobi iteration", "Block-structured sparse simulations"],
+  "hardware_target": [
+    "NVIDIA GH200 clusters",
+    "GPU accelerators",
+    "NVLink interconnect"
+  ],
+  "technique_category": [
+    "GPU communication",
+    "Data structures",
+    "One-sided communication",
+    "Sparse applications"
+  ],
+  "workloads": [
+    "High-order CFD",
+    "Jacobi iteration",
+    "Block-structured sparse simulations"
+  ],
   "metrics": {
     "weak_scaling": "Constant computation time with constant problem size per node",
     "communication_efficiency": "Good despite load imbalance",
     "MPI_vs_NVSHMEM": "MPI 64-84% higher wall-clock time",
     "ghost_brick_variance": "Correlates with scaling efficiency"
   },
-  "baselines": ["MPI-based ghost exchange"],
+  "baselines": [
+    "MPI-based ghost exchange"
+  ],
   "limitations": "GH200-specific results; limited to two benchmark applications; load imbalance effects partially characterized but not mitigated",
-  "tags": ["GPU-communication", "NVSHMEM", "one-sided-communication", "sparse-structured", "weak-scaling", "CFD"],
+  "tags": [
+    "GPU-communication",
+    "NVSHMEM",
+    "one-sided-communication",
+    "sparse-structured",
+    "weak-scaling",
+    "CFD"
+  ],
   "primary_theme": "GPU One-Sided Communication for Irregular Sparse Structured Data",
   "confidence": "low"
 }

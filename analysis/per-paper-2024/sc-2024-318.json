@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Kernel launch overhead significantly limits GPU performance for atmospheric models, causing default synchronous execution on A100 GPUs to underperform A64FX CPUs in strong scaling.",
   "motivation": "Mitigating kernel launch overhead is essential for enabling GPUs to efficiently run overhead-sensitive atmospheric models and maintain competitiveness with CPU implementations.",
-  "method": "OpenACC is used to enable asynchronous kernel execution across single or multiple GPU queues, reducing synchronization overhead. CUDA kernel fusion collocates multiple loops within a single kernel using block-index-based branching to further reduce kernel launch counts.",
-  "key_novelty": "Systematic application of both OpenACC asynchronous execution and CUDA kernel fusion to eliminate kernel launch overhead in atmospheric models, achieving significant combined speedup.",
+  "method": "The overhead of launching kernels (sending work to a GPU) limits performance when each kernel must finish before the next one starts. The approach uses two techniques: OpenACC allows asynchronous execution, where multiple kernels are sent to the GPU without waiting for each to finish, reducing idle time. CUDA kernel fusion physically combines multiple loops into a single kernel, using block-index branching so the GPU executes the combined work as one operation instead of many launches.",
+  "key_novelty": "The single core idea is systematically combining asynchronous kernel execution and kernel fusion to eliminate launch overhead in atmospheric models.",
   "contributions": [
     "Single-queue asynchronous execution implementation using OpenACC achieving 37% runtime reduction",
     "CUDA kernel fusion approach combining loop operations through block-based branching for additional 10% acceleration",

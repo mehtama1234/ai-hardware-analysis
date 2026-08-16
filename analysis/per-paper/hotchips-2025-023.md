@@ -12,10 +12,10 @@ AR/MR requires real-time rendering of virtual objects locked to the physical wor
 Consumer AR/MR devices (glasses, headsets) require on-device, real-time graphics rendering and spatial mapping to provide immersive experience without cloud latency.
 
 ## Method
-The IC combines specialized vision (camera ISP, optical flow) and graphics engines optimized for tracking and rendering. It integrates pose estimation, world reconstruction, and graphics pipeline in silicon.
+The chip contains specialized circuits for vision processing and graphics rendering that work together. The vision engine analyzes camera images using optical flow (detecting motion through pixel changes) to track the device's position and reconstruct the physical environment in 3D. The graphics engine simultaneously renders virtual objects based on this tracking data. Because tracking, mapping, and rendering all happen on dedicated silicon instead of the general-purpose CPU, the system achieves the low latency required for AR/MR.
 
 ## Key Novelty
-Specialized IC architecture combining vision and graphics for real-time world-locked AR rendering on mobile form factors.
+A custom hardware chip combines vision tracking and graphics rendering on the same silicon, enabling real-time world-locked rendering on mobile devices.
 
 ## Contributions
 - Integrated vision and graphics compute for AR rendering

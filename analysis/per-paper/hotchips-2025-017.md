@@ -12,10 +12,10 @@ Diffusion models for image/video generation require iterative inference passes, 
 On-device diffusion enables real-time content creation (image/video) without cloud connectivity, but multi-step diffusion is too expensive for edge hardware.
 
 ## Method
-EdgeDiff accelerates diffusion inference via mixed-precision arithmetic (lower precision in non-critical layers), reordered group quantization to minimize error, and few-step distillation. The hardware dataflow exploits temporal coherence across diffusion steps to reuse activations.
+EdgeDiff accelerates diffusion image generation with three techniques: mixed-precision arithmetic (lower-precision math in layers where quality doesn't matter), reordered group quantization (compression that groups similar weights to minimize error), and few-step distillation (training the model to produce good results in fewer steps). The hardware exploits temporal coherence—since each step is similar to the previous one—to reuse computation results instead of recalculating them.
 
 ## Key Novelty
-Few-step diffusion acceleration through joint optimization of model quantization and hardware-aware scheduling to enable real-time on-device generative AI.
+EdgeDiff enables real-time image generation on edge devices by jointly optimizing model compression and hardware execution.
 
 ## Contributions
 - Mixed-precision quantization strategy for diffusion models

@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Serving multiple LLM adapters (parameter-efficient fine-tuned models) concurrently during inference incurs significant memory and scheduling overhead, creating contention on GPU resources and degrading throughput when handling diverse adapter requests simultaneously.",
   "motivation": "Production LLM services require efficient deployment of personalized model variants through adapters without sacrificing latency or throughput.",
-  "method": "Toppings employs a CPU-assisted serving architecture where the CPU handles adapter scheduling, routing decisions, and memory management based on rank-aware prioritization, while GPUs focus on compute-heavy inference operations. The rank-aware component dynamically prioritizes adapters based on request characteristics or adapter importance metrics. CPU handles adapter lookup, batching decisions, and memory movement overhead between CPU/GPU memory, reducing GPU idle cycles and enabling higher adapter concurrency.",
-  "key_novelty": "Rank-aware adapter scheduling that offloads memory and routing overhead to CPU, allowing GPUs to maximize inference throughput for multi-adapter workloads.",
+  "method": "Toppings delegates scheduling and memory management to the CPU while GPUs focus purely on inference computation. The CPU uses rank-aware prioritization—scoring adapters by request characteristics or importance—to decide which adapter to use, batch requests efficiently, and move data between CPU and GPU memory. This keeps GPUs busy with compute work instead of wasting cycles on scheduling and overhead, enabling them to handle more adapters concurrently.",
+  "key_novelty": "Using CPU-based rank-aware prioritization (dynamically scoring adapters by request characteristics or importance) to handle adapter scheduling and memory overhead, freeing GPUs to focus entirely on inference for multiple adapters.",
   "contributions": [
     "CPU-assisted adapter serving system architecture for concurrent LLM adapter deployment",
     "Rank-aware scheduling algorithm for prioritizing adapters based on request characteristics",

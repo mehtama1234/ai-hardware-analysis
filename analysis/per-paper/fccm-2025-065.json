@@ -4,10 +4,10 @@
   "venue": "FCCM",
   "problem": "The MUSIC algorithm for Direction of Arrival estimation requires efficient hardware implementation to achieve real-time performance in signal processing applications. Leveraging FPGA AI engines for this computationally intensive algorithm presents implementation challenges in optimizing throughput across heterogeneous compute resources.",
   "motivation": "MUSIC is critical for high-precision DOA estimation in radar, sonar, and wireless communications where multiple closely-spaced signals must be resolved in real-time.",
-  "method": "A deep pipelined architecture distributes MUSIC computation across the AMD Versal AI Engine's 2D array of SIMD/VLIW processors, with pipeline stages for QR Decomposition, SVD, Spectrum Calculation, and DOA Identification. Loops in QRD and SVD operations are unrolled and parallelized across multiple tiles. Data flows through DMA from DDR4 to process 128\u00d78 snapshot matrices using aie::vector<cfloat, 8> for 8-lane complex number operations.",
-  "key_novelty": "Deep pipelined architecture maximizing throughput across AI Engine compute tiles through loop unrolling, spatial parallelism, and concurrent processing of multiple pipeline stages.",
+  "method": "The implementation splits the MUSIC algorithm into four pipeline stages—QR Decomposition, Singular Value Decomposition, Spectrum Calculation, and Direction of Arrival Identification—that run simultaneously across a 2D grid of specialized processors (SIMD/VLIW chips that execute the same operation on multiple data points at once) on the AMD Versal AI Engine. The loops in QR and SVD stages are unrolled (expanded to remove looping) and distributed across multiple processor tiles to execute in parallel. Data flows directly from DDR4 memory via DMA (Direct Memory Access, which moves data without CPU overhead) to the processors, which handle 128×8 blocks of signal samples, with each processor working on 8 complex numbers simultaneously.",
+  "key_novelty": "The innovation uses a deep pipeline—where multiple computation steps run simultaneously—distributed across processor tiles, with loops expanded to maximize each processor's throughput per cycle.",
   "contributions": [
-    "High-throughput MUSIC implementation achieving 1 microsecond per batch on 128\u00d78 matrices",
+    "High-throughput MUSIC implementation achieving 1 microsecond per batch on 128×8 matrices",
     "Effective utilization of 157 out of 400 AI Engine tiles through pipelined loop unrolling",
     "Simultaneous DOA estimation capability for up to 7 signals per batch",
     "Open-source implementation released on AMD GitHub for reproducibility"

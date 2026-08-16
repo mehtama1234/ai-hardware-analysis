@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "3D deep learning models for CT inference require large GPU memory, limiting practical deployment. Existing approaches struggle with dataset size variability and imaging task diversity.",
   "motivation": "3D models outperform 2D approaches for CT analysis but are impractical at inference due to memory constraints. Need a general framework independent of dataset size and task.",
-  "method": "InferCT partitions CT volumes into cubic sub-volumes fitting GPU memory, distributing across multiple GPUs. Adds vendor-agnostic optimizations: lock-free shared memory data structure, pipeline execution to hide prefetching/post-processing latency, and parallel data loader.",
-  "key_novelty": "Vendor-agnostic framework combining volume partitioning with lock-free synchronization and pipelined execution for efficient 3D CT inference.",
+  "method": "InferCT breaks large CT scans into smaller cube-shaped chunks that fit inside GPU memory, then processes them in parallel across multiple GPUs. To maximize speed on any vendor's hardware, it uses: a lock-free shared memory data structure (letting multiple processors safely access data without waiting), pipelined execution that overlaps data loading with processing, and a parallel data loader that feeds data to all GPUs simultaneously.",
+  "key_novelty": "InferCT makes 3D CT inference practical by combining three techniques—breaking volumes into GPU-sized chunks, lock-free data synchronization (eliminating waits between processors), and pipelined execution—that work on any GPU vendor's hardware.",
   "contributions": [
     "1.97x speedup over baseline for 1024³ datasets (AMD MI300X and NVIDIA H100)",
     "2.32x speedup for 4096³ datasets",

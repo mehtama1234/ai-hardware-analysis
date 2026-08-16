@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Synchronous I/O with ultra-low-latency storage causes substantial busy waiting and CPU underutilization during I/O operations. The narrowed performance gap between storage and CPU makes synchronous I/O viable but introduces idle cycles.",
   "motivation": "Ultra-low-latency storage devices are enabling synchronous I/O adoption, but current approaches waste CPU cycles and reduce overall system utilization.",
-  "method": "The Idle-Time-Stealing (ITS) design uses three coordinated threads: a self-improving thread performing prefetching for high-priority processes during synchronous I/O idle periods, an I/O-waiting process continuing instruction execution when justified, and a self-sacrificing thread proactively switching low-priority I/O from synchronous to asynchronous mode.",
-  "key_novelty": "Dynamically harvesting CPU idle cycles from synchronous I/O waits for prefetching and execution of higher-priority work while adaptively rebalancing I/O modes by priority.",
+  "method": "The Idle-Time-Stealing (ITS) system reclaims wasted CPU cycles from synchronous I/O waits by running three coordinated threads. One prefetches data for high-priority tasks during idle periods, a second executes other work during the wait, and a third converts low-priority I/O from synchronous mode (which blocks until each operation completes) to asynchronous mode (which doesn't block), freeing up more CPU time.",
+  "key_novelty": "The system rescues CPU idle cycles wasted during synchronous I/O waits (blocking operations) and redirects them to prefetch data and execute higher-priority work, while automatically converting low-priority I/O to asynchronous (non-blocking) mode.",
   "contributions": [
     "Idle-Time-Stealing (ITS) architecture for CPU idle time reduction in synchronous I/O scenarios",
     "Self-improving prefetching thread that exploits idle periods for high-priority processes",

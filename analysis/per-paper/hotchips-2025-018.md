@@ -12,10 +12,10 @@ Japan's semiconductor manufacturing capacity has declined; existing fabs use old
 National and regional semiconductor self-sufficiency drives demand for new leading-edge manufacturing capacity independent of Taiwan/Korea.
 
 ## Method
-Rapidus (Japanese government-backed fab) deploys cutting-edge manufacturing technologies including EUV lithography, advanced packaging, and vertical integration strategies. The presentation discusses process node scaling, yield optimization, and ramp strategies.
+Rapidus is a government-backed Japanese semiconductor factory that combines cutting-edge manufacturing techniques to produce advanced chips. It uses extreme ultraviolet (EUV) lithography—a technology for etching extremely fine details onto silicon—along with advanced packaging that densely connects chip components. The factory controls more of its own manufacturing chain rather than outsourcing, and focuses on gradually increasing production while optimizing how many chips work correctly (yield).
 
 ## Key Novelty
-Government-industry partnership establishing Japanese semiconductor manufacturing at advanced nodes, integrating latest lithography and packaging technologies.
+A government-backed Japanese fab integrates extreme ultraviolet lithography and advanced packaging technologies to manufacture semiconductors at advanced nodes.
 
 ## Contributions
 - Advanced node fabrication facility in Japan

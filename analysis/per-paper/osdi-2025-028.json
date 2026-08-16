@@ -4,16 +4,26 @@
   "venue": "OSDI",
   "problem": "Traditional file systems require complex recovery procedures and journaling to ensure crash consistency; write-once approach could simplify this",
   "motivation": "Reliable storage is critical for AI training checkpoints and model artifacts; simpler crash consistency mechanisms reduce complexity and potential bugs",
-  "method": "Write-once file system architecture ensuring metadata consistency without traditional journals",
-  "key_novelty": "First write-once file system design achieving synchronous crash consistency with metadata",
+  "method": "Instead of modifying file metadata in place, the system writes new versions to fresh disk locations, never overwriting the old data. This means a crash can only leave you with the previous complete version or the new complete version—never a partially written, corrupted mixture. The system waits for each write to physically reach disk before confirming it's done (synchronous writes), ensuring consistency without traditional journaling (backup logs used for recovery).",
+  "key_novelty": "This file system achieves synchronous crash consistency for file metadata by using a write-once approach (writing metadata to new locations instead of overwriting it), eliminating the need for traditional recovery journals.",
   "contributions": [
     "Write-once file system architecture",
     "Synchronous crash consistency guarantee",
     "Simplified consistency model vs traditional journaling"
   ],
-  "hardware_target": ["Storage systems", "NVMe storage", "Persistent memory"],
-  "technique_category": ["reliability", "memory"],
-  "workloads": ["file system operations", "storage workloads"],
+  "hardware_target": [
+    "Storage systems",
+    "NVMe storage",
+    "Persistent memory"
+  ],
+  "technique_category": [
+    "reliability",
+    "memory"
+  ],
+  "workloads": [
+    "file system operations",
+    "storage workloads"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -22,9 +32,16 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["Traditional journaling file systems"],
+  "baselines": [
+    "Traditional journaling file systems"
+  ],
   "limitations": "Title-only paper; performance overhead/benefits not quantified; write amplification and wear concerns not addressed",
-  "tags": ["file system", "reliability", "crash consistency", "storage"],
+  "tags": [
+    "file system",
+    "reliability",
+    "crash consistency",
+    "storage"
+  ],
   "primary_theme": "reliability",
   "confidence": "low"
 }

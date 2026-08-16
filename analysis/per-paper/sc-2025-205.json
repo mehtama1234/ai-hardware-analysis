@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Pipeline parallelism for long-context LLMs faces severe activation memory pressure from multi-microbatch accumulation and pipeline bubbles limiting MFU efficiency",
   "motivation": "Long-context LLM training requires extreme parallelism; reducing memory overhead while minimizing bubbles is critical for efficient training on limited GPU memory",
-  "method": "Uniform sequence slicing partitioning context into smaller chunks; 1F1B schedule with workload redistribution balancing computation imbalance from causal attention",
-  "key_novelty": "First to enable pipeline parallelism for extreme long contexts (2M tokens); combines sequence slicing with intelligent workload redistribution",
+  "method": "The method breaks the long input sequence into equal-sized chunks and feeds them through multiple GPU devices in parallel using a pipeline (new data starts processing while previous data is still computing). It uses a 1F1B schedule—each device performs one forward pass and one backward pass in sequence—to keep the pipeline full and reduce idle waiting time. Since causal attention (where each token can only reference previous tokens, not future ones) creates unequal work across devices, the system redistributes computation to balance the load and prevent bottlenecks.",
+  "key_novelty": "The core innovation is combining uniform sequence slicing with intelligent workload redistribution to enable pipeline parallelism on extreme-length contexts up to 2 million tokens.",
   "contributions": [
     "Uniform sequence slicing constraining activation memory to single microbatch",
     "Workload redistribution balancing causal attention imbalance",

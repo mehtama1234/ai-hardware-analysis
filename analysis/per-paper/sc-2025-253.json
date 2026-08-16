@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Static MPI correctness tools produce false positives (lack runtime context); dynamic tools produce false negatives (limited coverage) and have high overhead. Combining them could improve accuracy while reducing overhead.",
   "motivation": "MPI programs are notoriously difficult to debug. Different tool classes have complementary strengths and weaknesses. A combined approach could leverage strengths of both: static tool's exhaustive analysis + dynamic tool's precise runtime information.",
-  "method": "Coupled workflow forwarding static tool reports to dynamic tools; generic exchange format enabling interoperability; integration of CoVer (static), SPMD IR (static), and MUST (dynamic) for detecting MPI local data races; selective instrumentation of dynamic tool based on static hints",
-  "key_novelty": "First coupled static-dynamic MPI tool workflow, with generic exchange format enabling interoperability and achieving synergistic accuracy/performance improvements",
+  "method": "The approach chains two different types of analysis. Static tools (CoVer and SPMD IR) examine the code without running it to find regions that might cause MPI data races—situations where multiple processes simultaneously access the same memory, causing corruption. These suspicious regions are forwarded to a dynamic tool (MUST) through a generic exchange format that lets different tools share information. The dynamic tool then instruments (monitors the execution of) only those regions, letting it verify which problems are real, combining the speed of static analysis with the accuracy of real-time observation.",
+  "key_novelty": "This is the first system that couples static and dynamic MPI correctness tools through a generic exchange format, enabling them to work together and achieve improvements in both accuracy and speed that neither could accomplish alone.",
   "contributions": [
     "Coupled workflow design combining static and dynamic MPI correctness tools",
     "Generic exchange format for static-to-dynamic tool communication",

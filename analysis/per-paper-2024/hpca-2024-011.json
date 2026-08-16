@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Transformer inference bottlenecks at attention computation where KV matrices exhibit low compute-to-bandwidth ratio regardless of batch size, and KV matrix aggregate size can exceed model weights, making conventional GPUs inefficient for this workload.",
   "motivation": "Batched transformer inference with longer sequences requires efficient attention computation to maintain serving throughput as sequence length grows.",
-  "method": "AttAcc uses multiple processing-in-memory devices that exploit the write-once-read-many pattern of KV matrices. Each PIM device performs matrix-vector multiplication locally between embedding vectors and its portion of KV matrices, eliminating repeated inter-device bandwidth requirements while keeping computations localized to memory.",
-  "key_novelty": "Exploiting the write-once-read-many access pattern of KV matrices by performing all multiplication operations within distributed PIM devices to reduce external bandwidth by orders of magnitude.",
+  "method": "AttAcc places processors directly inside memory chips themselves (processing-in-memory or PIM devices), with each handling its own chunk of KV matrices. When embedding vectors arrive during inference, they multiply against the nearby KV data right in memory, rather than copying those matrices back and forth between memory and processing units. Since KV matrices are written once but read many times, keeping them stationary eliminates the repeated bandwidth-intensive copying that bottlenecks GPUs.",
+  "key_novelty": "Embedding processors in memory to work with KV matrices locally, since they're written once but read many times.",
   "contributions": [
     "Identifies attention as the critical bottleneck in batched transformer inference due to low operational intensity and massive KV matrix sizes",
     "Proposes AttAcc architecture with multiple PIM devices for localized in-memory attention computation",

@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "ZNS SSDs require data to be stored in logical zones with aligned offsets, which fundamentally conflicts with managing variable-length compressed pages.",
   "motivation": "ZNS SSDs promise low cost, high performance, and software control, but cannot efficiently support compression, limiting their capacity and cost benefits.",
-  "method": "Balloon-ZNS employs a compressibility-adaptive, slot-aligned storage management scheme that exploits compressibility locality in data streams. The system manages variable-length compressed pages within fixed-size slots while respecting zone and block alignment. It adaptively adjusts slot allocation based on data compressibility patterns to minimize wasted space.",
-  "key_novelty": "Compressibility-adaptive slot alignment that transparently enables compression in ZNS SSDs by reconciling variable-length compressed data with zone-aligned offset constraints.",
+  "method": "Balloon-ZNS organizes compressed data into fixed-size containers called 'slots' that align with ZNS storage zones (dedicated areas where data must be written at specific aligned positions). The system measures how well each data chunk compresses, then adjusts how much uncompressed data it puts in each slot—putting more data in slots where data compresses well, less where it compresses poorly. This ensures that the compressed data always fits exactly into its designated zone position without wasting space.",
+  "key_novelty": "Balloon-ZNS adapts how much uncompressed data goes into each storage slot based on how well that data compresses, ensuring the compressed result always fits zone-aligned boundaries without waste.",
   "contributions": [
     "Identifies the fundamental conflict between compression and ZNS zone alignment requirements",
     "Proposes compressibility-adaptive slot-aligned storage management to resolve this conflict",

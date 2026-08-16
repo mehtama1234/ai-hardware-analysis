@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "General-purpose processors and existing accelerators inefficiently handle Vision Transformer inference because the primary computational bottleneck lies in linear modules (linear transformation, linear projection, FFN) rather than attention, which has been the traditional focus of acceleration efforts.",
   "motivation": "Vision Transformers show strong performance across vision tasks but require specialized hardware acceleration targeting the full computational pipeline to achieve practical efficiency gains.",
-  "method": "ViT-slice uses algorithm-architecture co-design with bit-slice compression eliminating redundant most significant bits and bit-slice dot product with early skip using trainable thresholds. Hardware support includes a specialized bit-slice dot product unit (BSDPU) and integrated bit-slice encoder/decoder for on-chip compression and efficient data processing.",
-  "key_novelty": "Bit-slice compression with early-skip dot product computation specifically targeting linear modules that dominate Vision Transformer inference, paired with dedicated hardware acceleration.",
+  "method": "ViT-slice treats numbers as stacks of binary digits and removes the highest-value bits that don't significantly affect the result—this saves computation and storage (bit-slice compression). When multiplying and summing (dot products), it uses learned threshold values to stop the calculation early once the partial result is high enough—a technique called early skip. The accelerator includes specialized circuits: a bit-slice dot product unit (BSDPU) that performs these truncated calculations directly, and integrated compressors that squeeze data moving through the chip.",
+  "key_novelty": "Bit-slice compression with early-skip computation targets the linear modules—not attention—that are the real bottleneck in Vision Transformer inference, paired with specialized hardware acceleration.",
   "contributions": [
     "Bit-slice compression algorithm avoiding redundant MSB storage",
     "Bit-slice dot product with early skip mechanism using trainable thresholds",
@@ -28,7 +28,7 @@
     "attention"
   ],
   "metrics": {
-    "speedup": "244\u00d7 over Xeon CPU, 35.3\u00d7 over EdgeGPU, 16.8\u00d7 over TITAN Xp GPU, 10.4\u00d7 over Sanger, 5.0\u00d7 over ViTCoD"
+    "speedup": "244× over Xeon CPU, 35.3× over EdgeGPU, 16.8× over TITAN Xp GPU, 10.4× over Sanger, 5.0× over ViTCoD"
   },
   "baselines": [
     "Xeon CPU",

@@ -3,8 +3,8 @@
   "venue": "CGO",
   "problem": "Micro-kernels for DNNs must exploit specialized hardware (custom ISA, hardware loops, streaming registers) to achieve peak performance, but classical compiler backends use CPU-focused abstractions and general-purpose heuristics, missing domain-specific optimization opportunities.",
   "motivation": "Modern accelerators have specialized hardware (loops, streaming) requiring tailored code generation; general-purpose LLVM/GCC backends cannot fully exploit these features.",
-  "method": "Custom RISC-V backend with progressive lowering through multiple structured abstraction levels matching hardware capabilities. Uses incremental register allocation over structured IRs without classical spilling, enabling direct hardware loop and streaming register exploitation.",
-  "key_novelty": "Breaking classical backend hourglass by progressive lowering across domain-specific abstraction levels, directly exposing hardware features like loops and streaming.",
+  "method": "The compiler transforms code step-by-step through multiple layers, each one matched to what the hardware can actually do. Rather than assigning all variables to storage slots at once (and moving extras to slower memory when registers fill up—a technique called spilling), it gradually assigns storage as it transforms the code. This lets it directly use the processor's specialized features—like hardware loops and streaming registers (fast memory paths for continuous data flow)—that general-purpose compilers typically miss.",
+  "key_novelty": "Instead of converting code through a single generic form that loses hardware details, this uses multiple intermediate representations designed to preserve and directly use specialized hardware features like loops and streaming registers.",
   "contributions": [
     "Multi-level compiler backend for RISC-V accelerators with hardware loops",
     "Structured IR design matching accelerator capabilities",

@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Atomic operations on GPGPUs incur significant serialization overhead due to the von Neumann bottleneck when handling frequent shared variable updates across thread blocks, particularly in deep neural networks and graph analysis. Memory fences required for memory consistency models further exacerbate fine-grained synchronization overhead.",
   "motivation": "GPGPUs are essential platforms for parallel applications, but expensive atomic synchronization limits performance on workloads with frequent shared variable updates.",
-  "method": "Atomic Cache employs a hardware-software co-design approach. At the software level, it introduces relaxed memory consistency based on non-ordering commutativity to reduce memory fence overhead. At the hardware level, the In-Situ Store Atomic Cache Macro executes atomic logic and arithmetic operations directly within the cache array, eliminating the von Neumann bottleneck serialization.",
-  "key_novelty": "Direct execution of atomic operations within the cache array using the In-Situ Store Atomic Cache Macro, combined with relaxed memory consistency based on non-ordering commutativity.",
+  "method": "Atomic Cache solves the slowdown of atomic operations (updates that must complete without interruption) using two coordinated techniques. On the software side, it applies relaxed memory consistency based on non-ordering commutativity—detecting operations that produce the same result regardless of order and skipping the synchronization barriers that usually enforce strict ordering between them. On the hardware side, the In-Situ Store Atomic Cache Macro executes atomic operations directly in the processor's cache instead of sending them to main memory, eliminating the serialization bottleneck where threads queue up waiting to update shared variables.",
+  "key_novelty": "Atomic operations execute directly in the cache using the In-Situ Store Atomic Cache Macro, paired with relaxed memory consistency that skips synchronization delays between operations that commute.",
   "contributions": [
     "Relaxed memory consistency model based on non-ordering commutativity for GPGPUs",
     "In-Situ Store Atomic Cache Macro enabling in-cache atomic logic and arithmetic operations",
     "Hardware-software co-design reducing memory fence and atomic serialization overhead",
-    "2.59\u00d7 speedup and 60% energy savings with only 9.42% area overhead on RISC-V GPGPUs"
+    "2.59× speedup and 60% energy savings with only 9.42% area overhead on RISC-V GPGPUs"
   ],
   "hardware_target": [
     "GPU",

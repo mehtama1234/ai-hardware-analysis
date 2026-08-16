@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Training LLMs on long sequences (>1M tokens) exhibits low Model FLOPs Utilization with Tensor Parallelism and Context Parallelism, especially as sequence lengths and GPU counts increase.",
   "motivation": "Long-sequence LLM training is increasingly important but existing parallelism strategies fail to scale efficiently due to communication bottlenecks and memory constraints.",
-  "method": "BurstEngine framework introducing: (1) BurstAttention with topology-aware ring communication and fine-grained communication-computation overlap, (2) sequence-level selective checkpointing, (3) language modeling head-loss fusion, (4) workload balance optimization for attention masking.",
-  "key_novelty": "BurstAttention: distributed attention with lower communication cost than RingAttention via topology-aware network utilization and aggressive communication-computation overlap.",
+  "method": "BurstEngine trains transformers on million-token sequences by organizing computation across GPUs in four complementary ways. First, it arranges GPUs in a ring topology where each GPU sends data to its neighbor, and overlaps data transmission with computation so no GPU sits idle waiting; it also selectively saves intermediate values during training to manage memory usage, merges the final prediction layer with loss calculation into one operation, and balances attention work across GPUs since masking (blocking irrelevant attention calculations) causes uneven computational load. These techniques together keep GPUs busy and productive throughout training on extremely long sequences.",
+  "key_novelty": "BurstAttention reduces the network communication needed for transformer attention across GPUs compared to RingAttention by understanding the physical GPU network layout and performing useful computation while data travels between GPUs.",
   "contributions": [
     "1.2x speedup over SOTA baselines on 1M+ token sequences",
     "Much lower memory overhead than baselines",

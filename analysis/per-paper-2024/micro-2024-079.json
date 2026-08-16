@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "HyperGNN inference suffers from redundant computation and irregular memory access overheads due to frequent repetitive access and updating of feature vectors corresponding to the same hyperedges and vertices.",
   "motivation": "Hypergraph Neural Networks enable analysis of complex multilateral connections among entities, but current solutions are bottlenecked by inefficient computation and memory patterns.",
-  "method": "RAHP employs a redundancy-aware asynchronous execution approach that prioritizes high-degree vertices as roots and prefetches related vertices to capture commonalities across hyperedges. It incorporates a topology-driven data loading mechanism to minimize off-chip accesses, an adaptive synchronization scheme for conflicting updates, and similarity-based caching of intermediate results.",
-  "key_novelty": "Redundancy-aware asynchronous execution that exploits data reuse and parallelism by intelligently scheduling concurrent processing of shared vertices across multiple hyperedges.",
+  "method": "RAHP avoids wasted computation by noticing which vertices (nodes) appear in multiple hyperedges (multi-node connections) and computing them once instead of repeatedly. It starts from high-degree vertices and preloads their related vertices into the accelerator's fast on-chip cache. Memory accesses follow the hypergraph's structure rather than being random, which minimizes slow external memory accesses. When multiple parts of the computation need to update the same vertex simultaneously, an adaptive synchronization scheme coordinates these updates efficiently, and intermediate results (computed features) are cached and reused across similar hyperedges.",
+  "key_novelty": "By scheduling computation asynchronously (using flexible execution order), RAHP detects vertices that appear in multiple hyperedges (multi-node connections) and computes them once, reusing the results instead of recomputing them.",
   "contributions": [
     "First redundancy-aware accelerator for HyperGNN inference",
     "Asynchronous execution strategy to eliminate redundant computations",

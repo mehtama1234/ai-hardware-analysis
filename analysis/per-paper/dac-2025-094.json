@@ -4,24 +4,42 @@
   "venue": "DAC",
   "problem": "LLM deployment on edge devices faces memory and computational constraints; Block Floating Point (BFP) quantization loses small and moderate values because all data align to maximum exponent, degrading LLM accuracy.",
   "motivation": "Edge deployment of LLMs requires aggressive quantization; BFP promises lower overhead than FP but suffers quantization error from outlier-driven exponent alignment.",
-  "method": "BBAL introduces Bidirectional Block Floating Point (BBFP) format that reduces selection of the maximum as shared exponent, lowering quantization error. Full-stack implementation includes BBFP processing element array and cost-effective nonlinear computation unit, enabling accurate low-bit LLM inference on edge accelerators.",
-  "key_novelty": "Bidirectional exponent selection in BFP format reduces outlier-driven quantization error and enables practical hardware acceleration for LLMs.",
+  "method": "BBAL improves Block Floating Point quantization—a technique that compresses numbers by fitting them all to one shared scale—by making the scale selection smarter. Instead of simply using the maximum value's scale (which causes small numbers to lose precision), the bidirectional approach selects the scale by considering both extremes, resulting in better overall accuracy. The system uses a processing element array (a bank of specialized circuits) optimized for this bidirectional quantization, along with an efficient circuit for the nonlinear math operations that language models need. This enables accurate low-bit inference (very few bits per number) on edge accelerators—small, power-efficient devices.",
+  "key_novelty": "Selecting the Block Floating Point scale bidirectionally (considering both extremes rather than just the maximum) reduces quantization errors caused by outliers, enabling practical hardware acceleration for language models.",
   "contributions": [
     "Bidirectional Block Floating Point (BBFP) data format reducing quantization error",
     "BBAL full-stack accelerator architecture with BBFP processing elements",
     "Cost-effective nonlinear computation unit for low-precision arithmetic",
     "22% accuracy improvement vs outlier-aware accelerators; 40% efficiency gain vs standard BFP"
   ],
-  "hardware_target": ["ASIC", "NPU"],
-  "technique_category": ["quantization", "circuit-design"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "ASIC",
+    "NPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "circuit-design"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "accuracy": "22% improvement vs outlier-aware accelerators",
     "energy_or_tops_w": "40% efficiency gain vs BFP-based accelerators"
   },
-  "baselines": ["Outlier-aware accelerators", "BFP-based accelerators"],
+  "baselines": [
+    "Outlier-aware accelerators",
+    "BFP-based accelerators"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["llm-inference", "quantization", "block-floating-point", "edge-deployment", "low-bit", "accelerator"],
+  "tags": [
+    "llm-inference",
+    "quantization",
+    "block-floating-point",
+    "edge-deployment",
+    "low-bit",
+    "accelerator"
+  ],
   "primary_theme": "Bidirectional BFP quantization for low-precision LLM inference",
   "confidence": "low"
 }

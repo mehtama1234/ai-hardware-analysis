@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "In-Memory Databases (IMDBs) using snapshot-based persistence suffer from syscall overhead, inter-process I/O contention, and SSD garbage collection delays that degrade performance",
   "motivation": "With growing HPC data management needs, minimizing I/O latency and reducing SSD wear (write amplification) are critical for database performance and hardware longevity in large-scale systems",
-  "method": "SlimIO adopts I/O passthru to bypass syscalls, uses Flexible Data Placement (FDP) SSDs for controlled writes, and applies isolation techniques to prevent inter-process interference",
-  "key_novelty": "First system to leverage FDP SSDs for I/O isolation in IMDBs; combines passthru I/O with structured SSD write management to achieve WAF=1.0",
+  "method": "SlimIO avoids expensive system call overhead by writing directly to storage hardware (passthru I/O). It uses Flexible Data Placement (FDP) SSDs, which allow the database to control exactly which regions of flash storage receive writes, rather than letting the SSD firmware decide. By isolating each process's writes, it prevents different processes' write patterns from creating performance interference through the SSD's garbage collection and wear-leveling.",
+  "key_novelty": "SlimIO controls database writes directly to Flexible Data Placement SSDs with process isolation and passthru I/O, ensuring each database write maps to exactly one SSD write and achieving a write amplification factor of 1.0.",
   "contributions": [
     "I/O passthru mechanism reducing syscall overhead",
     "FDP-based write isolation preventing garbage collection interference",

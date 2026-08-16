@@ -4,17 +4,27 @@
   "venue": "MICRO",
   "problem": "Hardware task-parallel systems that operate with fine-grained tasks (approx. 100-cycle execution time) cannot benefit from conventional hardware prefetchers because tasks are too short for prefetches to complete before the task finishes, leaving DRAM latency fully exposed and undermining the performance gains of hardware task management.",
   "motivation": "Many-core hardware task-parallel systems (hundreds of cores) already accelerate irregular workloads 3-60x over software, but DRAM latency exposure due to short tasks is the remaining bottleneck, and no existing prefetching scheme is aware of task-function data-access patterns or the upcoming task schedule.",
-  "method": "The Task-Seeded Prefetcher (TSP) learns the data-access pattern of each task function type and issues prefetches as soon as a task descriptor is queued by the hardware task scheduler, using the descriptor as a seed to identify which memory addresses the task will access. The Memory Response Task Scheduler (MRS) augments the baseline task-to-core dispatch policy by monitoring prefetch completion status from TSP: when a task's prefetches are done, MRS preferentially dispatches it to a ready core, maximizing prefetch utilization without stalling the pipeline. Together, TSP and MRS form a symbiotic pair where scheduling drives prefetching and prefetch status informs scheduling.",
-  "key_novelty": "A symbiotic co-design of a function-aware task-seeded prefetcher (TSP) and a prefetch-status-aware task scheduler (MRS) that together exploit the task descriptor queue as an early prefetch trigger in hardware task-parallel systems.",
+  "method": "When the hardware task scheduler queues a task, the Task-Seeded Prefetcher (TSP) uses the task descriptor (the instruction packet identifying the task type) to load the required memory addresses into the cache before the task runs. The Memory Response Task Scheduler (MRS) monitors which tasks have completed prefetching and prioritizes assigning those tasks to available cores, ensuring their data is cached before execution starts. Together they create a feedback loop: the scheduler queue signals TSP to prefetch early, and TSP's prefetch completion status guides MRS's scheduling decisions.",
+  "key_novelty": "A task-descriptor-triggered prefetcher paired with a prefetch-status-aware task scheduler creates a feedback loop that hides memory latency in fine-grained task parallelism.",
   "contributions": [
     "Task-Seeded Prefetcher (TSP): learns and prefetches per-task-function data-access patterns, seeded from task descriptors queued before dispatch",
     "Memory Response Task Scheduler (MRS): uses TSP prefetch status to optimize core dispatch decisions and improve prefetch hit rates",
     "Speedups of up to 3.1x (geometric mean up to 1.4x) across 13 benchmarks on 256-core task-parallel systems",
     "Demonstrated additive benefit on systems already 3-60x faster than parallel software"
   ],
-  "hardware_target": ["CPU", "ASIC"],
-  "technique_category": ["prefetching", "scheduling", "memory-system"],
-  "workloads": ["graph-analytics", "HPC"],
+  "hardware_target": [
+    "CPU",
+    "ASIC"
+  ],
+  "technique_category": [
+    "prefetching",
+    "scheduling",
+    "memory-system"
+  ],
+  "workloads": [
+    "graph-analytics",
+    "HPC"
+  ],
   "metrics": {
     "speedup": "up to 3.1x; geometric mean up to 1.4x across 13 benchmarks on 256-core systems",
     "energy_or_tops_w": null,
@@ -23,9 +33,18 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["hardware task-parallel systems without prefetching (already 3-60x over parallel software)"],
+  "baselines": [
+    "hardware task-parallel systems without prefetching (already 3-60x over parallel software)"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["task-parallelism", "prefetching", "scheduling", "many-core", "data-locality", "irregular-workloads"],
+  "tags": [
+    "task-parallelism",
+    "prefetching",
+    "scheduling",
+    "many-core",
+    "data-locality",
+    "irregular-workloads"
+  ],
   "primary_theme": "symbiotic task-seeded prefetching and scheduling for hardware task-parallel systems",
   "confidence": "low"
 }

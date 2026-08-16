@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Cloud backup on resource-limited mobile devices consumes excessive CPU for delta synchronization because identifying modified data ranges requires intensive hash computation across entire files.",
   "motivation": "Mobile cloud backup is widely used to safeguard user data, but current implementations waste valuable device resources on redundant hashing operations.",
-  "method": "SolFS tracks write operation logs (offset and length) in per-file extent trees to identify changed data without hashing. It implements operation log persistence and versioning for multi-application support, uses compact logs and dynamic granularity for overhead reduction, and deploys server-side shadow files to accelerate file reconstruction.",
-  "key_novelty": "Hash-free delta identification by recording write operation metadata at the filesystem level rather than computing file content hashes.",
+  "method": "SolFS records which parts of files get written to—specifically their position and size in data structures called per-file extent trees—instead of computing expensive hash values on entire files. It permanently stores these operation logs and versions them so multiple apps can share the same backup system. To keep overhead minimal, it compresses the logs and adjusts how finely it tracks operations (this dynamic granularity adapts to the situation). On the server, shadow files are quickly reconstructed from these operation records.",
+  "key_novelty": "It identifies changed data without computing hashes by recording write operations at the filesystem level.",
   "contributions": [
     "Per-file mergeable operation logging using extent trees to track write operations efficiently",
     "Multi-tenant versioning mechanism enabling independent cloud backup application version management",

@@ -4,17 +4,28 @@
   "venue": "HPCA",
   "problem": "Existing FHE accelerators for deep learning focus on single-node throughput by stacking parallelized compute clusters, which cannot leverage application-level parallelism across model layers and are not scalable beyond a single card for increasingly large models.",
   "motivation": "Privacy-preserving deep learning inference under Fully Homomorphic Encryption is computationally intensive (ciphertext convolution, matrix multiplication, bootstrapping), and single-node FPGA designs hit a performance ceiling that multi-node scale-out can overcome.",
-  "method": "Hydra partitions the deep learning model (CNN and LLM layers) across multiple FPGA-based server nodes, each handling a portion of the model governed by a central scheduling mechanism on the host server. The architecture supports multi-server scaling with theoretically arbitrary numbers of compute nodes, enabling pipeline parallelism at the model level in addition to intra-node parallelism. Hydra achieves scale-out by distributing ciphertext operations across nodes with the host managing data routing and synchronization.",
-  "key_novelty": "A scale-out multi-FPGA architecture for FHE-based deep learning inference that exploits application-level model parallelism rather than simply stacking parallelized single-card designs.",
+  "method": "Hydra splits a deep learning model across multiple FPGA cards (specialized computing hardware that can be programmed for specific tasks), with each card handling different layers. A central host computer coordinates the work, routing encrypted data and scheduling operations. Different layers run simultaneously on different cards—one layer processes data while another works on the next—and each card also runs multiple operations internally, creating the parallelism needed to scale across many cards.",
+  "key_novelty": "Hydra exploits model parallelism—splitting the model across multiple FPGA cards so different layers run simultaneously—rather than just trying to make a single card faster by adding more parallelism to it.",
   "contributions": [
     "Scale-out FHE acceleration architecture supporting arbitrary numbers of FPGA compute nodes governed by a central scheduler",
     "Up to 74x and 160x speedup over single-card SOTA FHE accelerators (Poseidon, FAB)",
     "12-21x speedup over 8-card FAB-2 for FHE-based CNNs and LLMs",
     "8.1x and 2.5x speedup over SOTA ASIC accelerators CraterLake and SHARP for LLM OPT-6.7B"
   ],
-  "hardware_target": ["FPGA", "ASIC"],
-  "technique_category": ["parallelism", "dataflow", "scheduling", "interconnect"],
-  "workloads": ["CNN", "LLM-inference"],
+  "hardware_target": [
+    "FPGA",
+    "ASIC"
+  ],
+  "technique_category": [
+    "parallelism",
+    "dataflow",
+    "scheduling",
+    "interconnect"
+  ],
+  "workloads": [
+    "CNN",
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "74x and 160x over Poseidon and FAB (single-card); 12-21x over 8-card FAB-2; 8.1x and 2.5x over CraterLake and SHARP for LLM OPT-6.7B",
     "energy_or_tops_w": "comparable or superior to ASIC accelerators under same chip technology",
@@ -23,9 +34,22 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["Poseidon (FPGA)", "FAB (FPGA)", "FAB-2 (8-card FPGA)", "CraterLake (ASIC)", "SHARP (ASIC)"],
+  "baselines": [
+    "Poseidon (FPGA)",
+    "FAB (FPGA)",
+    "FAB-2 (8-card FPGA)",
+    "CraterLake (ASIC)",
+    "SHARP (ASIC)"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["fhe", "secure-inference", "fpga", "scale-out", "llm-inference", "cnn"],
+  "tags": [
+    "fhe",
+    "secure-inference",
+    "fpga",
+    "scale-out",
+    "llm-inference",
+    "cnn"
+  ],
   "primary_theme": "scale-out multi-FPGA FHE acceleration for secure deep learning",
   "confidence": "low"
 }

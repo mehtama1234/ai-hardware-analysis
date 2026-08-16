@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Diffusion models require repetitive full model recalculations across timesteps on minimally altered input data, creating computational redundancy. Non-linear operations necessitate repeatedly merging deltas with raw inputs, causing substantial memory access bottlenecks that block delta forwarding throughout the network.",
   "motivation": "Diffusion models are prominent in image generation but current approaches incur remarkable computational redundancy and substantial hardware expenditures.",
-  "method": "Cambricon-D employs a sign-mask dataflow that loads only 1-bit signs instead of full bitwidth raw inputs, enabling seamless delta forwarding through the network. This approach maintains differential computing efficiency while reducing memory access overhead for non-linear operations by requiring only sign information to merge deltas with raw inputs for activation functions.",
-  "key_novelty": "Sign-mask dataflow that enables full-network differential computing with minimal memory access by loading only 1-bit signs instead of complete raw input data.",
+  "method": "Cambricon-D uses sign-mask dataflow, loading only 1-bit values (whether inputs are positive or negative) instead of complete input numbers. This lets changes between timesteps (deltas) flow through the entire network without repeated bottlenecks from reloading full data—a key inefficiency in diffusion models, which recalculate the same network with only small input variations. For nonlinear operations like activation functions, only the sign is needed to correctly apply deltas to the original inputs, so the approach gains computational speed from differential computing (recalculating only differences between steps) while using far less memory bandwidth.",
+  "key_novelty": "Using only 1-bit signs instead of complete input values enables changes to efficiently propagate through the entire network while drastically reducing memory access.",
   "contributions": [
     "Proposes Cambricon-D architecture with sign-mask dataflow for full-network differential acceleration",
     "Reduces off-chip memory access by 66-82% compared to Diffy baseline",

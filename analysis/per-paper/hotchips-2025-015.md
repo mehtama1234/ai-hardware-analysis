@@ -12,10 +12,10 @@ Cloud infrastructure requires hardware-level security primitives to protect work
 As cloud deployments scale, hardware-based security isolation becomes critical to defend against both external attackers and privileged insiders.
 
 ## Method
-Azure's architecture integrates cryptographic attestation, secure execution contexts, and hardware-managed key isolation within CPU microarchitecture. It extends trusted execution environments (TEEs) with cloud-specific threat models and integrates security properties into processor design.
+Azure's architecture verifies software integrity through cryptographic attestation (proving code is genuine with mathematics), runs sensitive workloads in hardware-protected isolated zones called secure execution contexts, and stores encryption keys directly in the CPU so software cannot access them. This extends Trusted Execution Environments (TEEs—isolated processor regions that prove they're untampered) with protections for cloud's unique threats: attacks that exploit shared hardware where multiple customers' workloads coexist.
 
 ## Key Novelty
-Unified security architecture combining CPU, firmware, and hypervisor to provide cryptographic proof of hardware and software integrity for cloud tenants.
+By unifying security across the CPU, firmware, and hypervisor, Azure gives cloud customers cryptographic proof that both the hardware they run on and the software inside it are genuine and unchanged.
 
 ## Contributions
 - Hardware-based cryptographic attestation for cloud workloads

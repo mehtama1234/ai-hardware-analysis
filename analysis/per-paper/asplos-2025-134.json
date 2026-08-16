@@ -4,16 +4,25 @@
   "venue": "ASPLOS",
   "problem": "The CXL.cache inter-device cache coherence protocol specification (governing coherence between CPUs, GPUs, and accelerators over PCIe) contains ambiguities, redundancies, inaccuracies, and potential coherence violations that could cause incompatible vendor implementations or incorrect hardware if left unresolved.",
   "motivation": "CXL is the first industry-wide standard for inter-device cache coherence with broad vendor support, and is set to underpin datacenter infrastructure for years; formal verification now, before wide deployment, is the most effective time to identify and fix specification defects.",
-  "method": "The authors formalize CXL.cache as a state-transition system in the Isabelle proof assistant, modeling 20 system components (device caches, host cache, message channels, buffers, programs, transaction counter) and 68 transition rules encoding the complete legal message flows. They perform scenario verification (litmus tests from CXL message-sequence charts) to validate model faithfulness and to show that relaxing restrictions such as Snoop-pushes-GO causes coherence violations. They then prove the Single-Writer-Multiple-Reader (SWMR) property by constructing a 796-conjunct inductive invariant that implies SWMR and is preserved by all 68 rules (53,332 lemmas), using a custom super_sketch Isabelle automation tool to manage proof scale.",
-  "key_novelty": "The first mechanized, formally proven coherence property (SWMR) for the CXL.cache protocol, produced via a 796-conjunct inductive invariant and 53,332 auto-generated Isabelle lemmas, leading directly to five accepted fixes in the CXL standard.",
+  "method": "The authors built a formal model of the CXL.cache protocol using Isabelle (a tool for proving systems mathematically correct), encoding 20 system components like caches and message buffers, plus 68 transition rules covering all legal message flows. They tested the model against real protocol scenarios (called litmus tests) and verified that removing safety restrictions like Snoop-pushes-GO would break cache coherence. To prove the model guarantees only one device can write shared data at a time (the Single-Writer-Multiple-Reader property), they created a mathematical invariant with 796 parts that stays true through all 68 rules, automatically generating and checking 53,332 proof steps using a custom tool called super_sketch.",
+  "key_novelty": "The first formally verified proof that the CXL.cache protocol correctly implements the Single-Writer-Multiple-Reader property (only one device can write at a time), built with a 796-part mathematical invariant and 53,332 verification steps, which led directly to five accepted fixes in the CXL standard.",
   "contributions": [
     "A complete Isabelle formal model of CXL.cache as a state-transition system with 68 rules",
     "Identification and proposed fixes for five defects in the CXL.cache specification (one inconsistency, one redundancy, one inefficiency, two ambiguities), four accepted by the CXL consortium",
     "Mechanized proof of the SWMR coherence property via a 796-conjunct inductive invariant (53,332 lemmas, ~211k lines of Isabelle)",
     "The super_sketch proof automation utility enabling unsupervised large-scale Isabelle proof generation, released publicly"
   ],
-  "hardware_target": ["CPU", "GPU", "ASIC", "SoC"],
-  "technique_category": ["coherence", "reliability", "security"],
+  "hardware_target": [
+    "CPU",
+    "GPU",
+    "ASIC",
+    "SoC"
+  ],
+  "technique_category": [
+    "coherence",
+    "reliability",
+    "security"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": null,
@@ -23,9 +32,18 @@
     "accuracy": null,
     "other": "53,332 Isabelle lemmas proven; 796-conjunct invariant; 211k lines of proof; 3-5 hours build time on Intel Core i9-14900HX; 12 person-months total"
   },
-  "baselines": ["CXL.cache prose English specification (CXL 3.x standard)"],
+  "baselines": [
+    "CXL.cache prose English specification (CXL 3.x standard)"
+  ],
   "limitations": "The formal model is restricted to two devices (not n devices), so coherence violations requiring three or more device interactions are not covered.",
-  "tags": ["cxl", "cache-coherence", "formal-verification", "isabelle", "swmr", "interconnect-standard"],
+  "tags": [
+    "cxl",
+    "cache-coherence",
+    "formal-verification",
+    "isabelle",
+    "swmr",
+    "interconnect-standard"
+  ],
   "primary_theme": "Formal mechanized verification of the CXL cache coherence protocol",
   "confidence": "high"
 }

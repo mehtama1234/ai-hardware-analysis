@@ -10,10 +10,10 @@ AI/ML data centers require ultra-low-latency, high-bandwidth switching to suppor
 Distributed AI training scaling depends critically on collective operation latency; sub-microsecond switch latency directly improves AllReduce and AllGather performance, enabling efficient training on thousands of GPUs.
 
 ## Method
-Tomahawk Ultra implements high-radix Ethernet switching with optimized packet pipeline, cut-through forwarding, and minimal queue depth for ultra-low latency, combined with advanced congestion control and in-switch QoS to prioritize AI collective traffic.
+Tomahawk Ultra is an Ethernet switch with many ports (high-radix means numerous connection points) designed for extreme speed. It uses cut-through forwarding: instead of waiting to receive an entire data packet before sending it on, it starts forwarding the packet immediately upon arrival—cutting down the delay significantly. The switch keeps the waiting lines (queues) for packets very short to prevent data from sitting idle. It also includes smart traffic controls built into the switch itself that detect when the network is congested and automatically prioritize packets from AI collective training operations, ensuring these time-sensitive workloads experience minimal latency.
 
 ## Key Novelty
-Ultra-low-latency Ethernet switch architecture optimized for AI collective operations and distributed training.
+An Ethernet switch designed to move data with sub-microsecond latency specifically for AI collective operations and distributed training.
 
 ## Contributions
 - Ultra-low-latency Ethernet switching fabric for AI infrastructure

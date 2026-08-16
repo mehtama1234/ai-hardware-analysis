@@ -4,25 +4,40 @@
   "venue": "ICCAD",
   "problem": "Existing sequential ASIC technology mappers neglect load information during mapping, leading to significant discrepancy between estimated and actual cell delays and suboptimal performance. Sequential algorithms cannot exploit modern multicore and GPU parallelism.",
   "motivation": "Timing-critical applications require faster optimization with better delay prediction; modern hardware supports massive parallelism that existing sequential mappers cannot leverage.",
-  "method": "Proposes ExactMap, a parallel ASIC technology mapper that: (1) considers load information of intermediate solutions to identify critical nodes, (2) selects delay-oriented cells based on load-aware delay estimation, (3) employs dual recovery method for both delay and area optimization, and (4) integrates optimization within configuration-level parallelism framework on GPU.",
-  "key_novelty": "First parallel ASIC technology mapper incorporating load-aware delay estimation and achieving 32% average delay reduction with 65.33× speedup on GPU.",
+  "method": "ExactMap maps digital logic onto ASIC cells—the physical building blocks of a chip—while accounting for electrical load on wires and how that affects how fast signals travel. It identifies the speed-critical parts of the circuit by analyzing this load information, then selects cells that minimize delays using accurate load-aware delay predictions. To balance both speed and chip area, it uses a two-pronged optimization strategy called dual recovery. The algorithm runs in parallel on a GPU, evaluating many different cell selections at once rather than sequentially.",
+  "key_novelty": "It pairs load-aware delay prediction (accounting for how wire resistance and capacitance affect signal speed) with parallel GPU processing in ASIC mapping, achieving 32% delay reduction and 65.33× speedup.",
   "contributions": [
     "Load-aware delay estimation enabling better delay-critical cell selection",
     "Dual recovery method balancing delay and area optimization",
     "GPU-based configuration-level parallelism achieving 65.33× speedup",
     "32% average delay reduction with only 3% area penalty vs. ABC synthesis tool"
   ],
-  "hardware_target": ["GPU", "ASIC"],
-  "technique_category": ["compiler", "physical-design", "timing"],
+  "hardware_target": [
+    "GPU",
+    "ASIC"
+  ],
+  "technique_category": [
+    "compiler",
+    "physical-design",
+    "timing"
+  ],
   "workloads": [],
   "metrics": {
     "delay_reduction": "32%",
     "area_penalty": "3%",
     "speedup": "65.33×"
   },
-  "baselines": ["ABC public synthesis tool"],
+  "baselines": [
+    "ABC public synthesis tool"
+  ],
   "limitations": "Evaluation on specific technology libraries; scalability to very large designs not discussed; sensitivity to different delay models not explored.",
-  "tags": ["technology-mapping", "timing-optimization", "eda-compiler", "gpu-acceleration", "asic-design"],
+  "tags": [
+    "technology-mapping",
+    "timing-optimization",
+    "eda-compiler",
+    "gpu-acceleration",
+    "asic-design"
+  ],
   "primary_theme": "Parallel delay-optimized technology mapping",
   "confidence": "low"
 }

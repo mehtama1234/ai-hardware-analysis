@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "KVM/QEMU-based paravirtualization incurs multiple context switches for guest I/O requests, creating non-negligible software overhead with modern fast NVMe storage devices.",
   "motivation": "Reducing I/O path overhead is critical for applications leveraging high-performance storage in virtualized environments.",
-  "method": "EXO extends virtio-blk with an eBPF-based in-kernel fast path that directly queries guest-to-host address mappings without switching to the user-space QEMU backend. The original virtio-blk slow path is preserved as a fallback for complex operations requiring full backend processing.",
-  "key_novelty": "Using eBPF to implement an in-kernel fast path for virtio-blk that bypasses user-space backend processing by directly handling guest-to-host address mapping queries.",
+  "method": "When a virtual machine needs to access storage, requests normally have to switch from the Linux kernel to QEMU (the virtual machine software) running in user-space, creating overhead. EXO uses eBPF, a method for running programs directly inside the Linux kernel, to create a direct path that performs guest-to-host memory address translations (converting virtual machine addresses to real computer addresses) without needing to switch to QEMU. For complex operations that need full backend processing, the system falls back to the original slower path through QEMU.",
+  "key_novelty": "EXO uses eBPF (a method for running code directly in the Linux kernel) to create a fast path for virtio-blk storage requests that bypasses the user-space QEMU backend by performing guest-to-host memory address translations (converting virtual machine addresses to real computer addresses).",
   "contributions": [
     "eBPF-based in-kernel fast path for virtio-blk storage paravirtualization avoiding context switches",
     "Hybrid approach preserving fallback to full QEMU backend for complex operations",

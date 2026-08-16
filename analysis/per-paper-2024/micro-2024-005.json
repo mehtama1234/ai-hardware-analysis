@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "DRAM caches suffer from blocking cache misses that serialize subsequent memory operations, reducing throughput. Existing cache replacement policies in page-table-based DRAM caches lack non-blocking mechanisms.",
   "motivation": "Non-blocking miss handling eliminates serialization bottlenecks in DRAM cache hierarchies, improving memory throughput and latency.",
-  "method": "Genie Cache uses page-table entries to track cache state and decouple miss handling from the critical path. Misses are processed in parallel via a queue without blocking subsequent operations. The replacement policy is integrated with page-table mechanisms to manage cache capacity efficiently while supporting concurrent miss resolution.",
-  "key_novelty": "Non-blocking miss handling using page-table-based state tracking to enable parallel resolution of DRAM cache misses without serialization.",
+  "method": "Genie Cache repurposes the page-table structures (hardware tables that normally map virtual addresses to physical memory) to track which data is currently cached. Instead of making the CPU wait when a data request misses the cache, requests are queued and processed in parallel, letting other operations continue. The system decides which cached data to remove when space is needed using rules built into the page-table mechanism, managing capacity efficiently without slowing concurrent requests.",
+  "key_novelty": "It enables non-blocking handling of cache misses by using page-table structures to track cache state, allowing multiple misses to be resolved at the same time instead of one after another.",
   "contributions": [
     "Non-blocking miss handling architecture for DRAM caches",
     "Page-table-integrated replacement policy supporting concurrent misses",

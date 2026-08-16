@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Fine-tuning Mixture-Of-Experts models on bandwidth-constrained GPU clusters is challenging due to the increased ratio of data to computation, making existing cost-effective fine-tuning approaches difficult to apply.",
   "motivation": "Making MoE model fine-tuning accessible on more affordable clusters would democratize the use of these powerful models by enabling training on limited hardware.",
-  "method": "APTMoE employs affinity-aware pipeline parallelism with an offloading technique that uses a hierarchical loading strategy designing three loading phases to allocate computation across GPUs and CPUs based on expert popularity and computation affinity. A demand-priority scheduling strategy proactively coordinates loading execution order to maximize bandwidth utilization and reduce interference between phases.",
-  "key_novelty": "Affinity-aware offloading that leverages expert popularity and computation affinity to optimize pipeline parallelism specifically for MoE models on bandwidth-constrained hardware.",
+  "method": "APTMoE runs MoE fine-tuning by splitting experts (the sub-networks in a Mixture-Of-Experts model) between GPU and CPU: popular experts stay on GPU, less-used ones move to CPU. It loads these experts in three phases, deciding which phase based on how often each expert is used and how efficiently it runs on each processor. It then schedules these phases so they don't compete for bandwidth—the GPU and CPU pull data when it's least likely to interfere—maximizing overall bandwidth utilization.",
+  "key_novelty": "The core idea is affinity-aware offloading (placing each expert on the processor best suited to it based on popularity and efficiency), which enables pipeline parallelism for MoE fine-tuning despite bandwidth constraints on GPUs.",
   "contributions": [
     "Affinity-aware offloading technique for MoE pipeline parallelism",
     "Hierarchical loading strategy with three phases that allocate computation based on expert popularity across GPUs and CPUs",

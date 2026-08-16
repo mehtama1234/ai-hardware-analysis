@@ -4,23 +4,42 @@
   "venue": "ISCA",
   "problem": "On large spatial dataflow architectures (SDAs) where program instructions are distributed across a fabric of processing elements (PEs), some PEs are physically closer to memory than others, creating non-uniform data access latencies (NUPEA). Existing approaches focused on NUMA-style data placement, which is complex and often ineffective when critical data is hard to identify statically.",
   "motivation": "Data movement is the dominant energy, performance, and scalability bottleneck in modern architectures, and SDAs provide a new opportunity to reduce it by placing critical load instructions (rather than data) near memory, which is easier for compilers to reason about.",
-  "method": "NUPEA observes that on large SDAs, placing critical load instructions on PEs physically close to memory reduces data movement costs. The authors implement architecture extensions and compiler optimizations for NUPEA on the Monaco SDA (by Efficient Computer) and its effcc compiler. The compiler identifies critical loads via dependence analysis and maps them to near-memory PEs, while the architecture exposes PE-to-memory proximity information to the compiler. This contrasts with NUMA where data is moved closer to fixed PEs.",
-  "key_novelty": "NUPEA inverts the data-centric NUMA paradigm: rather than moving data near compute, it places compute (load instructions) near memory on spatial dataflow architectures, which is more tractable for compiler analysis.",
+  "method": "On spatial dataflow architectures (systems where program instructions run on separate processing units, or PEs, distributed across a chip), different PEs sit at different distances from memory. The compiler identifies which load instructions (instructions that read data from memory) are critical using dependence analysis (tracing which instructions depend on others), then maps those loads to the PEs physically nearest to memory, reducing the distance data must travel. This is implemented on the Monaco SDA architecture (from Efficient Computer) with the effcc compiler, which exposes PE-to-memory distances to guide the compiler's placement decisions. This inverts NUMA systems: instead of moving data closer to fixed processors, NUPEA moves the data-reading instructions closer to memory.",
+  "key_novelty": "NUPEA places load instructions near memory instead of moving data near processors—a simpler approach for compilers to analyze and optimize on spatial dataflow architectures.",
   "contributions": [
     "Formalization of the NUPEA concept and contrast with NUMA-style data-centric approaches on SDAs",
     "Architecture and compiler optimizations for NUPEA implemented on the Monaco SDA and effcc compiler",
     "28% average speedup over a uniform-PE-access SDA across a range of important kernels",
     "20% average speedup over a UPEA SDA augmented with NUMA"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["dataflow", "compiler", "memory-system", "near-data-processing"],
-  "workloads": ["HPC", "CNN"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "compiler",
+    "memory-system",
+    "near-data-processing"
+  ],
+  "workloads": [
+    "HPC",
+    "CNN"
+  ],
   "metrics": {
     "speedup": "28% avg over uniform-PE-access SDA; 20% avg over UPEA+NUMA SDA"
   },
-  "baselines": ["uniform-PE-access (UPEA) SDA", "UPEA SDA with NUMA"],
+  "baselines": [
+    "uniform-PE-access (UPEA) SDA",
+    "UPEA SDA with NUMA"
+  ],
   "limitations": "Evaluation is limited to the Monaco SDA platform; generalizability to other spatial architectures is not systematically assessed.",
-  "tags": ["spatial-dataflow", "non-uniform-memory-access", "data-movement", "compiler", "processing-element-placement"],
+  "tags": [
+    "spatial-dataflow",
+    "non-uniform-memory-access",
+    "data-movement",
+    "compiler",
+    "processing-element-placement"
+  ],
   "primary_theme": "instruction placement near memory on spatial dataflow architectures",
   "confidence": "low"
 }

@@ -4,25 +4,43 @@
   "venue": "ISCA",
   "problem": "General Matrix Multiplication (GEMM) in DNNs and LLMs incurs high computational cost and memory bandwidth demand, especially in resource-constrained deployments. Existing quantization and sparsity methods reduce precision but do not exploit reusable intermediate partial results within GEMM computation.",
   "motivation": "As LLMs are deployed on edge and constrained hardware, minimizing redundant multiplications in GEMM is critical to achieving low-power, high-throughput inference without accuracy loss.",
-  "method": "The paper introduces transitive sparsity, a novel paradigm where previously computed GEMM results are reused transitively via directed acyclic graphs (DAGs) that encode reuse relationships between partial products. An optimal DAG execution order is determined to resolve dependency and parallelism constraints. The Transitive Array accelerator exploits this sparsity through a multiplication-free design that distributes work across multiple parallel lanes for balanced throughput.",
-  "key_novelty": "Transitive sparsity reuses previously computed intermediate GEMM results via DAG-ordered execution, enabling a multiplication-free accelerator architecture for LLM inference.",
+  "method": "The approach reuses partial products (intermediate computation results from multiplying chunks of matrices) that were already calculated in earlier steps, rather than recomputing them. It tracks which results can be reused using directed acyclic graphs—visual dependency maps showing which calculations depend on others—then finds the best order to execute everything while respecting those dependencies and running operations in parallel. The Transitive Array accelerator implements this without dedicated multiplication hardware, instead spreading the work across multiple parallel lanes to maintain balanced throughput.",
+  "key_novelty": "Transitive sparsity reuses intermediate GEMM results (partial computation fragments from matrix operations) by executing them according to a directed acyclic graph that specifies their dependency order, enabling a multiplication-free hardware accelerator for LLM inference.",
   "contributions": [
     "Definition and formalization of transitive sparsity as a new paradigm for GEMM result reuse",
     "DAG-based execution order strategy that resolves dependency and parallelism challenges in transitive computation",
     "Transitive Array: a multiplication-free GEMM accelerator exploiting transitive sparsity with load-balanced parallel lanes",
     "Evaluation showing ~7.46x and ~3.97x speedup and 2.31x and 1.65x energy reduction vs. Olive and BitVert respectively on LLaMA models"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["sparsity", "dataflow", "approximation"],
-  "workloads": ["LLM-inference", "CNN"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "sparsity",
+    "dataflow",
+    "approximation"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "CNN"
+  ],
   "metrics": {
     "speedup": "7.46x over Olive, 3.97x over BitVert",
     "energy_or_tops_w": "2.31x energy reduction over Olive, 1.65x over BitVert",
     "accuracy": "comparable model accuracy on LLaMA"
   },
-  "baselines": ["Olive", "BitVert"],
+  "baselines": [
+    "Olive",
+    "BitVert"
+  ],
   "limitations": "The paper does not discuss the overhead of constructing and managing the DAG of transitive relations at runtime, nor scalability to very large weight matrices.",
-  "tags": ["gemm", "transitive-sparsity", "multiplication-free", "llm-inference", "result-reuse"],
+  "tags": [
+    "gemm",
+    "transitive-sparsity",
+    "multiplication-free",
+    "llm-inference",
+    "result-reuse"
+  ],
   "primary_theme": "Multiplication-free GEMM via transitive result reuse",
   "confidence": "low"
 }

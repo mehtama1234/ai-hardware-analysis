@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Distributed SpMM execution faces a fundamental trade-off: collective communication causes inefficiency from unnecessary data transfers, while fine-grained sparsity-aware one-sided communication incurs prohibitive software overhead.",
   "motivation": "SpMM is widely used in scientific computing and graph neural networks, making efficient distributed execution critical for practical applications.",
-  "method": "Two-Face implements a hybrid communication strategy that adaptively switches between collective communication for dense matrix regions and one-sided communication for sparse regions, dynamically balancing the cost of redundant data transfers against scheduling overhead.",
-  "key_novelty": "Dynamic switching between collective and one-sided communication patterns to simultaneously minimize both unnecessary data movement and software scheduling overhead in distributed SpMM.",
+  "method": "Two-Face identifies which parts of the matrix contain lots of data (dense) and which are mostly empty (sparse), then adapts its communication strategy: broadcasting to all processors for dense parts, or sending data directly between only needed processors for sparse parts. Broadcasting sends redundant data but requires no coordination; direct communication avoids redundancy but requires careful scheduling. By choosing the strategy based on each part's density, Two-Face minimizes the combined cost of wasted data and coordination overhead.",
+  "key_novelty": "Dynamically switching between broadcast and point-to-point communication based on whether each region is dense or sparse, to simultaneously minimize redundant data transfers and scheduling overhead.",
   "contributions": [
     "Hybrid communication framework combining collectives and one-sided patterns for efficient distributed SpMM",
     "Analysis of communication cost trade-offs between sparsity-aware and sparsity-unaware approaches",

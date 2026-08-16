@@ -4,17 +4,28 @@
   "venue": "ICCAD",
   "problem": "DRAM-PIM systems have limited computational capabilities supporting only element-wise and GEMV operations, making them insufficient for LLM workloads which are compute-heavy in FC layers.",
   "motivation": "DRAM-based PIM offers commercial viability but lacks adequate compute for LLM acceleration without powerful host processors.",
-  "method": "Software/hardware co-design with layer-wise mixed-precision quantization algorithm, GPU+PIM hybrid execution using HBM for attention and conventional compute for FC layers, and workload-aware dataflow scheduler.",
-  "key_novelty": "Mixed-precision quantization algorithm accounting for both algorithmic and hardware characteristics for optimal PIM mapping.",
+  "method": "The approach splits computation between GPU and PIM hardware: the GPU handles attention operations (which need flexible full-precision computation) using its high-bandwidth memory, while PIM accelerates fully-connected layers by operating on data in simplified number formats. Rather than choosing one precision level for everything, they use mixed-precision quantization—assigning different precision (fewer or more bits per number) to different layers based on both what each layer's math requires to stay accurate and what PIM's internal bandwidth can handle efficiently. A dataflow scheduler coordinates this split, routing each operation to the processor that can execute it best.",
+  "key_novelty": "Mixed-precision quantization that chooses each layer's precision by balancing the algorithm's accuracy needs against the hardware's bandwidth capabilities.",
   "contributions": [
     "5.03x performance boost over GPU with same memory parameters",
     "1.69x improvement over state-of-the-art PIM accelerator",
     "Negligible model quality loss",
     "Workload-aware dataflow scheduler for mixed-precision tensors"
   ],
-  "hardware_target": ["DRAM-PIM", "GPU", "CPU"],
-  "technique_category": ["quantization", "memory-system", "near-data-processing", "dataflow"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "DRAM-PIM",
+    "GPU",
+    "CPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "memory-system",
+    "near-data-processing",
+    "dataflow"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "5.03x vs GPU, 1.69x vs PIM",
     "energy_or_tops_w": null,
@@ -23,9 +34,19 @@
     "accuracy": "negligible loss",
     "other": "memory utilization optimized"
   },
-  "baselines": ["Conventional GPU with same memory", "State-of-the-art PIM accelerator"],
+  "baselines": [
+    "Conventional GPU with same memory",
+    "State-of-the-art PIM accelerator"
+  ],
   "limitations": "Evaluation limited to specific models and memory configurations; scalability to larger models unclear.",
-  "tags": ["pim", "dram", "llm-inference", "quantization", "memory-bandwidth", "hybrid-execution"],
+  "tags": [
+    "pim",
+    "dram",
+    "llm-inference",
+    "quantization",
+    "memory-bandwidth",
+    "hybrid-execution"
+  ],
   "primary_theme": "Mixed-precision DRAM-PIM for LLM inference",
   "confidence": "low"
 }

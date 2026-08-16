@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Modern out-of-order CPUs have unexploited transient execution vulnerabilities in the Loop Stream Detector (LSD), which retains stale branch predictions across loop iterations and enables speculative out-of-bounds execution and information leakage.",
   "motivation": "Transient execution attacks are a critical security threat to all modern CPUs, and existing transient execution defenses fail against LSD-based attacks.",
-  "method": "GADGETSPINNER exploits the Loop Stream Detector's behavior of holding old branch predictions from the first loop iteration and reusing them until a branch misprediction resolves. This creates a transient execution window between speculative out-of-loop-bounds execution and misprediction resolution where illegal operations execute and leak confidential information.",
-  "key_novelty": "First transient execution primitive exploiting the Loop Stream Detector's reuse of stale branch predictions across loop iterations to enable speculative out-of-bounds execution.",
+  "method": "The Loop Stream Detector is a CPU component that remembers which direction a branch went in the first iteration of a loop and keeps reusing that prediction for subsequent iterations without checking if it's correct. GADGETSPINNER exploits this by forcing the CPU to speculatively execute (run code before confirming it's the right path) beyond the loop's boundary using the outdated prediction. While executing the wrong code, illegal operations run and leak confidential information before the CPU realizes its prediction was wrong.",
+  "key_novelty": "This is the first attack exploiting how the Loop Stream Detector reuses branch predictions across loop iterations, causing the CPU to speculatively execute outside the loop's intended boundary and leak confidential data.",
   "contributions": [
     "GADGETSPINNER transient execution primitive exploiting Loop Stream Detector behavior",
     "Illegal memory reads from protected regions and Intel SGX bypass to extract CNN model weights",

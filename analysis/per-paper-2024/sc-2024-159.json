@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Large-scale deep learning on HPC systems uses distributed node-local caching but lacks fault tolerance; analysis of Frontier SLURM logs shows over 30% of jobs fail after an average of 75 minutes, jeopardizing training completion.",
   "motivation": "Fault tolerance in distributed caching is critical for large-scale deep learning on HPC systems to prevent catastrophic job failures and training time losses from node failures.",
-  "method": "The paper proposes fault-tolerance strategies that use a hash ring technique to recache data lost from failed nodes with balanced redistribution across remaining nodes in a distributed node-local caching system. The hash ring mechanism intelligently redirects cached data to operational nodes rather than falling back to the parallel file system (PFS), reducing I/O bottlenecks.",
-  "key_novelty": "Hash ring-based balanced recaching of data lost from failed nodes in distributed node-local caching systems to minimize PFS reliance.",
+  "method": "When a node fails in a large-scale cluster, its locally-cached data is lost, normally forcing remaining nodes to refetch from the slow shared parallel file system (PFS). Instead, the system uses a hash ring—a method that systematically distributes data evenly across remaining nodes—to recache the lost data locally. This balanced redistribution ensures no single node becomes overloaded with recached data. By maintaining data in fast local caches rather than relying on the PFS, the system avoids severe I/O bottlenecks and preserves performance during node failures.",
+  "key_novelty": "The system uses a hash ring to redistribute data lost from failed nodes evenly across remaining nodes, keeping it in fast local caches instead of the slow parallel file system (PFS).",
   "contributions": [
     "Analysis of 6 months of SLURM job logs revealing 30% failure rate on Frontier supercomputer",
     "Hash ring-based fault-tolerance strategy for distributed node-local caching with load balancing",

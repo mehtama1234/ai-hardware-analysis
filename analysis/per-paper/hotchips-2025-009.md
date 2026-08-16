@@ -10,10 +10,10 @@ AI accelerators must balance low-precision compute efficiency against accuracy p
 Generative AI requires both massive compute efficiency (>95% quantized operations) and numerical precision for activation outliers; hybrid precision enables accuracy without sacrificing efficiency.
 
 ## Method
-MEGA.mini combines a large fixed-point compute fabric (FXP, >95% operations) with a smaller floating-point unit handling outlier values (<5%), using a big.LITTLE heterogeneous core design that switches between execution modes based on data characteristics. Three hierarchical solutions (MEGA, median, mini) scale across deployment targets.
+MEGA.mini runs AI computations through two parallel systems: a large fixed-point unit (fast, simple math) that handles over 95% of operations on normal data values, and a smaller floating-point unit (precise math) that handles less than 5% of operations on unusual outlier values. The hardware automatically detects which system should handle each piece of data and routes it accordingly, switching between the two paths based on the numbers it encounters. Three versions (MEGA, median, mini) scale the design down for different deployment targets from data centers to embedded devices.
 
 ## Key Novelty
-Heterogeneous big.LITTLE architecture intelligently routing quantized vs. outlier data to specialized compute units, enabling adaptive precision with high efficiency.
+Splitting AI computation between two cores—one fast (fixed-point) for regular data and one precise (floating-point) for unusual values—with automatic selection of which to use.
 
 ## Contributions
 - Heterogeneous NPU architecture with integrated FXP + FP compute

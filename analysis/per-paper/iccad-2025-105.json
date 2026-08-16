@@ -4,17 +4,27 @@
   "venue": "ICCAD",
   "problem": "Point-based neural rendering suffers from inefficiency on mobile GPUs due to two bottlenecks: LoD (level-of-detail) search with workload imbalance and irregular memory access, and splatting with severe warp divergence from inherent sparsity.",
   "motivation": "Real-time, high-quality 3D rendering is critical for AR/VR, autonomous driving, and 3D modeling applications on mobile platforms.",
-  "method": "SLTarch co-designs algorithms with specialized hardware: SLTree data structure and LTcore accelerator for efficient LoD search, and a divergence-free splatting algorithm paired with SPcore hardware augmentation. The architecture targets GPU bottlenecks through memory-aware data structures and parallel-friendly algorithm design.",
-  "key_novelty": "Algorithm-architecture co-design that introduces dedicated hardware cores (LTcore, SPcore) tailored to eliminate LoD search workload imbalance and splatting warp divergence.",
+  "method": "SLTarch speeds up neural rendering on mobile GPUs by pairing algorithm changes with custom hardware accelerators. It adds a specialized data structure called SLTree and a hardware accelerator called LTcore to make level-of-detail search faster—the search for how much geometric detail to show in each pixel, which normally creates workload imbalance where some GPU cores get far more work than others. For the splatting step (blending neural network outputs into the final image), it uses an algorithm and hardware component called SPcore that prevents warp divergence—where GPU cores take different computation paths and waste cycles—and efficiently handles irregular memory access patterns.",
+  "key_novelty": "The core innovation is co-designing specialized hardware accelerators (LTcore and SPcore) with custom algorithms to directly eliminate the two bottlenecks of point-based neural rendering: workload imbalance in level-of-detail search and warp divergence in splatting.",
   "contributions": [
     "SLTree subtree-based data structure with LTcore hardware for efficient LoD search",
     "Divergence-free splatting algorithm with SPcore co-processor",
     "3.9× speedup and 98% energy savings vs. mobile GPU baseline",
     "1.8× speedup and 54% energy savings vs. existing accelerator designs"
   ],
-  "hardware_target": ["GPU", "ASIC"],
-  "technique_category": ["dataflow", "kernel-fusion", "parallelism", "memory-system"],
-  "workloads": ["vision"],
+  "hardware_target": [
+    "GPU",
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "kernel-fusion",
+    "parallelism",
+    "memory-system"
+  ],
+  "workloads": [
+    "vision"
+  ],
   "metrics": {
     "speedup": "3.9× vs. mobile GPU; 1.8× vs. existing accelerators",
     "energy_or_tops_w": "98% energy savings vs. mobile GPU",
@@ -23,9 +33,19 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["Mobile GPU baseline", "Existing PBNR accelerator designs"],
+  "baselines": [
+    "Mobile GPU baseline",
+    "Existing PBNR accelerator designs"
+  ],
   "limitations": "Evaluation limited to specific mobile GPU baseline and comparison accelerators; broader cross-platform validation needed.",
-  "tags": ["neural-rendering", "3d-graphics", "mobile-acceleration", "workload-balancing", "memory-optimization", "co-design"],
+  "tags": [
+    "neural-rendering",
+    "3d-graphics",
+    "mobile-acceleration",
+    "workload-balancing",
+    "memory-optimization",
+    "co-design"
+  ],
   "primary_theme": "GPU-accelerated 3D neural rendering",
   "confidence": "low"
 }

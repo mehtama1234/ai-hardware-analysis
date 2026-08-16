@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Existing GPU lossy compressors suffer from expensive data movement overheads, inefficient memory access patterns, and high synchronization latency, which severely limits their throughput for data-intensive applications.",
   "motivation": "Data compression with high throughput is critical for large-scale GPU simulations and large language model training to overcome data movement bottlenecks.",
-  "method": "cuSZp2 implements a single-kernel error-bounded lossy compressor entirely on GPUs using a novel lossless encoding method and optimized memory access patterns. The design hides synchronization latency through careful kernel engineering and eliminates expensive CPU-GPU data movement, achieving extreme end-to-end throughput for both compression and decompression.",
-  "key_novelty": "A single-kernel GPU lossy compressor combining a novel lossless encoding method with memory access optimization and synchronization latency hiding to achieve extreme throughput.",
+  "method": "cuSZp2 is a lossy compressor (it discards less-important data to reduce file size) that runs on the GPU as a single operation, avoiding slow CPU-GPU data transfers. It combines a new encoding method with memory access patterns optimized for GPU speed. The design hides delays from GPU synchronization (when cores coordinate their work) by performing useful work while waiting, achieving high compression and decompression throughput.",
+  "key_novelty": "A GPU lossy compressor that runs as a single operation, combining a new encoding method with GPU-optimized memory access and synchronization-delay hiding to achieve high throughput.",
   "contributions": [
     "Novel lossless encoding method for error-bounded lossy compression",
     "Optimized memory access patterns eliminating inefficiencies in GPU compression",
     "Synchronization latency hiding techniques in kernel design",
-    "Single-kernel GPU implementation achieving 2\u00d7 throughput of existing GPU compressors and 200\u00d7 of CPU-GPU hybrid approaches"
+    "Single-kernel GPU implementation achieving 2× throughput of existing GPU compressors and 200× of CPU-GPU hybrid approaches"
   ],
   "hardware_target": [
     "GPU"
@@ -28,7 +28,7 @@
     "HPC"
   ],
   "metrics": {
-    "speedup": "2\u00d7 vs GPU compressors, 200\u00d7 vs CPU-GPU hybrid compressors",
+    "speedup": "2× vs GPU compressors, 200× vs CPU-GPU hybrid compressors",
     "other": "332.42 GB/s compression, 513.04 GB/s decompression throughput on NVIDIA A100"
   },
   "baselines": [

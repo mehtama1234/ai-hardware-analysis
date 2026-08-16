@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Metagenomic analysis requires searching large databases to identify species and abundances in samples, but this causes significant data movement overhead from storage to the rest of the system. Existing metagenomic approaches cannot be directly implemented in-storage due to hardware limitations of modern SSDs.",
   "motivation": "Reducing data movement is critical for improving performance and energy efficiency in large-scale metagenomic analysis workloads.",
-  "method": "MegIS uses hardware/software co-design with specialized task partitioning between in-storage and external processing, coordinates data and computation flow across storage boundaries, applies storage technology-aware algorithmic optimizations, implements intelligent data mapping, and deploys lightweight in-storage accelerators to efficiently execute metagenomic workloads within SSD constraints.",
-  "key_novelty": "First in-storage processing system specifically designed for metagenomic analysis pipelines through careful co-design addressing SSD hardware limitations.",
+  "method": "MegIS splits the metagenomic analysis work between the SSD and the main computer: the SSD runs a lightweight hardware accelerator (a specialized computing unit) to search for matching DNA sequences in its own storage, while the main computer handles the final abundance calculations. The algorithm is designed around how SSDs actually work—it understands that SSDs read data efficiently in sequence and performs the expensive search inside the SSD to avoid moving raw data out. The system carefully maps data within the SSD and minimizes how much information flows between storage and the rest of the computer.",
+  "key_novelty": "MegIS is the first metagenomic analysis system to run computations inside the SSD itself, avoiding the data movement bottleneck through hardware accelerators designed to work within storage hardware constraints.",
   "contributions": [
     "End-to-end in-storage processing system for metagenomic analysis",
     "Task partitioning and data/computation flow coordination between in-storage and external processors",
     "Storage technology-aware algorithmic optimizations and lightweight in-storage accelerators",
-    "2.7\u201337.2\u00d7 speedup over software baselines with higher accuracy than PIM approaches"
+    "2.7–37.2× speedup over software baselines with higher accuracy than PIM approaches"
   ],
   "hardware_target": [
     "ASIC"
@@ -26,7 +26,7 @@
     "genomics"
   ],
   "metrics": {
-    "speedup": "2.7\u00d7\u201337.2\u00d7 over software tools, 6.9\u00d7\u2013100.2\u00d7 over accuracy-optimized software, 1.5\u00d7\u20135.1\u00d7 over PIM",
+    "speedup": "2.7×–37.2× over software tools, 6.9×–100.2× over accuracy-optimized software, 1.5×–5.1× over PIM",
     "accuracy": "matches accuracy-optimized software tool, higher than PIM-based hardware accelerator"
   },
   "baselines": [

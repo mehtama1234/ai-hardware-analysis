@@ -4,26 +4,46 @@
   "venue": "SC",
   "problem": "Preconditioned iterative sparse linear solvers have data dependences between iterations that limit parallelization, especially problematic for GPUs with many parallel cores.",
   "motivation": "Overcome parallelization limitations in preconditioned solvers by reducing interdependencies while maintaining convergence behavior.",
-  "method": "Propose sparsified preconditioned conjugate gradient (SPCG) solver that increases parallelism through sparsification of the preconditioner. Reduces iteration dependences while preserving convergence. Evaluated with ILU(0) and ILU(K) preconditioners on symmetric positive definite (SPD) matrices.",
-  "key_novelty": "Sparsification technique for preconditioners to increase parallelism in iterative solvers on GPUs without sacrificing convergence properties.",
+  "method": "The approach removes some values from the preconditioner—a helper matrix that reshapes a problem to speed up solving—making it sparser. Sparsifying it reduces how much each iteration depends on the previous one, so many can run simultaneously on GPUs. The method uses ILU(0) and ILU(K) preconditioners (incomplete factorization techniques) on symmetric positive definite matrices while maintaining reliable convergence.",
+  "key_novelty": "Sparsifying preconditioners—removing values from the helper matrix—breaks dependencies between iterations, enabling GPU parallelism without sacrificing convergence.",
   "contributions": [
     "Sparsified preconditioned conjugate gradient solver for GPUs",
     "Technique to reduce iteration dependences through strategic sparsification",
     "Evaluation across diverse SPD matrix problems with ILU(0) and ILU(K)",
     "Significant speedups on NVIDIA A100 GPU"
   ],
-  "hardware_target": ["NVIDIA A100 GPU", "GPU compute nodes", "HPC systems"],
-  "technique_category": ["Numerical methods", "Linear solvers", "GPU optimization", "Sparse linear algebra"],
-  "workloads": ["Sparse linear system solving", "Scientific simulations", "Symmetric positive definite systems"],
+  "hardware_target": [
+    "NVIDIA A100 GPU",
+    "GPU compute nodes",
+    "HPC systems"
+  ],
+  "technique_category": [
+    "Numerical methods",
+    "Linear solvers",
+    "GPU optimization",
+    "Sparse linear algebra"
+  ],
+  "workloads": [
+    "Sparse linear system solving",
+    "Scientific simulations",
+    "Symmetric positive definite systems"
+  ],
   "metrics": {
     "iterative_phase_speedup_ilu0": "1.23x geometric mean",
     "iterative_phase_speedup_iluk": "1.65x geometric mean",
     "end_to_end_speedup_ilu0": "1.68x geometric mean",
     "end_to_end_speedup_iluk": "3.73x geometric mean"
   },
-  "baselines": ["Non-sparsified preconditioned conjugate gradient"],
+  "baselines": [
+    "Non-sparsified preconditioned conjugate gradient"
+  ],
   "limitations": "Evaluation limited to symmetric positive definite matrices; unclear how sparsification affects convergence in other problem classes.",
-  "tags": ["sparse-linear-solvers", "gpu-optimization", "numerical-methods", "preconditioners"],
+  "tags": [
+    "sparse-linear-solvers",
+    "gpu-optimization",
+    "numerical-methods",
+    "preconditioners"
+  ],
   "primary_theme": "GPU-Accelerated Sparse Linear Solvers via Preconditioner Sparsification",
   "confidence": "high"
 }

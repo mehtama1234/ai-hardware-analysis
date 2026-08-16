@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Parallel I/O performance degrades under load imbalance when output sizes and data distribution vary significantly over time, limiting throughput in in situ visualization pipelines.",
   "motivation": "Scientific simulations generate uneven data distributions across processes during in situ analysis. Standard aggregation strategies (node-based) fail to balance subfile sizes, causing I/O bottlenecks. Adaptive strategies can improve performance.",
-  "method": "Data-size based aggregation strategy for ADIOS2 BP5 engine. Instead of grouping writers by compute node assignment, dynamically balances subfile sizes according to per-process data volume. Evaluated on synthetic workloads with low and severe load imbalance.",
-  "key_novelty": "First data-size aware aggregation strategy for parallel I/O in ADIOS2, addressing load imbalance in in situ data extraction.",
+  "method": "When multiple processes write data to storage simultaneously, some produce far more data than others, causing performance bottlenecks where slower writers make faster ones wait. This method uses ADIOS2's BP5 engine (a parallel I/O system that coordinates multiple writers) to dynamically adjust how data gets distributed across processes based on each process's actual output volume, rather than using fixed groupings by compute node. This prevents processes with heavy data loads from bottlenecking the rest. The approach was tested on simulated workloads with both mild and severe load imbalance.",
+  "key_novelty": "This is the first parallel I/O strategy for ADIOS2 that dynamically adjusts workload distribution based on each process's actual data volume, enabling efficient in situ data extraction (live-simulation analytics) from severely unbalanced workloads.",
   "contributions": [
     "Data-size based dynamic aggregation for ADIOS2 BP5",
     "Removes assumption that writers grouped by node assignment",
@@ -13,16 +13,35 @@
     "Maintains or outperforms existing aggregation strategies under load imbalance",
     "Low implementation complexity within existing ADIOS2 infrastructure"
   ],
-  "hardware_target": ["HPC clusters"],
-  "technique_category": ["parallel I/O", "in situ analysis", "data management"],
-  "workloads": ["in situ visualization pipelines"],
+  "hardware_target": [
+    "HPC clusters"
+  ],
+  "technique_category": [
+    "parallel I/O",
+    "in situ analysis",
+    "data management"
+  ],
+  "workloads": [
+    "in situ visualization pipelines"
+  ],
   "metrics": {
-    "load_imbalance_scenarios": ["low", "severe"],
+    "load_imbalance_scenarios": [
+      "low",
+      "severe"
+    ],
     "performance_comparison": "matches or outperforms existing strategies"
   },
-  "baselines": ["existing ADIOS2 node-based aggregation strategies"],
+  "baselines": [
+    "existing ADIOS2 node-based aggregation strategies"
+  ],
   "limitations": "Evaluation limited to synthetic workloads; real simulation results needed. Scalability to very large systems (>10k processes) not demonstrated. Overhead of dynamic partitioning not detailed. Interaction with compression not explored.",
-  "tags": ["I/O", "in situ analysis", "load imbalance", "ADIOS2", "HPC"],
+  "tags": [
+    "I/O",
+    "in situ analysis",
+    "load imbalance",
+    "ADIOS2",
+    "HPC"
+  ],
   "primary_theme": "Adaptive parallel I/O for unbalanced workloads",
   "confidence": "low"
 }

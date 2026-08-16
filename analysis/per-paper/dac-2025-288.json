@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "Matrix-Power Kernels (MPK) for Krylov subspace methods rely on repeated SpMVs with the same matrix but suffer from data dependencies that block cache reuse and symmetric SpMVs incur data conflicts during shared-memory parallelization, limiting speedup on multi-core CPUs.",
   "motivation": "Large sparse linear systems in circuit simulation, HPC, and scientific computing require efficient Krylov solvers; existing methods optimize matrix reuse OR symmetry independently, missing the opportunity to exploit both simultaneously.",
-  "method": "Me-MPK constructs a unified dependency graph for sparse matrices capturing all potential dependencies and conflicts; performs architecture-aware recursive partitioning into independent subgraphs with a separating subgraph that decouples conflicts; schedules subgraphs for parallel SpMV/symmetric-SpMV execution in order to maximize cache reuse while eliminating synchronization overhead.",
-  "key_novelty": "Unified dependency graph approach enabling simultaneous exploitation of matrix reuse and symmetry, paired with recursive partitioning to create conflict-free independent subgraphs for ordered parallel execution.",
+  "method": "Me-MPK first creates a unified dependency graph—a complete map of all data dependencies and conflicts in the sparse matrix. It then recursively partitions this matrix into independent chunks separated by a buffer zone, each optimized for the CPU's specific architecture. Since the chunks run in a specific parallel order and have no conflicts between them, the CPU can reuse data in its cache while eliminating synchronization delays between processors.",
+  "key_novelty": "A unified dependency graph combined with recursive partitioning solves parallelization conflicts in sparse matrix operations—including symmetric matrices—while maximizing cache reuse.",
   "contributions": [
     "Unified dependency graph model capturing cache reuse and symmetry conflict information",
     "Architecture-aware recursive partitioning algorithm for conflict decoupling",

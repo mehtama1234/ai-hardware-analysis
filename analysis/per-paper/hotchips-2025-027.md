@@ -12,10 +12,10 @@ Academic chip design requires expensive multi-year iterations; limited access to
 Enabling rapid chip tape-out at advanced nodes democratizes hardware research, allowing students and researchers to iterate quickly on new ideas.
 
 ## Method
-The work describes workflows and infrastructure for academic chip design in Intel 16 (7nm equivalent). It demonstrates multiple tapeouts per semester using automated place-and-route, design optimization, and shared fabrication access.
+This work builds the systems and processes that let university researchers design and submit three full chips for manufacturing per semester (called tapeouts) using Intel 16 technology (a modern manufacturing process at the 7nm scale). It automates the time-consuming steps of placing circuit components and routing connections between them, then optimizes the overall design. By combining this automation with shared access to fabrication facilities, it dramatically speeds up the traditional chip design cycle.
 
 ## Key Novelty
-Academic chip design methodology enabling 3 tapeouts/semester in modern process technology through optimized workflows.
+Academic researchers can achieve three chip tapeouts per semester in modern manufacturing technology by using streamlined, automated design workflows.
 
 ## Contributions
 - Rapid design iteration methodology for academic chips

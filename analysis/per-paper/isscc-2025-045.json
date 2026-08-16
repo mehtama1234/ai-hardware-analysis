@@ -4,24 +4,43 @@
   "venue": "ISSCC",
   "problem": "3D Gaussian Splatting (3D GS) rendering on edge devices suffers from variable Gaussian distribution shapes requiring complex projection+rasterization dataflow, diverse input-dependent inefficient computations, and irregular memory access patterns for millions of spherical-harmonic coefficients.",
   "motivation": "3D GS offers superior speed and accuracy over Neural Radiance Fields for VR and embodied AI, but edge device deployment (e.g., Xavier NX achieving only 6.4fps) is severely limited by power consumption and memory footprint.",
-  "method": "The processor employs a shape-aware hybrid architecture that detects and skips redundant computations based on Gaussian properties, uses early computation termination when results become insignificant, and implements a smart Gaussian cache scheduler to reduce irregular off-chip memory traffic for SH coefficients.",
-  "key_novelty": "Shape-aware early computation skipping and intelligent Gaussian cache scheduling to mitigate input-dependent inefficiencies and memory bottlenecks in 3D GS rendering.",
+  "method": "The processor examines the shape of each Gaussian (the 3D blob of light being rendered) and determines which computations will actually affect the final image. When a calculation's result gets too small to be visible, the processor stops early instead of completing it. A scheduler keeps the most-needed Gaussian data (spherical-harmonic coefficients—numbers describing each blob's appearance) in fast on-chip memory to avoid slow off-chip access.",
+  "key_novelty": "Instead of treating all Gaussians the same way, the processor adapts its work based on each one's shape—skipping computations that won't show up in the image and keeping only the essential data in fast memory.",
   "contributions": [
     "Identifies and exploits input-dependent computation redundancy in variable Gaussian distributions",
     "Proposes earlier computation skipping mechanism with adaptive early termination",
     "Introduces Gaussian cache scheduler to optimize spherical-harmonic coefficient access patterns",
     "Achieves 373fps at 1.78mJ/frame on edge device vs. 6.4fps on Xavier NX baseline"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["dataflow", "sparsity", "memory-system", "approximation"],
-  "workloads": ["vision"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "sparsity",
+    "memory-system",
+    "approximation"
+  ],
+  "workloads": [
+    "vision"
+  ],
   "metrics": {
     "speedup": "58x over edge baseline (373fps vs 6.4fps)",
     "energy": "1.78mJ/frame"
   },
-  "baselines": ["NVIDIA Jetson Xavier NX", "prior edge 3D GS implementations"],
+  "baselines": [
+    "NVIDIA Jetson Xavier NX",
+    "prior edge 3D GS implementations"
+  ],
   "limitations": "Evaluation focused on edge deployment; comparison with GPU/high-end implementations not discussed.",
-  "tags": ["3d-rendering", "gaussian-splatting", "edge-ai", "memory-optimization", "computation-skipping", "power-efficient"],
+  "tags": [
+    "3d-rendering",
+    "gaussian-splatting",
+    "edge-ai",
+    "memory-optimization",
+    "computation-skipping",
+    "power-efficient"
+  ],
   "primary_theme": "Shape-aware edge 3D Gaussian Splatting processor with computation skipping",
   "confidence": "low"
 }

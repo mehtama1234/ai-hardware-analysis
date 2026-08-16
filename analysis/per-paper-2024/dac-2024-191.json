@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Most TinyML devices only support inference due to high hardware resource requirements for training. Enabling efficient on-device training on resource-constrained edge devices requires new acceleration approaches.",
   "motivation": "On-device training enables adaptive learning and personalization on TinyML edge devices, expanding capabilities beyond inference-only inference.",
-  "method": "SPARK uses a hybrid acceleration architecture with a standalone accelerator plus an in-pipeline acceleration unit integrated within the CPU pipeline to enable simultaneous forward and backward propagation. A sparsity-aware scheduling unit dynamically allocates workloads between the two acceleration units to maximize hardware utilization. A unified memory system with transposable data fetch mechanisms reduces memory access overhead.",
-  "key_novelty": "Integration of in-pipeline acceleration within the CPU pipeline coupled with runtime sparsity-aware scheduling to support simultaneous forward and backward propagation while exploiting sparse computation patterns.",
+  "method": "SPARK uses two acceleration units that work together: one standalone accelerator and another integrated directly into the CPU pipeline, allowing forward and backward propagation (the two computation passes needed for training) to run at the same time. A scheduler monitors where the computation is sparse (where many values are zero) and dynamically directs more work to whichever accelerator is free, keeping both units busy. To reduce memory bottlenecks, the system uses a shared memory architecture where data can be fetched in different orientations to match what each computation needs.",
+  "key_novelty": "SPARK combines an acceleration unit built into the CPU pipeline with a scheduler that watches for sparse computation patterns in real-time to route workloads efficiently and enable simultaneous forward and backward propagation.",
   "contributions": [
     "Hybrid acceleration architecture combining standalone and in-pipeline acceleration units",
     "Sparsity-aware acceleration scheduler for dynamic workload distribution",
     "Unified memory system with transposable data fetch",
-    "Achieves 4.1\u00d7 performance improvement over baseline with minimal 2.27% area overhead"
+    "Achieves 4.1× performance improvement over baseline with minimal 2.27% area overhead"
   ],
   "hardware_target": [
     "ASIC",
@@ -29,9 +29,9 @@
     "vision"
   ],
   "metrics": {
-    "speedup": "4.1\u00d7 vs baseline accelerator; 9.4\u00d7 vs off-shelf edge devices",
+    "speedup": "4.1× vs baseline accelerator; 9.4× vs off-shelf edge devices",
     "area": "2.27% overhead",
-    "efficiency": "446.0\u00d7 higher energy efficiency vs off-shelf edge devices"
+    "efficiency": "446.0× higher energy efficiency vs off-shelf edge devices"
   },
   "baselines": [
     "baseline accelerator",

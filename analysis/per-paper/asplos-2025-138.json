@@ -4,17 +4,26 @@
   "venue": "ASPLOS",
   "problem": "CPU-side caches in disaggregated memory architectures cannot amortize network latency for pointer-chasing workloads over linked data structures, because each traversal step depends on the preceding one, making prefetching and caching ineffective.",
   "motivation": "Disaggregated memory is increasingly deployed for rack-scale resource pooling, but pointer-intensive data structure operations (linked lists, trees, graphs) suffer from serial network round-trips that caching cannot hide, making a near-data traversal solution necessary.",
-  "method": "pulse is a distributed pointer-traversal framework that executes pointer-chasing computations close to disaggregated memory rather than at CPU nodes. Traversal kernels are offloaded to processing elements co-located with memory, supporting various linked data structures with a programmable traversal interface. The framework supports distributed execution across multiple memory nodes for rack-scale workloads, preserving expressiveness while improving latency, throughput, and energy efficiency relative to cache-based access.",
-  "key_novelty": "A near-data, distributed execution framework specifically designed to accelerate pointer traversals over diverse linked data structures on rack-scale disaggregated memory.",
+  "method": "In disaggregated memory systems (where CPU and memory servers are separated by network), following a chain of pointers normally requires the CPU to send many individual requests to memory—and each request must wait for the previous answer before asking the next question, creating network delays. pulse eliminates this by placing processing elements directly on the memory servers; these local engines can follow the pointer chains in place, fetching each next address immediately without network round-trips. The framework supports different types of linked structures (linked lists, trees, graphs) and can distribute work across multiple memory servers so multiple traversals run in parallel, improving speed, power efficiency, and throughput.",
+  "key_novelty": "Rather than having the CPU repeatedly request the next pointer over the network, pulse runs the traversal directly on the memory servers, eliminating network delays for each step.",
   "contributions": [
     "Design of pulse, a near-data pointer-traversal framework for disaggregated memory",
     "Support for diverse linked data structure traversals with a programmable interface",
     "Distributed execution model for rack-scale disaggregated memory pointer operations",
     "Demonstrated low-latency, high-throughput, and energy-efficient pointer traversal vs. caching-only baselines"
   ],
-  "hardware_target": ["PIM (processing-in-memory)"],
-  "technique_category": ["near-data-processing", "memory-system", "parallelism"],
-  "workloads": ["graph-analytics", "database"],
+  "hardware_target": [
+    "PIM (processing-in-memory)"
+  ],
+  "technique_category": [
+    "near-data-processing",
+    "memory-system",
+    "parallelism"
+  ],
+  "workloads": [
+    "graph-analytics",
+    "database"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +32,17 @@
     "accuracy": null,
     "other": "low-latency and high-throughput for pointer traversal workloads vs. caching baseline (specific numbers not in abstract)"
   },
-  "baselines": ["CPU-side caching on disaggregated memory architectures"],
+  "baselines": [
+    "CPU-side caching on disaggregated memory architectures"
+  ],
   "limitations": "Programmability and generality constraints of the traversal interface for arbitrary pointer-based algorithms are not discussed.",
-  "tags": ["disaggregated-memory", "pointer-traversal", "near-data-processing", "linked-structures", "rack-scale"],
+  "tags": [
+    "disaggregated-memory",
+    "pointer-traversal",
+    "near-data-processing",
+    "linked-structures",
+    "rack-scale"
+  ],
   "primary_theme": "Near-data acceleration of pointer traversals on disaggregated memory",
   "confidence": "low"
 }

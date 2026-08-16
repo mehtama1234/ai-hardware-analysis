@@ -4,24 +4,42 @@
   "venue": "DAC",
   "problem": "Long-context LLM inference faces two bottlenecks: (1) quadratic attention complexity causing slowdowns as sequence length increases, and (2) KV cache size scaling linearly with context length; traditional quantization fails due to outliers and on-the-fly de-quantization overhead.",
   "motivation": "LLMs supporting 128K-1M token contexts require efficient memory and compute to reduce memory footprint and inference latency, making low-bitwidth KV cache quantization critical for practical deployment.",
-  "method": "MILLION applies product quantization to KV cache with non-uniform quantization schemes that handle outliers, implements a high-performance GPU kernel with efficient attention computation and asynchronous quantization pipeline, and leverages sparse computation to minimize on-the-fly quantization/de-quantization overhead.",
-  "key_novelty": "Non-uniform product quantization tailored to KV cache distribution with asynchronous execution pipeline to eliminate on-the-fly quantization bottleneck.",
+  "method": "MILLION compresses the KV cache (data needed for attention computation) using product quantization with adaptive precision: each chunk gets different compression levels based on its actual values, with special handling for outliers. A custom GPU kernel runs attention computation and compression in parallel, preventing compression from becoming a bottleneck. Sparse computation further reduces overhead by skipping unnecessary decompression.",
+  "key_novelty": "The key contribution is quantization that adapts to the KV cache's actual data distribution (with special handling for outliers) combined with asynchronous processing so decompression never bottlenecks inference.",
   "contributions": [
     "Analysis of KV cache distribution revealing limitations of uniform quantization",
     "Non-uniform product quantization algorithm for outlier-resistant compression",
     "High-performance GPU inference framework with efficient attention kernel and asynchronous pipeline",
     "4-bit KV quantization achieving 2.09x speedup at 32K context with minimal accuracy loss"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["quantization", "memory-system", "kernel-fusion"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "memory-system",
+    "kernel-fusion"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "2.09x at 32K context",
     "quantization_bitwidth": "4-bit with trivial perplexity loss"
   },
-  "baselines": ["baseline autoregressive decoding", "standard KV cache methods"],
+  "baselines": [
+    "baseline autoregressive decoding",
+    "standard KV cache methods"
+  ],
   "limitations": "Not discussed; focus is on quantization effectiveness at 32K+ contexts.",
-  "tags": ["llm-inference", "quantization", "kv-cache", "product-quantization", "long-context", "gpu"],
+  "tags": [
+    "llm-inference",
+    "quantization",
+    "kv-cache",
+    "product-quantization",
+    "long-context",
+    "gpu"
+  ],
   "primary_theme": "Outlier-aware KV cache quantization for long-context LLM inference",
   "confidence": "low"
 }

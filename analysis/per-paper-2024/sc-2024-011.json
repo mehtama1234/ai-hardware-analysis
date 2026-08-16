@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Mixed-precision quantization's efficiency is undermined by dynamic, irregular, and sparse outlier distributions that are difficult to predict, leading to poor hardware utilization. Current approaches cannot efficiently handle the unpredictable nature of outliers in LLM inference.",
   "motivation": "Mixed-precision quantization is critical for enhancing LLM inference performance and efficiency while maintaining model accuracy.",
-  "method": "MixQ employs a locality-based outlier prediction algorithm to predict outliers before computation (95.8% accuracy). A quantization ahead of detection (QAD) technique verifies prediction correctness, and a specialized data structure enables efficient outlier processing during inference, allowing selective use of different precision levels.",
-  "key_novelty": "Locality-based online outlier prediction that proactively anticipates outliers before computation, enabling hardware-efficient mixed-precision quantization.",
+  "method": "MixQ predicts where outliers (unusually large or irregular values) will appear before computation by analyzing patterns in nearby data, achieving 95.8% accuracy. A verification technique called quantization ahead of detection (QAD) confirms these predictions are correct. A specialized data structure then efficiently processes these predicted outliers during actual computation, enabling the system to use lower precision (fewer bits) for regular values and higher precision for outliers, reducing memory and computation needs.",
+  "key_novelty": "The innovation is predicting outliers (unusual values needing special handling) as data flows through the system by analyzing nearby data patterns, enabling hardware-efficient mixed-precision quantization—using lower precision for regular values and higher only where needed.",
   "contributions": [
     "Locality-based outlier prediction algorithm achieving 95.8% token outlier prediction accuracy",
     "Quantization ahead of detection (QAD) verification technique for prediction correctness",
     "Efficient data structure for handling dynamic outlier processing",
-    "1.52-6\u00d7 speedup over FP16, Bitsandbytes, QUIK, and AWQ baselines"
+    "1.52-6× speedup over FP16, Bitsandbytes, QUIK, and AWQ baselines"
   ],
   "hardware_target": [
     "GPU",
@@ -28,7 +28,7 @@
     "transformer"
   ],
   "metrics": {
-    "speedup": "1.52\u00d7 vs FP16 (8-bit), 1.78\u00d7 vs Bitsandbytes (8-bit), 1.48\u00d7 vs QUIK (4-bit), 1.93\u00d7 vs FP16 (4-bit), 6\u00d7 vs AWQ (4-bit)",
+    "speedup": "1.52× vs FP16 (8-bit), 1.78× vs Bitsandbytes (8-bit), 1.48× vs QUIK (4-bit), 1.93× vs FP16 (4-bit), 6× vs AWQ (4-bit)",
     "accuracy": "maintained (not explicitly quantified in abstract)"
   },
   "baselines": [

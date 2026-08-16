@@ -4,16 +4,22 @@
   "venue": "ISCA",
   "problem": "GPU virtual memory page table walks are a critical performance bottleneck as workloads with large address spaces saturate the GPU Memory Management Unit (GMMU), which cannot be straightforwardly scaled without significant area and power overhead. Existing approaches focus on better utilizing fixed translation bandwidth rather than fundamentally increasing it.",
   "motivation": "GPU workloads increasingly use large, sparse virtual address spaces (e.g., graph analytics, pointer-heavy ML), causing GMMU translation bandwidth to become a primary performance limiter, while RTAs sit underutilized during non-ray-tracing workloads.",
-  "method": "Heliostat repurposes the underutilized ray tracing accelerators (RTAs) already present in modern GPUs to perform page table walks, exploiting the structural similarity between ray-box/triangle intersection traversal and radix-tree page table traversal. The design maps page-table-walk state machines onto RTA traversal units to increase total translation bandwidth without adding dedicated GMMU hardware. Heliostat+ extends this by proactively performing predicted future address translations (prefetch-style speculation on the translation path) to further reduce effective TLB-miss latency. This approach democratizes RTA use across all workloads, not just ray-traced rendering.",
-  "key_novelty": "Heliostat is the first design to repurpose ray tracing accelerators as page table walk engines, leveraging the structural isomorphism between BVH tree traversal and radix page table walks to increase GPU address translation bandwidth at 1.53% the area and 5.8% the power of an equivalently overprovisioned GMMU.",
+  "method": "Heliostat reuses the ray tracing accelerators (specialized hardware in modern GPUs that finds where light rays hit objects) to perform GPU address translation—the process of converting virtual memory addresses to physical ones. Ray tracing and address translation both work by traversing tree structures with nearly identical logic: ray tracing traverses bounding-volume hierarchy (BVH) trees to find ray-object intersections, while address translation traverses radix trees to map addresses. By mapping address-translation operations onto the existing ray-tracing hardware, Heliostat increases translation bandwidth without requiring dedicated hardware, avoiding the area and power cost of scaling the main translation unit (GMMU). Heliostat+ extends this by predicting which addresses will be needed next and pre-translating them (like memory prefetching), further reducing translation latency.",
+  "key_novelty": "Heliostat is the first design to reuse ray tracing accelerators for address translation by exploiting the identical tree-traversal patterns of ray tracing (bounding-volume hierarchies for finding ray-object intersections) and address translation (radix trees for mapping memory addresses), achieving translation speed at just 1.53% the area and 5.8% the power of a dedicated solution.",
   "contributions": [
     "Identification and exploitation of the operational similarity between RTA BVH traversal and page table radix-tree walks to repurpose RTAs for virtual memory translation.",
     "Heliostat design that increases GPU translation bandwidth using existing RTA hardware, democratizing it across all workloads.",
     "Heliostat+ extension that proactively performs predicted future address translations to hide TLB-miss latency.",
     "1.93x average speedup over baseline GPU with only 1.53% area and 5.8% power compared to an overprovisioned GMMU solution."
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["memory-system", "cache", "near-data-processing"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "cache",
+    "near-data-processing"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": "1.93x over baseline GPU; 1.92x over SoTA 1; 1.66x over SoTA 2; Heliostat+ further 1.23x over Heliostat",
@@ -23,9 +29,20 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["baseline GPU (no RTA reuse)", "two state-of-the-art GPU TLB/translation designs", "overprovisioned GMMU solution"],
+  "baselines": [
+    "baseline GPU (no RTA reuse)",
+    "two state-of-the-art GPU TLB/translation designs",
+    "overprovisioned GMMU solution"
+  ],
   "limitations": "Not discussed (the abstract does not address workload coverage limitations or whether all GPU workload types benefit equally).",
-  "tags": ["gpu", "virtual-memory", "page-table-walk", "ray-tracing", "tlb", "memory-management"],
+  "tags": [
+    "gpu",
+    "virtual-memory",
+    "page-table-walk",
+    "ray-tracing",
+    "tlb",
+    "memory-management"
+  ],
   "primary_theme": "repurposing ray tracing accelerators for GPU page table walks",
   "confidence": "low"
 }

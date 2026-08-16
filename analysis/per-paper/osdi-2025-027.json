@@ -4,8 +4,8 @@
   "venue": "OSDI",
   "problem": "Static vector search indexes (HNSW, DiskANN) don't adapt to dynamic workloads with changing update/query patterns, leading to suboptimal performance",
   "motivation": "Real-world vector search workloads are highly dynamic (update/query ratios change); adaptive indexing can improve both query and update performance significantly",
-  "method": "Multi-level partitioning with learned cost model that dynamically adjusts index structure in response to workload changes and NUMA locality",
-  "key_novelty": "First adaptive vector search index that learns optimal structure from access patterns and adjusts dynamically; includes NUMA-aware parallelism",
+  "method": "The system splits vectors into multiple partition levels and uses a learned cost model (a machine-learned prediction system that estimates how expensive different index arrangements will be) to continuously monitor how the workload changes—which vectors are being queried, updated, and how often. When access patterns shift, it restructures the index automatically to keep performance high. It also accounts for NUMA locality (the fact that data sits in physically distributed memory banks at different distances from CPU cores), placing frequently accessed data closer to reduce latency.",
+  "key_novelty": "It learns which access patterns matter most in your workload and restructures the index automatically, with parallelism that respects NUMA locality so parallel tasks access data physically close to the CPU cores executing them.",
   "contributions": [
     "Adaptive multi-level partitioning for vector search",
     "Learned cost model for structure selection",
@@ -14,9 +14,22 @@
     "1.5-38x query latency improvement vs SVS/DiskANN/HNSW/SCANN",
     "4.5-126x update latency improvement on dynamic workloads"
   ],
-  "hardware_target": ["CPUs with NUMA architecture", "Multi-socket systems", "Data center servers"],
-  "technique_category": ["memory", "specialized", "algorithms"],
-  "workloads": ["vector search", "approximate nearest neighbor", "dynamic workloads", "update-heavy workloads"],
+  "hardware_target": [
+    "CPUs with NUMA architecture",
+    "Multi-socket systems",
+    "Data center servers"
+  ],
+  "technique_category": [
+    "memory",
+    "specialized",
+    "algorithms"
+  ],
+  "workloads": [
+    "vector search",
+    "approximate nearest neighbor",
+    "dynamic workloads",
+    "update-heavy workloads"
+  ],
   "metrics": {
     "speedup": "1.5-38x query latency vs baselines",
     "energy_or_tops_w": null,
@@ -35,7 +48,13 @@
     "SCANN (Scalable Approximate Nearest Neighbors)"
   ],
   "limitations": "Primarily CPU-focused; GPU acceleration not discussed; cost model generalization to unseen workloads unclear; memory overhead of multi-level partitioning not specified",
-  "tags": ["vector search", "adaptive indexing", "dynamic workloads", "NUMA", "algorithms"],
+  "tags": [
+    "vector search",
+    "adaptive indexing",
+    "dynamic workloads",
+    "NUMA",
+    "algorithms"
+  ],
   "primary_theme": "memory",
   "confidence": "high"
 }

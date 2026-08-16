@@ -4,17 +4,25 @@
   "venue": "ASPLOS",
   "problem": "Intel's existing User Interrupt (UIPI) mechanism for fast user-space notification has correctness and performance limitations that prevent it from matching shared-memory polling latency while maintaining the efficiency of asynchronous notification. Current designs lack support for preemption in user-level runtimes, kernel-bypass timers, and efficient interrupt forwarding to accelerators.",
   "motivation": "High-performance systems (user-level runtimes, networking stacks, streaming accelerators) need notification mechanisms that avoid expensive kernel transitions but also avoid burning CPU cycles on polling; existing user-interrupt designs leave a performance gap.",
-  "method": "xUI extends Intel's UIPI model with four hardware mechanisms: (1) tracked interrupts that allow senders to know when an interrupt was delivered, (2) hardware safepoints that let user-level runtimes implement preemption without kernel involvement, (3) a kernel-bypass timer for deadline-driven scheduling, and (4) interrupt forwarding to route notifications directly to accelerators (modeled on Intel's DSA). The design is modeled and evaluated in gem5 full-system simulation, measuring end-to-end latency for three distinct use cases.",
-  "key_novelty": "Hardware safepoints that enable user-level runtime preemption without kernel involvement, combined with interrupt forwarding to accelerators, all built on an extended user-interrupt model.",
+  "method": "xUI extends Intel's UIPI with four hardware capabilities: (1) tracked interrupts that confirm when notifications arrive, (2) hardware safepoints—points where the processor safely pauses thread execution—enabling thread management without kernel help, (3) a user-space timer for deadline-driven scheduling without kernel overhead, and (4) interrupt forwarding (based on Intel's DSA) routing notifications directly to accelerators. Together, these solve key limitations: delivery confirmation, kernel-free preemption, deadline-driven scheduling, and accelerator communication. The design is evaluated through gem5, a full-system computer simulator, measuring latency for three distinct use cases.",
+  "key_novelty": "The core innovation is extending Intel's user-interrupt model with hardware safepoints that enable thread pausing without the kernel, combined with interrupt forwarding that routes notifications directly to accelerators.",
   "contributions": [
     "Detailed analysis and timing model of Intel UIPI's current design and its limitations",
     "Four hardware extensions to UIPI: tracked interrupts, hardware safepoints, kernel-bypass timer, interrupt forwarding",
     "gem5-based modeling and evaluation across three use cases (user-level runtime preemption, DPDK IO notification, streaming accelerator notification)",
     "Demonstrated performance matching shared-memory polling with the efficiency of asynchronous notification"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["scheduling", "virtualization", "power"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "scheduling",
+    "virtualization",
+    "power"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +31,20 @@
     "accuracy": null,
     "other": "performance of shared-memory polling with efficiency of asynchronous notification"
   },
-  "baselines": ["Intel UIPI", "shared-memory polling", "kernel-mediated interrupts"],
+  "baselines": [
+    "Intel UIPI",
+    "shared-memory polling",
+    "kernel-mediated interrupts"
+  ],
   "limitations": "Evaluation is gem5 simulation only; real hardware silicon validation is not performed.",
-  "tags": ["user-interrupts", "notification", "kernel-bypass", "preemption", "accelerator", "uipi"],
+  "tags": [
+    "user-interrupts",
+    "notification",
+    "kernel-bypass",
+    "preemption",
+    "accelerator",
+    "uipi"
+  ],
   "primary_theme": "hardware extensions for fast user-space interrupt notification without polling",
   "confidence": "low"
 }

@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Job initialization time increases significantly as HPC jobs scale to larger node counts because processes flood the storage system with redundant I/O requests for the same files, causing nodes to remain idle and wasting CPU cycles.",
   "motivation": "Eliminating I/O bottlenecks at job initialization is critical for achieving efficient data loading on exascale supercomputers with thousands of nodes.",
-  "method": "Copper implements a read-only cooperative caching layer that coordinates data loading across multiple nodes to prevent storage flooding. The cache is shared cooperatively so that multiple processes access previously-loaded data through the cache rather than redundantly requesting from storage, reducing storage-side congestion.",
-  "key_novelty": "A cooperative caching mechanism that maintains near-constant load time when scaling from 32 to 8,300 nodes by coordinating data access across the entire job.",
+  "method": "Copper places a shared cache between the processes and the storage system. The first time a process needs a file, it loads from storage into this cache; the next time any process needs that file, it comes from the cache instead of storage. By serving many processes from one cached copy, the storage system isn't overwhelmed with duplicate requests, and nodes spend less time waiting for data.",
+  "key_novelty": "A shared cache layer that keeps initialization time nearly constant as jobs scale from 32 to 8,300 nodes by coordinating data access across all processes.",
   "contributions": [
     "Copper cooperative caching layer design for scalable data loading",
     "Near-constant load time demonstrated across 217x scale range (32 to 8,300 nodes)",

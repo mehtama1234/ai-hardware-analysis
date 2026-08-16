@@ -4,12 +4,12 @@
   "venue": "SC",
   "problem": "Existing GPU profiling tools focus on hotspot identification but miss opportunities for removing redundant instructions in already-optimized CUDA programs.",
   "motivation": "Redundant memory operations are common even in production-grade code; identifying and eliminating them could unlock significant performance gains beyond standard profiling.",
-  "method": "Binary instrumentation-based profiler to identify redundant memory instructions. Instruments optimized CUDA programs to detect unnecessary loads/stores without source-code access. Applied to standard benchmarks (PolybenchGPU, Rodinia, PASTA, DARKNET, LULESH).",
-  "key_novelty": "First binary instrumentation tool specifically targeting redundant memory instructions in CUDA; achieves >6\u00d7 speedup by identifying opportunities missed by existing profilers.",
+  "method": "The tool works by inserting monitoring code into compiled CUDA programs to track every memory operation—both loads (reading data) and stores (writing data)—as the program runs, without requiring access to the original source code. It identifies when the same data is loaded multiple times unnecessarily or when data is stored but never used, marking these as redundant operations. The method was validated on standard performance benchmarks: PolybenchGPU, Rodinia, PASTA, DARKNET, and LULESH.",
+  "key_novelty": "It's the first tool to use binary instrumentation (monitoring how compiled CUDA code actually runs, without source files) to find and eliminate redundant memory operations, achieving over 6× speedup by catching inefficiencies that existing profilers miss.",
   "contributions": [
     "RedSan binary instrumentation profiler for redundant memory detection",
     "Actionable optimization guidance beyond hotspot analysis",
-    "6.27\u00d7 speedup and 3\u00d7 memory instruction reduction on benchmarks",
+    "6.27× speedup and 3× memory instruction reduction on benchmarks",
     "Demonstrated effectiveness on both compute-bound and memory-bound kernels"
   ],
   "hardware_target": [
@@ -29,8 +29,8 @@
     "LULESH"
   ],
   "metrics": {
-    "max_speedup": "6.27\u00d7",
-    "memory_instruction_reduction": "3.00\u00d7",
+    "max_speedup": "6.27×",
+    "memory_instruction_reduction": "3.00×",
     "benchmarks_tested": 5
   },
   "baselines": [

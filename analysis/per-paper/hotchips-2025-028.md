@@ -12,10 +12,10 @@ End-to-end open-source EDA flows have not demonstrated large, production-grade S
 Open-source chip design enables supply-chain diversification, zero-trust verification, and collaborative development, critical for security and resilience in semiconductor supply.
 
 ## Method
-Basilisk uses open-source EDA (Yosys synthesis, OpenROAD place-and-route) to design a 34mm² Linux-capable RISC-V SoC in 130nm BiCMOS. The team enhanced the EDA flow: 2.3x timing improvement and 1.6x area reduction in synthesis, 12% die-size reduction in P&R through technology-aware tuning. The design includes a 64-bit core, 124MB/s DRAM controller, USB 1.1, video output, and 62Mb/s chip-to-chip link.
+Basilisk uses open-source design tools—Yosys to convert high-level descriptions into logic gates, and OpenROAD to arrange those gates on a chip—to build a Linux-capable 64-bit processor chip in 130nm BiCMOS technology, producing a 34mm² die. The team enhanced these tools by tuning them to work better with the specific manufacturing process, achieving 2.3x improvement in timing (how fast signals travel) and 1.6x reduction in area during logic design, plus 12% die-size reduction during final layout. The result includes a 64-bit core, 124MB/s DRAM controller, USB 1.1, video output, and a 62Mb/s chip-to-chip communication link.
 
 ## Key Novelty
-Largest end-to-end open-source SoC to date, proving scalability of open EDA to complex, Linux-capable systems.
+This is the largest chip ever built using only open-source design tools, proving these tools can now scale to production-grade systems capable of running operating systems.
 
 ## Contributions
 - Enhanced Yosys-based synthesis flow improving timing 2.3x and area 1.6x

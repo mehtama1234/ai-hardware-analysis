@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "Transformer inference is bottlenecked by high computational complexity and memory usage; hybrid sparsity (value-level + bit-level) can improve efficiency but causes severe load imbalance across compute units, limiting actual acceleration benefits.",
   "motivation": "Transformers are pervasive in NLP, but inference efficiency is critical for deployment; higher sparsity provides acceleration potential, but load imbalance undermines utilization when both value and bit sparsity are exploited.",
-  "method": "Libra combines algorithm-hardware co-design: algorithmically uses filtered bit-group sparsification (FBS) for structured weight sparsity and dynamic bit-group quantization (DBQ) for activation sparsification. Hardwareeside introduces task pool enabling multi-level workload balancing and adaptive bit-width architecture supporting simultaneous computations at varying bit-widths.",
-  "key_novelty": "First hybrid-sparsity attention accelerator addressing load imbalance through multi-level task scheduling and variable bit-width execution.",
+  "method": "Libra uses filtered bit-group sparsification (removing groups of zero bits from weights) and dynamic bit-group quantization (reducing activation bit-width), which creates irregular computation demands across compute units. The hardware addresses this with a task pool and multi-level workload balancing to keep all units equally busy, plus an adaptive bit-width architecture that lets different parts compute at different precisions simultaneously.",
+  "key_novelty": "It's the first attention accelerator combining weight and bit-level sparsity that solves the load-imbalance problem through multi-level task scheduling and variable bit-width execution.",
   "contributions": [
     "Filtered bit-group sparsification (FBS) for structured weight sparsity",
     "Dynamic bit-group quantization (DBQ) for activation-level sparsification",
@@ -13,16 +13,34 @@
     "Adaptive bit-width architecture enabling parallel execution at varying bit-widths",
     "1.49-5.89x speedup vs. SOTA, 2.65-10.82x energy efficiency improvement"
   ],
-  "hardware_target": ["GPU", "ASIC"],
-  "technique_category": ["quantization", "sparsity", "scheduling"],
-  "workloads": ["LLM-inference", "transformer"],
+  "hardware_target": [
+    "GPU",
+    "ASIC"
+  ],
+  "technique_category": [
+    "quantization",
+    "sparsity",
+    "scheduling"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "transformer"
+  ],
   "metrics": {
     "speedup": "1.49-5.89x vs. SOTA attention accelerators",
     "energy_efficiency": "2.65-10.82x vs. SOTA"
   },
-  "baselines": ["state-of-the-art attention accelerators"],
+  "baselines": [
+    "state-of-the-art attention accelerators"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["transformer", "hybrid-sparsity", "attention-mechanism", "quantization", "load-balancing"],
+  "tags": [
+    "transformer",
+    "hybrid-sparsity",
+    "attention-mechanism",
+    "quantization",
+    "load-balancing"
+  ],
   "primary_theme": "Multi-level workload-balanced hybrid-sparse attention accelerator",
   "confidence": "low"
 }

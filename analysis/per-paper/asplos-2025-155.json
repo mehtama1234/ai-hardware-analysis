@@ -4,17 +4,25 @@
   "venue": "ASPLOS",
   "problem": "Quantum circuit optimization requires balancing two complementary approaches: fast rewrite-rule passes (local pattern matching, low quality) and slow unitary synthesis (global search over circuit space, high quality but exponential cost), but these have been treated as disjoint techniques without a unified framework that exploits their synergies. No prior optimizer systematically combines the two in a way that achieves better quality than either alone.",
   "motivation": "Minimizing quantum gate count is critical for successful execution on NISQ and early fault-tolerant processors where gate fidelity is limited; existing optimizers either sacrifice quality (fast rewriting) or scalability (slow synthesis), leaving a large optimization gap.",
-  "method": "The paper presents a unifying framework that models rewriting and resynthesis as abstract circuit transformation operators on subcircuits. The algorithm 'guoq' alternates between fast rewrite-rule passes (which simplify local patterns and create resynthesis opportunities) and targeted unitary synthesis (applied to subcircuits identified as high-gain by the rewriting pass). Resynthesis is applied to subcircuits of bounded size where exhaustive search is tractable, guided by the rewriting pass which determines which regions are best candidates. This fast-slow interleaving lets rewriting decompose the circuit into manageable blocks for synthesis, while synthesis achieves global optima that local rules cannot reach.",
-  "key_novelty": "A unified abstract circuit transformation framework where fast rewrite rules and slow unitary synthesis are composed as first-class operators, enabling the guoq algorithm to exploit the synergies of both approaches for stronger circuit optimization than either alone.",
+  "method": "The algorithm guoq alternates between two steps: fast pattern-matching rewrites that simplify local regions of the circuit and identify which parts would benefit from deeper optimization, and targeted exhaustive synthesis that finds the best possible equivalent circuit for those identified regions. Since these targeted subcircuits are small enough to search exhaustively, this division breaks down the otherwise exponential problem into manageable pieces. This fast-slow interleaving works because rewriting guides synthesis to high-value targets, while synthesis achieves improvements that local pattern-matching alone could never reach.",
+  "key_novelty": "The guoq algorithm unifies fast rewriting and slow synthesis: rewriting identifies which subcircuits deserve expensive global optimization by simplifying locally, then synthesis exhaustively optimizes those identified regions, achieving stronger results than either technique alone because each guides the other.",
   "contributions": [
     "Unifying framework treating rewriting and resynthesis as abstract circuit transformation operators",
     "guoq algorithm interleaving fast rewrite passes and targeted unitary synthesis guided by rewriting-identified high-gain subcircuits",
     "Strong outperformance of existing quantum circuit optimizers on a wide range of benchmarks",
     "Radically simple algorithm design achieving superior optimization through synergy of fast and slow approaches"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["compiler", "approximation"],
-  "workloads": ["cryptography", "HPC"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "compiler",
+    "approximation"
+  ],
+  "workloads": [
+    "cryptography",
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +31,17 @@
     "accuracy": "strongly outperforms existing optimizers on wide benchmark range (specific gate-count reductions not in abstract)",
     "other": "circuit gate count reduction vs. state-of-the-art optimizers"
   },
-  "baselines": ["existing quantum circuit optimizers (unspecified; likely Qiskit, Tket, Pytket optimizers)"],
+  "baselines": [
+    "existing quantum circuit optimizers (unspecified; likely Qiskit, Tket, Pytket optimizers)"
+  ],
   "limitations": "Specific benchmark gate-count improvements and runtime scaling of guoq are not stated in the abstract.",
-  "tags": ["quantum-circuits", "circuit-optimization", "rewrite-rules", "unitary-synthesis", "compiler"],
+  "tags": [
+    "quantum-circuits",
+    "circuit-optimization",
+    "rewrite-rules",
+    "unitary-synthesis",
+    "compiler"
+  ],
   "primary_theme": "unified fast+slow quantum circuit optimization via rewriting and resynthesis",
   "confidence": "low"
 }

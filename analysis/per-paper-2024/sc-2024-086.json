@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "All-to-all communication for collecting embedding data across multiple GPUs is a significant bottleneck in distributed DLRM training. This communication overhead severely limits training efficiency and scalability.",
   "motivation": "DLRM is widely adopted in industry applications requiring multi-GPU training, and communication optimization is critical for improving training throughput.",
-  "method": "The approach applies error-bounded lossy compression to embedding data informed by analysis of embedding characteristics. A dual-level adaptive strategy adjusts compression error bounds at table-wise and iteration-wise granularities to balance compression benefits with model accuracy. The compressor is optimized for PyTorch tensors on GPUs to minimize compression overhead.",
-  "key_novelty": "Dual-level adaptive error-bound adjustment strategy (table-wise and iteration-wise) for lossy compression of DLRM embedding communication.",
+  "method": "The approach reduces communication between GPUs by compressing embedding data—learned representations of users and products—using lossy compression (allowing small, controlled errors). Rather than using a fixed compression level throughout training, it adapts the compression strength separately for each embedding table and each training iteration, enabling more aggressive compression where the model can tolerate errors and less where accuracy matters. The compression and decompression are optimized to run directly on GPUs using PyTorch's tensor operations, minimizing any overhead.",
+  "key_novelty": "It adjusts compression error limits separately for each embedding table and each training step instead of using one fixed compression level.",
   "contributions": [
     "Error-bounded lossy compression algorithm tailored to DLRM embedding data characteristics",
     "Dual-level adaptive error-bound adjustment spanning table-wise and iteration-wise aspects",
     "GPU-optimized PyTorch implementation minimizing compression overhead",
-    "Achieves 1.38\u00d7 training speedup with minimal accuracy impact"
+    "Achieves 1.38× training speedup with minimal accuracy impact"
   ],
   "hardware_target": [
     "GPU"
@@ -25,7 +25,7 @@
     "recommendation"
   ],
   "metrics": {
-    "speedup": "1.38\u00d7",
+    "speedup": "1.38×",
     "accuracy": "minimal impact"
   },
   "baselines": [],

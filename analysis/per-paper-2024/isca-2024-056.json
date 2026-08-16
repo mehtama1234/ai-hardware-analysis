@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "LLM inference consists of two phases with distinct resource characteristics: a compute-intensive prompt computation phase and a memory-intensive token generation phase. Current systems fail to exploit these differences, causing compute underutilization during token generation despite state-of-the-art batching techniques.",
   "motivation": "GPU deployments for LLM inference are expensive and power-hungry, making efficiency improvements critical for scaling production services cost-effectively.",
-  "method": "Splitwise splits LLM inference requests across separate machines: prompt computation runs on high-compute GPUs while token generation runs on lower-power hardware optimized for memory bandwidth. Request state transfers between machines via optimized network libraries using fast back-plane interconnects, enabling phase-specific resource allocation in heterogeneous GPU clusters.",
-  "key_novelty": "The observation that LLM inference's two phases have fundamentally different hardware requirements and can be efficiently separated onto specialized hardware with minimal overhead.",
+  "method": "Splitwise splits LLM inference across two machines, each optimized for its phase's hardware needs. A high-compute GPU handles the prompt phase—reading your input and beginning the response—which is very compute-intensive. A lower-power machine handles token generation—producing output sequentially—which is memory-intensive and needs fast memory access. Machines exchange request state via fast back-plane interconnects, enabling phase-specific optimization in a heterogeneous GPU cluster.",
+  "key_novelty": "The insight that LLM inference's two phases have such different hardware requirements—computing the prompt versus generating tokens—that they can be efficiently split across specialized machines.",
   "contributions": [
     "Characterization of distinct latency, throughput, memory, and power profiles for prompt computation vs. token generation phases",
     "Splitwise system that partitions inference requests across heterogeneous machines optimized per phase",

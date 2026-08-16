@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "In-DRAM Rowhammer mitigation faces two critical constraints: mitigations must synchronize with refresh cycles preventing flexible timing, and the available SRAM for aggressor tracking is limited to only a few bytes per bank.",
   "motivation": "Rowhammer attacks pose a critical security threat to DRAM, and in-DRAM solutions offer the potential to defend entirely within the chip without relying on external system mechanisms.",
-  "method": "MINT employs a single tracking entry per bank with forward-looking probabilistic mitigation: at each refresh cycle, it probabilistically decides which activation in the upcoming interval will be selected for mitigation at the next refresh, rather than tracking past behavior or making current-time probabilistic decisions.",
-  "key_novelty": "The core insight is that if only one row can be mitigated per refresh, only one row needs to be tracked, achieved through forward-looking probabilistic selection rather than backward-looking aggregation.",
+  "method": "Instead of tracking which rows were recently accessed, MINT predicts at each refresh cycle which row activation is likely to face a Rowhammer attack (repeated accesses that cause bit flips in neighboring rows) in the next interval. It probabilistically selects that predicted row for protection, and when the next refresh happens, it preemptively refreshes that row's neighbors to block bit flips. By predicting one row ahead instead of maintaining a full history of accesses, MINT achieves Rowhammer mitigation using only one tracking entry per bank, fitting within the tight SRAM budget.",
+  "key_novelty": "MINT's key insight is that if Rowhammer mitigation can only protect one row per refresh, tracking just one row suffices—selected through forward-looking prediction instead of recording access history.",
   "contributions": [
     "Ultra-low-cost secure in-DRAM tracker requiring only a single entry per bank versus hundreds/thousands in prior designs",
     "Forward-looking probabilistic mitigation strategy providing guaranteed protection against single and double-sided Rowhammer attacks",

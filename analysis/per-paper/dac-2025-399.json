@@ -4,24 +4,38 @@
   "venue": "DAC",
   "problem": "DRAM PIM architectures with bank-level SIMD parallelism suffer from synchronous execution requiring all banks to activate before computation. Row activation overhead exceeds computation time, limiting performance. Asynchronous approaches reduce overhead but require large shared accumulators per bank, increasing area.",
   "motivation": "PIM enhances memory bandwidth but synchronous bank activation becomes a bottleneck; asynchronous approaches trade off accumulator area overhead.",
-  "method": "Bank group (BG) level split-synchronization: each BG operates asynchronously to hide row activation overhead while operating synchronously within a BG to eliminate shared accumulators. Hybrid approach balances activation hide and area efficiency.",
-  "key_novelty": "Bank group-level split synchronization strategy enabling asynchronous inter-BG operation with intra-BG synchronization to maintain area efficiency while hiding activation overhead.",
+  "method": "The approach divides DRAM memory into bank groups and lets each group operate independently—loading data from its rows and processing it without waiting for other groups to finish. This independence hides the time overhead of row activation (the delay in accessing stored memory data) that would otherwise slow computation. Within each bank group, however, all banks stay synchronized, which eliminates the need for large accumulator circuits (temporary storage units needed for intermediate results). This hybrid two-level synchronization balances the speed gains from independent group operation with the area efficiency from coordination within groups.",
+  "key_novelty": "The core idea is using bank groups as the synchronization boundary: different groups run asynchronously to hide row-activation overhead, while staying synchronized within groups to eliminate large accumulator storage.",
   "contributions": [
     "Bank group-level split synchronization architecture",
     "Asynchronous inter-BG operation hiding row activation overhead",
     "Intra-BG synchronization eliminating shared accumulators",
     "1.70x average throughput over conventional PIM, 1.06x over asynchronous PIM"
   ],
-  "hardware_target": ["PIM"],
-  "technique_category": ["memory-system", "parallelism"],
+  "hardware_target": [
+    "PIM"
+  ],
+  "technique_category": [
+    "memory-system",
+    "parallelism"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": "1.70x vs conventional PIM, 1.06x vs asynchronous PIM",
     "area": "1.5% overhead per processing unit vs conventional PIM"
   },
-  "baselines": ["conventional PIM", "asynchronous execution PIM"],
+  "baselines": [
+    "conventional PIM",
+    "asynchronous execution PIM"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["pim", "dram", "synchronization", "memory-access", "parallelism"],
+  "tags": [
+    "pim",
+    "dram",
+    "synchronization",
+    "memory-access",
+    "parallelism"
+  ],
   "primary_theme": "Split-synchronization at bank group level for high-performance DRAM PIM",
   "confidence": "low"
 }

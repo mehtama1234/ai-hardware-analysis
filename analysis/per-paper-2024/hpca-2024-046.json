@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Single-machine GNN training is bottlenecked by slow PCIe data transfer and flash memory access latency, resulting in low CPU and GPU utilization.",
   "motivation": "Real-world graph datasets exceed centralized system capabilities, and distributed systems suffer from network bandwidth limitations.",
-  "method": "FlashGNN designs SSD firmware to coordinate data movements and hardware access, utilizing I/O parallelism in flash chips while maximizing data reuse. It employs a node-wise GNN training method, an efficient flash request scheduling algorithm, and high-performance subgraph generation optimized for flash memory constraints.",
-  "key_novelty": "In-SSD accelerator architecture that uses firmware-level coordination to overcome PCIe bottlenecks and exploit flash chip I/O parallelism for GNN training.",
+  "method": "FlashGNN employs a node-wise training approach (processing the graph one node at a time) with coordinating logic built into the SSD firmware. The firmware orchestrates data retrieval to exploit flash memory's ability to read multiple chunks in parallel—simultaneously instead of sequentially—while maximizing data reuse: frequently-needed data stays on the fast flash storage rather than being repeatedly shuttled across the slow PCIe cable. A specialized algorithm schedules which data requests to handle first, and subgraphs are generated to align with the physical layout of data on flash chips.",
+  "key_novelty": "It places the accelerator inside the SSD's firmware to exploit flash memory's parallel reading capability and bypass the slow PCIe bottleneck.",
   "contributions": [
     "In-SSD accelerator design with firmware coordination for data movements and hardware access",
     "Node-wise GNN training method optimized for flash memory access patterns",
@@ -26,8 +26,8 @@
     "GNN"
   ],
   "metrics": {
-    "speedup": "4.89\u00d7\u201311.83\u00d7 over Ginex; 23.17\u00d7 over SmartSAGE+",
-    "energy_or_tops_w": "57.14\u00d7\u2013192.66\u00d7 energy savings over Ginex"
+    "speedup": "4.89×–11.83× over Ginex; 23.17× over SmartSAGE+",
+    "energy_or_tops_w": "57.14×–192.66× energy savings over Ginex"
   },
   "baselines": [
     "Ginex",

@@ -4,16 +4,22 @@
   "venue": "ISCA",
   "problem": "Hierarchical multi-GPU systems connect GPU groups with high-bandwidth intra-group links but lower-bandwidth inter-group links, creating severe performance bottlenecks on the inter-group network when traffic is not carefully managed. Conventional GPU communication treats all network flits uniformly, leaving bandwidth partially unutilized while also generating unnecessary traffic.",
   "motivation": "As ML workloads require ever more GPUs, hierarchical non-uniform bandwidth interconnects are the practical scaling path, but the resulting bandwidth imbalance between intra- and inter-group links creates disproportionate performance degradation at the slower inter-group fabric.",
-  "method": "NetCrafter applies three complementary techniques to the inter-group network: (1) flit stitching, which coalesces partially-filled flits traveling to the same destination to maximize bandwidth utilization; (2) flit trimming, which drops speculative prefetch flits that are not yet needed, eliminating unnecessary traffic; and (3) flit sequencing, which reorders flits in the network so latency-sensitive critical flits reach their destinations ahead of bulk traffic, reducing effective latency for the most time-critical requests. The techniques are applied at the network boundary without modifying GPU compute pipelines.",
-  "key_novelty": "NetCrafter combines flit-level stitching, demand-driven trimming of speculative flits, and priority-aware sequencing into a unified traffic-shaping layer that exploits the non-uniform bandwidth structure of hierarchical multi-GPU systems.",
+  "method": "NetCrafter applies three techniques at the network boundary to manage traffic on the lower-bandwidth links connecting GPU groups. It packs together partially-filled packets (network data units called flits) heading to the same destination to maximize bandwidth usage, drops speculative prefetch requests that haven't been requested to eliminate wasted traffic, and reorders packets so time-critical data reaches its destination before bulk data. These techniques reduce delays for critical requests without modifying the GPU compute pipelines.",
+  "key_novelty": "NetCrafter combines three traffic-shaping techniques—packet packing, filtering of unused speculative requests, and priority-based reordering—to exploit the unequal bandwidth structure of hierarchical multi-GPU systems.",
   "contributions": [
     "Identification of three distinct inefficiency classes in hierarchical multi-GPU network traffic: partial flit utilization, unnecessary speculative fetches, and latency-insensitive flit ordering.",
     "Flit stitching mechanism that coalesces compatible partially-filled flits to recover wasted bandwidth.",
     "Flit trimming mechanism that drops speculative flits not yet demanded, reducing inter-group traffic volume.",
     "Flit sequencing mechanism that prioritizes latency-sensitive flits, reducing effective access latency for critical data."
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["interconnect", "memory-system", "scheduling"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "interconnect",
+    "memory-system",
+    "scheduling"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": "significant multi-GPU performance improvement (specific numbers not stated in abstract)",
@@ -23,9 +29,18 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["baseline hierarchical multi-GPU system without NetCrafter"],
+  "baselines": [
+    "baseline hierarchical multi-GPU system without NetCrafter"
+  ],
   "limitations": "Not discussed (specific speedup numbers and evaluated workloads are not given in the abstract).",
-  "tags": ["multi-gpu", "interconnect", "network-traffic", "bandwidth", "flit", "hierarchical"],
+  "tags": [
+    "multi-gpu",
+    "interconnect",
+    "network-traffic",
+    "bandwidth",
+    "flit",
+    "hierarchical"
+  ],
   "primary_theme": "traffic shaping for non-uniform bandwidth multi-GPU interconnects",
   "confidence": "low"
 }

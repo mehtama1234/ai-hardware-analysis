@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Regular path queries in graph databases are bottlenecked by the memory wall, preventing efficient parallel execution of path matching tasks. Traditional architectures cannot leverage processing-in-memory capabilities to accelerate RPQ workloads.",
   "motivation": "Processing-in-memory technologies can dispatch and execute path matching tasks in parallel within PIM modules, bypassing the memory wall and improving overall query throughput.",
-  "method": "Moctopus implements a PIM-based data management system with a PIM-friendly dynamic graph partitioning algorithm that tackles graph skewness while preserving locality. The system amortizes graph update overhead by distributing it across PIM modules rather than concentrating it on the host CPU. Batch RPQ processing leverages the parallel processing capabilities within PIM.",
-  "key_novelty": "A dynamic graph partitioning algorithm specifically designed for PIM architectures that balances graph skewness mitigation with locality preservation while maintaining low update overhead.",
+  "method": "Moctopus stores and processes graph data directly in memory hardware (PIM, for processing-in-memory) by splitting the graph into chunks that adjust dynamically as data changes. The algorithm keeps related data close together (preserving locality) while handling cases where some nodes have far more connections than others (tackling graph skewness). Rather than making the host CPU handle all updates, it spreads the update work across PIM modules. The system then processes multiple path queries in batches, using PIM hardware's parallel processing to handle many queries at once.",
+  "key_novelty": "Moctopus's key innovation is a graph partitioning algorithm designed specifically for PIM hardware that handles uneven data distribution while keeping related data close together, all without making graph updates expensive.",
   "contributions": [
     "PIM-based system architecture for efficient regular path query processing with batch support",
     "Dynamic graph partitioning algorithm optimized for PIM characteristics and graph properties",

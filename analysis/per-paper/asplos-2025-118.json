@@ -4,17 +4,24 @@
   "venue": "ASPLOS",
   "problem": "Neutral atom quantum computers (NAQCs) with zoned architectures (ZA) and qubit movement capabilities require coordinated gate scheduling, qubit positioning, atom movement, and inter-zone communication, but existing compilers cannot jointly optimize these dimensions, leading to poor fidelity and long execution times for quantum circuits.",
   "motivation": "NAQCs have emerged as leading platforms for scalable quantum computing due to hardware-native qubit movement and zoned architecture capabilities, but without compilers that exploit these features, the hardware advantages translate to poor circuit performance in practice.",
-  "method": "PowerMove is a compiler for NAQCs that jointly optimizes gate scheduling, qubit positioning, atom movement, and inter-zone communication for zoned architectures. The compiler introduces new optimization passes that model atom movement as a first-class resource and explore movement strategies jointly with gate ordering. For NISQ applications, PowerMove significantly reduces the number of atom movements and inter-zone communications, while for FTQC (fault-tolerant quantum computing), it replaces physical qubits with logical qubits encoded in quantum error correction (QEC) codes and applies analogous optimization. The compilation algorithm is designed for both correctness and efficiency, achieving up to 216.9x compilation speedup over prior methods.",
-  "key_novelty": "Jointly optimizing atom movement strategies alongside gate scheduling and qubit positioning for both NISQ and FTQC settings in neutral atom zoned architectures, achieving orders-of-magnitude fidelity improvement.",
+  "method": "PowerMove is a compiler for neutral atom quantum computers that decides four things together: which quantum gates (operations) to execute in what order, where each atom should be positioned, how to move atoms between zones (regions of the machine), and when to cross zone boundaries. Because these atoms can move physically, existing compilers waste moves by scheduling gates first and then moving atoms as needed afterward. PowerMove treats atom movement as a core optimization target from the start, jointly exploring movement strategies with gate orderings to minimize both moves and zone crossings. The approach works for both current quantum computers (NISQ, near-term intermediate-scale) and future error-corrected ones (FTQC, which use quantum error correction codes to encode logical qubits), achieving up to 216.9x faster compilation.",
+  "key_novelty": "Jointly optimizing atom movement with gate scheduling and qubit positioning for both current quantum computers (NISQ) and future error-corrected ones (FTQC) in zoned architectures, achieving orders-of-magnitude improvements in quantum-operation accuracy.",
   "contributions": [
     "PowerMove compiler design jointly optimizing gate scheduling, qubit positioning, atom movement, and inter-zone communication for NAQCs with zoned architecture.",
     "Orders-of-magnitude fidelity improvements over state-of-the-art NAQC compilers.",
     "Up to 3.76x reduction in NISQ circuit execution time and 216.9x compilation speedup.",
     "Extension to FTQC with logical qubits (QEC codes) achieving 4.78x reduction in execution time; open-sourced code."
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["compiler", "scheduling"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "compiler",
+    "scheduling"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": "3.76x execution time reduction (NISQ); 4.78x execution time reduction (FTQC)",
     "energy_or_tops_w": null,
@@ -23,9 +30,18 @@
     "accuracy": "orders-of-magnitude fidelity improvement over state-of-the-art",
     "other": "216.9x compilation time speedup"
   },
-  "baselines": ["state-of-the-art NAQC compilers for zoned architecture"],
+  "baselines": [
+    "state-of-the-art NAQC compilers for zoned architecture"
+  ],
   "limitations": "The compiler's joint optimization may have scalability limits for very large circuits or many qubits; specific resource (connectivity, move latency) assumptions are tied to current NAQC hardware generations.",
-  "tags": ["quantum-computing", "neutral-atom", "compiler", "zoned-architecture", "qubit-movement", "ftqc"],
+  "tags": [
+    "quantum-computing",
+    "neutral-atom",
+    "compiler",
+    "zoned-architecture",
+    "qubit-movement",
+    "ftqc"
+  ],
   "primary_theme": "joint atom-movement-aware compilation for neutral atom quantum computers",
   "confidence": "low"
 }

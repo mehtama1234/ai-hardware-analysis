@@ -4,23 +4,38 @@
   "venue": "CGO 2025",
   "problem": "Java Native Interface (JNI) allows native code to directly access Java heap via raw pointers, bypassing Java's safety guarantees and creating a significant attack surface on mobile platforms.",
   "motivation": "Android widespread adoption makes mobile security critical. JNI's unsafe pointer access undermines Java's memory safety model, threatening heap integrity.",
-  "method": "MTE4JNI leverages ARM Memory Tagging Extension (MTE) to tag Java heap objects with metadata. Native JNI code access to tagged regions is monitored and enforced, preventing illicit pointer dereferences while maintaining performance. Runtime enforcement compares pointer tags against object tags.",
-  "key_novelty": "First MTE-based approach to protect Java heap from unauthorized JNI native code access.",
+  "method": "MTE4JNI labels Java heap objects using ARM's Memory Tagging Extension (a hardware feature that marks memory regions with small tags). When native code tries to access these objects through a pointer (a memory reference), the processor verifies the pointer's tag matches the object's tag, blocking the access if they don't match. This real-time verification prevents unauthorized access with minimal performance cost.",
+  "key_novelty": "This is the first method using ARM's Memory Tagging Extension to protect Java heap from unauthorized access via JNI (the interface that lets native code access Java).",
   "contributions": [
     "MTE-based runtime checking for JNI heap access",
     "11× reduction in overhead vs. guarded copy (single-threaded)",
     "27× reduction in overhead (multi-threaded)",
     "Superior memory safety protection with practical overhead"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["security", "memory-system"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "security",
+    "memory-system"
+  ],
   "workloads": [],
   "metrics": {
     "other": "11× overhead reduction (single-threaded), 27× (multi-threaded) vs. guarded copy"
   },
-  "baselines": ["Guarded copy method"],
+  "baselines": [
+    "Guarded copy method"
+  ],
   "limitations": "Evaluation limited to ARM MTE-equipped devices; generalization to other ISAs not discussed.",
-  "tags": ["jni", "java", "memory-safety", "mte", "arm", "android", "security"],
+  "tags": [
+    "jni",
+    "java",
+    "memory-safety",
+    "mte",
+    "arm",
+    "android",
+    "security"
+  ],
   "primary_theme": "MTE-based JNI heap protection",
   "confidence": "low"
 }

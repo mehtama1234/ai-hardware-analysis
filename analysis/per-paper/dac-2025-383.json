@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "GPU-based 3D Gaussian Splatting rendering suffers from insufficient parallelism in sequential pipeline stages and large memory overhead for intermediate results.",
   "motivation": "Real-time photorealistic rendering on edge devices requires specialized hardware; dataflow optimization can eliminate serialization bottlenecks.",
-  "method": "GSAcc introduces Gaussian depth speculation to parallelize preprocessing and sorting. A Gaussian-centric dataflow interleaves preprocessing and rasterization, executing all steps concurrently without storing intermediates. Dedicated hardware accelerates sorting and rasterization.",
-  "key_novelty": "Gaussian-centric dataflow interleaving preprocessing and rasterization to eliminate intermediate storage and enable full parallelism.",
+  "method": "GSAcc uses a technique called Gaussian depth speculation—predicting the depth ordering of Gaussian elements (a way of representing 3D objects as blobs) early on to parallelize the initial steps. Instead of processing Gaussian elements through sequential stages one-by-one, it reorganizes the pipeline around Gaussian elements themselves (Gaussian-centric dataflow), allowing preprocessing and rasterization (converting the Gaussian elements into pixels) to happen at the same time rather than one after the other. This avoids storing temporary results between stages, freeing up memory. Dedicated hardware accelerators handle the sorting and rasterization operations faster than the GPU alone.",
+  "key_novelty": "The key innovation is reorganizing the rendering pipeline around Gaussian elements so preprocessing and rasterization can happen simultaneously, eliminating the need to store intermediate results and allowing all stages to run in parallel.",
   "contributions": [
     "Gaussian depth speculation enabling parallel preprocessing and sorting",
     "Gaussian-centric dataflow interleaving all rendering stages without intermediate storage",

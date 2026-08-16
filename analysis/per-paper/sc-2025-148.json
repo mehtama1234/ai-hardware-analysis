@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Quantization accelerates LLM inference by reducing memory and computation. W4A8 (4-bit weights, 8-bit activations) balances accuracy-performance tradeoff, but existing GEMM kernels suffer inefficient dequantization on CUDA Cores, unable to match Tensor Core throughput.",
   "motivation": "LLM inference dominates modern AI workloads requiring low latency and high throughput. Quantization essential for efficient serving, but kernel-level optimization of W4A8 remains challenging. Dequantization bottleneck undermines Tensor Core performance gains.",
-  "method": "LiquidGEMM hardware-efficient W4A8 GEMM kernel with two key techniques: (1) LiquidQuant - hardware-efficient quantization using 2 arithmetic instructions per 4 elements, enabling overflow-safe dequantization, (2) Implicit fine-grained pipeline overlapping weight loading, dequantization, and MMA across warp groups without synchronization or redundant memory traffic.",
-  "key_novelty": "First hardware-efficient W4A8 GEMM kernel achieving full Tensor Core pipeline overlap without synchronization overhead. LiquidQuant enables fast dequantization matching Tensor Core throughput.",
+  "method": "LiquidGEMM accelerates 4-bit weight, 8-bit activation matrix operations using two techniques. LiquidQuant converts compressed 4-bit weights back into usable form using just 2 operations per 4 elements while preventing overflow. The kernel then overlaps three tasks—loading weights, converting them, and performing matrix multiplication—across parallel thread groups without pausing any threads or repeating data from memory.",
+  "key_novelty": "LiquidQuant converts 4-bit weights in just 2 operations per 4 elements, fast enough that W4A8 matrix operations run all computation stages in parallel on Tensor Cores without needing thread synchronization.",
   "contributions": [
     "LiquidQuant quantization format enabling fast, overflow-safe 2-instruction dequantization",
     "Implicit fine-grained pipeline overlapping computation and data movement across warp groups",
@@ -13,17 +13,37 @@
     "4.94x end-to-end system speedup",
     "1.12-1.63x improvement over TensorRT-LLM quantized kernels"
   ],
-  "hardware_target": ["NVIDIA GPU (CUDA)", "Tensor Core equipped GPUs"],
-  "technique_category": ["Quantization", "GEMM optimization", "GPU kernels", "LLM inference"],
-  "workloads": ["LLM inference", "Matrix multiplication"],
+  "hardware_target": [
+    "NVIDIA GPU (CUDA)",
+    "Tensor Core equipped GPUs"
+  ],
+  "technique_category": [
+    "Quantization",
+    "GEMM optimization",
+    "GPU kernels",
+    "LLM inference"
+  ],
+  "workloads": [
+    "LLM inference",
+    "Matrix multiplication"
+  ],
   "metrics": {
     "kernel_speedup": "2.90x",
     "system_speedup": "4.94x",
     "vs_tensorrt_llm": "1.12-1.63x"
   },
-  "baselines": ["State-of-the-art W4A8 kernels", "NVIDIA TensorRT-LLM"],
+  "baselines": [
+    "State-of-the-art W4A8 kernels",
+    "NVIDIA TensorRT-LLM"
+  ],
   "limitations": "Abstract-only; specific LLM models tested, memory requirements, and applicability to other quantization schemes not detailed.",
-  "tags": ["quantization", "LLM", "GEMM", "GPU-kernel", "Tensor-Core"],
+  "tags": [
+    "quantization",
+    "LLM",
+    "GEMM",
+    "GPU-kernel",
+    "Tensor-Core"
+  ],
   "primary_theme": "Specialized quantization kernels for LLM inference",
   "confidence": "low"
 }

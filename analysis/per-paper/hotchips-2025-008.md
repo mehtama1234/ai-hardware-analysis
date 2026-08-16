@@ -10,10 +10,10 @@ RISC-V ecosystem lacks high-performance, production-grade CPU implementations; C
 Open ISA adoption in data centers requires mature CPU designs that match or exceed x86/ARM performance; RISC-V RVA23 specifies a production-grade profile for 64-bit computing workloads.
 
 ## Method
-Cuzco implements a high-performance RISC-V core with multi-stage pipelined execution, out-of-order instruction scheduling, and caches optimized for latency-sensitive workloads, full compliance with RVA23 ISA specification.
+Cuzco implements a RISC-V processor using pipelined execution that divides each instruction's work into stages, allowing multiple instructions to progress simultaneously in an overlapping manner. It reorders instructions dynamically whenever safe to do so, keeping the processor busier and working more efficiently. The design includes cache memory tuned to minimize delays for latency-sensitive operations. It achieves full compliance with RVA23, the standardized RISC-V instruction set.
 
 ## Key Novelty
-Production-grade high-performance RISC-V core implementing full RVA23 profile with performance comparable to contemporary x86/ARM CPUs.
+Cuzco provides a production-ready, high-performance RISC-V processor implementing the full RVA23 standard, with performance comparable to modern x86 and ARM processors.
 
 ## Contributions
 - High-performance RISC-V RVA23-compatible CPU IP

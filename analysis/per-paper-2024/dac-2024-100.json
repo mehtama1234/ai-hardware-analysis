@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Existing multi-core SSD firmware uses a one-to-many thread-request mapping model that suffers from poor scalability due to severe lock contention, especially in cache management. This prevents full utilization of PCIe bandwidth across backend flash channels.",
   "motivation": "Modern SSDs require higher parallelism to match the growing frontend PCIe bandwidth with multiple backend flash channels.",
-  "method": "PipeSSD proposes a lock-free pipelined firmware architecture where NVMe requests flow through pipeline stages across multiple cores without synchronization locks. Different processor cores handle different stages of request processing, eliminating cache management lock contention while enabling concurrent processing of independent I/O requests from multiple NVMe queues.",
-  "key_novelty": "Lock-free pipelined architecture that eliminates cache management lock contention in multi-core SSD firmware.",
+  "method": "Instead of using locks to coordinate cores—forcing them to take turns and creating bottlenecks—PipeSSD treats storage request handling like an assembly line with multiple stages. Different processor cores handle different stages (one receives NVMe requests, another manages the cache, a third writes to flash memory), so many requests flow through the pipeline in parallel. Since each stage is independent, there's no need for locks, and cores can work at full speed without waiting for each other.",
+  "key_novelty": "A lock-free pipeline design where different processor cores process different stages of storage requests, eliminating the synchronization delays that normally limit multi-core systems.",
   "contributions": [
     "Lock-free pipelined SSD firmware design for multi-core controllers",
     "Elimination of cache management lock contention through pipeline-based request processing",

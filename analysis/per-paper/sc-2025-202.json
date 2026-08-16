@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "MoE models require massive expert parameter storage; existing GPU memory management solutions use sophisticated prefetching but suffer communication bottlenecks at large batch sizes",
   "motivation": "MoE inference is bandwidth-limited on GPUs; enabling efficient multi-batch inference could unlock higher throughput for LLM serving with resource constraints",
-  "method": "Differential cache hierarchy: globally-hot experts in high-priority per-layer caches, locally-hot in medium-priority caches under LRU with predictive prefetch, cold experts cached on-demand",
-  "key_novelty": "First to exploit both global and temporal locality in MoE expert activation; introduces priority-driven differential cache hierarchy",
+  "method": "The approach uses a priority-ranked cache system to manage where different experts are stored based on usage patterns. Experts that are used frequently across the entire model stay in high-priority caches at each layer, where they're fastest to access. Experts used frequently within specific layers sit in medium-priority caches managed by least-recently-used (LRU) replacement—a strategy that removes the oldest unused item when space is needed—combined with predictive prefetching (loading experts before they're requested, based on patterns). The least frequently-used experts are loaded into cache only when needed, on-demand.",
+  "key_novelty": "The key innovation is organizing expert caches into different priority levels based on both overall popularity and recent usage—the first approach to jointly optimize for both global and temporal patterns in MoE inference.",
   "contributions": [
     "Identification of global and temporal locality in expert activation patterns",
     "Differential cache hierarchy (high/medium/cold priority)",

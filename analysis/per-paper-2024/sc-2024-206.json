@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Maximal biclique enumeration (MBE) on bipartite graphs suffers from redundant memory accesses and degraded set intersection performance because computational subgraphs dynamically change during enumeration. Existing algorithms cannot scale to enumerate billions of bicliques on large real-world datasets.",
   "motivation": "Maximal biclique enumeration is crucial for bipartite graph analysis with applications to large-scale graph datasets.",
-  "method": "AdaMBE redesigns core operations using local neighborhood information from computational subgraphs to minimize redundant memory accesses. It dynamically constructs computational subgraphs using bitmaps with fast bitwise operations to accelerate set intersections. A parallel version (ParAdaMBE) distributes the computation across multiple CPU cores.",
-  "key_novelty": "Using dynamic bitmap-based computational subgraphs to reduce redundant memory accesses and accelerate set intersections in biclique enumeration.",
+  "method": "AdaMBE redesigns how bicliques are found by using information from the active part of the graph (the computational subgraph) to avoid reading the same data from memory repeatedly. It represents this active region as bitmaps—fast, compact sets of 0s and 1s—and uses quick bitwise operations (like AND and OR) to find overlapping nodes between groups. A parallel version, ParAdaMBE, splits the work across multiple CPU cores.",
+  "key_novelty": "AdaMBE uses bitmaps of the active graph region with fast bitwise operations to eliminate repeated memory accesses and speed up finding node overlaps in biclique enumeration.",
   "contributions": [
     "AdaMBE algorithm with optimized core operations leveraging local neighborhood information from computational subgraphs",
     "Bitmap-based dynamic computational subgraph construction with fast bitwise operations for set intersection acceleration",
     "Successfully enumerates 19 billion maximal bicliques on TVTropes dataset, enabling unprecedented scale",
-    "Parallel CPU version (ParAdaMBE) achieves 5.07\u00d7 speedup over GPU-based GMBE system"
+    "Parallel CPU version (ParAdaMBE) achieves 5.07× speedup over GPU-based GMBE system"
   ],
   "hardware_target": [
     "CPU"
@@ -24,7 +24,7 @@
     "graph-analytics"
   ],
   "metrics": {
-    "speedup": "1.6\u00d7-49.7\u00d7 vs closest CPU competitor; 5.07\u00d7 vs GPU-based GMBE",
+    "speedup": "1.6×-49.7× vs closest CPU competitor; 5.07× vs GPU-based GMBE",
     "other": "19 billion maximal bicliques on TVTropes dataset"
   },
   "baselines": [
