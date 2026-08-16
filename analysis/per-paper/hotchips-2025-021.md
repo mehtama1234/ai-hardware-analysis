@@ -12,10 +12,10 @@ Scaling AI clusters with many GPUs requires very-high-bandwidth, low-latency int
 Large-scale AI training (LLMs, multimodal models) demands dense GPU interconnects to minimize communication bottlenecks and improve scaling efficiency.
 
 ## Method
-UB-mesh proposes a custom mesh-topology interconnect optimized for GPU clusters. It likely includes novel switching logic, reduced hop counts, and optimized link speeds compared to traditional Ethernet/Infiniband.
+UB-mesh connects GPUs in a mesh topology—a grid-like pattern where each GPU links directly to its neighbors—instead of routing all data through central switches like traditional networks do. This reduces the distance (hop counts) data travels between GPUs and multiplies the total communication bandwidth available since many GPU pairs can communicate simultaneously over their direct connections. The switches and link speeds are optimized specifically for this mesh layout rather than being general-purpose.
 
 ## Key Novelty
-Custom mesh-based interconnection architecture reducing latency and increasing bandwidth density for large GPU clusters.
+UB-mesh replaces traditional switch-based interconnects with a mesh topology where GPUs connect in a grid pattern, reducing communication latency and increasing bandwidth density.
 
 ## Contributions
 - Mesh-topology interconnect design for GPU clusters

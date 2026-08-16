@@ -4,26 +4,45 @@
   "venue": "ISCA",
   "problem": "Approximate nearest-neighbor search (ANNS) used in RAG dense retrieval is dataset-specific and inherently low-recall, causing irrelevant or incomplete context to degrade LLM generation quality. Exact nearest-neighbor search is too compute- and bandwidth-intensive for conventional processors.",
   "motivation": "As RAG systems grow to handle trillion-token datastores, retrieval latency, accuracy, and energy directly bottleneck time-to-first-token and generation quality for LLM applications.",
-  "method": "DReX combines two hardware tiers: in-DRAM logic performs early filtering by comparing query vectors against embedding centroids to eliminate distant candidates without moving full vectors off-chip, and an outside-DRAM near-memory accelerator then executes exact k-NN search on the filtered, much smaller candidate set. The in-DRAM filter exploits processing-in-memory (PIM) capabilities of commodity DRAM to compute approximate distance bounds, bypassing DRAM-to-processor transfers for the bulk of vectors. This two-stage pipeline minimizes off-chip data movement while guaranteeing exact retrieval on the survivors.",
-  "key_novelty": "Using in-DRAM logic for coarse vector filtering combined with a near-memory accelerator for exact search, eliminating the recall-versus-speed tradeoff of ANNS without bulk off-chip data movement.",
+  "method": "DReX splits the search into two stages. First, logic built into the DRAM hardware itself quickly filters out far-away candidate vectors by comparing the query to summary points (centroids) without moving all the vector data off the chip. Then a specialized accelerator near the memory performs exact nearest-neighbor search on just the remaining, much smaller set of candidates. This cuts down on expensive data movement between memory and processor while guaranteeing you get the exact top-k closest vectors.",
+  "key_novelty": "DReX uses in-DRAM filtering hardware to eliminate distant candidates, then performs exact nearest-neighbor search on the survivors, removing the speed-versus-accuracy tradeoff without large off-chip data transfers.",
   "contributions": [
     "Dataset-agnostic dense retrieval scheme that avoids ANNS approximation errors entirely.",
     "In-DRAM early-filter mechanism that uses PIM logic to compute distance bounds and discard far-away embeddings before DRAM-to-processor transfer.",
     "Near-memory accelerator for exact k-NN search on the filtered candidate set, minimizing off-chip bandwidth.",
     "End-to-end RAG evaluation showing 6.2-7x reduction in time-to-first-token versus state-of-the-art ANNS-based retrieval."
   ],
-  "hardware_target": ["PIM", "ASIC"],
-  "technique_category": ["near-data-processing", "memory-system", "dataflow"],
-  "workloads": ["LLM-inference", "database"],
+  "hardware_target": [
+    "PIM",
+    "ASIC"
+  ],
+  "technique_category": [
+    "near-data-processing",
+    "memory-system",
+    "dataflow"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "database"
+  ],
   "metrics": {
     "speedup": "6.2-7x reduction in time-to-first-token vs. state-of-the-art ANNS mechanism",
     "energy_or_tops_w": null,
     "area": "reasonable area and power overhead in memory subsystem (exact numbers not stated in abstract)",
     "accuracy": "exact nearest-neighbor (no recall degradation)"
   },
-  "baselines": ["state-of-the-art ANNS-based retrieval mechanism"],
+  "baselines": [
+    "state-of-the-art ANNS-based retrieval mechanism"
+  ],
   "limitations": "Recall and latency benefits depend on the filtering selectivity of the in-DRAM stage, which may vary with embedding distribution; detailed area/power numbers and comparison to GPU baselines are not stated in the abstract.",
-  "tags": ["rag", "dense-retrieval", "near-memory", "pim", "knn", "llm"],
+  "tags": [
+    "rag",
+    "dense-retrieval",
+    "near-memory",
+    "pim",
+    "knn",
+    "llm"
+  ],
   "primary_theme": "near-memory exact dense retrieval for RAG",
   "confidence": "low"
 }

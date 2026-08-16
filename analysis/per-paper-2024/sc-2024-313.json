@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Training GNNs on billion-edge graphs faces severe CPU-GPU data transfer bottlenecks and excessive data shuffling and synchronization overheads in multi-GPU setups. Memory constraints in GPU-based sampling prevent efficient handling of large-scale graph data.",
   "motivation": "Efficient GNN training on billion-edge graphs is critical for scaling machine learning to massive real-world graph datasets that are increasingly common in production systems.",
-  "method": "HyDRA unifies sampling and data transfer into a single kernel operation to eliminate bottlenecks. It employs multi-GPU memory sharing with a hybrid pointer-driven data placement technique for efficient neighbor retrieval, applies targeted replication of high-degree vertices to reduce communication overhead, and uses dynamic cross-batch data orchestration with pipelining to minimize redundant transfers.",
-  "key_novelty": "Seamless integration of sampling and data transfer into a single kernel operation to eliminate the CPU-GPU bottleneck in multi-GPU GNN training.",
+  "method": "HyDRA combines sampling (selecting which neighbors to train on) and GPU data transfer into a single kernel operation (one unified GPU computation step) rather than doing them separately. It uses memory addresses to point directly to data across GPUs instead of copying, stores copies of high-degree vertices (nodes with many connections) locally on multiple GPUs to avoid redundant data fetches, and overlaps data transfers with computation (pipelining) so new data arrives while processing happens.",
+  "key_novelty": "The innovation is combining sampling (selecting training neighbors) and GPU data transfer into one unified computation step instead of separate ones, eliminating the CPU-GPU bottleneck in multi-GPU graph neural network training.",
   "contributions": [
     "HyDRA framework unifying sampling and data transfer in a single kernel operation for multi-GPU GNN training",
     "Hybrid pointer-driven data placement technique for efficient neighbor retrieval in distributed memory",

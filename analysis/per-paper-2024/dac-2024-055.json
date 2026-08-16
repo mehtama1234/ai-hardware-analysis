@@ -5,12 +5,12 @@
   "year": 2024,
   "problem": "Floating-point multiplication in SRAM-based compute-in-memory architectures is energy-intensive, limiting efficient acceleration of FP DNNs. The mantissa multiplication operation requires efficient decomposition and acceleration of its sub-components.",
   "motivation": "Efficient floating-point DNN acceleration is critical for training and accurate inference, and SRAM-based CIM offers a practical, reliable, and scalable platform for this purpose.",
-  "method": "The paper decomposes FP mantissa multiplication into mantissa sub-addition (sub-ADD) and mantissa sub-multiplication (sub-MUL) operations. Observing that sub-ADD is lightweight but dominates FP products while sub-MUL is compute-intensive but rare, a hybrid-domain SRAM CIM macro is designed to handle mantissa sub-ADD in the digital domain (for accuracy) while accelerating mantissa sub-MUL using analog computing (for energy efficiency).",
-  "key_novelty": "Selective domain optimization leveraging the observation that mantissa addition dominates FP multiplication, enabling efficient use of digital domain for common operations and analog domain for rare expensive operations.",
+  "method": "The paper breaks floating-point multiplication into two operations: adding mantissas (the significant digits) and multiplying mantissas. It observes that mantissa addition happens frequently but is computationally simple, while mantissa multiplication happens rarely but is expensive. The system uses two different technologies: traditional digital circuits (which compute using 0s and 1s) handle the frequent mantissa additions accurately; analog circuits (which compute using continuous physical signals) handle the rare mantissa multiplications with far less energy. By matching each operation to the best technology for it, the system achieves both accuracy and energy efficiency.",
+  "key_novelty": "The key insight is that floating-point multiplication splits into frequent simple operations (adding mantissas) and rare expensive operations (multiplying mantissas), enabling you to optimize each separately using the right technology—digital circuits for the common operations and analog circuits for the expensive ones.",
   "contributions": [
     "Identifies that mantissa sub-addition accounts for the majority of FP products while sub-multiplication is compute-intensive but rare",
     "Proposes a hybrid-domain SRAM CIM architecture selectively combining digital and analog computing domains",
-    "Demonstrates 3\u00d7-3.6\u00d7 energy efficiency improvement in inference and 2.5\u00d7-3.1\u00d7 in training on MLPerf benchmarks",
+    "Demonstrates 3×-3.6× energy efficiency improvement in inference and 2.5×-3.1× in training on MLPerf benchmarks",
     "Achieves zero accuracy loss compared to baseline floating-point computation"
   ],
   "hardware_target": [
@@ -28,7 +28,7 @@
     "transformer"
   ],
   "metrics": {
-    "energy_efficiency": "3-3.6\u00d7 (inference), 2.5-3.1\u00d7 (training)",
+    "energy_efficiency": "3-3.6× (inference), 2.5-3.1× (training)",
     "accuracy": "no accuracy loss"
   },
   "baselines": [

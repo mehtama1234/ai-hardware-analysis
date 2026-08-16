@@ -4,13 +4,13 @@
   "venue": "FCCM",
   "problem": "Strided access patterns in matrix transposition severely degrade HBM bandwidth utilization, and saturating HBM bandwidth requires a large number of parallel accesses that complicate FPGA design.",
   "motivation": "Matrix transposition is fundamental to machine learning and scientific applications, and with HBM-enabled FPGAs increasingly deployed in data centers, achieving high bandwidth utilization is critical for performance.",
-  "method": "The design leverages on-chip SRAMs to reorganize data from HBM into optimal access patterns. A novel data layout inspired by Latin Squares stores matrix tiles in SRAM, paired with a customized scheduling strategy to eliminate bank conflicts. A fully pipelined architecture with multiple Processing Elements enables parallel HBM accesses with small strides.",
-  "key_novelty": "Latin Square-inspired SRAM data layout combined with customized scheduling to eliminate bank conflicts while maintaining small-stride HBM accesses.",
+  "method": "The design uses on-chip SRAM (fast memory built into the chip) to reorganize data from HBM into better access patterns. Matrix tiles are arranged using a Latin Square-inspired layout (a mathematical pattern where each value appears exactly once per row and column), with scheduling logic that prevents simultaneous accesses to the same memory bank. A fully pipelined architecture (where operations overlap to run concurrently) with multiple processing elements then reads from HBM in parallel using small strides (nearby memory addresses rather than scattered ones).",
+  "key_novelty": "The core idea pairs a Latin Square-inspired SRAM data layout with scheduling that eliminates bank conflicts (simultaneous accesses overloading the same memory section), while maintaining efficient small-stride HBM access (accessing nearby rather than scattered addresses).",
   "contributions": [
     "Achieves 415 GB/s matrix transposition throughput (90% of peak HBM bandwidth) on AMD Alveo U280",
     "Novel Latin Square-inspired SRAM data layout for efficient data reorganization",
     "Customized scheduling strategy eliminating SRAM bank conflicts",
-    "1.44\u00d7 higher HBM bandwidth utilization compared to state-of-the-art GPU implementations"
+    "1.44× higher HBM bandwidth utilization compared to state-of-the-art GPU implementations"
   ],
   "hardware_target": [
     "FPGA"
@@ -27,7 +27,7 @@
     "LLM-inference"
   ],
   "metrics": {
-    "speedup": "1.44\u00d7 higher bandwidth utilization vs GPU",
+    "speedup": "1.44× higher bandwidth utilization vs GPU",
     "other": "415 GB/s throughput (90% of peak bandwidth)"
   },
   "baselines": [

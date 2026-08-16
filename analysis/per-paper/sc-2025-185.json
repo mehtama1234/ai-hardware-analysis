@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Large model deployments face scalability challenges; MoE approaches suffer from computational overhead as expert counts grow",
   "motivation": "Enable efficient multi-task inference by combining parameter-efficient fine-tuning with sparse expert routing; reduce model footprint and computational cost",
-  "method": "Two-stage framework: (1) Independent training of tensor-trained low-rank adapters (TT-LoRA experts) specialized per task; (2) Sparse MoE router trained separately using base model representations to select exactly one adapter per input",
-  "key_novelty": "Structured decoupling of expert training from router training; tensor-train decomposition for compact expert representation; elimination of inter-task interference through adapter freezing",
+  "method": "The approach trains task-specific expert adapters using tensor-train decomposition (a compression technique that factorizes matrices into sequences of smaller operations), keeping each expert compact for efficient deployment. Then it trains a separate router that evaluates each input using base model representations and picks exactly one expert to apply, reducing computational overhead by only running the selected expert rather than combining multiple experts.",
+  "key_novelty": "It trains compact expert adapters using tensor-train compression, then trains a separate router to select which expert to use, while keeping the experts frozen so that different tasks don't interfere with each other's learned representations.",
   "contributions": [
     "Parameter-efficient expert adaptation using tensor-train decomposition",
     "Separate MoE router training eliminating catastrophic forgetting",
@@ -13,16 +13,38 @@
     "4% average improvement over AdapterFusion in multi-task setting",
     "Scalable multi-task inference framework"
   ],
-  "hardware_target": ["GPUs", "Multi-GPU Systems"],
-  "technique_category": ["Parameter-Efficient Fine-Tuning", "Mixture-of-Experts", "Model Compression", "Multi-Task Learning"],
-  "workloads": ["Multi-Task Inference", "LLM Adaptation"],
+  "hardware_target": [
+    "GPUs",
+    "Multi-GPU Systems"
+  ],
+  "technique_category": [
+    "Parameter-Efficient Fine-Tuning",
+    "Mixture-of-Experts",
+    "Model Compression",
+    "Multi-Task Learning"
+  ],
+  "workloads": [
+    "Multi-Task Inference",
+    "LLM Adaptation"
+  ],
   "metrics": {
     "parameter_efficiency": "2% of LoRA, 0.3% of Adapters, 0.03% of AdapterFusion",
     "accuracy_improvement": "4% over AdapterFusion"
   },
-  "baselines": ["LoRA", "Adapters", "AdapterFusion"],
+  "baselines": [
+    "LoRA",
+    "Adapters",
+    "AdapterFusion"
+  ],
   "limitations": "Abstract lacks details on specific benchmarks, absolute performance metrics, and computational cost comparison",
-  "tags": ["PEFT", "MoE", "multi-task-learning", "model-compression", "tensor-train", "LLM-inference"],
+  "tags": [
+    "PEFT",
+    "MoE",
+    "multi-task-learning",
+    "model-compression",
+    "tensor-train",
+    "LLM-inference"
+  ],
   "primary_theme": "model-compression",
   "confidence": "low"
 }

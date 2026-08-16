@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "Monolithic PIM architectures cannot scale to very large LLMs (70B+) due to single-die memory footprint limits; LLM inference is memory-bound, and PIM can provide high memory bandwidth but scaling via larger dies hits power/yield constraints.",
   "motivation": "LLMs are growing rapidly (Llama-70B+); monolithic PIM chips cannot accommodate the memory footprint, requiring chiplet-based multi-PIM scaling.",
-  "method": "Multi-chiplet HBM-PIM architecture (McPAL) that decomposes arbitrary unstructured sparse weight matrices into multiple irregular sparse vectors, then routes non-skipped computations via in-memory butterfly network to standard PIM arrays. Vertically scales via 3D-HBM hierarchy (minimizing long-distance data travel) and horizontally via 2.5D IO chiplet (reducing die-to-die traffic and balancing sparse workload).",
-  "key_novelty": "Hierarchical multi-chiplet PIM scaling with in-memory butterfly network for arbitrary unstructured sparsity, avoiding monolithic bottlenecks.",
+  "method": "McPAL breaks down sparse weight matrices (collections of numbers where most are zero, allowing skipped computations) into irregular sparse vectors, then routes active computations through an in-memory butterfly network (an efficient traffic-distribution circuit) connected to processing-in-memory arrays (chips that do calculations where the data is stored). It scales vertically by stacking memory chips in 3D-HBM to minimize data travel distance, and horizontally via a 2.5D IO chiplet that handles inter-chip connections, avoiding the power and yield constraints of a single massive die.",
+  "key_novelty": "Using an in-memory butterfly network (an efficient routing circuit) to route arbitrary sparse computations across multiple chiplets connected via stacked memory, avoiding monolithic die scaling limits.",
   "contributions": [
     "Multi-chiplet PIM architecture for LLM inference scaling",
     "In-memory butterfly network for unstructured sparse routing",
@@ -13,16 +13,36 @@
     "Horizontal 2.5D IO chiplet for balanced sparse workload distribution",
     "1.57–3.12× speedup over A100 GPU; 10.43–35.66× energy efficiency"
   ],
-  "hardware_target": ["PIM", "chiplet", "HBM"],
-  "technique_category": ["sparsity", "near-data-processing", "interconnect"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "PIM",
+    "chiplet",
+    "HBM"
+  ],
+  "technique_category": [
+    "sparsity",
+    "near-data-processing",
+    "interconnect"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "1.57–3.12× vs. A100",
     "energy_or_tops_w": "10.43–35.66× energy efficiency vs. A100"
   },
-  "baselines": ["Nvidia A100 GPU", "single-chiplet PIM", "SOTA PIM systems"],
+  "baselines": [
+    "Nvidia A100 GPU",
+    "single-chiplet PIM",
+    "SOTA PIM systems"
+  ],
   "limitations": "Evaluation limited to Llama models (7B–70B); applicability to dense or structured-sparse models not discussed; comparison with recent sparse inference accelerators (BitNet, etc.); multi-chiplet communication latency overhead not quantified.",
-  "tags": ["llm-inference", "pim-scaling", "multi-chiplet", "unstructured-sparsity", "energy-efficiency"],
+  "tags": [
+    "llm-inference",
+    "pim-scaling",
+    "multi-chiplet",
+    "unstructured-sparsity",
+    "energy-efficiency"
+  ],
   "primary_theme": "hierarchical multi-chiplet PIM with butterfly network for scalable sparse LLM inference",
   "confidence": "low"
 }

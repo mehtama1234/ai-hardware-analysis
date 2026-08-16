@@ -10,10 +10,10 @@ Mobile voice assistants require on-device AI inference with sub-100ms latency an
 Cloud-based voice assistants suffer from network latency and privacy concerns; edge inference on mobile devices requires low-power, real-time capable SoCs balancing compute for ML and traditional mobile workloads.
 
 ## Method
-BROCA implements a RISC-V SoC with specialized accelerators for speech processing (DSP-like vector units), low-latency AI inference (likely quantized transformer acceleration), and integrated audio I/O, optimized for the speech-to-speech latency critical to voice interaction.
+BROCA uses a RISC-V processor with dedicated hardware accelerators for two tasks: one processes speech using parallel vector calculations (like digital signal processors), and another runs compressed neural networks (quantized transformers) that handle language understanding and speech generation. By integrating everything on one chip, including audio connections, BROCA eliminates delays between receiving speech and producing a response.
 
 ## Key Novelty
-Low-power RISC-V SoC with integrated voice AI acceleration enabling real-time conversational agent inference on mobile devices.
+A low-power RISC-V chip that combines speech and language accelerators, allowing mobile phones to run voice assistants that respond in real-time.
 
 ## Contributions
 - RISC-V-based SoC for voice-interactive mobile AI

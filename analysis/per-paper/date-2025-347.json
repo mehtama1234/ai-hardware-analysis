@@ -4,8 +4,8 @@
   "venue": "DATE",
   "problem": "ReRAM-based PIM Transformer accelerators shift performance bottleneck from matrix multiplication to softmax computation; data sharding prevents global softmax normalization.",
   "motivation": "Transformer acceleration on processing-in-memory architectures requires addressing softmax as the limiting computation.",
-  "method": "Segmentation techniques applied within ReRAM-based PIM architecture improve softmax computation accuracy and throughput while maintaining precision.",
-  "key_novelty": "Segmentation-based softmax optimization specifically designed for ReRAM PIM accelerator constraints.",
+  "method": "ReRAM-PIM accelerators distribute data across separate memory banks to speed up matrix multiplications, but this creates a problem: softmax normally requires seeing all values at once to compute the correct normalization. The solution breaks softmax computation into independent segments that stay within each memory bank's local data, avoiding the need to copy values between banks. Each segment produces a localized result, then these are carefully recombined to match what a single global softmax would produce. This keeps computation close to the data, eliminating the expensive communication bottleneck that would otherwise appear when the real matrix-math bottleneck is solved.",
+  "key_novelty": "Instead of trying to compute softmax across all distributed data, segment it so each memory bank normalizes its own local portion independently, then merge the results—solving the data-movement bottleneck that ReRAM-PIM architectures create.",
   "contributions": [
     "SegTransformer ReRAM-based PIM accelerator design",
     "Segmentation technique for softmax enhancement",

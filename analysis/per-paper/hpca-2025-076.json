@@ -4,17 +4,24 @@
   "venue": "HPCA",
   "problem": "Early-stage heterogeneous SoC design space exploration tools (MultiAmdahl, Gables) only model minimum and maximum workload-level parallelism (WLP) extremes; they cannot model realistic mixed-application workloads where multiple independent multi-phase applications share an SoC's heterogeneous cores and accelerators.",
   "motivation": "Modern SoCs are designed for workloads—sets of concurrent applications—not single applications, so failing to account for realistic WLP during early design space exploration causes later-stage analysis to focus on suboptimal design points, wasting expensive engineering effort.",
-  "method": "HILP formulates SoC workload scheduling as a job-shop scheduling problem: a set of independent multi-phase applications with phase-level dependencies is to be scheduled across heterogeneous cores and accelerators. This is solved using an integer linear programming (ILP) solver to find a near-optimal schedule that minimizes total workload execution time subject to power and memory bandwidth constraints. The ILP captures the full continuum of WLP (not just extremes) and can be used to sweep large design spaces efficiently during early exploration.",
-  "key_novelty": "Modeling heterogeneous SoC workload scheduling as a job-shop scheduling ILP, enabling early-stage design space exploration that captures the full spectrum of workload-level parallelism rather than just min/max extremes.",
+  "method": "HILP schedules multiple independent applications—each with phases that must run in sequence—across a shared set of heterogeneous cores and accelerators, minimizing total execution time while respecting power and memory bandwidth constraints. To do this, it formulates the scheduling problem as a job-shop scheduling problem (where different types of work must be assigned to different types of machines) and solves it using integer linear programming, a mathematical technique that converts all constraints into equations and finds the best solution. This approach captures the full spectrum of how applications can run in parallel, not just the minimum and maximum extremes, making it suitable for exploring many different hardware configurations during early design.",
+  "key_novelty": "By formulating heterogeneous SoC workload scheduling as a job-shop scheduling problem (where different applications are assigned to different processor types) solved with integer linear programming, this work enables early exploration of the full spectrum of realistic parallelism instead of just the extreme cases.",
   "contributions": [
     "HILP: first early-stage DSE approach for heterogeneous SoCs that fully models workload-level parallelism",
     "Job-shop scheduling ILP formulation capturing phase-level dependencies across concurrent multi-phase applications",
     "Validation showing HILP recovers Amdahl's law, memory wall, and dark silicon effects",
     "Demonstration that modeling WLP is necessary to identify optimal design points in large heterogeneous SoC design spaces"
   ],
-  "hardware_target": ["SoC"],
-  "technique_category": ["scheduling", "parallelism"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "SoC"
+  ],
+  "technique_category": [
+    "scheduling",
+    "parallelism"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -22,9 +29,18 @@
     "accuracy": null,
     "other": "Validated against Amdahl's law, memory wall, and dark silicon; large design space sweep showing impact of WLP on optimal SoC configuration"
   },
-  "baselines": ["MultiAmdahl", "Gables"],
+  "baselines": [
+    "MultiAmdahl",
+    "Gables"
+  ],
   "limitations": "HILP relies on ILP solving which may not scale to extremely large SoC design spaces with many accelerator types; runtime overhead of the ILP solver is not quantified.",
-  "tags": ["soc-design-space", "workload-parallelism", "job-shop-scheduling", "ilp", "heterogeneous-soc"],
+  "tags": [
+    "soc-design-space",
+    "workload-parallelism",
+    "job-shop-scheduling",
+    "ilp",
+    "heterogeneous-soc"
+  ],
   "primary_theme": "workload-level parallelism modeling for heterogeneous SoC design space exploration",
   "confidence": "low"
 }

@@ -12,10 +12,10 @@ Transformer inference is memory-bound; DRAM bandwidth limits throughput, especia
 Activation sparsity in transformers is high but often unexploited in hardware; leveraging sparsity can reduce DRAM bandwidth requirements and improve inference efficiency.
 
 ## Method
-The accelerator uses bit-separable representation for sparse activations, compressing output activations to reduce DRAM traffic. It combines this with specialized access patterns optimizing for sparse memory reads/writes.
+When neural networks run inference (make predictions), many of the intermediate values they produce are zero or less important—this is called sparse activations. The accelerator stores these values using bit-separable encoding, which breaks numbers down to their individual bits so that zeros and small values take minimal space instead of full memory slots. It combines this with specialized memory access patterns designed to efficiently read and write these compressed values, which reduces the total amount of data traveling between the processor and main memory.
 
 ## Key Novelty
-Bit-separable sparse activation encoding reducing DRAM bandwidth for transformer inference.
+Using bit-separable encoding (breaking numbers into individual bits) for sparse activation values reduces the memory bandwidth that transformer inference requires.
 
 ## Contributions
 - Bit-separable encoding of sparse activations

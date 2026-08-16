@@ -4,23 +4,36 @@
   "venue": "CGO 2025",
   "problem": "C++ header inclusion significantly increases compilation time, but forward declarations have complex, non-obvious rules. Forward declaring methods and lambda-taking functions is impossible, limiting optimization opportunities.",
   "motivation": "C++ compilation time is critical bottleneck in development cycles, especially in large codebases. Reducing build time directly improves developer productivity across embedded and high-performance computing domains.",
-  "method": "Header Substitution automatically detects forward declaration opportunities to replace header includes. Uses LLVM-based tool Yalla to transform includes into forward declarations. For methods and lambda-parameter functions, introduces function wrappers as alternative approach, guided by profitability analysis.",
-  "key_novelty": "Automated detection of forward declaration opportunities with wrapper-based solutions for previously unhandleable cases (methods, lambdas).",
+  "method": "The tool automatically scans your code to identify places where you can replace header includes with forward declarations—instead of loading entire header files at compile time, forward declarations just tell the compiler what it needs to know. It uses LLVM, the compiler infrastructure, along with a specialized tool called Yalla to perform these transformations. For situations where normal forward declarations don't work—specifically class methods and functions that take lambda functions as parameters—the tool instead generates wrapper functions, simpler interfaces that achieve the same goal. The system uses profitability analysis to determine which transformations will meaningfully improve compilation speed, preventing unnecessary changes.",
+  "key_novelty": "It automatically transforms header includes into forward declarations, handling even the previously impossible cases—methods and lambda-parameter functions—with wrapper functions.",
   "contributions": [
     "Automatic forward declaration opportunity detection",
     "Function wrapper technique for methods and lambda-parameter functions",
     "Up to 24.5× speedup in C++ file compilation",
     "4.68× speedup in development cycle (edit-compile-run loop)"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["compiler"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "compiler"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": "24.5× file compilation, 4.68× development cycle"
   },
-  "baselines": ["Default compilation without optimizations", "Manual forward declarations"],
+  "baselines": [
+    "Default compilation without optimizations",
+    "Manual forward declarations"
+  ],
   "limitations": "Applicability to template-heavy modern C++ code not discussed; limitations of wrapper approach not detailed.",
-  "tags": ["c++", "compilation", "header-optimization", "forward-declaration", "developer-productivity"],
+  "tags": [
+    "c++",
+    "compilation",
+    "header-optimization",
+    "forward-declaration",
+    "developer-productivity"
+  ],
   "primary_theme": "Automated header substitution for faster C++ builds",
   "confidence": "low"
 }

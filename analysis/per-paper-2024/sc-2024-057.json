@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Multi-GPU embedding retrieval in recommendation systems uses collective communication that incurs overhead from data unpacking and rearrangement, limiting communication-computation overlap and smooth network usage.",
   "motivation": "Efficient multi-GPU embedding retrieval is critical for scaling deep learning recommendation inference.",
-  "method": "Replace NCCL collective communication calls with GPU PGAS-style one-sided asynchronous small messages. Implement a CUDA embedding retrieval backend for PyTorch. The asynchronous PGAS approach reduces synchronization overhead and data restructuring costs.",
-  "key_novelty": "Using PGAS one-sided asynchronous GPU communication to replace collective communication for multi-GPU embedding retrieval.",
+  "method": "Instead of NCCL collective communication (the standard synchronized approach where all GPUs coordinate and reshape data), they use PGAS-style one-sided asynchronous messages where each GPU directly sends data to others without waiting. They build this into a custom CUDA embedding retrieval backend for PyTorch. This asynchronous approach eliminates synchronization overhead (the cost of GPUs waiting) and data restructuring costs (rearranging data).",
+  "key_novelty": "Replace collective communication with PGAS-style one-sided asynchronous messaging (where each GPU directly sends data without waiting for coordination) for multi-GPU embedding retrieval.",
   "contributions": [
     "PGAS-style GPU communication approach for multi-GPU embedding retrieval",
     "CUDA/PyTorch backend implementation supporting PGAS communication scheme",

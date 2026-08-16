@@ -4,23 +4,40 @@
   "venue": "ASPLOS",
   "problem": "Serverless LLM inference suffers from excessive cold-start latency caused by three distinct loading stages: model weight loading to device memory, KV cache initialization (profiling and reserving memory), and CUDA graph capturing for different batch sizes—all of which must repeat on every cold start and negate serverless scalability benefits.",
   "motivation": "Serverless platforms promise scalable and cost-efficient model inference, but for LLMs the cold-start penalty is dominated by KV cache profiling and CUDA graph construction—overheads that are unique to LLM inference and not addressed by prior serverless optimization work.",
-  "method": "Medusa uses materialization: it pre-computes and persists the KV cache initialization state and the CUDA graphs for all relevant batch sizes as serialized artifacts on fast storage (materialized snapshots), so that cold starts bypass both stages entirely and load the pre-built state directly to the GPU. The system manages a catalog of materialized snapshots per model and batching configuration, and restores them during cold start with minimal deserialization overhead. The materialization is done offline or lazily on first warm start.",
-  "key_novelty": "Materializing both the KV cache initialization state and pre-built CUDA graphs as persistent snapshots to eliminate the two dominant LLM-specific cold-start overheads in serverless inference.",
+  "method": "Instead of repeating expensive setup work on every cold start, Medusa pre-computes and saves that work as materialized snapshots on disk. Specifically, it saves two things: the KV cache initialization state (memory pre-allocated and configured for inference) and CUDA graphs (pre-compiled GPU execution instructions for each batch size). When a cold start occurs, the system loads these saved snapshots directly into the GPU, skipping the expensive initialization and compilation steps that normally repeat every time. This pre-computation happens offline or on the first warm start, with minimal overhead to restore the saved state.",
+  "key_novelty": "Medusa's core idea is materializing the KV cache initialization state and CUDA graphs—storing pre-built copies on disk—so cold starts can reload them directly into the GPU instead of rebuilding them each time.",
   "contributions": [
     "Identification and characterization of KV cache initialization and CUDA graph capturing as the dominant LLM cold-start overheads in serverless settings",
     "Medusa materialization framework that pre-computes and persists these states as reusable snapshots",
     "Snapshot management system for catalog, versioning, and fast restore to GPU memory",
     "Significant reduction in LLM cold-start latency enabling practical serverless LLM serving"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["memory-system", "scheduling", "virtualization"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "scheduling",
+    "virtualization"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "other": "significant cold-start latency reduction for LLM serverless inference (exact numbers not available from abstract)"
   },
-  "baselines": ["standard serverless LLM inference without materialization"],
+  "baselines": [
+    "standard serverless LLM inference without materialization"
+  ],
   "limitations": "Materialized snapshots may not be reusable across different hardware configurations or driver versions; storage cost of snapshots not fully discussed.",
-  "tags": ["serverless", "llm-inference", "cold-start", "cuda-graphs", "kv-cache", "materialization"],
+  "tags": [
+    "serverless",
+    "llm-inference",
+    "cold-start",
+    "cuda-graphs",
+    "kv-cache",
+    "materialization"
+  ],
   "primary_theme": "Materialization of LLM inference state to eliminate serverless cold-start latency",
   "confidence": "low"
 }

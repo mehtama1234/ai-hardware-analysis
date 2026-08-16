@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Traditional AI accelerators rely on fixed-size matrix multiplications, limiting efficiency for diverse tensor operations. Exploiting data locality and parallelism in tensor contractions with varying shapes requires flexible hardware-compiler co-design.",
   "motivation": "Efficiently executing tensor contractions is critical for AI workload performance and power efficiency in production inference systems.",
-  "method": "TCP uses coarse-grained processing elements configurable as a single unit or independent compute units depending on tensor shapes. A circuit switch-based fetch network enables inter-compute unit data reuse, while input broadcast and buffer-based mechanisms maximize intra-unit reuse. The accompanying compiler explores the design space by co-optimizing tensor shapes, loop operation ordering, and hardware architecture.",
-  "key_novelty": "Circuit switch-based fetch network that enables flexible, dynamic data routing for efficient inter-compute unit data reuse in tensor contractions.",
+  "method": "TCP has processing elements (basic compute units) that can combine into a single larger unit or operate independently, depending on the tensor shapes being processed. A circuit switch-based fetch network (a data-routing system similar to a telephone switch) enables data to be reused between different compute units, while input broadcast and buffers (temporary storage) maximize data reuse within individual units. The compiler automatically explores different configurations—adjusting tensor shapes, the order of operations, and hardware settings—to find the fastest combination for each workload.",
+  "key_novelty": "The key innovation is a circuit switch-based fetch network (a flexible data-routing system, like a telephone switch) that enables compute units to reuse data from each other when processing tensor contractions (matrix-like operations on multi-dimensional arrays).",
   "contributions": [
     "Tensor contraction processor architecture explicitly designed to exploit parallelism and data locality in AI workloads",
     "Flexible processing elements reconfigurable between single-unit and multi-unit compute modes based on operation requirements",
@@ -29,7 +29,7 @@
     "transformer"
   ],
   "metrics": {
-    "speedup": "2.7\u00d7 vs H100 and 4.1\u00d7 vs L40s on performance-per-watt",
+    "speedup": "2.7× vs H100 and 4.1× vs L40s on performance-per-watt",
     "other": "256/512/1024 TOPS (BF16/FP8/INT8 or INT4); 256 MB SRAM, 1.5 TB/s HBM3, 150W TDP"
   },
   "baselines": [

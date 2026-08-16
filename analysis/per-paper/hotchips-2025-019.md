@@ -12,10 +12,10 @@ Data center performance bottleneck has shifted from computation to memory bandwi
 AI workloads (especially LLMs) are fundamentally memory-bound; improving memory subsystem throughput directly improves end-to-end system performance.
 
 ## Method
-The work proposes architectural innovations in memory hierarchy, bandwidth, and interconnect design. Likely includes advanced memory technologies (HBM, 3D stacking), new interconnect protocols, and memory-compute co-design.
+The system uses three techniques. First, it redesigns memory organization and uses high-bandwidth memory (HBM) with vertically stacked chips (3D stacking) to dramatically increase how much data can flow between memory and processors per second. Second, it creates faster communication pathways between memory and compute units by redesigning the wiring and protocols that connect them. Third, it designs memory and processors as one integrated system rather than independent components, so they can optimize for each other's needs.
 
 ## Key Novelty
-Reframing data center architecture around memory as the primary performance lever, with compute secondary.
+Instead of focusing on making processors faster, the work identifies memory bandwidth as what actually limits data center performance, and redesigns the entire system around fixing that bottleneck.
 
 ## Contributions
 - Memory bandwidth architecture innovations for AI workloads

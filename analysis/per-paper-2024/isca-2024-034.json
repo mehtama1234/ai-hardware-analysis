@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Memory copy operations incur significant CPU overhead due to cache misses that stall the CPU in the critical path. This overhead is especially severe when copied data is sparsely accessed.",
   "motivation": "Memory copy is ubiquitous in systems like Protobuf serialization and OS copy-on-write, and reducing its overhead can substantially improve overall performance.",
-  "method": "The system defers actual copying at memcpy invocation and tracks prospective copies at the memory controller level. When copied data is accessed by the CPU or cache, the memory controller uses this tracking information to lazily execute the copy. Implementation includes memory controller extensions, a new ISA instruction, and a software wrapper maintaining standard memcpy semantics.",
-  "key_novelty": "Placing lazy memcpy at the memory controller to intercept cache misses and asynchronously perform copies on-demand, eliminating CPU stalls as the primary memcpy overhead source.",
+  "method": "When `memcpy` is called, the system does not actually copy the data right away. Instead, it stores a note at the memory controller (the hardware that manages data flow between CPU and main memory) about what data should be copied. Later, when the CPU or cache tries to access that data, the memory controller intercepts the access and performs the copy at that moment. To implement this, the researchers added hardware extensions to the memory controller, introduced a new CPU instruction, and created a software wrapper that makes this deferred approach work exactly like a normal `memcpy` call.",
+  "key_novelty": "Instead of copying data immediately when `memcpy` is called (causing CPU stalls), the memory controller defers the copy until the data is accessed, eliminating the main source of overhead.",
   "contributions": [
     "Lazy memcpy mechanism that defers copying until data access, reducing CPU overhead for sparsely accessed copies",
     "Memory controller extensions to track and asynchronously execute prospective copies",

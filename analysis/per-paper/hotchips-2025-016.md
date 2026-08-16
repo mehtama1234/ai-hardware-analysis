@@ -12,10 +12,10 @@ Running billion-parameter LLMs on edge devices requires extreme power efficiency
 On-device LLM inference enables privacy, low-latency response, and reduced cloud costs, but power consumption is the primary bottleneck.
 
 ## Method
-The processor uses binary and ternary weight quantization (extreme 1-2 bit precision) combined with specialized compute units optimized for low-precision arithmetic. Custom dataflow exploits weight sparsity patterns from quantization, reducing memory bandwidth and computation.
+The processor reduces each neural network weight from 32 bits down to just 1-2 bits—this extreme quantization lets you store many more weights in the same memory. It then runs calculations on these tiny numbers using specialized hardware circuits designed for speed and efficiency. When quantized weights become zero, the custom dataflow automatically skips them, avoiding wasted memory access and computation.
 
 ## Key Novelty
-Sub-5mW inference of Llama models through extreme quantization (binary/ternary) paired with hardware acceleration for ultra-low-precision matrix operations.
+Running billion-parameter Llama models using 4.69 milliwatts by shrinking weights to 1-2 bits and using hardware built specifically for calculations on these tiny numbers.
 
 ## Contributions
 - Hardware design achieving 4.69mW for billion-parameter LLM inference

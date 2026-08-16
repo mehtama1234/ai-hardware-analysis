@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Leveraging half-precision (fp16) arithmetic in iterative sparse linear solvers is challenging despite the bandwidth and performance benefits it offers.",
   "motivation": "Half-precision arithmetic enables significant bandwidth and compute efficiency gains, but low-precision solvers suffer convergence issues; mixed-precision strategies remain underdeveloped for fp16.",
-  "method": "Nested Krylov approach integrating FGMRES and Richardson methods in deeply nested structure with progressive precision reduction (double → fp16). Low-precision inner solvers perform limited iterations but execute frequently; nested structure ensures convergence.",
-  "key_novelty": "First nested Krylov method effectively leveraging fp16 by limiting inner solver iterations to avoid precision limits while maintaining convergence via nested structure.",
+  "method": "The method combines two iterative algorithms—FGMRES and Richardson—in a nested structure where the outer solver repeatedly uses the inner solver as part of its calculations. It starts with high-precision (64-bit) arithmetic and progressively reduces to half-precision (16-bit) arithmetic as it goes deeper into the nesting, gaining speed and reducing memory use. The inner solver runs for only a limited number of iterations each time—just enough to improve the solution without the rounding errors that normally break low-precision calculations. Since the inner solver repeats many times within the outer solver's work, these small improvements compound, and the nested feedback ensures the overall answer converges correctly.",
+  "key_novelty": "This is the first nested solver to effectively use half-precision arithmetic—it keeps the low-precision inner solver's iterations deliberately limited so they don't accumulate rounding errors, while the nested repetition ensures the overall solution still converges correctly.",
   "contributions": [
     "Nested Krylov-Richardson framework with progressive precision reduction",
     "1.65x speedup over double-precision FGMRES",

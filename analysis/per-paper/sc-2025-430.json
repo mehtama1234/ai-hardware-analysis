@@ -4,13 +4,13 @@
   "venue": "SC",
   "problem": "Foundation models fine-tuned on dense weights don't benefit from sparse pre-training; dense fine-tuning negates sparsity savings, requiring full-precision inference despite underlying sparse structure.",
   "motivation": "Downstream task adaptation (fine-tuning) on sparse pre-trained models should preserve sparsity to reduce inference cost; Cerebras wafer-scale engine efficiently handles unstructured sparsity.",
-  "method": "Phoenix merges sparse pre-trained weights with low-rank adapters during fine-tuning. Preserves sparsity structure while adapting to downstream tasks. Leverages Cerebras CS-2 unstructured sparsity support for efficient inference.",
-  "key_novelty": "First method to maintain sparsity during fine-tuning via sparse-weight + low-rank adapter merging; enables 50\u201360% sparsity on Cerebras without accuracy loss.",
+  "method": "Phoenix works by keeping the original sparse pre-trained weights (with many zeros placed strategically) and adding small task-specific layers called low-rank adapters on top during fine-tuning. Instead of retraining all the original weights and filling in the zeros, only these small adapters are updated, which preserves the sparsity pattern throughout. The approach takes advantage of Cerebras CS-2 hardware, which efficiently handles unstructured sparsity—weights that can be zero in any irregular pattern, not just regular grids—to make inference fast without computing through the zero values.",
+  "key_novelty": "This is the first method to maintain weight sparsity during fine-tuning by combining sparse pre-trained weights with low-rank adapters, enabling 50–60% sparsity on Cerebras without accuracy loss.",
   "contributions": [
     "Sparse weight + low-rank adapter merging for sparsity-preserving fine-tuning",
     "Demonstrated unstructured sparse inference on Cerebras CS-2",
-    "Near 2\u00d7 FLOP reduction at 50\u201360% sparsity with maintained accuracy",
-    "1.7\u00d7 inference throughput improvement vs A100 GPU"
+    "Near 2× FLOP reduction at 50–60% sparsity with maintained accuracy",
+    "1.7× inference throughput improvement vs A100 GPU"
   ],
   "hardware_target": [
     "Cerebras CS-2 (wafer-scale engine)",
@@ -27,9 +27,9 @@
     "downstream task adaptation"
   ],
   "metrics": {
-    "sparsity_level": "50\u201360%",
-    "flop_reduction": "near 2\u00d7",
-    "throughput_vs_a100": "1.7\u00d7",
+    "sparsity_level": "50–60%",
+    "flop_reduction": "near 2×",
+    "throughput_vs_a100": "1.7×",
     "accuracy": "comparable to dense baseline"
   },
   "baselines": [

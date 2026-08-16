@@ -4,25 +4,42 @@
   "venue": "DAC",
   "problem": "Modern GPU sub-core partitioning reduces power and area but prevents task distribution across sub-cores; functional units (FUs) frequently stall waiting for results while adjacent sub-cores have unoccupied FUs, wasting compute capacity.",
   "motivation": "Sub-core partitioning is ubiquitous for power reduction in GPUs, but this design creates an efficiency ceiling by preventing cross-sub-core resource utilization under workload imbalance.",
-  "method": "ACRS framework enables dynamic sharing of functional units among adjacent sub-cores through two modules: Shared FU Issue (SF_ISSUE) monitors operand collector and FU status, offloading stalled instructions to unoccupied FUs in adjacent sub-cores; Shared FU Write Back (SF_WriteBack) routes results back. Fixed target core assignment minimizes wiring overhead.",
-  "key_novelty": "First practical adjacent sub-core FU sharing mechanism for partitioned GPUs using dynamic instruction offloading and result routing.",
+  "method": "When one sub-core has an instruction stuck waiting for data, ACRS borrows an idle functional unit from an adjacent sub-core to run it instead. The first module (SF_ISSUE) detects stuck instructions and idle neighboring units, then sends the instruction across; the second module (SF_WriteBack) sends the result back. By always targeting the same adjacent sub-core, ACRS avoids expensive rewiring.",
+  "key_novelty": "ACRS dynamically shares functional units among adjacent sub-cores in partitioned GPUs by offloading instructions waiting for data to idle neighbors.",
   "contributions": [
     "Identification of cross-sub-core FU availability during operand collector blockages",
     "Dynamic instruction offloading framework with matching policies",
     "Result routing mechanism with fixed target core to minimize wiring",
     "46.4% maximum performance improvement, 14.1% average, 8.3% energy reduction"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["parallelism", "circuit-design"],
-  "workloads": ["CNN", "transformer"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "parallelism",
+    "circuit-design"
+  ],
+  "workloads": [
+    "CNN",
+    "transformer"
+  ],
   "metrics": {
     "speedup": "14.1% average, up to 46.4% maximum",
     "energy": "8.3% reduction",
     "sota_improvement": "12.3% vs. SOTA method"
   },
-  "baselines": ["traditional partitioned GPU architecture", "SOTA resource sharing methods"],
+  "baselines": [
+    "traditional partitioned GPU architecture",
+    "SOTA resource sharing methods"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["gpu-architecture", "sub-core-partitioning", "resource-sharing", "functional-units", "power-efficiency"],
+  "tags": [
+    "gpu-architecture",
+    "sub-core-partitioning",
+    "resource-sharing",
+    "functional-units",
+    "power-efficiency"
+  ],
   "primary_theme": "Dynamic cross-sub-core functional unit sharing in partitioned GPUs",
   "confidence": "low"
 }

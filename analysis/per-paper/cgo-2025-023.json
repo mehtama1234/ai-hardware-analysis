@@ -3,8 +3,8 @@
   "venue": "CGO",
   "problem": "Modern LLMs require optimal GEMM performance on diverse GPUs; existing CUTLASS and cuBLAS libraries offer tuning but lack systematic exploration of LLM-specific parameters and multi-GPU optimization strategies.",
   "motivation": "GEMM is the bottleneck in LLM inference; finding optimal CUDA library mapping (CUTLASS vs cuBLAS) and kernels across LLMs and GPU types requires systematic search.",
-  "method": "CUrator generates CUTLASS/cuBLAS-friendly TVM graph IRs for LLMs (BERT, GPT, Llama), performs comprehensive CUTLASS tuning parameter search for each GEMM, introduces Split-K optimizations (reduction key init, batch support), and selects best cuBLAS/CUTLASS path per GEMM.",
-  "key_novelty": "Systematic CUTLASS parameter tuning integrated into TVM with Split-K support for both Batch and regular GEMMs, combined with dual-path selection (cuBLAS vs CUTLASS).",
+  "method": "CUrator takes LLM models (BERT, GPT, Llama) and converts them into a form that can be optimized using TVM, a compiler framework. It systematically tests configuration options for CUTLASS (NVIDIA's optimized matrix multiplication library) to find the best settings for each operation. To improve performance, it applies Split-K optimization (a technique for breaking matrix operations into smaller parallel pieces that efficiently combine their results, with special support for batch operations). Finally, it selects the faster option between cuBLAS and CUTLASS for each operation.",
+  "key_novelty": "CUrator systematically tunes CUTLASS within TVM (a compiler framework) and selects the faster library between CUTLASS and cuBLAS for each operation, with extended Split-K support for both batch and regular multiplications.",
   "contributions": [
     "CUTLASS/cuBLAS mapping to TVM graph IRs for multiple LLMs",
     "Comprehensive CUTLASS kernel tuning framework",

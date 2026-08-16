@@ -4,8 +4,8 @@
   "venue": "MLSys 2025",
   "problem": "SwiGLU-based LLM MLP layers on mobile devices are memory-bandwidth bound, with all weight matrices (up, gate, down projections) fully loaded from DRAM for every token, causing excessive energy consumption and low throughput.",
   "motivation": "Mobile devices (Apple A18, Snapdragon) have limited DRAM bandwidth (60 GB/s) and high DRAM energy cost. If input activation sparsity can be predicted and exploited to skip loading irrelevant weight columns at runtime, DRAM traffic and latency can be reduced substantially without accuracy loss.",
-  "method": "Dynamic Input Pruning (DIP) applies predictor-free top-K selection on MLP input activation magnitudes, selecting only the K largest input elements and pruning corresponding columns of the up, gate, and down projection matrices. No separate predictor network is needed. LoRA adapters can be added for fine-tuning recovery. DIP-CA (cache-aware variant) uses a gamma multiplier (gamma=0.2) to bias selection toward cached weight columns, reducing DRAM refetch. Evaluated via simulation of Apple A18 (60 GB/s DRAM, 1 GB/s Flash) on Phi-3-Medium, LLaMA models.",
-  "key_novelty": "Predictor-free input-magnitude-based dynamic pruning of all three SwiGLU MLP matrices simultaneously, with a cache-aware variant (DIP-CA) that coordinates column selection with hardware memory hierarchy to maximize DRAM reduction.",
+  "method": "Dynamic Input Pruning (DIP) saves DRAM bandwidth by selecting only the K largest input values entering the MLP layer—a process called top-K selection based on input magnitude (the size of the numbers)—and ignoring the rest, which means you don't need to load weight columns for inputs you're skipping. Instead of using a separate predictor network to decide what to keep, DIP simply looks at input magnitudes directly. A cache-aware variant called DIP-CA goes further: it uses a gamma multiplier (gamma=0.2) to prefer keeping weight columns that are already in the device's fast cache, reducing how often the device needs to fetch data from DRAM. Testing on Apple A18 processors (60 GB/s DRAM, 1 GB/s Flash) with Phi-3-Medium and LLaMA models showed the approach works, and LoRA fine-tuning can recover any accuracy lost.",
+  "key_novelty": "Predictor-free pruning based on input magnitude (the size of incoming values) that simultaneously removes weights from all three MLP matrices, plus a cache-aware variant (DIP-CA) that prioritizes keeping already-cached weights to reduce DRAM fetches.",
   "contributions": [
     "Predictor-free top-K input magnitude selection for SwiGLU MLP pruning",
     "Simultaneous pruning of up, gate, and down projection matrices",
@@ -15,9 +15,19 @@
     "<0.1 perplexity increase at optimal sparsity",
     "Apple A18 simulation framework (60 GB/s DRAM, 1 GB/s Flash)"
   ],
-  "hardware_target": ["SoC", "NPU", "mobile"],
-  "technique_category": ["pruning", "memory-system", "sparsity"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "SoC",
+    "NPU",
+    "mobile"
+  ],
+  "technique_category": [
+    "pruning",
+    "memory-system",
+    "sparsity"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "40% throughput increase on Phi-3-Medium on Apple A18 simulation",
     "energy_or_tops_w": null,
@@ -26,14 +36,29 @@
     "accuracy": "<0.1 perplexity increase at optimal sparsity ratio",
     "other": "46% DRAM reduction; evaluated on Apple A18 simulation (60 GB/s DRAM, 1 GB/s Flash)"
   },
-  "baselines": ["Dense SwiGLU inference (no pruning)", "Predictor-based dynamic sparsity (e.g., DejaVu)", "Static pruning approaches"],
+  "baselines": [
+    "Dense SwiGLU inference (no pruning)",
+    "Predictor-based dynamic sparsity (e.g., DejaVu)",
+    "Static pruning approaches"
+  ],
   "limitations": [
     "Simulation-based evaluation; real hardware results not reported",
     "Accuracy-efficiency tradeoff depends on sparsity ratio and model",
     "DIP-CA benefit depends on cache hit rate and memory access patterns",
     "Currently evaluated on SwiGLU architecture only; does not extend to attention layers"
   ],
-  "tags": ["dynamic-pruning", "SwiGLU", "mobile-inference", "DRAM-reduction", "activation-sparsity", "cache-aware", "LoRA", "Phi-3", "on-device-LLM", "Apple-A18"],
+  "tags": [
+    "dynamic-pruning",
+    "SwiGLU",
+    "mobile-inference",
+    "DRAM-reduction",
+    "activation-sparsity",
+    "cache-aware",
+    "LoRA",
+    "Phi-3",
+    "on-device-LLM",
+    "Apple-A18"
+  ],
   "primary_theme": "inference-efficiency",
   "confidence": "high"
 }

@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "GPUs need to access storage systems (SSDs) for larger datasets, but existing mechanisms either use host CPUs as intermediaries (Dragon, HMM) which perform poorly and cannot meet GPU throughput needs, or directly access SSDs through NVMe (BaM) which forgo the lower latencies possible with host memory as an intermediate tier.",
   "motivation": "As the demand for processing larger datasets increases, GPUs require efficient access to storage capacity beyond their local memory hierarchy.",
-  "method": "GMT implements a GPU-orchestrated 3-tier memory hierarchy comprising GPU memory, host memory, and SSDs, where the GPU orchestrates bandwidth/latency-sensitive transfers. The system employs a reuse-prediction based insertion policy to perform discretionary page placement and bypass, avoiding blind transfers of all pages to host memory upon eviction.",
-  "key_novelty": "GPU-orchestrated memory tiering that places control at the GPU rather than the host CPU, enabling efficient multi-tier memory access.",
+  "method": "GMT creates a three-tier memory system with GPU memory, host memory, and SSDs. Unlike previous systems where the host CPU manages data movement (which becomes a bottleneck), GMT lets the GPU itself orchestrate when and where data moves between tiers. The system uses reuse prediction—anticipating which data pages will be used again soon—to decide which pages deserve faster host memory, while leaving others on SSD to avoid wastefully moving everything through host memory.",
+  "key_novelty": "The GPU directly orchestrates memory tiering across its own memory, host memory, and SSDs, rather than relying on the host CPU to manage these transfers.",
   "contributions": [
     "Design and implementation of GPU-orchestrated 3-tier memory hierarchy (GPU memory, host memory, SSDs)",
     "Reuse-prediction based insertion policy for smart page placement and bypass decisions",

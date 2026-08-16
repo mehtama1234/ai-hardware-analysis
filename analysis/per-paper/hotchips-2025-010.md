@@ -10,10 +10,10 @@ HPC and AI workloads require massive parallelism with energy efficiency; PEZY-SC
 Scaling compute to exascale requires energy-efficient processors balancing flexible compute with specialized throughput; many-core architectures provide high FLOPS/watt and software flexibility vs. specialized accelerators.
 
 ## Method
-PEZY-SC4s integrates hundreds of identical cores in an MIMD (multiple-instruction multiple-data) architecture with high memory bandwidth, cache coherence, and flexible interconnect enabling both traditional HPC algorithms and AI workloads.
+The PEZY-SC4s packs hundreds of identical processing cores that can each run different instructions on different data simultaneously (MIMD). Each core connects to a high-speed memory system that can move data in and out quickly, and they use cache coherence (a system to keep shared data consistent when multiple cores access the same data). The connections between cores are flexible, allowing the same hardware to run either traditional scientific computing algorithms or AI workloads.
 
 ## Key Novelty
-Fourth-generation MIMD many-core processor balancing flexibility and energy efficiency for both HPC and generative AI workloads.
+A many-core MIMD processor (where each core runs different instructions on different data) that balances flexibility and energy efficiency to handle both scientific computing and AI workloads.
 
 ## Contributions
 - Fourth-generation many-core processor with improved core count and cache

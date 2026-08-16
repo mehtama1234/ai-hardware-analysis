@@ -12,10 +12,10 @@ Data center cooling consumes significant power and space; traditional liquid and
 Power density of AI accelerators (TPUs, GPUs, specialized ASICs) has increased dramatically, requiring innovative thermal management to avoid cooling cost becoming dominant data center expense.
 
 ## Method
-ECAM (Electrochemical Additive Manufacturing) enables precise 3D manufacturing of custom copper cooling structures. These structures provide direct chip-to-liquid cooling with optimized heat transfer paths and minimal pressure drop.
+Electrochemical additive manufacturing (ECAM—a type of 3D printing) produces custom-shaped copper structures that attach directly to computer chips. Liquid coolant flows through these structures, absorbing heat at the source. The structures are designed to transfer heat efficiently while keeping pressure drop minimal, so the coolant moves freely.
 
 ## Key Novelty
-ECAM-enabled direct-contact cooling providing superior thermal performance through custom-designed heat transfer geometries.
+Using electrochemical 3D printing to create custom-shaped copper cooling structures that attach directly to chips for optimized heat transfer.
 
 ## Contributions
 - Electrochemical additive manufacturing for cooling structure fabrication

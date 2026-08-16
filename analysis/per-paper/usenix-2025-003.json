@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Production T2I services struggle to efficiently serve diffusion models augmented with many ControlNet and LoRA adapters, where ControlNets introduce significant compute overhead while LoRAs are bottlenecked by loading latency.",
   "motivation": "Efficient multi-adapter diffusion model serving is critical for scalable production cloud services that need to support diverse image generation controls.",
-  "method": "KATZ decouples ControlNets from the base model and deploys them as an independent, independently-scalable service on dedicated GPUs for caching and sharing. It employs bounded asynchronous loading to overlap LoRA loading with base model execution by a maximum of K steps while maintaining image quality. The system further accelerates base model execution across multiple GPUs using latent parallelism.",
-  "key_novelty": "Removing ControlNets from the critical path by deploying them as an independently scalable microservice on dedicated GPUs.",
+  "method": "KATZ separates ControlNets (specialized networks that guide image generation) from the main model and runs them on dedicated GPUs where results can be cached and reused across requests. For LoRA adapters (lightweight model customizations), it loads them in the background while the base model executes, overlapping up to K steps of computation with loading time without losing image quality. The base model runs faster across multiple GPUs using latent parallelism—processing different parts of the image's compressed representation simultaneously.",
+  "key_novelty": "KATZ removes ControlNets (image-guidance networks) from the main computation pipeline by running them on dedicated GPUs as an independent, separately scalable service.",
   "contributions": [
     "ControlNet-as-a-Service architecture enabling decoupled, independently scalable ControlNet deployment",
     "Bounded asynchronous LoRA loading that overlaps loading with base model execution while preserving image quality",

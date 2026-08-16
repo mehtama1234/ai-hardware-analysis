@@ -4,8 +4,8 @@
   "venue": "MLSYS 2025",
   "problem": "ML frameworks (PyTorch, TensorFlow, JAX, MXNet) ship highly bloated shared libraries with large amounts of unused GPU and CPU code, wasting memory, increasing load times, and degrading performance.",
   "motivation": "Software bloat in ML systems has been overlooked compared to general software. GPU code bloat is a primary contributor that existing debloating tools ignore. The hardware-architecture mismatch (code compiled for many GPU architectures but only one used at runtime) is the root cause.",
-  "method": "Negativa-ML hooks the CUDA cuModuleGetFunction API to detect which GPU kernel functions are actually called at runtime per workload. GPU code is localized at the cubin (binary) and element (function) granularity. CPU code analysis uses existing call-graph techniques. Unused GPU cubins and functions are removed from the shared libraries. Evaluated across 4 ML frameworks, 10 workloads, and 300+ shared libraries.",
-  "key_novelty": "First tool to identify and remove GPU code bloat from ML shared libraries using cuModuleGetFunction hook for runtime kernel detection, revealing that GPU code is the primary source of bloat and hardware-architecture mismatch is its root cause.",
+  "method": "Negativa-ML hooks into CUDA's cuModuleGetFunction API—a checkpoint where GPU kernels load before execution—to detect which GPU functions actually run on each workload. It removes bloat at two levels: individual functions and entire cubin files (compiled GPU binaries). CPU code bloat is identified using standard call-graph analysis. The method was tested on 4 ML frameworks (PyTorch, TensorFlow, JAX, MXNet), 10 real workloads, and 300+ shared libraries.",
+  "key_novelty": "This is the first tool to locate and remove GPU code bloat from ML libraries by observing which kernels are actually used, revealing that GPU waste (not CPU waste) is the primary source of bloat due to hardware-architecture mismatch.",
   "contributions": [
     "Negativa-ML: novel tool detecting and removing bloat from GPU and CPU code in ML shared libraries",
     "cuModuleGetFunction hook technique for runtime GPU kernel usage detection",

@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Efficient synchronization of memory mapping information across processes is costly, particularly in fault-driven memory mapping models where page table walks and updates are expensive. This is critical for disaggregated and heterogeneous systems.",
   "motivation": "As systems evolve toward greater resource disaggregation and heterogeneity, shared memory export between processes requires costly page table operations. Current approaches like XPMEM incur significant overhead when establishing shared mappings.",
-  "method": "The paper implements an XPMEM-inspired shared-memory driver with three key optimizations: (1) parallel batched on-demand pinning, (2) bypassing unnecessary cache-policy lookups in PFN mapping, and (3) dynamic re-registration to expand registered regions without tearing down existing mappings.",
-  "key_novelty": "Combination of parallel batched pinning operations with dynamic re-registration that preserves mapping state, reducing redundant translation work and enabling scalable memory sharing without full remapping.",
+  "method": "The system implements a shared-memory driver inspired by XPMEM. It batches and parallelizes pinning operations (locking memory pages in place) instead of handling them one at a time, reducing synchronization overhead. When mapping to physical frame numbers—the actual memory addresses—it skips unnecessary cache-policy lookups. Through dynamic re-registration, it can expand the registered memory region without resetting existing mappings.",
+  "key_novelty": "The key idea is combining parallel batched pinning (locking multiple memory pages together) with dynamic re-registration that preserves existing mappings, which eliminates redundant translation work and enables memory sharing to scale efficiently.",
   "contributions": [
     "13.22x reduction in cold-start memory copy over XPMEM in multi-process workloads",
     "Techniques for avoiding redundant translation work in memory mapping",

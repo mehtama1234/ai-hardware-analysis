@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "INT4 quantization limited by outliers (high-magnitude values); existing outlier-aware compression adds complex serialization/deserialization logic that dominates execution time, reducing speedup.",
   "motivation": "Sub-INT8 quantization is necessary for model compression on edge hardware; but outlier handling complexity negates speedup gains.",
-  "method": "Bit-slicing framework exploiting outlier-precision separation: outliers retain higher precision (INT8), normal values use INT4; interleaved bit-level storage exposes sparsity in high-precision components, enabling adaptive dataflow with minimal serialization overhead.",
-  "key_novelty": "Bit-slicing mixed-precision architecture that decouples outlier/normal pathways to eliminate serialization bottleneck.",
+  "method": "The framework uses bit-slicing (storing each number as separate groups of individual bits) to handle outliers and normal values with different precision levels. Outliers—the rare, high-magnitude values—keep 8-bit precision, while regular values compress into 4-bit integers. By arranging these bits in an interleaved pattern, the system finds empty spaces (sparsity) in the high-precision sections, enabling the processor to optimize how data flows without expensive packing and unpacking. This avoids the serialization bottleneck that made previous outlier-aware compression methods impractical.",
+  "key_novelty": "The core idea is using bit-slicing to separate outliers and normal values into different precision levels, eliminating the serialization work that slowed previous methods.",
   "contributions": [
     "Bit-slice framework for mixed-precision DNN acceleration",
     "Structured sparsity exploitation in interleaved INT4/INT8 values",

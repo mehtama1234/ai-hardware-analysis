@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Static dependence analysis is imprecise for compiler optimizations like vectorization. Loop versioning is loop-centric and ineffective for non-loop optimizations such as superword-level parallelism (SLP) vectorization.",
   "motivation": "Improving compiler optimization effectiveness through more precise runtime dependency analysis beyond existing loop-centric versioning techniques.",
-  "method": "The framework allows client optimizations to specify groups of instructions or loops whose independence is desired but unprovable statically. The system duplicates these instructions and guards originals with runtime checks to guarantee independence; if checks fail, duplicated instructions execute instead. The approach is general-purpose and not tied to specific optimizations.",
-  "key_novelty": "Fine-grained program versioning framework that extends beyond loop-level versioning to enable runtime dependency verification for arbitrary code regions and instructions.",
+  "method": "The framework lets code optimizations specify which instructions or code regions they want to run in parallel, even when static analysis can't prove they're independent (don't interfere). It creates two versions: an optimized version assuming independence, and a safe version that runs sequentially. At runtime, it checks whether the independence assumption actually holds—if yes, it runs the optimized version; if no, it runs the safe version instead. This works for any code, not just loops.",
+  "key_novelty": "Program versioning with runtime dependency checks at instruction granularity, applicable to any code region rather than just loops.",
   "contributions": [
     "A general fine-grained versioning framework applicable to any optimization, not tied to specific optimizations",
-    "Extended SLP vectorizer achieving 1.17\u00d7 speedup on TSVC and 1.51\u00d7 on PolyBench with minimal modifications",
+    "Extended SLP vectorizer achieving 1.17× speedup on TSVC and 1.51× on PolyBench with minimal modifications",
     "Demonstrated programs vectorizable only with fine-grained versioning but not with loop versioning alone",
-    "More aggressive redundant load elimination achieving 1.012\u00d7 average speedup on SPEC 2017 FP (up to 1.064\u00d7)"
+    "More aggressive redundant load elimination achieving 1.012× average speedup on SPEC 2017 FP (up to 1.064×)"
   ],
   "hardware_target": [
     "CPU"
@@ -22,7 +22,7 @@
   ],
   "workloads": [],
   "metrics": {
-    "speedup": "1.17\u00d7-1.51\u00d7 (TSVC/PolyBench), 1.012\u00d7-1.064\u00d7 (SPEC 2017 FP)"
+    "speedup": "1.17×-1.51× (TSVC/PolyBench), 1.012×-1.064× (SPEC 2017 FP)"
   },
   "baselines": [
     "Clang vectorizers",

@@ -4,17 +4,29 @@
   "venue": "MICRO",
   "problem": "Existing performance prediction methods for dataflow-based accelerators (TPUs, NPUs, FPGAs) fail to generalize across three dimensions: unseen applications with extreme loop scales (errors exceeding 40%), input-dependent control flows where branch probabilities shift at runtime (errors up to 60%), and diverse hardware architectures with varying memory delays and loop mapping primitives. No prior method unifies all three generalization axes.",
   "motivation": "Accurate, fast cost modeling is the critical bottleneck in design-space exploration for dataflow accelerators, and the growing complexity of hardware-software stacks (HLS, spatial mappings, dynamic operators) makes hand-crafted analytical models and static graph neural network approaches obsolete.",
-  "method": "LLMulator uses a pre-trained LLM (LLaMA-3.2-1B fine-tuned via LoRA) as the backbone for cost prediction with three novel mechanisms: (1) Progressive numeric encoding that tokenizes each decimal digit independently and uses categorical cross-entropy rather than regression to predict performance as digit-wise classification with beam-search error correction, enabling range-agnostic estimates; (2) Dynamic Prediction Calibration (DPC) using Direct Preference Optimization (DPO)-style reinforcement learning with a replay buffer, where the model is updated online from Verilator simulation feedback to adapt to runtime input variations in loop bounds and control-flow branching; (3) A progressive dataset synthesizer that generates multi-level training data via AST-based generation, dataflow-specific loop-tree mutation, and LLM-based augmentation, then formats data with intermediate RTL reasoning chains (via SiliconCompiler and OpenROAD) to teach the model compilation-level reasoning.",
-  "key_novelty": "Treating hardware performance values as digit-wise categorical token sequences (rather than regression targets) enables confidence-aware, range-agnostic prediction that generalizes to out-of-distribution loop scales, combined with RL-based online calibration for input-adaptive control flows.",
+  "method": "LLMulator fine-tunes a pre-trained language model (LLaMA-3.2-1B using LoRA, a parameter-efficient training method) to predict hardware performance through three techniques. First, instead of predicting performance as a single number, it predicts digit-by-digit, treating each digit as a discrete category rather than a continuous value—this works across any performance range and enables error correction via beam search (testing multiple digit sequences and keeping the best). Second, it continuously updates from live hardware simulations (Verilator), learning to adapt when loop sizes or branching patterns change during execution. Third, it builds training data by analyzing code structure (AST parsing), systematically varying loops, augmenting with an LLM, and using compiler tools (SiliconCompiler, OpenROAD) to show how code becomes hardware.",
+  "key_novelty": "By treating performance numbers as digit-wise category predictions instead of single continuous values, LLMulator can generalize to any performance scale and combine this with online learning from hardware feedback to adapt to varying loop bounds and control flow.",
   "contributions": [
     "Progressive numeric modeling paradigm that tokenizes numerical program values digit-by-digit with categorical output and beam search, reducing edge-value prediction errors by 2.3%–13.6% over regression baselines.",
     "Dynamic Prediction Calibration framework using DPO-based reinforcement learning from simulation feedback, converging to 11.2% cycle prediction error after a few iterations, a 9.7% improvement over static models.",
     "Progressive data augmentation framework combining AST generation, dataflow-specific loop mutation, and LLM self-augmentation, with hardware mapping parameters (memory delays, loop unroll pragmas) to cover diverse hardware configs.",
     "End-to-end LLMulator framework achieving 12.2% MAPE on ASIC design scenarios, reducing error by 16.7%–7.8% compared to GNNHLS and TLP state-of-the-art methods."
   ],
-  "hardware_target": ["ASIC", "NPU", "TPU"],
-  "technique_category": ["compiler", "dataflow", "scheduling"],
-  "workloads": ["CNN", "transformer", "LLM-inference"],
+  "hardware_target": [
+    "ASIC",
+    "NPU",
+    "TPU"
+  ],
+  "technique_category": [
+    "compiler",
+    "dataflow",
+    "scheduling"
+  ],
+  "workloads": [
+    "CNN",
+    "transformer",
+    "LLM-inference"
+  ],
   "metrics": {
     "accuracy": "12.2% MAPE on ASIC scenarios; 9.7% error reduction from DPC over static; 16.7%–7.8% error reduction vs GNNHLS/TLP",
     "speedup": null,
@@ -23,9 +35,21 @@
     "ppa": null,
     "other": null
   },
-  "baselines": ["GNNHLS", "TLP", "Timeloop", "Tenset/TVM MLP"],
+  "baselines": [
+    "GNNHLS",
+    "TLP",
+    "Timeloop",
+    "Tenset/TVM MLP"
+  ],
   "limitations": "Calibration via DPO requires repeated simulation runs (Verilator) per input, adding profiling overhead that may be prohibitive for very large dataflow programs; the method targets HLS-level (C-to-RTL) modeling and does not address post-place-and-route variability.",
-  "tags": ["cost-modeling", "llm-for-hardware", "dataflow-accelerator", "rl-calibration", "design-space-exploration", "numeric-tokenization"],
+  "tags": [
+    "cost-modeling",
+    "llm-for-hardware",
+    "dataflow-accelerator",
+    "rl-calibration",
+    "design-space-exploration",
+    "numeric-tokenization"
+  ],
   "primary_theme": "LLM-based generalizable cost modeling for dataflow accelerators",
   "confidence": "high"
 }

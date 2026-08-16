@@ -4,20 +4,34 @@
   "venue": "ASPLOS",
   "problem": "GNN execution performance is bottlenecked by irregular memory access patterns and low compute utilization, and algebraic transformations (operator reordering, operator fusion) that work well for dense DNNs fail to generalize across diverse and dynamically varying graph structures. Existing transformation strategies are applied statically and cannot adapt to per-input graph topology variations.",
   "motivation": "GNNs are increasingly used in diverse applications and growing in complexity, making high-performance execution critical; however, the highly irregular and input-dependent nature of graph data makes static algebraic optimization strategies ineffective.",
-  "method": "Voyager applies input-adaptive algebraic transformations that select or compose operator reordering and fusion strategies at runtime based on the structural properties of the incoming graph (e.g., degree distribution, density, sparsity patterns). It profiles lightweight graph statistics to guide transformation selection and generates optimized execution plans per input, avoiding the single static plan that prior compilers assume.",
-  "key_novelty": "Runtime input-adaptive selection of algebraic transformations (operator reordering and fusion) based on live graph topology statistics, enabling GNN-specific optimization that generalizes across structurally diverse inputs.",
+  "method": "Voyager examines each incoming graph's structure—how many connections each node has (degree distribution), how densely packed the nodes are (density), and how sparse the connections are—to decide which transformations to apply on the fly. Rather than using one fixed optimization strategy for all graphs, it measures the graph's properties and generates a custom execution plan that reorders and combines operations (a process called algebraic transformation) specifically matched to that graph's shape. This means a graph with many high-degree nodes gets optimized differently than a sparse one, because the performance bottlenecks are fundamentally different.",
+  "key_novelty": "Voyager chooses how to transform and reorder operations for each graph at runtime based on the graph's actual topology, instead of using a single fixed transformation strategy for all graphs.",
   "contributions": [
     "Input-adaptive framework that selects algebraic transformations at runtime based on graph structural properties.",
     "Analysis of how graph topology variations affect the efficacy of operator reordering and fusion for GNNs.",
     "Demonstration of performance improvements across diverse GNN models and graph datasets."
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["compiler", "kernel-fusion", "dataflow"],
-  "workloads": ["GNN"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "compiler",
+    "kernel-fusion",
+    "dataflow"
+  ],
+  "workloads": [
+    "GNN"
+  ],
   "metrics": null,
   "baselines": [],
   "limitations": "Not discussed in abstract; runtime profiling overhead for graph statistics is not quantified.",
-  "tags": ["gnn", "algebraic-transformation", "operator-fusion", "input-adaptive", "compiler"],
+  "tags": [
+    "gnn",
+    "algebraic-transformation",
+    "operator-fusion",
+    "input-adaptive",
+    "compiler"
+  ],
   "primary_theme": "Input-adaptive GNN execution optimization",
   "confidence": "low"
 }

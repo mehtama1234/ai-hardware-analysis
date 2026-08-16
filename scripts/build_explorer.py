@@ -74,7 +74,9 @@ def build_rows():
             "technique": p.get("technique_category", []),
             "hw": p.get("hardware_target", []),
             "what": dp.get("what_it_does", ""),
-            "detail": dp.get("method_in_detail", ""),
+            # Prefer the hand-written PDF-deep "method in detail" (sparse, ~128 papers);
+            # fall back to the plain-language per-paper method so every paper shows one.
+            "detail": dp.get("method_in_detail") or p.get("method", ""),
         })
 
     rows.sort(key=lambda r: (r["venue"], r["id"]))

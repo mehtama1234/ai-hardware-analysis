@@ -4,17 +4,24 @@
   "venue": "HPCA",
   "problem": "Near-term quantum devices have high gate error rates, and the dominant approach of reducing two-qubit gate count via peephole optimization or routing-aware compilation leaves substantial overhead from Clifford subcircuits that could be eliminated rather than merely rearranged.",
   "motivation": "Quantum circuit fidelity degrades exponentially with two-qubit gate count and circuit depth on NISQ devices, so eliminating Clifford subcircuits entirely (rather than optimizing them in-place) offers substantially larger reductions than existing methods.",
-  "method": "QuCLEAR is a compilation framework with two sequential optimization steps. First, Clifford Extraction identifies and extracts Clifford subcircuits from the original circuit, commuting them to the end of the circuit via a series of gate commutation rules while simultaneously optimizing (reducing) the remaining non-Clifford gates; this process changes the structure of the remaining circuit to expose further simplifications. Second, Clifford Absorption leverages the classical simulatability of Clifford circuits to compute their effect analytically and absorb (classically post-process) the extracted Clifford subcircuit rather than executing it on quantum hardware, eliminating those gates entirely from the quantum circuit.",
-  "key_novelty": "Clifford Absorption that classically post-processes extracted Clifford subcircuits at the end of quantum circuits rather than executing them on noisy hardware, enabling up to 84.1% reduction in entangling depth beyond what gate-level optimization alone achieves.",
+  "method": "QuCLEAR uses a two-step process to optimize quantum circuits. First, Clifford Extraction identifies sections of the circuit that are \"Clifford\" (a special type mathematically easier to handle) and slides them toward the end using logical gate-rearrangement rules (commutation) while simultaneously reducing the harder non-Clifford gates—this reshuffling exposes opportunities to simplify further. Second, Clifford Absorption takes advantage of the fact that Clifford circuits can be computed by classical computers: instead of sending the extracted Clifford gates to run on noisy quantum hardware, it calculates their effect mathematically and bakes that result into the circuit's classical post-processing, removing those quantum gates entirely.",
+  "key_novelty": "The core idea is Clifford Absorption: using a classical computer to post-process the Clifford part of the circuit after the quantum gates have run, rather than executing it on noisy hardware, which cuts entangling depth by up to 84.1% compared to traditional gate-level optimization.",
   "contributions": [
     "Clifford Extraction: commuting Clifford subcircuits to the end of the circuit while reducing remaining non-Clifford gate count",
     "Clifford Absorption: classical simulation and elimination of the extracted Clifford subcircuit, removing it from hardware execution",
     "Up to 77.7% CNOT gate count reduction and up to 84.1% entangling depth reduction compared to state-of-the-art methods",
     "Demonstrated effectiveness on quantum simulation circuits relevant to VQE, QAOA, quantum chemistry, and many-body physics"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["compiler", "approximation"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "compiler",
+    "approximation"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "other": "Up to 77.7% CNOT gate count reduction; up to 84.1% entangling depth reduction vs state-of-the-art",
@@ -23,9 +30,18 @@
     "ppa": null,
     "accuracy": null
   },
-  "baselines": ["State-of-the-art quantum circuit optimization methods"],
+  "baselines": [
+    "State-of-the-art quantum circuit optimization methods"
+  ],
   "limitations": "Clifford Absorption requires classical post-processing of measurement outcomes, which adds classical compute overhead that may be non-trivial for large circuits; applicability is limited to circuits with extractable Clifford subcircuits at the tail.",
-  "tags": ["quantum-computing", "circuit-optimization", "clifford", "nisq", "compiler", "cnot"],
+  "tags": [
+    "quantum-computing",
+    "circuit-optimization",
+    "clifford",
+    "nisq",
+    "compiler",
+    "cnot"
+  ],
   "primary_theme": "Clifford extraction and classical absorption for quantum circuit gate count reduction",
   "confidence": "low"
 }

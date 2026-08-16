@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "PCIe-based GPU clusters lack optimized collective communication libraries, as research has focused on proprietary interconnects like DGX. Discovering efficient communication paths for ring-based algorithms on commodity PCIe systems remains unexplored.",
   "motivation": "Collective communication is critical for distributed deep learning training, and most clusters use commodity PCIe interconnects rather than proprietary solutions, making optimization of PCIe communication essential.",
-  "method": "TCCL profiles multi-transfer performance with a custom profiler, discovers optimal ring-based communication paths using a pathfinder algorithm, and modifies NCCL runtime to utilize these paths. It focuses on collective operations like AllReduce and AllGather across PCIe-connected GPU clusters.",
-  "key_novelty": "Automated discovery and exploitation of optimal communication paths for ring-based collective operations on PCIe GPU clusters through performance profiling and path optimization.",
+  "method": "TCCL uses a custom profiler to measure how fast GPUs can send data to each other across PCIe when multiple transfers happen simultaneously. It then applies a pathfinding algorithm to discover the optimal ring-based communication pattern, where data flows in sequence through each GPU in a circle to reach all of them efficiently. Once found, these communication paths are built into NCCL (the standard library for coordinating GPU operations) to speed up collective operations like AllReduce (collecting and combining results from all GPUs) and AllGather (gathering results from all GPUs into one place).",
+  "key_novelty": "Automatically discovering optimal ring-based communication paths for PCIe GPU clusters by measuring actual performance instead of relying on generic one-size-fits-all designs.",
   "contributions": [
     "TCCL library with integrated profiler, pathfinder, and modified NCCL runtime for PCIe GPU clusters",
     "Ring-based collective communication optimization achieving up to 2.07x speedup over NCCL/MSCCL",

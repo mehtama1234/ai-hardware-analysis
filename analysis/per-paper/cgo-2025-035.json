@@ -4,15 +4,20 @@
   "venue": "CGO",
   "problem": "Garbage collection overhead is a significant performance bottleneck in memory-managed languages like Go; GC pauses and memory reclamation consume substantial CPU and power resources even though not all heap memory requires dynamic collection.",
   "motivation": "Reducing GC frequency and cost directly improves application latency, throughput, and energy efficiency by reclaiming reachable-but-unused memory earlier through compiler-directed deallocation.",
-  "method": "GoFree performs escape analysis (O(n^2) time) to identify short-lived heap objects that can be safely deallocated explicitly via compiler-inserted freeing instructions, leveraging thread-safe primitives compatible with concurrent environments. The optimization operates transparently, preserving Go's memory-managed programming model while reducing peak heap usage and GC frequency.",
-  "key_novelty": "Designing a fast O(n^2) escape analysis that precisely identifies deallocatable objects and implementing thread-safe explicit freeing without GC modifications.",
+  "method": "GoFree uses escape analysis—a compiler technique that runs in O(n^2) time to identify short-lived objects that can be safely freed—to insert explicit freeing instructions instead of relying on garbage collection. These freeing operations use thread-safe mechanisms and operate transparently within Go's memory model without changing the garbage collector. The result is fewer garbage collection pauses and lower peak memory usage.",
+  "key_novelty": "GoFree's core novelty is using O(n^2) escape analysis to automatically insert compiler-based freeing for identified short-lived objects, thereby reducing garbage collection overhead while preserving thread-safety and requiring no modifications to the garbage collector.",
   "contributions": [
     "A powerful and efficient escape analysis algorithm (O(n^2)) that identifies short-lived heap objects safe for explicit deallocation",
     "A thread-safe freeing primitive suitable for concurrent environments",
     "Empirical validation showing 7% reduction in GC frequency, 13% reduction in GC time, and 2% wall-clock improvement on real Go programs"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["compiler", "memory-system"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "compiler",
+    "memory-system"
+  ],
   "workloads": [],
   "metrics": {
     "gc_frequency_reduction": "7%",
@@ -21,9 +26,17 @@
     "heap_size_reduction": "4%",
     "memory_deallocated": "14% of allocated heap"
   },
-  "baselines": ["Standard Go garbage collector (unoptimized)"],
+  "baselines": [
+    "Standard Go garbage collector (unoptimized)"
+  ],
   "limitations": "Evaluation limited to 6 open-source Go programs; no analysis of compiler overhead breakdown or sensitivity to object lifetime patterns.",
-  "tags": ["garbage-collection", "memory-management", "escape-analysis", "compiler-optimization", "concurrent"],
+  "tags": [
+    "garbage-collection",
+    "memory-management",
+    "escape-analysis",
+    "compiler-optimization",
+    "concurrent"
+  ],
   "primary_theme": "Compiler-directed memory deallocation to reduce GC overhead",
   "confidence": "low"
 }

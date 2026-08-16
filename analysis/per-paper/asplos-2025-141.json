@@ -4,17 +4,25 @@
   "venue": "ASPLOS",
   "problem": "On-device LLM inference on smartphones using sparsity-based techniques (loading only active neurons from flash) suffers from excessive random I/O operations due to scattered neuron placement in flash, and smartphones face severe IOPS constraints that make these I/O patterns a critical bottleneck.",
   "motivation": "Deploying full-accuracy LLMs on mobile devices requires keeping models in flash and loading only active neurons at inference time, but current storage placement schemes ignore neuron co-activation patterns, causing random reads that exhaust flash IOPS bandwidth.",
-  "method": "Neuralink reorganizes neuron placement in flash storage offline based on neuron co-activation patterns: neurons that are frequently activated together are linked contiguously in flash, enabling sequential read access that is orders of magnitude more efficient than random IOPS on mobile flash. An online stage then uses tailored data access and caching strategies aligned with the sequential layout and hardware characteristics of the target phone. The two-stage pipeline (offline co-activation profiling and layout reorganization; online cache-friendly sequential access) reduces I/O operations for sparsity-based LLM inference.",
-  "key_novelty": "Offline neuron co-activation analysis to reorder flash storage placement so that frequently co-activated neurons are contiguously stored, converting random I/O patterns into sequential reads on mobile flash.",
+  "method": "Neuralink tackles an on-device inference bottleneck: sparse neural network inference (activating only necessary neurons) requires loading scattered neurons from flash storage, creating random memory access patterns, but smartphones face severe IOPS constraints on random flash operations. The system uses a two-stage approach: offline, it analyzes co-activation patterns (which neurons activate together) and reorganizes flash storage to place frequently co-activated neurons contiguously; online, it applies caching and sequential read strategies tuned to both the new layout and the target phone's hardware. By converting random access into sequential reads—which mobile flash handles orders of magnitude more efficiently—it substantially reduces the I/O operations required for sparse LLM inference.",
+  "key_novelty": "Offline co-activation analysis (finding which neurons activate together) reorders flash storage to place frequently co-activated neurons next to each other, converting random I/O patterns into sequential reads that mobile flash handles orders of magnitude more efficiently.",
   "contributions": [
     "Introduction of the Neuron Co-Activation Linking concept for optimizing flash storage layout for sparsity-based LLM inference",
     "A two-stage system (offline layout reorganization + online cache-aligned access) for on-device LLM inference acceleration",
     "Average 1.49x end-to-end latency improvement over state-of-the-art on various smartphones and LLMs",
     "First solution to optimize storage placement under sparsity for mobile LLM inference"
   ],
-  "hardware_target": ["SoC"],
-  "technique_category": ["memory-system", "sparsity", "prefetching"],
-  "workloads": ["LLM-inference"],
+  "hardware_target": [
+    "SoC"
+  ],
+  "technique_category": [
+    "memory-system",
+    "sparsity",
+    "prefetching"
+  ],
+  "workloads": [
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": "1.49x average end-to-end latency improvement over SOTA",
     "energy_or_tops_w": null,
@@ -23,9 +31,18 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["state-of-the-art sparsity-based on-device LLM inference systems"],
+  "baselines": [
+    "state-of-the-art sparsity-based on-device LLM inference systems"
+  ],
   "limitations": "The offline profiling stage requires representative activation data; generalization to out-of-distribution inputs and its effect on neuron layout quality is not discussed.",
-  "tags": ["on-device-llm", "flash-storage", "sparsity", "mobile", "neuron-activation", "io-optimization"],
+  "tags": [
+    "on-device-llm",
+    "flash-storage",
+    "sparsity",
+    "mobile",
+    "neuron-activation",
+    "io-optimization"
+  ],
   "primary_theme": "Flash storage layout optimization for sparse on-device LLM inference",
   "confidence": "low"
 }

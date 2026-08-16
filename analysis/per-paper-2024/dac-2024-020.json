@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "The memory-intensive embedding layer in recommendation models is a critical performance bottleneck. Static cache solutions fail in training scenarios where embedding vectors are updated frequently, making real-time data reuse identification necessary.",
   "motivation": "Improving embedding layer efficiency during training directly impacts the scalability and energy efficiency of recommendation system deployment.",
-  "method": "ReFree performs real-time identification of reusable data for both embedding forward and backward stages. It employs a lightweight near-memory processing architecture that exploits data locality to eliminate redundant memory operations and memory traffic throughout the entire embedding training pipeline.",
-  "key_novelty": "Real-time reusable data identification for dynamic embedding training combined with lightweight NMP architecture to achieve redundancy-free acceleration.",
+  "method": "ReFree watches which embedding data (lookup tables that update during training) gets reused in both the forward pass (when calculating predictions) and backward pass (when calculating updates), identifying these patterns in real-time as training happens. It places lightweight computation directly near the memory rather than separate from it, exploiting data locality (keeping frequently-used information nearby) to spot repeated accesses. This eliminates redundant memory operations and transfers throughout the entire training pipeline.",
+  "key_novelty": "ReFree identifies which embedding data can be reused during training in real-time by using lightweight near-memory processing (computation located close to where data is stored) to eliminate redundant memory operations.",
   "contributions": [
     "Identifies the failure of static caching for dynamic embedding training with frequent vector updates",
     "Proposes real-time reusable data identification mechanism for forward and backward passes",
     "Designs lightweight near-memory processing architecture for redundancy elimination",
-    "Achieves 10.9\u00d7 speedup and 5.3\u00d7 energy reduction versus state-of-the-art embedding optimization"
+    "Achieves 10.9× speedup and 5.3× energy reduction versus state-of-the-art embedding optimization"
   ],
   "hardware_target": [
     "PIM"
@@ -26,8 +26,8 @@
     "DLRM"
   ],
   "metrics": {
-    "speedup": "10.9\u00d7",
-    "energy_or_tops_w": "5.3\u00d7 energy reduction"
+    "speedup": "10.9×",
+    "energy_or_tops_w": "5.3× energy reduction"
   },
   "baselines": [
     "Prior embedding optimization works with static caching"

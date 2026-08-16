@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "LLM inference requires massive memory footprints and computation, especially from linear layers; generating 32 tokens with LLaMA-7B requires 14GB of weights and 400B+ operations, exceeding consumer-level GPU capabilities.",
   "motivation": "Deploying LLMs from cloud to edge requires efficient inference accelerators that can handle prohibitive memory and compute requirements.",
-  "method": "MECLA uses Scaling Sub-matrix Partition (SSMP) to decompose large weight matrices into source sub-matrices (SS) and derived sub-matrices (DS) obtained by scaling SS with scalars, eliminating full matrix access. On-chip optimizations exploit intermediate data reuse through matrix regrouping, inner-product multiplication re-association, and outer-product partial sum reuse, achieving 83.6% memory access reduction and 72.2% computation reduction.",
-  "key_novelty": "Parameter-efficient weight matrix decomposition via scaling sub-matrix partition where derived sub-matrices are obtained by scaling source sub-matrices with scalars.",
+  "method": "MECLA breaks large weight matrices (the parameters that control an LLM) into source sub-matrices plus derived sub-matrices created by scaling (multiplying) source sub-matrices by scalars (simple numbers), eliminating the need to work with the original full matrices. The accelerator hardware then reuses intermediate data by reorganizing matrices, changing how multiplication operations are grouped, and recycling partial results (sums computed before the final output), reducing memory access by 83.6% and computation by 72.2%.",
+  "key_novelty": "Weight matrices become more parameter-efficient (storing fewer parameters) by being decomposed into source sub-matrices and derived sub-matrices created by scaling (multiplying source sub-matrices with scalars).",
   "contributions": [
     "Scaling Sub-matrix Partition (SSMP) method for decomposing large weight matrices into source and derived sub-matrices",
     "On-chip optimization techniques exploiting intermediate data reuse through matrix regrouping and partial sum reuse",
     "MECLA hardware accelerator achieving 7088 GOPS/W energy efficiency",
-    "Evaluation on 20 benchmarks showing 113.14\u00d7 higher energy efficiency vs V100 and 12.99\u00d7 vs SpAtten"
+    "Evaluation on 20 benchmarks showing 113.14× higher energy efficiency vs V100 and 12.99× vs SpAtten"
   ],
   "hardware_target": [
     "ASIC"
@@ -30,7 +30,7 @@
   ],
   "metrics": {
     "energy_or_tops_w": "7088 GOPS/W",
-    "speedup": "113.14\u00d7 vs V100, 12.99\u00d7 vs SpAtten, 1.62\u00d7 vs FACT",
+    "speedup": "113.14× vs V100, 12.99× vs SpAtten, 1.62× vs FACT",
     "other": "83.6% memory access reduction, 72.2% computation reduction"
   },
   "baselines": [

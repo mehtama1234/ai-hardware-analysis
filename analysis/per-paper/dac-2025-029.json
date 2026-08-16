@@ -4,24 +4,42 @@
   "venue": "DAC",
   "problem": "Attention computations in LLMs are memory-bound; PIM offloading ignores dynamic matrix dimensions (token-length-dependent) and distinct patterns between score ($Q \\times K_t$) and context ($S \\times V$) GEMVs, leading to inefficient uniform processing.",
   "motivation": "LLM attention dominates inference latency and energy; PIM offers promise but requires specialized handling of dynamic GEMV dimensions and asymmetric computation patterns.",
-  "method": "AttenPIM: dual-mode PIM computing tailored for score vs context computations; bank-level execution with configurable per-bank PIM units; PIM-oriented data layouts for KV storage; token-level and head-level concurrency for workload balance; dynamic allocation and kernel fusion.",
-  "key_novelty": "First dual-mode PIM architecture recognizing distinct GEMV patterns and dynamic dimensions in LLM attention.",
+  "method": "AttenPIM moves computations into memory banks (processing-in-memory) with dual-mode execution specialized for attention's two distinct operations: multiplying queries by keys to compute scores, and multiplying scores by values to produce results. Each memory bank has configurable processing units that work on key-value data arranged specifically for in-memory execution. The system maintains high throughput by processing multiple tokens and attention heads in parallel, dynamically allocates resources based on sequence-length-dependent matrix sizes, and fuses operations to reduce data movement.",
+  "key_novelty": "The key innovation is a dual-mode processing-in-memory architecture that recognizes attention has two distinct matrix-vector operations (score and value combination) with sequence-length-dependent matrix dimensions.",
   "contributions": [
     "Dual-mode computing for score and context GEMV operations",
     "Configurable per-bank PIM units with dynamic execution flows",
     "Token-level and head-level parallelism for workload balancing",
     "Dynamic memory allocation and kernel fusion optimizations"
   ],
-  "hardware_target": ["PIM"],
-  "technique_category": ["near-data-processing", "memory-system", "parallelism"],
-  "workloads": ["LLM-inference", "transformer", "attention"],
+  "hardware_target": [
+    "PIM"
+  ],
+  "technique_category": [
+    "near-data-processing",
+    "memory-system",
+    "parallelism"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "transformer",
+    "attention"
+  ],
   "metrics": {
     "speedup": "1.13x-5.26x vs PIM baselines",
     "energy_reduction": "17%-49%"
   },
-  "baselines": ["state-of-the-art PIM architectures"],
+  "baselines": [
+    "state-of-the-art PIM architectures"
+  ],
   "limitations": "Evaluation limited to specific LLM models and sequence lengths; scalability to very long contexts and sparse attention not explored.",
-  "tags": ["pim", "llm-inference", "attention", "gemv", "memory-bandwidth"],
+  "tags": [
+    "pim",
+    "llm-inference",
+    "attention",
+    "gemv",
+    "memory-bandwidth"
+  ],
   "primary_theme": "Dual-mode PIM architecture for asymmetric LLM attention GEMV",
   "confidence": "low"
 }

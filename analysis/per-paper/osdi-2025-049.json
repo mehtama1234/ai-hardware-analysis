@@ -2,10 +2,10 @@
   "id": "osdi-2025-049",
   "title": "BlitzScale: Fast and Live Large Model Autoscaling with O(1) Host Caching",
   "venue": "OSDI",
-  "problem": "Model autoscaling faces a fundamental trade-off between scaling speed and storage/memory usage for parameter caching. The data plane is slow and blocking\u2014scaled instances halt while parameters load\u2014preventing frequent multi-host scaling.",
+  "problem": "Model autoscaling faces a fundamental trade-off between scaling speed and storage/memory usage for parameter caching. The data plane is slow and blocking—scaled instances halt while parameters load—preventing frequent multi-host scaling.",
   "motivation": "Model autoscaling is critical for serverless model-as-a-service platforms to dynamically handle varying workloads and serve large language models efficiently.",
-  "method": "BlitzScale loads parameters through the inter-GPU compute network with O(1) host caching, which is fast and underutilized. It shifts scaling from coarse-grained instance-level to fine-grained layer-level, enabling computation offload to scaled instances before parameters fully load. Network-optimized multicast handles multi-instance scaling without excessive caching.",
-  "key_novelty": "Leveraging the inter-GPU compute network for fast parameter loading with O(1) host caching, combined with layer-level scaling to enable live autoscaling without instance blocking.",
+  "method": "BlitzScale sends model parameters through the direct network between GPUs, which is typically underutilized, instead of slower storage paths. It maintains a constant-sized cache on each host that doesn't grow as models get larger, providing efficient memory usage. Rather than scaling entire computing instances at once (which must pause while parameters load), it scales individual model layers, allowing computational work to start on newly added GPUs before parameters fully finish loading. The system uses network broadcast sending (multicast) to efficiently deliver parameters to multiple instances without excessive caching overhead.",
+  "key_novelty": "BlitzScale eliminates autoscaling delays by loading parameters through the GPU-to-GPU network with a constant-sized cache, and scaling individual layers so computing instances never block waiting for parameters to arrive.",
   "contributions": [
     "Fast data plane for loading model checkpoints via inter-GPU compute network with minimal host caching",
     "Live autoscaling via layer-level scaling abstraction that offloads computation before parameters fully load",

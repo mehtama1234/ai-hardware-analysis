@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "GPU automata processing suffers from underutilized threads due to insufficient parallelism when processing symbols sequentially, significant redundant computations from repeated state-symbol matches, and poor data locality caused by dynamic thread-to-state mapping.",
   "motivation": "Automata serve as compute kernels for high-throughput applications, but GPU potential remains underutilized despite increasing compute power.",
-  "method": "Non-blocking Automata Processing enables parallel processing of different symbols in the input stream rather than serialized one-symbol-at-a-time execution. It prefetches computations to increase simultaneous multi-symbol processing, uses memoization tables to substitute redundant computations with table lookups, and privatizes computations to preserve thread-state mapping and improve data locality.",
-  "key_novelty": "Shifting from serialized one-symbol-at-a-time automata processing to non-blocking parallel symbol processing that enables downstream optimizations through prefetching and memoization.",
+  "method": "Instead of processing one input symbol at a time and waiting for it to complete, the system processes multiple symbols in parallel. It prefetches results and stores previously calculated results in lookup tables to avoid redundant computations. By keeping each thread's work isolated, the thread consistently accesses the same data, keeping it in fast local cache rather than requiring slower memory accesses.",
+  "key_novelty": "The core idea is processing multiple input symbols in parallel instead of one at a time, which enables optimizations like prefetching results and reusing previous calculations.",
   "contributions": [
     "Non-blocking automata processing paradigm enabling parallel symbol processing on GPUs",
     "Prefetching mechanism to increase GPU thread utilization through simultaneous multi-symbol processing",

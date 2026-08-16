@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "NVIDIA's Multi-Instance GPU (MIG) technology shares the last-level TLB (L3 TLB) across all instances, causing performance degradation for co-running applications and inefficient sub-entry utilization before eviction.",
   "motivation": "Optimizing TLB resource sharing is critical for improving multi-tenant GPU performance and reducing address translation interference.",
-  "method": "STAR dynamically manages TLB entry sharing by evaluating sub-entry utilization and adaptively switching between shared and non-shared states. It allows the 16 sub-entries within each L3 TLB entry to be flexibly shared across multiple base addresses, with the system adjusting allocation based on current workload demand patterns.",
-  "key_novelty": "Dynamic sharing of TLB entries across multiple base addresses based on sub-entry utilization metrics, enabling adaptive optimization between shared and non-shared states.",
+  "method": "STAR monitors how many of the 16 sub-entries in each L3 TLB entry are actively being used at any moment. When an entry is under-utilized, STAR allows different GPU instances to share it, with each instance using separate sub-entries for its memory address translations. When usage becomes heavy, STAR reserves the entry for one instance to prevent slowdowns from conflicting access attempts. The system continuously adjusts between shared and exclusive modes based on workload patterns.",
+  "key_novelty": "STAR dynamically decides whether to share each TLB entry among GPU instances or reserve it for one, based on how many of its 16 sub-entries are actively used.",
   "contributions": [
     "Comprehensive analysis of L3 TLB sharing interference in NVIDIA MIG systems and its impact on multi-tenant performance",
     "STAR mechanism for dynamic TLB sub-entry sharing and utilization optimization",

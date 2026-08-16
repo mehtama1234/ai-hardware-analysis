@@ -10,10 +10,10 @@ Data center infrastructure requires specialized processing for networking, secur
 CPUs are increasingly overloaded with infrastructure tasks (packet processing, encryption, monitoring); dedicated infrastructure processing units enable efficient data center operations without consuming GPU/CPU resources.
 
 ## Method
-IPU E2200 integrates a multi-core compute fabric optimized for packet processing and infrastructure workloads, with hardware accelerators for cryptography and telemetry collection, connected via high-speed fabric to enable efficient offloading from general-purpose compute.
+The IPU E2200 is a specialized processor with multiple cores optimized for infrastructure work in data centers—particularly managing network packets and other infrastructure tasks. It includes hardware accelerators for cryptography and telemetry collection, specialized circuits that speed up encryption and system monitoring compared to general-purpose processors. A high-speed fabric connects the IPU to the main CPU and GPU, allowing them to offload all these infrastructure tasks to the IPU.
 
 ## Key Novelty
-Second-generation infrastructure processing unit specifically optimized for data center networking, security, and monitoring workloads with improved core count and memory hierarchy over E1100.
+Intel's E2200 is a second-generation infrastructure processing unit that improves over the E1100 with more processing cores and better memory organization for data center networking, security, and monitoring tasks.
 
 ## Contributions
 - Second-generation IPU architecture with increased core density

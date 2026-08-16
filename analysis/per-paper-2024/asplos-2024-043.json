@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Existing OS prefetching mechanisms have rigid interfaces that lack feedback on prefetch effectiveness, suffer from high concurrency bottlenecks with lock contention, and inefficiently utilize available system memory for prefetch buffers.",
   "motivation": "I/O prefetching is critical for storage performance, and current OS-level approaches significantly limit how applications can optimize their access patterns and adapt prefetch strategies.",
-  "method": "CrossPrefetch divides prefetching responsibilities between the OS kernel and a user-level runtime layer. The OS performs low-level prefetch operations while the runtime provides application feedback on prefetch effectiveness and manages memory allocation for prefetch buffers. This cross-layered design reduces lock contention and synchronization overhead by allowing the runtime to coordinate with applications without kernel barriers.",
-  "key_novelty": "Cross-layered prefetching architecture that divides responsibilities between OS and user-level runtime to provide prefetch effectiveness feedback while minimizing synchronization overhead.",
+  "method": "CrossPrefetch splits prefetching (loading data into fast memory before it's needed) between two layers: the OS kernel handles the actual data loading, while a user-level program running alongside applications collects feedback on how well the prefetching works and manages which data to load. This two-layer split avoids the lock contention (performance slowdowns from many programs fighting over the same shared resource) and synchronization delays that bottleneck traditional approaches where everything goes through the kernel.",
+  "key_novelty": "A two-layer prefetching system that separates data loading in the kernel from feedback and coordination at the application level, eliminating the synchronization bottlenecks of single-layer kernel-based approaches.",
   "contributions": [
     "Cross-layered I/O prefetching mechanism splitting OS and runtime concerns",
     "Prefetch effectiveness feedback mechanism from OS to applications",

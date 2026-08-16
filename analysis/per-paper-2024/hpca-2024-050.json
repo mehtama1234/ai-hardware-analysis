@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "TFHE bootstrapping requires over 10,000 polynomial multiplications at 128-bit security level, with domain-transform operations (FFT) consuming up to 88% of computational overhead and creating the primary bottleneck in TFHE systems.",
   "motivation": "Fully Homomorphic Encryption enables privacy-preserving computation on encrypted data in cloud computing, but its extreme computational requirements limit practical deployment.",
-  "method": "Morphling combines a 2D systolic array architecture with strategic transform-domain reuse to reduce FFT redundancy by up to 83.3%. The design includes merge-split pipelined-FFT for efficient domain transformation, a double-pointer method for high-throughput polynomial rotation, and specialized buffer design optimized for TFHE operations with custom instructions for tiling and batching.",
-  "key_novelty": "Strategic reuse of transform-domain computations (FFT results) across multiple TFHE operations to reduce redundant domain transformations by up to 83.3%.",
+  "method": "Morphling avoids recalculating FFT (domain-transformation) results by reusing them across multiple TFHE operations, cutting redundant work by up to 83.3%. The design uses a 2D grid of parallel processors (a systolic array) and pipelined FFT, which overlaps computation stages so new data can start processing while old data is still finishing. A double-pointer method speeds up polynomial rotation without additional FFT operations, and specialized memory buffers with custom instructions automatically organize operations into efficient tiles and batches.",
+  "key_novelty": "The core idea is reusing FFT results across different TFHE operations instead of recalculating them, which reduces redundant work by up to 83.3%.",
   "contributions": [
     "Transform-domain reuse optimization reducing FFT overhead by up to 83.3%, enabling more computational cores in the same die area",
     "Specialized microarchitecture including merge-split pipelined-FFT, double-pointer polynomial rotation, and custom instruction set for TFHE",
@@ -29,7 +29,7 @@
   ],
   "metrics": {
     "speedup": "3440x over CPU, 143x over GPU, 14.7x over SOTA TFHE accelerator",
-    "area": "74.79 mm\u00b2 (28nm)",
+    "area": "74.79 mm² (28nm)",
     "other": "147,615 bootstrappings/sec, 53W power consumption, sub-second latency for deep learning models"
   },
   "baselines": [

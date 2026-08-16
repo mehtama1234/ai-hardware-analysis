@@ -4,8 +4,8 @@
   "venue": "OSDI",
   "problem": "OS rendering services are constrained by sequential, in-order execution that prevents parallelization of rendering operations. Dependencies between rendering tasks create bottlenecks that limit graphics pipeline throughput and responsiveness.",
   "motivation": "Enabling parallelism in OS rendering services can significantly improve graphics performance, responsiveness, and system efficiency by allowing concurrent execution of independent rendering tasks.",
-  "method": "The system applies out-of-order execution techniques to speculatively parallelize rendering operations while using an in-order commit stage to ensure results are finalized in the correct order. Dependencies between tasks are tracked and validated during execution, with speculative work confirmed before commit to the output buffer. An in-order commit queue serializes finalization while allowing parallel execution upstream.",
-  "key_novelty": "Adapting CPU-style out-of-order execution combined with in-order commit semantics to OS rendering services, enabling safe parallelism while maintaining ordering guarantees.",
+  "method": "Rendering normally happens one task at a time, but many tasks don't actually depend on each other—wasting potential for parallelism. This system executes multiple rendering tasks in parallel (out of order), checking as they run which operations actually affect each other. Once all work completes, an in-order commit stage finalizes results in sequence, ensuring correctness even though execution was parallel.",
+  "key_novelty": "This applies a CPU technique to OS rendering: execute independent operations in parallel (out-of-order), then finalize them in sequence (in-order commit) for the correct output.",
   "contributions": [
     "Out-of-order execution model for OS rendering workloads",
     "In-order commit mechanism that preserves semantic correctness",

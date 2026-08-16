@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "GPU kernels suffer high synchronization overhead when producers must wait for consumers through traditional barriers and polling-based synchronization. Producer-consumer communication patterns incur latency stalls that reduce GPU utilization and throughput.",
   "motivation": "Reducing synchronization delays enables better GPU utilization by overlapping communication with computation and improving throughput for workloads with producer-consumer communication patterns.",
-  "method": "WIC introduces warp-level interrupt-based communication that allows producers to asynchronously signal consumers through event-driven notifications rather than explicit barriers. Interrupt handlers at the warp level enable non-blocking handshakes and decouple producer-consumer execution, hiding synchronization delays through event-driven coordination.",
-  "key_novelty": "Warp-level interrupt-based communication protocol that decouples producer-consumer synchronization through asynchronous event notification instead of explicit barrier synchronization.",
+  "method": "In typical GPU programs, producers and consumers pause at synchronization barriers until everyone reaches the same point—wasting time waiting. WIC uses interrupt signals directed at thread groups (called warps) so producers can notify consumers asynchronously, without waiting for confirmation. Instead of repeatedly checking (polling) or pausing to synchronize, consumers continue other work until an interrupt wakes them when data arrives. This decouples their timing, hiding synchronization delays so they don't reduce overall GPU throughput.",
+  "key_novelty": "Interrupt signals to thread groups let producers notify waiting consumers automatically, eliminating the need for synchronized pause-point barriers.",
   "contributions": [
     "Warp-level interrupt mechanism for asynchronous GPU inter-warp communication",
     "Event-driven synchronization protocol hiding producer-consumer delays",

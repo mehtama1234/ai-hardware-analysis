@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "PyTorch programs cannot easily combine eager mode's Python flexibility with graph compilation's performance benefits. The challenge is extracting and optimizing operation sequences without requiring code changes or sacrificing dynamic execution capabilities.",
   "motivation": "Graph compilation provides substantial speedups for ML training and inference, but traditionally requires abandoning Python's flexibility; enabling both simultaneously would benefit the widely-used PyTorch ecosystem.",
-  "method": "TorchDynamo dynamically modifies Python bytecode at runtime to extract sequences of PyTorch operations into FX graphs without user intervention. TorchInductor, the default backend, translates these graphs to Triton for GPUs and C++ for CPUs. The system captures operation sequences during execution and passes them to extensible backends that apply optimizations and code generation.",
-  "key_novelty": "Dynamic Python bytecode transformation enables robust graph extraction and compilation within eager mode execution without sacrificing framework flexibility or requiring code changes.",
+  "method": "TorchDynamo watches Python code as it runs and automatically captures the mathematical operations PyTorch performs, converting them into a compact representation called graphs that optimizers can work with. These graphs are then compiled into fast machine code by TorchInductor: Triton code for GPUs or C++ for CPUs. The key trick is that all this happens automatically while Python code executes normally—no need to rewrite code or manually tell the system what to optimize.",
+  "key_novelty": "Intercepting Python's execution at the bytecode level (the low-level instructions Python uses internally) enables automatic extraction and compilation of math operations without requiring code changes or sacrificing Python's dynamic capabilities.",
   "contributions": [
     "TorchDynamo: a Python-level JIT compiler that extracts operation graphs through bytecode interception",
     "TorchInductor: a backend compiler translating PyTorch graphs to Triton (GPU) and C++ (CPU) code",
     "Robust graph capture with minimal overhead compared to prior graph extraction approaches",
-    "2.27\u00d7 inference and 1.41\u00d7 training speedup on 180+ real-world models, outperforming six competing compilers"
+    "2.27× inference and 1.41× training speedup on 180+ real-world models, outperforming six competing compilers"
   ],
   "hardware_target": [
     "GPU",
@@ -28,7 +28,7 @@
     "LLM-inference"
   ],
   "metrics": {
-    "speedup": "2.27\u00d7 geometric mean inference, 1.41\u00d7 geometric mean training on NVIDIA A100"
+    "speedup": "2.27× geometric mean inference, 1.41× geometric mean training on NVIDIA A100"
   },
   "baselines": [
     "six competing compilers"

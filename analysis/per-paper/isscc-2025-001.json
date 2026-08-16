@@ -4,25 +4,43 @@
   "venue": "ISSCC",
   "problem": "Point-cloud neural networks (PNNs) suffer from quadratic latency growth in farthest-point sampling (FPS), redundant operations on discarded/retained points, and irregular memory accesses during aggregation, making hardware deployment challenging.",
   "motivation": "3D point-cloud processing is critical for autonomous driving, robotics, and VR; point-based PNNs outperform sparse convolution and graph methods but are computationally expensive and memory-irregular.",
-  "method": "Nebula implements three key optimizations: (1) adaptive block-wise partitioning to replace serial FPS with balanced segmentation, (2) multi-skipping dataflow that eliminates redundant operations on discarded points and reduces grouping/convolution/aggregation costs, (3) block-wise aggregation with efficient external memory access patterns to reduce irregularity.",
-  "key_novelty": "Adaptive partitioning + multi-skipping architecture eliminates redundant PNN operations (FPS, grouping, convolution, aggregation) while maintaining load balance across heterogeneous point distributions.",
+  "method": "Nebula replaces the slow sequential farthest-point sampling (FPS—repeatedly finding the farthest point from previously selected ones) with adaptive block-wise partitioning, which divides the point cloud into balanced segments instead. It then uses multi-skipping dataflow (skipping redundant calculations on points that won't contribute to the output) to reduce operations during grouping, convolution, and aggregation. Finally, it aggregates in blocks with predictable memory access patterns (fetching data sequentially rather than randomly), eliminating irregular memory accesses.",
+  "key_novelty": "Nebula eliminates redundant point-cloud neural network operations (farthest-point sampling, grouping, convolution, aggregation) while maintaining balanced computation across varying point cloud distributions.",
   "contributions": [
     "Adaptive block-wise partitioning for load-balanced FPS replacement",
     "Multi-skipping dataflow eliminating redundant operations across pipeline",
     "Efficient block-wise aggregation with reduced memory irregularity",
     "109.8 TOPS/W energy efficiency on 28nm ASIC"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["dataflow", "sparsity", "memory-system", "parallelism"],
-  "workloads": ["vision", "point-cloud-processing"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "sparsity",
+    "memory-system",
+    "parallelism"
+  ],
+  "workloads": [
+    "vision",
+    "point-cloud-processing"
+  ],
   "metrics": {
     "energy_efficiency": "109.8 TOPS/W",
     "technology": "28nm",
     "workload": "3D point-cloud neural networks"
   },
-  "baselines": ["prior PNN accelerators [11-20]"],
+  "baselines": [
+    "prior PNN accelerators [11-20]"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["point-cloud", "accelerator", "dataflow-optimization", "memory-access-pattern", "autonomous-driving"],
+  "tags": [
+    "point-cloud",
+    "accelerator",
+    "dataflow-optimization",
+    "memory-access-pattern",
+    "autonomous-driving"
+  ],
   "primary_theme": "PNN accelerator with adaptive dataflow",
   "confidence": "low"
 }

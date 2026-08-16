@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Thread coarsening is well-known for GPU optimization but less explored for CPUs. Divergent control flow reduces effectiveness on both platforms. Existing approaches require compile-time uniformity proof, limiting applicability to real programs with data-dependent control flow.",
   "motivation": "Thread coarsening improves instruction-level parallelism, reduces redundant computation, and enables better memory patterns. However, divergent branches (uniformity unproven at compile time) inhibit optimization. Dynamic approaches could unlock more opportunities.",
-  "method": "Implement multi-level thread coarsening for CPU and GPU OpenMP code via generic LLVM IR transformation. Introduce dynamic convergence: generate both coarsened and non-coarsened code paths for divergent regions; runtime decision based on thread uniformity. Evaluate on HecBench (GPU) and LULESH (CPU).",
-  "key_novelty": "First dynamic thread coarsening approach handling divergent control flow; defers uniformity check to runtime.",
+  "method": "The approach bundles multiple threads together for efficiency (thread coarsening) and creates two versions of the code: one optimized for bundling and one for normal execution. At runtime, it checks whether all threads will execute the same instructions (thread uniformity); if yes, it runs the optimized version, otherwise it runs the regular version when threads diverge to different code paths. It applies this to OpenMP code for both CPUs and GPUs using LLVM IR transformations (the intermediate form that compilers work with), evaluated on HecBench and LULESH benchmarks.",
+  "key_novelty": "The core innovation is deferring the uniformity check—determining whether all threads follow the same code path—from compile-time to runtime, which lets it handle divergent control flow.",
   "contributions": [
     "Generic LLVM IR thread coarsening transformation for CPU and GPU",
     "Dynamic convergence technique for divergent regions",

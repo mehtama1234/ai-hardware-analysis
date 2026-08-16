@@ -3,8 +3,8 @@
   "venue": "CGO",
   "problem": "LLM serving is memory-bottlenecked; GEMM operations dominate execution but are memory-intensive. Real PIM systems incur high host-to-PIM data transfer overhead that negates bandwidth benefits without careful optimization.",
   "motivation": "PIM offers high internal bandwidth but incomplete replacement of traditional memory; minimizing host-PIM transfer is critical for practical LLM acceleration.",
-  "method": "PIM-LLM framework with PGEMMlib (tiled GEMM optimized for PIM architecture) and Tile-Selector (analytical model for parameter tuning). Integrated into TVM compiler. Applies build-time memory layout adjustment, PIM resource pooling, CPU/PIM cooperation, and QKV generation fusion.",
-  "key_novelty": "PGEMMlib tiling strategy tuned to PIM-specific characteristics and analytical Tile-Selector model to minimize host-PIM transfer overhead.",
+  "method": "The PIM-LLM framework optimizes matrix multiplication (the core LLM operation) on Processing-In-Memory hardware by dividing problems into smaller tiles (PGEMMlib) and using an analytical model (Tile-Selector) to automatically pick optimal tile sizes. Integrated into TVM (a compiler for hardware-specific code), it employs several techniques: pre-compilation data reorganization, combining PIM resources for efficiency, coordinating CPU-PIM work, and fusing attention steps (Q, K, V generation) to reduce host-PIM data transfer overhead.",
+  "key_novelty": "The approach combines a matrix-multiplication tiling method optimized for PIM hardware (PGEMMlib) with an analytical model that automatically selects tile sizes (Tile-Selector), minimizing data transfers between host and PIM.",
   "contributions": [
     "PGEMMlib library with PIM-aware tiled GEMM and parallelism optimization",
     "Tile-Selector analytical model for parameter tuning across GEMM shapes",

@@ -4,24 +4,44 @@
   "venue": "DAC",
   "problem": "Graph-traversal-based Approximate Nearest Neighbor (GANN) construction faces severe memory bottlenecks due to high-dimensional vertices and dynamic graph updates. Existing accelerators like NDSearch struggle with the massive pre-processing overhead required for dynamic graph scenarios.",
   "motivation": "GANN construction is critical for recommendation systems and social networks, but memory-intensive vertex representations and dynamic updates make real-world deployment impractical.",
-  "method": "SAGA exploits vertex feature similarity by clustering vertices with the same starting point during the initial construction step. It decomposes vertices into key and non-key types with delta values in a narrow range, enabling mixed-precision quantization. A specialized two-level scheduling architecture with a bit-serial mixed-precision unit implements efficient GANN construction.",
-  "key_novelty": "First accelerator to address memory bottlenecks in dynamic GANN construction by leveraging inherent vertex similarity for clustering and mixed-precision quantization.",
+  "method": "SAGA groups vertices that have the same starting point during graph construction, reducing memory waste by storing similar data only once. It splits vertices into two types: 'key' vertices (primary references) and 'non-key' variants that store only small differences from their key vertex. Since these differences fall in a narrow range, they need fewer bits to represent, enabling mixed-precision quantization (using variable numbers of bits for different data). A specialized two-level hardware scheduler with a bit-serial mixed-precision unit executes this efficiently.",
+  "key_novelty": "SAGA reduces memory bottlenecks in dynamic nearest-neighbor graph construction by grouping similar vertices to enable mixed-precision quantization (storing different data with different numbers of bits).",
   "contributions": [
     "Novel similarity-based vertex clustering technique that minimizes detection overhead in dynamic graphs",
     "Mixed-precision decomposition of vertices enabling lower bit-width quantization",
     "Specialized two-level scheduling and bit-serial execution unit",
     "9.30× speedup and 7.60× energy savings over NDSearch with retained accuracy"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["memory-system", "quantization", "circuit-design"],
-  "workloads": ["graph-analytics", "recommendation"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "memory-system",
+    "quantization",
+    "circuit-design"
+  ],
+  "workloads": [
+    "graph-analytics",
+    "recommendation"
+  ],
   "metrics": {
     "speedup": "9.30× over CPU, 4.87× over GPU, 4.15× over NDSearch",
     "energy_or_tops_w": "35.46× over CPU, 7.60× over GPU, 5.15× over NDSearch"
   },
-  "baselines": ["CPU", "GPU", "NDSearch"],
+  "baselines": [
+    "CPU",
+    "GPU",
+    "NDSearch"
+  ],
   "limitations": "Not discussed",
-  "tags": ["graph-processing", "nearest-neighbor", "memory-efficiency", "quantization", "dynamic-graphs", "similarity-clustering"],
+  "tags": [
+    "graph-processing",
+    "nearest-neighbor",
+    "memory-efficiency",
+    "quantization",
+    "dynamic-graphs",
+    "similarity-clustering"
+  ],
   "primary_theme": "Memory-efficient graph-construction acceleration via vertex similarity and mixed-precision",
   "confidence": "low"
 }

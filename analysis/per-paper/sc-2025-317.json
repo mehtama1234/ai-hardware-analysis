@@ -4,11 +4,11 @@
   "venue": "SC",
   "problem": "Mixture of Experts models on wafer-scale processors face conflicting batch size requirements: attention layers need small batches for memory efficiency, while MLP experts require large batches for compute density.",
   "motivation": "Wafer-scale processors like Cerebras offer massive parallelism but require careful optimization of batch sizes across heterogeneous computation stages. Existing solutions (FlashAttention, expert parallelism) target GPUs, not wafer-scale architectures.",
-  "method": "Batch Tiling on Attention (BTA): decouples batch processing by applying dynamic tiling to attention mechanisms. Attention processes at reduced batch size B via tiled computation, outputs concatenated to larger batch size B_tilde=G*B for MLP operations.",
-  "key_novelty": "Dynamic batch tiling specifically for wafer-scale processor characteristics, addressing the architectural mismatch between attention and MLP layer batch requirements.",
+  "method": "Attention breaks its batch into smaller independent blocks (called tiling) and processes B examples at a time, which reduces memory usage. The attention outputs are then concatenated back into a larger batch of size B_tilde=G*B. This larger batch feeds into the MLP experts (computational units that handle calculations beyond attention). By decoupling batch size between these layer types, attention can operate at the small batch size B it needs for memory efficiency, while MLPs receive the large batch they need for compute efficiency on wafer-scale processors.",
+  "key_novelty": "Dynamic batch tiling applied to attention layers addresses the architectural mismatch between attention's need for small batches and MLPs' need for large batches on wafer-scale processors.",
   "contributions": [
     "BTA algorithm for decoupled batch processing in MoE models on wafer-scale processors",
-    "Demonstration of 5\u00d7 performance improvements at higher sparsity on Cerebras WSE",
+    "Demonstration of 5× performance improvements at higher sparsity on Cerebras WSE",
     "Architectural insights into batch size conflicts in MoE training"
   ],
   "hardware_target": [

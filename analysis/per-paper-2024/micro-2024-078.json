@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Vision Transformers suffer from quadratic self-attention complexity and token redundancy that cause high computational costs. Existing token merging strategies are inefficient due to expensive computations and fixed merge rates that degrade latency performance.",
   "motivation": "Accelerating Vision Transformers with reduced latency and energy consumption enables practical deployment across edge and server systems.",
-  "method": "AdapTiV combines three algorithmic innovations\u2014Local Matching to restrict token search space, Sign Similarity for simplified token similarity computation, and Dynamic Merge Rate for image-adaptive merging\u2014with a specialized Adaptive Token Merging Engine that uses Sign-Driven Scheduling to hide token merging overhead within the Layer Normalization process using a lightweight sign scratchpad memory.",
-  "key_novelty": "Sign-Similarity metric combined with image-adaptive dynamic merge rates to enable efficient token merging while hiding computational overhead in existing Layer Normalization operations.",
+  "method": "AdapTiV speeds up Vision Transformers by identifying and merging redundant tokens before processing. It combines three techniques: Local Matching restricts each token's search to nearby tokens rather than all pairs, Sign Similarity determines redundancy using just the sign (positive or negative) of values instead of full computation, and Dynamic Merge Rate automatically adjusts merge amounts based on the image. The merging work is performed invisibly by folding it into Layer Normalization—an existing computation step the model always performs.",
+  "key_novelty": "The key insight is using just the sign (positive or negative) of values to detect similar tokens, combined with automatic image-adaptive merge rates, so all merging work runs invisibly within an existing Layer Normalization step.",
   "contributions": [
     "Adaptive Token Merging Engine hardware with Sign-Driven Scheduling to hide token merging latency",
     "Sign Similarity metric simplifying token similarity computation while maintaining accuracy",
@@ -29,8 +29,8 @@
     "attention"
   ],
   "metrics": {
-    "speedup": "309.4\u00d7 (edge CPU), 18.4\u00d7 (edge GPU), 89.8\u00d7 (server CPU), 6.3\u00d7 (server GPU)",
-    "energy_or_tops_w": "262.1\u00d7 (edge CPU), 21.5\u00d7 (edge GPU), 496.6\u00d7 (server CPU), 11.2\u00d7 (server GPU)",
+    "speedup": "309.4× (edge CPU), 18.4× (edge GPU), 89.8× (server CPU), 6.3× (server GPU)",
+    "energy_or_tops_w": "262.1× (edge CPU), 21.5× (edge GPU), 496.6× (server CPU), 11.2× (server GPU)",
     "accuracy": "<1% accuracy loss without additional training"
   },
   "baselines": [

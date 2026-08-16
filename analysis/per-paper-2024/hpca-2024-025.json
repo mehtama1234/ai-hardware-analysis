@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Storage-offloaded LLM training suffers from severe storage bandwidth bottlenecks. Large-parameter LLMs require extended memory hierarchy using host memory and storage, but storage bandwidth is orders of magnitude lower than GPU memory bandwidth.",
   "motivation": "Enabling efficient large language model training with limited GPU memory by removing the storage bandwidth bottleneck that constrains storage-offloaded training approaches.",
-  "method": "Smart-Infinity offloads parameter updates to custom near-storage accelerators via SmartUpdate to eliminate most storage traffic. It proposes an efficient data transfer handler that overlaps transfers with fixed memory consumption through device buffer reuse. For multi-accelerator scaling, it performs gradient compression on GPUs and decompression on accelerators to reduce write traffic on the shared storage channel.",
-  "key_novelty": "Moving parameter updates to near-storage processing accelerators to eliminate storage bandwidth bottleneck in storage-offloaded LLM training.",
+  "method": "Smart-Infinity solves the storage bottleneck by placing parameter updates (the core math that changes model weights) on small accelerator chips sitting right next to the hard drive, eliminating traffic over the slow storage connection. It includes a data handler that moves information back and forth while reusing temporary storage buffers so memory doesn't grow. When using multiple accelerators, it compresses gradient data (numbers tracking parameter changes) on the GPU before sending to storage, then decompresses it on the accelerators—this cuts the traffic competing for the shared storage channel.",
+  "key_novelty": "Running parameter updates on accelerators located near storage (instead of on the GPU) eliminates the storage bandwidth bottleneck that blocks storage-offloaded LLM training.",
   "contributions": [
     "SmartUpdate: parameter update engine on near-storage accelerators eliminating most storage traffic",
     "Efficient data transfer handler enabling overlapping transfers with fixed memory consumption",

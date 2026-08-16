@@ -4,24 +4,39 @@
   "venue": "ASPLOS",
   "problem": "Symbolic execution of hardware designs (in SystemVerilog) suffers from path explosion, making full security and functional verification intractably expensive. Existing engines lack comprehensive SystemVerilog language support and do not exploit redundancy across SMT queries generated during path exploration.",
   "motivation": "Hardware security verification demands high-coverage path analysis, but symbolic execution runtimes remain prohibitive for real SoC-scale designs, limiting adoption in practical pre-silicon verification flows.",
-  "method": "SylQ-SV is a dedicated SystemVerilog symbolic execution engine that caches SMT queries across paths. When the engine encounters a query that is semantically equivalent to a previously solved one, it retrieves the cached result rather than re-invoking the SMT solver, avoiding redundant computation. The engine also provides full SystemVerilog language coverage including SystemVerilog Assertions (SVA) to support end-to-end verification of open-source designs.",
-  "key_novelty": "Application of SMT query caching to hardware symbolic execution, exploiting cross-path query redundancy to reduce solver invocations without sacrificing coverage.",
+  "method": "SylQ-SV tests hardware designs written in SystemVerilog by exploring multiple execution paths (called symbolic execution) to find bugs. During this exploration, it encounters mathematical questions that an SMT solver must answer; instead of solving each one from scratch, it remembers answers (caches them) and reuses them when encountering equivalent questions in different paths, saving computation. The tool fully supports SystemVerilog's features including SystemVerilog Assertions (SVA), enabling verification of complete real-world hardware designs.",
+  "key_novelty": "The core idea is that hardware testing through multiple paths generates the same mathematical questions repeatedly, so caching solver answers avoids redundant work while maintaining full verification coverage.",
   "contributions": [
     "A dedicated SystemVerilog symbolic execution engine (SylQ-SV) with full SVA support",
     "SMT query caching mechanism that reuses results across symbolic paths",
     "Up to 17% runtime reduction over prior state-of-the-art symbolic execution tools",
     "Evaluation on OR1200, OpenTitan/Ibex, PULPissimo, and CVA6 SoC designs from HACK@DAC"
   ],
-  "hardware_target": ["CPU", "SoC", "RISC-V"],
-  "technique_category": ["security", "compiler"],
+  "hardware_target": [
+    "CPU",
+    "SoC",
+    "RISC-V"
+  ],
+  "technique_category": [
+    "security",
+    "compiler"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": "up to 17% runtime reduction over state-of-the-art",
     "other": null
   },
-  "baselines": ["prior symbolic execution engines for hardware (not named explicitly in abstract)"],
+  "baselines": [
+    "prior symbolic execution engines for hardware (not named explicitly in abstract)"
+  ],
   "limitations": "Path explosion is reduced but not solved; 17% improvement may be insufficient for very large designs.",
-  "tags": ["symbolic-execution", "hardware-verification", "smt", "security", "systemverilog"],
+  "tags": [
+    "symbolic-execution",
+    "hardware-verification",
+    "smt",
+    "security",
+    "systemverilog"
+  ],
   "primary_theme": "hardware security verification via symbolic execution",
   "confidence": "low"
 }

@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Traditional memory error correction codes target single fault models or require multiple redundancies for multi-fault support, leading to higher storage overhead. Systems need efficient error correction that simultaneously handles single-bit, double-bit, and ChipKill faults without excessive redundancy.",
   "motivation": "Reducing error correction redundancy overhead while supporting multiple fault models improves memory efficiency and system reliability.",
-  "method": "Polymorphic ECC employs redundancy polymorphism where the same check bits correct errors from different fault models (single-bit, double-bit, ChipKill, etc.). An inlined cryptographic MAC is embedded with each cacheline for data integrity. Iterative correction is applied across supported fault models, using up to 60-bit MACs with 64-byte cachelines over standard 40-bit DDR5 memory channels.",
-  "key_novelty": "Redundancy polymorphism allows the same check bits to correct multiple types of errors rather than requiring separate redundancies for each fault model.",
+  "method": "The system uses the same error-correction check bits to fix multiple types of memory faults: single-bit errors, double-bit errors, and ChipKill faults (where an entire memory chip fails). A cryptographic fingerprint called a MAC (message authentication code) of up to 60 bits is embedded with each 64-byte data block in the cache to verify the data hasn't been corrupted. When an error occurs, the system iteratively (repeatedly) tests the data against each supported fault pattern using these same check bits, attempting to locate and correct the error. This approach fits within DDR5 memory's standard 40-bit error-correction channel, avoiding the need for additional storage overhead.",
+  "key_novelty": "The same check bits can correct single-bit, double-bit, and ChipKill faults rather than requiring separate check bits for each fault type.",
   "contributions": [
     "Novel redundancy polymorphism concept enabling multi-fault-model error correction",
     "Compact embedded inlined cryptographic MAC for data integrity without extra storage overhead",

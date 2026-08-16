@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Real-time time-dependent density functional theory (rt-TDDFT) has been limited to thousands of atoms due to computational and communication scaling challenges. Higher accuracy requires simulation of million-atom systems.",
   "motivation": "Understanding ultrafast electron dynamics in large-scale materials and nanophotonic devices requires simulating systems with millions of atoms. Previous methods were limited to thousands of atoms, preventing study of many important systems.",
-  "method": "Novel rt-TDDFT method using discontinuous Galerkin adaptive local basis. Reduces global communication via basis locality. Tensor compression technique leverages basis locality to avoid repeated multi-center integral evaluation in hybrid functionals. Fused Gemm-Reduce operation optimizes projection.",
-  "key_novelty": "Discontinuous Galerkin approach for communication reduction; tensor compression exploiting basis locality; fused Gemm-Reduce kernel achieving high floating-point efficiency; million-atom simulation capability.",
+  "method": "The method breaks the electron-dynamics calculation into local regions that mostly operate independently, drastically reducing communication between processors. It uses basis functions (mathematical building blocks) that only affect nearby atoms, so each region can work mostly with local data. To avoid redundant calculations, especially in hybrid functionals (which blend different ways of modeling electron interactions), it compresses and reuses intermediate mathematical results. Finally, it uses a fused operation combining matrix multiplication and summation into a single step to maximize hardware efficiency.",
+  "key_novelty": "It uses basis functions that only affect nearby atoms (discontinuous Galerkin), eliminating the inter-processor communication bottleneck that previously limited electron-dynamics simulations to thousands of atoms and enabling scale to million atoms.",
   "contributions": [
     "Discontinuous Galerkin adaptive local basis for rt-TDDFT",
     "Reduced global communication via basis locality",
@@ -17,17 +17,39 @@
     "Two orders of magnitude improvement in computational scale",
     "34.8% of theoretical peak performance on Sunway (524,288 CGs)"
   ],
-  "hardware_target": ["New Sunway supercomputer (524,288 CGs)", "High-performance computing systems"],
-  "technique_category": ["Ab initio simulation", "Quantum chemistry", "Density functional theory", "Electron dynamics", "Computational physics"],
-  "workloads": ["Real-time TDDFT simulations", "Ultrafast electron dynamics", "Materials simulation"],
+  "hardware_target": [
+    "New Sunway supercomputer (524,288 CGs)",
+    "High-performance computing systems"
+  ],
+  "technique_category": [
+    "Ab initio simulation",
+    "Quantum chemistry",
+    "Density functional theory",
+    "Electron dynamics",
+    "Computational physics"
+  ],
+  "workloads": [
+    "Real-time TDDFT simulations",
+    "Ultrafast electron dynamics",
+    "Materials simulation"
+  ],
   "metrics": {
     "scale_improvement": "Two orders of magnitude (from thousands to millions of atoms)",
     "peak_efficiency": "34.8% of theoretical peak on Sunway",
     "speedup_vs_blas": "Several times higher floating-point efficiency vs standard BLAS"
   },
-  "baselines": ["Previous rt-TDDFT methods limited to thousands of atoms"],
+  "baselines": [
+    "Previous rt-TDDFT methods limited to thousands of atoms"
+  ],
   "limitations": "Simulation complexity still high; hybrid functional overhead remains significant; extreme-scale results on specific architecture (Sunway); application-specific performance tuning.",
-  "tags": ["ab-initio-simulation", "quantum-chemistry", "dft", "electron-dynamics", "supercomputing", "high-performance-computing"],
+  "tags": [
+    "ab-initio-simulation",
+    "quantum-chemistry",
+    "dft",
+    "electron-dynamics",
+    "supercomputing",
+    "high-performance-computing"
+  ],
   "primary_theme": "Extreme-Scale Quantum Chemistry Simulation",
   "confidence": "low"
 }

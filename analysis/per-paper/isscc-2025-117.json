@@ -4,16 +4,21 @@
   "venue": "ISSCC",
   "problem": "High-speed serial links face channel loss (>20dB) requiring equalization; ADC-based receivers offer flexible DSP but consume excessive power at >16nm nodes. RX FFE approaches improve timing margins but increase AFE noise, degrading bit-error-rate.",
   "motivation": "Data center I/O bandwidth scaling demands power-efficient 100+ Gb/s serial links with multi-tap equalization to compensate severe channel loss.",
-  "method": "The receiver uses 3-tap RX FFE to adaptively generate a 1+0.50 pulse response for 1-tap speculative DFE, compensating 21.2dB channel loss without requiring TX FFE. The mixed-signal architecture avoids simultaneous DFE slicing timing constraints while maintaining power efficiency. Adaptive equalization taps optimize cancellation of h1 (first post-cursor ISI) to achieve target pulse response.",
-  "key_novelty": "3-tap RX FFE generating 1+0.50 pulse response for speculative DFE, eliminating TX FFE requirement while maintaining low power.",
+  "method": "The receiver uses three tunable signal-processing stages (3-tap RX FFE, which adaptively cancel channel distortion) to create a target pulse pattern (1+0.50: main signal plus a half-strength echo) for a one-tap speculative decision-feedback stage (which predicts bits ahead of time to reduce delay). This recovers from 21.2dB of signal loss without requiring the transmitter to pre-process the signal (no TX FFE). The design separates the cancellation stages from the feedback stage to avoid timing conflicts, eliminates the first intersymbol interference (h1: the strongest echo from prior bits), and maintains power efficiency using mostly-analog circuits.",
+  "key_novelty": "The core idea is using three receiver-side processing stages to generate a 1+0.50 pulse response for a speculative decision-feedback stage, which eliminates transmitter-side processing while maintaining power efficiency.",
   "contributions": [
     "106.25Gb/s PAM-4 receiver achieving 2.06pJ/b power efficiency",
     "3-tap RX FFE adaptively generating 1+0.50 response for speculative DFE",
     "21.2dB channel loss compensation without TX FFE",
     "Avoids stringent DFE timing constraints through mixed-signal approach"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["circuit-design", "power"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "circuit-design",
+    "power"
+  ],
   "workloads": [],
   "metrics": {
     "data_rate": "106.25Gb/s",
@@ -21,9 +26,20 @@
     "power_efficiency": "2.06pJ/b",
     "channel_loss_compensation": "21.2dB"
   },
-  "baselines": ["ADC-based receivers", "TX FFE-dependent approaches", "1-tap RX FFE approaches"],
+  "baselines": [
+    "ADC-based receivers",
+    "TX FFE-dependent approaches",
+    "1-tap RX FFE approaches"
+  ],
   "limitations": "Not discussed in abstract.",
-  "tags": ["serial-link", "pam-4", "high-speed-io", "equalization", "low-power", "datacenter"],
+  "tags": [
+    "serial-link",
+    "pam-4",
+    "high-speed-io",
+    "equalization",
+    "low-power",
+    "datacenter"
+  ],
   "primary_theme": "Energy-efficient PAM-4 receiver with adaptive FFE/DFE for high-loss channels",
   "confidence": "low"
 }

@@ -4,25 +4,47 @@
   "venue": "MICRO",
   "problem": "HBM-based sparse accelerators suffer from high resource underutilization due to static non-zero scheduling that cannot redistribute work across HBM channels when data access patterns are irregular. Existing designs like Serpens fix data-to-channel mapping, leaving processing elements idle when a channel has no work.",
   "motivation": "Sparse matrix-vector multiplication (SpMV) is memory-bound and irregular; HBM's multiple independent channels are underutilized with static scheduling, capping throughput well below hardware limits.",
-  "method": "Chaso is an FPGA-based streaming HBM accelerator for SpMV that introduces Cross-HBM Channel out-of-Order Scheduling (CrHCS), which dynamically migrates non-zero data across HBM channels at runtime to balance load. When one channel's processing elements are starved, CrHCS identifies data in other channels and migrates it, enabling out-of-order execution across channel boundaries. The design is implemented on AMD Alveo U55C running at 301 MHz, targeting the SuiteSparse and SNAP matrix collections.",
-  "key_novelty": "CrHCS is the first non-zero scheduling scheme that permits out-of-order cross-channel data migration in HBM-based sparse accelerators, directly addressing per-channel load imbalance.",
+  "method": "Chasoñ is a specialized processor (built on an FPGA, which is reconfigurable hardware) that accelerates sparse matrix multiplication on AMD Alveo U55C hardware running at 301 MHz. Sparse matrices have mostly zeros and only scattered non-zero values; when accessing these in irregular patterns, some processing units sit idle while others are overloaded. To solve this, Chasoñ dynamically moves non-zero values between memory channels during execution — when processors on one channel have no work, the scheduler finds and migrates data from other channels, enabling out-of-order execution that crosses channel boundaries. The design targets real matrices from the SuiteSparse and SNAP collections.",
+  "key_novelty": "The core innovation is that non-zero data can migrate between memory channels during execution, eliminating processing bottlenecks by dynamically redistributing work based on actual demand.",
   "contributions": [
     "Cross-HBM Channel out-of-Order Scheduling (CrHCS) for dynamic non-zero load balancing across HBM channels",
     "Chaso HBM streaming accelerator design implemented on AMD Alveo U55C at 301 MHz",
     "Up to 8x throughput improvement and 2.03x energy efficiency gain over Serpens baseline",
     "Open-source implementation demonstrating generality across SuiteSparse and SNAP benchmarks"
   ],
-  "hardware_target": ["FPGA"],
-  "technique_category": ["sparsity", "memory-system", "scheduling", "near-data-processing"],
-  "workloads": ["graph-analytics", "HPC"],
+  "hardware_target": [
+    "FPGA"
+  ],
+  "technique_category": [
+    "sparsity",
+    "memory-system",
+    "scheduling",
+    "near-data-processing"
+  ],
+  "workloads": [
+    "graph-analytics",
+    "HPC"
+  ],
   "metrics": {
     "speedup": "up to 8x over Serpens, 20.33x over RTX 4090, 11.65x over RTX 6000 Ada, 2.67x over Core i9-11980HK",
     "energy_or_tops_w": "2.03x–34.72x better energy efficiency vs. baselines",
     "other": "301 MHz on AMD Alveo U55C"
   },
-  "baselines": ["Serpens", "Nvidia RTX 4090", "Nvidia RTX 6000 Ada", "Intel Core i9-11980HK"],
+  "baselines": [
+    "Serpens",
+    "Nvidia RTX 4090",
+    "Nvidia RTX 6000 Ada",
+    "Intel Core i9-11980HK"
+  ],
   "limitations": "Evaluation is limited to SpMV; generalization of CrHCS to other sparse kernels (e.g., SpGEMM) is not demonstrated.",
-  "tags": ["sparse-accelerator", "hbm", "fpga", "spmv", "load-balancing", "out-of-order-scheduling"],
+  "tags": [
+    "sparse-accelerator",
+    "hbm",
+    "fpga",
+    "spmv",
+    "load-balancing",
+    "out-of-order-scheduling"
+  ],
   "primary_theme": "HBM-aware dynamic scheduling for sparse linear algebra acceleration",
   "confidence": "low"
 }

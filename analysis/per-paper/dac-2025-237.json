@@ -4,8 +4,8 @@
   "venue": "DAC",
   "problem": "Mamba2 state-space models are memory-bound due to irregular broadcast element-wise multiplications and structured sparse computations; neither CPU nor standard GPU achieve good compute efficiency.",
   "motivation": "Mamba2 models are emerging as transformer alternatives with linear complexity; efficient hardware support is critical for adoption.",
-  "method": "FPGA overlay processor using: (1) operator fusion combining broadcast multiply and summation into single descriptor, backward shifting embeds segment multiply in subsequent ops to reduce path length; (2) sparse computation skipping via tensor-reorder-and-group + sparse data fetcher; (3) reconfigurable systolic array for linear operation support with improved data reuse.",
-  "key_novelty": "Operator fusion + sparsity skipping + reconfigurable systolic array for memory-bound SSM acceleration.",
+  "method": "The system builds a specialized processor on an FPGA that addresses three performance bottlenecks in Mamba models. First, it combines (fuses) multiplication and addition operations into single steps, using backward shifting to embed multiplication into subsequent operations and reduce intermediate data storage. Second, it skips computation on sparse data—mostly-empty tensors—by reorganizing data into groups and using a specialized fetcher that only retrieves non-zero values. Third, it uses a reconfigurable systolic array—a flexible grid of connected processing elements—to perform linear calculations while improving data reuse by keeping values in faster local memory.",
+  "key_novelty": "A specialized FPGA processor combining operator fusion (merging operations), sparse skipping (computing only non-zero values), and a reconfigurable processing grid to speed up state-space models like Mamba by reducing data movement bottlenecks.",
   "contributions": [
     "MambaOPU FPGA overlay for state-space-duality models",
     "Software-hardware co-optimized operator fusion",

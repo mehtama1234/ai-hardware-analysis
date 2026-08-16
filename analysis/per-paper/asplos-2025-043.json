@@ -4,16 +4,23 @@
   "venue": "ASPLOS",
   "problem": "Dataflow circuits produced by high-level synthesis (HLS) compilers cannot be optimized via standard sequential equivalence verification because their latency-insensitive handshake semantics are incompatible with traditional notions of sequential equivalence, leaving no sound basis for automated datapath simplification.",
   "motivation": "HLS-generated dataflow circuits are growing in importance for both asynchronous and synchronous designs, but the absence of formally verified transformation passes means circuits cannot be safely simplified post-synthesis, wasting area and timing slack.",
-  "method": "ElasticMiter develops a generic equivalence verification framework for latency-insensitive dataflow circuits by constructing a miter circuit that detects functional divergence under all possible token arrival patterns. It then defines a graph rewriting system over dataflow circuit DAGs where each rewrite rule is verified by the framework before being applied, guaranteeing the rewritten circuit is equivalent to the original. The approach handles elastic buffering, fork/join nodes, and control tokens that are absent in traditional sequential circuits.",
-  "key_novelty": "The first formally verified dataflow circuit transformation system that constructs a latency-insensitive miter to prove graph rewrite rules sound for HLS-generated circuits.",
+  "method": "These circuits are 'latency-insensitive'—they work no matter how fast or slow data arrives—which means standard circuit verification fails. ElasticMiter creates a 'miter' circuit (a testing harness that runs both the original and simplified circuits with the same inputs and checks for output mismatches) that verifies each simplification works under all possible arrival timings. Before applying any simplification rule, the system proves it with this miter, guaranteeing the result still works. The approach handles HLS-specific features like elastic buffering (delay-absorbing queues), fork/join nodes (where data splits and recombines), and control tokens.",
+  "key_novelty": "This is the first formally verified system for transforming HLS dataflow circuits by building a miter that accounts for latency-insensitive timing to prove each simplification is correct.",
   "contributions": [
     "A generic equivalence verification framework for latency-insensitive dataflow circuits based on miter construction.",
     "A graph rewriting system that systematically simplifies dataflow circuit datapaths.",
     "Formal verification proofs that each rewrite pattern preserves circuit equivalence under the latency-insensitive semantics.",
     "A foundation for building formally verified dataflow HLS compilers."
   ],
-  "hardware_target": ["ASIC", "FPGA"],
-  "technique_category": ["compiler", "dataflow", "reliability"],
+  "hardware_target": [
+    "ASIC",
+    "FPGA"
+  ],
+  "technique_category": [
+    "compiler",
+    "dataflow",
+    "reliability"
+  ],
   "workloads": [],
   "metrics": {
     "speedup": null,
@@ -23,9 +30,17 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["unoptimized HLS-generated dataflow circuits"],
+  "baselines": [
+    "unoptimized HLS-generated dataflow circuits"
+  ],
   "limitations": "Verification cost of miter construction may limit scalability to large circuits; not discussed in abstract.",
-  "tags": ["HLS", "dataflow-circuits", "formal-verification", "graph-rewriting", "equivalence-checking"],
+  "tags": [
+    "HLS",
+    "dataflow-circuits",
+    "formal-verification",
+    "graph-rewriting",
+    "equivalence-checking"
+  ],
   "primary_theme": "formally verified dataflow circuit optimization for HLS",
   "confidence": "low"
 }

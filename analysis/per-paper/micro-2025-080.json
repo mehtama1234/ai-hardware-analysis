@@ -4,17 +4,28 @@
   "venue": "MICRO",
   "problem": "Existing vector architectures (VAs) and SIMD units—including ARM SVE and RISC-V SIMD—cannot efficiently execute quantized neural network (QNN) matrix multiplication at 4-bit and 8-bit integer precisions because their datapaths are designed for wider, fixed-width computations.",
   "motivation": "Quantized models (4-bit and 8-bit) are the dominant deployment format for LLMs and CNNs at the edge and on server platforms, yet the gap between quantized arithmetic efficiency and what vector ISAs provide forces inefficient emulation that wastes throughput and energy.",
-  "method": "CAMP (Cartesian Accumulative Matrix Pipeline) introduces a hybrid multiplier that hierarchically decomposes quantized integer multiplication into a two-level Cartesian product structure. The architecture natively handles multiple integer precisions (focus on INT4 and INT8) within the same datapath by exploiting structural regularity of quantized GEMM. CAMP is integrated as a micro-architecture extension to ARM A64FX (ARMv8 SVE, synthesized at TSMC 7 nm with Synopsys ICC2) and a RISC-V edge SoC (GlobalFoundries 22 nm, Cadence Innovus), adding 1% and 4% area overhead respectively.",
-  "key_novelty": "A hierarchical hybrid multiplier (Cartesian Accumulative Matrix Pipeline) that enables vector architectures to natively support multi-precision quantized integer matrix multiplication with minimal area overhead.",
+  "method": "CAMP introduces a specialized multiplier that breaks down quantized integer multiplication (operations using reduced-precision 4-bit and 8-bit integers) through a two-level nested approach using Cartesian products—decomposing each multiplication into smaller sub-multiplications. This design efficiently handles multiple precision levels (4-bit and 8-bit integers) within the same circuit by recognizing and exploiting the mathematical patterns in quantized matrix operations. CAMP was integrated into the ARM A64FX processor (using ARMv8 SVE, fabricated at TSMC 7 nm) and RISC-V edge SoCs (fabricated at GlobalFoundries 22 nm), increasing chip area by 1% and 4% respectively.",
+  "key_novelty": "CAMP, a hierarchical multiplier that uses Cartesian products (breaking large multiplications into smaller nested operations), enables vector architectures to efficiently execute multiple precision levels (4-bit and 8-bit) of quantized neural network matrix multiplication with just 1-4% chip area overhead.",
   "contributions": [
     "CAMP architecture: a hybrid multiplier extending VA/SIMD datapaths to natively support INT4 and INT8 GEMM",
     "Up to 17x performance improvement over ARM A64FX baseline for matrix multiply operations",
     "Up to 23x performance improvement over a RISC-V edge SoC baseline",
     "Area overhead of only 1% (ARM TSMC 7nm) and 4% (RISC-V GF22nm) verified through place-and-route"
   ],
-  "hardware_target": ["CPU", "RISC-V", "SoC"],
-  "technique_category": ["dataflow", "quantization", "circuit-design"],
-  "workloads": ["LLM-inference", "CNN"],
+  "hardware_target": [
+    "CPU",
+    "RISC-V",
+    "SoC"
+  ],
+  "technique_category": [
+    "dataflow",
+    "quantization",
+    "circuit-design"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "CNN"
+  ],
   "metrics": {
     "speedup": "up to 17x over ARM A64FX; up to 23x over RISC-V SoC for quantized matrix multiply",
     "energy_or_tops_w": null,
@@ -23,9 +34,19 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["ARM A64FX (ARMv8 SVE)", "RISC-V edge SoC with SIMD"],
+  "baselines": [
+    "ARM A64FX (ARMv8 SVE)",
+    "RISC-V edge SoC with SIMD"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["quantization", "vector-architecture", "simd", "integer-gemm", "arm-sve", "risc-v"],
+  "tags": [
+    "quantization",
+    "vector-architecture",
+    "simd",
+    "integer-gemm",
+    "arm-sve",
+    "risc-v"
+  ],
   "primary_theme": "quantized GEMM acceleration in vector/SIMD architectures",
   "confidence": "low"
 }

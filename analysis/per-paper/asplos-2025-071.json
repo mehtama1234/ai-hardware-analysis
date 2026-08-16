@@ -4,16 +4,25 @@
   "venue": "ASPLOS",
   "problem": "ZNS SSD RAID systems must manage partial parity for incomplete stripes; prior approaches log partial parity in reserved zones, creating throughput bottlenecks and exacerbating write amplification that reduces SSD lifetime.",
   "motivation": "ZNS SSDs reduce the block interface overhead of conventional SSDs, but RAID construction over ZNS introduces a 'partial parity tax' that negates key ZNS efficiency benefits.",
-  "method": "ZRAID exploits the Zone Random Write Area (ZRWA), a small random-write buffer region within ZNS SSDs, to buffer and consolidate partial parity in-place before committing full stripes to sequential zones. By using ZRWA as a transient parity staging area, ZRAID avoids persistent partial parity logging to reserved zones, eliminating the associated throughput bottleneck and write amplification. The system coordinates ZRWA usage across multiple ZNS drives to maintain RAID consistency.",
-  "key_novelty": "Using ZNS ZRWA buffers as transient in-device parity staging to eliminate partial parity logging overhead in ZNS RAID without reserved zones.",
+  "method": "ZRAID uses ZRWA—a small random-write buffer built into ZNS SSDs (solid-state drives with sequential write zones)—to temporarily hold partial parity (information needed to rebuild a failed drive). Instead of writing partial parity to reserved zones, which causes throughput slowdowns and extra wear, ZRAID accumulates multiple partial writes in ZRWA until they combine into complete data blocks (called stripes) ready for sequential writing to the drive. This eliminates both the throughput bottleneck and the accelerated wear that come from logging fragments. ZRAID coordinates this buffering across multiple drives to maintain data consistency.",
+  "key_novelty": "ZRAID uses ZNS SSDs' built-in random-write buffers (ZRWA) for temporary parity storage instead of reserved zones, eliminating the throughput bottlenecks and extra wear from partial parity logging.",
   "contributions": [
     "Identification and characterization of the partial parity tax problem in ZNS RAID systems",
     "ZRAID design exploiting ZRWA for in-device partial parity staging",
     "Elimination of reserved-zone bottlenecks and write amplification for ZNS RAID"
   ],
-  "hardware_target": ["SoC"],
-  "technique_category": ["memory-system", "scheduling", "reliability"],
-  "workloads": ["database", "HPC"],
+  "hardware_target": [
+    "SoC"
+  ],
+  "technique_category": [
+    "memory-system",
+    "scheduling",
+    "reliability"
+  ],
+  "workloads": [
+    "database",
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -22,9 +31,17 @@
     "accuracy": null,
     "other": "not stated in abstract; claims throughput improvement and write amplification reduction"
   },
-  "baselines": ["prior ZNS RAID with reserved-zone partial parity logging"],
+  "baselines": [
+    "prior ZNS RAID with reserved-zone partial parity logging"
+  ],
   "limitations": "ZRWA capacity is limited and varies across ZNS device implementations; generality across different ZNS device firmware not discussed.",
-  "tags": ["zns-ssd", "raid", "partial-parity", "write-amplification", "storage"],
+  "tags": [
+    "zns-ssd",
+    "raid",
+    "partial-parity",
+    "write-amplification",
+    "storage"
+  ],
   "primary_theme": "ZRWA-based partial parity elimination in ZNS RAID",
   "confidence": "low"
 }

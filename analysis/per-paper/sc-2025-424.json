@@ -4,13 +4,13 @@
   "venue": "SC",
   "problem": "Wave quantization problem in modern large-core-count GPUs with large tile sizes causes partial wave under-utilization and degraded GEMM performance despite high peak throughput.",
   "motivation": "GEMM is fundamental to deep learning and scientific computing; modern GPUs scale cores and tile sizes, exacerbating wave quantization; existing solutions are inefficient or introduce synchronization overhead.",
-  "method": "Two-level hybrid tile scheduling: Level 1 maximizes full-wave throughput via standard tiling; Level 2 reduces partial-wave latency via fine-grained adaptive tiling. Offline profiling creates micro-kernel library. L2 cache-aware tile layout selection via analytical model optimizes global-to-L2 data movement.",
-  "key_novelty": "First framework to jointly address wave quantization and L2 cache affinity in GEMM; fine-grained adaptive tiling for partial waves; analytical cache model for tile layout selection.",
+  "method": "HyTiS uses two-level hybrid tile scheduling: the first level uses standard tile sizes to keep all GPU processing waves (groups of threads running together) fully utilized, while the second level switches to fine-grained adaptive tiles for leftover work that doesn't fill complete waves, reducing partial-wave latency. It pre-profiles different tile combinations offline and stores the most efficient ones as a library. Finally, it selects tile layouts using an analytical model that predicts data movement between main GPU memory and L2 cache, optimizing to minimize this movement.",
+  "key_novelty": "The first framework to jointly address wave quantization and L2 cache efficiency in GPU matrix multiplication by using fine-grained adaptive tiling for partial waves and an analytical model to select tile layouts based on cache behavior.",
   "contributions": [
     "Two-level hybrid tile scheduling framework for full and partial waves",
     "Offline profiling to build efficient runtime search space",
     "Analytical L2 cache model for tile layout optimization",
-    "1.95\u20132.08\u00d7 speedup over cuBLAS on H100/A100"
+    "1.95–2.08× speedup over cuBLAS on H100/A100"
   ],
   "hardware_target": [
     "NVIDIA H100",
@@ -28,8 +28,8 @@
     "scientific computing"
   ],
   "metrics": {
-    "speedup_h100": "1.95\u00d7 over cuBLAS",
-    "speedup_a100": "2.08\u00d7 over cuBLAS",
+    "speedup_h100": "1.95× over cuBLAS",
+    "speedup_a100": "2.08× over cuBLAS",
     "wave_utilization": "improved",
     "cache_affinity": "enhanced L2 behavior"
   },

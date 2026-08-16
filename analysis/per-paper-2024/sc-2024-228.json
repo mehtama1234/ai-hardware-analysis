@@ -5,10 +5,10 @@
   "year": 2024,
   "problem": "Sparse matrix-matrix multiplication (SpGEMM) where one matrix is square and the other is tall and skinny (TS-SpGEMM) suffers from suboptimal performance with popular distributed algorithms like sparse SUMMA. This special case is critical for multi-source breadth-first search, influence maximization, sparse graph embedding, and algebraic multigrid solvers.",
   "motivation": "TS-SpGEMM arises frequently in graph analytics, machine learning embeddings, and numerical linear algebra applications that demand efficient distributed-memory implementation at scale.",
-  "method": "The TSSpGEMM algorithm uses customized 1D partitioning for all matrices instead of traditional 2D/3D decompositions. It applies sparsity-aware tiling to minimize data transfers between processors. The algorithm strategically combines local and remote computations to reduce communication overhead. This design is specifically tuned for the tall-and-skinny sparsity pattern rather than general sparse matrices.",
-  "key_novelty": "Customized 1D partitioning strategy with sparsity-aware tiling specifically optimized for tall-and-skinny sparse matrix patterns in distributed memory.",
+  "method": "TSSpGEMM handles the specific case of multiplying two sparse matrices where one is tall and thin using 1D partitioning (dividing the work in one direction) instead of traditional 2D or 3D grid-based divisions, which is simpler for this matrix shape. It then uses sparsity-aware tiling—grouping calculations into chunks while being smart about where the actual non-zeros are—which minimizes how much data needs to be moved between processors. The algorithm strategically decides which computations each processor does locally and which ones need to communicate with remote processors, which further cuts down on expensive data transfers. This entire design is tuned specifically to how tall-and-skinny matrices are structured, rather than being a general approach for all sparse matrices.",
+  "key_novelty": "Using 1D partitioning with sparsity-aware tiling, specifically tailored for tall-and-skinny sparse matrices instead of traditional 2D or 3D approaches designed for general sparse matrices.",
   "contributions": [
-    "TSSpGEMM algorithm achieving 5\u00d7 performance improvement over 2D/3D SUMMA for tall-and-skinny sparse matrix multiplication",
+    "TSSpGEMM algorithm achieving 5× performance improvement over 2D/3D SUMMA for tall-and-skinny sparse matrix multiplication",
     "Sparsity-aware tiling and 1D partitioning strategy that minimizes communication in distributed sparse operations",
     "Scalable implementations of multi-source BFS and sparse graph embedding algorithms",
     "Scalability demonstration to 512 nodes (65,536 cores) on NERSC Perlmutter"
@@ -27,7 +27,7 @@
     "HPC"
   ],
   "metrics": {
-    "speedup": "5\u00d7 over 2D/3D SUMMA",
+    "speedup": "5× over 2D/3D SUMMA",
     "scalability": "512 nodes (65,536 cores)"
   },
   "baselines": [

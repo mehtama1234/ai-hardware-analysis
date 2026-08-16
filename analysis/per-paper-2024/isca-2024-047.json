@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "Recommendation model training requires embedding layers occupying hundreds of GBs to TBs of memory, creating high capacity and bandwidth demands. Relocating embeddings to CXL memory causes significant performance degradation due to CXL's limited bandwidth compared to host memory.",
   "motivation": "Personalized recommendation systems are critical Internet services whose training efficiency is bottlenecked by memory and bandwidth constraints.",
-  "method": "ReCXL employs a unified, hardware-efficient near-memory processing architecture that processes entire embedding training within CXL memory to minimize data transfers over the bandwidth-limited CXL interconnect. It incorporates software-hardware co-optimizations including sophisticated dependency-free prefetching and fine-grained update scheduling to maximize internal bandwidth and hardware utilization.",
-  "key_novelty": "Embedding training is processed directly within CXL memory using near-memory processing to eliminate bandwidth-critical data transfers over the CXL link.",
+  "method": "ReCXL performs embedding training (optimizing lookup tables for the recommendation model) directly inside CXL memory (a type of memory with limited bandwidth) instead of moving that data to the main processor. It combines two techniques: dependency-free prefetching (predicting and pre-loading what the processor will need before it's requested) and fine-grained update scheduling (timing when updates happen to prevent idle waiting). Together, these keep the processor busy and maximize the use of available bandwidth over the CXL connection.",
+  "key_novelty": "By performing embedding training directly inside CXL memory rather than moving embeddings to the processor, the system eliminates the slow data transfers that normally limit performance.",
   "contributions": [
     "ReCXL system for CXL memory disaggregation in recommendation model training",
     "Hardware-efficient NMP architecture that processes embedding layers within CXL memory",
     "Software-hardware co-optimizations with dependency-free prefetching and fine-grained update scheduling",
-    "22.6\u00d7 average speedup over naive CXL and 9.4\u00d7 over CPU-GPU baselines"
+    "22.6× average speedup over naive CXL and 9.4× over CPU-GPU baselines"
   ],
   "hardware_target": [
     "CPU",
@@ -29,7 +29,7 @@
     "DLRM"
   ],
   "metrics": {
-    "speedup": "9.4\u00d7 vs CPU-GPU baseline, 22.6\u00d7 vs naive CXL memory"
+    "speedup": "9.4× vs CPU-GPU baseline, 22.6× vs naive CXL memory"
   },
   "baselines": [
     "CPU-GPU baseline",

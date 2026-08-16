@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Pipeline parallelism in LLM training creates idle periods (bubbles) during gradient computation stages, and gradient checkpointing requires expensive recomputation. These overheads reduce effective hardware utilization and increase training time.",
   "motivation": "Improving training efficiency of large language models directly reduces computational cost and time-to-convergence for practitioners deploying state-of-the-art models.",
-  "method": "Obscura applies a pipeline schedule transformation that positions gradient recomputation tasks to execute during the idle bubble periods that occur naturally in pipeline parallelism. By overlapping recomputation with pipeline stages rather than executing sequentially, the recomputation overhead becomes partially hidden within pipeline bubbles, reducing overall critical path length.",
-  "key_novelty": "Leveraging pipeline bubble periods as hidden execution slots for recomputation through intelligent schedule transformation.",
+  "method": "When training large language models with pipeline parallelism (splitting computation into stages running in parallel), idle periods called bubbles naturally occur as stages wait for each other. Gradient checkpointing normally requires expensive recomputation that adds to training time, but Obscura schedules this work to run during the bubble periods where hardware would otherwise sit idle. By overlapping recomputation with the waiting time, the extra work becomes hidden and doesn't extend the total training duration.",
+  "key_novelty": "Scheduling gradient recomputation to run during the idle waiting periods (bubbles) in pipeline-parallel training.",
   "contributions": [
     "Bubble-filling pipeline transformation algorithm that schedules recomputation during idle periods",
     "Method to conceal recomputation overhead through overlap with active pipeline stages",

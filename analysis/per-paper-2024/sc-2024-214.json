@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Determinacy races are concurrent programming hazards where two accesses to the same memory address are not properly ordered with at least one being a write, indicating potential correctness errors in task-based parallel programs using models like Cilk and OpenMP.",
   "motivation": "Detecting and helping programmers fix determinacy races is critical for ensuring correctness in parallel programs before deployment.",
-  "method": "Taskgrind extends Valgrind with heavyweight dynamic binary instrumentation to monitor memory accesses in parallel programs. It tracks all memory accesses across concurrent tasks and identifies races by detecting unordered accesses where at least one is a write. The tool integrates awareness of parallel programming models like Cilk and OpenMP to provide context-aware race analysis with reduced false positives.",
-  "key_novelty": "Extending heavyweight dynamic binary instrumentation via Valgrind to effectively detect determinacy races in task-based parallel programming models with fewer false negatives than existing tools.",
+  "method": "The tool builds on Valgrind (a program inspection framework) by adding heavyweight monitoring that watches every instruction as the program actually runs—it's thorough but slows things down considerably. It records every memory access made by concurrent tasks (pieces of work running in parallel) and flags races: situations where two accesses to the same memory location aren't properly ordered and at least one is writing. Because it understands how Cilk and OpenMP organize parallel work, it avoids many false alarms that simpler tools raise, catching actual problems without noise.",
+  "key_novelty": "By combining detailed runtime monitoring (watching every memory access) with awareness of parallel programming models, it detects races in Cilk and OpenMP programs that simpler tools miss.",
   "contributions": [
     "Taskgrind tool for memory access analysis in parallel programming models like Cilk and OpenMP",
     "Determinacy race detection with fewer false negatives than state-of-the-art tools",

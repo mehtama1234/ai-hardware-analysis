@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "GPU Direct Storage (GDS) employs phony buffers in host memory to interact with the Linux kernel, resulting in suboptimal I/O performance, extra resource consumption, and high deployment complexity.",
   "motivation": "GDS is vital for GPU-based training and inference, but current implementations use indirect buffering that adds latency and overhead. Eliminating this intermediary layer could improve data transfer efficiency and reduce complexity.",
-  "method": "Phoenix leverages ZONE_DEVICE (Linux kernel 4.3+) to map GPU memory into the page table at system startup, eliminating the need for host-side phony buffers. The kernel module allocates user-space virtual memory and establishes direct mapping with designated GPU memory.",
-  "key_novelty": "Direct GPU memory mapping into the system page table using ZONE_DEVICE, eliminating intermediate host buffers while maintaining kernel compatibility.",
+  "method": "Phoenix makes GPU memory directly visible to the Linux kernel using ZONE_DEVICE (a kernel feature from version 4.3 onward that lets the system designate device memory regions). A kernel module allocates virtual memory addresses that point directly to GPU memory, mapping these into the kernel's page table—the system's directory for where memory is located. This eliminates phony buffers (dummy memory locations in system RAM that were previously required to communicate with the kernel), allowing I/O operations to access GPU memory directly.",
+  "key_novelty": "Phoenix directly connects GPU memory to the Linux kernel using ZONE_DEVICE, eliminating the dummy buffer intermediaries of previous approaches.",
   "contributions": [
     "70.3% reduction in software processing overhead along the critical I/O path",
     "2.29x improvement in small-size I/O performance (e.g., KV-cache operations)",

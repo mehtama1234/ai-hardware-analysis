@@ -4,23 +4,38 @@
   "venue": "DAC",
   "problem": "Intel's filtering defense in MSR_IA32_MISC_PACKAGE_CTLS protects against in-band power side-channels but leaves out-of-band (OOB) management interfaces exposed, allowing energy-based attacks on confidential computing enclaves.",
   "motivation": "Confidential computing (SGX, TDX) is critical for secure workloads, but current defenses focus only on in-band channels; comprehensive security evaluation must consider integrated attack vectors combining in-band and out-of-band capabilities.",
-  "method": "Reverse-engineer OOB communication protocols to access Package Configuration Space (PCS) energy readings outside the scope of MSR filtering. Exploit synchronization via deliberately disabled MSRs to align in-band execution with OOB measurements, enabling power side-channel extraction from SGX and TDX.",
-  "key_novelty": "First demonstrated exploitation of out-of-band management interfaces to conduct power side-channel attacks on confidential computing, bypassing existing in-band defenses.",
+  "method": "The attackers reverse-engineer out-of-band management interfaces—administrative channels built into Intel processors that operate separately from normal CPU operations—to access power consumption readings from the Package Configuration Space, a protected area that Intel's MSR filter doesn't defend. They deliberately disable certain CPU monitoring controls to synchronize when code executes inside a secure enclave (SGX or TDX) with simultaneous out-of-band power measurements. Since different operations consume varying amounts of power, analyzing these patterns reveals what the enclave is executing, enabling secret extraction that the existing in-band protections are designed to prevent.",
+  "key_novelty": "This is the first demonstration that out-of-band management interfaces built into Intel processors can be exploited to conduct power side-channel attacks on confidential computing platforms like SGX and TDX, bypassing existing in-band defenses.",
   "contributions": [
     "Recovery of 2048-bit RSA keys from SGX MbedTLS with single-step assumption",
     "AESNI key extraction from TDX without single-step assumption",
     "Reverse engineering of OOB protocol for PCS access",
     "Demonstrates importance of evaluating both in-band and out-of-band interfaces for confidential computing security"
   ],
-  "hardware_target": ["CPU"],
-  "technique_category": ["security"],
-  "workloads": ["cryptography"],
+  "hardware_target": [
+    "CPU"
+  ],
+  "technique_category": [
+    "security"
+  ],
+  "workloads": [
+    "cryptography"
+  ],
   "metrics": {
     "other": "RSA-2048 key recovery success, AESNI key leakage"
   },
-  "baselines": ["MSR filtering defense"],
+  "baselines": [
+    "MSR filtering defense"
+  ],
   "limitations": "Attacks assume access to out-of-band management interface; applicability to systems without OOB exposure is limited.",
-  "tags": ["side-channel", "power-analysis", "sgx", "tdx", "confidential-computing", "security"],
+  "tags": [
+    "side-channel",
+    "power-analysis",
+    "sgx",
+    "tdx",
+    "confidential-computing",
+    "security"
+  ],
   "primary_theme": "Out-of-band power side-channel attacks on confidential computing",
   "confidence": "low"
 }

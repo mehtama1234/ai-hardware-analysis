@@ -4,13 +4,13 @@
   "venue": "SC",
   "problem": "Spatial multiplexing via MPS and MIG introduces interference and partitioning rigidity, limiting multi-model inference throughput and GPU utilization in production systems.",
   "motivation": "Single-GPU multi-model inference requires higher utilization to amortize model deployment costs; MPS-only solutions suffer performance interference; MIG-only solutions waste compute due to rigid partition sizes.",
-  "method": "Hierarchical scheduling framework combining MPS on top of MIG partitions. Jointly optimizes model colocation, workload distribution, MIG partition selection, and MPS thread-block mapping. Bayesian optimization explores MPS configuration space without building explicit performance models.",
-  "key_novelty": "First system to effectively combine MPS with MIG to mitigate interference; Bayesian-driven MPS tuning avoids inaccurate interference prediction models.",
+  "method": "The system runs multiple AI models on a single GPU by splitting it into logical sections using MIG (Multi-Instance GPU partitioning), then further sharing each section using MPS (Multi-Process Service), which lets multiple model processes run simultaneously on the same partition. It automatically decides which models to run together, how to split the GPU into partitions, how to distribute the workload across processes, and where to map the GPU's computing threads (thread blocks) to each process. Rather than trying to predict exactly how models will interfere with each other when sharing resources—which often leads to inaccurate guesses—it uses Bayesian optimization (a method that learns from past experiments to intelligently suggest new configurations to try) to explore different MPS settings and find what actually works best in practice.",
+  "key_novelty": "This system combines MPS (letting multiple processes share sections of the GPU) with MIG (dividing the GPU into partitions), then uses Bayesian optimization to automatically find the best MPS settings by trying different configurations and measuring performance, avoiding the inaccuracy of trying to predict interference mathematically.",
   "contributions": [
     "Identification of MPS+MIG integration challenges (interference amplification, partition mismatch)",
     "Hierarchical scheduling framework for joint resource allocation decisions",
     "Bayesian optimization with acceleration strategies for MPS configuration search",
-    "46\u201377% throughput improvement over state-of-the-art spatial multiplexing"
+    "46–77% throughput improvement over state-of-the-art spatial multiplexing"
   ],
   "hardware_target": [
     "NVIDIA GPUs (MPS/MIG support)"
@@ -26,7 +26,7 @@
     "multi-model serving"
   ],
   "metrics": {
-    "throughput_improvement": "46.04\u201377.19% over baselines",
+    "throughput_improvement": "46.04–77.19% over baselines",
     "qos_preservation": "Quality-of-Service requirements maintained"
   },
   "baselines": [

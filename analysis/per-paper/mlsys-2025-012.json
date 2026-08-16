@@ -4,8 +4,8 @@
   "venue": "MLSys 2025",
   "problem": "Submodular subset selection for dataset pruning requires materializing all candidate points in a central machine's memory, making it infeasible at billion-point scale.",
   "motivation": "Training data curation through submodular maximization can significantly improve model quality, but existing greedy algorithms require O(N) memory on a single node, preventing use with billion-scale datasets common in modern ML pipelines.",
-  "method": "A distributed bounding algorithm partitions data across workers; each worker computes local upper/lower bounds on marginal gains using grow/shrink steps based on min/max utilities without requiring point-to-point communication. A multi-round partition-based greedy scheme with adaptive repartitioning aggregates global selections. Implemented on Apache Beam for large-scale distributed execution.",
-  "key_novelty": "Bounding algorithm that avoids centralizing data by computing provably tight bounds on submodular marginal gains in a distributed manner, enabling selection quality approaching centralized greedy without a central memory bottleneck.",
+  "method": "The algorithm distributes the dataset across many computers (workers). Each worker independently estimates how valuable each remaining data point would be to add to the selection (called marginal gains), using upper and lower bound estimates that tighten through grow and shrink steps based on each point's minimum and maximum potential value—without workers needing to send data to each other. Over multiple rounds, the algorithm redistributes data across workers and combines their selections into a global result, running on Apache Beam for large-scale distributed execution.",
+  "key_novelty": "The algorithm computes provably tight bounds on marginal gains (how much each data point would improve the selection) distributed across many computers rather than centralizing everything, enabling selection quality nearly matching a centralized greedy algorithm without requiring one machine to hold all billion data points in memory.",
   "contributions": [
     "Formal bounding algorithm for distributed submodular maximization with grow/shrink steps",
     "Multi-round partition-based greedy scheme with adaptive repartitioning",
@@ -13,9 +13,18 @@
     "98% of centralized greedy quality with 32 communication rounds",
     "Evaluation on CIFAR-100 and ImageNet dataset selection tasks"
   ],
-  "hardware_target": ["CPU", "GPU"],
-  "technique_category": ["memory-system", "parallelism"],
-  "workloads": ["CNN-training", "data-selection"],
+  "hardware_target": [
+    "CPU",
+    "GPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "parallelism"
+  ],
+  "workloads": [
+    "CNN-training",
+    "data-selection"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -24,14 +33,25 @@
     "accuracy": "98% of centralized greedy quality at 32 communication rounds",
     "other": "Scales to 13 billion points; adaptive partitioning reduces rounds needed"
   },
-  "baselines": ["Centralized greedy submodular maximization", "Independent partition selection (no coordination)"],
+  "baselines": [
+    "Centralized greedy submodular maximization",
+    "Independent partition selection (no coordination)"
+  ],
   "limitations": [
     "Quality degrades with fewer communication rounds",
     "Bounding tightness depends on data distribution and partition quality",
     "Apache Beam infrastructure required for large-scale deployment",
     "Adaptive repartitioning adds coordination overhead"
   ],
-  "tags": ["submodular-optimization", "data-selection", "dataset-pruning", "distributed-systems", "Apache-Beam", "scalability", "billion-scale"],
+  "tags": [
+    "submodular-optimization",
+    "data-selection",
+    "dataset-pruning",
+    "distributed-systems",
+    "Apache-Beam",
+    "scalability",
+    "billion-scale"
+  ],
   "primary_theme": "data-efficiency",
   "confidence": "high"
 }

@@ -4,8 +4,8 @@
   "venue": "DATE",
   "problem": "Long-context LLM inference suffers from intolerable latency and GPU memory consumption; token-level KV cache quantization is time-consuming in search and hardware-inefficient during computation.",
   "motivation": "Long-context LLMs require faster, memory-efficient inference while maintaining accuracy.",
-  "method": "Cocktail performs chunk-level quantization search based on query-context similarity scores, reorders KV cache chunks before quantization to avoid hardware inefficiency from mixed-precision computation.",
-  "key_novelty": "Chunk-level granularity with explicit reordering resolves hardware inefficiency in mixed-precision KV cache computation.",
+  "method": "Cocktail reduces GPU memory by lowering the precision of the KV cache—the data cached from previous tokens that enables fast attention computation. Instead of deciding precision individually for each token (which takes too long to search), it groups tokens into chunks and uses the similarity between the current query and previous context to choose how much precision each chunk needs. It then reorders the chunks by precision level, so the GPU processes all chunks of one precision level together before switching to the next, which lets the hardware run efficiently without constantly switching between different precision formats.",
+  "key_novelty": "Cocktail groups tokens into chunks for mixed-precision decisions and explicitly reorders them by precision level so the GPU can process chunks of the same precision together, avoiding the efficiency penalty of constantly switching precisions.",
   "contributions": [
     "Chunk-level quantization search avoiding expensive token-level search",
     "KV cache chunk reordering for hardware efficiency",

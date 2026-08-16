@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Page-level FTLs require multiple flash reads to translate logical page numbers to physical page numbers, inducing address translation overhead. This double-read phenomenon significantly increases latency in random access patterns and becomes a critical performance bottleneck.",
   "motivation": "Reducing address translation overhead is critical for improving SSD performance and tail latency in storage systems serving latency-sensitive applications.",
-  "method": "LearnedFTL uses learned indexes (linear models) to replace traditional page-level translation tables. It employs an in-place-update linear model for efficient index construction, a virtual PPN representation to maintain contiguous physical mappings for sorted logical addresses, and a group-based allocation strategy integrated with garbage collection to minimize training overhead.",
-  "key_novelty": "First application of learned indexes to page-level FTL design that predicts physical page addresses from logical page numbers using machine learning models to eliminate double reads.",
+  "method": "LearnedFTL replaces address lookup tables with learned indexes—simple mathematical models that predict physical page locations from logical page numbers, eliminating the multiple flash reads that cause latency. It trains these models efficiently using an in-place-update technique that avoids extra storage overhead. To keep physical memory organized for garbage collection, it uses a virtual representation of physical page numbers that maintains contiguous blocks. A group-based allocation strategy integrates this prediction with garbage collection operations to minimize model training overhead.",
+  "key_novelty": "This is the first application of machine learning to page-level flash translation, using models to predict physical addresses from logical addresses and eliminate double reads.",
   "contributions": [
     "First learned index-based page-level FTL design reducing address translation-induced double reads",
     "In-place-update linear model technique for efficient learned index construction with minimal overhead",
@@ -22,7 +22,7 @@
     "database"
   ],
   "metrics": {
-    "speedup": "5.5\u00d7 average P99 tail latency vs TPFTL, 8.2\u00d7 vs LeaFTL (range: 2.9\u00d7 to 12.2\u00d7)",
+    "speedup": "5.5× average P99 tail latency vs TPFTL, 8.2× vs LeaFTL (range: 2.9× to 12.2×)",
     "other": "55.5% reduction in address translation-induced double reads"
   },
   "baselines": [

@@ -4,25 +4,45 @@
   "venue": "SC",
   "problem": "ADMM-FFT iterative reconstruction method for laminography has high accuracy but suffers from excessive computation time and large memory consumption due to repeated FFT operations.",
   "motivation": "Reduce computation time and memory consumption by exploiting redundancy in FFT operations, enabling larger problem sizes previously infeasible.",
-  "method": "Introduce memoization to replace time-consuming FFT operations by observing that similar FFT operations repeat in ADMM-FFT iterations. Apply variable offloading to save CPU memory. Scale across GPUs within and across nodes.",
-  "key_novelty": "Memoization-based optimization identifying and caching similar FFT operations in iterative laminography reconstruction, with variable offloading for scalability.",
+  "method": "The algorithm reconstructs 3D laminography images using an iterative method called ADMM-FFT, which repeatedly performs expensive mathematical transformations (FFTs, which convert data between different frequency representations). The key insight is that many of these FFT operations are similar, so instead of recalculating them each time, the system saves the results in memory and reuses them—a technique called memoization. To avoid overflowing CPU memory, intermediate data is moved to graphics processors (GPUs), a technique called variable offloading. The computation is then distributed across multiple GPUs on the same machine and across different machines in a cluster.",
+  "key_novelty": "Memoization of repeated FFT operations in the ADMM-FFT iterative algorithm, combined with variable offloading to GPUs to reduce CPU memory usage and enable multi-GPU scaling.",
   "contributions": [
     "Memoization technique for eliminating redundant FFT computations",
     "Variable offloading strategy for CPU memory reduction",
     "Multi-GPU and multi-node scaling approach",
     "Enables reconstruction on 2K×2K×2K problems (largest ever with ADMM-FFT)"
   ],
-  "hardware_target": ["GPU clusters", "Multi-GPU systems", "Multi-node GPU systems"],
-  "technique_category": ["Image reconstruction", "GPU optimization", "Memory optimization", "Scientific computing"],
-  "workloads": ["Laminography reconstruction", "3D imaging"],
+  "hardware_target": [
+    "GPU clusters",
+    "Multi-GPU systems",
+    "Multi-node GPU systems"
+  ],
+  "technique_category": [
+    "Image reconstruction",
+    "GPU optimization",
+    "Memory optimization",
+    "Scientific computing"
+  ],
+  "workloads": [
+    "Laminography reconstruction",
+    "3D imaging"
+  ],
   "metrics": {
     "average_performance_improvement": "52.8%",
     "peak_performance_improvement": "65.4%",
     "max_problem_size": "2K×2K×2K (largest achieved with ADMM-FFT)"
   },
-  "baselines": ["Original ADMM-FFT implementation"],
+  "baselines": [
+    "Original ADMM-FFT implementation"
+  ],
   "limitations": "No comparison with alternative reconstruction methods. Specific GPU platforms not mentioned.",
-  "tags": ["image-reconstruction", "gpu-optimization", "memory-optimization", "memoization", "scientific-imaging"],
+  "tags": [
+    "image-reconstruction",
+    "gpu-optimization",
+    "memory-optimization",
+    "memoization",
+    "scientific-imaging"
+  ],
   "primary_theme": "GPU-Accelerated Laminography via Memoization and Offloading",
   "confidence": "high"
 }

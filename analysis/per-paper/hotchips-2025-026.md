@@ -12,10 +12,10 @@ Consumer and professional GPU workloads demand higher compute throughput and pow
 GPU architecture iteration enables better performance/watt, improved cache efficiency, and support for emerging workloads (AI, rendering, simulation).
 
 ## Method
-RDNA 4 evolves RDNA 3 with improvements to compute units, cache hierarchy, and memory subsystem. Likely includes increased compute density, optimized for both gaming and compute workloads.
+RDNA 4 builds on RDNA 3 by redesigning three core parts: the compute units (the processor cores that do math), the cache hierarchy (fast memory layers holding frequently-accessed data), and the memory subsystem (how data travels between the processor and main memory). These improvements increase the GPU's computational output per watt of power, making it work well for both gaming and professional compute tasks like AI training.
 
 ## Key Novelty
-Next-generation consumer/professional GPU architecture balancing performance, power, and versatility across gaming and compute.
+RDNA 4 achieves higher performance and efficiency per watt by redesigning its compute units and memory architecture to serve both consumer gaming and professional computing workloads.
 
 ## Contributions
 - Increased compute unit density and efficiency

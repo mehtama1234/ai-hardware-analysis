@@ -10,10 +10,10 @@ Boolean Satisfiability (SAT) solving requires exploring vast search spaces, with
 SAT solving is a fundamental NP-complete problem critical for formal verification, cryptanalysis, and combinatorial optimization, but conventional digital approaches struggle with the memory-latency wall.
 
 ## Method
-KLIMA uses mixed-signal in-memory computing (analog logic with digital interfacing) to perform SAT clause evaluation in memory, eliminating von Neumann bottlenecks by computing directly on stored data using current-mode analog circuits that evaluate Boolean expressions faster than digital logic can fetch operands.
+KLIMA solves SAT problems by evaluating Boolean clauses directly in memory using mixed-signal circuits—combining analog logic with digital interfaces. Rather than moving data between memory and a separate processor, current-mode analog circuits stay in memory and compute using electrical current flow, which evaluates expressions faster than digital logic can fetch them. This in-memory computing approach eliminates the traditional von Neumann bottleneck (the slowdown from shuttling data back and forth) and achieves single-digit nanosecond latency for arbitrary-order SAT problems.
 
 ## Key Novelty
-Analog in-memory Boolean circuits combined with low-latency mixed-signal interfacing to achieve native SAT solving directly in the memory substrate.
+KLIMA embeds analog circuits directly in memory to evaluate Boolean expressions for SAT solving, bypassing the need to move data to a processor.
 
 ## Contributions
 - Mixed-signal IMC architecture for native SAT solving with nanosecond-scale latency

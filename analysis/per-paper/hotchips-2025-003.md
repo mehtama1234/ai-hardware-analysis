@@ -10,10 +10,10 @@ Multi-chip AI systems suffer from electrical interconnect bottlenecks between pr
 AI accelerators and memory hierarchies face bandwidth saturation; optical interconnects can provide 10-100x higher bandwidth density at fraction of electrical power, enabling tighter chiplet integration.
 
 ## Method
-Passage M1000 uses a 3D photonic interposer with integrated silicon photonics to route optical signals between chiplets, replacing or supplementing electrical interconnects with wavelength-division multiplexing (WDM) to achieve massive bandwidth on a single optical layer.
+Passage M1000 places a 3D optical routing layer—built from silicon photonics (technology that guides light like wires guide electricity)—between AI processor chips to replace or supplement electrical wires. It sends multiple signals at once using wavelength-division multiplexing (assigning each signal a different color of light), enabling far more data to travel between chips using less energy than electrical connections.
 
 ## Key Novelty
-3D photonic interposer technology enabling all-optical chiplet interconnects with silicon-photonics integration for AI systems.
+A 3D photonic interposer built from silicon photonics enables all-optical interconnects (light-based connections) between AI chips, replacing electrical wires.
 
 ## Contributions
 - 3D photonic interposer architecture for chiplet-to-chiplet communication

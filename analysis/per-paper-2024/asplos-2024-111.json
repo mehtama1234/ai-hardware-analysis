@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Distributed LLM training techniques like Tensor Parallelism serialize communication with computation, limiting scaling efficiency. Fine-grained interleaving of communication and computation in software is difficult, and shared compute/memory resources between concurrent operations create contention that reduces overlap efficacy.",
   "motivation": "Hiding communication latency is essential for maintaining scaling efficiency in distributed LLM training as the number of devices increases.",
-  "method": "T3 employs transparent tracking of data dependencies to identify interleaving opportunities between producer operations and communication. It uses automatic triggering mechanisms to initiate communication in a fine-grained manner overlapped with ongoing computation, while managing shared resources between compute and communication workloads.",
-  "key_novelty": "Transparent tracking and triggering system that enables fine-grained overlap of communication with computation in tensor parallelism without requiring explicit software interleaving.",
+  "method": "T3 tracks what data each computation step needs and automatically starts sending it before earlier computations finish, overlapping data transfer with ongoing work to hide communication delays. It triggers transfers at a fine-grained level (many small transfers at the right moments) rather than waiting for batches. At the same time, it manages which hardware resources (GPU memory, bandwidth) each task uses, preventing data transfer and computation from competing for the same resources.",
+  "key_novelty": "The system automatically finds opportunities to overlap data transfers with computation without requiring programmers to manually write overlapping code.",
   "contributions": [
     "Fine-grained transparent tracking mechanism for identifying computation-communication interleaving opportunities",
     "Automatic triggering system for hiding serialized communication latency in tensor parallelism",

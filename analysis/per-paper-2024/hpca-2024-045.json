@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Secure multi-GPU systems with shared memory face significant performance overhead from generating one-time pads for authenticated encryption and from security metadata such as MACs and counters consuming precious network bandwidth, exacerbated by limited OTP buffers and bursty GPU communication patterns.",
   "motivation": "Multi-GPU systems with fine-grained memory sharing are emerging for larger GPU computing problems, but securing inter-GPU and CPU-GPU communications adds substantial performance overhead that limits adoption.",
-  "method": "The paper proposes dynamic OTP buffer allocation that adjusts buffer assignment per source-destination pair based on monitored communication patterns. It employs dynamic batching to transfer only a single set of metadata per batched group of data responses. The system continuously tracks communication patterns and periodically adjusts buffer sizes while dynamically forming data transfer batches.",
-  "key_novelty": "Dynamic batching scheme that amortizes security metadata transfer costs across multiple batched data responses to reduce bandwidth overhead.",
+  "method": "The system observes actual communication patterns between GPUs and dynamically adjusts buffer sizes to match these patterns, rather than using fixed allocations. It also groups data transfers into batches and sends security metadata (message authentication codes and counters) once per batch instead of separately for each transfer. This two-part approach—responsive buffers combined with batched metadata—reduces the network bandwidth wasted on security overhead.",
+  "key_novelty": "The core idea is dynamically batching data transfers based on communication patterns and sending security metadata once per batch instead of separately, which spreads the verification overhead across multiple responses and reduces bandwidth waste.",
   "contributions": [
     "Dynamic OTP buffer allocation technique adapting to per-pair communication patterns",
     "Dynamic batching scheme to reduce security metadata bandwidth consumption",

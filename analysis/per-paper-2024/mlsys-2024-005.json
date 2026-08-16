@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "LLM inference requires maintaining key-value caches that grow linearly with sequence length, consuming substantial GPU memory and limiting inference throughput. Existing KV cache management strategies fail to distinguish between critical and less important tokens.",
   "motivation": "Reducing KV cache memory footprint through selective token retention and quantization enables more efficient LLM inference and higher throughput deployment.",
-  "method": "Q-Hitter employs a token oracle to predict which tokens are most important for attention computation. The system combines this token prediction with quantization to create a sparse-quantized KV cache that selectively retains high-importance tokens while quantizing embeddings to lower precision, reducing overall memory consumption.",
-  "key_novelty": "Integration of a token oracle mechanism to guide sparse selection of KV cache entries paired with quantization for memory-efficient LLM inference.",
+  "method": "Q-Hitter works by predicting which tokens (words) the model truly needs to remember—this prediction happens during attention computation, which is when the model decides which past words are relevant for what comes next. Based on this prediction, it stores important tokens at high precision while compressing less important ones to lower precision in the key-value cache (the storage that holds information about every past word). By keeping important tokens at full detail and shrinking the rest, it reduces GPU memory consumption while maintaining the model's ability to compute attention correctly.",
+  "key_novelty": "Q-Hitter combines a token oracle (a mechanism that predicts which tokens matter) with quantization (precision reduction) to selectively compress the key-value cache, reducing GPU memory use for LLM inference.",
   "contributions": [
     "Token oracle design for identifying critical tokens in KV cache",
     "Sparse-quantized KV cache architecture combining sparsity and quantization",

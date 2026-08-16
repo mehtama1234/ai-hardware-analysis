@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Existing serverless platforms lack efficient GPU support, preventing them from delivering high-performance inference. Sharing a node's limited GPUs among hundreds of inference functions requires minimizing latency overhead from model swapping.",
   "motivation": "Serverless computing is compelling for online inference services, but inefficient GPU utilization in current platforms limits inference performance and resource utilization.",
-  "method": "Torpor maintains inference models in main memory and dynamically swaps them onto GPUs upon request arrivals via late binding. It minimizes swapping overhead through asynchronous API redirection, GPU runtime sharing, pipelined model execution, and efficient GPU memory management. An interference-aware request scheduling algorithm leverages high-speed GPU interconnects to meet per-function latency SLOs.",
-  "key_novelty": "Late binding with dynamic model swapping enables hundreds of concurrent inference functions to share GPUs while achieving latency performance comparable to native execution.",
+  "method": "Torpor stores inference models in regular memory, then loads them onto the GPU only when needed (late binding), minimizing the slowdown from moving models around. It speeds up this loading through four techniques: asynchronously handling incoming requests while models load in the background, sharing GPU runtime across multiple functions, executing predictions in a pipelined sequence, and managing GPU memory efficiently. It then schedules requests intelligently, using high-speed GPU interconnects to avoid conflicts and meet each function's performance targets.",
+  "key_novelty": "Late binding (loading models only when needed) with dynamic model swapping allows hundreds of concurrent inference functions to share GPUs while maintaining performance as good as if each function had its own GPU.",
   "contributions": [
     "Late binding with efficient model swapping architecture for GPU resource sharing",
     "Multi-technique optimization stack reducing latency overhead (asynchronous redirection, pipelined execution, memory management)",

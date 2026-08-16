@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Commercial HTM implementations use simple conflict resolution policies that increase transaction abort rates. The requester-speculates conflict resolution policy, which forwards uncommitted data between transactions to avoid aborts, has not been practically realized in commercial best-effort HTM systems.",
   "motivation": "Improving conflict resolution in HTM can significantly reduce transaction aborts and increase thread-level parallelism, making concurrent programming more practical and efficient.",
-  "method": "CHATS implements the requester-speculates conflict resolution policy where conflicting transactions can read uncommitted data from each other. The scheme prevents cyclic transaction dependencies and enforces commit ordering based on speculative data dependencies. This maintains a partial order between transactions to ensure correct utilization of forwarded data while avoiding deadlocks, requiring less than 280 bytes of extra storage.",
-  "key_novelty": "Practical realization of requester-speculates conflict resolution for best-effort commercial HTM that prevents cyclic dependencies through commit ordering of speculative transactions.",
+  "method": "CHATS allows conflicting transactions to read each other's uncommitted data instead of restarting, which normally wastes work. To prevent deadlocks (circular waits between transactions), it tracks which transaction depends on which and requires transactions to finalize in a controlled order that respects these dependencies. This dependency tracking uses less than 280 bytes of extra storage.",
+  "key_novelty": "CHATS makes the requester-speculates policy (where transactions share uncommitted data) work in real commercial hardware by preventing deadlocks through controlled commit ordering.",
   "contributions": [
     "CHATS protocol enabling requester-speculates conflict resolution in practical best-effort HTM",
     "Mechanism to prevent cyclic dependencies and enforce commit ordering for speculative transactions",

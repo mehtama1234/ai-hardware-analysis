@@ -4,8 +4,8 @@
   "venue": "OSDI",
   "problem": "Existing LLM serving engines achieve poor compute utilization because heterogeneous operations (compute, memory, networking) execute sequentially within devices. Despite assumptions that LLM serving is memory-bound, it is actually compute-bound for most workloads.",
   "motivation": "Large-scale LLM serving must maximize throughput to efficiently serve hundreds of millions of users across tens of thousands of GPUs.",
-  "method": "NanoFlow exploits intra-device parallelism by splitting inputs into smaller nano-batches and duplicating operations to overlap heterogeneous resource usage within a single device. The framework automatically identifies the number, size, ordering, and GPU resource allocation of nano-batches to minimize execution time while accounting for interference between concurrent operations.",
-  "key_novelty": "Intra-device parallelism through nano-batching that overlaps compute, memory, and networking operations on a single GPU.",
+  "method": "NanoFlow improves GPU utilization by running multiple copies of the same operations on a single GPU at the same time—by splitting the input into smaller nano-batches. This works because while one batch is computing, the GPU can simultaneously fetch data for the next batch and transmit the previous result over the network, so compute, memory transfer, and networking overlap instead of happening one after another. The system automatically figures out how many nano-batches to create, their size, the order to process them, and how to split the GPU's resources among them, all while managing interference between concurrent operations to minimize total execution time.",
+  "key_novelty": "Nano-batches enable intra-device parallelism (concurrent operations on one GPU) by overlapping compute, memory transfer, and networking instead of sequential execution.",
   "contributions": [
     "Analysis demonstrating LLM serving is compute-bound rather than memory-bound",
     "NanoFlow framework enabling intra-device parallelism via nano-batching and operation duplication",

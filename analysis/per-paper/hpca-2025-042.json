@@ -4,23 +4,40 @@
   "venue": "HPCA",
   "problem": "Integrating ZNS SSDs into RAID configurations requires handling partial parity updates (PPUs) that arise from ZNS's append-only write semantics; existing metadata-zone-based solutions become performance bottlenecks under high PPU workloads.",
   "motivation": "ZNS SSDs reduce device-level garbage collection overhead and enable predictable storage performance, but RAID configurations over ZNS SSDs are severely limited by the latency of dedicated metadata zones required to manage PPUs.",
-  "method": "Zebra exploits the Zone Random Write Area (ZRWA), the SSD's internal write buffer in front of each zone, to handle PPUs in-place. By ensuring that parity chunks fit within the ZRWA window, Zebra performs partial parity overrides within the buffer rather than writing to separate metadata zones. A set of complementary techniques maintain high performance and reliability across both large-zone and small-zone ZNS SSD models.",
-  "key_novelty": "Using the ZRWA (the SSD's native write buffer window) as the target storage for parity partial updates in ZNS RAID, matching the repeated sequential overwrite I/O pattern of PPUs to the ZRWA's random-write capability.",
+  "method": "Zebra works around ZNS SSDs' append-only constraint by using the ZRWA—a small random-write buffer at the front of each zone—to store parity updates instead of separate metadata zones. When RAID needs to recalculate parity bits (called a partial parity update), Zebra writes the updated parity to the ZRWA buffer, which supports random rewrites even though the main zone only allows appends. By keeping parity chunks small enough to fit within this buffer, the approach avoids violating the zone's append-only rule. Complementary techniques maintain performance and reliability across different SSD models and zone sizes.",
+  "key_novelty": "The key insight is using the zone's built-in random-write buffer (ZRWA)—rather than separate metadata zones—to store repeated parity updates, since the ZRWA's native random-write capability directly matches the parity update workload's I/O pattern.",
   "contributions": [
     "Zebra architecture that maps ZNS RAID parity partial updates to the ZRWA write buffer",
     "Analysis identifying repeated sequential overwrite as the dominant PPU I/O pattern",
     "Techniques ensuring both high performance and data reliability under diverse ZNS RAID workloads",
     "1.1x to 4.2x throughput improvement over RAIZN on micro and application benchmarks"
   ],
-  "hardware_target": ["SoC"],
-  "technique_category": ["memory-system", "reliability", "scheduling"],
-  "workloads": ["database"],
+  "hardware_target": [
+    "SoC"
+  ],
+  "technique_category": [
+    "memory-system",
+    "reliability",
+    "scheduling"
+  ],
+  "workloads": [
+    "database"
+  ],
   "metrics": {
     "speedup": "1.1x to 4.2x throughput improvement vs RAIZN ZNS RAID system"
   },
-  "baselines": ["RAIZN (state-of-the-art ZNS RAID system)"],
+  "baselines": [
+    "RAIZN (state-of-the-art ZNS RAID system)"
+  ],
   "limitations": "Evaluation is limited to two ZNS SSD models; ZRWA window size constraints may limit applicability to workloads with large parity chunks.",
-  "tags": ["zns-ssd", "raid", "storage", "parity", "zrwa", "io-system"],
+  "tags": [
+    "zns-ssd",
+    "raid",
+    "storage",
+    "parity",
+    "zrwa",
+    "io-system"
+  ],
   "primary_theme": "ZNS RAID partial parity management via ZRWA exploitation",
   "confidence": "low"
 }

@@ -5,13 +5,13 @@
   "year": 2024,
   "problem": "GraphSAGE sampling stage on CPU is a critical bottleneck due to graph data characteristics that do not parallelize efficiently on GPUs alone. GPU acceleration of GNNs is fundamentally limited by CPU-based sampling overhead.",
   "motivation": "GNNs are essential for high-impact applications like drug discovery and social media analysis, but achieving practical speedup requires addressing sampling bottlenecks that GPUs cannot efficiently handle.",
-  "method": "The paper proposes a heterogeneous system with FPGA-accelerated sampling feeding GPU training through PCIe Peer-to-Peer communication. The sampling algorithm is offloaded to customizable FPGA accelerators, eliminating CPU bottleneck, while GPU handles neural network training independently. Sampled data flows directly from FPGA to GPU memory via P2P.",
-  "key_novelty": "FPGA acceleration of GNN sampling in a heterogeneous FPGA-GPU architecture with direct PCIe P2P data transfer, separating the sampling bottleneck from training.",
+  "method": "The system uses two specialized processors working together: an FPGA (customizable hardware designed for specific tasks) accelerates the sampling stage—selecting relevant data points from the graph—while the GPU handles neural network training. Graph sampling normally becomes a bottleneck on GPU systems because graph data doesn't parallelize efficiently on standard GPUs, so moving this computation to an FPGA that can handle it better eliminates the slowdown. Sampled data flows directly from FPGA memory to GPU memory through PCIe peer-to-peer communication (a fast direct link between the two chips), bypassing the CPU and avoiding communication overhead. This allows the GPU to focus purely on training while the FPGA continuously feeds it prepared data.",
+  "key_novelty": "The core innovation is using an FPGA to accelerate graph sampling and connecting it directly to the GPU through PCIe peer-to-peer communication, eliminating the CPU bottleneck that limits GPU-only graph neural network training.",
   "contributions": [
     "Profiling and identification of sampling as the critical bottleneck in GraphSAGE",
     "FPGA accelerator design for graph sampling algorithms",
     "Heterogeneous architecture with PCIe P2P communication pipeline between FPGA and GPU",
-    "Demonstrated 2.38-8.55\u00d7 speedup on sampling and 1.24-1.99\u00d7 end-to-end improvement"
+    "Demonstrated 2.38-8.55× speedup on sampling and 1.24-1.99× end-to-end improvement"
   ],
   "hardware_target": [
     "FPGA",
@@ -27,7 +27,7 @@
     "GNN"
   ],
   "metrics": {
-    "speedup": "2.38-8.55\u00d7 (sampling stage), 1.24-1.99\u00d7 (end-to-end)"
+    "speedup": "2.38-8.55× (sampling stage), 1.24-1.99× (end-to-end)"
   },
   "baselines": [
     "CPU sampling",

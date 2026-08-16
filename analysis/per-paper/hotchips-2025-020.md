@@ -12,10 +12,10 @@ Fully homomorphic encryption (FHE) enables computation on encrypted data but inc
 Privacy-preserving cloud computation and secure multi-party computation require efficient FHE, driving need for specialized hardware.
 
 ## Method
-Presto integrates a RISC-V core with specialized hardware accelerators for polynomial operations (NTT, convolution) and module lattice arithmetic. It supports multiple FHE schemes (BGV, CKKS) through flexible dataflow and instruction extensions.
+Presto pairs a RISC-V processor with custom hardware accelerators that perform FHE's expensive mathematical operations. The accelerators handle two core tasks: polynomial transformations (NTT and convolution, mathematical rearrangements central to FHE) and lattice arithmetic (calculations on discrete mathematical structures that form the foundation of FHE encryption). The system supports multiple encryption schemes—BGV and CKKS—through flexible hardware dataflow and custom processor instructions that adapt to each scheme.
 
 ## Key Novelty
-Multi-scheme FHE SoC combining RISC-V control with lattice-optimized accelerators for practical encrypted computation.
+Presto accelerates multiple FHE encryption schemes (BGV and CKKS) using a single chip that combines RISC-V control with hardware optimized for lattice arithmetic.
 
 ## Contributions
 - Hardware acceleration for NTT and polynomial multiplication in FHE

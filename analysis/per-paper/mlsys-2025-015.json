@@ -4,8 +4,8 @@
   "venue": "MLSys 2025",
   "problem": "Every attention variant (causal, sliding window, document masking, ALiBi, paged, etc.) requires a bespoke hand-written CUDA/Triton kernel, creating an O(variants x hardware) maintenance burden and blocking rapid research iteration.",
   "motivation": "FlashAttention-2 is fast but rigid. Researchers building new attention variants fall back to slow PyTorch SDPA or write custom kernels. A compiler-driven approach that generates near-FAv2 kernels from high-level specifications would unify the attention ecosystem.",
-  "method": "Users express attention variants via two Python callables: score_mod (modifies attention logits, e.g., ALiBi bias) and mask_mod (defines which token pairs to attend to). A BlockMask data structure precomputes block-level sparsity from mask_mod, enabling block-sparse FlashAttention. torch.compile lowers score_mod and mask_mod into a Triton kernel template, fusing them into a single tiled GEMM+softmax+GEMM pass. Tile-level masking avoids computing fully-masked blocks.",
-  "key_novelty": "BlockMask + score_mod/mask_mod composable API that reduces any attention variant to a Triton template instantiation, achieving near-FlashAttention-2 performance for standard variants and large gains for unsupported variants, with <1% overhead for paged attention vs. 20-26% in vLLM.",
+  "method": "Instead of hand-writing separate kernels for each attention variant, users write two simple Python functions: one that modifies attention scores (like adding ALiBi bias) and one that specifies which token pairs should attend to each other. A BlockMask structure precomputes which blocks of computation can be skipped (called sparsity), enabling a sparse version of FlashAttention. PyTorch's compiler then converts these functions into a single optimized Triton kernel by combining them into one tiled operation—matrix multiply, softmax, matrix multiply—that skips any fully-masked blocks.",
+  "key_novelty": "A composable Python API combining BlockMask and two modifier functions lets the compiler automatically generate optimized Triton kernels for any attention variant, achieving near-FlashAttention-2 performance for standard cases and major speedups for unsupported ones—paged-attention overhead drops to under 1% versus 20-26% in vLLM.",
   "contributions": [
     "score_mod callable API for per-element logit modification",
     "mask_mod callable API for sparsity pattern specification",
@@ -16,9 +16,19 @@
     "2.04x gpt-fast inference speedup; 2.4x torchtune training speedup",
     "<1% overhead for paged attention (vs 20-26% in vLLM)"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["kernel-fusion", "compiler", "sparsity"],
-  "workloads": ["LLM-inference", "LLM-training", "attention"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "kernel-fusion",
+    "compiler",
+    "sparsity"
+  ],
+  "workloads": [
+    "LLM-inference",
+    "LLM-training",
+    "attention"
+  ],
   "metrics": {
     "speedup": "0.68-1.43x vs FAv2 (standard); 5.49-8x vs SDPA (unsupported variants); 2.04x inference; 2.4x training",
     "energy_or_tops_w": null,
@@ -27,14 +37,29 @@
     "accuracy": "Numerically equivalent to reference implementations",
     "other": "<1% paged attention overhead vs 20-26% in vLLM; evaluated on H100 and A100"
   },
-  "baselines": ["FlashAttention-2 (FAv2)", "PyTorch SDPA (scaled dot product attention)", "vLLM paged attention"],
+  "baselines": [
+    "FlashAttention-2 (FAv2)",
+    "PyTorch SDPA (scaled dot product attention)",
+    "vLLM paged attention"
+  ],
   "limitations": [
     "score_mod and mask_mod must be expressible as element-wise Python functions",
     "Performance varies with sparsity pattern regularity (irregular patterns less efficient)",
     "Compilation time adds latency for novel variants",
     "Limited to GPU Triton-capable backends"
   ],
-  "tags": ["attention", "FlashAttention", "kernel-fusion", "Triton", "compiler", "torch.compile", "block-sparsity", "LLM-inference", "programming-model", "GPU"],
+  "tags": [
+    "attention",
+    "FlashAttention",
+    "kernel-fusion",
+    "Triton",
+    "compiler",
+    "torch.compile",
+    "block-sparsity",
+    "LLM-inference",
+    "programming-model",
+    "GPU"
+  ],
   "primary_theme": "kernel-optimization",
   "confidence": "high"
 }

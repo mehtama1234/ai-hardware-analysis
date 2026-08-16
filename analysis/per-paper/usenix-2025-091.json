@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Mixture-of-Experts training suffers from substantial All-to-All communications and imbalanced computation workloads due to sparse expert activation, severely degrading training efficiency.",
   "motivation": "Efficient MoE training is critical to scaling large language models to trillions of parameters while maintaining practical computational overhead.",
-  "method": "PopFetcher predicts expert popularity using a lightweight sliding-window technique to identify high-demand experts, then prefetches them asynchronously during non-MoE computations. It formulates end-to-end training latency as an optimization problem with a pruning strategy to derive the globally optimal prefetching scheme, while prioritizing All-to-All communication during the backward pass.",
-  "key_novelty": "Popularity-aided prefetching with formally-optimized pruning strategy derived from end-to-end training latency model.",
+  "method": "PopFetcher predicts which experts will be heavily used by tracking recent activity patterns, then loads them into memory early—while the system is working on other tasks—so they're ready when needed. It treats the total training time as a math problem, figuring out exactly which experts are worth prefetching by eliminating unnecessary ones. During the backward pass—when the network learns by updating its weights—the system prioritizes communication across all processors, preventing bottlenecks.",
+  "key_novelty": "It predicts which experts will be needed from recent usage patterns, then mathematically determines which ones should be loaded in advance to minimize training time.",
   "contributions": [
     "Uncovers skewed and correlated patterns in expert selection within MoE models",
     "Develops lightweight sliding-window technique for predicting expert popularity",

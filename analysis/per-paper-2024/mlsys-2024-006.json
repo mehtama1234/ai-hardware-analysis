@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "KV cache grows linearly with sequence length during LLM inference, creating severe memory bandwidth and storage bottlenecks that limit throughput and increase latency. This overhead becomes critical for long-context generation and resource-constrained deployments.",
   "motivation": "Reducing KV cache memory footprint directly improves inference latency, energy efficiency, and enables cost-effective deployment of LLMs at scale.",
-  "method": "Keyformer selects a subset of tokens (key tokens) deemed most important for future attention computations, pruning less critical key-value pairs from the cache. The selection mechanism likely employs attention pattern analysis or importance scoring to identify which tokens remain essential during generation. This sparse cache representation reduces memory bandwidth requirements and storage overhead while maintaining inference accuracy.",
-  "key_novelty": "Using token-level importance-based selection to prune KV cache dynamically rather than materializing the full cache, achieving significant inference efficiency gains.",
+  "method": "During text generation, an LLM keeps cached attention data (the stored key-value pairs for every token seen so far) to help predict the next words. Keyformer identifies which of these tokens will actually matter for future predictions—using attention pattern analysis or scoring each token's predicted usefulness—then discards the cached data for less-important tokens. By keeping only essential cached data, it reduces memory bandwidth (the amount of data the GPU fetches per generation step) and storage overhead, while maintaining generation accuracy.",
+  "key_novelty": "Keyformer prunes the KV cache to only the most-important tokens based on predicted usefulness, rather than always retaining the complete cache.",
   "contributions": [
     "A token selection algorithm to identify critical key-value cache entries for retention",
     "Quantified reduction in KV cache memory footprint during LLM inference",

@@ -4,26 +4,44 @@
   "venue": "DAC",
   "problem": "Diffusion models require high computational and memory resources; traditional full-precision execution is inefficient; naive mixed-precision quantization adds runtime overhead from format casting and management complexity.",
   "motivation": "Efficient deployment of diffusion models on resource-constrained devices requires aggressive quantization while maintaining image quality and text-to-image alignment.",
-  "method": "DM-Tune replaces complex mixed-precision strategies with a unified low-precision format augmented by noise-tuning fine-tuning. Noise-tuning reconstructs mixed-precision outputs via a parameterized nonlinear function (Gaussian + linear components). Framework identifies sensitive layers, models quantization noise, and provides custom low-precision GPU kernels supporting efficient noise-tuning.",
-  "key_novelty": "Unified low-precision format with Gaussian-guided noise-tuning reconstruction surpasses traditional mixed-precision in image quality and alignment while reducing runtime complexity.",
+  "method": "DM-Tune uses a simpler approach to compress models: instead of using different precision levels for different parts (which requires costly switching between formats), it converts everything to a single low-precision format. To maintain image quality despite the lower precision, it adds a tuning step that learns to compensate for what was lost, using a mathematical function based on Gaussian distributions (smooth probability curves) and linear adjustments. The system identifies which layers lose quality most easily, measures the quantization errors throughout the model, and runs this compensation efficiently on GPUs with custom code.",
+  "key_novelty": "A unified low-precision format with Gaussian-guided noise tuning produces better image quality and alignment than mixed-precision quantization while simplifying execution.",
   "contributions": [
     "Unified low-precision quantization with noise-tuning mechanism",
     "Sensitivity-aware layer identification for quantization",
     "Custom low-precision GPU kernels with efficient noise-tuning",
     "Demonstrates mixed-precision-quality results in single FP8 format with improved runtime"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["quantization", "compiler"],
-  "workloads": ["diffusion"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "quantization",
+    "compiler"
+  ],
+  "workloads": [
+    "diffusion"
+  ],
   "metrics": {
     "speedup": "significant runtime improvement vs FP32",
     "quality": "surpasses FP32, FP8, and state-of-the-art mixed-precision",
     "diversity": "improved vs baselines",
     "alignment": "better text-to-image alignment"
   },
-  "baselines": ["FP32 diffusion models", "FP8 quantization", "state-of-the-art mixed-precision methods"],
+  "baselines": [
+    "FP32 diffusion models",
+    "FP8 quantization",
+    "state-of-the-art mixed-precision methods"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["diffusion-models", "quantization", "mixed-precision", "gpu-kernels", "noise-tuning", "generative-ai"],
+  "tags": [
+    "diffusion-models",
+    "quantization",
+    "mixed-precision",
+    "gpu-kernels",
+    "noise-tuning",
+    "generative-ai"
+  ],
   "primary_theme": "Unified low-precision quantization with noise-tuning for diffusion models",
   "confidence": "low"
 }

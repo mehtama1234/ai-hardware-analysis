@@ -4,17 +4,26 @@
   "venue": "ASPLOS",
   "problem": "Heterogeneous-ISA processors (e.g., x86+RISC-V or ARM+RISC-V on-chip) have required disjoint OS kernels per ISA with significant software coordination overhead, preventing advanced features like shared virtual memory and unified OS abstractions across ISA boundaries. Existing multi-kernel OS designs coordinate via message-passing rather than exploiting cache-coherent shared memory, leaving performance on the table.",
   "motivation": "Hardware heterogeneous-ISA systems are increasingly practical, but the software complexity of multi-kernel designs has limited both OS sophistication and hardware adoption; cache-coherent shared memory among heterogeneous-ISA CPUs provides an unexploited substrate for a unified OS design.",
-  "method": "Stramash introduces the fused-kernel OS design, which runs a single unified OS kernel instance across heterogeneous-ISA CPUs by exploiting cache-coherent shared memory as a first principle. Unlike multi-kernel designs that coordinate via explicit message passing, fused-kernel OS uses shared kernel data structures accessible from any ISA's CPUs, with new OS kernel mechanisms for ISA-transparent synchronization, memory management, and scheduling. The prototype, Stramash-Linux, extends a monolithic Linux kernel; evaluation uses Stramash-QEMU, a multi-ISA architectural simulator built to validate the design with less than 4% average simulation error.",
-  "key_novelty": "The fused-kernel OS design that transcends ISA boundaries by treating cache-coherent shared memory as a first-class substrate for a single unified kernel image executing on heterogeneous-ISA CPUs.",
+  "method": "Stramash creates a single operating system kernel that runs on heterogeneous CPUs—ones using different instruction sets like x86 and RISC-V—by treating cache-coherent shared memory (memory that all CPUs can access and modify while staying synchronized) as its primary foundation. Unlike traditional multi-kernel operating systems that coordinate separate kernels through message-passing, Stramash puts its core data structures directly in shared memory and adds new mechanisms for synchronization, memory management, and task scheduling that work transparently regardless of which instruction set a CPU uses. The team built this by adapting Linux (Stramash-Linux) and validated it with a multi-ISA simulator (Stramash-QEMU) that achieves less than 4% average simulation error.",
+  "key_novelty": "The fused-kernel OS unifies CPUs with different instruction sets by running a single operating system kernel built directly on cache-coherent shared memory, rather than coordinating separate kernels per ISA.",
   "contributions": [
     "Fused-kernel OS design exploiting cache-coherent shared memory among heterogeneous-ISA CPUs as a unifying principle",
     "New OS kernel mechanisms for ISA-transparent synchronization, scheduling, and memory management across ISA boundaries",
     "Stramash-Linux prototype extending monolithic Linux to a fused-kernel across heterogeneous ISAs",
     "Stramash-QEMU multi-ISA simulator with validated accuracy (<4% error); up to 2.1x speedup over multi-kernel OS on NPB benchmarks"
   ],
-  "hardware_target": ["CPU", "RISC-V"],
-  "technique_category": ["coherence", "virtualization", "scheduling"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "CPU",
+    "RISC-V"
+  ],
+  "technique_category": [
+    "coherence",
+    "virtualization",
+    "scheduling"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": "up to 2.1x over multi-kernel OS on NPB benchmarks",
     "energy_or_tops_w": null,
@@ -23,9 +32,17 @@
     "accuracy": "simulator validation: average <4% error vs. real hardware",
     "other": null
   },
-  "baselines": ["state-of-the-art multi-kernel OS designs (e.g., McKernel, Popcorn Linux)"],
+  "baselines": [
+    "state-of-the-art multi-kernel OS designs (e.g., McKernel, Popcorn Linux)"
+  ],
   "limitations": "Evaluation is partially simulation-based (Stramash-QEMU) rather than fully on real heterogeneous-ISA hardware, and only NPB benchmarks are reported.",
-  "tags": ["heterogeneous-isa", "operating-system", "cache-coherence", "fused-kernel", "risc-v"],
+  "tags": [
+    "heterogeneous-isa",
+    "operating-system",
+    "cache-coherence",
+    "fused-kernel",
+    "risc-v"
+  ],
   "primary_theme": "fused-kernel OS for cache-coherent heterogeneous-ISA platforms",
   "confidence": "low"
 }

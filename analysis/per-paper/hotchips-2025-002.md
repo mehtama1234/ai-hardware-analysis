@@ -10,10 +10,10 @@ Neural rendering—combining classical graphics pipelines with learned neural ne
 Neural rendering is becoming the standard for high-fidelity real-time graphics in games, film, and visualization; GPUs must support both traditional graphics kernels and deep learning inference efficiently.
 
 ## Method
-RTX 5090 combines NVIDIA's Ada/Hopper-generation streaming multiprocessor architecture with enhanced Tensor cores optimized for low-precision inference, improved memory bandwidth via next-generation interconnects, and specialized hardware for ray tracing and neural network evaluation.
+The RTX 5090 combines NVIDIA's latest streaming multiprocessor design (the core processing units, based on their recent Ada and Hopper GPU generations) with enhanced Tensor cores—specialized circuits optimized for low-precision math (approximate calculations that trade some accuracy for speed) that neural networks need. It adds faster data connections between the processor and memory through next-generation interconnects, ensuring information flows quickly enough to keep all processors busy. Dedicated hardware for ray tracing (computing realistic shadows and reflections) and neural network evaluation prevents these operations from competing with each other for the chip's shared resources.
 
 ## Key Novelty
-GPU architecture explicitly optimized for hybrid classical-neural rendering pipelines, balancing graphics throughput with AI inference capability.
+This GPU architecture gives both classical graphics operations (ray tracing, shadow computation, material simulation) and neural network inference equal performance priority, rather than optimizing mainly for one.
 
 ## Contributions
 - GPU optimized for real-time neural rendering workloads

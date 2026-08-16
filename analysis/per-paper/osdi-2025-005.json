@@ -4,16 +4,23 @@
   "venue": "OSDI",
   "problem": "Shared log-based systems for distributed databases face latency challenges due to coordination overhead and ordering requirements; speculative execution can reduce latency but requires robust ordering guarantees.",
   "motivation": "Reducing end-to-end latency in replicated systems enables lower latency transaction processing without sacrificing consistency.",
-  "method": "Introduces Fix-Ante ordering mechanism with speculative shared log to achieve low latency while maintaining consistency guarantees in distributed systems.",
-  "key_novelty": "Fix-Ante ordering scheme enabling speculative execution with correctness guarantees for low-latency shared log systems.",
+  "method": "The system pre-assigns the sequence of database operations using 'Fix-Ante' ordering, eliminating the slow coordination normally needed with a shared log (a record all nodes check to stay synchronized). Servers then speculatively execute these pre-ordered operations (running them before full coordination completes). Each server independently verifies whether its speculative execution matched the pre-assigned order, correcting any conflicts. This delivers the speed of speculation while maintaining the consistency guarantees that distributed databases require.",
+  "key_novelty": "Fix-Ante ordering lets servers speculatively execute database operations without coordination overhead by pre-assigning their order, achieving low latency while guaranteeing correctness.",
   "contributions": [
     "Fix-Ante ordering protocol for speculative execution",
     "Speculative shared log architecture",
     "Low end-to-end latency without sacrificing consistency"
   ],
   "hardware_target": [],
-  "technique_category": ["distributed-systems", "consensus", "replication"],
-  "workloads": ["OLTP", "Transaction processing"],
+  "technique_category": [
+    "distributed-systems",
+    "consensus",
+    "replication"
+  ],
+  "workloads": [
+    "OLTP",
+    "Transaction processing"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -24,7 +31,12 @@
   },
   "baselines": [],
   "limitations": "Effectiveness depends on speculation accuracy; high contention scenarios may reduce benefits.",
-  "tags": ["distributed-systems", "latency", "consensus", "speculation"],
+  "tags": [
+    "distributed-systems",
+    "latency",
+    "consensus",
+    "speculation"
+  ],
   "primary_theme": "Speculative shared log for low latency",
   "confidence": "low"
 }

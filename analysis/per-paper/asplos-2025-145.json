@@ -4,17 +4,26 @@
   "venue": "ASPLOS",
   "problem": "Training multi-task, multi-modal (MT MM) foundation models is inefficient because their heterogeneous model components and diverse workloads across tasks and modalities create complex dependency patterns that existing parallelism strategies cannot jointly optimize. No existing distributed training system addresses the combined challenges of workload heterogeneity and dependency-driven execution scheduling for MT MM models.",
   "motivation": "Foundation models increasingly unify multiple tasks and modalities (e.g., vision-language) under a shared base with specialized components, but the resulting architectural heterogeneity causes severe resource under-utilization in standard data/pipeline/tensor-parallel training systems.",
-  "method": "Spindle decomposes MT MM model execution into 'waves'—groups of heterogeneous micro-tasks—and applies a two-phase joint optimization: (1) heterogeneity-aware workload parallelization that assigns tasks to devices accounting for differing compute demands per modality, and (2) dependency-driven wavefront scheduling that pipelines waves based on their inter-task data dependencies. The wavefront schedule coordinates execution so that waves from different tasks and modalities overlap in time, filling pipeline bubbles caused by load imbalance.",
-  "key_novelty": "The wavefront scheduling abstraction that decomposes MT MM model execution into heterogeneous waves and jointly optimizes parallelization and dependency-driven scheduling in a single framework.",
+  "method": "Spindle breaks model execution into 'waves'—groups of different computational tasks—and uses two strategies to run them efficiently. First, it sends each wave to devices based on how much computation it needs, accounting for the fact that different data types (images, text, etc.) have different computational costs. Second, it schedules waves based on which waves need output from other waves, allowing new waves to start before old ones finish, so devices never sit idle waiting. This overlapping execution fills the gaps that normally occur when some devices finish their work before others.",
+  "key_novelty": "The innovation is 'wavefront scheduling'—jointly optimizing how to assign different types of tasks to devices and when they should run based on data dependencies, all in one unified system instead of separately.",
   "contributions": [
     "Wavefront scheduling formulation that decomposes MT MM model execution into heterogeneity-aware waves",
     "Heterogeneity-aware workload parallelization strategy for tasks with differing compute demands",
     "Dependency-driven execution scheduling that overlaps waves across tasks and modalities",
     "Up to 71% speedup over state-of-the-art distributed training systems on various MT MM models"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["parallelism", "scheduling", "dataflow"],
-  "workloads": ["LLM-training", "transformer"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "parallelism",
+    "scheduling",
+    "dataflow"
+  ],
+  "workloads": [
+    "LLM-training",
+    "transformer"
+  ],
   "metrics": {
     "speedup": "up to 71% over state-of-the-art training systems",
     "energy_or_tops_w": null,
@@ -23,9 +32,17 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["state-of-the-art distributed training systems (unspecified, likely Megatron-LM / DeepSpeed variants)"],
+  "baselines": [
+    "state-of-the-art distributed training systems (unspecified, likely Megatron-LM / DeepSpeed variants)"
+  ],
   "limitations": "Baseline systems compared against are not explicitly named in the abstract; evaluation scope and MT MM model diversity not fully characterized.",
-  "tags": ["distributed-training", "multi-task", "multi-modal", "wavefront-scheduling", "pipeline-parallelism"],
+  "tags": [
+    "distributed-training",
+    "multi-task",
+    "multi-modal",
+    "wavefront-scheduling",
+    "pipeline-parallelism"
+  ],
   "primary_theme": "heterogeneity-aware distributed training scheduling",
   "confidence": "low"
 }

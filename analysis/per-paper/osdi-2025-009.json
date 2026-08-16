@@ -4,16 +4,26 @@
   "venue": "OSDI",
   "problem": "Flash-friendly file systems (F2FS) require efficient journaling mechanisms; centralized journaling creates bottlenecks and limits scalability in multi-threaded or distributed scenarios.",
   "motivation": "Decentralized journaling improves scalability and concurrency in file systems while maintaining crash consistency.",
-  "method": "Introduces epoch-based decentralized journaling for F2FS with fine-grained recovery mechanisms to handle crashes efficiently.",
-  "key_novelty": "Decentralized epoch-based journaling for F2FS enabling fine-grained crash recovery and improved scalability.",
+  "method": "Instead of funneling all file system changes through a single journal (creating a bottleneck), this spreads the journaling across multiple independent journals organized by epochs—fixed time windows. When a crash occurs, the system recovers individual transactions within epochs rather than replaying entire epochs. This lets multiple processes simultaneously write to different journals without queuing at a central point, improving performance on multi-core systems.",
+  "key_novelty": "The core innovation is decentralized journaling organized into epochs (time windows) with fine-grained recovery, enabling concurrent writes without central bottlenecking.",
   "contributions": [
     "Decentralized journaling architecture for F2FS",
     "Epoch-based consistency model",
     "Fine-grained crash recovery mechanisms"
   ],
-  "hardware_target": ["Storage", "Flash memory"],
-  "technique_category": ["file-system", "storage", "consistency"],
-  "workloads": ["Storage", "IO-intensive"],
+  "hardware_target": [
+    "Storage",
+    "Flash memory"
+  ],
+  "technique_category": [
+    "file-system",
+    "storage",
+    "consistency"
+  ],
+  "workloads": [
+    "Storage",
+    "IO-intensive"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -24,7 +34,12 @@
   },
   "baselines": [],
   "limitations": "Complexity of managing decentralized state; validation under high concurrency and crash scenarios needed.",
-  "tags": ["file-system", "f2fs", "journaling", "consistency"],
+  "tags": [
+    "file-system",
+    "f2fs",
+    "journaling",
+    "consistency"
+  ],
   "primary_theme": "Decentralized F2FS journaling",
   "confidence": "low"
 }

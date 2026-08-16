@@ -4,17 +4,25 @@
   "venue": "ICCAD",
   "problem": "Increased HBM stacking to achieve higher capacity creates more inter-die junctions with lower heat conductivity, forming hotspots with streaming memory accesses and triggering thermal throttling that limits HBM capacity.",
   "motivation": "Enable more HBM layers and capacity by reducing thermal hotspots and throttling, critical for HPC and AI/ML systems.",
-  "method": "Remap streaming accesses to vertically non-adjacent physical banks to reduce hotspots. Extended with activity-count based throttling to avoid per-bank temperature sensors.",
-  "key_novelty": "First work to address thermal management in HBM through vertical bank address remapping and activity-aware throttling.",
+  "method": "When the same memory banks are accessed repeatedly in stacked HBM layers, heat concentrates in one location due to poor thermal conductivity between the layers. The solution remaps (rearranges) which physical banks handle streaming accesses, directing them to banks that are not stacked directly on top of each other so heat spreads across different layers. Rather than installing temperature sensors in each bank, it monitors how frequently each bank is accessed and automatically throttles (slows down) accesses when activity reaches dangerous levels.",
+  "key_novelty": "It addresses HBM thermal throttling through vertical bank address remapping combined with activity-based throttling instead of temperature sensors.",
   "contributions": [
     "Address remapping mechanism reducing localized hotspots",
     "Activity-count based throttling eliminating need for many temperature sensors",
     "Support for increased HBM stacking and capacity",
     "Cycle-level GPGPU simulator validation with 3D heat propagation modeling"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["memory-system", "power"],
-  "workloads": ["HPC", "LLM-inference"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "memory-system",
+    "power"
+  ],
+  "workloads": [
+    "HPC",
+    "LLM-inference"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +31,18 @@
     "accuracy": null,
     "other": "Reduced throttling, increased HBM capacity"
   },
-  "baselines": ["Current HBM address mapping", "Existing throttling mechanisms"],
+  "baselines": [
+    "Current HBM address mapping",
+    "Existing throttling mechanisms"
+  ],
   "limitations": "Validated on cycle-level GPGPU simulator; specific to HBM stack thermal characteristics.",
-  "tags": ["hbm", "thermal-management", "memory-system", "streaming-access", "address-mapping"],
+  "tags": [
+    "hbm",
+    "thermal-management",
+    "memory-system",
+    "streaming-access",
+    "address-mapping"
+  ],
   "primary_theme": "Address remapping to mitigate HBM thermal throttling",
   "confidence": "low"
 }

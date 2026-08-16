@@ -10,10 +10,10 @@ Enterprise AI data centers require programmable network interfaces for flexible 
 AI clusters demand flexible networking infrastructure supporting dynamic workloads, QoS, and security policies; traditional fixed-function NICs cannot adapt to emerging AI collective communication patterns.
 
 ## Method
-Pollara 400 integrates a programmable packet processing engine (likely PISA-style) with multiple compute cores, high-speed memory hierarchies, and advanced switching fabric to enable in-NIC compute offloads and flexible traffic management.
+Pollara 400 combines a programmable packet processing engine—based on PISA-style architecture, which applies custom rules to network traffic—with multiple compute cores and high-speed memory hierarchies. This allows the network card itself to perform computations and offload AI workloads, rather than requiring the server to handle all processing. An advanced switching fabric (the hardware routing infrastructure) connects these components and enables flexible traffic management.
 
 ## Key Novelty
-400Gbps programmable SmartNIC architecture enabling AI-optimized packet processing and in-network computing.
+A programmable network interface that reaches 400Gbps throughput and performs AI-specific packet processing and computing directly within the card itself.
 
 ## Contributions
 - 400Gbps programmable SmartNIC for enterprise AI infrastructure

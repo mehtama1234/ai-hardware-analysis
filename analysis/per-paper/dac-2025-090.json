@@ -4,24 +4,41 @@
   "venue": "DAC",
   "problem": "IR drop analysis in on-chip power grids is computationally expensive; traditional numerical methods are accurate but slow, while CNN-based ML methods lose fine-grained topology and PG structure information.",
   "motivation": "As ICs scale to advanced nodes, IR drop verification dominates design closure time; ML acceleration is essential but must preserve power grid interpretability.",
-  "method": "IRGNN combines numerical solver (AMG-PCG) to generate rough solutions as ground truth with graph-based learning: treats PG nodes as point clouds, extracts features via graph transformer and novel Neighbor Distance Attention (NDA) layer for distance-aware aggregation, capturing both local and global PG topology.",
-  "key_novelty": "First graph-based IR drop method that performs per-node prediction (unlike CNNs which only produce coarse maps) while grounding learning in numerical solutions.",
+  "method": "The method uses a two-part approach: it first runs a numerical solver called AMG-PCG (which finds approximate solutions without fully solving the system) to create initial rough estimates of where power is lost in the chip's power grid, then uses graph-based machine learning to refine them. It represents the power grid nodes as a point cloud—a set of interconnected points—and feeds this into a graph transformer, a type of neural network that learns how nodes relate to each other based on their connections. The key innovation is a technique called Neighbor Distance Attention (NDA) that weights nearby nodes based on physical distance, allowing the model to capture both local fine-grained details and large-scale patterns in how power distributes across the grid.",
+  "key_novelty": "The core innovation is using graph-based learning to make precise per-node power-loss predictions, rather than CNN methods that only produce rough grid-level maps, while grounding these predictions in accurate numerical solutions.",
   "contributions": [
     "Novel graph-based framework (IRGNN + IRGraph) for node-wise IR drop prediction",
     "Neighbor Distance Attention layer for topology-aware feature aggregation",
     "Integration of numerical solutions (AMG-PCG) as interpretability foundation",
     "Achieves higher accuracy than CNN-based methods and standard solvers with reduced runtime"
   ],
-  "hardware_target": ["ASIC"],
-  "technique_category": ["circuit-design", "compiler"],
-  "workloads": ["database"],
+  "hardware_target": [
+    "ASIC"
+  ],
+  "technique_category": [
+    "circuit-design",
+    "compiler"
+  ],
+  "workloads": [
+    "database"
+  ],
   "metrics": {
     "accuracy": "higher than CNN-based and numerical solvers",
     "runtime": "substantially reduced vs numerical methods"
   },
-  "baselines": ["CNN-based approaches", "numerical solvers (traditional)"],
+  "baselines": [
+    "CNN-based approaches",
+    "numerical solvers (traditional)"
+  ],
   "limitations": "Not discussed.",
-  "tags": ["ir-drop", "power-grid", "graph-neural-networks", "topology-aware", "optimization", "eda"],
+  "tags": [
+    "ir-drop",
+    "power-grid",
+    "graph-neural-networks",
+    "topology-aware",
+    "optimization",
+    "eda"
+  ],
   "primary_theme": "Graph-based IR drop prediction with numerical grounding",
   "confidence": "low"
 }

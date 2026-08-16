@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Reinforcement learning shows promise for system optimization but existing frameworks (RLlib, Ray) introduce substantial integration overhead when embedded in system software, limiting practical deployment.",
   "motivation": "Systems researchers want to leverage RL for online system optimization (caching, scheduling, routing), but current frameworks require significant integration effort and add unacceptable runtime overhead.",
-  "method": "RL4Sys: lightweight RL framework designed for seamless system-level integration. Minimal client embeds in target system to record trajectories and run cached policy inference. Remote trainers execute asynchronously via zero-copy gRPC with adaptive batching.",
-  "key_novelty": "Lightweight client-server RL architecture for systems; minimal instrumentation overhead (<6%); asynchronous distributed training; zero-copy communication; adaptive batching for policy updates; drop-in integration design.",
+  "method": "RL4Sys embeds a lightweight client in the target system that watches behavior and runs a cached machine-learning policy, keeping overhead below 6%. Separately, remote trainers asynchronously improve the policy from the recorded observations—communicating through zero-copy gRPC (sending data without duplicating it) with adaptive batching that groups updates for efficiency. This split between a minimal local client and powerful remote trainers avoids the heavy integration overhead of traditional RL frameworks.",
+  "key_novelty": "The innovation is achieving practical system-level reinforcement learning with under 6% overhead by pairing a lightweight embedded client with remote asynchronous trainers using zero-copy communication.",
   "contributions": [
     "RL4Sys lightweight RL framework for systems",
     "Minimal client (<6% overhead) for seamless integration",
@@ -14,17 +14,39 @@
     "Convergence matching conventional RL frameworks",
     "220% higher throughput vs. RLlib in environment-oriented settings"
   ],
-  "hardware_target": ["CPU/GPU systems", "System software", "Distributed clusters"],
-  "technique_category": ["Reinforcement learning", "System optimization", "Machine learning systems", "Distributed training"],
-  "workloads": ["System optimization tasks", "Online learning", "Dynamic control"],
+  "hardware_target": [
+    "CPU/GPU systems",
+    "System software",
+    "Distributed clusters"
+  ],
+  "technique_category": [
+    "Reinforcement learning",
+    "System optimization",
+    "Machine learning systems",
+    "Distributed training"
+  ],
+  "workloads": [
+    "System optimization tasks",
+    "Online learning",
+    "Dynamic control"
+  ],
   "metrics": {
     "runtime_overhead": "<6%",
     "throughput_vs_RLlib": "220% higher (environment-oriented settings)",
     "convergence": "Matches conventional RL frameworks"
   },
-  "baselines": ["RLlib", "conventional RL frameworks"],
+  "baselines": [
+    "RLlib",
+    "conventional RL frameworks"
+  ],
   "limitations": "Abstract-only; specific optimization use cases not detailed; convergence comparison limited; hardware requirements not specified",
-  "tags": ["reinforcement-learning", "system-optimization", "lightweight-framework", "distributed-training", "online-learning"],
+  "tags": [
+    "reinforcement-learning",
+    "system-optimization",
+    "lightweight-framework",
+    "distributed-training",
+    "online-learning"
+  ],
   "primary_theme": "Lightweight RL Framework for System-Level Optimization",
   "confidence": "low"
 }

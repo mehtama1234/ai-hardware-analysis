@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "2D partitioned graph processing creates sparse local graphs where CSR format wastes significant memory, with >83% of vertices having empty edges. Memory-efficient sparse data structures are critical for distributed graph processing on large-scale systems.",
   "motivation": "Efficient memory representation of sparse graphs is essential for scaling graph analytics on GPU-accelerated supercomputers like Frontier.",
-  "method": "BCSR (bit-CSR) is a modified CSR representation that uses bitwise operations to compress sparse graph structures more efficiently than standard CSR. The approach encodes sparse vertices with empty edges using bit-level compression, reducing memory footprint on GPUs while maintaining computational efficiency. Performance is evaluated on the Graph500 benchmark using sparse rmat datasets with hundreds of millions of vertices and edges.",
-  "key_novelty": "Application of bit-level compression to CSR format for reducing memory waste in sparse graph representations on GPU architectures.",
+  "method": "BCSR (bit-CSR) modifies the standard CSR (Compressed Sparse Row) format, which is how graphs are typically stored efficiently in memory. When you partition a large graph across many processors for distributed processing, you create local subgraphs where most vertices have no edges—CSR format wastes memory storing empty slots for them. BCSR solves this by using bitwise operations to encode those empty vertices as individual bits instead of full data structures, shrinking memory use on GPUs without slowing down computation. The method is tested on Graph500 benchmarks using sparse random graph datasets containing hundreds of millions of vertices and edges.",
+  "key_novelty": "BCSR applies bit-level compression to CSR format to eliminate memory waste from empty vertices in sparse graphs processed on GPUs.",
   "contributions": [
     "Proposed BCSR format for memory-efficient representation of sparse graphs on GPUs",
     "Demonstrated 16.67% memory savings on sparse rmat dataset without performance degradation",
@@ -25,13 +25,13 @@
     "HPC"
   ],
   "metrics": {
-    "speedup": "1.7\u00d7 slowdown in degree lookup",
+    "speedup": "1.7× slowdown in degree lookup",
     "other": "16.67% memory savings on sparse rmat dataset, 33% theoretical storage reduction"
   },
   "baselines": [
     "CSR (Compressed Sparse Row)"
   ],
-  "limitations": "1.7\u00d7 slowdown in degree lookup times due to bitwise operations reveals performance trade-offs that may limit practical adoption in latency-sensitive scenarios.",
+  "limitations": "1.7× slowdown in degree lookup times due to bitwise operations reveals performance trade-offs that may limit practical adoption in latency-sensitive scenarios.",
   "tags": [
     "sparse-graphs",
     "memory-efficient",

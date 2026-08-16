@@ -12,10 +12,10 @@ Large-scale AI cluster interconnects (many GPUs, CPUs in data centers) face powe
 Gigawatt-scale AI factories require interconnects with extremely high bandwidth and low power; silicon photonics co-packaged with electronic switches offers superior scaling.
 
 ## Method
-Co-packaged optical switches integrate silicon photonics (waveguides, modulators, detectors) directly with electronic switching logic in the same package. This eliminates long electrical traces between switch and optics, reducing power and latency.
+Instead of placing light-transmission components (waveguides that carry light signals, modulators that convert electrical signals to light, and detectors that convert light back to electricity) far from the electronic switch, they're built together in one package. This eliminates the long wires that would normally connect them, reducing power consumption and latency—the time signals take to travel.
 
 ## Key Novelty
-Co-packaged silicon photonics switches enabling low-power, high-bandwidth interconnect for massive GPU clusters.
+Putting light-based optical components and electronic switch circuits in the same package reduces power consumption and latency for GPU cluster interconnects.
 
 ## Contributions
 - Co-packaging of photonics and electronic switching logic

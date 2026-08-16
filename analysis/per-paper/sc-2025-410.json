@@ -4,8 +4,8 @@
   "venue": "SC",
   "problem": "Long-context comprehension requires context parallelism and irregular block-sparse attention, but existing methods suffer from poor scalability due to striped partitioning causing high communication traffic and ring-based patterns limiting kernel granularity.",
   "motivation": "Large language models require increasingly longer context windows, but quadratic attention complexity and high communication costs make current context parallelism solutions inefficient at scale.",
-  "method": "UltraAttn implements hierarchical context tiling at node and device levels to reduce communication cost. It applies kernel-level tiling to balance kernel overlap and device utilization. An ILP-based runtime further optimizes distributed attention latency.",
-  "key_novelty": "Hierarchical tiling strategy spanning multiple levels (node and device) combined with ILP-based runtime optimization to improve kernel granularity and communication efficiency.",
+  "method": "UltraAttn organizes the input sequence into hierarchical tiles at three levels: across multiple computers (nodes), across processing units within each computer (devices), and at the kernel level where individual computations run. Tile sizes are adjusted to balance how much computation overlaps and how well each processor is utilized. A mathematical optimization algorithm (Integer Linear Programming) then determines the most efficient schedule for distributing attention computations across all these levels, reducing overall latency.",
+  "key_novelty": "The core idea is hierarchical tiling of the input sequence combined with mathematical optimization to schedule distributed attention computations most efficiently.",
   "contributions": [
     "5.5x average speedup over state-of-the-art context parallelism methods on 64 GPUs",
     "Supports various irregular attention types",

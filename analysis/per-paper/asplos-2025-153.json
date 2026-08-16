@@ -4,17 +4,26 @@
   "venue": "ASPLOS",
   "problem": "Dynamically scheduled high-level synthesis (HLS) generates dataflow circuits where each compute unit is replicated per operation, wasting area when multiple operations could share a single functional unit. Existing resource sharing approaches for dynamic HLS are unsafe because handshake-based flow control can cause deadlock when units are shared without proper backpressure management.",
   "motivation": "Dynamic HLS circuits excel at irregular control flow and unpredictable memory accesses but suffer from large area footprints due to per-operation unit replication; safe, deadlock-free resource sharing would reduce area while preserving runtime scheduling flexibility.",
-  "method": "CRUSH introduces a credit-based token mechanism for functional unit sharing in dynamic HLS dataflow circuits. Each shared functional unit is associated with a credit counter that tracks available slots; producers consume a credit before issuing an operation to the shared unit and regain it upon completion. This credit-based backpressure propagates through the handshake network to ensure the shared unit is never over-committed, preventing deadlock. CRUSH is integrated as a compiler transformation pass on top of the existing dynamic HLS flow.",
-  "key_novelty": "A credit-based backpressure protocol for safe functional unit sharing in dynamically scheduled HLS dataflow circuits, enabling deadlock-free resource sharing without compromising runtime scheduling flexibility.",
+  "method": "CRUSH prevents deadlock by giving each shared functional unit a limited pool of 'credits' (vouchers that allow operations to use it). When an operation needs the unit, it grabs a credit first; when the operation finishes, the credit goes back to the pool. If no credits are available, backpressure signals propagate through the handshake network (the connections between circuit components) to pause upstream operations, preventing the hardware unit from being overloaded and stuck (deadlock). The system is implemented as a compiler transformation that automatically adds this credit tracking when synthesizing the hardware circuit.",
+  "key_novelty": "A credit-based control system that lets hardware units be safely shared among multiple operations without deadlock, regardless of when those operations actually execute.",
   "contributions": [
     "Credit-based mechanism for deadlock-free functional unit sharing in dynamic HLS dataflow circuits",
     "Compiler transformation pass integrating CRUSH into an existing dynamic HLS flow",
     "Area reduction through functional unit sharing while preserving dynamic scheduling correctness",
     "Formal analysis of deadlock prevention guarantees under the credit protocol"
   ],
-  "hardware_target": ["FPGA", "ASIC"],
-  "technique_category": ["compiler", "circuit-design", "dataflow"],
-  "workloads": ["HPC"],
+  "hardware_target": [
+    "FPGA",
+    "ASIC"
+  ],
+  "technique_category": [
+    "compiler",
+    "circuit-design",
+    "dataflow"
+  ],
+  "workloads": [
+    "HPC"
+  ],
   "metrics": {
     "speedup": null,
     "energy_or_tops_w": null,
@@ -23,9 +32,17 @@
     "accuracy": null,
     "other": null
   },
-  "baselines": ["dynamically scheduled HLS without resource sharing"],
+  "baselines": [
+    "dynamically scheduled HLS without resource sharing"
+  ],
   "limitations": "Specific area reduction numbers and throughput impact of the credit mechanism are not stated in the abstract.",
-  "tags": ["high-level-synthesis", "resource-sharing", "dataflow-circuits", "deadlock-free", "credit-based"],
+  "tags": [
+    "high-level-synthesis",
+    "resource-sharing",
+    "dataflow-circuits",
+    "deadlock-free",
+    "credit-based"
+  ],
   "primary_theme": "deadlock-free resource sharing in dynamic HLS dataflow circuits",
   "confidence": "low"
 }

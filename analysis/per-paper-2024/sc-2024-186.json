@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "NVMe-oF using RDMA introduces extra latency by requiring software on the critical path for distributed block-level storage access. There is a need to share NVMe devices across multiple hosts in a cluster without this latency overhead.",
   "motivation": "Distributed cluster applications including machine learning, databases, and HPC workloads require fast shared storage access without RDMA-induced latency penalties.",
-  "method": "The authors develop a distributed NVMe driver that leverages PCIe shared memory capabilities to disaggregate NVMe controllers at the I/O queue level. This enables multiple remote hosts to access the same NVMe device in parallel without RDMA, and achieves performance comparable to local NVMe access.",
-  "key_novelty": "Using PCIe shared memory to disaggregate NVMe controllers at the I/O queue level, enabling direct parallel access from remote hosts without RDMA.",
+  "method": "The authors build a driver that uses PCIe shared memory (a way for multiple computers to read and write the same memory) to let multiple hosts directly access the same NVMe storage device, bypassing RDMA (which requires extra software steps on the critical path). They split the storage controller's request queue (I/O queue) so each computer can submit requests independently and in parallel. This direct approach achieves speeds nearly as fast as having local storage.",
+  "key_novelty": "Splitting the NVMe controller's request queue across PCIe shared memory enables multiple computers to directly access the same storage device without RDMA overhead.",
   "contributions": [
     "Distributed NVMe driver for PCIe clusters enabling multi-host device sharing",
     "I/O queue-level disaggregation of NVMe controllers for parallel remote access",

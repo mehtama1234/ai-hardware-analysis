@@ -4,17 +4,24 @@
   "venue": "MLSYS 2025",
   "problem": "Standard value iteration (VI) for large Markov Decision Processes is computationally expensive because it updates all state-action pairs every iteration, even when most actions can be provably pruned.",
   "motivation": "Algorithms like BAO and AncVI reduce work but require full precomputation or have limited applicability; a heap-based approach exploiting monotone upper bounds on action values can prune actions without full precomputation and generalize across MDP structures.",
-  "method": "Maintains a max-heap of action upper bounds per state; after each value update, eliminates actions whose upper bounds fall below the current best lower bound. Combines four algorithmic variants: VIH (heap only), VIAE (asynchronous elimination), VIAEH (hybrid), VIAEHL (with lookahead), all exploiting monotone value function structure.",
-  "key_novelty": "Heap-based action elimination that leverages monotonicity of the value function to prune dominated actions incrementally during VI, without requiring offline precomputation of the action space structure.",
+  "method": "For each state, it maintains a sorted ranking (max-heap) of upper-bound reward estimates for each possible action, and discards actions whose upper bounds fall below the current best lower bound after each update. It provides four variants combining different optimizations: VIH (heap only), VIAE (updating states one at a time rather than all together), VIAEH (combining both approaches), and VIAEHL (with a look-ahead step). All exploit the monotone nature of value estimates—they improve or stay constant across iterations—which ensures the action pruning is always correct.",
+  "key_novelty": "It eliminates dominated actions using a sorted list of upper bounds during value iteration, relying on value estimates that only improve (never decrease) over iterations to avoid pre-analyzing the action space.",
   "contributions": [
     "VIH algorithm: value iteration with per-state max-heap for action upper bound tracking",
     "VIAE: asynchronous value iteration with incremental action elimination",
     "VIAEH and VIAEHL: hybrid variants with lookahead for further pruning",
     "Empirical validation showing consistent speedups over VI, IVI, BAO, AncVI on both random and real-world MDPs"
   ],
-  "hardware_target": ["cpu"],
-  "technique_category": ["scheduling", "approximation"],
-  "workloads": ["reinforcement-learning"],
+  "hardware_target": [
+    "cpu"
+  ],
+  "technique_category": [
+    "scheduling",
+    "approximation"
+  ],
+  "workloads": [
+    "reinforcement-learning"
+  ],
   "metrics": {
     "speedup": "VIH consistently best on random and real-world MDPs vs VI/IVI/BAO/AncVI; exact ratios depend on MDP structure",
     "energy_or_tops_w": null,
@@ -23,9 +30,21 @@
     "accuracy": "Exact (not approximate) value iteration results",
     "other": null
   },
-  "baselines": ["VI", "IVI", "BAO", "AncVI"],
+  "baselines": [
+    "VI",
+    "IVI",
+    "BAO",
+    "AncVI"
+  ],
   "limitations": "Speedup depends heavily on MDP structure (action space size, transition sparsity); heap overhead may dominate on small MDPs; not GPU-accelerated.",
-  "tags": ["value-iteration", "mdp", "action-elimination", "reinforcement-learning", "scheduling", "heap"],
+  "tags": [
+    "value-iteration",
+    "mdp",
+    "action-elimination",
+    "reinforcement-learning",
+    "scheduling",
+    "heap"
+  ],
   "primary_theme": "Reinforcement learning algorithms",
   "confidence": "high"
 }

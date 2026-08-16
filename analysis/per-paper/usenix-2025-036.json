@@ -4,8 +4,8 @@
   "venue": "USENIX",
   "problem": "Commodity ZNS SSDs with small zones create sequential-write constraints that traditional log-structured file systems cannot efficiently satisfy, causing zone fragmentation, premature resets, and performance degradation.",
   "motivation": "As ZNS SSDs become commodity hardware, file systems must be co-designed with their zone architecture to achieve competitive I/O performance and storage efficiency.",
-  "method": "Z-LFS implements a zone-aware log-structured design that segments the write buffer and logical address space into zone-aligned units, applies zone-cognizant garbage collection to minimize resets, and uses adaptive zone mapping to tolerate small zone boundaries while maintaining sequential write properties.",
-  "key_novelty": "First production-ready log-structured file system optimized specifically for small-zone ZNS SSDs in commodity devices.",
+  "method": "Z-LFS organizes data writes to align with the SSD's zones (limited storage blocks), preventing writes from crossing zone boundaries and triggering expensive resets. The system segments both the temporary write buffer and the file system's address space into zone-sized chunks, so data stays within zone limits by design. When reclaiming space (garbage collection), it prioritizes resetting individual zones rather than the entire drive, reducing the total reset burden. Adaptive zone mapping lets the system adjust zone assignments while maintaining sequential writes (ordered writing), which SSDs require for performance despite small zone boundaries.",
+  "key_novelty": "Z-LFS is the first production-ready file system optimized for commodity SSDs with small zones (limited-size storage regions), using a log-structured design that appends all writes sequentially.",
   "contributions": [
     "Zone-tailored log-structured file system architecture for commodity ZNS SSDs",
     "Mechanisms for efficient garbage collection and reset minimization under small-zone constraints",

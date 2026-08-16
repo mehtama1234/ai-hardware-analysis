@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Large deep learning models exceed accelerator memory capacity, requiring tensor offloading to CPU memory. This creates two performance bottlenecks: coarse-grained tensor transfers that hide transfer overhead poorly, and redundant transfers that migrate unchanged data from CPU to accelerator unnecessarily.",
   "motivation": "Tensor offloading between CPU and accelerator memory is a major performance bottleneck when training large deep learning models that exceed accelerator memory capacity.",
-  "method": "The paper proposes using Compute Express Link (CXL) to establish a cache coherence domain between CPU and accelerator memory. It extends CXL with an update cache-coherence protocol that eliminates unnecessary data transfers by tracking which data has changed, reducing redundant migrations and hiding transfer latency more effectively.",
-  "key_novelty": "Using CXL-based cache coherence with an extended update protocol to eliminate redundant tensor transfers and reduce coarse-grained transfer granularity between CPU and accelerator memory.",
+  "method": "The paper uses Compute Express Link (CXL, a high-speed connection standard between CPU and accelerator hardware) to create a memory space where both can coordinate data access. It adds a system that tracks which tensor data has changed since the last transfer. When the accelerator needs data, only the modified tensors are moved from CPU to accelerator memory, eliminating wasteful copies of unchanged data and allowing the system to hide the transfer time more effectively.",
+  "key_novelty": "Using Compute Express Link to implement an extended update protocol that tracks changed tensor data, allowing only modifications to be transferred between CPU and accelerator instead of entire tensors.",
   "contributions": [
     "Identifies coarse-grained transfer and redundant data migration as key bottlenecks in tensor offloading",
     "Proposes CXL-based cache coherence domain architecture between CPU and accelerator",

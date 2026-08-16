@@ -4,22 +4,39 @@
   "venue": "DAC",
   "problem": "Full-batch Graph Neural Network training on multi-GPU systems faces severe load imbalance and high communication overhead due to irregular graph structures and uneven vertex/edge distributions.",
   "motivation": "Full-batch GNN training offers advantages in convergence accuracy and speed, but irregular load distribution and communication bottlenecks across GPUs prevent efficient scaling on multi-GPU systems.",
-  "method": "ParGNN employs profiler-guided adaptive load balancing with graph over-partitioning to mitigate load imbalance, plus a subgraph pipeline algorithm that overlaps computation and communication while maintaining training accuracy.",
-  "key_novelty": "Profiler-guided adaptive load balancing combined with computation-communication overlap via subgraph pipelining for scalable full-batch GNN training.",
+  "method": "ParGNN measures how much computation each GPU receives (profiling), then breaks the graph into extra pieces and redistributes them to make the work more even (graph over-partitioning and adaptive load balancing). It arranges the work in a pipeline where each GPU processes multiple graph pieces in sequence, timed so that while one GPU is computing, another is simultaneously receiving or sending data (computation-communication overlap). This keeps data flowing and GPUs busy at the same time, eliminating the idle waiting that happens when data arrives late.",
+  "key_novelty": "Profile the workload to dynamically rebalance graphs across GPUs, and use pipelining to overlap data transfer with computation.",
   "contributions": [
     "Profiler-guided adaptive load balancing with graph over-partition strategy",
     "Subgraph pipeline algorithm overlapping communication and computation without accuracy degradation",
     "Highest accuracy achieved with 2.7x speedup over PipeGCN and 21.8x speedup over DGL on four datasets"
   ],
-  "hardware_target": ["GPU"],
-  "technique_category": ["parallelism", "memory-system", "dataflow"],
-  "workloads": ["GNN", "graph-analytics"],
+  "hardware_target": [
+    "GPU"
+  ],
+  "technique_category": [
+    "parallelism",
+    "memory-system",
+    "dataflow"
+  ],
+  "workloads": [
+    "GNN",
+    "graph-analytics"
+  ],
   "metrics": {
     "speedup": "2.7x vs PipeGCN; 21.8x vs DGL"
   },
-  "baselines": ["PipeGCN", "DGL"],
+  "baselines": [
+    "PipeGCN",
+    "DGL"
+  ],
   "limitations": "Scaling limit (number of GPUs) and applicability to heterogeneous GPU clusters not discussed.",
-  "tags": ["graph-neural-networks", "multi-gpu", "load-balancing", "pipelining"],
+  "tags": [
+    "graph-neural-networks",
+    "multi-gpu",
+    "load-balancing",
+    "pipelining"
+  ],
   "primary_theme": "Load-balanced full-batch GNN training with computation-communication overlap",
   "confidence": "low"
 }

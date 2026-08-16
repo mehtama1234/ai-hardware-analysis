@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Threads within a GPU warp may execute different branches sequentially when encountering conditional statements, resulting in considerable utilization loss and unpredictable execution time. This control flow divergence is a fundamental performance bottleneck in GPU kernel execution.",
   "motivation": "Control flow divergence severely impacts GPU utilization and execution time predictability, which are critical performance factors for GPU computing.",
-  "method": "A branch prediction network is deployed on GPU tensor cores to predict thread execution paths before kernel launch, running in parallel with kernels on CUDA cores. Combined with a thread data reorganization algorithm, this enables efficient divergence mitigation with minimal overhead.",
-  "key_novelty": "Using tensor cores to implement branch prediction in parallel with the main kernel execution on CUDA cores, enabling low-overhead control flow divergence mitigation.",
+  "method": "A branch prediction network (a system that forecasts which code branches each thread will take) runs on the GPU's tensor cores (specialized hardware units) in parallel with the main computation on CUDA cores. Based on these predictions, a thread reorganization algorithm rearranges threads in memory so that threads taking the same branch execute together, reducing the inefficiency of control flow divergence. This approach keeps the overhead minimal because prediction happens concurrently with the main kernel instead of pausing execution to fix divergence after it occurs.",
+  "key_novelty": "The core idea is running branch prediction on tensor cores in parallel with the main kernel execution, so threads can be reorganized efficiently with minimal overhead to mitigate control flow divergence.",
   "contributions": [
     "Branch prediction network for predicting GPU warp thread execution paths",
     "Exploitation of tensor cores for parallel branch prediction without impacting CUDA core kernels",

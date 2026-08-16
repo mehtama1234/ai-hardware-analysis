@@ -4,8 +4,8 @@
   "venue": "DATE",
   "problem": "Multi-process performance degradation in user-space persistent memory file systems due to repeated page faults and cross-process synchronization overhead. Duplicate paging structures per process create large memory footprint.",
   "motivation": "User-space PM file systems efficient for single-process scenarios but exhibit 15-60% degradation in multi-process environments; memory MMIO enables high I/O performance if software overhead solved.",
-  "method": "Shareable page table shared among all processes eliminating duplicate paging structure overhead. PGD-aligned (512GB) mapping method accelerates page table sharing. Cross-process memory protection mechanism based on PGD alignment ensures data reliability.",
-  "key_novelty": "Shareable page table architecture with PGD-aligned mapping reduces software overhead and enables efficient multi-process memory protection.",
+  "method": "Normally, each process maintains its own page table—a bookkeeping structure that tracks where its data lives in memory. MPFS instead creates one shared page table that all processes use together, eliminating the duplicate memory overhead. To make this sharing efficient, they organize the page table in 512GB-aligned blocks (called PGD alignment), which lets hardware handle address translations faster. A protection mechanism keyed to these alignment boundaries ensures one process's data stays isolated from another's.",
+  "key_novelty": "Multiple processes share a single page table structure aligned to 512GB chunks instead of each maintaining their own, reducing memory waste while keeping their data protected from interference.",
   "contributions": [
     "Shareable page table eliminating duplicate paging structures",
     "PGD-aligned mapping accelerating page table sharing",

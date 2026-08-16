@@ -4,13 +4,13 @@
   "venue": "SC",
   "problem": "Scientific visualization on large datasets is bottlenecked by data movement from storage servers to compute clients; moving terabytes across network for filtering wastes bandwidth and latency.",
   "motivation": "Data reduction at source (early filtering) dramatically reduces network I/O; pNFS infrastructure already exists in HPC; offloading to data servers is cost-effective and compatible with security models.",
-  "method": "pNFS-based pushdown architecture offloading VTK pipeline stages (read, filter) to data servers. FUSE-based interface for client-server communication. Leverages pNFS client location awareness and Linux enhancements for efficient local storage access. Preserves user credentials and permission checks.",
-  "key_novelty": "First practical in-storage execution system for VTK on pNFS with FUSE interface; demonstrates 6\u20137\u00d7 speedup via data filtering at source.",
+  "method": "Instead of moving terabytes of data across the network to a client, the system runs the data analysis directly on the storage servers where the data lives. It executes VTK's data pipeline stages—reading and filtering files—right on the servers, then sends only the filtered results back to the client. A FUSE interface (a software layer that lets the client transparently communicate with the storage servers) enables this coordination. The system uses pNFS's knowledge of where data is physically stored and Linux storage features to access files efficiently on the servers, while enforcing user credentials and access permissions.",
+  "key_novelty": "The first practical system that runs VTK analysis directly on pNFS storage servers via a FUSE interface, achieving 6–7× speedup by filtering data at its source instead of transmitting it across the network.",
   "contributions": [
     "pNFS pushdown architecture for in-storage VTK execution",
     "FUSE-based secure client-server interface preserving credentials",
     "Leverages Linux enhancements for efficient pNFS local access",
-    "6.1\u00d7 end-to-end speedup and 7.1\u00d7 data loading improvement"
+    "6.1× end-to-end speedup and 7.1× data loading improvement"
   ],
   "hardware_target": [
     "pNFS storage servers",
@@ -27,8 +27,8 @@
     "large-scale data analysis"
   ],
   "metrics": {
-    "speedup_e2e": "6.1\u00d7",
-    "speedup_data_loading": "7.1\u00d7",
+    "speedup_e2e": "6.1×",
+    "speedup_data_loading": "7.1×",
     "datasets_tested": 2
   },
   "baselines": [

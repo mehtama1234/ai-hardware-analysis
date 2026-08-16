@@ -5,8 +5,8 @@
   "year": 2024,
   "problem": "Virtual memory translation overhead limits performance despite ARM and RISC-V supporting intermediate translation sizes (64KiB, 32MiB); existing OS lack efficient mechanisms to exploit these sizes due to limited coalescing support and runtime selection strategies.",
   "motivation": "Efficient use of multiple translation sizes can significantly reduce TLB misses and translation overhead, directly improving performance of memory-intensive workloads.",
-  "method": "Elastic Translations (ET) implements coalescing-aware OS memory manager mechanisms to transparently select among multiple translation sizes at runtime. It uses lightweight hardware-assisted TLB miss sampling to guide translation size selection policies. The system dynamically adapts page sizes based on observed memory access patterns and is implemented for ARMv8-A in Linux and KVM.",
-  "key_novelty": "Hardware-assisted TLB miss sampling integrated with runtime translation size selection policies to dynamically exploit intermediate translation sizes without requiring static large-page configurations.",
+  "method": "Elastic Translations watches which page lookups fail in the hardware's translation table and uses that information to automatically select the right page size as the program runs. When frequent lookups reveal that certain memory regions are heavily used, it combines smaller pages into larger ones (4KiB pages merge into 64KiB or 32MiB), reducing lookup overhead. This adaptation happens continuously without manual setup. The system was implemented for ARMv8-A in Linux and KVM.",
+  "key_novelty": "By monitoring page lookup failures in the hardware, the system automatically picks the best page size at runtime, adapting to each program without requiring manual configuration.",
   "contributions": [
     "Coalescing-aware OS memory manager mechanisms enabling transparent use of multiple translation sizes",
     "Lightweight hardware-assisted TLB miss sampling for runtime page size selection",

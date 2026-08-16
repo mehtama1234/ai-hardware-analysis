@@ -4,23 +4,42 @@
   "venue": "HPCA",
   "problem": "Digital compute-in-memory (DCIM) macros are susceptible to SRAM cell errors under low-voltage operation (needed for high energy efficiency), but traditional SRAM error correcting codes (ECC) that correct errors in a single read-out row are incompatible with DCIM's simultaneous multi-row readout for MAC computation, leaving MAC-cell errors uncorrected.",
   "motivation": "Low-voltage operation is essential for maximizing DCIM energy efficiency, but voltage scaling increases SRAM cell error rates; uncorrected MAC errors accumulate and substantially degrade neural network inference accuracy, making reliable low-voltage DCIM operation unsolved.",
-  "method": "ER-DCIM introduces three mechanisms: (1) a residue code-based MAC error correction scheme that detects and corrects additive errors in the MAC accumulation result in real time during DCIM computation — the first such mechanism for DCIM; (2) a progressive cell error correction mechanism that identifies and corrects underlying SRAM cell errors incrementally without stalling computation; (3) a mode switcher that repurposes redundant error-resilient logic (reserved for low-voltage protection) to boost performance in high-voltage mode, avoiding area waste.",
-  "key_novelty": "Residue code-based real-time MAC error correction for digital CIM, the first mechanism to correct additive errors in DCIM MAC results during live computation rather than at the SRAM cell or row level.",
+  "method": "ER-DCIM uses three complementary strategies to prevent errors during math operations in memory. First, it adds mathematical check-information (residue codes) to the computation that lets it catch and fix errors in the results as they happen—the first real-time error correction technique designed for DCIM. Second, it fixes defective SRAM cells gradually without interrupting the calculation. Third, it reuses the error-correction hardware that was built for low-voltage mode (where errors occur more easily) to boost performance at standard voltage instead, preventing wasted chip space.",
+  "key_novelty": "Using residue codes to correct errors in multiply-accumulate results during DCIM computation, rather than at the SRAM cell level—the first real-time approach of this kind.",
   "contributions": [
     "Residue code-based real-time MAC-level error correction for DCIM, the first of its kind.",
     "Progressive cell error correction avoiding computation stalls during SRAM repair.",
     "Mode switcher that reconfigures error-resilient logic for throughput improvement in high-voltage mode.",
     "ER-DCIM maintains high throughput and energy efficiency without accuracy loss in both low-voltage and high-voltage operating modes."
   ],
-  "hardware_target": ["CIM (compute-in-memory)", "ASIC"],
-  "technique_category": ["reliability", "circuit-design", "power"],
-  "workloads": ["CNN", "transformer"],
+  "hardware_target": [
+    "CIM (compute-in-memory)",
+    "ASIC"
+  ],
+  "technique_category": [
+    "reliability",
+    "circuit-design",
+    "power"
+  ],
+  "workloads": [
+    "CNN",
+    "transformer"
+  ],
   "metrics": {
     "other": "Maintains accuracy without loss in both low-voltage and high-voltage modes; no accuracy degradation stated vs. baseline"
   },
-  "baselines": ["Standard digital CIM without error correction", "Conventional SRAM ECC (incompatible with DCIM)"],
+  "baselines": [
+    "Standard digital CIM without error correction",
+    "Conventional SRAM ECC (incompatible with DCIM)"
+  ],
   "limitations": "Residue code overhead and the cost of progressive cell error correction in terms of area and timing closure are not quantified in the abstract.",
-  "tags": ["compute-in-memory", "error-correction", "sram", "low-voltage", "reliability"],
+  "tags": [
+    "compute-in-memory",
+    "error-correction",
+    "sram",
+    "low-voltage",
+    "reliability"
+  ],
   "primary_theme": "Run-time MAC-level error correction for reliable low-voltage digital compute-in-memory",
   "confidence": "low"
 }
