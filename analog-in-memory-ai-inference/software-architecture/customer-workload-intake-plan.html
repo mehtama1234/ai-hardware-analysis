@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Workload Intake Plan</title>
+  <style>
+    body{margin:0;background:#f7f8f6;color:#1c211d;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}
+    header,main{max-width:1080px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+    nav a,.jump a{border:1px solid #dce3dd;border-radius:8px;background:#fff;padding:8px 10px;color:#3f6f45;font-size:14px;font-weight:800;text-decoration:none}
+    a{color:#3f6f45;font-weight:800;text-decoration:none}a:hover{text-decoration:underline}h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05}h2{margin:0 0 12px;font-size:28px;line-height:1.15}h3{margin:22px 0 8px;font-size:18px}
+    p{margin:8px 0}.lead{max-width:900px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid #3f6f45;border-radius:8px;background:#eef4ef;padding:14px 16px;font-weight:800}
+    .warning{border:1px solid #e2d1a4;border-left:5px solid #966b00;border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:18px}
+    section{background:#fff;border:1px solid #dce3dd;border-radius:8px;padding:22px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{border:1px solid #dce3dd;border-radius:8px;background:#fbfcfb;padding:15px}.card b{display:block;margin-bottom:6px}
+    ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:#edf1ed;border-radius:6px;padding:2px 5px}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid #dce3dd;padding:10px;text-align:left;vertical-align:top}th{background:#eef4ef}
+    @media(max-width:820px){header,main{padding:20px 16px}.grid{grid-template-columns:1fr}table{font-size:13px}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+      <a href="timing-latency-budget-plan.html">Timing Budget</a>
+      <a href="memory-technology-decision-plan.html">Memory Decision</a>
+      <a href="benchmark-suite-plan.html">Benchmarks</a>
+      <a href="simulator-calibration-plan.html">Calibration</a>
+    </nav>
+    <h1>Customer Workload Intake Plan</h1>
+    <p class="lead">This page defines the first real step: collect enough information about a customer workload to judge analog fit honestly.</p>
+    <p class="question">Question: what must we know before saying whether this workload belongs on an analog IMC chip?</p>
+    <div class="warning"><strong>Rule:</strong><p>Do not judge a Physical AI workload from the model file alone. The physical system, timing, power, updates, sensors, and task metric matter as much as the neural network graph.</p></div>
+  </header>
+  <main>
+    <section>
+      <h2>Plain-Language Vocabulary</h2>
+      <p>A workload is the actual job the customer wants to run. It is not only the AI model. It includes the sensor data, the physical device, the speed target, the power limit, and the definition of success.</p>
+      <p>A model file is the saved neural network. It may say what math the AI performs, but it does not say whether the robot, drone, camera, or sensor system succeeds in the real world.</p>
+      <p>A task metric is the score that matters. For a gripper, it may be slip detection. For a drone, it may be obstacle detection per watt. For industrial monitoring, it may be false alarms and missed faults.</p>
+      <p>A safety boundary is the line between advice and authority. If the AI suggests an action, something else may still need to approve or block it before a motor moves.</p>
+      <p>ONNX, PyTorch, and JAX are common ways AI teams build or exchange model files. The intake should accept that customers may arrive from different software stacks.</p>
+      <p>Analog IMC means analog in-memory computing: storing model weights near the place where the chip performs some of the math, so less data has to move around.</p>
+    </section>
+    <section>
+      <h2>What We Build</h2>
+      <div class="grid">
+        <div class="card"><b>Guided Intake Form</b><p>Collect model, task, sensor, deployment, timing, power, update, environment, and safety details in one structured flow.</p></div>
+        <div class="card"><b>Workload Classifier</b><p>Classify the workload as sensing-only, advisory, policy-level, reflex-level, safety-relevant, or unclear.</p></div>
+        <div class="card"><b>Metric Selector</b><p>Force the user to choose the success metric: task completion, accuracy, false alarm rate, latency, energy, uptime, or another measurable target.</p></div>
+        <div class="card"><b>Missing-Info Gate</b><p>If a required input is missing, the system should say what is missing instead of guessing.</p></div>
+      </div>
+    </section>
+    <section>
+      <h2>Fields To Collect</h2>
+      <p>The intake should feel like a structured interview. The user should not need to know chip language. The form should ask practical questions and translate the answers into technical fields behind the scenes.</p>
+      <table>
+        <tr><th>Area</th><th>What We Ask</th><th>Plain Meaning</th><th>Why It Matters</th></tr>
+        <tr><td>Model</td><td>Format, parameter count, layer types, tensor shapes, precision, update method.</td><td>What AI file are we trying to run, how large is it, what math does it contain, and how often does it change?</td><td>Shows whether the model has analog-friendly matrix work.</td></tr>
+        <tr><td>Task</td><td>What the system does, success metric, failure mode, tolerance.</td><td>What real job must be done, how do we score success, and what kind of failure is unacceptable?</td><td>Prevents vague claims like “robotics ready.”</td></tr>
+        <tr><td>Sensor</td><td>Sensor type, sample rate, bandwidth, signal range, preprocessing.</td><td>What physical signal enters the system, how fast does it arrive, and is it raw or already cleaned up?</td><td>Sensor-near compute is one of the main analog opportunities.</td></tr>
+        <tr><td>Timing</td><td>Average latency, worst-case latency, loop rate, safety deadline.</td><td>How quickly does the system normally respond, and what is the latest safe response time?</td><td>Analog core speed is not enough if the whole loop is late.</td></tr>
+        <tr><td>Power</td><td>Energy per inference, duty cycle, battery target, thermal limit.</td><td>How much energy can the system spend, how often does it run, and how hot can it get?</td><td>Analog must improve the full system, not only one operation.</td></tr>
+        <tr><td>Updates</td><td>Fixed weights, rare updates, adapter updates, frequent learning.</td><td>Does the model stay the same, change sometimes, change only in small add-on parts, or learn constantly?</td><td>Analog memory write behavior can decide product fit.</td></tr>
+        <tr><td>Safety</td><td>Who owns override, fallback, shutdown, and unsafe-action blocking.</td><td>If the AI is wrong, what separate system can stop or correct it?</td><td>Learned analog inference should not be the only safety layer.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>How The Intake Happens Practically</h2>
+      <ol>
+        <li>The customer names the physical system: robot hand, drone, camera, machine sensor, wearable, or another device.</li>
+        <li>The customer uploads a model or describes the model if the file is not ready.</li>
+        <li>The system asks what input arrives from the real world and how fast it arrives.</li>
+        <li>The customer chooses the task metric, such as slip detection, false alarm rate, missed fault rate, obstacle detection, or energy per inference.</li>
+        <li>The customer states the timing and power limits.</li>
+        <li>The customer states whether the model changes after deployment.</li>
+        <li>The platform produces an initial scope: what can be analyzed now, what is missing, and which claims are blocked.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Concrete Example</h2>
+      <p>Suppose a customer says: "We have a robot gripper and want to detect object slip from tactile sensors."</p>
+      <table>
+        <tr><th>Question</th><th>Example Answer</th><th>What The Platform Learns</th></tr>
+        <tr><td>What is the task?</td><td>Detect slip before the object falls.</td><td>This is a reflex-style Physical AI workload.</td></tr>
+        <tr><td>What is the metric?</td><td>Detect 99% of slips within 2 ms with low false alarms.</td><td>Timing and false alarms matter, not only model accuracy.</td></tr>
+        <tr><td>What is the sensor?</td><td>Tactile force array in the gripper.</td><td>Sensor-near analog compute may be valuable.</td></tr>
+        <tr><td>How often do weights change?</td><td>Base model fixed, small adapter changes per gripper.</td><td>Hybrid adapter-update path may fit better than full analog rewrites.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Common Mistakes This Page Prevents</h2>
+      <ul>
+        <li>Calling a workload "robotics" without naming the actual task.</li>
+        <li>Optimizing model accuracy while ignoring latency, power, and safety.</li>
+        <li>Assuming a model fits analog before checking layer types and update frequency.</li>
+        <li>Using a sensor-near story without knowing the sensor bandwidth or preprocessing.</li>
+        <li>Claiming adaptive Physical AI when the model needs frequent weight rewrites that are not proven.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Detailed Walkthrough</h2>
+      <p>The intake should work like a technical interview with guardrails. The customer should not be asked, "Is your model analog-friendly?" Most customers cannot answer that. Instead, the platform asks practical questions and infers analog relevance from the answers.</p>
+      <h3>Before The Intake</h3>
+      <p>The customer usually arrives with one of three things: a finished model, a model architecture but no final weights, or only a product idea. The intake should support all three. A finished model gives the strongest analysis. A model architecture gives partial analysis. A product idea gives only early scoping.</p>
+      <h3>During The Intake</h3>
+      <p>The platform should ask questions in ordinary language. For example, instead of asking for "latency constraint," ask, "How quickly must the device react after the sensor changes?" Instead of asking for "update cadence," ask, "Will the model change after the product ships?"</p>
+      <h3>After The Intake</h3>
+      <p>The platform should produce a short first verdict. This is not the final answer. It is a scope statement: what we know, what we do not know, what can be tested next, and what claims are blocked.</p>
+    </section>
+    <section>
+      <h2>Example Intake Record</h2>
+      <p>This is the kind of structured record the page should eventually produce.</p>
+      <table>
+        <tr><th>Field</th><th>Example Value</th><th>Why It Is Useful</th></tr>
+        <tr><td>Workload name</td><td>Robot gripper slip detector</td><td>Gives the review package a specific subject.</td></tr>
+        <tr><td>Physical system</td><td>Two-finger gripper on small industrial arm</td><td>Defines the device boundary.</td></tr>
+        <tr><td>Sensor input</td><td>16-channel tactile force array at 2 kHz</td><td>Shows whether sensor-near compute matters.</td></tr>
+        <tr><td>Task metric</td><td>Detect 99% of slips within 2 ms, below 1 false alarm per 1,000 grasps</td><td>Defines success and failure clearly.</td></tr>
+        <tr><td>Model format</td><td>ONNX export of small MLP</td><td>Shows how the model can enter the toolchain.</td></tr>
+        <tr><td>Update mode</td><td>Fixed base model, small adapter update during installation</td><td>Suggests a hybrid memory/update strategy.</td></tr>
+        <tr><td>Safety owner</td><td>External motor controller can override grip force</td><td>Prevents analog inference from becoming the only safety layer.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Decision Logic</h2>
+      <p>The intake should classify the workload before any deeper tool runs.</p>
+      <ul>
+        <li><strong>Promising:</strong> repeated matrix-heavy inference, stable weights, clear metric, tight power or latency, sensor-near input.</li>
+        <li><strong>Partial:</strong> some analog-friendly layers exist, but important digital work, memory movement, or update needs may dominate.</li>
+        <li><strong>Blocked:</strong> vague task, no metric, frequent full-model learning, unsupported model operators, or no timing/power target.</li>
+        <li><strong>Unknown:</strong> not enough information to judge yet.</li>
+      </ul>
+      <p>This early classification protects the rest of the system. It prevents a customer from spending time on compiler or simulator runs when the basic task definition is missing.</p>
+    </section>
+    <section>
+      <h2>Output Artifacts</h2>
+      <p>An artifact is a saved file that records what we learned. It matters because the same evidence can be reviewed later by engineers, customers, investors, or lab teams.</p>
+      <ul>
+        <li><code>workload_intake.json</code>: structured facts collected from the customer.</li>
+        <li><code>physical_context.json</code>: sensor, environment, safety, and deployment constraints.</li>
+        <li><code>success_metric.json</code>: the measurable target used to judge the result.</li>
+        <li><code>initial_claim_scope.json</code>: claims allowed, blocked, or unknown before deeper evidence exists.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Done Criteria</h2>
+      <ol>
+        <li>The user can complete intake without knowing analog circuit terms.</li>
+        <li>The platform can explain why the workload might fit or might fail.</li>
+        <li>Missing critical data blocks stronger claims.</li>
+        <li>The intake output feeds the evidence matrix, timing budget, memory decision, benchmarks, and calibration flow.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

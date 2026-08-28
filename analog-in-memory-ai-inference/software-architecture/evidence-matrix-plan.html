@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evidence Matrix Plan</title>
+  <style>
+    body{margin:0;background:#f7f8f6;color:#1c211d;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}header,main{max-width:1080px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}nav a{border:1px solid #dce3dd;border-radius:8px;background:#fff;padding:8px 10px;color:#3f6f45;font-size:14px;font-weight:800;text-decoration:none}a{color:#3f6f45;font-weight:800;text-decoration:none}h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05}h2{margin:0 0 12px;font-size:28px;line-height:1.15}p{margin:8px 0}.lead{max-width:900px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid #3f6f45;border-radius:8px;background:#eef4ef;padding:14px 16px;font-weight:800}.warning{border:1px solid #e2d1a4;border-left:5px solid #966b00;border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:18px}section{background:#fff;border:1px solid #dce3dd;border-radius:8px;padding:22px;margin:18px 0}ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:#edf1ed;border-radius:6px;padding:2px 5px}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid #dce3dd;padding:10px;text-align:left;vertical-align:top}th{background:#eef4ef}.blocked{color:#a33b3b;font-weight:800}.safe{color:#3f6f45;font-weight:800}@media(max-width:820px){header,main{padding:20px 16px}table{font-size:13px}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
+      <a href="customer-workload-intake-plan.html">Intake</a>
+      <a href="timing-latency-budget-plan.html">Timing Budget</a>
+      <a href="memory-technology-decision-plan.html">Memory Decision</a>
+      <a href="benchmark-suite-plan.html">Benchmarks</a>
+      <a href="simulator-calibration-plan.html">Calibration</a>
+    </nav>
+    <h1>Evidence Matrix Plan</h1>
+    <p class="lead">This page defines the rulebook that maps each claim to the evidence required to say it safely.</p>
+    <p class="question">Question: what proof is required before we say a workload fits, runs, saves power, or is ready for Physical AI?</p>
+    <div class="warning"><strong>Rule:</strong><p>A simulator result, compiler map, or demo page can support only the claim it actually proves. It must not unlock board, power, thermal, task, or production claims by accident.</p></div>
+  </header>
+  <main>
+    <section>
+      <h2>Plain-Language Vocabulary</h2>
+      <p>A claim is something the company says is true, such as "this workload is a good fit" or "this setup saves power."</p>
+      <p>Evidence is the proof behind that claim. Different claims need different evidence. A simulator result is useful, but it is not the same as a real board measurement.</p>
+      <p>A board trace is a record from actual hardware while it runs. A power trace is a measurement of energy use over time. A thermal trace is a measurement of temperature over time.</p>
+      <p>The evidence matrix is a rulebook: it tells the platform what a result is allowed to prove and what it is not allowed to prove.</p>
+    </section>
+    <section>
+      <h2>Evidence Types Before The Matrix</h2>
+      <p>The table below uses several evidence types. Here is what each one means in plain language.</p>
+      <table>
+        <tr><th>Evidence Type</th><th>Plain Meaning</th><th>Example</th><th>What It Can Prove</th></tr>
+        <tr><td>Customer intake</td><td>The structured description of the customer's real problem.</td><td>Robot gripper, tactile sensors, 2 ms response target, low false alarms, fixed model.</td><td>What question we are trying to answer.</td></tr>
+        <tr><td>Model graph</td><td>A list of the operations inside the neural network.</td><td>Linear layers, attention, Softmax, LayerNorm, convolutions, reshapes.</td><td>Which parts may fit analog and which parts likely need digital logic.</td></tr>
+        <tr><td>Layer density</td><td>How much of the model's work is repeated matrix math.</td><td>70% of compute is in linear layers with stable weights.</td><td>Whether the workload has enough analog-friendly work to be worth testing.</td></tr>
+        <tr><td>Update class</td><td>How often the model weights need to change.</td><td>Fixed weights, rare updates, adapter updates, or frequent learning.</td><td>Whether analog memory write behavior is likely to be a blocker.</td></tr>
+        <tr><td>Analog simulator result</td><td>A software test that injects analog-like errors into the model.</td><td>Run with 8-bit ADC/DAC, 4-bit weights, read noise, drift, write error.</td><td>Whether the model appears tolerant to stated analog assumptions.</td></tr>
+        <tr><td>Compiler map</td><td>A report showing where each model part would run.</td><td>Projection layers on analog tiles, Softmax on digital helper, unsupported custom op blocked.</td><td>Whether the model can become a plausible chip execution plan.</td></tr>
+        <tr><td>Timing trace</td><td>A record or estimate of delay through the full path.</td><td>Sensor read 0.4 ms, analog compute 0.2 ms, ADC 0.1 ms, digital logic 0.6 ms.</td><td>Whether the whole loop can meet its deadline.</td></tr>
+        <tr><td>Power trace</td><td>A record or estimate of energy use over time.</td><td>Board power during the benchmark, or an early full-system power estimate.</td><td>Whether the workload meets the power target for the tested setup.</td></tr>
+        <tr><td>Thermal trace</td><td>A record or estimate of temperature over time.</td><td>Chip or board temperature during sustained inference.</td><td>Whether heat may damage reliability, accuracy, or comfort/safety limits.</td></tr>
+        <tr><td>Task result</td><td>The real score for the physical or application task.</td><td>Slip detection rate, missed-fault rate, drone obstacle detection, task completion.</td><td>Whether the workload actually does the useful job, not only whether the math ran.</td></tr>
+        <tr><td>Calibration result</td><td>A comparison between simulator assumptions and measured hardware behavior.</td><td>Simulator predicted 2% read noise; board measurement showed 4.5%.</td><td>Whether simulator evidence is still hypothetical or tied to real hardware.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Claim-To-Evidence Matrix</h2>
+      <table>
+        <tr><th>Claim</th><th>Allowed Evidence, Explained</th><th>Why This Evidence Is Needed</th><th>Safe Wording</th><th>Blocked Wording</th></tr>
+        <tr>
+          <td>Analog candidate</td>
+          <td>Use customer intake, the model graph, layer density, tensor shapes, update class, and task metric. This means we first prove the workload has the kind of work analog is meant for: repeated matrix math, stable or rarely changed weights, clear success criteria, and a physical reason to care about power or latency.</td>
+          <td>Without this, we may benchmark a workload that was never a good analog target. A model can be impressive and still be wrong for analog if most of its time is dynamic control, memory movement, unsupported operators, or frequent updates.</td>
+          <td class="safe">This workload appears analog-friendly enough to test further.</td>
+          <td class="blocked">This chip will run the workload well.</td>
+        </tr>
+        <tr>
+          <td>Analog accuracy risk</td>
+          <td>Use AIHWKIT, CrossSim, a local analog-error adapter, or a calibrated simulator. The evidence must include the raw configuration: precision, ADC/DAC settings, read noise, write error, drift, IR drop, temperature assumptions, tile mismatch, and the dataset or task used.</td>
+          <td>Analog hardware is not exact. The model may lose accuracy when weights are noisy, values drift, or converters round signals. We need to see whether the model still works under the exact assumptions being tested.</td>
+          <td class="safe">Under these stated analog assumptions, the model kept enough accuracy for this task.</td>
+          <td class="blocked">The real chip preserves accuracy.</td>
+        </tr>
+        <tr>
+          <td>Compiler support</td>
+          <td>Use a layer split, tile map, bit-slicing plan if needed, digital fallback list, unsupported-operation list, memory movement estimate, and runtime schedule. This tells us how the model would actually be placed across analog arrays and digital helpers.</td>
+          <td>A model that looks analog-friendly still may not fit the physical chip. Large matrices may need many tiles. Some layers may require digital logic. Some operators may be unsupported. The compiler evidence shows whether there is a real execution path.</td>
+          <td class="safe">The compiler can map these layers and identifies the parts that stay digital or blocked.</td>
+          <td class="blocked">The board can execute the package successfully.</td>
+        </tr>
+        <tr>
+          <td>Latency fit</td>
+          <td>Use a timing budget, simulator timing, firmware logs, board trace, or system simulator result. The timing must include the full path: sensor input, analog front end, DAC, analog compute, ADC, digital logic, memory movement, host/runtime overhead, safety check, and output.</td>
+          <td>Analog compute can be fast but the complete loop may still be late. Robotics and sensor-near claims need worst-case timing, not just average analog-array speed.</td>
+          <td class="safe">This estimated or measured full loop meets this stated deadline.</td>
+          <td class="blocked">Analog core speed proves robot timing.</td>
+        </tr>
+        <tr>
+          <td>Power fit</td>
+          <td>Use a full-system power estimate or measured board power. The evidence must include analog array energy, ADC/DAC energy, digital helper energy, memory movement, host overhead, idle power, duty cycle, and thermal context.</td>
+          <td>A single analog operation may be energy-efficient while the full system is not. Converters, data movement, and host control can consume enough power to reduce or remove the expected benefit.</td>
+          <td class="safe">For this workload and setup, the estimated or measured system power meets the target.</td>
+          <td class="blocked">Analog gives a universal 100x power gain.</td>
+        </tr>
+        <tr>
+          <td>Adaptive readiness</td>
+          <td>Use write latency, write energy, endurance, retention, drift after rewrite, recalibration time, rollback behavior, and post-update task accuracy. If using adapter updates, include which weights stay fixed and which small parts are allowed to change.</td>
+          <td>Physical AI may need updates after deployment. Analog memory can be harder to rewrite than normal digital memory. Even high-endurance RRAM still needs proof that repeated analog weight writes remain accurate, affordable, and stable.</td>
+          <td class="safe">This workload supports fixed weights, rare updates, or adapter updates under these measured or bounded limits.</td>
+          <td class="blocked">The chip supports all on-device learning.</td>
+        </tr>
+        <tr>
+          <td>Safety readiness</td>
+          <td>Use a safety-boundary report, independent override path, worst-case override timing, fallback behavior, fault handling, and safety test results. The evidence must say whether analog inference is advisory, policy-level, safety-relevant, or safety-authoritative.</td>
+          <td>A learned model should not be the only safety mechanism for a physical machine. If a robot, drone, or actuator can cause harm, an independent digital or control-system path must be able to block unsafe actions.</td>
+          <td class="safe">The safety boundary is defined and this tested setup has an independent override path.</td>
+          <td class="blocked">The neural policy is safe because it ran once.</td>
+        </tr>
+        <tr>
+          <td>Production readiness</td>
+          <td>Use repeated board results, calibrated simulator agreement, power and thermal measurements, task results, reliability testing, manufacturing/yield evidence, software/runtime stability, customer validation, and qualification plan.</td>
+          <td>Production readiness is much stronger than a demo. It means the system works repeatedly, can be manufactured, can be supported, and has evidence under the target customer conditions.</td>
+          <td class="safe">This tested configuration supports this limited customer claim with these attached measurements.</td>
+          <td class="blocked">The platform is commercially proven for all target markets.</td>
+        </tr>
+      </table>
+    </section>
+    <section>
+      <h2>How To Read One Row</h2>
+      <p>Take the power row as an example. If the analog array alone uses very little energy, that is useful but incomplete. The full system still spends energy moving data, converting signals, running digital operations, keeping memory active, and coordinating the host processor.</p>
+      <p>So the evidence matrix allows a narrow claim from narrow proof:</p>
+      <p class="safe">Safe: the analog array estimate is low under this model.</p>
+      <p>But it blocks a broad claim until broader evidence exists:</p>
+      <p class="blocked">Blocked: the full product saves power on the customer workload.</p>
+      <p>That broader claim needs full-system estimate first, then measured board power later.</p>
+    </section>
+    <section>
+      <h2>Implementation Rules</h2>
+      <ol>
+        <li>Each artifact must name its source, date, assumptions, and evidence level.</li>
+        <li>Evidence levels must be explicit: hypothetical, source-backed, simulated, circuit-backed, board-backed, measured, or production.</li>
+        <li>One evidence type cannot silently substitute for another.</li>
+        <li>Blocked claims should explain the exact missing artifact.</li>
+        <li>The review package should export both safe claims and blocked claims.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Output Artifacts</h2>
+      <ul>
+        <li><code>evidence_matrix.json</code></li>
+        <li><code>claim_readiness.json</code></li>
+        <li><code>safe_claims.md</code></li>
+        <li><code>blocked_claims.md</code></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

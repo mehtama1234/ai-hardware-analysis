@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot Learning Implications For Analog AI Chips</title>
+  <style>
+    :root {
+      --bg: #f7f8f8;
+      --panel: #ffffff;
+      --soft: #eef5f6;
+      --text: #182021;
+      --muted: #5d6768;
+      --line: #d9e2e3;
+      --accent: #246b72;
+      --warn: #966b00;
+      --bad: #a33b3b;
+      --code: #edf2f3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(31px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 920px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fff9e8;
+      padding: 14px 16px;
+      margin-top: 18px;
+    }
+    main { padding-top: 8px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      margin-bottom: 6px;
+    }
+    ol, ul {
+      margin: 10px 0 0 22px;
+      padding: 0;
+    }
+    li { margin: 8px 0; }
+    code {
+      background: var(--code);
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); }
+    .safe {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .blocked {
+      color: var(--bad);
+      font-weight: 800;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    @media (max-width: 820px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid, .three { grid-template-columns: 1fr; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+    </nav>
+    <h1>Robot Learning Implications For Analog AI Chips</h1>
+    <p class="lead">This page turns the robot-learning discussion into chip and compiler requirements. It explains why sim-to-real, exploration, recovery, safety filters, and tactile sensing change what an analog in-memory AI startup must prove.</p>
+    <p class="question">The core question: if Physical AI is a closed loop, where can analog compute help without weakening safety, adaptation, or timing?</p>
+    <div class="warning">
+      <strong>Claim boundary:</strong>
+      <p>These robotics trends support the need for simulation, hybrid architecture, and evidence gates. They do not prove that an analog chip can run a robot safely. Safety and control claims need measured timing, independent override paths, and real hardware validation.</p>
+    </div>
+    <div class="jump">
+      <a href="#summary">Summary</a>
+      <a href="#sim-to-real">Sim-To-Real</a>
+      <a href="#recovery">Recovery</a>
+      <a href="#teleportation">Simulation Resets</a>
+      <a href="#safety">Safety Filters</a>
+      <a href="#touch">Touch</a>
+      <a href="#chip">Chip Changes</a>
+      <a href="#compiler">Compiler Changes</a>
+      <a href="#latency">Timing Budget</a>
+      <a href="#evidence">Evidence Gates</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <h2>Plain Summary</h2>
+      <p>The most important correction is that Physical AI is not only model inference. It is a loop:</p>
+      <p><code>sense -> infer -> act -> observe failure -> recover -> adapt</code></p>
+      <p>A normal benchmark may ask whether a model gives the right answer on a saved dataset. A robot asks a harder question: did the action work in the physical world, and what happens when it starts to fail?</p>
+      <p>This matters because an analog chip can be excellent at repeated matrix math and still be the wrong fit if it cannot meet the control loop, update, safety, or sensor requirements.</p>
+      <div class="grid">
+        <div class="card">
+          <b>Good Startup Position</b>
+          <p>Our analog chip is a low-power perception and reflex co-processor for selected Physical AI loops, backed by simulation, compiler mapping, and measured hardware evidence.</p>
+        </div>
+        <div class="card">
+          <b>Unsafe Startup Position</b>
+          <p>Our analog chip runs the whole robot brain and replaces digital compute. That claim is too broad before safety, timing, update, and task evidence exist.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sim-to-real">
+      <h2>1. Sim-To-Real Is Fragile Unless We Use It Carefully</h2>
+      <p>Sim-to-real means training or testing a robot in simulation, then transferring that behavior to a real robot. The idea is powerful because simulation is faster, cheaper, and safer than crashing real hardware during learning.</p>
+      <p>The failure mode is that simulation is never perfectly real. Small differences in friction, object stiffness, sensor delay, lighting, joint backlash, motor response, contact dynamics, or calibration can change the real outcome.</p>
+      <p>So the safe lesson is not "simulation is broken." The better lesson is: simulation should not be treated as a magic source of one perfect policy. It should be used to create robust behaviors, explore variations, generate data, find failures, and prepare the real-world adaptation loop.</p>
+      <h3>What This Means For Our Chip</h3>
+      <p>The chip software should not compile only one rigid expert trajectory. It should support a range of behaviors and evidence runs:</p>
+      <ul>
+        <li>normal task behavior</li>
+        <li>exploration behavior</li>
+        <li>recovery behavior</li>
+        <li>stress behavior with noise, delay, and sensor changes</li>
+        <li>hardware-aware behavior with analog error injected</li>
+      </ul>
+      <p>However, we should be careful with the phrase "rapidly loading many exploratory weight configurations." If the analog memory is slow, power-heavy, or wears during writes, frequent full-weight switching may be a bad architecture choice. A safer design is fixed analog base weights plus smaller digital or SRAM adapter layers for fast behavior changes.</p>
+    </section>
+
+    <section id="recovery">
+      <h2>2. Recovery Behavior Matters As Much As Expert Behavior</h2>
+      <p>Expert demonstrations show the robot what success looks like. They often do not show what to do when the robot makes a mistake.</p>
+      <p>In language-model terms, expert data can look like the final answer without the working. In robot terms, it can look like a perfect pick-and-place without showing how to recover from slipping, bumping, grabbing the wrong edge, or being halfway misaligned.</p>
+      <p>Modern robot learning is moving toward correction data: human interventions, rewinds, retries, recovery segments, and policies that learn how to return to a safe or useful state after failure starts.</p>
+      <h3>What This Means For Our Chip</h3>
+      <p>The useful analog workload is not only "run the policy once." It may be "run a small perception or correction model many times while the robot is moving."</p>
+      <p>That pushes the chip toward:</p>
+      <ul>
+        <li>low-latency repeated inference</li>
+        <li>stable output under noise and drift</li>
+        <li>predictable timing, not only average timing</li>
+        <li>clear fallback when confidence is low</li>
+        <li>separation between task policy and safety override</li>
+      </ul>
+    </section>
+
+    <section id="teleportation">
+      <h2>3. Simulation Resets Are A Training Advantage</h2>
+      <p>Reality cannot instantly reset a robot to any exact state. Simulation can. That is a major advantage.</p>
+      <p>A simulator can start at the completed task, then move backward into harder and harder starting positions. It can also reset a grasp, contact, pose, object position, or failure state thousands of times. This lets teams train hard manipulation tasks without writing a perfect reward function for every tiny physical detail.</p>
+      <p>The pasted text calls this "teleportation." The plain meaning is simple: simulation can place the robot wherever it needs to be for training, even if the real world cannot.</p>
+      <h3>What This Means For Our Chip</h3>
+      <p>If our chip simulator plugs into that training loop, every reset can include chip behavior too:</p>
+      <ul>
+        <li>one run with clean digital math</li>
+        <li>one run with analog read noise</li>
+        <li>one run with drifted weights</li>
+        <li>one run with temperature variation</li>
+        <li>one run with ADC/DAC precision limits</li>
+        <li>one run with tile-to-tile mismatch</li>
+      </ul>
+      <p>That would let the policy learn against both physical-world variation and chip-level variation. This is the practical meaning of connecting hardware-aware training with digital twins.</p>
+    </section>
+
+    <section id="safety">
+      <h2>4. Safety Filtering Is Not Optional</h2>
+      <p>A learned neural network should not be the only thing standing between a robot and a dangerous action. Robots can damage themselves, people, tools, products, or the surrounding environment.</p>
+      <p>A safety filter is an independent layer that checks the policy's proposed command before the command reaches the actuators. If the command would violate a boundary, the safety layer clips it, replaces it, slows it down, or stops the robot.</p>
+      <p>Control Barrier Functions are one mathematical family used for safety filtering. Neural CBF work exists because hand-designing perfect safety filters for high-dimensional systems can be difficult.</p>
+      <h3>What This Means For Our Chip</h3>
+      <p>The analog chip should not own the final safety decision by itself. The safer architecture is:</p>
+      <ul>
+        <li>analog arrays run selected low-power perception, reflex, or matrix-heavy model parts</li>
+        <li>digital logic handles exact control, state tracking, and hard decision boundaries</li>
+        <li>a deterministic safety lane can override the learned policy</li>
+        <li>interfaces to companion FPGAs, MCUs, or safety processors are treated as first-class product requirements</li>
+      </ul>
+      <p>The analog output can inform a safety decision, but the final safety mechanism needs predictable timing, test coverage, and independent authority.</p>
+    </section>
+
+    <section id="touch">
+      <h2>5. Touch Is A Real Analog Opportunity</h2>
+      <p>Vision is powerful, but it often fails at the exact moment contact matters. When a robot finger touches an object, the contact region may be hidden from the camera. The robot needs local physical information: force, slip, pressure, stretch, vibration, torque, and contact shape.</p>
+      <p>This is why tactile sensing matters. Touch creates high-frequency, local signals that can be useful before a camera frame or central processor gives a complete answer.</p>
+      <h3>What This Means For Our Chip</h3>
+      <p>This is one of the best candidate wedges for analog IMC:</p>
+      <ul>
+        <li>place compute near tactile sensors or force sensors</li>
+        <li>use analog front-end circuits to read physical signals</li>
+        <li>run small matrix-heavy models locally</li>
+        <li>send compact features, alerts, or reflex outputs upstream</li>
+        <li>measure whether this reduces latency, power, and data movement</li>
+      </ul>
+      <p>The moat is not just "analog math." The moat is the full path from raw physical signal to useful local decision under tight power and latency limits.</p>
+    </section>
+
+    <section id="chip">
+      <h2>What This Changes In Chip Architecture</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Robotics Need</th>
+            <th>Architecture Response</th>
+            <th>Claim Boundary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fast local sensing</td>
+            <td>Add strong analog front-end support and sensor-near data paths.</td>
+            <td>This proves a path exists, not that the sensor task is accurate.</td>
+          </tr>
+          <tr>
+            <td>Recovery and correction loops</td>
+            <td>Optimize for repeated low-latency inference and predictable worst-case timing.</td>
+            <td>Average latency is not enough for control claims.</td>
+          </tr>
+          <tr>
+            <td>Adaptation after deployment</td>
+            <td>Avoid relying on frequent full analog weight rewrites. Use fixed analog base layers plus small fast-update adapter paths when possible.</td>
+            <td>Adaptive Physical AI is blocked until update energy, speed, endurance, rollback, and post-update accuracy are measured.</td>
+          </tr>
+          <tr>
+            <td>Safety override</td>
+            <td>Keep deterministic digital safety lanes or external safety-controller interfaces.</td>
+            <td>Analog policy output is not a safety certificate.</td>
+          </tr>
+          <tr>
+            <td>Simulation-based training</td>
+            <td>Expose a calibrated chip model to training and digital-twin environments.</td>
+            <td>The simulator must later be checked against real silicon.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="compiler">
+      <h2>What This Changes In Compiler Design</h2>
+      <p>The compiler cannot only ask, "Can this layer fit on an analog tile?" For Physical AI, it needs to understand the role of the layer inside a loop.</p>
+      <div class="grid">
+        <div class="card">
+          <b>Behavior Class</b>
+          <p>Mark whether the layer supports normal policy execution, exploration, recovery, safety estimation, tactile reflex, sensor fusion, or logging.</p>
+        </div>
+        <div class="card">
+          <b>Timing Class</b>
+          <p>Mark whether the layer belongs in a tight reflex loop, a slower policy loop, an offline planner, or a non-critical background path.</p>
+        </div>
+        <div class="card">
+          <b>Update Class</b>
+          <p>Mark whether weights are fixed, rarely updated, adapter-updated, or blocked because the workload needs frequent rewriting.</p>
+        </div>
+        <div class="card">
+          <b>Safety Class</b>
+          <p>Mark whether the output is advisory, policy-level, safety-relevant, or safety-authoritative. Safety-authoritative paths should not rely only on analog inference.</p>
+        </div>
+      </div>
+      <p>The compiler output should include a control-loop report, not just a model-placement report.</p>
+    </section>
+
+    <section id="latency">
+      <h2>Timing Budget We Need Next</h2>
+      <p>The pasted text asks about proving a sub-500 ns path. That number might be relevant for a very small local signal path, but it should not be used as a universal robotics requirement.</p>
+      <p>Different loops have different timing needs:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Loop Type</th>
+            <th>Plain Meaning</th>
+            <th>What We Must Measure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Sensor front-end path</td>
+            <td>Raw signal capture and first analog conditioning.</td>
+            <td>AFE latency, noise, bandwidth, dynamic range, and conversion timing.</td>
+          </tr>
+          <tr>
+            <td>Reflex feature path</td>
+            <td>Small local model detects slip, contact, vibration, or force change.</td>
+            <td>Analog compute latency, ADC/DAC latency, digital accumulation, and threshold decision time.</td>
+          </tr>
+          <tr>
+            <td>Policy loop</td>
+            <td>The robot decides the next action or correction.</td>
+            <td>End-to-end latency from sensor input to command output, including host and memory movement.</td>
+          </tr>
+          <tr>
+            <td>Safety override path</td>
+            <td>Independent circuit or controller blocks unsafe actions.</td>
+            <td>Worst-case detection and override time, not average time.</td>
+          </tr>
+          <tr>
+            <td>Learning or adaptation path</td>
+            <td>The system updates behavior after new data.</td>
+            <td>Update latency, write energy, endurance, recalibration time, and rollback behavior.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>The next artifact should be a system-level latency budget that separates these paths. That avoids pretending the whole robot runs at one timing number.</p>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence Gates Before We Claim Readiness</h2>
+      <ol>
+        <li><strong>Closed-loop classification:</strong> identify whether the workload is sensing-only, advisory, policy-level, reflex-level, or safety-relevant.</li>
+        <li><strong>Timing budget:</strong> define required latency for each loop and measure or estimate every stage.</li>
+        <li><strong>Analog sensitivity:</strong> run noise, drift, quantization, tile mismatch, temperature, and write-error sweeps.</li>
+        <li><strong>Update proof:</strong> show whether the behavior can adapt without frequent expensive full-weight rewrites.</li>
+        <li><strong>Safety boundary:</strong> document which digital or external controller can override the learned policy.</li>
+        <li><strong>Digital twin run:</strong> test the workload with chip behavior included in simulation.</li>
+        <li><strong>Hardware-in-the-loop run:</strong> connect prototype hardware or board-level timing emulation to the control loop.</li>
+        <li><strong>Real task validation:</strong> measure whether the robot completes the task, recovers from mistakes, and stays inside safety limits.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>References For Review</h2>
+      <ul>
+        <li><a href="https://research.google/pubs/i-sim2real-reinforcement-learning-of-robotic-policies-in-tight-human-robot-interaction-loops/">Google Research i-Sim2Real</a></li>
+        <li><a href="https://arxiv.org/html/2509.07953">RaC recovery and correction robot learning</a></li>
+        <li><a href="https://arxiv.org/abs/2211.11056">Safe control under input limits with neural CBFs</a></li>
+        <li><a href="https://mit-realm.github.io/pncbf/">MIT REALM policy neural CBF</a></li>
+        <li><a href="https://arxiv.org/abs/2407.19907">Neural Control Barrier Functions for Safe Navigation</a></li>
+        <li><a href="https://arxiv.org/html/2506.13498v1">Survey on imitation learning for contact-rich tasks</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

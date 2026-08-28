@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulation-To-Silicon First-Principles Specification</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --text: #172026;
+      --muted: #5e6a71;
+      --line: #d9e1e5;
+      --bg: #f6f8f9;
+      --panel: #ffffff;
+      --accent: #0a6f73;
+      --code: #eef3f4;
+      --good: #287a3e;
+      --warn: #a76213;
+      --bad: #a13a32;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--bg);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+    }
+    .bar {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .title {
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 650;
+    }
+    a:hover { text-decoration: underline; }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    article {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 32px;
+    }
+    h1, h2, h3 {
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 34px;
+    }
+    h2 {
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 24px;
+    }
+    h3 {
+      margin-top: 26px;
+      font-size: 18px;
+    }
+    p, li { color: var(--text); }
+    ul, ol { padding-left: 24px; }
+    code {
+      background: var(--code);
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+    pre {
+      overflow-x: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    pre code {
+      padding: 0;
+      background: transparent;
+    }
+    blockquote {
+      margin-left: 0;
+      padding-left: 16px;
+      border-left: 4px solid var(--accent);
+      color: var(--muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      text-align: left;
+      background: var(--code);
+    }
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    .callout {
+      background: #f0f7f6;
+      border: 1px solid #b9d8d6;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      margin-bottom: 18px;
+      padding: 18px 20px;
+    }
+    .callout-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .callout-question {
+      font-size: 22px;
+      font-weight: 750;
+      line-height: 1.25;
+      margin-top: 6px;
+    }
+    .callout-flow {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 0 20px;
+    }
+    .review-section {
+      border-top: 1px solid var(--line);
+      margin-top: 24px;
+      padding-top: 24px;
+    }
+    .review-section h2 {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .summary-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfc;
+    }
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .answer-card,
+    .capability-card,
+    .toolkit-card,
+    .claim-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfc;
+    }
+    .answer-card strong,
+    .capability-card strong,
+    .toolkit-card strong,
+    .claim-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .answer-card span,
+    .capability-card span,
+    .toolkit-card span,
+    .claim-card span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .toolkit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .ladder {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .ladder-row {
+      display: grid;
+      grid-template-columns: 34px minmax(160px, .35fr) 1fr;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfc;
+    }
+    .step-num {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--code);
+      color: var(--accent);
+      font-weight: 750;
+      font-size: 14px;
+    }
+    .status-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      margin-bottom: 8px;
+    }
+    .status-pill.partial {
+      color: var(--warn);
+      background: #fff6e8;
+      border-color: #eccb9d;
+    }
+    .status-pill.safe {
+      color: var(--good);
+      background: #edf8ef;
+      border-color: #b9d9c0;
+    }
+    .status-pill.blocked {
+      color: var(--bad);
+      background: #fff0ee;
+      border-color: #edc0bb;
+    }
+    .claim-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .plain-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .plain-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 12px 14px;
+    }
+    .plain-row strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .plain-row span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .flow-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .flow-item {
+      display: grid;
+      grid-template-columns: 34px minmax(170px, .34fr) 1fr;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 12px;
+    }
+    .flow-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .flow-item span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .example-box {
+      border: 1px solid #b9d8d6;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: #f0f7f6;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .example-box p {
+      margin-top: 8px;
+    }
+    .tool-detail-list {
+      display: grid;
+      gap: 18px;
+      margin-top: 16px;
+    }
+    .tool-detail {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 18px;
+    }
+    .tool-detail h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+    .tool-detail p {
+      margin: 8px 0;
+    }
+    .tool-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .tool-detail-point {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+    }
+    .tool-detail-point strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .tool-detail-point span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .spec-divider {
+      border-top: 2px solid var(--line);
+      margin-top: 30px;
+      padding-top: 22px;
+    }
+    .summary-item strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .summary-item span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    @media (max-width: 720px) {
+      .bar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .answer-grid,
+      .card-grid,
+      .plain-grid,
+      .toolkit-grid,
+      .tool-detail-grid,
+      .claim-grid,
+      .flow-item,
+      .ladder-row {
+        grid-template-columns: 1fr;
+      }
+      article {
+        padding: 22px;
+      }
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="title">Simulation-To-Silicon Spec Review</div>
+      <nav class="links">
+        <a href="simulation-to-silicon-first-principles-spec.md">Markdown</a>
+        <a href="toolkit-results-first-principles.html">Toolkit Results</a>
+        <a href="company-roadmap-end-to-end.html">Company Roadmap</a>
+        <a href="end-to-end-goal.md">End-To-End Goal</a>
+        <a href="physical-ai-readiness-implementation-spec.md">Implementation Spec</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <article>
+      <section class="callout" aria-label="Central product question">
+        <div class="callout-label">Central Product Question</div>
+        <div class="callout-question">
+          Can this workload credibly run on this analog chip, what proof exists, what breaks, and what must be built or measured next?
+        </div>
+        <div class="callout-flow">
+          Upload model -> analyze fit -> run or import toolkit evidence -> expose breaks -> rank next work -> generate safe claims.
+        </div>
+      </section>
+      <section class="summary-grid" aria-label="Review audiences">
+        <div class="summary-item">
+          <strong>1. User Starts With A Real Workload</strong>
+          <span>Example: a robot camera-and-touch model, a wearable wake-word model, or a factory sensor model. A workload means the model plus the real job it has to do.</span>
+        </div>
+        <div class="summary-item">
+          <strong>2. Platform Checks The Full Path</strong>
+          <span>It checks the whole path from input to answer: model parts, chip fit, fallback software, outside tools, hardware measurements, energy use, accuracy, and missing proof.</span>
+        </div>
+        <div class="summary-item">
+          <strong>3. User Gets A Decision</strong>
+          <span>The answer is simple: yes, partial, no, or unknown, plus what proof exists and what must happen next.</span>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Plain words">
+        <h2>Plain Words Before The Details</h2>
+        <p>This page should be readable even if the reader does not know chip design, machine learning, or compiler terms.</p>
+        <div class="plain-grid">
+          <div class="plain-row">
+            <strong>Workload</strong>
+            <span>The real job the user wants to run. It includes the model, the input data, the device, the speed target, the energy target, and the success metric.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Model</strong>
+            <span>The AI program. For example, a wake-word detector, image classifier, robot policy, sensor anomaly detector, or transformer model.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Analog Chip</strong>
+            <span>A chip that tries to do some AI math inside memory using physical electrical behavior. This can save energy, but only for the parts of the model that fit this style of compute.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Digital Fallback</strong>
+            <span>Parts of the model that cannot run well on the analog chip and must run on normal digital hardware instead. Too much fallback can erase the advantage.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Proof</strong>
+            <span>Evidence that supports a claim. A paper is weak proof for a customer workload. A measured board result is stronger. A task accuracy result is stronger still.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Breaks</strong>
+            <span>The reasons the claim is not ready. A break can be a missing measurement, unsupported model part, too much data movement, lost accuracy, high energy, or update risk.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Compiler Mapping</strong>
+            <span>A tool report that says which parts of the model can actually be placed on the analog chip and which parts must stay somewhere else.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Board Runtime</strong>
+            <span>A real measurement from a board or prototype that says how long the workload took to run and where time was spent.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Power And Thermal</strong>
+            <span>Measurements of energy use, peak power, and heat. These matter because low-power claims are not credible without measured energy and temperature behavior.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Task Accuracy</strong>
+            <span>The answer to: does the model still do the actual job correctly after it is changed, mapped, simulated, or run on hardware?</span>
+          </div>
+          <div class="plain-row">
+            <strong>Transformer / VLA</strong>
+            <span>A transformer is a modern model style used in language, vision, and robotics. VLA means vision-language-action: a model that connects seeing, language-like reasoning, and action. These are harder for analog chips than simple fixed models.</span>
+          </div>
+          <div class="plain-row">
+            <strong>Weight Update</strong>
+            <span>Changing the model after deployment. This matters for robots, personalized devices, and customer-specific models. Updating analog memory can be slow, costly, or wear out the device if not proven.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Worked example">
+        <h2>How The Platform Reaches The Answer</h2>
+        <p>This is the missing flow. It shows what the user enters, what the platform checks, how the answer changes, and what comes out.</p>
+        <div class="example-box">
+          <strong>Demo workload</strong>
+          <p>A robotics company wants to run a camera-and-touch model on an edge device. The model helps the robot decide what it is touching and what action to take next. The company wants lower power than a normal digital processor, but it also needs reliable accuracy and safe action handoff.</p>
+        </div>
+        <div class="flow-list">
+          <div class="flow-item">
+            <div class="step-num">1</div>
+            <strong>User enters the workload</strong>
+            <span>The user uploads the model and selects: robotics, camera plus touch input, low-power edge device, target latency, target energy, target accuracy, and chip profile. The platform now knows what job is being tested.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">2</div>
+            <strong>Platform reads the model</strong>
+            <span>It lists the model parts. Some parts are simple matrix math and may fit the analog chip. Some parts are control logic, normalization, attention, or custom operations and may need normal digital hardware.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">3</div>
+            <strong>Platform checks analog fit</strong>
+            <span>It asks: which parts can run inside analog memory, which parts need digital fallback, and how often data must move between the two. If data moves too often, the energy benefit may shrink.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">4</div>
+            <strong>Platform checks the tool evidence</strong>
+            <span>AIHWKIT or CrossSim can test analog accuracy risk. analog-mlir can test whether the model can be mapped to the chip path. Attention partitioning can test transformer hard parts. System simulators can test whether the rest of the computer slows things down.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">5</div>
+            <strong>Platform checks real measurements</strong>
+            <span>It looks for board runtime, power and heat data, and task accuracy. If these are missing, the platform does not allow strong claims. It says exactly which measurements are missing.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">6</div>
+            <strong>Platform checks update needs</strong>
+            <span>If the robot model must adapt after deployment, the platform asks whether the chip can safely update weights or small adapters. It looks for write speed, write energy, endurance, retention, rollback, and post-update accuracy.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">7</div>
+            <strong>Platform writes the answer</strong>
+            <span>For this demo, the answer is: partial fit. Some model parts look good for analog. Dynamic attention and control handoff need digital support. Board power, task accuracy, and update evidence are missing.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">8</div>
+            <strong>Platform gives the next work</strong>
+            <span>Run CrossSim for crossbar risk. Import analog-mlir mapping. Keep Softmax and control logic digital. Measure board latency and power. Run task accuracy after mapping. Measure update energy before any adaptive claim.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Example platform answer">
+        <h2>Example Platform Answer</h2>
+        <p>This is the kind of answer the product should give after a user loads a model and builds a package.</p>
+        <div class="answer-grid">
+          <div class="answer-card">
+            <strong>Fit</strong>
+            <span><span class="status-pill partial">Partial fit</span>Some parts of the model are a good match for the analog chip. Other parts still need normal digital hardware or more proof.</span>
+          </div>
+          <div class="answer-card">
+            <strong>Proof</strong>
+            <span>The model has layers that look like good analog candidates. The page lists which tools should test them. Real board, power, and task results are still missing.</span>
+          </div>
+          <div class="answer-card">
+            <strong>Breaks</strong>
+            <span>Hard model parts, chip physics, missing compiler output, missing power data, missing task accuracy, and missing update proof block stronger claims.</span>
+          </div>
+          <div class="answer-card">
+            <strong>Next Work</strong>
+            <span>Run simulator checks, import a compiler report, check transformer hard parts, measure real latency and energy, then test whether the task still works.</span>
+          </div>
+          <div class="answer-card">
+            <strong>Safe Claim</strong>
+            <span><span class="status-pill safe">Safe</span>This is a possible fixed-model or mixed analog/digital candidate. Do not say it is production-ready or self-adapting yet.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="What each user actually does">
+        <h2>What Each User Actually Does With This</h2>
+        <div class="card-grid">
+          <div class="capability-card">
+            <strong>Investor</strong>
+            <span>Looks at one customer workload and asks: "Is this a real product path?" The platform shows whether the answer is backed by model analysis, simulator results, compiler mapping, board measurements, power data, and task accuracy. If those are missing, the investor sees the exact gaps.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Customer</strong>
+            <span>Uploads or shares a model and asks: "Will this work for my use case?" The platform shows which model parts fit the analog chip, which parts stay digital, what has been measured, and what proof is still needed before a pilot.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Founder</strong>
+            <span>Uses the result to decide what to build next. If many workloads fail because compiler placement is missing, build compiler support. If claims fail because power is not measured, prioritize board and power measurement. If robotics claims fail because weight updates are unproven, treat updates as a roadmap gate.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Engineer</strong>
+            <span>Gets a concrete work list. Example: run CrossSim for parasitics, import analog-mlir placement, keep Softmax digital, measure board latency, measure power, run task accuracy, and attach the results to the package.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="What the product has to show">
+        <h2>What The Product Has To Show</h2>
+        <div class="card-grid">
+          <div class="capability-card">
+            <strong>1. The Direct Answer</strong>
+            <span>Example: "Partial fit. Good fixed-weight analog candidate. Not ready for adaptive Physical AI or production claims."</span>
+          </div>
+          <div class="capability-card">
+            <strong>2. What Runs Where</strong>
+            <span>Shows analog layers, digital layers, fallback layers, unsupported layers, and where data moves between analog and digital hardware.</span>
+          </div>
+          <div class="capability-card">
+            <strong>3. What Proof Exists</strong>
+            <span>Shows whether the proof is only a source, a local estimate, a simulator result, compiler output, board runtime, power trace, or task accuracy result.</span>
+          </div>
+          <div class="capability-card">
+            <strong>4. What Breaks</strong>
+            <span>Names the blockers directly: unsupported ops, Softmax, dynamic attention, too much data movement, drift, missing compiler path, missing board data, or missing update proof.</span>
+          </div>
+          <div class="capability-card">
+            <strong>5. What To Do Next</strong>
+            <span>Turns each blocker into work: run a simulator, connect a compiler, rewrite a model block, measure power, measure accuracy, or test weight updates.</span>
+          </div>
+          <div class="capability-card">
+            <strong>6. What We Can Say</strong>
+            <span>Creates safe wording for customers and investors, plus a clear do-not-say list when proof is missing.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Evidence ladder">
+        <h2>How Proof Changes The Answer</h2>
+        <p>The same workload can move from "interesting idea" to "pilot ready" only when stronger proof is added.</p>
+        <div class="ladder">
+          <div class="ladder-row"><div class="step-num">1</div><strong>Public paper or source</strong><span>This means a paper, public benchmark, or outside example says something similar has worked before. It is useful background. It does not prove this user's model works on this chip.</span></div>
+          <div class="ladder-row"><div class="step-num">2</div><strong>Local estimate</strong><span>This means our platform makes a first estimate from the model structure. It can say "this looks worth testing." It should not be used as a strong customer claim.</span></div>
+          <div class="ladder-row"><div class="step-num">3</div><strong>Analog simulator result</strong><span>This means a software tool tests what could happen when math is done with imperfect analog memory. It checks likely accuracy loss from noise, drift, converter limits, and crossbar effects.</span></div>
+          <div class="ladder-row"><div class="step-num">4</div><strong>Compiler mapping</strong><span>This means a tool tries to place model parts onto the analog chip. It answers: "Can these layers actually get to the chip path, or are we only guessing?"</span></div>
+          <div class="ladder-row"><div class="step-num">5</div><strong>System simulation</strong><span>This means a larger simulator checks the chip together with the processor, memory, and software around it. It catches cases where the analog core looks good but the full system is slow.</span></div>
+          <div class="ladder-row"><div class="step-num">6</div><strong>Board runtime</strong><span>This means the workload ran on a real board or prototype and the platform has the timing result. It answers: "How long did it actually take?"</span></div>
+          <div class="ladder-row"><div class="step-num">7</div><strong>Power and heat measurement</strong><span>This means a real meter or lab setup measured energy, peak power, heat, and sometimes update energy. It answers: "Did it really save power?"</span></div>
+          <div class="ladder-row"><div class="step-num">8</div><strong>Task accuracy result</strong><span>This means the final mapped model was tested on the real task. It answers: "Did the model still solve the user's problem after all the chip changes?"</span></div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="External toolkit cards">
+        <h2>What Each External Tool Gives The User</h2>
+        <div class="toolkit-grid">
+          <div class="toolkit-card"><strong>AIHWKIT</strong><span>Plain meaning: a software lab for testing analog AI behavior. User question: "If the chip math is noisy or drifts over time, will my model still work?" Output: a simulated accuracy-risk report. It cannot prove real board speed or real power.</span></div>
+          <div class="toolkit-card"><strong>AIHWKIT-Lightning</strong><span>Plain meaning: a faster version for larger tests. User question: "Can we run this analog simulation on a larger model without waiting too long?" Output: faster large-model simulation. It is still not hardware proof.</span></div>
+          <div class="toolkit-card"><strong>CrossSim</strong><span>Plain meaning: a simulator for crossbar memory arrays, which are grid-like analog memory blocks. User question: "Will the physical layout of the memory hurt accuracy?" Output: risk from wire resistance, noise, bit slicing, ADC settings, and programming errors.</span></div>
+          <div class="toolkit-card"><strong>analog-mlir</strong><span>Plain meaning: a compiler path. A compiler turns a model into steps hardware can run. User question: "Can this model actually be prepared for the analog chip?" Output: mapped layers, digital fallbacks, unsupported parts, and compiler gaps.</span></div>
+          <div class="toolkit-card"><strong>Attention Partitioner</strong><span>Plain meaning: a checker for transformer hard parts. User question: "Which transformer parts fit analog, and which parts must stay digital?" Output: analog candidates, digital-required attention, Softmax and LayerNorm boundaries, and rewrite options.</span></div>
+          <div class="toolkit-card"><strong>SST/Golem</strong><span>Plain meaning: a system timing simulator. User question: "Even if the analog part is fast, will the rest of the computer slow it down?" Output: simulated bottlenecks from processor dispatch, memory movement, and synchronization.</span></div>
+          <div class="toolkit-card"><strong>ALPINE/gem5-X</strong><span>Plain meaning: a fuller computer-system simulator. User question: "What happens when the analog accelerator sits inside a full system with CPU, memory, and software?" Output: simulated system behavior before a board exists.</span></div>
+          <div class="toolkit-card"><strong>TxSim, XBTorch, RxNN</strong><span>Plain meaning: extra simulators for training, device behavior, and updates. User question: "Are model updates or memory-device behavior risky?" Output: early update and device-risk simulation. Real write energy and endurance still need lab measurement.</span></div>
+          <div class="toolkit-card"><strong>LIMCA</strong><span>Plain meaning: a design exploration helper. User question: "If this chip design is not enough, what should we try next?" Output: possible future memory-array or chip-block designs under power, area, and accuracy limits.</span></div>
+          <div class="toolkit-card"><strong>Board, Power, Task Services</strong><span>Plain meaning: real measurement feeds. User question: "What happened on real hardware, and did the task still work?" Output: measured latency, power, heat, and task accuracy. This is what unlocks stronger claims.</span></div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Detailed external toolkit pages">
+        <h2>Detailed Toolkit Pages For Non-Technical Review</h2>
+        <p>Each tool helps answer one part of the central question. None of them proves the whole product by itself. Our platform's job is to collect their results, explain them in plain words, and keep weak proof separate from strong proof.</p>
+        <div class="tool-detail-list">
+          <section class="tool-detail" aria-label="AIHWKIT detailed page">
+            <h3>AIHWKIT</h3>
+            <p>AIHWKIT is a software test bench for analog AI chips. It lets us take a normal AI model and test what may happen when the model runs on imperfect analog memory instead of clean digital math.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Will the model still be accurate if the chip has noise, drift, limited converter precision, and imperfect weight programming?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A model, a target task, expected accuracy, and chip assumptions such as converter precision, noise level, drift behavior, and update behavior.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>A simulation result showing whether analog effects are likely to reduce accuracy, which layers are sensitive, and which chip settings matter most.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>If the simulation is stable, the workload can move from "only a guess" to "simulator-supported candidate." If accuracy drops badly, the platform marks analog accuracy as a blocker.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove board speed, real power, real heat, manufacturing yield, or production readiness. It is software evidence, not hardware measurement.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It gives the first serious check of whether analog physics could break the model before a customer or investor hears a stronger claim.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="AIHWKIT Lightning detailed page">
+            <h3>AIHWKIT-Lightning</h3>
+            <p>AIHWKIT-Lightning is the faster version of AIHWKIT for larger models and larger test runs. It matters when a small simulator run is not enough to test the workload properly.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Can we run enough analog simulation tests on a larger model without the test taking too long or using too much memory?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A larger model, a set of chip assumptions, and the test range they care about, such as drift levels, noise levels, and converter precision.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>Faster simulation sweeps that show which settings look safe, which settings look risky, and where the model becomes fragile.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It helps the platform test bigger workloads instead of only toy examples. That makes the roadmap more credible for modern models.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It still does not prove real board behavior. A faster simulator is still a simulator.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It supports bigger customer reviews where a normal simulation path may be too slow for useful iteration.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="CrossSim detailed page">
+            <h3>CrossSim</h3>
+            <p>CrossSim helps test the analog memory grid itself. In simple terms, an analog chip often uses a grid of memory cells. Real wires and cells are imperfect, and those imperfections can change the math.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Will the physical memory layout, wire resistance, read noise, programming error, bit slicing, or converter range hurt the final model result?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A model or math workload, array assumptions, precision settings, and the chip behavior we want to test.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>An accuracy-risk result tied to crossbar effects: how the memory grid, wires, and readout settings may change the answer.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It helps explain whether the model is only good in clean software or still looks good when placed near real analog memory behavior.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove the final chip has the same behavior. It also does not replace board power, board timing, or task testing.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It lets our platform show a customer why the physical layout of analog memory is part of the answer, not a hidden detail.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="analog-mlir detailed page">
+            <h3>analog-mlir</h3>
+            <p>analog-mlir is a compiler path. A compiler is the part of the system that turns a model into instructions and placements the hardware can actually use.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Can the model actually be prepared for analog execution, or are we only saying it looks compatible from a high level?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A model graph and target hardware rules: supported layers, array sizes, precision, memory limits, and digital fallback rules.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>A placement-style report: which layers were found, which were converted, which weights were isolated, which steps stay digital, and which parts failed.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>Compiler evidence moves the workload from "looks like a fit" to "these exact parts have a path toward the chip."</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove low power, board timing, thermal behavior, or final task accuracy. It proves mapping progress, not product performance.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>Without this layer, the platform cannot tell the difference between a real chip path and a slide-level compatibility claim.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="Attention partitioner detailed page">
+            <h3>Attention Partitioner</h3>
+            <p>The attention partitioner is our product capability for transformer and VLA-style models. It separates model parts that may fit analog compute from parts that usually need digital hardware.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Which transformer parts can use analog matrix math, and which parts are hard because they change every input or require non-linear math?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A transformer, vision transformer, multimodal model, robot policy model, or VLA-adjacent model.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>A split of static projection layers, feed-forward layers, dynamic attention, Softmax, LayerNorm, memory-heavy blocks, and rewrite options.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It prevents the platform from saying "transformer-ready" just because some matrix layers look good. It gives a more honest mixed analog/digital answer.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove the rewritten model is accurate, fast, or low power. Those need simulation, compiler mapping, board measurement, and task testing.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>Modern Physical AI claims often involve transformers or VLA-like systems. This feature keeps those claims specific and testable.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="SST Golem detailed page">
+            <h3>SST/Golem</h3>
+            <p>SST/Golem is a system simulator. It helps test the analog accelerator together with a simulated processor and memory system before real hardware is available.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>Even if the analog core is fast, does the full system lose time moving data, waiting on the processor, or synchronizing work?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A mapped workload, processor assumptions, memory assumptions, accelerator dispatch rules, and timing targets.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>Simulated timing evidence for processor dispatch, memory movement, synchronization, and analog accelerator calls.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It can show that the analog math is not the whole story. A workload may look good at the core level but still fail the full-system timing target.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not replace a real board. It is a stronger system estimate, not a real measured result.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It helps our platform answer whether the whole device path is credible, not just whether one chip block is efficient.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="ALPINE gem5-X detailed page">
+            <h3>ALPINE/gem5-X</h3>
+            <p>ALPINE/gem5-X is a fuller computer-system simulator. It models analog acceleration inside a larger system with processors, memory, software, and operating-system behavior.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>What happens when the analog accelerator is not alone, but has to run inside a real computing stack?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A target workload, software runtime assumptions, processor and memory setup, and analog accelerator settings.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>A full-system simulation result showing likely runtime behavior, memory effects, software overhead, and accelerator interaction.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It strengthens or weakens the system-readiness score before silicon or board proof exists.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove measured power, real thermal behavior, manufacturing readiness, or final customer-task accuracy.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It helps investors and customers see whether the roadmap includes the full machine around the analog chip.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="TxSim XBTorch RxNN detailed page">
+            <h3>TxSim, XBTorch, And RxNN</h3>
+            <p>These are additional simulation tools for training behavior, device behavior, and memory-update risk. They matter when the model may need to be changed or adapted after deployment.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem They Help Answer</strong><span>How risky are weight updates, write noise, device variation, conductance drift, and memristor behavior for this model?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A model, update pattern, memory-device assumptions, training or fine-tuning settings, and acceptable accuracy loss.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>Early evidence about update sensitivity, device variation risk, and whether the model looks fragile under changing analog memory behavior.</span></div>
+              <div class="tool-detail-point"><strong>How They Change Our Answer</strong><span>They help decide whether a workload is fixed-weight only, occasional-update candidate, adapter-update candidate, or blocked for adaptive Physical AI.</span></div>
+              <div class="tool-detail-point"><strong>What They Do Not Prove</strong><span>They do not prove real write energy, real write time, real endurance, retention, rollback, or post-update board accuracy. Those need measurement.</span></div>
+              <div class="tool-detail-point"><strong>Why They Matter To Our Product</strong><span>They support the weight-update gate so we do not confuse efficient fixed inference with real on-device adaptation.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="LIMCA detailed page">
+            <h3>LIMCA</h3>
+            <p>LIMCA is a design exploration tool. It is useful when the current chip plan may not satisfy the workload and the team needs to explore future chip or memory-array choices.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem It Helps Answer</strong><span>If the current chip is not enough, what design directions could improve power, area, and accuracy?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>Design targets such as power limit, area limit, accuracy target, array choices, and possible circuit constraints.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>Candidate design directions and simulation-backed options for future chip planning.</span></div>
+              <div class="tool-detail-point"><strong>How It Changes Our Answer</strong><span>It moves a blocker into a roadmap item: what chip design change may be worth exploring next.</span></div>
+              <div class="tool-detail-point"><strong>What It Does Not Prove</strong><span>It does not prove the current workload runs on the current chip. It is future design planning evidence.</span></div>
+              <div class="tool-detail-point"><strong>Why It Matters To Our Product</strong><span>It helps the founder and hardware team turn failed workload fit into a concrete design exploration path.</span></div>
+            </div>
+          </section>
+          <section class="tool-detail" aria-label="Board power task services detailed page">
+            <h3>Board, Power, Thermal, And Task Services</h3>
+            <p>These are not research simulators. They are measurement feeds from real hardware tests and real task tests. They provide the proof needed for stronger claims.</p>
+            <div class="tool-detail-grid">
+              <div class="tool-detail-point"><strong>Problem They Help Answer</strong><span>What actually happened when the workload ran on hardware, and did it still solve the user's real job?</span></div>
+              <div class="tool-detail-point"><strong>What The User Gives Us</strong><span>A board run, power trace, temperature result, accuracy run, update test, calibration result, or lab report.</span></div>
+              <div class="tool-detail-point"><strong>What Comes Back</strong><span>Measured latency, measured energy, peak power, heat, task accuracy, update cost, calibration cost, and failure records.</span></div>
+              <div class="tool-detail-point"><strong>How They Change Our Answer</strong><span>They can move a claim from simulated or estimated to measured. This is what investors and customers need for stronger confidence.</span></div>
+              <div class="tool-detail-point"><strong>What They Do Not Prove</strong><span>One board result does not automatically prove production readiness, reliability across all conditions, or every customer workload.</span></div>
+              <div class="tool-detail-point"><strong>Why They Matter To Our Product</strong><span>They are the strongest evidence layer. The platform must make them easy to attach, review, and audit.</span></div>
+            </div>
+          </section>
+        </div>
+      </section>
+      <section class="review-section" aria-label="How source material maps to our platform">
+        <h2>How This Source Material Is Relevant To Our Platform</h2>
+        <p>The source is not just background research. It tells us what proof engines our product should connect to, what each engine can prove, and where our platform must prevent overclaiming.</p>
+        <div class="card-grid">
+          <div class="capability-card">
+            <strong>Core Now: Analog Accuracy Risk</strong>
+            <span>AIHWKIT and CrossSim are directly relevant because our platform must answer whether analog chip behavior could hurt accuracy. They help test noise, drift, converter limits, programming error, wire resistance, and crossbar layout effects. In our product, their outputs become analog accuracy evidence, not final hardware proof.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Core Now: Compiler Mapping</strong>
+            <span>analog-mlir is directly relevant because our platform must show which model parts can actually be prepared for analog execution. Without compiler mapping, a model may only look good on paper. In our product, analog-mlir-style output becomes the model placement report: analog parts, digital parts, unsupported parts, and rewrite needs.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Core Now: System Reality Check</strong>
+            <span>SST/Golem and ALPINE/gem5-X are relevant because an analog core is only one part of a real device. The processor, memory, software, and data movement can reduce the benefit. In our product, these tools provide system simulation evidence before a board is available.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Core Now: Transformer And VLA Boundary</strong>
+            <span>The source explains why transformers are harder than simple models. Some projection layers may fit analog compute, but dynamic attention, Softmax, LayerNorm, and memory movement often need digital support or model changes. Our product must stop a user from claiming "VLA-ready" just because a few matrix layers map well.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Near-Term: Weight Update Risk</strong>
+            <span>TxSim, XBTorch, and RxNN-style tools matter because Physical AI systems may need updates after deployment. They can help model write noise, device behavior, and training/update risk. Our product still requires real write latency, write energy, endurance, retention, rollback, and post-update accuracy before stronger adaptive claims.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Near-Term: Architecture Planning</strong>
+            <span>LIMCA is relevant when the answer is: "the current chip shape is not enough." It can help explore future memory-array or chip-block designs under power, area, and accuracy limits. In our product, this belongs in roadmap planning, not customer workload proof.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Background Only: JAX Physics Examples</strong>
+            <span>RF-Squad is useful as an example of fast physics simulation using JAX. It is not an analog in-memory AI deployment tool for our first product. The lesson is that future simulators could use JAX-style acceleration, but we should not present RF-Squad as proof for an analog AI chip workload.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Our Platform's Job</strong>
+            <span>The toolkits are separate and technical. Our platform turns them into one answer: what fits, what proof exists, what breaks, what to test next, and what claim is safe. The value is not owning every simulator. The value is making their outputs understandable, comparable, and auditable.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Pipeline mapping">
+        <h2>Where Each Source Tool Fits In Our Product Flow</h2>
+        <div class="flow-list">
+          <div class="flow-item">
+            <div class="step-num">1</div>
+            <strong>User uploads model</strong>
+            <span>Our platform reads the model and creates a first map of likely analog parts and likely digital parts. This is our own product work.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">2</div>
+            <strong>AIHWKIT or CrossSim checks analog risk</strong>
+            <span>These tools test whether analog memory behavior could damage accuracy. Output goes into our platform as simulation evidence. Claim allowed: "simulation suggests risk is low, medium, or high." Claim not allowed: "hardware is proven."</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">3</div>
+            <strong>analog-mlir checks placement</strong>
+            <span>This checks whether the model can be lowered toward analog execution. Output goes into our platform as compiler mapping. Claim allowed: "these model parts have a compiler path." Claim not allowed: "the full chip is fast and low power."</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">4</div>
+            <strong>Attention partitioning checks transformer hard parts</strong>
+            <span>This separates analog-friendly projection or feed-forward layers from dynamic attention, Softmax, LayerNorm, and memory-heavy parts. It protects us from overselling transformer or VLA readiness.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">5</div>
+            <strong>SST/Golem or ALPINE checks system overhead</strong>
+            <span>These tools test whether processor, memory, runtime, and software overhead weaken the analog benefit. Output is system simulation evidence, still not measured board evidence.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">6</div>
+            <strong>Board, power, and task services provide real proof</strong>
+            <span>These measurements are what make stronger claims possible: actual latency, actual energy, actual heat, and actual task accuracy on the selected workload.</span>
+          </div>
+          <div class="flow-item">
+            <div class="step-num">7</div>
+            <strong>Platform generates claim and next work</strong>
+            <span>Our platform combines all evidence and says: safe claim, blocked claim, missing proof, next experiment, and export package.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Claim boundaries">
+        <h2>Claim Boundaries</h2>
+        <div class="claim-grid">
+          <div class="claim-card">
+            <strong><span class="status-pill safe">Safe To Say</span></strong>
+            <span>This workload has analog-friendly regions and a clear plan for what to test next.</span>
+          </div>
+          <div class="claim-card">
+            <strong><span class="status-pill partial">Needs Review</span></strong>
+            <span>Simulation or compiler evidence exists, but board, power, or task evidence is incomplete.</span>
+          </div>
+          <div class="claim-card">
+            <strong><span class="status-pill blocked">Blocked</span></strong>
+            <span>Production readiness, adaptive Physical AI, or full VLA readiness cannot be claimed without stronger proof.</span>
+          </div>
+          <div class="claim-card">
+            <strong>Do Not Claim</strong>
+            <span>Do not say analog is better just because one core operation is efficient. The full system must be counted.</span>
+          </div>
+        </div>
+      </section>
+      <section class="review-section" aria-label="Export package">
+        <h2>What The User Can Export</h2>
+        <p>The final output is a review package. It lets someone else check the answer without trusting a slide or a sales claim.</p>
+        <div class="card-grid">
+          <div class="capability-card">
+            <strong>Model And Workload Summary</strong>
+            <span>What model was tested, what real job it represents, what sensor inputs it uses, and what speed, energy, and accuracy targets matter.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Chip Assumptions</strong>
+            <span>What analog chip profile was assumed, what operators it supports, what precision was used, and what calibration profile was selected.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Mapping Result</strong>
+            <span>Which model parts can run on analog, which stay digital, which fall back to software, and which are unsupported.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Toolkit Results</strong>
+            <span>Simulator results, compiler mapping, system simulation, attention partitioning, and any failed tool runs, each kept separate from real measurements.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Measured Evidence</strong>
+            <span>Board runtime, power and heat traces, task accuracy, update measurements, and calibration evidence when they exist.</span>
+          </div>
+          <div class="capability-card">
+            <strong>Safe Claims And Next Work</strong>
+            <span>What can be said now, what cannot be said, what proof is missing, and what engineering work should happen next.</span>
+          </div>
+        </div>
+      </section>
+      <section class="spec-divider" aria-label="Full specification">
+        <h2>Full Specification</h2>
+        <p>The full document below gives the detailed build spec, backend artifacts, frontend panels, toolkit contracts, and user journeys.</p>
+      </section>
+      <div id="status" class="status">Loading Markdown...</div>
+      <div id="content"></div>
+    </article>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const source = "simulation-to-silicon-first-principles-spec.md";
+    const statusEl = document.getElementById("status");
+    const contentEl = document.getElementById("content");
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    fetch(source)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Could not load ${source}: HTTP ${response.status}`);
+        return response.text();
+      })
+      .then((markdown) => {
+        statusEl.textContent = `Rendered from ${source}`;
+        if (window.marked) {
+          contentEl.innerHTML = marked.parse(markdown, { mangle: false, headerIds: true });
+        } else {
+          statusEl.textContent = "Markdown renderer CDN was unavailable; showing plain Markdown.";
+          contentEl.innerHTML = `<pre><code>${escapeHtml(markdown)}</code></pre>`;
+        }
+      })
+      .catch((error) => {
+        statusEl.textContent = error.message;
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analog and In-Memory AI Inference</title>
+  <style>
+    :root {
+      --bg: #101318;
+      --panel: #171b22;
+      --panel-2: #1d232c;
+      --line: #2a323e;
+      --text: #eee9df;
+      --muted: #b7bdc7;
+      --quiet: #87909d;
+      --accent: #55c7b5;
+      --warm: #e19a5b;
+      --warn: #e06454;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    a { color: var(--accent); text-underline-offset: 3px; }
+    p { margin: 0 0 1em; color: var(--muted); }
+    strong { color: var(--text); font-weight: 650; }
+    code {
+      font-family: var(--mono);
+      font-size: .88em;
+      color: var(--text);
+      background: #0c0f14;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 28px 20px;
+      border-right: 1px solid var(--line);
+      background: #12161c;
+    }
+
+    .brand {
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--quiet);
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    .nav-title {
+      font-family: var(--mono);
+      font-size: .65rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--quiet);
+      margin: 18px 0 8px;
+    }
+
+    .nav-link {
+      display: block;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .88rem;
+      line-height: 1.35;
+      padding: 7px 8px;
+      border-radius: 6px;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+      background: var(--panel);
+    }
+
+    main {
+      max-width: 980px;
+      padding: 0 clamp(22px, 5vw, 72px) 88px;
+    }
+
+    header {
+      padding: 54px 0 34px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 16px;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--serif);
+      line-height: 1.12;
+      margin: 0;
+      letter-spacing: -.01em;
+    }
+
+    h1 {
+      max-width: 800px;
+      font-size: clamp(2.3rem, 5vw, 4rem);
+      margin-bottom: 18px;
+    }
+
+    .lead {
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 1.16rem;
+    }
+
+    .meta {
+      margin-top: 18px;
+      font-family: var(--mono);
+      font-size: .74rem;
+      color: var(--quiet);
+    }
+
+    section {
+      padding: 42px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h2 {
+      font-size: clamp(1.65rem, 3vw, 2.25rem);
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 1.28rem;
+      margin-bottom: 8px;
+    }
+
+    .plain-rule {
+      border-left: 3px solid var(--accent);
+      background: var(--panel);
+      border-radius: 0 8px 8px 0;
+      padding: 18px 22px;
+      margin: 24px 0;
+    }
+
+    .plain-rule p {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.04rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 18px 16px;
+    }
+
+    .card p:last-child { margin-bottom: 0; }
+
+    .small {
+      font-size: .94rem;
+      color: var(--quiet);
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid #55c7b555;
+      border-radius: 4px;
+      padding: 2px 6px;
+      margin-bottom: 10px;
+    }
+
+    .paper-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .paper {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .paper-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .paper-id {
+      font-family: var(--mono);
+      color: var(--accent);
+      font-size: .78rem;
+    }
+
+    .metric {
+      font-family: var(--mono);
+      color: var(--warm);
+      font-size: .78rem;
+    }
+
+    .paper h3 a {
+      color: var(--text);
+      text-decoration-color: var(--accent);
+    }
+
+    .paper h3 a:hover { color: var(--accent); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 1.2em;
+      color: var(--muted);
+    }
+
+    .list li { margin-bottom: .65em; }
+
+    .flow {
+      font-family: var(--mono);
+      white-space: pre-wrap;
+      background: #0c0f14;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      color: var(--muted);
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+    }
+
+    footer {
+      padding-top: 36px;
+      color: var(--quiet);
+      font-family: var(--mono);
+      font-size: .76rem;
+    }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      nav {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 16px;
+      }
+      .brand, .nav-title { display: none; }
+      .nav-link {
+        display: inline-block;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        margin: 3px;
+        padding: 5px 10px;
+        font-size: .78rem;
+      }
+      .grid, .two-col { grid-template-columns: 1fr; }
+      main { padding-bottom: 64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav aria-label="Page navigation">
+      <div class="brand">AI Hardware Analysis</div>
+      <a class="nav-link" href="../index.html">Main hardware hub</a>
+      <a class="nav-link" href="../grand-synthesis.html">Grand synthesis</a>
+      <a class="nav-link" href="../t3-deepdive.html">Memory wall deep dive</a>
+      <a class="nav-link" href="../themes.html">Themes</a>
+      <div class="nav-title">This page</div>
+      <a class="nav-link" href="#start">Start here</a>
+      <a class="nav-link" href="#one-idea">The one idea</a>
+      <a class="nav-link" href="#why-analog">Why analog</a>
+      <a class="nav-link" href="#hard-parts">Hard parts</a>
+      <a class="nav-link" href="#use-cases">Use-case fit</a>
+      <a class="nav-link" href="#metrics">Metrics</a>
+      <a class="nav-link" href="#prototype-product">Prototype vs product</a>
+      <a class="nav-link" href="#full-system">Full system</a>
+      <a class="nav-link" href="#software-support">Software support</a>
+      <a class="nav-link" href="#edge-markets">Edge markets</a>
+      <a class="nav-link" href="#papers">Key papers</a>
+      <a class="nav-link" href="#paper-deep-dives">Paper deep dives</a>
+      <a class="nav-link" href="#reading-path">Reading path</a>
+      <a class="nav-link" href="#interview">Interview frame</a>
+      <a class="nav-link" href="#source-links">Source links</a>
+    </nav>
+
+    <main>
+      <header id="start">
+        <div class="eyebrow">Focused guide</div>
+        <h1>Analog and In-Memory AI Inference</h1>
+        <p class="lead">This page brings together the parts of the local hardware analysis that matter for power-efficient AI chips: analog math, compute inside memory, edge inference, calibration, and the accuracy cost of using real circuits instead of clean digital math.</p>
+        <div class="meta">Local corpus: AI hardware, architecture, circuits, and systems conference analysis</div>
+      </header>
+
+      <section id="one-idea">
+        <h2>The One Idea</h2>
+        <p>AI inference repeats the same basic action many times: multiply numbers, add the results, and pass the answer to the next layer. The numbers are model weights and activations. In a normal digital chip, those numbers are read from memory, moved across wires, multiplied in a compute unit, then written back.</p>
+        <p>For edge devices, that movement is the problem. It burns energy. It creates heat. It needs memory bandwidth. A small device such as a wearable, sensor, robot, or battery-powered camera cannot hide those costs with a big fan, large battery, or large memory system.</p>
+        <div class="plain-rule">
+          <p><strong>Plain version:</strong> do not keep carrying numbers across the chip if the math can happen where the numbers already sit.</p>
+        </div>
+        <div class="flow">normal digital path
+memory -> wires -> compute unit -> wires -> memory
+
+in-memory path
+memory cell -> local math near the cell -> smaller result leaves memory
+
+analog in-memory path
+memory cell stores a value
+voltage or current represents a number
+the circuit physics does many multiply-add steps at once</div>
+      </section>
+
+      <section id="why-analog">
+        <h2>Why Analog Shows Up Here</h2>
+        <p>Digital chips represent numbers as bits: exact 0s and 1s. Digital math is clean and repeatable, but it uses many switches for every operation.</p>
+        <p>Analog circuits represent numbers as physical signals such as voltage, current, charge, or time. If the circuit is shaped correctly, the physics can do useful math directly. A memory array can act like a grid of weights. Input voltages flow through that grid. Currents add together on wires. That gives the chip a matrix multiply without moving every weight to a separate math block.</p>
+        <p>This is why analog compute is attractive for AI inference. Neural networks can often tolerate small numerical errors, especially after quantization and calibration. If the model can keep accuracy while the chip saves energy, analog becomes useful.</p>
+
+        <div class="grid">
+          <article class="card">
+            <div class="tag">Why it wins</div>
+            <h3>Less data movement</h3>
+            <p>The weights stay in the memory array. The chip sends in inputs and reads out summed results.</p>
+          </article>
+          <article class="card">
+            <div class="tag">Why it wins</div>
+            <h3>Many operations at once</h3>
+            <p>A crossbar can combine many values in parallel because current naturally adds along wires.</p>
+          </article>
+          <article class="card">
+            <div class="tag">Why it fits edge</div>
+            <h3>Lower energy per operation</h3>
+            <p>The useful goal is not just speed. It is useful work per watt, often reported as TOPS/W.</p>
+          </article>
+          <article class="card">
+            <div class="tag">Why it is hard</div>
+            <h3>The signals are not perfect</h3>
+            <p>Real voltages drift. Memory cells vary. Temperature changes behavior. The chip must correct for that.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="hard-parts">
+        <h2>The Hard Parts</h2>
+        <p>Analog in-memory inference is hard because it trades one problem for several others. It can reduce the cost of moving weights around, but it has to do that without losing too much accuracy, spending the savings on conversion, or building a chip that only works for a narrow demo.</p>
+        <p>Start from first principles: a neural network layer mostly multiplies inputs by stored weights and adds the results. Digital chips do this with exact-looking bit operations. Analog chips try to let voltage, current, charge, or resistance do part of that work directly. That can be energy efficient because the physical circuit is doing many small operations at once. The catch is that physical signals are not exact numbers.</p>
+        <div class="two-col">
+          <article class="card">
+            <h3>1. Conversion can eat the win</h3>
+            <p>The rest of the system still speaks in bits. Sensor data, model inputs, control code, and final outputs are usually digital. If the chip turns digital values into analog signals before every small step, then turns analog results back into bits right away, the conversion blocks can become the real energy cost.</p>
+            <p>The important blocks are DACs, which turn bits into analog signals, and ADCs, which turn analog signals back into bits. They are useful, but they are not free. Higher precision usually costs more energy and area. A strong design tries to do enough useful work in analog before paying that conversion cost.</p>
+          </article>
+          <article class="card">
+            <h3>2. Stored weights are physical things</h3>
+            <p>In software, a weight looks like a clean number. On a chip, that number may be represented by a memory cell, a resistance level, a charge level, or a circuit setting. Two cells that are meant to store the same value may not behave exactly the same.</p>
+            <p>Manufacturing differences, battery voltage, heat, and aging can all move the result. Engineers often call this process, voltage, and temperature variation. The plain version is: the chip has to keep giving useful answers even when the real world changes the circuit a little.</p>
+          </article>
+          <article class="card">
+            <h3>3. Neural networks tolerate some error, not all error</h3>
+            <p>AI inference does not always need perfect arithmetic. That is why quantized models can work well. But this tolerance has a limit. Small errors can add up across many layers, and some weights or activations matter more than others.</p>
+            <p>The hard question is not "does analog have error?" It does. The hard question is "which errors matter for this model, on this task, under this temperature and voltage range?" Good designs protect the sensitive parts and let the less sensitive parts run with lower precision.</p>
+          </article>
+          <article class="card">
+            <h3>4. The model has to fit the hardware</h3>
+            <p>Analog arrays are usually strongest at repeated matrix math. That fits many neural network layers, but not every operation in a model. Control flow, reshaping, normalization, attention support, activation functions, and small unusual operators may still need digital logic.</p>
+            <p>This means the real product is not just an analog block. It also needs a way to map the model onto that block, split work across analog and digital parts, and avoid moving partial results around so much that the energy advantage disappears.</p>
+          </article>
+          <article class="card">
+            <h3>5. Writing weights can be harder than reading them</h3>
+            <p>Many edge inference systems are read-heavy: load a model, run it many times, and update it rarely. That favors in-memory compute. But if weights need frequent updates, calibration changes, or on-device learning, the write path matters.</p>
+            <p>Some memory technologies are fast and cheap to read but slower, costlier, or less durable to write. For an interview, separate inference from training. Analog in-memory compute is usually easier to justify for inference than for constant model updates.</p>
+          </article>
+          <article class="card">
+            <h3>6. One good block is not a complete system</h3>
+            <p>A paper may report a very high energy number for one compute macro. A product has more around it: input handling, memory hierarchy, control logic, clocking, power delivery, software, packaging, and sometimes a host CPU.</p>
+            <p>The fair question is end-to-end: how much energy does one useful inference take, at the required latency, with the required accuracy, across the full board or module? That is stronger than quoting only peak operations per watt.</p>
+          </article>
+          <article class="card">
+            <h3>7. Heat still matters at the edge</h3>
+            <p>Edge devices are small. A wearable, robot sensor, camera, or IoT node may have a tiny battery and little room to remove heat. Even if average power is low, short bursts can create heat or drain the battery quickly.</p>
+            <p>So the useful metric is not only peak speed. It is sustained behavior: latency, energy per inference, idle power, wake-up cost, and whether the device keeps working when the environment is warm.</p>
+          </article>
+          <article class="card">
+            <h3>8. Measurement can be misleading</h3>
+            <p>TOPS/W is a common number, but it can hide what was counted. Sometimes it covers only the compute array. Sometimes it excludes conversion, memory movement, host work, or time spent preparing the model.</p>
+            <p>For serious evaluation, ask what workload was run, what precision was used, what accuracy was retained, what temperature and voltage were tested, and what parts of the system were included in the power number.</p>
+          </article>
+        </div>
+        <div class="plain-rule warn">
+          <p><strong>Good mental model:</strong> analog compute saves energy by letting the circuit do approximate math near the stored weights. The engineering job is to make the approximation small enough, predictable enough, and useful enough for real models on real devices.</p>
+        </div>
+      </section>
+
+      <section id="use-cases">
+        <h2>What Becomes Easier Or Harder</h2>
+        <p>Analog compute can be better for specific inference workloads where energy and heat are the main limits, and where the model can tolerate some numeric error. The reason comes from the basic math of neural networks. A layer often computes a long sum of input values multiplied by stored weights. That same pattern repeats many times during inference.</p>
+        <div class="flow">output = input1 * weight1 + input2 * weight2 + input3 * weight3 + ...</div>
+        <p>In a digital chip, each number is stored as bits. The chip reads the bits, moves them to compute logic, multiplies them, adds them, stores the result, and repeats. This is controlled and predictable, but moving all those bits costs energy. When the model is large or the inference runs constantly, the data movement can become a major part of the power cost.</p>
+        <p>In analog in-memory compute, the weights can live inside memory cells. The input is applied as an electrical signal. The memory cells respond based on their stored values. The currents, voltages, or charges can combine along wires, so the circuit produces part of the multiply-add result directly. The chip can save energy because it avoids moving every weight back and forth for every operation.</p>
+        <p>The tradeoff is that analog values are physical signals, not clean bit patterns. A voltage may be slightly higher or lower than expected. A memory cell may not hold exactly the intended value. Heat can change resistance. Battery voltage can shift circuit behavior. Manufacturing makes one chip slightly different from another. That is why analog compute needs calibration, careful circuit design, and model testing under real operating conditions.</p>
+        <p>Many inference models can tolerate some of this error. If an image classifier has slightly different internal values but still identifies a person, door, defect, or gesture correctly, the system can still be useful. But this tolerance is not unlimited. Errors can build up across layers, and some weights or activations are more important than others. A good design finds where approximate math is safe and where the system needs more precision.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Use-cases that become easier</h3>
+            <p>Wearables are a natural fit when they need always-on sensing with very low power. A watch, earbud, health patch, or small sensor may run wake-word detection, motion classification, gesture recognition, or simple health-signal analysis many times a day. These tasks often care more about battery life and fast local response than exact arithmetic inside every layer.</p>
+            <p>IoT sensors and smart cameras can also fit well. They may run the same model repeatedly near the sensor, often in places where sending everything to the cloud is too slow, too expensive, or too power hungry. If the model is small or medium sized and can be quantized cleanly, analog in-memory compute can reduce the energy needed for each inference.</p>
+            <p>Robotics at the edge is another useful direction. A robot may need quick local decisions for vision, obstacle detection, sensor fusion, or simple control support. Lower latency matters because the robot has to react to the world around it. Lower heat matters because many robots have limited cooling and limited battery capacity.</p>
+            <p>Always-on audio and vision are especially relevant because the system spends most of its life waiting for something important. Wake-word detection, presence detection, anomaly detection, and simple visual recognition can run constantly. Saving a small amount of energy on each inference becomes meaningful because the inference repeats so often.</p>
+            <p>The common pattern is repeated inference, reused weights, tight energy limits, and enough tolerance for low-precision math. Quantized CNNs, compact transformers, keyword-spotting models, sensor models, and small classifiers can be strong candidates when their layers map cleanly to the hardware.</p>
+          </article>
+          <article class="card">
+            <h3>Use-cases that become harder</h3>
+            <p>Training is harder because training changes weights constantly and depends on stable numeric updates. Many analog in-memory designs are read-friendly but write-sensitive. Edge inference is a cleaner fit because the model weights are usually loaded, reused many times, and updated only occasionally.</p>
+            <p>High-precision workloads are also poor fits. Scientific computing, financial calculations, cryptography, and exact control logic cannot quietly accept small numeric drift. In those areas, a tiny error can change the meaning of the result. Digital compute is usually the safer and more practical choice.</p>
+            <p>Models with many irregular operations can be difficult. Analog arrays are strongest when the work looks like repeated matrix multiplication. If a model spends much of its time on branching, reshaping, sparse lookup, normalization, unusual operators, or control-heavy logic, then the analog block may not be used enough to justify its cost.</p>
+            <p>Large general-purpose LLM serving should be discussed carefully. Analog techniques may help some parts of inference, but full LLM serving includes attention, KV cache movement, memory bandwidth, batching, scheduling, software integration, and quality checks. It is too broad to say that analog automatically solves LLM inference.</p>
+            <p>Safety-critical uses need stronger proof. Medical, automotive, industrial, and security-sensitive systems may still use approximate AI, but they need evidence across temperature, voltage, age, rare inputs, and failure modes. The harder the consequence of a wrong answer, the more careful the validation has to be.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> analog in-memory AI is attractive when inference is repeated often, energy is tight, and the model can tolerate approximate math. It becomes harder when the workload needs exact arithmetic, frequent weight updates, broad programmability, or strong guarantees across changing real-world conditions.</p>
+        </div>
+      </section>
+
+      <section id="metrics">
+        <h2>How To Read TOPS/W Claims</h2>
+        <p>TOPS/W means trillions of operations per second per watt. It tries to measure how much compute a chip can do for each watt of power. A high number is useful because it suggests the hardware can perform a lot of AI math with little energy. But it is not the whole answer, because the number depends on what was included in the measurement.</p>
+        <p>The easiest mistake is to compare a small compute block against a full system. A paper may report the efficiency of one matrix-multiply macro. That macro may be excellent. But a product has more around it: input conversion, output conversion, digital control, memory traffic, host processor work, idle power, and thermal behavior. If those costs are left out, the peak number can look stronger than the real product experience.</p>
+        <p>This matters even more for analog compute. The analog array may perform the multiply-add work very efficiently, but the system may still need DACs to turn digital inputs into analog signals and ADCs to turn analog results back into digital bits. These conversion blocks can use meaningful energy, area, and time. If the design converts too often or at too high a precision, the conversion cost can reduce the benefit of the analog core.</p>
+        <p>Memory movement also has to be counted. Even in an in-memory design, inputs, activations, partial sums, layer outputs, and model metadata still move through the system. Some data may go through SRAM, DRAM, interconnect, or a host controller. If the chip saves energy inside the compute array but spends too much energy moving data around the rest of the system, the end-to-end gain may be smaller than the headline number suggests.</p>
+        <p>Thermal behavior is part of the same question. A chip may show a strong peak efficiency number for a short test, but an edge product has to run inside a small physical device. If heat builds up, the device may slow down, reduce clock speed, skip work, or drain the battery faster than expected. For wearables, sensors, and robotics, sustained behavior often matters more than a short peak measurement.</p>
+        <p>The better comparison is energy per completed inference. That means: how much energy does it take to run the full model once, including conversion, memory movement, control logic, and supporting work? That number should be tied to a specific accuracy target and latency target. Without accuracy, the chip might only look good because it used very rough math. Without latency, the chip might save energy but be too slow for the product.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Weak claim</h3>
+            <p>"This chip has very high TOPS/W."</p>
+            <p>This may be true, but it leaves out the main questions. Was this measured on the full chip or only a macro? Were ADCs and DACs included? Was memory movement included? What model ran? What accuracy was kept? How long did it run before heat mattered?</p>
+          </article>
+          <article class="card">
+            <h3>Stronger claim</h3>
+            <p>"This chip runs this model at this accuracy, within this latency budget, using this much energy per inference, including the full data path."</p>
+            <p>This is closer to product reality. It connects the hardware number to the thing the customer actually needs: a useful answer, on time, within the energy and heat limits of the device.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> peak TOPS/W is a useful early signal, but I would not treat it as product proof by itself. I would want to see end-to-end energy per inference at the required accuracy and latency, with conversion, memory movement, control logic, host work, idle power, and thermal limits included.</p>
+        </div>
+      </section>
+
+      <section id="prototype-product">
+        <h2>Prototype Chip Versus Production Product</h2>
+        <p>A prototype chip is a meaningful milestone. It means the design was turned into a real silicon implementation, sent through fabrication, brought back, powered on, and tested enough to show that the core idea can exist outside simulation. For a hardware startup, that is important because many ideas look good in models but fail when they meet real devices, real wires, real process variation, and real measurement equipment.</p>
+        <p>But a prototype does not automatically prove production readiness. It proves a narrower thing: this version of the design can be built and tested. A product has to prove that the design can be built repeatedly, at usable yield, with predictable behavior across many chips. One working chip is encouraging. Many working chips, from different wafers and lots, behaving consistently inside customer systems, is a much stronger claim.</p>
+        <p>Yield is one of the first production questions. Yield means how many chips from a manufactured batch work well enough to sell. A design can work in a lab but still be hard to manufacture profitably if too many chips fail, need heavy tuning, or only work under narrow conditions. For analog compute, this is especially important because small device differences can change numeric behavior.</p>
+        <p>Repeatability is the next question. If two chips are supposed to run the same model, do they produce similar enough results? If one chip runs slightly hotter, or came from a different part of the wafer, does accuracy still hold? If the chip is used for months or years, do its memory cells, offsets, or analog levels drift enough to matter? These are normal hardware questions, not signs that the idea is weak.</p>
+        <p>Calibration cost also matters. Analog chips often need calibration because the real circuit does not exactly match the ideal design. Calibration can correct offsets, tune references, map memory-cell behavior, or adjust how the model uses the hardware. The product question is not only whether calibration works. It is how long it takes, how often it must be repeated, what equipment it needs, whether it can happen in the field, and how much cost it adds per device.</p>
+        <p>Packaging and board integration are part of product readiness too. A chip does not run alone. It needs power delivery, clocks, memory interfaces, sensor or host connections, thermal paths, test access, and protection from electrical and environmental stress. A prototype board can be large and flexible. A customer product may be small, battery powered, cost constrained, and sealed inside a device. The same silicon has to survive that move.</p>
+        <p>Software support is another major step. Customers do not only buy a circuit. They need a way to take a model and run it on the hardware. That usually means quantization tools, model mapping, runtime software, debugging support, performance profiling, and clear limits on supported operators. If the software path is hard, the hardware advantage may not be enough to win adoption.</p>
+        <p>Customer integration is where many hidden issues appear. A wearable company, robotics company, or sensor company will ask how the chip fits their power budget, board area, model pipeline, update process, firmware, supply chain, and test flow. They will care about documentation, support, security, reliability, and whether the chip behaves well with their real data. A lab result is the start of that conversation, not the end.</p>
+        <p>Real operating conditions are the final test. The chip must work across temperature, voltage, aging, input changes, and different usage patterns. It must handle idle time, bursty workloads, battery droop, heat buildup, and model updates. For analog in-memory inference, the hard part is proving that the energy benefit survives all of those conditions while accuracy and latency remain acceptable.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Weak claim</h3>
+            <p>"They taped out a prototype, so the product is ready."</p>
+            <p>This skips too many steps. Tapeout and prototype bring-up show progress, but they do not answer yield, repeatability, calibration cost, packaging, software support, customer integration, or long-term reliability.</p>
+          </article>
+          <article class="card">
+            <h3>Stronger claim</h3>
+            <p>"A prototype chip is strong evidence that the idea has reached silicon. The next proof points are repeatable performance across chips, manufacturable yield, manageable calibration, full-system software support, and validated behavior under real edge conditions."</p>
+            <p>This is a careful answer because it respects the milestone without pretending that a prototype is the same as a shipping product.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> a prototype is a serious step because it moves the idea from simulation to silicon. Production readiness means proving the design works repeatedly, cheaply enough, and reliably enough inside real customer devices.</p>
+        </div>
+      </section>
+
+      <section id="full-system">
+        <h2>The Analog Core Is Not The Product</h2>
+        <p>A useful way to think about this field is to separate the compute core from the full system. The analog core may be the most novel part of the chip, but it is not enough by itself. A customer does not need an isolated matrix-multiply block. A customer needs a model to run correctly, quickly, and efficiently inside a real device.</p>
+        <p>The first system question is the model format. A neural network is usually trained in a high-precision software environment. The hardware may not support that same number format. The model has to be quantized, which means its weights and activations are represented with fewer bits or with a format that the hardware can handle. Quantization saves energy and memory, but it can also change accuracy. The question is whether the model still gives the right answer after being converted to the hardware-friendly format.</p>
+        <p>The second system question is where each part of the model runs. Not every operator belongs in the analog array. Matrix-heavy layers may fit well. Other parts, such as normalization, activation functions, reshaping, attention support, control logic, or unusual operators, may be better handled digitally. A compiler or runtime has to split the model across these paths. If that split causes too much data movement, the analog energy benefit can shrink.</p>
+        <p>The third question is the analog boundary. This means the line where digital values become analog signals and where analog results become digital values again. Every time the system crosses that boundary, it may pay conversion cost through DACs and ADCs. A good architecture tries to make those crossings useful. It should avoid converting after every tiny operation unless the energy and accuracy tradeoff still makes sense.</p>
+        <p>Calibration is another system-level issue. The real chip will not behave exactly like the ideal math model. Memory cells may differ, wires may have resistance, analog levels may shift, and temperature or voltage may change the output. Calibration measures or adjusts the chip so the software and hardware agree closely enough. This is not just a lab detail. It affects manufacturing time, field reliability, update flows, and customer confidence.</p>
+        <p>Sensitive weights also need attention. Some weights or activations have more influence on the final answer than others. If the hardware treats every value the same, a small analog error in an important place can hurt accuracy more than expected. A mature design may keep sensitive values at higher precision, route them through a digital path, duplicate or correct them, or use training methods that make the model more tolerant of the analog path.</p>
+        <p>The final proof is end-to-end. The claim should not stop at "the analog core has a high TOPS/W number." The stronger proof is that a real model reaches the required accuracy, latency, energy, and reliability on the target device. That means the measurement includes conversion, memory movement, control logic, software mapping, calibration, temperature behavior, and the workload the customer actually cares about.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Questions that show maturity</h3>
+            <p>Where is the analog boundary? Which layers or operators are mapped into the analog array? Which stay digital? How often does the system cross through ADCs and DACs? How are sensitive weights protected? What happens when temperature or battery voltage changes?</p>
+            <p>These questions are useful because they move the conversation from "analog is efficient" to "how does this become a reliable product?"</p>
+          </article>
+          <article class="card">
+            <h3>What the answer should prove</h3>
+            <p>The answer should show that the full path works: model conversion, operator mapping, analog execution, digital support, calibration, output quality, and device-level power. A good hardware claim ties these pieces together instead of treating the compute core as if it runs alone.</p>
+            <p>For an edge AI product, the important proof is a useful inference result, at the needed latency, inside the device's energy and heat limits.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> I would evaluate the analog core as part of a full inference system. The key question is where analog helps enough to beat the cost of conversion, mapping, calibration, digital support, and real device constraints.</p>
+        </div>
+      </section>
+
+      <section id="software-support">
+        <h2>What Software Support Means</h2>
+        <p>Software support is the path from a trained AI model to reliable inference on the chip. The customer may start with a model built in PyTorch, TensorFlow, ONNX, or another training stack. The hardware company has to provide the tools that turn that model into something the chip can actually run.</p>
+        <div class="flow">trained model -> importer -> quantizer -> mapper -> calibrated runtime -> measured inference</div>
+        <p>The first step is model conversion. The software has to read the customer's model, understand its graph, and check which layers and operators are supported. If part of the model cannot run on the analog or in-memory path, the tool has to rewrite it, split it, or send that part to a digital fallback. Without this step, the customer is left manually reshaping models around the chip, which slows adoption.</p>
+        <p>The next step is quantization. Most edge AI hardware does not run full 32-bit floating point everywhere. It may use INT8, INT4, ternary values, microscaling formats, or a custom format that matches the analog array. Quantization reduces memory and energy, but it changes the numbers inside the model. For analog hardware, the tool also has to account for limited precision, analog noise, value ranges, and ADC or DAC limits. The goal is not just to shrink the model. The goal is to keep the answer correct after the model is expressed in the chip's number format.</p>
+        <p>Model mapping is where the software decides what runs where. Matrix multiplication and convolution may fit the analog array well. Normalization, activation functions, reshaping, attention support, sparse lookup, or control logic may need digital logic or a host processor. The compiler or runtime has to choose this split carefully. If it sends too much work through fallback paths, the chip may be slower than expected. If it moves too much data between analog and digital blocks, the energy advantage may shrink.</p>
+        <p>Calibration is also part of the software path. Real analog circuits do not behave exactly like the math written in the model file. Memory cells vary, analog levels shift, and temperature or voltage can change the result. Calibration software measures this behavior and adjusts scale factors, references, offsets, or mapping choices so the model and chip agree closely enough. A good calibration flow should be predictable, repeatable, and practical for manufacturing and field use.</p>
+        <p>The runtime is the software that runs inference after the model has been prepared. It loads the model, schedules layers, manages memory, moves data between analog and digital parts, handles unsupported operators, and returns outputs to the application. For an edge product, the runtime also has to fit into firmware, an embedded operating system, a host CPU, or a sensor pipeline. A strong runtime makes the chip feel like a usable product rather than a lab block.</p>
+        <p>Debugging support matters because customers need to understand failures. If accuracy drops, they need to know whether the cause is quantization, analog noise, unsupported operators, calibration, data layout, or input distribution. If latency is bad, they need to know whether time is going into the analog core, ADCs, DACs, memory movement, digital fallback, or host work. Without debug tools, every model port becomes guesswork.</p>
+        <p>Performance profiling answers where time and energy are going. A useful profiler should show time per layer, energy per inference, analog versus digital execution, conversion overhead, memory movement, idle power, and any thermal throttling. This is the software side of honest hardware measurement. It lets the customer see whether the chip helps their actual model, not only whether the core has a good peak number.</p>
+        <p>The company also needs a clear supported-operator list. Customers need to know whether the chip supports matrix multiplication, convolution, fully connected layers, attention blocks, activation functions, normalization, pooling, elementwise operations, embedding lookup, sparse operations, or graph operations. Unsupported operators are not automatically fatal, but the customer needs to know where they run and what the cost is.</p>
+        <p>Finally, software support includes deployment integration. That can mean SDKs, drivers, firmware, APIs, model packaging, update flows, test tools, documentation, and examples. The easier this path is, the easier it is for a customer to adopt the hardware. Even a very efficient chip can lose if the customer cannot get their model onto it, measure it, debug it, and ship it inside their product.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Weak claim</h3>
+            <p>"The chip is efficient, so customers will use it."</p>
+            <p>This skips the work needed to make the chip usable. Customers need a path from their existing model to a working deployment, with clear accuracy, latency, and energy results.</p>
+          </article>
+          <article class="card">
+            <h3>Stronger claim</h3>
+            <p>"The hardware advantage becomes valuable when the software stack can import a real model, quantize it, map it across analog and digital paths, calibrate it, run it reliably, and show where time and energy are spent."</p>
+            <p>This connects the circuit benefit to the customer workflow. That is the level where adoption happens.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> customers do not only buy an analog core. They need model import, quantization, operator mapping, calibration, runtime scheduling, debugging, profiling, supported-operator clarity, and deployment tools that make the hardware advantage reachable on their own models.</p>
+        </div>
+      </section>
+
+      <section id="edge-markets">
+        <h2>Do Not Treat Edge AI As One Market</h2>
+        <p>"Edge AI" only means the AI runs near the device or sensor instead of relying entirely on a cloud data center. That phrase is useful, but it hides important differences. A wearable, a robot, a smart camera, and an industrial sensor may all run inference at the edge, but they do not have the same power budget, latency need, model size, safety risk, update pattern, or cost target.</p>
+        <p>A wearable may care most about battery life, comfort, heat on the skin, and always-on sensing. The model may be small, but it may run constantly. A few milliwatts can matter because the device has a tiny battery and the user expects it to last. For this kind of product, analog in-memory compute is interesting if it reduces the energy of repeated inference without making the device warm or unreliable.</p>
+        <p>A robot has a different shape. It may have a larger battery than a wearable, but it also needs fast local decisions. If a robot is using cameras, microphones, force sensors, or motion sensors, it may need to react quickly without waiting for the cloud. Latency and sustained performance matter. The chip has to run the right parts of the model quickly enough and predictably enough for the robot's control loop.</p>
+        <p>A smart camera is different again. It may run vision models for detection, counting, recognition, or anomaly detection. It may be wall-powered, battery-powered, or solar-powered. It may care about privacy because raw video should not always leave the device. It may also care about bandwidth because sending continuous video to the cloud is expensive. Here, the useful question is whether local inference reduces data movement, cloud cost, and power while keeping accuracy good enough for the application.</p>
+        <p>An industrial sensor may run in a factory, vehicle, machine room, or remote site. It may need long lifetime, wide temperature range, low maintenance, and reliable behavior under noise, vibration, or power variation. The model may be small, but the validation expectations can be high because a wrong reading can stop equipment or miss a fault. Energy matters, but reliability and predictable behavior may matter just as much.</p>
+        <p>These differences change the product story. A chip that is excellent for always-on keyword spotting may not be the right chip for a mobile robot doing multi-camera perception. A chip that works well for a compact image classifier may not map well to a larger transformer with attention and memory-heavy behavior. The right question is not "does it do edge AI?" The right question is "which edge workload does it serve, under which power, latency, accuracy, and cost limits?"</p>
+        <p>This is where analog in-memory compute has to be positioned carefully. It is most compelling when the workload repeats inference often, reuses weights many times, is power or heat constrained, and can tolerate the numeric behavior of the analog path. If the workload needs frequent weight updates, exact arithmetic, many irregular operators, or broad programmability, the fit becomes harder.</p>
+
+        <div class="two-col">
+          <article class="card">
+            <h3>Weak claim</h3>
+            <p>"Edge AI is growing, so this architecture should work everywhere."</p>
+            <p>This is too broad. Edge devices have different limits. Growth in the market does not prove that one architecture fits all devices, all models, or all customer constraints.</p>
+          </article>
+          <article class="card">
+            <h3>Stronger claim</h3>
+            <p>"The strongest fit is edge inference where the model runs repeatedly, energy or heat is a hard limit, and the model can keep accuracy with low-precision or approximate math."</p>
+            <p>This is narrower, but stronger. It ties the architecture to the workload shape that makes analog in-memory compute useful.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> I would not treat edge AI as one market. I would first identify the device, model, latency target, power budget, update pattern, and accuracy requirement. Then I would ask whether analog in-memory inference improves that specific system.</p>
+        </div>
+      </section>
+
+      <section id="papers">
+        <h2>Key Local Papers To Read</h2>
+        <p>These are the best local records for analog compute, compute-in-memory, and edge inference. Some are full-text reads and some are abstract-only records. The page keeps that difference visible because circuit venues often do not provide full papers.</p>
+
+        <div class="paper-list">
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isca-2025-098</span><span class="metric">full text</span></div>
+            <h3><a href="../analysis/per-paper/isca-2025-098.json">Hybrid SLC-MLC RRAM Mixed-Signal PIM for Transformers</a></h3>
+            <p>This is one of the strongest records. It explains how a transformer can use dense, lower-precision analog RRAM cells for most weights while protecting the small set of weights that matter most. The key idea is not "make everything analog." It is "put each weight where its error tolerance allows it."</p>
+            <p class="small">Reported: up to 1.86x throughput and 1.45x energy efficiency over a prior analog-digital PIM baseline, with less than 1% accuracy loss for several models.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">date-2025-193</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/date-2025-193.json">Fully Differential Analog In-Memory MAC in MRAM</a></h3>
+            <p>This is close to the core Aspirare-style topic: analog multiply-add inside memory, with calibration for process and voltage variation. It uses timing signals to make weak MRAM analog signals easier to control.</p>
+            <p class="small">Reported: 87.2 to 312.4 TOPS/W and 95.44% to 97.8% accuracy with calibration.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isscc-2025-089</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/isscc-2025-089.json">16nm Multi-Mode Gain-Cell CIM Macro for Edge AI</a></h3>
+            <p>This is a measured circuit-style record. It supports several number formats in one compute-in-memory block, which matters because edge models do not all want the same precision.</p>
+            <p class="small">Reported: 188.4 TOPS/W for MX/integer mode and 133.5 TFLOPS/W for floating-point mode.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isscc-2025-100</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/isscc-2025-100.json">MRAM In-Memory Microprocessor for End-to-End DNN Inference</a></h3>
+            <p>This record matters because it moves beyond a single macro. It describes a microprocessor with MRAM weight storage for complete DNN inference, aimed at always-on sensors.</p>
+            <p class="small">Reported: 1.1 Mb weight storage in 28nm MRAM-embedded CMOS.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-376</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-376.json">YOCO: Hybrid In-Memory Computing for Large-Scale AI</a></h3>
+            <p>YOCO is useful for understanding the hybrid approach: use analog where it saves energy, combine memory types, and add a path for transformer attention.</p>
+            <p class="small">Reported: 123.8 TOPS/W, 34.9 TOPS, and large energy and throughput gains against baselines.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-380</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-380.json">Analog Accumulator and In-Memory ADC With Shared References</a></h3>
+            <p>This is useful for the ADC problem. It targets the area and energy cost of converting analog results back to digital form.</p>
+            <p class="small">Reported: 1146 TOPS/W and 27 TOPS/mm2, with small accuracy loss on smaller benchmark models.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2024-370</span><span class="metric">medium confidence</span></div>
+            <h3><a href="../analysis/per-paper-2024/dac-2024-370.json">Hybrid Analog-Digital IMC for Lossless Neural Network Inference</a></h3>
+            <p>This record gives a clean interview idea: do small, error-tolerant operations in analog, and route sensitive operations through digital logic. The boundary is chosen by value size.</p>
+            <p class="small">Reported: 25.5 TOPS/W and 2.92x energy efficiency over conventional analog IMC.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">iccad-2025-056</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/iccad-2025-056.json">How Non-Ideal Analog PIM Errors Impact NN Accuracy</a></h3>
+            <p>This is important because it studies the hard question directly: what do analog hardware errors do to model accuracy? It replaces slow bit-by-bit simulation with a faster error model.</p>
+            <p class="small">Reported: 105.8x faster evaluation, 0.91 correlation with absolute accuracy, and 0.29% average evaluation error.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-130</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-130.json">HH-PIM for Edge AI Devices</a></h3>
+            <p>This one is useful for edge deployment. It uses different memory-side cores for different kinds of work and moves data to the core that fits the current need.</p>
+            <p class="small">Reported: 60.43% average energy savings while keeping latency requirements.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-127</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-127.json">PIMPAL: In-DRAM Lookup for Edge LLM Inference</a></h3>
+            <p>This is not pure analog, but it is useful for the same reason: edge LLM inference is memory-heavy, and the design avoids moving data by using lookup tables inside DRAM.</p>
+            <p class="small">Reported: 17.8x higher performance than prior lookup-table PIM designs and 40% area reduction versus processing-unit PIM.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">fccm-2025-053</span><span class="metric">abstract only</span></div>
+            <h3><a href="../analysis/per-paper/fccm-2025-053.json">LLM-IMC: Automating Analog IMC Design</a></h3>
+            <p>This is about the design process. Analog IMC is hard to design because circuit details matter. This record explores using an LLM to generate and study circuit simulation files.</p>
+            <p class="small">Useful angle: AI can help design AI hardware, but validation still needs circuit simulation and measured silicon.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="paper-deep-dives">
+        <h2>Paper Deep Dives From First Principles</h2>
+        <p>These papers deserve more than a list because each one teaches a different piece of the analog and in-memory inference problem. Read them as a map of the field: where to store weights, how much error the model can tolerate, where analog should stop, how conversion cost is handled, and how close the work is to a real product.</p>
+
+        <div class="paper-list">
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isca-2025-098</span><span class="metric">highest priority</span></div>
+            <h3><a href="../analysis/per-paper/isca-2025-098.json">Hybrid SLC-MLC RRAM Mixed-Signal PIM for Transformers</a></h3>
+            <p>This is the strongest paper to understand conceptually because it does not treat all model weights as equal. Start from the basic problem: a transformer has a huge number of weights, and moving those weights costs energy. Dense analog memory is attractive because it can store more weights and compute near them. But denser analog memory is less precise, so putting every weight there can damage accuracy.</p>
+            <p>The paper's useful idea is selective protection. Some weights are more important to the model's final answer. Those weights need a safer storage or compute path. Many other weights can tolerate more error. The architecture uses different tiers: digital memory for attention-sensitive work, more precise analog storage for important weights, and denser lower-precision analog storage for the larger set of error-tolerant weights.</p>
+            <p>The first-principles lesson is that analog AI is not about forcing the whole model into the same approximate hardware. It is about matching each part of the model to the cheapest hardware that still preserves accuracy. That is directly useful for interviews because it sounds mature: protect the sensitive math, approximate the tolerant math, and measure the full model.</p>
+            <p><strong>Do not overclaim:</strong> this is still inference-focused, and the preprocessing or fine-tuning step is part of the story. The reported gains are meaningful, but the key takeaway is the placement strategy, not a general claim that dense analog memory works for everything.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">date-2025-193</span><span class="metric">Aspirare-adjacent</span></div>
+            <h3><a href="../analysis/per-paper/date-2025-193.json">Fully Differential Analog In-Memory MAC in MRAM</a></h3>
+            <p>This paper is useful because it gets close to the analog circuit problem. MRAM can store weights without needing constant power, which is attractive for edge devices. But MRAM analog signals can be weak and sensitive to variation. If the signal is small, manufacturing differences and voltage shifts can change the result enough to hurt inference.</p>
+            <p>The design tries to make the analog result easier to control by using a fully differential structure and converting voltage behavior into timing behavior. In plain terms, instead of trusting one fragile analog level by itself, the circuit compares paired signals and uses timing as a more stable way to represent the computation. Calibration then adjusts for process and voltage differences.</p>
+            <p>The first-principles lesson is that analog compute needs ways to make weak physical signals reliable enough for math. The value is not just "MRAM computes in memory." The value is the supporting circuit technique that reduces the effect of real chip variation.</p>
+            <p><strong>Do not overclaim:</strong> the local record is abstract-only and the confidence is low. Treat it as a strong conceptual pointer for MRAM analog MAC and calibration, not as complete proof for large transformer-scale deployment.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isscc-2025-089</span><span class="metric">precision flexibility</span></div>
+            <h3><a href="../analysis/per-paper/isscc-2025-089.json">16nm Multi-Mode Gain-Cell CIM Macro for Edge AI</a></h3>
+            <p>This paper teaches that one number format is not enough for every edge model. Integer formats can be very efficient, but some workloads need more accuracy. Floating-point formats can preserve more accuracy, but they cost more. Microscaling formats sit between them by trying to keep useful dynamic range with lower cost.</p>
+            <p>The important system idea is flexibility inside the compute-in-memory macro. If a chip supports multiple modes, the runtime can choose the precision that fits the layer or workload. That matters because edge AI is not one model. A camera classifier, a keyword model, and a small transformer may want different numeric behavior.</p>
+            <p>The first-principles lesson is that precision is a resource. Higher precision should be spent where it protects accuracy. Lower precision should be used where it saves energy without changing the final answer. A multi-mode CIM macro is valuable if it lets the system make that trade without expensive data movement or format conversion outside the core.</p>
+            <p><strong>Do not overclaim:</strong> this is a measured macro-style record, not automatically a complete accelerator or product. Ask how the macro connects to the full model path and what system costs were included.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">isscc-2025-100</span><span class="metric">end-to-end signal</span></div>
+            <h3><a href="../analysis/per-paper/isscc-2025-100.json">MRAM In-Memory Microprocessor for End-to-End DNN Inference</a></h3>
+            <p>This paper matters because it moves beyond a single compute array. Many analog or in-memory papers show an efficient macro, but a product needs a processor-like system that can run a whole neural network. This record points toward that direction by storing weights on-chip in embedded MRAM and targeting complete DNN inference.</p>
+            <p>The first-principles reason this matters is idle power and repeated use. Always-on sensors spend much of their time waiting and then running small inference tasks. Non-volatile MRAM can hold weights without constant refresh power. If the model weights stay close to the compute path, the system can avoid external memory traffic for common inference runs.</p>
+            <p>The lesson is that edge inference cares about the whole lifecycle: idle, wake up, compute, return to idle. A chip that only looks good during the active multiply phase may not be the best always-on solution. MRAM-based in-memory systems are interesting because they can attack both storage energy and compute movement.</p>
+            <p><strong>Do not overclaim:</strong> the local record is abstract-only and does not include full accuracy, topology, latency, or power breakdown. Use it as evidence that the field is moving toward end-to-end DNN inference, not as complete product proof.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-376</span><span class="metric">hybrid architecture</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-376.json">YOCO: Hybrid In-Memory Computing for Large-Scale AI</a></h3>
+            <p>YOCO is useful because it does not rely on one memory type doing everything. ReRAM can be dense and efficient, while SRAM is fast and familiar. A hybrid design tries to use each memory where its physical strengths fit the workload.</p>
+            <p>The paper also matters for transformer attention. Transformers are not just plain matrix multiplication. Attention introduces memory movement and dataflow problems that are harder than simple CNN layers. A design that claims transformer support needs to show how it handles those attention paths, not only dense multiply-add blocks.</p>
+            <p>The first-principles lesson is that memory technology choice is part of workload mapping. Dense storage, fast access, conversion cost, endurance, precision, and dataflow all interact. A strong architecture chooses where each kind of memory belongs instead of assuming one memory technology solves the whole model.</p>
+            <p><strong>Do not overclaim:</strong> the local record is abstract-only. The reported efficiency and throughput are notable, but the interview value is the hybrid ReRAM-SRAM and attention-aware framing.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-380</span><span class="metric">ADC problem</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-380.json">Analog Accumulator and In-Memory ADC With Shared References</a></h3>
+            <p>This paper deserves attention because ADC overhead is one of the core hard parts in analog computing. If the analog array computes efficiently but the ADCs are large, power hungry, or repeated too often, the system loses much of the benefit.</p>
+            <p>The paper attacks that by sharing reference signals inside the conversion path and by using an analog accumulator to combine work before conversion. In simple terms, it tries to avoid building expensive conversion support for every small piece of computation. It also uses bit slicing and charge sharing to handle multi-bit inputs more efficiently.</p>
+            <p>The first-principles lesson is that analog compute is only as good as its interface to the digital world. The boundary between analog and digital can dominate area and energy. Better ADC organization can make the analog path more practical.</p>
+            <p><strong>Do not overclaim:</strong> the reported TOPS/W is very high, but the local record says evaluation is on smaller models. The right interview angle is not "this proves huge model deployment." It is "ADC cost is central, and shared-reference conversion is one way to reduce it."</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2024-370</span><span class="metric">analog/digital boundary</span></div>
+            <h3><a href="../analysis/per-paper-2024/dac-2024-370.json">Hybrid Analog-Digital IMC for Lossless Neural Network Inference</a></h3>
+            <p>This paper gives one of the cleanest interview ideas: not every multiplication deserves the same hardware path. Small values may be safe to compute with lower precision in analog. Large or sensitive values may need digital handling to protect accuracy.</p>
+            <p>The first-principles reason is that error does not affect every operation equally. If an approximate result changes a tiny term, the final answer may barely move. If it changes a large or sensitive term, the final answer may move enough to change the prediction. A hybrid system can spend precision only where it matters.</p>
+            <p>This is directly connected to the analog boundary question. The design is really deciding where analog should stop and digital should take over. That is the kind of architectural thinking that matters in an interview because it shows you understand analog as a tool, not as a religion.</p>
+            <p><strong>Do not overclaim:</strong> the local record is medium confidence and based on limited abstract detail. Use it for the principle of value-aware routing between analog and digital paths.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">iccad-2025-056</span><span class="metric">error modeling</span></div>
+            <h3><a href="../analysis/per-paper/iccad-2025-056.json">How Non-Ideal Analog PIM Errors Impact NN Accuracy</a></h3>
+            <p>This paper is important because it studies the question behind nearly every analog claim: what do real analog errors do to model accuracy? Analog hardware has many possible error sources, and simulating every bit and every crossbar can be too slow for large models.</p>
+            <p>The paper's idea is to inject and evaluate error at the model level more efficiently. Instead of only asking whether the circuit is imperfect, it asks how those imperfections change the neural network's answer. That is the right level for product thinking because a customer ultimately cares about task accuracy, not whether each internal signal is mathematically exact.</p>
+            <p>The first-principles lesson is that analog hardware and model behavior must be evaluated together. A circuit error is harmful only if it changes the model's output enough to matter. Fast error evaluation helps designers find which hardware errors are acceptable and which require calibration, protection, or digital fallback.</p>
+            <p><strong>Do not overclaim:</strong> this is an evaluation method, not an accelerator by itself. Its value is helping decide whether an analog PIM design will preserve accuracy before spending too much time on slow low-level simulation.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-130</span><span class="metric">edge adaptation</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-130.json">HH-PIM for Edge AI Devices</a></h3>
+            <p>HH-PIM is useful because edge workloads are not constant. Some parts of a model or workload may need speed. Other parts may be simple enough for a lower-power path. If the hardware treats all work the same, it may waste energy by using high-performance resources when low-power resources would do.</p>
+            <p>The architecture uses different PIM modules and moves data toward the core type that fits the current work. In simple terms, it asks: does this piece of computation need the fast path, or can it run on the lower-power path and still meet latency?</p>
+            <p>The first-principles lesson is that energy efficiency is often about matching resources to demand. A fixed architecture can be efficient on one workload and wasteful on another. A heterogeneous system can adapt, but it needs good scheduling and data placement so the movement cost does not erase the savings.</p>
+            <p><strong>Do not overclaim:</strong> this is broader PIM rather than pure analog. It is still relevant because Aspirare-style edge products will also need workload-aware placement and power management.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">dac-2025-127</span><span class="metric">memory-heavy LLM inference</span></div>
+            <h3><a href="../analysis/per-paper/dac-2025-127.json">PIMPAL: In-DRAM Lookup for Edge LLM Inference</a></h3>
+            <p>PIMPAL is not pure analog, but it belongs in this set because it attacks the same first-principles bottleneck: memory movement. Edge LLM inference often spends a lot of effort on matrix-vector work where data movement is expensive and reuse patterns are different from large batched data-center inference.</p>
+            <p>The paper uses lookup tables inside DRAM. Instead of performing each arithmetic operation in a separate compute unit, it stores precomputed pieces of the result and reads them in parallel from memory. This trades arithmetic for memory-side lookup and careful data placement.</p>
+            <p>The lesson is that near-memory acceleration can take several forms. It does not always have to be analog multiply-add. Sometimes the right move is to change the computation into a form memory can serve efficiently. This is useful when discussing edge LLMs because it keeps the focus on memory behavior rather than assuming one compute style solves everything.</p>
+            <p><strong>Do not overclaim:</strong> lookup-table PIM has its own limits around storage, precision, model support, and mapping. Use it as a contrast case: same memory-wall problem, different solution path.</p>
+          </article>
+
+          <article class="paper">
+            <div class="paper-head"><span class="paper-id">fccm-2025-053</span><span class="metric">design automation</span></div>
+            <h3><a href="../analysis/per-paper/fccm-2025-053.json">LLM-IMC: Automating Analog IMC Design</a></h3>
+            <p>This paper is about how hard analog IMC is to design. Digital design has mature automation flows. Analog circuit design still needs deep expert judgment, detailed simulation, and careful checking. That slows exploration because many choices in crossbar structure, sensing, conversion, and timing can change the final behavior.</p>
+            <p>The paper explores using an LLM to generate SPICE netlists and analyze design options. A SPICE netlist is a detailed circuit description used for simulation. The first-principles value is not that an LLM replaces circuit engineers. The value is that design exploration is expensive, and better tooling can help engineers test more options earlier.</p>
+            <p>This is relevant to Aspirare-style work because analog compute products depend on circuit-level choices. Software can help search the space, but the final design still has to survive simulation, layout, silicon measurement, calibration, and real workloads.</p>
+            <p><strong>Do not overclaim:</strong> generated circuits still need verification. This is a tooling and exploration paper, not proof that AI can automatically produce production-ready analog chips.</p>
+          </article>
+        </div>
+
+        <div class="plain-rule">
+          <p><strong>Best interview synthesis:</strong> these papers point to the same conclusion from different angles. The winning product is unlikely to be "all analog everywhere." It is a carefully mapped system that uses analog or in-memory compute where data movement and energy dominate, protects the parts of the model that are sensitive to error, reduces conversion overhead, and proves accuracy and latency on real edge workloads.</p>
+        </div>
+      </section>
+
+      <section id="reading-path">
+        <h2>Best Reading Path</h2>
+        <p>Use this order if you are preparing for an interview and want the topic to click quickly.</p>
+        <ol class="list">
+          <li>Start with <a href="../grand-synthesis.html">grand-synthesis.html</a>, especially the memory architecture section. It explains why data movement is the root pressure.</li>
+          <li>Read <a href="../t3-deepdive.html">t3-deepdive.html</a> for the memory wall and near-data processing story.</li>
+          <li>Read <a href="../date-2025-bigpicture.html">date-2025-bigpicture.html</a> for analog circuits, PVT variation, and verification.</li>
+          <li>Read <a href="../isscc-2025-bigpicture.html">isscc-2025-bigpicture.html</a> for measured silicon and TOPS/W style claims.</li>
+          <li>Then read the per-paper records above, starting with <a href="../analysis/per-paper/isca-2025-098.json">isca-2025-098</a> and <a href="../analysis/per-paper/date-2025-193.json">date-2025-193</a>.</li>
+        </ol>
+      </section>
+
+      <section id="interview">
+        <h2>Interview Frame</h2>
+        <p>If asked what this company or area is really about, keep the answer grounded:</p>
+        <div class="plain-rule">
+          <p>Edge AI inference is often limited by energy, heat, memory movement, and response time. Analog in-memory compute tries to reduce those limits by doing the repeated matrix math close to where the model weights are stored. The promise is lower energy per useful inference, especially in small devices that cannot afford a large battery or fan.</p>
+        </div>
+        <div class="two-col">
+          <article class="card">
+            <h3>What to say clearly</h3>
+            <p>Start with the energy problem, not with the word analog. A neural network inference run moves a lot of numbers. The model weights are read again and again, the activations move between layers, and intermediate results often travel through memory and logic before the next step can use them. On a small device, moving those values can cost more energy than the arithmetic itself. That is the core reason this area exists.</p>
+            <p>Then explain what in-memory compute changes. Instead of pulling the weights out of memory, sending them to a separate compute unit, multiplying them, and writing results back, the chip tries to do the repeated multiply-add work close to the place where the weights already live. The first-principles idea is simple: if the data is expensive to move, reduce the distance it moves and reduce how often it moves.</p>
+            <p>Analog compute is a second idea layered on top of that. A digital circuit represents numbers as bits and performs exact step-by-step logic on those bits. An analog circuit can represent values as physical quantities such as voltage, current, charge, or resistance. In a memory array, many of those physical signals can combine at the same time. That is why analog is interesting for matrix math: the circuit physics can perform many small weighted sums in parallel.</p>
+            <p>For Aspirare-style edge AI, the clean framing is that the company is trying to make inference cheaper in energy and heat, especially when the same model runs many times on-device. That matters for wearables, sensors, robots, cameras, and other small systems where a large battery, fan, or cloud round trip is not acceptable. The value is not just raw speed. The value is useful inference under a tight power and thermal budget.</p>
+            <p>Also say clearly that this is a full-system problem. The analog core is only one part of the product. The model must be quantized into a number format the hardware can handle. The compiler or runtime must decide which layers run on the analog core and which stay digital. Calibration must account for real chip behavior. The final proof is not "the core has a high TOPS/W number." The proof is that a real model reaches the required accuracy, latency, energy, and reliability on the target device.</p>
+            <p>A strong way to show maturity is to ask where the analog boundary sits. Which operators are mapped into the analog array? Which are handled digitally? How often are ADCs and DACs used? How are sensitive weights protected? What happens across temperature and voltage? These questions show that you understand the basic promise and the engineering work needed to turn it into a product.</p>
+          </article>
+          <article class="card">
+            <h3>What to not overclaim</h3>
+            <p>Do not say analog is automatically better than digital. Digital compute is precise, flexible, mature, and easy to program compared with most analog approaches. Analog compute is attractive when the workload has the right shape: many repeated weighted sums, enough tolerance for small numeric error, and enough reuse of stored weights to make the reduced data movement matter.</p>
+            <p>Do not treat a high TOPS/W number as the whole answer. TOPS/W can be useful, but it depends on what was counted. If the number only covers a compute macro, it may leave out ADCs, DACs, digital control, SRAM or DRAM traffic, host processor work, idle power, and thermal behavior. In an interview, it is better to say that peak efficiency is promising but the real comparison should be energy per completed inference at a fixed accuracy and latency target.</p>
+            <p>Do not claim that a prototype chip proves production readiness. A tapeout or prototype is important because it shows the idea has reached silicon, but production adds more tests. The company still has to prove yield, repeatability across chips, calibration cost, packaging, long-term drift, software support, customer integration, and behavior across real operating conditions. That is not a criticism. It is the normal path from circuit idea to product.</p>
+            <p>Do not assume benchmark accuracy means field accuracy. Analog behavior can shift with heat, voltage, manufacturing differences, and age. Inputs in the real world may also differ from the benchmark set. A careful claim would say that the model must be evaluated after quantization, analog noise, calibration, and environmental variation are included. If accuracy holds under those conditions, the claim becomes much stronger.</p>
+            <p>Do not blur inference and training. Training changes weights constantly and needs high numeric stability. Edge inference usually reuses fixed weights many times, which is a much better fit for in-memory compute. If the role or company talks about edge inference, stay anchored there unless they explicitly bring up on-device learning or training.</p>
+            <p>Do not imply the analog core replaces the whole accelerator. A usable chip still needs digital control, memory management, interfaces, scheduling, error handling, and software tools. Some layers or operators may not map cleanly to analog. A balanced view is that analog can be the energy-efficient engine for the parts of the model that fit it, while digital logic handles the parts that need precision, control, or flexibility.</p>
+            <p>Finally, do not speak about "edge AI" as one market. A wearable, a robot, a smart camera, and an industrial sensor all have different duty cycles, latency needs, battery limits, model sizes, safety expectations, and cost targets. The right product story depends on which workload is being served. A careful answer says the architecture is most compelling when the workload repeats inference often, is power or heat constrained, and can tolerate the numeric behavior of the analog path.</p>
+          </article>
+        </div>
+        <div class="plain-rule">
+          <p><strong>Clean way to say it:</strong> "I see analog in-memory AI as a focused answer to an energy problem. It moves the multiply-add work closer to the stored weights and uses the physics of the circuit to do many operations at once. The hard part is proving that the full system still has the needed accuracy, latency, and reliability after conversion cost, noise, calibration, and software mapping are included."</p>
+        </div>
+      </section>
+
+      <section id="source-links">
+        <h2>Source Links In This Repo</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Overview pages</h3>
+            <p><a href="../grand-synthesis.html">Grand synthesis</a></p>
+            <p><a href="../t3-deepdive.html">Memory wall deep dive</a></p>
+            <p><a href="../date-2025-bigpicture.html">DATE 2025 big picture</a></p>
+            <p><a href="../isscc-2025-bigpicture.html">ISSCC 2025 big picture</a></p>
+            <p><a href="../dac-2025-bigpicture.html">DAC 2025 big picture</a></p>
+          </article>
+          <article class="card">
+            <h3>Paper hubs</h3>
+            <p><a href="../explorer.html">Paper explorer</a></p>
+            <p><a href="../themes.html">Theme hub</a></p>
+            <p><a href="../techniques.html">Technique breakdown</a></p>
+            <p><a href="../deepdives.html">Deep dives hub</a></p>
+            <p><a href="../README.md">Repo README</a></p>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        Built as a local guide over the existing <a href="../index.html">ai-hardware-analysis</a> corpus. No build step required.
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

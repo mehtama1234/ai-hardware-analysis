@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strategy Synthesis And Next Pages</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --panel: #ffffff;
+      --soft: #eef2ee;
+      --text: #1d211d;
+      --muted: #60675f;
+      --line: #dfe3dd;
+      --accent: #536f35;
+      --warn: #966b00;
+      --bad: #a33b3b;
+      --code: #edf1ec;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(31px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 920px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fff9e8;
+      padding: 14px 16px;
+      margin-top: 18px;
+    }
+    main { padding-top: 8px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      margin-bottom: 6px;
+    }
+    ol, ul {
+      margin: 10px 0 0 22px;
+      padding: 0;
+    }
+    li { margin: 8px 0; }
+    code {
+      background: var(--code);
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); }
+    .safe {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .blocked {
+      color: var(--bad);
+      font-weight: 800;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    @media (max-width: 820px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid, .three { grid-template-columns: 1fr; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
+      <a href="customer-workload-intake-plan.html">Intake</a>
+      <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+      <a href="timing-latency-budget-plan.html">Timing</a>
+      <a href="hybrid-benchmarking-practical-pipeline.html">Hybrid Benchmarking</a>
+      <a href="partner-ecosystem-variations.html">Partners</a>
+      <a href="investor-narrative-variations.html">Investor Narratives</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+    </nav>
+    <h1>Strategy Synthesis And Next Pages</h1>
+    <p class="lead">This page brings the whole set together. It explains what we have already covered, what is still missing, and what the broader strategy should become.</p>
+    <p class="question">The core question: what do we need next so the analog chip story becomes a credible product plan instead of a collection of good technical ideas?</p>
+    <div class="warning">
+      <strong>Operating rule:</strong>
+      <p>Every page should either clarify the strategy, define a proof gate, or turn a vague claim into a measurable artifact. If a page does not help someone decide what to build, measure, or avoid claiming, it should not be added.</p>
+    </div>
+    <div class="jump">
+      <a href="#current-set">Current Set</a>
+      <a href="#broader-thought">Broader Thought</a>
+      <a href="#missing">Missing Pages</a>
+      <a href="#priority">Priority Order</a>
+      <a href="#unified-story">Unified Story</a>
+      <a href="#build-plan">Build Plan</a>
+      <a href="#claim-system">Claim System</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="current-set">
+      <h2>What We Have Now</h2>
+      <p>The current pages cover the main pieces, but each page has a different job.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>What It Answers</th>
+            <th>Why It Matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="company-roadmap-end-to-end.html">Company Roadmap</a></td>
+            <td>The broad roadmap: chip, software, proof, and claims.</td>
+            <td>This is the main entry point for the company story.</td>
+          </tr>
+          <tr>
+            <td><a href="proof-ladder-step-by-step.html">Proof Ladder</a></td>
+            <td>The 14-step method for answering whether a workload can run well.</td>
+            <td>This prevents one weak artifact from becoming a broad claim.</td>
+          </tr>
+          <tr>
+            <td><a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a></td>
+            <td>Where analog IMC should compete and how digital twins fit the market.</td>
+            <td>This narrows the market from "all robotics" to plausible first wedges.</td>
+          </tr>
+          <tr>
+            <td><a href="physical-ai-robot-learning-implications.html">Robot Learning</a></td>
+            <td>How sim-to-real, recovery, safety filters, and tactile sensing affect chip requirements.</td>
+            <td>This keeps the roadmap honest about closed-loop systems.</td>
+          </tr>
+          <tr>
+            <td><a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a></td>
+            <td>How hardware-aware training and digital twins should shape model development.</td>
+            <td>This explains why simulator quality is a product feature, not a side experiment.</td>
+          </tr>
+          <tr>
+            <td><a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a></td>
+            <td>What AIHWKIT and adjacent tools can prove, and what they cannot prove.</td>
+            <td>This defines the simulator adapter strategy.</td>
+          </tr>
+          <tr>
+            <td><a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a></td>
+            <td>Why analog-mlir needs chip-specific passes before real silicon deployment.</td>
+            <td>This turns compiler work into concrete architecture work.</td>
+          </tr>
+          <tr>
+            <td><a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a></td>
+            <td>Which packaging, thermal, substrate-noise, memory, and ADC issues must be proven.</td>
+            <td>This prevents software demos from being mistaken for tape-out readiness.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Terms Before The Missing Pages</h2>
+      <p><strong>Analog IMC</strong> means analog in-memory computing. The chip stores neural-network weights near the place where some math happens, so the system can avoid moving as much data back and forth.</p>
+      <p><strong>Physical AI</strong> means AI connected to sensors, machines, robots, cameras, drones, industrial systems, or other devices that observe and act in the real world.</p>
+      <p><strong>Matrix-heavy inference</strong> means the model spends a lot of time multiplying many input numbers by many stored weights. This is the kind of work analog arrays may handle efficiently.</p>
+      <p><strong>Latency</strong> means delay. A robot, drone, or sensor system can fail if the answer arrives too late, even when the model's answer is mathematically correct.</p>
+      <p><strong>Calibration</strong> means measuring real hardware behavior and using those measurements to correct the simulator.</p>
+      <p><strong>Compiler</strong> means the software translator that turns a normal AI model into instructions and placement choices the chip can actually run.</p>
+      <p><strong>Evidence</strong> means the proof behind a claim. A simulation, compiler report, board run, power measurement, thermal measurement, and task result each prove different things.</p>
+    </section>
+
+    <section id="broader-thought">
+      <h2>Broader Thought</h2>
+      <p>The strongest company strategy is not "analog is better than digital." That is too broad and too easy to attack.</p>
+      <p>The stronger strategy is:</p>
+      <p><code>Analog IMC can win selected Physical AI workloads when matrix-heavy inference must run near sensors under tight power, heat, and latency constraints, and when the company provides the simulator, compiler, calibration, and evidence system needed to use the chip safely.</code></p>
+      <p>This means the startup is not only a chip company. It is a chip plus software proof company.</p>
+      <p>The hardware advantage only matters if customers can answer practical questions:</p>
+      <ul>
+        <li>Will my actual workload fit?</li>
+        <li>Which layers go analog and which stay digital?</li>
+        <li>What happens when there is noise, drift, temperature change, and imperfect weight writing?</li>
+        <li>Can the compiler produce a real execution plan?</li>
+        <li>Will the board meet latency and power targets?</li>
+        <li>Does the model still complete the physical task?</li>
+        <li>What claim is safe to make today?</li>
+      </ul>
+    </section>
+
+    <section id="missing">
+      <h2>What Else We Need To Create</h2>
+      <p>The missing pages should close the gap between strategy and execution. Put more simply: we need pages that help a non-specialist follow the path from a customer saying "I have this AI workload" to the company saying "this is a good analog-chip fit" or "this is not proven yet."</p>
+      <p>The terms below can sound technical, so each item explains the idea in ordinary language before it names the artifact.</p>
+      <div class="grid">
+        <div class="card">
+          <b>1. Customer Workload Intake Page</b>
+          <p><a href="customer-workload-intake-plan.html">Open page.</a></p>
+          <p>This is the questionnaire at the front door. It asks what the customer is trying to run, what physical device it belongs to, what sensor data comes in, how fast the answer must arrive, how much power is allowed, and how success is judged.</p>
+          <p>Example: "A robot gripper needs to detect slipping from tactile sensors within 2 milliseconds while using less than 50 milliwatts."</p>
+          <p class="safe">Why first: if we do not understand the real task, every later simulator result or benchmark can look precise while answering the wrong question.</p>
+        </div>
+        <div class="card">
+          <b>2. Evidence Matrix Page</b>
+          <p><a href="evidence-matrix-plan.html">Open page.</a></p>
+          <p>This is the proof rulebook. It says what kind of proof is needed before the company is allowed to make a claim.</p>
+          <p>Example: a simulator can support "the model looks tolerant to analog noise under these settings." It cannot support "the board uses less power" because no board power was measured.</p>
+          <p class="safe">Why first: this stops accidental overclaiming and keeps investor, customer, and engineering language aligned with actual proof.</p>
+        </div>
+        <div class="card">
+          <b>3. Timing And Latency Budget Page</b>
+          <p><a href="timing-latency-budget-plan.html">Open page.</a></p>
+          <p>This is the stopwatch for the whole physical loop. It separates the time spent sensing, converting signals, computing, moving data, checking safety, and sending the final command.</p>
+          <p>ADC means analog-to-digital converter. DAC means digital-to-analog converter. A digital VPU is the ordinary digital helper block that handles math or decisions analog arrays should not handle.</p>
+          <p class="safe">Why first: a fast analog operation is not enough if the complete sensor-to-action loop is too slow.</p>
+        </div>
+        <div class="card">
+          <b>4. Memory Technology Decision Page</b>
+          <p><a href="memory-technology-decision-plan.html">Open page.</a></p>
+          <p>This page asks what kind of physical memory should store the model weights. Different memories have different tradeoffs: some are dense, some are easier to rewrite, some drift more, and some are easier to manufacture.</p>
+          <p>RRAM, PCM, MRAM, FeRAM, and SRAM are different ways to store information on a chip. The page does not assume one is best. It explains which one fits the workload and which claims become unsafe.</p>
+          <p class="safe">Why first: if the workload needs frequent learning or field updates, the memory write behavior may decide whether the product is realistic.</p>
+        </div>
+        <div class="card">
+          <b>5. Benchmark Suite Page</b>
+          <p><a href="benchmark-suite-plan.html">Open page.</a></p>
+          <p>This page defines the test set. Instead of saying "we are good for robotics," it names specific examples and how each one will be judged.</p>
+          <p>Example: tactile slip detection is judged by whether the system detects slipping quickly without too many false alarms. A bad-fit benchmark is included on purpose so the platform proves it can say no.</p>
+          <p class="safe">Why first: repeatable examples make the strategy testable. Broad categories make it easy to fool ourselves.</p>
+        </div>
+        <div class="card">
+          <b>6. Simulator Calibration Page</b>
+          <p><a href="simulator-calibration-plan.html">Open page.</a></p>
+          <p>This page explains how the simulator becomes trustworthy. Early on, the simulator uses assumed numbers. Later, those numbers must be replaced with measurements from devices, circuits, boards, and lab tests.</p>
+          <p>Example: if the simulator assumes 2% read noise but the board shows 6%, the simulator profile must change and old results must be marked weaker.</p>
+          <p class="safe">Why first: uncalibrated simulation is a useful guess. Calibrated simulation is evidence.</p>
+        </div>
+        <div class="card">
+          <b>7. Partner And Ecosystem Page</b>
+          <p><a href="partner-ecosystem-variations.html">Open page.</a></p>
+          <p>This page would explain who else is needed to make the product real. A chip does not succeed alone. It needs simulation tools, chip-design tools, manufacturing partners, board partners, sensor partners, and first customers.</p>
+          <p>EDA tools are chip-design tools. A foundry is the manufacturing partner that fabricates silicon. A design partner is an early customer who helps test the product on a real use case.</p>
+          <p class="safe">Why later: useful once we know which first market wedge we are actually targeting.</p>
+        </div>
+        <div class="card">
+          <b>8. Investor Narrative Page</b>
+          <p><a href="investor-narrative-variations.html">Open page.</a></p>
+          <p>This page would turn the engineering plan into a funding story. It should explain the first market, why the chip matters, what proof milestones reduce risk, and what the next funding round pays for.</p>
+          <p>A moat is the reason competitors cannot easily copy the advantage. In this strategy, the moat is not only the analog array. It is the simulator, compiler, calibration data, benchmark evidence, and customer workflow around the chip.</p>
+          <p class="safe">Why later: the investor story should be built from the proof plan, not ahead of it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="priority">
+      <h2>Priority Order</h2>
+      <p>I would not create all missing pages at once. The next four matter most because they turn the strategy into an operating system.</p>
+      <ol>
+        <li><strong>Customer Workload Intake:</strong> define what we must know before judging fit.</li>
+        <li><strong>Evidence Matrix:</strong> define which claims are allowed from which artifacts.</li>
+        <li><strong>Timing And Latency Budget:</strong> define real loop timing for Physical AI and robotics.</li>
+        <li><strong>Memory Technology Decision:</strong> define whether the chip is fixed-weight, low-update, adapter-update, or truly adaptive.</li>
+      </ol>
+      <p>After those, create the benchmark suite and simulator calibration pages. Those pages make the proof measurable.</p>
+      <p>The <a href="six-gap-end-to-end-goal.html">Six-Gap End-To-End Goal</a> turns all six into one execution plan with inputs, outputs, evidence, and acceptance criteria.</p>
+    </section>
+
+    <section id="unified-story">
+      <h2>The Unified Story</h2>
+      <p>The pages should read in this order:</p>
+      <ol>
+        <li><a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis:</a> what the whole plan is and what is missing.</li>
+        <li><a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity:</a> where the chip should compete.</li>
+        <li><a href="physical-ai-robot-learning-implications.html">Robot Learning:</a> why closed-loop robotics changes requirements.</li>
+        <li><a href="proof-ladder-step-by-step.html">Proof Ladder:</a> how we answer the workload question step by step.</li>
+        <li><a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler:</a> why the simulator must be part of the product.</li>
+        <li><a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack:</a> which tools help and where adapters are needed.</li>
+        <li><a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan:</a> how model code becomes chip execution.</li>
+        <li><a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks:</a> which physical risks must be closed before silicon claims.</li>
+        <li><a href="company-roadmap-end-to-end.html">Company Roadmap:</a> the full roadmap and product workbench.</li>
+      </ol>
+    </section>
+
+    <section id="build-plan">
+      <h2>What The Product Should Become</h2>
+      <p>The final product should feel like a review cockpit for analog-chip readiness.</p>
+      <p>A user should be able to:</p>
+      <ol>
+        <li>Upload or register a model.</li>
+        <li>Describe the physical workload and constraints.</li>
+        <li>Get a plain-language analog-fit verdict.</li>
+        <li>See which model parts map to analog, digital, or fallback.</li>
+        <li>Run simulator adapters and hardware-aware training checks.</li>
+        <li>Run compiler mapping checks.</li>
+        <li>Import board, power, thermal, calibration, and task evidence.</li>
+        <li>See blocked claims stay blocked until the right evidence exists.</li>
+        <li>Export a review package that a customer, investor, or engineering partner can inspect offline.</li>
+      </ol>
+      <p>The workbench should not only produce a score. It should produce a defensible answer.</p>
+    </section>
+
+    <section id="claim-system">
+      <h2>The Claim System</h2>
+      <p>The broader thought is that claim discipline is the real product moat. Analog chips attract big claims because the physics can look impressive. The hard part is proving that the advantage survives a real workload and a real system.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Weak Claim</th>
+            <th>Stronger Claim</th>
+            <th>Evidence Needed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Analog is 100x better.</td>
+            <td>For this layer or workload, under these assumptions, analog reduces estimated energy by this amount.</td>
+            <td>Layer analysis, simulator output, full-system estimate, and eventually board power.</td>
+          </tr>
+          <tr>
+            <td>The chip runs robotics.</td>
+            <td>The chip supports this sensor-close robotics workload within this timing and power budget.</td>
+            <td>Workload intake, timing budget, compiler map, board run, and task result.</td>
+          </tr>
+          <tr>
+            <td>The simulator proves the chip works.</td>
+            <td>The simulator shows the model survives stated analog assumptions.</td>
+            <td>Simulator config, raw output, calibration source, and comparison against hardware later.</td>
+          </tr>
+          <tr>
+            <td>The compiler supports transformers.</td>
+            <td>The compiler maps these transformer layers to analog and keeps these dynamic layers digital.</td>
+            <td>Layer split, tile map, unsupported ops, schedule, and runtime package.</td>
+          </tr>
+          <tr>
+            <td>The chip is adaptive.</td>
+            <td>The chip supports fixed weights, periodic updates, or small adapter updates under measured limits.</td>
+            <td>Write latency, write energy, endurance, retention, rollback, and post-update accuracy.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>My Recommendation</h2>
+      <p>The next page to create should be the <strong>Customer Workload Intake Page</strong>. That is the front door for the whole proof system. Without it, the roadmap stays abstract.</p>
+      <p>After that, create the <strong>Evidence Matrix Page</strong>. That page should become the rulebook that says exactly which claims are supported, blocked, or unknown.</p>
+      <p>Then create the <strong>Timing And Latency Budget Page</strong>, because the robotics and tactile-sensing angle depends on timing discipline.</p>
+    </section>
+  </main>
+</body>
+</html>

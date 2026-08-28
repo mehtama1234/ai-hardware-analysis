@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Technology Decision Plan</title>
+  <style>body{margin:0;background:#f7f8f6;color:#1c211d;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}header,main{max-width:1080px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}nav a{border:1px solid #dce3dd;border-radius:8px;background:#fff;padding:8px 10px;color:#3f6f45;font-size:14px;font-weight:800;text-decoration:none}a{color:#3f6f45;font-weight:800;text-decoration:none}h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05}h2{margin:0 0 12px;font-size:28px;line-height:1.15}p{margin:8px 0}.lead{max-width:900px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid #3f6f45;border-radius:8px;background:#eef4ef;padding:14px 16px;font-weight:800}.warning{border:1px solid #e2d1a4;border-left:5px solid #966b00;border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:18px}section{background:#fff;border:1px solid #dce3dd;border-radius:8px;padding:22px;margin:18px 0}ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:#edf1ed;border-radius:6px;padding:2px 5px}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid #dce3dd;padding:10px;text-align:left;vertical-align:top}th{background:#eef4ef}@media(max-width:820px){header,main{padding:20px 16px}table{font-size:13px}}</style>
+</head>
+<body>
+  <header>
+    <nav><a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a><a href="customer-workload-intake-plan.html">Intake</a><a href="evidence-matrix-plan.html">Evidence Matrix</a><a href="timing-latency-budget-plan.html">Timing Budget</a><a href="benchmark-suite-plan.html">Benchmarks</a><a href="simulator-calibration-plan.html">Calibration</a></nav>
+    <h1>Memory Technology Decision Plan</h1>
+    <p class="lead">This page defines how to choose and justify the memory element for the analog IMC product.</p>
+    <p class="question">Question: is this chip a fixed-weight inference engine, a low-update accelerator, an adapter-update system, or a real adaptive platform?</p>
+    <div class="warning"><strong>Rule:</strong><p>Do not claim adaptive Physical AI until write speed, write energy, endurance, retention, recalibration, rollback, and post-update accuracy are measured or credibly bounded.</p></div>
+  </header>
+  <main>
+    <section>
+      <h2>Plain-Language Vocabulary</h2>
+      <p>The memory element is the physical place where the chip stores model weights. A model weight is a learned number inside the neural network.</p>
+      <p>Writing a weight means changing what is stored in memory. Reading a weight means using that stored value during inference.</p>
+      <p>Endurance means how many times the memory can be rewritten before it wears out. Retention means how long it remembers the value. Drift means the stored value slowly changes.</p>
+      <p>RRAM, PCM, MRAM, FeRAM, and SRAM are different memory families. They trade off density, write speed, endurance, drift, analog precision, cost, and manufacturability.</p>
+    </section>
+    <section>
+      <h2>Decision Factors</h2>
+      <table>
+        <tr><th>Factor</th><th>What It Means</th><th>Why It Matters</th></tr>
+        <tr><td>Write speed</td><td>How quickly weights can be programmed.</td><td>Controls whether field adaptation is practical.</td></tr>
+        <tr><td>Write energy</td><td>Energy required to change weights.</td><td>Can erase the power advantage if updates are frequent.</td></tr>
+        <tr><td>Endurance</td><td>How many writes the device survives.</td><td>Controls lifetime and warranty risk.</td></tr>
+        <tr><td>Retention and drift</td><td>How stored values change over time.</td><td>Controls calibration frequency and accuracy stability.</td></tr>
+        <tr><td>Density</td><td>How much model weight fits in area.</td><td>Controls cost and model capacity.</td></tr>
+        <tr><td>Analog precision</td><td>How many stable conductance levels are usable.</td><td>Controls accuracy and bit-slicing needs.</td></tr>
+        <tr><td>Foundry path</td><td>Whether the process is manufacturable with partners.</td><td>Controls schedule and commercial credibility.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Output Classes</h2>
+      <ul>
+        <li><strong>Fixed-weight ready:</strong> weights are written once or rarely; strongest early analog fit.</li>
+        <li><strong>Periodic-update candidate:</strong> updates happen occasionally with acceptable cost and recalibration.</li>
+        <li><strong>Adapter-update candidate:</strong> large analog base is stable while small digital/SRAM adapter layers change.</li>
+        <li><strong>Adaptive blocked:</strong> workload needs frequent full-weight updates that memory cannot support safely yet.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>How The Memory Decision Happens Practically</h2>
+      <ol>
+        <li>Start with the workload update need: never changes, occasional update, small adapter update, or frequent learning.</li>
+        <li>List candidate memory types and their measured or expected behavior.</li>
+        <li>Check whether each memory can store the needed weight precision.</li>
+        <li>Check whether writing weights costs too much time or energy.</li>
+        <li>Check whether repeated writes wear out the memory.</li>
+        <li>Check whether drift forces frequent recalibration.</li>
+        <li>Choose the safest claim: fixed-weight ready, periodic-update candidate, adapter-update candidate, or adaptive blocked.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Example Decision</h2>
+      <p>A tactile gripper workload uses a stable base model but needs customer-specific tuning after installation.</p>
+      <table>
+        <tr><th>Option</th><th>What Happens</th><th>Decision</th></tr>
+        <tr><td>Rewrite full analog model often</td><td>May stress write energy, endurance, recalibration, and accuracy.</td><td>Risky until measured.</td></tr>
+        <tr><td>Keep analog base fixed</td><td>Large repeated matrix work stays in analog memory.</td><td>Good fit if accuracy survives analog behavior.</td></tr>
+        <tr><td>Update small digital/SRAM adapter</td><td>Customer-specific changes happen in a small fast-update path.</td><td>Strong hybrid path.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Common Mistakes This Page Prevents</h2>
+      <ul>
+        <li>Choosing a memory because one paper reported high endurance without checking analog weight accuracy.</li>
+        <li>Confusing binary storage endurance with multi-level analog weight endurance.</li>
+        <li>Ignoring write energy and recalibration time.</li>
+        <li>Claiming frequent learning before measuring post-update accuracy.</li>
+        <li>Picking memory technology before choosing the first workload wedge.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Detailed Walkthrough</h2>
+      <p>The memory decision should start from the workload, not from the most exciting device paper. A memory can look excellent in isolation but still be wrong for the product if it cannot support the model size, update behavior, accuracy, foundry path, or temperature range.</p>
+      <h3>Before The Decision</h3>
+      <p>Collect the workload's update need. A fixed industrial detector and a robot that learns continuously are very different products. The same memory technology may be acceptable for one and blocked for the other.</p>
+      <h3>During The Decision</h3>
+      <p>Score each memory option against the same questions: can it store enough weights, can it represent enough levels, can it be rewritten when needed, how much energy does writing cost, how much does it drift, and can it be manufactured on the target process?</p>
+      <h3>After The Decision</h3>
+      <p>The result should be a claim boundary. It may say "fixed-weight ready" or "adapter-update candidate." It should not say "adaptive Physical AI ready" unless full update evidence exists.</p>
+    </section>
+    <section>
+      <h2>Memory Comparison, Explained</h2>
+      <table>
+        <tr><th>Memory Family</th><th>Plain Meaning</th><th>Potential Strength</th><th>Question To Prove</th></tr>
+        <tr><td>RRAM</td><td>Resistive memory that stores values by changing resistance.</td><td>Promising density, nonvolatility, and possible analog behavior.</td><td>Can multi-level weights be written accurately and repeatedly enough for this workload?</td></tr>
+        <tr><td>PCM</td><td>Phase-change memory that stores values by changing material state.</td><td>Well-studied for analog AI research and drift modeling.</td><td>Does drift and write behavior fit the product's update and calibration needs?</td></tr>
+        <tr><td>MRAM</td><td>Magnetic memory that stores values using magnetic states.</td><td>Strong endurance possibilities and nonvolatility.</td><td>Does it provide the density and analog weight behavior needed for IMC?</td></tr>
+        <tr><td>FeRAM / FeFET</td><td>Ferroelectric memory using polarization states.</td><td>Interesting low-power and embedded memory potential.</td><td>Does it scale, retain values, and support the required weight precision?</td></tr>
+        <tr><td>SRAM</td><td>Fast digital memory that loses data without power.</td><td>Fast updates and mature manufacturing.</td><td>Is area and leakage acceptable, and should it be used for adapters rather than the main analog array?</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>What The User Should Conclude</h2>
+      <p>The memory page should end with one of four practical conclusions:</p>
+      <ul>
+        <li><strong>Fixed-weight path:</strong> safest if the model rarely changes.</li>
+        <li><strong>Rare-update path:</strong> possible if write cost and recalibration are acceptable.</li>
+        <li><strong>Adapter-update path:</strong> strong compromise when the base model can stay analog and small parts can update digitally.</li>
+        <li><strong>Adaptive blocked:</strong> frequent full-weight updates are not proven yet.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Outputs And Done Criteria</h2>
+      <ul>
+        <li><code>memory_technology_decision.json</code></li>
+        <li><code>update_readiness.json</code></li>
+        <li><code>rewrite_risk.md</code></li>
+        <li><code>memory_profile_import_template.json</code></li>
+      </ul>
+      <p>Done means the workbench can explain the safest memory/update claim for the workload and block broader adaptation claims when evidence is missing.</p>
+    </section>
+  </main>
+</body>
+</html>

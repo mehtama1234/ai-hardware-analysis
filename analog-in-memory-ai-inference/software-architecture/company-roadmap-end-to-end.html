@@ -1,0 +1,2851 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analog IMC Company Roadmap End To End</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --text: #172026;
+      --muted: #5e6a71;
+      --line: #d9e1e5;
+      --bg: #f6f8f9;
+      --panel: #ffffff;
+      --soft: #fbfcfc;
+      --accent: #0a6f73;
+      --accent-2: #354f52;
+      --good: #287a3e;
+      --warn: #a76213;
+      --bad: #a13a32;
+      --code: #eef3f4;
+      --active: #0f8f87;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--bg);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+    }
+    .bar {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .title { font-weight: 800; }
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+    .modebar {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 0 24px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .modebar p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .segmented {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .segmented button,
+    .tool-button {
+      appearance: none;
+      border: 0;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 8px 11px;
+      cursor: pointer;
+    }
+    .segmented button + button { border-left: 1px solid var(--line); }
+    .segmented button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .tool-button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 6px 6px 0 0;
+    }
+    .tool-button:hover,
+    .node:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(10, 111, 115, 0.11);
+    }
+    .jump-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .jump-row a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 24px 64px;
+    }
+    section,
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 18px;
+    }
+    .hero { margin-top: 0; }
+    h1, h2, h3 {
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 25px;
+    }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    p { margin: 8px 0; }
+    .sub { color: var(--muted); }
+    .lead {
+      font-size: 18px;
+      max-width: 920px;
+    }
+    .callout {
+      border: 1px solid #b9d8d6;
+      border-left: 5px solid var(--accent);
+      background: #f0f7f6;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-top: 16px;
+    }
+    .audience-panel {
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+      margin-top: 14px;
+    }
+    .audience-panel.active,
+    .audience-only.active { display: block; }
+    .audience-only { display: none; }
+    .audience-band {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .audience-band.executive {
+      border-left: 5px solid var(--accent);
+    }
+    .audience-band.engineering {
+      border-left: 5px solid var(--accent-2);
+    }
+    .audience-band strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .audience-band p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .kpi {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .kpi div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 12px;
+      min-height: 88px;
+    }
+    .kpi b {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    .kpi span {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .package-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .package-summary div {
+      border: 1px solid #cfe2dc;
+      border-radius: 8px;
+      background: #f7fbf9;
+      padding: 12px;
+      min-height: 92px;
+    }
+    .package-summary b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .package-summary span {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 15px;
+    }
+    .card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .card span,
+    .card p,
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .tag {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      margin: 0 5px 6px 0;
+      font-size: 12px;
+      font-weight: 800;
+      background: #fff;
+      color: var(--muted);
+    }
+    .tag.good { color: var(--good); background: #edf8ef; border-color: #b9d9c0; }
+    .tag.warn { color: var(--warn); background: #fff6e8; border-color: #eccb9d; }
+    .tag.bad { color: var(--bad); background: #fff0ee; border-color: #edc0bb; }
+    .blocker-board {
+      display: grid;
+      grid-template-columns: 0.75fr 1.15fr 1.1fr 1fr;
+      gap: 1px;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--line);
+    }
+    .blocker-cell {
+      background: #fff;
+      padding: 13px;
+      min-height: 112px;
+    }
+    .blocker-cell.header {
+      min-height: auto;
+      background: var(--code);
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+    .blocker-cell.issue {
+      background: #fff9ef;
+      border-left: 4px solid var(--warn);
+      font-weight: 900;
+      color: var(--warn);
+    }
+    .blocker-cell p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .blocker-cell strong {
+      display: block;
+      font-size: 13px;
+    }
+    pre {
+      overflow-x: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: var(--code);
+      text-align: left;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .phase {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 16px;
+    }
+    .phase .label {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .node {
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 5px;
+      align-content: start;
+      cursor: pointer;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+    .node.active {
+      border-color: var(--active);
+      box-shadow: 0 0 0 3px rgba(15, 143, 135, 0.16);
+      transform: translateY(-2px);
+    }
+    .node.upstream {
+      border-color: #b9d9c0;
+      background: #f4fbf5;
+    }
+    .node.downstream {
+      border-color: #eccb9d;
+      background: #fff9ef;
+    }
+    .node.upstream::after,
+    .node.downstream::after {
+      align-self: end;
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      width: fit-content;
+    }
+    .node.upstream::after {
+      content: "feeds this";
+      color: var(--good);
+      background: #edf8ef;
+      border: 1px solid #b9d9c0;
+    }
+    .node.downstream::after {
+      content: "depends on this";
+      color: var(--warn);
+      background: #fff6e8;
+      border: 1px solid #eccb9d;
+    }
+    .node b { font-size: 13px; line-height: 1.25; }
+    .node span { color: var(--muted); font-size: 12px; line-height: 1.3; }
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .step-detail {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+    .step-detail h3 { margin-bottom: 4px; }
+    .step-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .step-detail-grid div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 12px;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .action-button {
+      appearance: none;
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 11px;
+    }
+    .action-button.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .action-button:focus {
+      outline: 3px solid rgba(15, 143, 135, 0.22);
+      outline-offset: 2px;
+    }
+    .status-strip {
+      border: 1px solid #b9d8d6;
+      border-radius: 8px;
+      background: #f0f7f6;
+      padding: 12px;
+      margin-top: 12px;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .status-strip b {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .flow-rail {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .flow-rail span {
+      min-height: 8px;
+      border-radius: 999px;
+      background: #d7e2e3;
+      transition: background 180ms ease, transform 180ms ease;
+    }
+    .flow-rail span.active {
+      background: var(--active);
+      transform: scaleY(1.8);
+    }
+    .system-flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .flow-card {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 150px;
+    }
+    .flow-card::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      width: 10px;
+      height: 2px;
+      background: var(--accent);
+    }
+    .flow-card:last-child::after { display: none; }
+    .flow-card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    .flow-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .proof-ladder {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      counter-reset: proof;
+    }
+    .proof-card {
+      counter-increment: proof;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 170px;
+      position: relative;
+    }
+    .proof-card::before {
+      content: counter(proof);
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .proof-card.weak::before { background: var(--muted); }
+    .proof-card.mid::before { background: var(--warn); }
+    .proof-card.strong::before { background: var(--good); }
+    .proof-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .claim-flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 18px;
+    }
+    .claim-flow::before {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: 5px;
+      height: 3px;
+      background: #cfdadd;
+      border-radius: 999px;
+    }
+    .claim-flow::after {
+      content: "";
+      position: absolute;
+      left: 10%;
+      top: 5px;
+      height: 3px;
+      width: 14%;
+      background: var(--active);
+      border-radius: 999px;
+      animation: evidenceSweep 5.6s ease-in-out infinite;
+    }
+    .claim-step {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 160px;
+    }
+    .claim-step::before {
+      content: "";
+      position: absolute;
+      top: -18px;
+      left: 16px;
+      width: 13px;
+      height: 13px;
+      border-radius: 999px;
+      background: #fff;
+      border: 3px solid var(--active);
+      z-index: 1;
+    }
+    .claim-step b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .claim-step strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .claim-step p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+    @keyframes evidenceSweep {
+      0%, 8% { left: 10%; width: 10%; }
+      25% { left: 25%; width: 10%; }
+      45% { left: 41%; width: 10%; }
+      65% { left: 57%; width: 10%; }
+      85%, 100% { left: 74%; width: 16%; }
+    }
+    .stack-map {
+      display: grid;
+      grid-template-columns: 0.9fr repeat(5, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      background: var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stack-cell {
+      background: #fff;
+      min-height: 122px;
+      padding: 12px;
+    }
+    .stack-cell.header {
+      background: var(--code);
+      min-height: auto;
+      font-weight: 900;
+      color: var(--accent-2);
+    }
+    .stack-cell.rowhead {
+      background: #f0f7f6;
+      font-weight: 900;
+      color: var(--accent);
+    }
+    .stack-cell p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .stack-cell strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .stack-cell .tag {
+      margin-top: 7px;
+      margin-bottom: 0;
+    }
+    .proof-card p,
+    .flow-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+    .verdict {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 14px;
+      margin-top: 14px;
+      align-items: stretch;
+    }
+    .verdict-main {
+      border: 1px solid #eccb9d;
+      border-left: 6px solid var(--warn);
+      border-radius: 8px;
+      background: #fff9ef;
+      padding: 18px;
+    }
+    .verdict-main b {
+      display: inline-block;
+      color: var(--warn);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .verdict-main strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .verdict-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .verdict-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+    .verdict-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .verdict-card p {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .verdict-card p:last-child { margin-bottom: 0; }
+    .pulse {
+      animation: softPulse 2.8s ease-in-out infinite;
+    }
+    @keyframes softPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(15, 143, 135, 0.0); }
+      50% { box-shadow: 0 0 0 5px rgba(15, 143, 135, 0.12); }
+    }
+    .term {
+      border-bottom: 1px dotted var(--accent);
+      color: var(--accent-2);
+      font-weight: 800;
+      cursor: help;
+    }
+    ul, ol { padding-left: 22px; }
+    li { margin: 6px 0; }
+    .decision {
+      border-left: 4px solid var(--accent-2);
+      padding-left: 12px;
+      margin-top: 10px;
+    }
+    .talk-track {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      counter-reset: talk;
+    }
+    .talk-step {
+      counter-increment: talk;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 190px;
+      position: relative;
+    }
+    .talk-step::before {
+      content: counter(talk);
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .talk-step b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    .talk-step strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .talk-step p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+    .talk-step p:last-child { margin-bottom: 0; }
+    .export-map {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr 1.1fr 1fr;
+      gap: 1px;
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--line);
+    }
+    .export-cell {
+      background: #fff;
+      padding: 13px;
+      min-height: 118px;
+    }
+    .export-cell.header {
+      min-height: auto;
+      background: var(--code);
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+    .export-cell.audience {
+      background: #f0f7f6;
+      color: var(--accent);
+      font-weight: 900;
+    }
+    .export-cell strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .export-cell p {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 6px 0 0;
+    }
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .audit-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 176px;
+    }
+    .audit-item b {
+      display: inline-block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 7px;
+    }
+    .audit-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .audit-item p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+    .audit-item p:last-child { margin-bottom: 0; }
+    .demo-context {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .demo-context-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      min-height: 172px;
+    }
+    .demo-context-card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .demo-context-card strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.25;
+      margin-bottom: 7px;
+    }
+    .demo-context-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+    .demo-context-card p:last-child { margin-bottom: 0; }
+    @media (max-width: 900px) {
+      .bar { align-items: flex-start; flex-direction: column; }
+      .grid,
+      .grid.two,
+      .grid.four,
+      .kpi,
+      .package-summary,
+      .step-detail-grid,
+      .timeline,
+      .journey,
+      .flow-rail,
+      .system-flow,
+      .blocker-board,
+      .claim-flow,
+      .stack-map,
+      .export-map,
+      .audit-grid,
+      .talk-track,
+      .demo-context,
+      .proof-ladder,
+      .verdict,
+      .verdict-grid,
+      .split {
+        grid-template-columns: 1fr;
+      }
+      .flow-card::after { display: none; }
+      .claim-flow::before,
+      .claim-flow::after { display: none; }
+      .claim-step::before { display: none; }
+      h1 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="title">Analog IMC Company Roadmap</div>
+      <nav class="links">
+        <a href="index.html">Workbench</a>
+        <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+        <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
+        <a href="customer-workload-intake-plan.html">Intake</a>
+        <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+        <a href="timing-latency-budget-plan.html">Timing</a>
+        <a href="memory-technology-decision-plan.html">Memory Decision</a>
+        <a href="benchmark-suite-plan.html">Benchmarks</a>
+        <a href="hybrid-benchmarking-practical-pipeline.html">Hybrid Benchmarking</a>
+        <a href="analog-vs-digital-validation-process.html">Analog Vs Digital Process</a>
+        <a href="simulator-calibration-plan.html">Calibration</a>
+        <a href="partner-ecosystem-variations.html">Partners</a>
+        <a href="investor-narrative-variations.html">Investor Narratives</a>
+        <a href="toolkit-results-first-principles.html">Toolkit Results</a>
+        <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+        <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+        <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+        <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+        <a href="platform-roadmap-architecture.md">Architecture MD</a>
+        <a href="platform-completion-end-to-end-goal.md">Completion + Readability Goal</a>
+        <a href="analog-mlir-chip-target-roadmap.md">Compiler Target</a>
+      </nav>
+    </div>
+    <div class="modebar">
+      <p>Choose how much detail the page leads with. Both views use the same roadmap and evidence rules.</p>
+      <div class="segmented" aria-label="Audience view">
+        <button type="button" class="active" data-mode-button="executive">Executive View</button>
+        <button type="button" data-mode-button="engineering">Engineering View</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <article class="hero">
+      <h1>Company Roadmap: Chip, Software, Proof, And Claims</h1>
+      <p class="lead">This page combines the silicon roadmap and our platform roadmap into one end-to-end plan. The company is not just building an analog chip. It is building a hybrid analog chip plus the software workbench that proves which workloads fit, what evidence exists, what breaks, and what must be built or measured next.</p>
+      <div class="callout">
+        <strong>Main question</strong>
+        <p>Can this workload run well on this analog chip, what proof do we have, what breaks, and what must be built or measured next?</p>
+      </div>
+      <div class="audience-panel active" data-mode-panel="executive">
+        <strong>Executive Read</strong>
+        <p>This page explains why the company should exist, which workloads are realistic first targets, what proof exists today, what is missing, and what claim is safe. It avoids asking the reader to know chip design terms before the page explains them.</p>
+        <div class="kpi">
+          <div><b>Company Bet</b><span>Low-power local inference for selected physical-edge workloads.</span></div>
+          <div><b>Main Risk</b><span>Analog benefit disappears if accuracy, conversion, heat, compiler, or board evidence fails.</span></div>
+          <div><b>Proof System</b><span>Every claim maps to a simulator, compiler, board, power, task, update, or sensor result.</span></div>
+          <div><b>Decision Output</b><span>Fit, partial fit, not fit, or unknown, with exact next work.</span></div>
+        </div>
+      </div>
+      <div class="audience-panel" data-mode-panel="engineering">
+        <strong>Engineering Read</strong>
+        <p>This page is also a build map. It shows the frontend panels, backend artifacts, toolkit adapters, compiler changes, board imports, lab evidence, and blocking tests required to turn the roadmap into a working product.</p>
+        <div class="kpi">
+          <div><b>Frontend</b><span>Journey graph, expandable cards, proof badges, run/import actions, final answer panel.</span></div>
+          <div><b>Backend</b><span>One artifact per step, evidence validator, claim engine, archive exporter.</span></div>
+          <div><b>Adapters</b><span>AIHWKIT, CrossSim, analog-mlir, SST/Golem, ALPINE, NeuroSim, board and lab tools.</span></div>
+          <div><b>Tests</b><span>Missing proof stays blocked and cannot become a stronger claim by accident.</span></div>
+        </div>
+      </div>
+    </article>
+
+    <section>
+      <h2>Demo Reading Path</h2>
+      <p>Use this path when showing the page live. It starts with the business reason, moves into the product flow, explains the proof sources, and ends with the answer a customer or investor should care about.</p>
+      <div class="jump-row" aria-label="Demo reading path">
+        <a href="#presenter-script">Demo script</a>
+        <a href="#demo-workload-context">Demo workload</a>
+        <a href="#plain-language-primer">0. Plain terms</a>
+        <a href="#top-blockers">1. Top blockers</a>
+        <a href="#ecosystem-lens">2. Ecosystem lens</a>
+        <a href="#why-now">3. Why now</a>
+        <a href="#system-flow">4. System flow</a>
+        <a href="#stack-change-map">5. Stack changes</a>
+        <a href="#modification-playbook">6. Modification playbook</a>
+        <a href="#journey">7. Fourteen steps</a>
+        <a href="#evidence-ladder">8. Proof levels</a>
+        <a href="#toolkits">9. Toolkit role</a>
+        <a href="#review-package-export">10. Review package</a>
+        <a href="#readiness-audit">11. Readiness audit</a>
+        <a href="#final-answer">12. Final answer</a>
+      </div>
+      <div class="package-summary" id="package-summary" aria-live="polite">
+        <div><b>Package Source</b><span>Loading package record...</span></div>
+        <div><b>Artifact Count</b><span>Waiting for manifest and artifacts.</span></div>
+        <div><b>Proof Warning</b><span>This page must separate demo evidence from measured chip proof.</span></div>
+        <div><b>Review Rule</b><span>Every claim must point to a saved artifact.</span></div>
+      </div>
+    </section>
+
+    <section id="demo-workload-context">
+      <h2>Demo Workload And Chip Target</h2>
+      <p>This page uses one concrete example so the roadmap does not stay abstract. The numbers below are demo assumptions, not measured product claims. They show the type of context the platform should collect before giving an answer.</p>
+      <div class="demo-context">
+        <div class="demo-context-card">
+          <b>Selected Workload</b>
+          <strong>Local sensor-to-action inference</strong>
+          <p>A compact physical AI model takes camera or tactile input and helps a machine choose a near-term action.</p>
+          <p><strong>Why this workload:</strong> it needs local response, low power, and careful handling of sensor data.</p>
+        </div>
+        <div class="demo-context-card">
+          <b>Model Shape</b>
+          <strong>Mixed transformer-style workload</strong>
+          <p>The model contains matrix-heavy layers that may fit analog arrays, plus dynamic attention, normalization, action timing, and safety logic that likely stay digital.</p>
+          <p><strong>Claim boundary:</strong> analog candidate layers are not the same as full model readiness.</p>
+        </div>
+        <div class="demo-context-card">
+          <b>Chip Target</b>
+          <strong>Hybrid analog/digital inference chip</strong>
+          <p>The target uses analog arrays for reusable matrix math and digital logic for control, scheduling, converter handling, calibration, and fallback behavior.</p>
+          <p><strong>Missing proof:</strong> real chip compiler target, board runtime, power, thermal, calibration, and task evidence.</p>
+        </div>
+        <div class="demo-context-card">
+          <b>Success Target</b>
+          <strong>Useful only if the full system wins</strong>
+          <p>The workload must keep task accuracy within the required tolerance while reducing local energy or latency after sensor, memory, converter, host, and fallback costs are counted.</p>
+          <p><strong>Decision output:</strong> fit, partial fit, not fit, or unknown.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>How this feeds the journey:</strong>
+        <p>The fourteen-step review should use this context to decide what to parse, what can map to analog, what stays digital, what to simulate, what to compile, what to measure on the board, and what claim is safe at the end.</p>
+      </div>
+    </section>
+
+    <section id="presenter-script">
+      <h2>Presenter Script For A Live Review</h2>
+      <p>This is the talk track for a founder, product lead, or engineering lead. It keeps the demo concrete and prevents the presentation from turning into broad analog-chip language.</p>
+      <div class="talk-track">
+        <div class="talk-step">
+          <b>Minute 0-1</b>
+          <strong>Start With The Question</strong>
+          <p><strong>Say:</strong> the product answers whether this workload can credibly run on this analog chip, what proof exists, what breaks, and what must be built next.</p>
+          <p><strong>Point at:</strong> the main question and the executive summary cards.</p>
+          <p><strong>Decision supported:</strong> whether the discussion is about a real workload or only a general chip claim.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 1-3</b>
+          <strong>Explain The Terms Before The Roadmap</strong>
+          <p><strong>Say:</strong> analog compute, calibration, board proof, and VLA are not assumed knowledge. The page explains each term and then asks what proof is required.</p>
+          <p><strong>Point at:</strong> the plain-language primer.</p>
+          <p><strong>Decision supported:</strong> whether a non-chip reader can follow the rest of the review.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 3-5</b>
+          <strong>Show The Top Blockers</strong>
+          <p><strong>Say:</strong> the strongest claims are blocked until VLA split, board and power proof, calibration, chip compiler target, and update evidence are handled.</p>
+          <p><strong>Point at:</strong> the blocker board.</p>
+          <p><strong>Decision supported:</strong> what must be funded, staffed, measured, or kept out of sales claims.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 5-7</b>
+          <strong>Connect Market Trend To Product Choice</strong>
+          <p><strong>Say:</strong> physical AI pushes inference closer to sensors and machines, but trends are only context. They do not prove our chip.</p>
+          <p><strong>Point at:</strong> the why-now section and source notes.</p>
+          <p><strong>Decision supported:</strong> why the roadmap focuses on local physical-edge workloads, not every AI workload.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 7-10</b>
+          <strong>Walk The Stack Map</strong>
+          <p><strong>Say:</strong> each roadmap item has to exist across silicon, compiler/runtime, backend, frontend, and proof. Missing one column blocks strong claims.</p>
+          <p><strong>Point at:</strong> the stack-change map.</p>
+          <p><strong>Decision supported:</strong> whether a feature is a real product capability or only a design idea.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 10-13</b>
+          <strong>Walk The Fourteen-Step Journey</strong>
+          <p><strong>Say:</strong> the platform turns one workload into a review package. Each step has an artifact, proof level, limitation, and next action.</p>
+          <p><strong>Point at:</strong> the interactive journey and step detail panel.</p>
+          <p><strong>Decision supported:</strong> what the product must collect before a customer or investor can trust the answer.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 13-15</b>
+          <strong>Separate Evidence Levels</strong>
+          <p><strong>Say:</strong> a simulator result is useful, but it is not board proof. Board runtime is useful, but it is not task accuracy or production reliability.</p>
+          <p><strong>Point at:</strong> the evidence ladder and animated claim-flow.</p>
+          <p><strong>Decision supported:</strong> which claims are safe today and which must stay blocked.</p>
+        </div>
+        <div class="talk-step">
+          <b>Minute 15-18</b>
+          <strong>End With The Verdict</strong>
+          <p><strong>Say:</strong> the current safe answer is partial fit unless the missing compiler, board, power, thermal, accuracy, calibration, update, and sensor evidence exists.</p>
+          <p><strong>Point at:</strong> the final product answer.</p>
+          <p><strong>Decision supported:</strong> next engineering work, next proof milestone, and what not to claim yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="plain-language-primer">
+      <h2>Plain-Language Primer</h2>
+      <p>This section gives the reader enough background to understand the rest of the roadmap. It avoids treating terms as proof. A term explains what something is. Evidence proves whether it works for our chip.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Workload</strong>
+          <p>A workload is the real job the customer wants to run. It is not only a model name. It includes the model, input data, required accuracy, response time, power budget, temperature range, update needs, and failure tolerance.</p>
+          <p><strong>Why it matters:</strong> the same chip can be a good fit for one workload and a poor fit for another.</p>
+        </div>
+        <div class="card">
+          <strong>Analog In-Memory Compute</strong>
+          <p>This means doing some math where the model weights are stored, instead of moving all weights into a separate processor for every calculation. The chip uses physical electrical behavior to do repeated matrix math.</p>
+          <p><strong>Why it matters:</strong> moving less data can save energy, but the physical math can be affected by noise, heat, aging, and limited precision.</p>
+        </div>
+        <div class="card">
+          <strong>Hybrid Chip</strong>
+          <p>A hybrid chip uses analog blocks for the parts they are good at and digital blocks for the parts that need exact control. Analog should handle repeated matrix-heavy work. Digital should handle changing decisions, control, scheduling, safety checks, and model steps that are hard to do reliably in analog.</p>
+          <p><strong>Why it matters:</strong> the roadmap should not claim that the analog array runs the whole modern AI system by itself.</p>
+        </div>
+        <div class="card">
+          <strong>Compiler</strong>
+          <p>The compiler is the translator. It takes a normal model and turns it into a plan for the chip. For this product, the compiler must decide what runs on analog, what stays digital, how big layers are split, how weights are placed, and what the board should run.</p>
+          <p><strong>Why it matters:</strong> customers will not manually place weights on tiles, choose signal converter timing, or write low-level board commands.</p>
+        </div>
+        <div class="card">
+          <strong>ADC And DAC</strong>
+          <p>A DAC turns a digital input number into an analog signal the array can use. An ADC turns the analog result back into a digital number. These blocks are necessary when digital software talks to analog compute.</p>
+          <p><strong>Why it matters:</strong> these conversions take time and power. A fast analog array can still lose at the full-system level if conversion dominates the run.</p>
+        </div>
+        <div class="card">
+          <strong>Calibration</strong>
+          <p>Calibration is the correction process for the real chip. It checks how the physical cells, tiles, voltages, and temperatures behave, then gives the runtime correction values and fallback rules.</p>
+          <p><strong>Why it matters:</strong> an analog result is not trustworthy just because the digital model was accurate. The platform must show which calibration profile was used and what happens if calibration fails.</p>
+        </div>
+        <div class="card">
+          <strong>Board Proof</strong>
+          <p>Board proof means a package actually ran on a physical lab board or prototype setup. A useful board result includes pass or fail, firmware version, board version, timing, failure reason, and the exact setup used.</p>
+          <p><strong>Why it matters:</strong> simulator output can guide design, but it cannot replace measured hardware behavior.</p>
+        </div>
+        <div class="card">
+          <strong>Power And Thermal Proof</strong>
+          <p>Power proof shows how much energy was used. Thermal proof shows how hot the chip or board became. The result must say whether it measured the whole board, the chip, one rail, or only a small block.</p>
+          <p><strong>Why it matters:</strong> a chip can look efficient if the measurement ignores the host computer, memory movement, signal conversion, or cooling problem.</p>
+        </div>
+        <div class="card">
+          <strong>Transformer Or VLA Model</strong>
+          <p>A transformer is a model family used in many modern AI systems. A VLA model uses vision, language, and action information to choose what a machine should do. These models often mix reusable matrix math with changing attention, normalization, memory movement, and control behavior.</p>
+          <p><strong>Why it matters:</strong> the platform must show the split. Some parts may fit analog. Other parts should stay digital or remain blocked until proven.</p>
+        </div>
+        <div class="card">
+          <strong>Evidence Package</strong>
+          <p>The evidence package is the saved record of what was tested, what was estimated, what was simulated, what ran on hardware, what failed, and what is still missing.</p>
+          <p><strong>Why it matters:</strong> this prevents a demo from becoming an unsupported claim. The package should let a customer, investor, or engineer review the same facts later.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Rule for the whole page:</strong>
+        <p>Plain explanations make the roadmap readable, but they do not prove the chip. Only the right evidence can move a claim from idea, to estimate, to simulation, to compiler proof, to board proof, to measured task proof.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>One-Line Strategy</h2>
+      <p>Build a hybrid analog in-memory computing company for selected physical-edge workloads, and pair the chip with an evidence workbench that keeps every customer and investor claim tied to proof.</p>
+      <div class="audience-only active" data-mode-panel="executive">
+        <div class="audience-band executive">
+          <strong>Executive Decision Frame</strong>
+          <p>The company should be judged by whether it can repeatedly prove selected local workloads, not by whether analog sounds broadly efficient. The first business decision is which narrow workload class gets enough proof to justify pilots, partner work, and silicon investment.</p>
+          <p><strong>Use this page to decide:</strong> which claims are safe now, which claims need lab evidence, which blockers require funding, and which customer pilots are too early.</p>
+        </div>
+      </div>
+      <div class="audience-only" data-mode-panel="engineering">
+        <div class="audience-band engineering">
+          <strong>Engineering Build Frame</strong>
+          <p>The product needs one saved artifact per proof step. Each artifact must say its source, proof level, assumptions, limitation, blocked claims, and next action. The backend must keep simulator outputs, compiler reports, board logs, power traces, thermal traces, task results, calibration records, and failed runs separate.</p>
+          <p><strong>Use this page to build:</strong> adapters, schemas, validation rules, frontend panels, archive export, and tests that prevent weak evidence from unlocking strong claims.</p>
+        </div>
+      </div>
+      <div class="grid three">
+        <div class="card">
+          <strong>What We Are Not</strong>
+          <p>We are not claiming that analog replaces NVIDIA, Qualcomm, AMD, Arm CPUs, FPGAs, or every digital accelerator. The product should show where analog helps and where established digital compute is still the right part of the system.</p>
+        </div>
+        <div class="card">
+          <strong>What We Are</strong>
+          <p>We are targeting places where local low-power matrix-heavy inference, sensor proximity, and full-system energy matter. These are workloads where moving data back and forth can cost too much power or time.</p>
+        </div>
+        <div class="card">
+          <strong>How We Prove It</strong>
+          <p>We prove claims with simulators, compiler mapping, board runtime, power traces, task accuracy, update evidence, and sensor-path evidence. The platform should show which proof exists and which proof is still missing.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="top-blockers">
+      <h2>Top Blockers And Decisions</h2>
+      <p>This is the executive scan. It shows what stops a stronger company claim today, why it matters, what decision it forces, and what the engineering team must produce next.</p>
+      <div class="blocker-board" role="table" aria-label="Top roadmap blockers and decisions">
+        <div class="blocker-cell header" role="columnheader">Blocker</div>
+        <div class="blocker-cell header" role="columnheader">Why It Matters</div>
+        <div class="blocker-cell header" role="columnheader">Decision It Forces</div>
+        <div class="blocker-cell header" role="columnheader">Proof To Unlock</div>
+
+        <div class="blocker-cell issue" role="rowheader"><strong>Full VLA Claim</strong><p>Partial analog fit is not full model readiness.</p></div>
+        <div class="blocker-cell"><strong>The model is mixed.</strong><p>Modern robot and action models include reusable matrix math, changing attention, normalization, memory movement, action timing, and safety behavior.</p></div>
+        <div class="blocker-cell"><strong>Use hybrid positioning.</strong><p>Claim analog help for selected layers only until the analog/digital split is mapped and tested end to end.</p></div>
+        <div class="blocker-cell"><strong>Need mapping plus task proof.</strong><p>Compiler partition report, runtime result, task accuracy, and safety/update boundary evidence.</p></div>
+
+        <div class="blocker-cell issue" role="rowheader"><strong>Board And Power Proof</strong><p>Simulation is not measured hardware behavior.</p></div>
+        <div class="blocker-cell"><strong>The full setup consumes energy.</strong><p>Host transfers, memory movement, ADC/DAC conversion, firmware, fallback paths, and cooling can erase the analog gain.</p></div>
+        <div class="blocker-cell"><strong>Keep strong claims out of sales language.</strong><p>Use estimate or simulation wording until the same package runs on a board with synchronized measurements.</p></div>
+        <div class="blocker-cell"><strong>Need same-run traces.</strong><p>Board runtime, latency, jitter, power, temperature, task result, firmware version, and board setup from the same run.</p></div>
+
+        <div class="blocker-cell issue" role="rowheader"><strong>Calibration And Drift</strong><p>Analog behavior changes with real conditions.</p></div>
+        <div class="blocker-cell"><strong>The physical chip is imperfect.</strong><p>Cells vary, tiles age, voltage can move, heat changes behavior, and a bad tile can corrupt a result.</p></div>
+        <div class="blocker-cell"><strong>Build correction and fallback into the product.</strong><p>The chip, runtime, and platform must show the calibration profile, weak tiles, correction values, and safe fallback behavior.</p></div>
+        <div class="blocker-cell"><strong>Need calibration trace.</strong><p>Measured calibration pass/fail, temperature and voltage context, drift sweep, failed-calibration handling, and post-calibration task result.</p></div>
+
+        <div class="blocker-cell issue" role="rowheader"><strong>Compiler Target</strong><p>A simulator target is not a chip target.</p></div>
+        <div class="blocker-cell"><strong>The real chip has physical rules.</strong><p>Tile sizes, bit slicing, memory capacity, converter sharing, register commands, firmware behavior, and error handling are chip-specific.</p></div>
+        <div class="blocker-cell"><strong>Reuse analog-mlir as a starting point.</strong><p>Keep simulation lowering, but add our own chip target before claiming deployability.</p></div>
+        <div class="blocker-cell"><strong>Need board-loadable package.</strong><p>Compiler output that includes placement, runtime commands, calibration metadata, update metadata, and failure reasons.</p></div>
+
+        <div class="blocker-cell issue" role="rowheader"><strong>Weight Updates</strong><p>Adaptation is a different claim from fixed inference.</p></div>
+        <div class="blocker-cell"><strong>Writing analog memory has cost.</strong><p>Updates may take time, use energy, reduce endurance, require recalibration, or fail rollback.</p></div>
+        <div class="blocker-cell"><strong>Separate update classes.</strong><p>Label the product as fixed-weight, rare-update, adapter-update, or adaptive blocked until the data supports more.</p></div>
+        <div class="blocker-cell"><strong>Need update evidence.</strong><p>Write latency, write energy, endurance, retention, rollback, recalibration, and task accuracy after update.</p></div>
+      </div>
+      <div class="decision">
+        <strong>Executive takeaway:</strong>
+        <p>The safe story today is not "the analog chip runs all Physical AI." The safe story is "the analog chip may help selected local, matrix-heavy physical-edge workloads, and the platform shows exactly what proof exists before we make stronger claims."</p>
+      </div>
+    </section>
+
+    <section id="ecosystem-lens">
+      <h2>Ecosystem Lens: Example Players To Evaluate</h2>
+      <p>The roadmap should name the surrounding players because the chip will not become useful by itself. It needs sensors, simulators, model tools, board hosts, manufacturing paths, and early customer workloads. The names below are public examples to evaluate. They are not claimed partners, customers, integrations, endorsements, or proof that the chip works.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Tactile And Touch Sensors</strong>
+          <p><strong>Example players:</strong> GelSight, DIGIT / Digit 360, XELA Robotics, Pressure Profile Systems.</p>
+          <p><strong>Why they matter:</strong> tactile workloads create force, pressure, slip, contact, and surface signals close to the robot hand or gripper. That is a natural place to test whether analog near-sensor compute lowers power or latency.</p>
+          <p><strong>First proof:</strong> choose one task such as slip detection or contact classification, collect a real sensor stream, run the same task through a digital baseline and analog simulation, then measure whether the task score survives.</p>
+          <p><strong>Do not claim:</strong> tactile compatibility or partnership until a real integration and measured result exists.</p>
+        </div>
+        <div class="card">
+          <strong>Event Vision And Fast Sensor Streams</strong>
+          <p><strong>Example players:</strong> Sony Semiconductor Solutions event-based vision sensors, Sony/Prophesee IMX636, Prophesee EVK cameras, Prophesee partner cameras such as CenturyArks.</p>
+          <p><strong>Why they matter:</strong> event cameras send changes instead of full image frames. That can reduce useless data and support fast local perception if the chip can handle the interface and timing.</p>
+          <p><strong>First proof:</strong> run obstacle, motion, gesture, or feature-extraction benchmarks on real event streams and include sensor capture, buffering, preprocessing, ADC/DAC, and host overhead.</p>
+          <p><strong>Do not claim:</strong> direct analog ingest or sub-millisecond sensor response until the complete sensor path is measured.</p>
+        </div>
+        <div class="card">
+          <strong>Simulation And Digital Twins</strong>
+          <p><strong>Example players:</strong> NVIDIA Isaac Sim and Omniverse, MuJoCo, Gazebo, Synopsys Electronics Digital Twin, PTC Onshape-to-Isaac-Sim workflows.</p>
+          <p><strong>Why they matter:</strong> robotics teams need to test policies, contact behavior, safety, and timing before they risk physical hardware. Our virtual chip model should plug into that loop so customers can see analog noise, drift, latency, and update limits early.</p>
+          <p><strong>First proof:</strong> create a simulator adapter that calls the analog chip model during a task run and records task score, timing, failure cases, and chip assumptions.</p>
+          <p><strong>Do not claim:</strong> real-world deployment proof from simulation unless the simulator profile has been calibrated against board and lab measurements.</p>
+        </div>
+        <div class="card">
+          <strong>Board And Edge-Compute Companions</strong>
+          <p><strong>Example players:</strong> NVIDIA Jetson, Qualcomm Dragonwing robotics processors, NXP i.MX processors, Lattice low-power FPGAs, common microcontroller and FPGA module vendors.</p>
+          <p><strong>Why they matter:</strong> the analog chip needs digital control, firmware, I/O, power rails, safety override, logs, and a host system. These parts decide whether the full loop is actually fast and low power.</p>
+          <p><strong>First proof:</strong> build a companion-board plan and measure sensor-to-answer timing, power, heat, firmware overhead, and fallback behavior on the same run.</p>
+          <p><strong>Do not claim:</strong> analog replaces the host processor. The better claim is that analog helps selected matrix-heavy sections while digital logic handles control and safety.</p>
+        </div>
+        <div class="card">
+          <strong>Memory, Foundry, And Packaging Path</strong>
+          <p><strong>Example players:</strong> Weebit Nano ReRAM, GlobalFoundries 22FDX and embedded MRAM paths, Samsung Foundry, TSMC, memory-device university labs, packaging houses.</p>
+          <p><strong>Why they matter:</strong> the memory choice controls weight capacity, precision, write speed, endurance, drift, retention, temperature behavior, and manufacturability.</p>
+          <p><strong>First proof:</strong> measure a small array, fit simulator parameters to real device behavior, then decide whether the first workload should be fixed-weight, rare-update, adapter-update, or blocked for frequent learning.</p>
+          <p><strong>Do not claim:</strong> manufacturable product readiness from a paper, process announcement, or single device result.</p>
+        </div>
+        <div class="card">
+          <strong>Compiler And Simulation Toolchain</strong>
+          <p><strong>Example players:</strong> IBM AIHWKIT, Sandia CrossSim, analog-mlir, SST/Golem, gem5-X / ALPINE-style system simulation, PyTorch, JAX/XLA.</p>
+          <p><strong>Why they matter:</strong> customers should bring normal models. They should not manually program tile placement, analog voltages, converter schedules, weight writes, or calibration tables.</p>
+          <p><strong>First proof:</strong> use existing tools where they fit, then add custom chip-target passes and adapters for our physical tile sizes, ADC/DAC rules, update rules, runtime commands, and evidence logs.</p>
+          <p><strong>Do not claim:</strong> an open-source simulator proves our chip. It proves only the assumptions that were modeled.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>How this changes the roadmap:</strong>
+        <p>Each named player should close a specific risk: real sensor data, real task metric, simulator workflow, board integration, memory process, compiler path, or manufacturing route. If a name does not close a risk, it belongs in market research, not in the proof story. The fuller partner map is in <a href="partner-ecosystem-variations.html">Partner And Ecosystem Variations</a>.</p>
+      </div>
+    </section>
+
+    <section id="why-now">
+      <h2>Why This Roadmap Exists Now</h2>
+      <p>The roadmap needs a market reason, not only an engineering reason. The larger shift is that AI is moving from chat screens and cloud servers into machines that see, touch, move, inspect, carry, sort, assemble, monitor, and act in the physical world. That shift changes what an inference chip must prove.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Trend 1: AI Is Moving Into Physical Systems</strong>
+          <p>Physical AI means AI that works with real sensors, real timing, real power limits, real movement, and real failure modes. This includes robots, drones, vehicles, factory equipment, warehouse systems, smart cameras, tactile sensors, industrial inspection tools, medical devices, agriculture machines, and infrastructure monitors.</p>
+          <p><strong>What this means for us:</strong> the chip cannot be judged only by one model benchmark. The platform must ask what physical system the model belongs to, what the system must sense, how quickly it must respond, how much power it can use, and what happens if it is wrong.</p>
+        </div>
+        <div class="card">
+          <strong>Trend 2: More Work Must Run On The Device</strong>
+          <p>Cloud AI is powerful, but a physical device cannot always wait for the cloud. A robot hand, drone, vehicle, security sensor, or factory controller may need a local answer because the network is slow, unavailable, expensive, or not allowed for privacy and safety reasons.</p>
+          <p><strong>What this means for us:</strong> the chip roadmap should focus on local inference where latency, power, heat, and sensor distance matter. The platform must show whether the analog chip improves the full local system, not just one math operation.</p>
+        </div>
+        <div class="card">
+          <strong>Trend 3: New Robot Models Are More Adaptive</strong>
+          <p>New physical AI models are moving toward <span class="term" title="Vision-language-action means a model that can use images, words, and sensor or body state to choose an action.">vision-language-action</span> behavior. In simple terms, they take images, words, sensor readings, and body state, then produce actions. Some new on-device models are designed to adapt to new robot bodies, new sensors, and new tasks with a small amount of new data.</p>
+          <p><strong>What this means for us:</strong> fixed-weight analog inference is not enough for every future workload. The roadmap must test whether weights can be updated, whether only small adapter layers can change, how much writing costs, and whether the chip remains reliable after updates.</p>
+        </div>
+        <div class="card">
+          <strong>Trend 4: Sensor Data Is Getting Larger And More Local</strong>
+          <p>Physical systems are using more cameras, event sensors, force sensors, tactile skins, microphones, radar, lidar, temperature sensors, and vibration sensors. Sending all raw sensor data to a large processor can waste power and create delay.</p>
+          <p><strong>What this means for us:</strong> the chip may be strongest near the sensor, where it can reduce data early or run low-power local inference. The platform must include the sensor path, preprocessing cost, synchronization, and sensor-to-answer latency instead of starting only at the model input tensor.</p>
+        </div>
+        <div class="card">
+          <strong>Trend 5: Simulation Is Becoming Part Of The Product</strong>
+          <p>Physical systems are expensive and risky to test only in the real world. Companies increasingly train and test machines inside digital simulation before sending them to hardware. For our chip, this means the virtual chip model is not a side tool. It is part of how users decide whether the chip is usable.</p>
+          <p><strong>What this means for us:</strong> the platform must connect model analysis, analog simulation, compiler mapping, system simulation, and board evidence into one review flow. A user should see what was simulated, what was measured, and what still needs real hardware proof.</p>
+        </div>
+        <div class="card">
+          <strong>Trend 6: Investors And Customers Want Proof, Not A Demo Story</strong>
+          <p>Physical AI hardware takes more money, more time, and more integration work than software-only products. A good demo is not enough. Customers and investors need to know whether the same workflow can be repeated across models, boards, sensors, and workloads.</p>
+          <p><strong>What this means for us:</strong> the workbench should become the proof system for the company. It should turn each roadmap claim into evidence, blocked reasons, required measurements, and safe wording.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Roadmap consequence:</strong>
+        <p>These trends push us toward a hybrid analog/digital chip, a virtual chip model, a compiler path, sensor-aware workload review, weight-update readiness, board measurement, and an evidence archive. The end-to-end platform exists because the market is not only asking, "Is analog efficient?" It is asking, "Can this physical workload run on this chip with proof we can trust?"</p>
+      </div>
+      <div class="card">
+        <strong>Source Notes For This Trend Section</strong>
+        <p>This section uses outside sources as directional context, not as proof that our chip works. NVIDIA's Isaac materials show that robot development is moving toward simulation, robot foundation models, runtime libraries, and edge deployment. Google DeepMind's Gemini Robotics 2 materials show that on-device robot models and fast adaptation to new robot bodies are becoming important. Microsoft Research's Rho-alpha materials show that physical AI models are adding touch and force-like sensing, not only camera input. Recent funding coverage shows that investor attention is moving toward physical AI, robotics, aerospace, and related hardware-heavy companies.</p>
+        <p>The platform must keep this market context separate from chip evidence. A trend can justify why we build the roadmap, but only measured or validated evidence can justify a chip claim.</p>
+      </div>
+    </section>
+
+    <section id="system-flow">
+      <h2>Full System Diagram</h2>
+      <p>This is the full product path. The user starts with a workload and ends with a clear answer, not a pile of tool logs.</p>
+      <div class="system-flow">
+        <div class="flow-card">
+          <b>Input</b>
+          <strong>User Workload</strong>
+          <p>The user brings a model, workload description, target chip profile, success target, and optional evidence files.</p>
+        </div>
+        <div class="flow-card">
+          <b>Frontend</b>
+          <strong>Guided Review</strong>
+          <p>The page shows the fourteen-step journey, progress, run and import actions, missing proof, safe claims, and blocked claims.</p>
+        </div>
+        <div class="flow-card">
+          <b>Backend</b>
+          <strong>Evidence Engine</strong>
+          <p>The backend stores the package, analyzes the model, runs adapters, validates evidence, and builds claim boundaries.</p>
+        </div>
+        <div class="flow-card">
+          <b>Tools</b>
+          <strong>Toolkit And Lab Adapters</strong>
+          <p>AIHWKIT, CrossSim, analog-mlir, SST/Golem, ALPINE, NeuroSim, board traces, power traces, thermal traces, and task tests feed the review.</p>
+        </div>
+        <div class="flow-card">
+          <b>Package</b>
+          <strong>Normalized Evidence</strong>
+          <p>The platform separates measured evidence, simulated evidence, compiler evidence, estimates, failed runs, and missing proof.</p>
+        </div>
+        <div class="flow-card">
+          <b>Answer</b>
+          <strong>Fit And Next Work</strong>
+          <p>The final panel says what fits, what breaks, what is safe to claim, what not to claim, and what must be built or measured next.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="stack-change-map">
+      <h2>Stack Change Map</h2>
+      <p>This map shows how a roadmap idea becomes real product work. A silicon feature is not enough by itself. The compiler must know about it, the runtime must carry the right data, the backend must store the proof, the frontend must explain the result, and the claim rules must block anything not proven.</p>
+      <div class="audience-only active" data-mode-panel="executive">
+        <div class="audience-band executive">
+          <strong>Executive Reading Of This Map</strong>
+          <p>Each row is a funding and credibility risk. If any row is missing silicon support, compiler support, backend evidence, frontend explanation, or proof, the company should avoid strong claims in that area.</p>
+        </div>
+      </div>
+      <div class="audience-only" data-mode-panel="engineering">
+        <div class="audience-band engineering">
+          <strong>Engineering Reading Of This Map</strong>
+          <p>Each row should become an implementation epic. The epic is not complete until it has a schema, adapter or import path, validation rule, frontend panel, archive entry, and claim-boundary test.</p>
+        </div>
+      </div>
+      <div class="stack-map" role="table" aria-label="End-to-end roadmap change map">
+        <div class="stack-cell header" role="columnheader">Roadmap Item</div>
+        <div class="stack-cell header" role="columnheader">Silicon</div>
+        <div class="stack-cell header" role="columnheader">Compiler And Runtime</div>
+        <div class="stack-cell header" role="columnheader">Backend</div>
+        <div class="stack-cell header" role="columnheader">Frontend</div>
+        <div class="stack-cell header" role="columnheader">Proof Needed</div>
+
+        <div class="stack-cell rowhead" role="rowheader">Calibration</div>
+        <div class="stack-cell"><strong>Self-check hardware</strong><p>Add temperature monitors, voltage monitors, tile health checks, reference cells, and safe fallback behavior.</p></div>
+        <div class="stack-cell"><strong>Carry correction data</strong><p>Attach calibration profile, weak-tile list, correction values, recalibration commands, and failed-calibration handling to the run.</p></div>
+        <div class="stack-cell"><strong>Store the exact profile</strong><p>Save which board, chip, firmware, temperature range, and correction table were used.</p></div>
+        <div class="stack-cell"><strong>Show trust level</strong><p>Display profile used, missing calibration proof, drift risk, and fallback status.</p></div>
+        <div class="stack-cell"><strong>Measured calibration trace</strong><p>Needs pass/fail, correction values, weak tiles, thermal condition, and safe behavior when calibration fails.</p><span class="tag bad">blocked if missing</span></div>
+
+        <div class="stack-cell rowhead" role="rowheader">Tiling And Bit-Slicing</div>
+        <div class="stack-cell"><strong>Define physical limits</strong><p>Set array size, cell precision, number of arrays, converter placement, and partial-result adders.</p></div>
+        <div class="stack-cell"><strong>Split the model</strong><p>Break large layers into tiles and spread higher-precision weights across multiple cells when needed.</p></div>
+        <div class="stack-cell"><strong>Save placement artifact</strong><p>Store tile count, slice count, memory use, estimated latency, and layers that do not fit.</p></div>
+        <div class="stack-cell"><strong>Show physical fit</strong><p>Explain which layers fit, which need many tiles, and which become too expensive.</p></div>
+        <div class="stack-cell"><strong>Compiler report</strong><p>Needs placement that matches target chip limits, not a generic analog estimate.</p><span class="tag warn">compiler proof</span></div>
+
+        <div class="stack-cell rowhead" role="rowheader">ADC/DAC Scheduling</div>
+        <div class="stack-cell"><strong>Expose converter rules</strong><p>Define how columns share ADCs, how inputs reach DACs, and how many operations can run at once.</p></div>
+        <div class="stack-cell"><strong>Schedule around limits</strong><p>Plan converter timing, tile parallelism, memory movement, host dispatch, and digital accumulation.</p></div>
+        <div class="stack-cell"><strong>Store bottleneck result</strong><p>Label the run as compute-limited, conversion-limited, memory-limited, host-limited, or balanced.</p></div>
+        <div class="stack-cell"><strong>Show full-system cost</strong><p>Make conversion and memory overhead visible beside analog math speed.</p></div>
+        <div class="stack-cell"><strong>Runtime trace</strong><p>Needs converter timing, memory movement, host overhead, and measured or simulated source.</p><span class="tag bad">no core-only claim</span></div>
+
+        <div class="stack-cell rowhead" role="rowheader">Transformer/VLA Split</div>
+        <div class="stack-cell"><strong>Hybrid compute blocks</strong><p>Keep analog arrays for reusable matrix-heavy work and digital logic for dynamic attention, normalization, control, and safety behavior.</p></div>
+        <div class="stack-cell"><strong>Partition the graph</strong><p>Find static projections, feed-forward layers, action heads, unsupported operators, and digital-required regions.</p></div>
+        <div class="stack-cell"><strong>Save split report</strong><p>Store analog candidates, digital-required parts, fallback parts, blocked parts, and reasons.</p></div>
+        <div class="stack-cell"><strong>Prevent overclaiming</strong><p>Show that partial analog fit is not the same as full VLA readiness.</p></div>
+        <div class="stack-cell"><strong>Mapping plus task proof</strong><p>Needs compiler mapping, runtime evidence, task accuracy, and update/safety evidence before strong claims.</p><span class="tag warn">partial until proven</span></div>
+
+        <div class="stack-cell rowhead" role="rowheader">Board Integration</div>
+        <div class="stack-cell"><strong>Expose lab hooks</strong><p>Add USB, Ethernet, PCIe, JTAG, UART, power rails, runtime status, and debug traces as appropriate for the board.</p></div>
+        <div class="stack-cell"><strong>Package and run</strong><p>Generate a board-loadable package, send commands, load weights, start inference, collect status, and handle failures.</p></div>
+        <div class="stack-cell"><strong>Import synchronized files</strong><p>Accept runtime logs, power traces, thermal traces, firmware metadata, board metadata, and task results tied to the same package.</p></div>
+        <div class="stack-cell"><strong>Show what happened</strong><p>Display board ran or failed, latency, jitter, energy, temperature, task result, and exact setup.</p></div>
+        <div class="stack-cell"><strong>Same-run evidence</strong><p>Needs board runtime, power, thermal, and task accuracy from the same package and setup.</p><span class="tag good">measured proof</span></div>
+      </div>
+      <div class="decision">
+        <strong>How to use this map:</strong>
+        <p>If a roadmap item is missing from any column, the product is not ready to make a strong claim about that item. For example, calibration is not real product support until silicon can check itself, runtime can carry correction data, backend can store the profile, frontend can explain the trust level, and lab evidence proves the correction worked.</p>
+      </div>
+    </section>
+
+    <section id="modification-playbook">
+      <h2>Modification Playbook</h2>
+      <p>This section turns the roadmap into a build checklist. Each item explains the plain meaning first, then says why we need it, what we can reuse, what we must build or modify, what the product should show, and what proof is required before the company can make a stronger claim.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>1. Calibration And Chip Self-Checks</strong>
+          <p><strong>Plain meaning:</strong> the chip must check its own analog behavior before the platform trusts a result. Real analog cells do not all behave exactly the same, and their behavior can change with heat, voltage, use, and age.</p>
+          <p><strong>Why we do it:</strong> without calibration, a good digital model can become a weak hardware result. The platform must know which correction profile was used and what happens if correction fails.</p>
+          <p><strong>What we reuse:</strong> AIHWKIT, CrossSim, and internal simulators can help model noise, drift, limited precision, and weak cells before hardware is ready.</p>
+          <p><strong>What we build or modify:</strong> silicon needs temperature monitors, voltage monitors, reference cells, tile health checks, and fallback behavior. The compiler and runtime need calibration profiles, weak-tile lists, correction values, recalibration commands, and failed-calibration handling.</p>
+          <p><strong>What the product shows:</strong> calibration profile used, measured or assumed condition, missing calibration proof, drift risk, weak tiles, fallback status, and claim impact.</p>
+          <p><strong>Proof required:</strong> a calibration trace from the board that includes pass or fail, correction values, weak tiles, temperature, voltage, failure behavior, and task result after calibration.</p>
+        </div>
+        <div class="card">
+          <strong>2. Tiling And Bit-Slicing</strong>
+          <p><strong>Plain meaning:</strong> large model layers must be split into physical pieces the chip can hold. If one model weight needs more precision than one analog cell can store, the compiler must spread that weight across multiple cells and combine the partial result.</p>
+          <p><strong>Why we do it:</strong> a model may look good on paper but fail physically because it needs too many arrays, too many cells, too much memory movement, or too much converter work.</p>
+          <p><strong>What we reuse:</strong> analog-mlir gives a starting point for converting supported layers into analog-style work. CrossSim can help estimate physical array risks.</p>
+          <p><strong>What we build or modify:</strong> the compiler must know tile size, array count, cell precision, slice count, memory capacity, ADC/DAC placement, partial-result addition, and digital fallback rules.</p>
+          <p><strong>What the product shows:</strong> tile plan, slice plan, physical fit, memory use, estimated latency, unsupported layers, and why a layer is too expensive or blocked.</p>
+          <p><strong>Proof required:</strong> a compiler report that matches the target chip constraints, plus simulation or board evidence showing the mapped model still meets accuracy and runtime targets.</p>
+        </div>
+        <div class="card">
+          <strong>3. Transformer And VLA Partitioning</strong>
+          <p><strong>Plain meaning:</strong> modern robot and physical AI models mix different kinds of work. Some parts reuse stable weights and may fit analog arrays. Other parts make changing decisions, normalize values, handle actions, or enforce safety and should usually stay digital.</p>
+          <p><strong>Why we do it:</strong> claiming that the analog chip runs the full model is risky if only the repeated matrix-heavy parts run on analog. The platform must show the split clearly.</p>
+          <p><strong>What we reuse:</strong> analog-mlir layer extraction gives a starting idea for finding supported regions in a model graph.</p>
+          <p><strong>What we build or modify:</strong> the compiler must scan transformer blocks, VLA action heads, sensor frontends, static projections, feed-forward layers, attention paths, Softmax, LayerNorm, safety/control boundaries, and unsupported operators.</p>
+          <p><strong>What the product shows:</strong> analog candidates, digital-required parts, fallback parts, blocked parts, rewrite options, and the reason for every blocked region.</p>
+          <p><strong>Proof required:</strong> mapping evidence, full-system runtime evidence, task accuracy evidence, and update or safety boundary evidence for the same model package.</p>
+        </div>
+        <div class="card">
+          <strong>4. ADC And DAC Scheduling</strong>
+          <p><strong>Plain meaning:</strong> digital software has to talk to analog arrays through signal converters. A DAC turns digital input numbers into analog signals. An ADC turns analog results back into digital numbers.</p>
+          <p><strong>Why we do it:</strong> the analog math can be fast while the full system is slow because inputs, outputs, converters, memory, or the host computer become the bottleneck.</p>
+          <p><strong>What we reuse:</strong> task graph ideas from analog-mlir, SST/Golem, ALPINE/gem5-X, and local estimators can help model system timing before the board exists.</p>
+          <p><strong>What we build or modify:</strong> the compiler and runtime must schedule ADC sharing, DAC timing, column grouping, tile parallelism, memory movement, host dispatch, and digital accumulation.</p>
+          <p><strong>What the product shows:</strong> whether the run is compute-limited, conversion-limited, memory-limited, host-limited, or balanced. It should show converter cost beside analog compute time.</p>
+          <p><strong>Proof required:</strong> a runtime trace that includes converter timing, memory movement, host overhead, source of the result, and whether the trace is simulated or measured.</p>
+        </div>
+        <div class="card">
+          <strong>5. Weight Update And Rollback Path</strong>
+          <p><strong>Plain meaning:</strong> the chip may need to change some model weights after deployment. A fixed-weight inference chip, an occasional-update chip, and an adaptive physical AI chip are different products.</p>
+          <p><strong>Why we do it:</strong> local adaptation is becoming important in physical AI, but analog weight writes can cost time, energy, and device life. Failed updates also need a safe way back to the previous state.</p>
+          <p><strong>What we reuse:</strong> XBTorch, RxNN, TxSim, AIHWKIT-style models, and internal write models can help explore update behavior before measured silicon exists.</p>
+          <p><strong>What we build or modify:</strong> silicon needs write control, update scope limits, health checks, and retention checks. The compiler/runtime need writable-scope metadata, adapter-layer handling, boot-time write plan, update plan, rollback plan, and recalibration after update.</p>
+          <p><strong>What the product shows:</strong> fixed weight, rare update, adapter update, or adaptive blocked. It should show write time, write energy, endurance risk, retention risk, rollback status, and post-update accuracy.</p>
+          <p><strong>Proof required:</strong> measured write latency, write energy, endurance, retention, rollback, recalibration, and task accuracy after the update.</p>
+        </div>
+        <div class="card">
+          <strong>6. Board Package And Hardware Run</strong>
+          <p><strong>Plain meaning:</strong> the compiler output must become a package that a real board can load. The board must run it and report exactly what happened.</p>
+          <p><strong>Why we do it:</strong> a simulator result is useful, but it does not prove that the physical board loaded the package, programmed weights, ran inference, or handled failure.</p>
+          <p><strong>What we reuse:</strong> SST/Golem and ALPINE/gem5-X help test system behavior before board proof. Existing board links such as USB, Ethernet, PCIe, JTAG, and UART can carry commands, logs, and debug data depending on the board stage.</p>
+          <p><strong>What we build or modify:</strong> hardware must expose board links, power rails, runtime status, and debug traces. The runtime must generate board commands, load weights, start inference, collect status, and return failure reasons.</p>
+          <p><strong>What the product shows:</strong> board ran or failed, package ID, board version, chip version, firmware version, latency, jitter, failure reason, debug trace, and exact setup used.</p>
+          <p><strong>Proof required:</strong> a board runtime log tied to the same package, firmware, model, calibration profile, power trace, thermal trace, and task result.</p>
+        </div>
+        <div class="card">
+          <strong>7. Backend Evidence Contract</strong>
+          <p><strong>Plain meaning:</strong> every result must be stored in a consistent shape so the final answer can explain what is proven, what is estimated, and what is missing.</p>
+          <p><strong>Why we do it:</strong> if evidence files are inconsistent, the platform can accidentally treat an estimate like a measurement or treat a failed run like missing data.</p>
+          <p><strong>What we reuse:</strong> the current demo package already has one artifact per step, a manifest, a schema, an executive brief, an engineering queue, and an archive builder.</p>
+          <p><strong>What we build or modify:</strong> backend adapters must import simulator outputs, compiler reports, board runtime logs, power traces, thermal traces, firmware metadata, task results, calibration records, weak-tile lists, correction values, source notes, and failed runs.</p>
+          <p><strong>What the product shows:</strong> artifact source, proof level, status, assumptions, what the artifact supports, what it does not prove, missing evidence, and next work.</p>
+          <p><strong>Proof required:</strong> schema validation, alignment checks, archive checks, live endpoint checks, and claim-boundary tests that prevent weak proof from unlocking strong claims.</p>
+        </div>
+        <div class="card">
+          <strong>8. Frontend Review Experience</strong>
+          <p><strong>Plain meaning:</strong> the page must guide a reader through the decision without requiring them to know chip language first.</p>
+          <p><strong>Why we do it:</strong> executives need fast decision clarity, and engineers need build clarity. The same artifact must serve both groups without hiding assumptions.</p>
+          <p><strong>What we reuse:</strong> the current HTML already has the reading path, primer, blocker board, system flow, stack map, journey, toolkit map, evidence ladder, review package links, and readiness audit.</p>
+          <p><strong>What we build or modify:</strong> future frontend work should add real run buttons, evidence import forms, board proof view, calibration proof view, package comparison, and stronger diagram links between evidence and claims.</p>
+          <p><strong>What the product shows:</strong> why now, what changed, what fits analog, what stays digital, what proof exists, what is blocked, what is safe to say, and what must be built or measured next.</p>
+          <p><strong>Proof required:</strong> readability checks, rendered-page checks, artifact loading checks, and user-review checks with people who do not already know ADC, DAC, MLIR, VLA, calibration, or board runtime.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Playbook rule:</strong>
+        <p>No roadmap item is complete just because it appears in one layer. It is complete only when the chip exposes the needed behavior, the compiler/runtime carries it, the backend stores it, the frontend explains it, and the proof package contains evidence at the right level.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Plain-English Foundation</h2>
+      <p>This page should make sense even if the reader has never built a chip. These are the basic ideas used throughout the roadmap.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Analog Compute</strong>
+          <p>Normal digital chips turn everything into exact 0s and 1s. Analog compute uses real electrical levels, like voltage and current, to do math. It can be very power-efficient for repeated math, but it is less exact.</p>
+          <p><strong>Why it matters:</strong> we may save energy, but we must prove the model still gives the right answer.</p>
+        </div>
+        <div class="card">
+          <strong>In-Memory Computing</strong>
+          <p>Most chips move data from memory to a processor, do math, then move the result back. In-memory computing does some math where the data is stored.</p>
+          <p><strong>Why it matters:</strong> moving data costs energy. Doing math near memory can save power if the rest of the system does not add the energy back.</p>
+        </div>
+        <div class="card">
+          <strong>Analog Array</strong>
+          <p>An analog array is a grid of tiny memory cells. Each cell stores a model weight as an electrical setting. When inputs pass through the grid, the grid naturally performs matrix math.</p>
+          <p><strong>Why it matters:</strong> this is where the chip may be strongest, but the grid has size, precision, noise, and drift limits.</p>
+        </div>
+        <div class="card">
+          <strong>Digital Coprocessor</strong>
+          <p>This is a normal digital helper block placed near the analog array. It handles steps that need exact logic, branching, sorting, control, or nonlinear math.</p>
+          <p><strong>Why it matters:</strong> the chip should be hybrid because modern AI models contain work that analog arrays should not handle alone.</p>
+        </div>
+        <div class="card">
+          <strong>ADC And DAC</strong>
+          <p>A <span class="term" title="A DAC turns a digital number into an analog signal the array can use.">DAC</span> turns a digital number into an analog signal. An <span class="term" title="An ADC turns the analog result from the array back into a digital number.">ADC</span> turns an analog signal back into a digital number.</p>
+          <p><strong>Why it matters:</strong> these translators can use power and time. If the model crosses back and forth too often, the analog benefit can disappear.</p>
+        </div>
+        <div class="card">
+          <strong>Compiler</strong>
+          <p>A compiler is a translator. It takes a model written in normal software form and turns it into a plan the chip can run.</p>
+          <p><strong>Why it matters:</strong> customers should not manually decide voltages, tile placement, memory movement, or chip commands.</p>
+        </div>
+        <div class="card">
+          <strong>Simulator</strong>
+          <p>A simulator is a software test bench. It lets us test expected chip behavior before the real chip or board is ready.</p>
+          <p><strong>Why it matters:</strong> simulation helps find problems early, but it is not the same as measured hardware proof.</p>
+        </div>
+        <div class="card">
+          <strong>Board Proof</strong>
+          <p>Board proof means the model actually ran on a prototype board or lab setup and produced measured traces.</p>
+          <p><strong>Why it matters:</strong> strong claims about speed, power, heat, and reliability need measured results, not only simulator output.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The Three Company Pillars</h2>
+      <div class="grid">
+        <div class="card">
+          <strong>1. Virtual Chip Model</strong>
+          <p>Build a software model of the chip before relying on silicon. It should model analog noise, drift, ADC/DAC limits, wire effects, programming error, calibration behavior, and update limits.</p>
+          <p><strong>User benefit:</strong> the user can test whether a model may survive imperfect analog hardware before a board exists.</p>
+        </div>
+        <div class="card">
+          <strong>2. Hybrid Analog/Digital Chip</strong>
+          <p>Use analog arrays for repeated matrix-heavy work. Use nearby digital logic for <span class="term" title="Softmax is a model step that turns raw scores into normalized scores. It is usually easier to run digitally than inside a simple analog array.">Softmax</span>, <span class="term" title="LayerNorm is a model step that rescales values so the model stays numerically stable. It usually needs digital handling.">LayerNorm</span>, dynamic attention, memory scheduling, safety checks, and control boundaries.</p>
+          <p><strong>User benefit:</strong> the user sees what runs on analog, what stays digital, and whether the analog advantage survives the whole workload.</p>
+        </div>
+        <div class="card">
+          <strong>3. Zero-Touch Translator</strong>
+          <p>Build a compiler and runtime path that turns normal model formats into chip-ready analog/digital execution plans without making the customer program analog circuits manually.</p>
+          <p><strong>User benefit:</strong> the user can bring normal AI models and get a clear chip-fit report, blocked operator list, and next work plan.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Roadmap Phases</h2>
+      <div class="timeline">
+        <div class="phase">
+          <div class="label">Now: 0-3 Months</div>
+          <h3>Build The Proof Workbench</h3>
+          <p>In this phase, we build the working product shell. The user should be able to open one page, select a package, see all fourteen proof steps, run the local checks that exist today, import outside evidence, and see what is still missing.</p>
+          <p>We are not trying to prove production silicon yet. We are making the proof workflow clear, repeatable, and hard to fake.</p>
+          <p><strong>Done means:</strong> a founder, engineer, customer, or investor can understand the full review path without reading backend files or knowing simulator names first.</p>
+        </div>
+        <div class="phase">
+          <div class="label">Next: 3-12 Months</div>
+          <h3>Make The Evidence Real</h3>
+          <p>In this phase, we replace broad estimates and smoke checks with evidence that is tied to the actual uploaded model. AIHWKIT should test the model under analog-like errors. CrossSim should test crossbar layout assumptions. Compiler mapping should show which model parts can become an analog/digital execution plan.</p>
+          <p>We also add imports for lab results: board timing, power use, heat, task accuracy, sensor path, and weight updates.</p>
+          <p><strong>Done means:</strong> each important proof area has either a real result, a clear blocked reason, or a required measurement list.</p>
+        </div>
+        <div class="phase">
+          <div class="label">Later: 12-36 Months</div>
+          <h3>Connect Silicon And Production Proof</h3>
+          <p>In this phase, the platform connects to real prototype hardware and stronger lab workflows. The compiler should produce a package the board can load. The board should run it. Lab tools should measure timing, power, and heat during the same run. Task accuracy should be checked against the same package and setup.</p>
+          <p>We also add calibration, drift, update, retention, rollback, and reliability evidence because those decide whether the chip is useful outside a demo.</p>
+          <p><strong>Done means:</strong> strong claims are backed by measured evidence from the same model, board, firmware, power setup, and task test.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="journey">
+      <h2>Fourteen-Step User Journey</h2>
+      <p class="sub">The frontend should lead with the user's benefit. Toolkit names appear inside each step as proof sources.</p>
+      <div class="flow-rail" aria-hidden="true">
+        <span class="active"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="journey">
+        <div class="node active" tabindex="0" role="button" data-step="0"><span>01 Start</span><b>Model Intake</b><span>Can we open and understand the model?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="1"><span>02 Fit</span><b>Analog Fit</b><span>Which parts can run on analog?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="2"><span>03 Risk</span><b>Analog Accuracy</b><span>Will analog flaws hurt output?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="3"><span>04 Risk</span><b>Crossbar Layout</b><span>Will the memory grid create errors?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="4"><span>05 Cost</span><b>Hardware Cost</b><span>What area, energy, and memory are needed?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="5"><span>06 Build</span><b>Compiler Mapping</b><span>Can the model become a chip plan?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="6"><span>07 Modern AI</span><b>Transformer/VLA</b><span>What stays digital?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="7"><span>08 System</span><b>Full Runtime</b><span>Does system overhead erase the win?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="8"><span>09 Hardware</span><b>Board Runtime</b><span>Did it run on hardware?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="9"><span>10 Hardware</span><b>Power/Thermal</b><span>Did it save energy and stay cool?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="10"><span>11 Task</span><b>Task Accuracy</b><span>Did it solve the real task?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="11"><span>12 Adapt</span><b>Weight Updates</b><span>Can weights change after deployment?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="12"><span>13 Input</span><b>Sensor Path</b><span>Are sensor costs counted?</span></div>
+        <div class="node" tabindex="0" role="button" data-step="13"><span>14 Answer</span><b>Final Answer</b><span>What is safe to say?</span></div>
+      </div>
+      <div class="step-detail" id="step-detail" aria-live="polite">
+        <h3>Model Intake</h3>
+        <p>The user learns whether the platform can open the model and understand its basic shape. This starts the review from a real file instead of a slide claim.</p>
+        <div class="step-detail-grid">
+          <div><strong>User Question</strong><p>Can the platform read the model inputs, outputs, layers, operators, and size?</p></div>
+          <div><strong>Evidence</strong><p>Model parser output and package metadata. This is not proof that the chip can run the model.</p></div>
+          <div><strong>Next Action</strong><p>Run analog fit after the model structure is available.</p></div>
+        </div>
+        <div class="action-row">
+          <button type="button" class="action-button" data-primary-action>Run Model Intake</button>
+          <button type="button" class="action-button secondary" data-secondary-action>Show Missing Proof</button>
+        </div>
+        <div class="status-strip" id="step-status">
+          <b>Demo status</b>
+          <span>Select a step or run a demo action to see what proof this part of the platform would collect.</span>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Demo note:</strong>
+        <p>These buttons show the intended product behavior. Today they explain what each action would collect. As backend adapters are connected, the same controls should run tools, import evidence, save artifacts, and update the final claim boundary.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>What Each Step Produces</h2>
+      <p>Each step turns one user question into one product result. The result must be written in complete sentences so the reader understands what happened and what still has not been proven.</p>
+      <div class="grid two">
+        <div class="card"><strong>1. Model Intake</strong><p>The user learns whether the platform can open the model and understand its basic shape. The platform should show the model inputs, outputs, layers, operators, and size. This does not prove the chip can run the model. It only proves that the review can start from a real model file.</p></div>
+        <div class="card"><strong>2. Analog Fit</strong><p>The user learns which model parts may be good candidates for analog compute and which parts need digital compute. The platform should explain why each part was classified that way. This does not prove speed or power. It only creates the first analog/digital map.</p></div>
+        <div class="card"><strong>3. Analog Accuracy</strong><p>The user learns whether analog behavior such as noise, drift, limited precision, and imperfect weight writing may hurt the model answer. AIHWKIT and the local analog-error adapter can support this step. This is simulator or estimate evidence unless it is later backed by hardware.</p></div>
+        <div class="card"><strong>4. Crossbar Layout</strong><p>The user learns whether the physical memory grid could change the math. CrossSim can help test wire effects, read noise, bit slicing, programming error, and converter range. This does not prove the final chip. It tells us which layout assumptions are risky.</p></div>
+        <div class="card"><strong>5. Hardware Cost</strong><p>The user learns whether the workload seems realistic for the chip budget. The platform should show estimated area, memory use, energy, latency, and converter cost. NeuroSim or a local estimator can help, but measured silicon is needed before strong cost claims.</p></div>
+        <div class="card"><strong>6. Compiler Mapping</strong><p>The user learns whether normal model code can become a chip execution plan. The platform should show placement, tiling, bit-slicing needs, unsupported operators, and runtime target. Compiler mapping does not prove that the model keeps accuracy or saves power.</p></div>
+        <div class="card"><strong>7. Transformer And VLA</strong><p>The user learns which parts of modern robot or action models are analog candidates and which parts should stay digital. Static projection layers may be candidates. Changing attention, Softmax, LayerNorm, action timing, and safety logic usually need digital handling.</p></div>
+        <div class="card"><strong>8. Full-System Runtime</strong><p>The user learns whether CPU work, memory movement, signal conversion, and software overhead may erase the analog benefit. SST/Golem and ALPINE/gem5-X can support this in simulation. A real board trace is still needed for measured runtime claims.</p></div>
+        <div class="card"><strong>9. Board Runtime</strong><p>The user learns whether the model package actually ran on a prototype board or lab setup. The platform should show pass or fail, latency, timing variation, failure reason, firmware version, and board setup. Runtime alone does not prove energy or accuracy.</p></div>
+        <div class="card"><strong>10. Power And Thermal</strong><p>The user learns how much energy the run used and how hot the setup became. The platform should show which power lines were measured, what temperature was recorded, and whether the measurement covered the whole system or only one part of the chip.</p></div>
+        <div class="card"><strong>11. Task Accuracy</strong><p>The user learns whether the mapped model still solves the real task. The platform should compare the original model result with the mapped or hardware-run result using the task metric that matters for the workload. A speed result without task accuracy is incomplete.</p></div>
+        <div class="card"><strong>12. Weight Updates</strong><p>The user learns whether the chip can change model weights after deployment. The platform should separate fixed weights, rare updates, small adapter updates, and frequent local adaptation. Strong update claims need write energy, write time, endurance, retention, rollback, and post-update accuracy.</p></div>
+        <div class="card"><strong>13. Sensor Path</strong><p>The user learns what happens before the model input. The platform should show sensor capture, preprocessing, buffering, synchronization, latency, energy, and who owns that work. A chip-only claim is incomplete if the sensor path is ignored.</p></div>
+        <div class="card"><strong>14. Final Answer</strong><p>The user gets one direct answer: fit, proof, broken parts, safe claims, blocked claims, and next engineering work. The final answer must not upgrade estimates into measured proof. It should say exactly what can and cannot be claimed today.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How The Silicon Roadmap Fits</h2>
+      <p>The silicon roadmap is useful only if the reader can see what it means for the product. This section translates the roadmap into plain decisions, proof requirements, and limits.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Build Software Before Silicon</strong>
+          <p>The roadmap is right to start with software. We should not build a chip first and then discover that normal models cannot use it. The first product job is to build a virtual chip model, a model review flow, and evidence records so every later hardware decision has a clear test.</p>
+        </div>
+        <div class="card">
+          <strong>Use A Hybrid Chip</strong>
+          <p>The roadmap is right that the chip should not be purely analog. Analog arrays are useful for repeated matrix math. Digital logic is still needed for changing decisions, exact control, software scheduling, model parts such as Softmax and LayerNorm, and safety-related behavior.</p>
+        </div>
+        <div class="card">
+          <strong>Build A Compiler</strong>
+          <p>The roadmap is right that users should not manually program analog circuits. A customer should bring a normal model file. The compiler should split the model, place the analog-suitable parts, keep the digital parts digital, and produce a package that the simulator or board can run.</p>
+        </div>
+        <div class="card">
+          <strong>Account For Physical Effects</strong>
+          <p>The roadmap is right to treat noise, drift, heat, signal conversion, and weight updates as core issues. These are not side details. They can decide whether the chip gives a real benefit or whether the low-power analog core is hidden by accuracy loss, conversion cost, update cost, or system overhead.</p>
+        </div>
+        <div class="card">
+          <strong>Use Careful Claim Language</strong>
+          <p>We should not call the software model a perfect replica. It is a calibrated virtual chip model, and it is only as good as the measurements used to tune it. We should not call the chip unbeatable. We should say which selected workloads are supported by evidence and which workloads still need proof.</p>
+        </div>
+        <div class="card">
+          <strong>Keep Candidate Ideas Labeled</strong>
+          <p>Memory choices such as STT-MRAM or FeRAM, package choices such as glass interposers, scheduling methods such as group-level parallelism, and analog filtering methods should stay labeled as candidate designs until the platform has simulation, compiler evidence, board evidence, or lab measurements for them.</p>
+        </div>
+        <div class="card">
+          <strong>Do Not Overclaim VLA Support</strong>
+          <p>A robot or VLA model may contain some analog-friendly math, but that does not mean the whole model runs on analog. The product must show the split: what the analog array handles, what the digital coprocessor handles, what the CPU or controller handles, and what is still blocked.</p>
+        </div>
+        <div class="card">
+          <strong>Make Every Claim Pass Through Evidence</strong>
+          <p>Every important claim should point to a proof level. A paper example is context. A local estimate is planning evidence. A simulator result is simulation evidence. A board trace is measured runtime evidence. A power trace is measured energy evidence. The platform must not let one kind of proof stand in for another.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Concrete Modifications We Must Plan For</h2>
+      <p>The roadmap needs to name the real changes that make the chip usable. These are not pitch points. They are engineering workstreams. Each one must show up in the chip design, simulator, compiler, backend evidence model, frontend journey, and final claim rules.</p>
+
+      <div class="grid two">
+        <div class="card">
+          <strong>1. Separate Analog And Digital Physically</strong>
+          <p><strong>Plain meaning:</strong> the chip has quiet analog areas and noisy digital areas. They cannot be placed carelessly next to each other.</p>
+          <p><strong>Problem:</strong> fast digital logic switches on and off many times per second. That switching creates electrical disturbance. Sensitive analog arrays can pick up that disturbance and produce wrong math.</p>
+          <p><strong>What changes in silicon:</strong> place analog and digital blocks apart, add protective isolation, protect the power lines that feed analog blocks, add quiet spacing around analog areas, and evaluate package choices that reduce electrical leakage between sections.</p>
+          <p><strong>What changes in software:</strong> the simulator must include the chance that digital activity disturbs analog reads. The compiler should avoid scheduling noisy digital work at the same time as sensitive analog work when the chip allows that control.</p>
+          <p><strong>What our platform shows:</strong> substrate-noise risk, isolation evidence, affected tiles, required measurements, and whether the claim is simulation-only or measured.</p>
+          <div><span class="tag warn">chip floorplan</span><span class="tag warn">noise model</span><span class="tag warn">measurement needed</span></div>
+        </div>
+
+        <div class="card">
+          <strong>2. Manage Heat And Drift</strong>
+          <p><strong>Plain meaning:</strong> the chip's stored values can slowly shift, especially when the chip gets hot.</p>
+          <p><strong>Problem:</strong> analog memory stores weights as physical electrical states. Heat, age, and voltage can move those states. If the stored weight changes, the model answer can change.</p>
+          <p><strong>What changes in silicon:</strong> place hot digital blocks away from analog arrays, add temperature sensors near the arrays, spread heat away from sensitive areas, and evaluate advanced cooling only if the product truly needs it.</p>
+          <p><strong>What changes in software:</strong> AIHWKIT/CrossSim-style simulations need temperature and drift settings. Runtime must record temperature during inference and attach that trace to the evidence package.</p>
+          <p><strong>What our platform shows:</strong> assumed temperature range, drift risk, thermal trace status, recalibration need, and whether accuracy survives the tested condition.</p>
+          <div><span class="tag warn">thermal model</span><span class="tag warn">drift profile</span><span class="tag bad">blocked without traces</span></div>
+        </div>
+
+        <div class="card">
+          <strong>3. Choose Memory And Device Model Carefully</strong>
+          <p><strong>Plain meaning:</strong> the memory material is not just storage. It decides how accurate, updateable, durable, and expensive the chip can be.</p>
+          <p><strong>Problem:</strong> PCM, RRAM, FeRAM, FeFET, and STT-MRAM are different ways to store values physically. They do not behave the same when written, read, heated, aged, or rewritten many times.</p>
+          <p><strong>What changes in silicon:</strong> memory choice must match the product claim. A fixed model, rare updates, adapter updates, and frequent local adaptation may need different memory behavior.</p>
+          <p><strong>What changes in software:</strong> AIHWKIT defaults are not enough for every memory type. We need custom memory profiles and possibly TxSim, XBTorch, RxNN, or our own calibrated model.</p>
+          <p><strong>What our platform shows:</strong> memory assumption, write limits, endurance evidence, retention evidence, and whether the workload is fixed-weight ready or adaptive blocked.</p>
+          <div><span class="tag warn">memory candidate</span><span class="tag warn">device profile</span><span class="tag bad">update proof needed</span></div>
+        </div>
+
+        <div class="card">
+          <strong>4. Add Real Tiling And Bit-Slicing</strong>
+          <p><strong>Plain meaning:</strong> big model layers must be chopped into pieces that fit the chip.</p>
+          <p><strong>Problem:</strong> a model layer may be much larger than one analog array. Also, the model may want an 8-bit weight while one analog cell only stores 1 or 2 useful bits.</p>
+          <p><strong>What changes in silicon:</strong> define the array size, cell precision, number of arrays, where the signal translators sit, and how partial answers are added back together.</p>
+          <p><strong>What changes in compiler:</strong> split large matrices into physical pieces, spread one high-precision weight across several physical cells when needed, place those pieces on arrays, and plan how digital logic combines the partial results.</p>
+          <p><strong>What our platform shows:</strong> number of tiles, number of slices, extra area, extra latency, extra energy, and layers that no longer fit after physical limits are counted.</p>
+          <div><span class="tag good">compiler work</span><span class="tag warn">area cost</span><span class="tag warn">ADC/DAC cost</span></div>
+        </div>
+
+        <div class="card">
+          <strong>5. Schedule ADCs, DACs, Tiles, And Memory</strong>
+          <p><strong>Plain meaning:</strong> even if the analog math is fast, the chip still has to move signals in the right order.</p>
+          <p><strong>Problem:</strong> the chip may have fewer ADCs and DACs than model operations. Many array columns may share one ADC. If everything waits in line, speed and energy claims fall apart.</p>
+          <p><strong>What changes in silicon:</strong> define how columns share ADCs, how inputs reach DACs, how many operations can run at the same time, and how partial results move to digital logic.</p>
+          <p><strong>What changes in compiler:</strong> schedule work around shared ADCs, shared DACs, column groups, tile parallelism, memory movement, and host dispatch. Group-Level Parallelism is a candidate only if our physical design needs that exact method.</p>
+          <p><strong>What our platform shows:</strong> compute-limited, ADC-limited, DAC-limited, memory-limited, or host-limited status.</p>
+          <div><span class="tag warn">scheduling pass</span><span class="tag warn">system simulation</span><span class="tag bad">do not claim core-only speed</span></div>
+        </div>
+
+        <div class="card">
+          <strong>6. Add Analog Filtering Only Where It Is Proven Useful</strong>
+          <p><strong>Plain meaning:</strong> do not spend power processing sensor data that does not matter.</p>
+          <p><strong>Problem:</strong> cameras, event sensors, tactile skins, microphones, and industrial sensors can create a lot of data. Converting all of it to digital before knowing what matters can waste power.</p>
+          <p><strong>What changes in silicon:</strong> candidate designs may include low-precision analog filtering, simple analog comparisons, event gating, or early pruning before expensive conversion.</p>
+          <p><strong>What changes in software:</strong> simulator must show what data is discarded, what data is kept, how much accuracy is lost, how much latency is saved, and how much energy is saved.</p>
+          <p><strong>What our platform shows:</strong> pruning rate, false-prune risk, sensor type, task accuracy after pruning, and measured power impact.</p>
+          <div><span class="tag warn">candidate feature</span><span class="tag warn">sensor dependent</span><span class="tag bad">task proof required</span></div>
+        </div>
+
+        <div class="card">
+          <strong>7. Build Transformer And VLA Partitioning</strong>
+          <p><strong>Plain meaning:</strong> modern robot models are mixed. Some parts are repeated math. Some parts are decisions that change every moment.</p>
+          <p><strong>Problem:</strong> analog arrays are good when stored weights can be reused. Transformer and VLA models also contain dynamic attention, normalization, action timing, and control logic that should usually stay digital.</p>
+          <p><strong>Analog candidates:</strong> static projection weights, feed-forward weights, selected linear layers, and some convolution-style frontends.</p>
+          <p><strong>Digital required:</strong> changing attention scores, Softmax, LayerNorm, action timing, safety logic, memory scheduling, and control decisions.</p>
+          <p><strong>What our platform shows:</strong> what maps to analog, what stays digital, what needs rewrite, and what cannot be claimed as analog-ready.</p>
+          <div><span class="tag good">VLA boundary</span><span class="tag warn">digital coprocessor</span><span class="tag bad">full VLA claim blocked</span></div>
+        </div>
+
+        <div class="card">
+          <strong>8. Add Calibration Metadata And Runtime Checks</strong>
+          <p><strong>Plain meaning:</strong> the chip needs a way to check how its real analog cells behave and then correct for that behavior. Calibration is that correction process.</p>
+          <p><strong>Problem:</strong> an analog chip does math with physical electrical states. Two cells that are supposed to store the same value may not behave exactly the same. One part of the array may be hotter than another part. A voltage supply may move slightly. A tile may become less accurate over time. If the system ignores these differences, the model can give the wrong answer even if the original digital model was correct.</p>
+          <p><strong>What changes in silicon:</strong> the chip needs built-in support for checking itself. Temperature monitors report how hot different parts of the chip are. Voltage monitors report whether the power lines are stable. Tile health checks report whether a section of the analog array is accurate enough to use. Fallback behavior gives the runtime a safer option, such as using a different tile, rerunning digitally, lowering the claim, or stopping the run instead of returning a bad result.</p>
+          <p><strong>What changes in compiler/runtime:</strong> the compiler and runtime need to carry the exact correction data used for the run. A calibration profile is the saved set of correction settings for a board, chip, temperature range, and runtime mode. A weak-tile list names array sections that should be avoided or used carefully. Correction values tell the runtime how to adjust for known analog error. Recalibration commands tell the board when and how to refresh those corrections. Failed-calibration handling tells the system what to do when the chip cannot be corrected enough to trust the result.</p>
+          <p><strong>What our platform shows:</strong> the page should show which calibration profile was used, when it was created, what board or chip it belongs to, what proof is missing, whether heat or time may change the result, and whether the runtime has a safe fallback. If calibration proof is missing, the platform should block strong claims about accuracy, reliability, and production readiness.</p>
+          <div><span class="tag warn">calibration table</span><span class="tag warn">runtime metadata</span><span class="tag bad">claim blocked if missing</span></div>
+        </div>
+
+        <div class="card">
+          <strong>9. Add Weight Update Metadata And Tests</strong>
+          <p><strong>Plain meaning:</strong> we need to know whether the model can change after the device ships.</p>
+          <p><strong>Problem:</strong> Physical AI may need updates for a new customer, new robot hand, new environment, or new task. Analog memory writes can be slow, power-hungry, or wear out the memory.</p>
+          <p><strong>What changes in silicon:</strong> define whether the chip supports full model updates, selected layer updates, small adapter updates, calibration constant updates, or factory-only writes.</p>
+          <p><strong>What changes in compiler/runtime:</strong> mark which weights can be written, generate write plans, validate accuracy after writing, support rollback, and record update energy and time.</p>
+          <p><strong>What our platform shows:</strong> fixed-weight ready, periodic-update candidate, adapter-update candidate, or adaptive Physical AI blocked.</p>
+          <div><span class="tag warn">write plan</span><span class="tag warn">rollback</span><span class="tag bad">endurance proof needed</span></div>
+        </div>
+
+        <div class="card">
+          <strong>10. Build Board Integration And Measurement Hooks</strong>
+          <p><strong>Plain meaning:</strong> the computer needs a real way to send work to the chip and read back what happened.</p>
+          <p><strong>Problem:</strong> a compiler result is not enough. The package must run on a board and produce measured traces for speed, power, heat, failures, and task accuracy.</p>
+          <p><strong>What changes in hardware:</strong> the board needs a communication port so a PC can send the model package to the chip. That port might be USB for a simple lab board, Ethernet for networked testing, PCIe for a high-speed accelerator card, JTAG for low-level debug, or UART for simple serial logs. The board also needs exposed power measurement points, a way to report whether the run started and finished, and a way to save debug logs when something fails.</p>
+          <p><strong>What changes in backend:</strong> the backend must accept files from the lab: runtime logs, power logs, temperature logs, firmware version, board version, test settings, and task accuracy results. It must keep those files tied to the exact model package so the proof is auditable.</p>
+          <p><strong>What our platform shows:</strong> whether the board run passed or failed, how long it took, whether timing was steady or jumpy, how much energy it used, how hot it got, whether the task still worked, and exactly what setup produced the result.</p>
+          <div><span class="tag good">measured proof</span><span class="tag warn">lab setup</span><span class="tag bad">no production claim without it</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Board Integration In Everyday Terms</h2>
+      <p>This is the path from "the compiler made a file" to "the chip actually ran something." It needs to be explained carefully because many roadmap words hide real lab work.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Board</strong>
+          <p>A board is the physical test platform that holds the chip and lets a PC talk to it. Early boards are usually not pretty products. They are lab tools with connectors, test points, power inputs, and debug access.</p>
+          <p><strong>Why the user cares:</strong> without a board result, we do not know whether the compiled model actually runs on hardware.</p>
+        </div>
+        <div class="card">
+          <strong>USB, Ethernet, PCIe, JTAG, And UART</strong>
+          <p>These are common ways for a computer to talk to a test board. The right choice depends on whether the user needs a simple demo connection, a fast data path, or a low-level debug path for engineers.</p>
+          <p><strong>USB:</strong> USB is often the easiest connection for an early lab demo because most computers support it and the setup is simple.</p>
+          <p><strong>Ethernet:</strong> Ethernet is useful when the board sits on a network, in a shared lab rack, or in a remote test setup where several people or services need to reach it.</p>
+          <p><strong>PCIe:</strong> PCIe is a high-speed connection often used by accelerator cards. It matters when the model sends a lot of data between the computer and the chip.</p>
+          <p><strong>JTAG:</strong> JTAG is a low-level debug connection. Engineers use it when firmware, chip startup, register settings, or board bring-up are not working correctly.</p>
+          <p><strong>UART:</strong> UART is a simple serial text connection. It is often used for early logs, status messages, and basic board bring-up before the full runtime path is stable.</p>
+        </div>
+        <div class="card">
+          <strong>Power Rails</strong>
+          <p>A chip does not have one generic power input. Different parts of the chip may have separate power lines. These are called rails.</p>
+          <p>For example, the analog array, digital logic, memory, and input/output pins may each use a separate rail. Measuring these separately helps us see where the energy is really going.</p>
+          <p><strong>Why the user cares:</strong> if we measure only the analog array rail, we may hide the real power used by the whole system.</p>
+        </div>
+        <div class="card">
+          <strong>Runtime Status</strong>
+          <p>The board must report what happened during a run so the platform can separate a real result from a failed attempt. A status record should say whether the package loaded, weights were programmed, inference started, inference finished, or the run stopped early.</p>
+          <p>Important failure states include timeout, calibration failed, memory transfer failed, unsupported command, firmware mismatch, or chip did not respond.</p>
+          <p><strong>Why the user cares:</strong> a failed run should not look like missing data or a successful estimate.</p>
+        </div>
+        <div class="card">
+          <strong>Debug Traces</strong>
+          <p>A debug trace is a record of what happened step by step. It helps engineers find where the run broke.</p>
+          <p>Example: the PC sent the package, the board accepted it, the chip started layer 1, layer 2 fell back to digital, the run stopped at layer 3.</p>
+          <p><strong>Why the user cares:</strong> the platform can explain failure instead of only saying "run failed."</p>
+        </div>
+        <div class="card">
+          <strong>Firmware Metadata</strong>
+          <p>Firmware is the low-level software running on the board or chip controller. Metadata means the version and settings that describe that software.</p>
+          <p>Example: firmware version, board revision, driver version, clock speed, calibration profile, runtime mode.</p>
+          <p><strong>Why the user cares:</strong> results are only meaningful if we know exactly what software and board setup produced them.</p>
+        </div>
+        <div class="card">
+          <strong>Latency, Jitter, Energy, And Temperature</strong>
+          <p><strong>Latency:</strong> latency means how long one run took from the start signal to the finished result. A low latency result matters when the chip is used in a robot, vehicle, sensor, or control system that must respond quickly.</p>
+          <p><strong>Jitter:</strong> how much the timing changes from run to run. A robot may care about steady timing, not only average timing.</p>
+          <p><strong>Energy:</strong> energy means how much electrical work was used during the run. A useful result should say whether it measured the whole board, the chip, or only one internal power rail.</p>
+          <p><strong>Temperature:</strong> temperature means how hot the chip or board became during the run. This matters because heat can change analog behavior and can make a product harder to package or cool.</p>
+          <p><strong>Why the user cares:</strong> these decide whether the chip is useful in a real device.</p>
+        </div>
+        <div class="card">
+          <strong>Synchronized Task Accuracy</strong>
+          <p>This means the task result is tied to the same model package, same board run, same power trace, and same test setup.</p>
+          <p>Bad proof: power was measured on one run, accuracy was measured on a different setup, and the model package changed in between.</p>
+          <p>Good proof: this exact package ran on this exact board, used this much energy, reached this temperature, and produced this task result.</p>
+        </div>
+      </div>
+      <pre><code>PC
+  |
+  | sends model package over USB/Ethernet/PCIe/JTAG/UART
+  v
+Test board
+  |
+  | loads package, programs weights, starts run
+  v
+Analog chip
+  |
+  | runs analog and digital work
+  v
+Board logs
+  |
+  | runtime status, debug trace, latency, failures
+  v
+Lab instruments
+  |
+  | power trace, temperature trace
+  v
+Backend
+  |
+  | validates and stores evidence tied to the package
+  v
+Frontend
+  |
+  | shows pass/fail, timing, energy, heat, task result, and claim boundary</code></pre>
+    </section>
+
+    <section>
+      <h2>Concrete Compiler Changes</h2>
+      <p>The compiler is the translator between a normal AI model and the chip. This section explains each compiler change without assuming the reader already knows compiler language. `analog-mlir` gives us useful starting ideas, but a real product needs our own chip target and our own evidence contract.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>1. Layer Extraction</strong>
+          <p><strong>Plain meaning:</strong> first, the compiler must read the model and find the parts that look like good candidates for analog compute.</p>
+          <p><strong>What we reuse:</strong> `analog-mlir` already has an idea called `analog-extract-layers`. It looks for supported layer-shaped regions such as linear layers and convolution layers.</p>
+          <p><strong>What we add:</strong> our product needs to also find transformer blocks, VLA action heads, sensor frontends, unsupported operators, and reasons why something cannot run on analog.</p>
+          <p><strong>What the user sees:</strong> a clear list of model parts: analog candidate, digital required, unsupported, or needs rewrite.</p>
+        </div>
+        <div class="card">
+          <strong>2. Analog Conversion</strong>
+          <p><strong>Plain meaning:</strong> after finding candidate layers, the compiler must turn them into a chip-style plan.</p>
+          <p><strong>What we reuse:</strong> `analog-mlir` has `analog-convert-layers`, which turns supported model pieces into an analog execution form.</p>
+          <p><strong>What we add:</strong> our chip has real limits: tile size, number of arrays, cell precision, ADC/DAC placement, memory capacity, and data movement. The compiler must include those limits instead of using a generic analog idea.</p>
+          <p><strong>What the user sees:</strong> this layer fits, this layer needs many tiles, this layer needs bit-slicing, this layer is too expensive, or this layer falls back to digital.</p>
+        </div>
+        <div class="card">
+          <strong>3. Weight Isolation</strong>
+          <p><strong>Plain meaning:</strong> analog arrays are strongest when model weights are written once and reused many times.</p>
+          <p><strong>What we reuse:</strong> `analog-mlir` has `analog-isolate-weights`, which separates persistent weights from changing runtime inputs.</p>
+          <p><strong>What we add:</strong> Physical AI may need updates. We must mark which weights are fixed, which can be written later, whether only small adapter layers can change, how updates are written, and how rollback works if an update fails.</p>
+          <p><strong>What the user sees:</strong> fixed-weight ready, periodic-update candidate, adapter-update candidate, or adaptive Physical AI blocked.</p>
+        </div>
+        <div class="card">
+          <strong>4. Task Graph</strong>
+          <p><strong>Plain meaning:</strong> a model run is not one step. It is a chain of analog work, digital work, memory movement, sensor work, and safety checks.</p>
+          <p><strong>What we reuse:</strong> `analog-mlir` has `analog-assemble-task-graph`, which represents work as a runtime plan.</p>
+          <p><strong>What we add:</strong> our plan must include digital coprocessor tasks, sensor preprocessing tasks, safety/control handoff, memory movement, calibration checks, failure paths, and fallback paths.</p>
+          <p><strong>What the user sees:</strong> a map of what runs on analog, what runs on digital, what moves through memory, and where the system can fail.</p>
+        </div>
+        <div class="card">
+          <strong>5. Simulation Target</strong>
+          <p><strong>Plain meaning:</strong> before the real chip works, we still need a software place to test the compiler output.</p>
+          <p><strong>What we reuse:</strong> `analog-lower-to-golem` sends compiler output toward Golem/SST simulation.</p>
+          <p><strong>What we add:</strong> keep this path for simulation, but translate its output into our normal evidence format so the frontend can explain it plainly.</p>
+          <p><strong>What the user sees:</strong> simulation-only compiler evidence. Useful, but not proof that the real board ran.</p>
+        </div>
+        <div class="card">
+          <strong>6. Real Chip Target</strong>
+          <p><strong>Plain meaning:</strong> the compiler eventually has to produce something our actual board and chip can load.</p>
+          <p><strong>What we reuse:</strong> the general compiler shape and analog execution ideas from `analog-mlir`.</p>
+          <p><strong>What we add:</strong> a new chip target path, runtime command generation, register writes, firmware interface, board package format, and error reporting.</p>
+          <p><strong>What the user sees:</strong> chip target missing, chip target available, board package generated, or board package failed with a reason.</p>
+        </div>
+        <div class="card">
+          <strong>7. Calibration</strong>
+          <p><strong>Plain meaning:</strong> calibration is the chip's correction record. It tells the software how the real analog hardware differs from the ideal model.</p>
+          <p><strong>What we reuse:</strong> existing simulators can help us think about drift, noise, and imperfect cells, but they cannot create the final correction record for our physical chip. The real calibration profile must come from our board, our chip, and our lab measurements.</p>
+          <p><strong>What we add:</strong> the compiler and runtime need calibration tables, weak-tile lists, correction values, drift profiles, temperature profiles, voltage profiles, recalibration commands, and fallback rules. Each item has a job. The tables store corrections. The weak-tile list marks array regions that should be avoided. The profiles explain the physical condition being assumed. The commands rerun correction when needed. The fallback rules stop the system from pretending a bad calibrated run is valid.</p>
+          <p><strong>What the user sees:</strong> the user should see the calibration profile used for the result, the condition it was tested under, the missing calibration proof, and the claim impact. If the model only worked with assumed calibration, the page should say that. If the model worked with measured calibration on a board, the page should say that too.</p>
+        </div>
+        <div class="card">
+          <strong>8. Scheduling</strong>
+          <p><strong>Plain meaning:</strong> the compiler must decide the order of work so the chip is not waiting on signal conversion, memory movement, or the host computer.</p>
+          <p><strong>What we reuse:</strong> task graph concepts from the compiler pipeline.</p>
+          <p><strong>What we add:</strong> ADC sharing rules, DAC timing rules, tile parallelism, column grouping, memory movement, host dispatch, and digital accumulation scheduling.</p>
+          <p><strong>What the user sees:</strong> compute-limited, conversion-limited, memory-limited, host-limited, or balanced result.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How These Modifications Enter Our Roadmap</h2>
+      <p>Each modification enters the roadmap in two stages. First we make the platform ask the right question and store the right evidence. Later we add the real simulator, compiler, board, or lab path that produces stronger proof.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Analog/Digital Isolation</strong>
+          <p>This work checks whether noisy digital circuits can disturb sensitive analog math. Digital blocks switch quickly and can create electrical disturbance. Analog arrays can be affected by that disturbance because they compute with physical signals.</p>
+          <p>Now, the platform should add a roadmap gate that asks whether this risk has been modeled or measured. Later, the platform should import substrate-noise simulation and lab measurements from real switching workloads.</p>
+          <p>A strong claim needs measured noise while digital blocks are switching and analog arrays are computing. Without that measurement, the platform should treat this as a risk, not as solved hardware.</p>
+        </div>
+        <div class="card">
+          <strong>Heat And Drift</strong>
+          <p>This work checks whether heat or time changes stored analog weights enough to hurt accuracy. In an analog chip, the model weights are physical states, so temperature and aging can move them away from the intended value.</p>
+          <p>Now, the package should record temperature and drift assumptions. Later, the platform should add thermal modeling, board temperature imports, and drift tests that run over a meaningful time period.</p>
+          <p>A strong claim needs a temperature trace plus task accuracy under the same tested heat and drift condition. It is not enough to show accuracy at room temperature and separately discuss heat as a theory.</p>
+        </div>
+        <div class="card">
+          <strong>Memory/Device Choice</strong>
+          <p>This work chooses the physical memory type that matches the product promise. A chip designed for fixed weights has different needs from a chip that claims frequent updates or local adaptation.</p>
+          <p>Now, the frontend and package should show the assumed memory type and update pattern. Later, the platform should add device-specific simulation profiles and write tests for the selected memory behavior.</p>
+          <p>A strong claim needs write latency, write energy, endurance, retention, and variability data. Without those measurements, update claims should stay limited.</p>
+        </div>
+        <div class="card">
+          <strong>Tiling And Bit-Slicing</strong>
+          <p>This work splits big model layers and high-precision weights into pieces the chip can physically store and compute. A model layer may be larger than one analog array, and one model weight may need several physical cells.</p>
+          <p>Now, the fit report should estimate tile count and slice count so the user sees the physical cost early. Later, the compiler should produce placement backed by the real chip limits.</p>
+          <p>A strong claim needs a compiler report that matches the target chip's tile size, precision, memory, and signal-converter limits. A generic layer count is not enough.</p>
+        </div>
+        <div class="card">
+          <strong>ADC/DAC Scheduling</strong>
+          <p>This work checks whether signal conversion and memory movement erase the analog advantage. ADCs turn analog results into digital values. DACs turn digital inputs into analog signals. If these blocks become the bottleneck, fast analog math may not help the full system.</p>
+          <p>Now, the platform should show conversion work as a visible risk and cost. Later, the compiler and system simulator should show how converter timing, memory movement, and host dispatch are scheduled.</p>
+          <p>A strong claim needs a runtime trace showing converter timing, memory movement, and host overhead. A core-only speed number should not be used as a full-system speed claim.</p>
+        </div>
+        <div class="card">
+          <strong>Analog Filtering/Pruning</strong>
+          <p>This work checks whether the chip can discard unimportant sensor data early without hurting the task. The idea is useful only if it saves energy and keeps the important signal.</p>
+          <p>Now, the platform should treat analog filtering as a candidate design option, not as a guaranteed chip feature. Later, the platform should add sensor-specific simulation and circuit evidence for the exact filtering method.</p>
+          <p>A strong claim needs measured power saving plus task accuracy after filtering. Saving power is not useful if the filtered model misses the thing the user needed to detect.</p>
+        </div>
+        <div class="card">
+          <strong>Transformer/VLA Split</strong>
+          <p>This work separates repeated matrix math from changing attention, normalization, action, and control logic. Analog arrays may help with stable linear weights, but they usually should not be presented as running the whole modern robot model.</p>
+          <p>Now, the frontend and backend should produce a partition report that shows which model parts are analog candidates and which parts stay digital. Later, the compiler should turn that split into a real mapping for the analog arrays and digital coprocessor.</p>
+          <p>A strong claim needs mapping evidence, runtime evidence, and task evidence. Without all three, the platform should avoid saying the full VLA workload is ready.</p>
+        </div>
+        <div class="card">
+          <strong>Calibration Metadata</strong>
+          <p>This work carries correction information for imperfect analog cells and changing physical conditions. Calibration tells the system how the real chip differs from the ideal math.</p>
+          <p>Now, the package should include calibration fields and claim rules that block strong statements when calibration evidence is missing. Later, the runtime should run calibration steps and attach board evidence to the package.</p>
+          <p>A strong claim needs a calibration trace and proof that the system handles calibration failure safely. The platform should show what happens if calibration fails instead of hiding the failure.</p>
+        </div>
+        <div class="card">
+          <strong>Weight Updates</strong>
+          <p>This work proves whether the model can change after deployment without making the chip too slow, too power-hungry, or unreliable. A fixed-weight product and an adaptive Physical AI product are very different claims.</p>
+          <p>Now, the platform should show the update class and the missing proof. Later, it should add write tests, update tests, retention tests, rollback flow, and accuracy checks after the update.</p>
+          <p>A strong claim needs write cost, endurance, retention, rollback, and post-update accuracy. If those are missing, adaptive claims should stay blocked.</p>
+        </div>
+        <div class="card">
+          <strong>Board Integration</strong>
+          <p>This work connects the PC, board, chip, lab instruments, backend, and frontend into one measured workflow. It is the path from a software package to a hardware result the user can review.</p>
+          <p>Now, the platform should add import contracts and demo traces so the frontend can show the shape of real evidence. Later, it should add a live board execution service that sends packages to a prototype board and collects results.</p>
+          <p>A strong claim needs board runtime, power trace, thermal trace, and task result from the same setup. Evidence from mismatched setups should stay separated.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Chip Architecture Direction</h2>
+      <div class="grid two">
+        <div class="card">
+          <strong>Analog Side</strong>
+          <p>Handles matrix-heavy work where weights can be reused. This may include linear layers, projection weights, feed-forward blocks, and selected convolution-like layers.</p>
+          <div>
+            <span class="tag good">low-power VMM</span>
+            <span class="tag good">static weights</span>
+            <span class="tag warn">drift risk</span>
+            <span class="tag warn">write/update cost</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>Digital Side</strong>
+          <p>Handles dynamic logic and exact control. This includes Softmax, LayerNorm, dynamic attention, safety checks, memory scheduling, sensor preprocessing, and runtime control.</p>
+          <div>
+            <span class="tag good">control logic</span>
+            <span class="tag good">nonlinear ops</span>
+            <span class="tag warn">power overhead</span>
+            <span class="tag warn">memory movement</span>
+          </div>
+        </div>
+      </div>
+      <pre><code>Model layer
+  |
+  +-- static, matrix-heavy, precision-tolerant
+  |     -> analog array candidate
+  |
+  +-- dynamic, nonlinear, control-heavy, safety-critical
+        -> digital coprocessor / CPU / FPGA / runtime</code></pre>
+    </section>
+
+    <section>
+      <h2>Compiler And Runtime Direction</h2>
+      <p>The compiler is the bridge between normal AI models and the physical chip. `analog-mlir` can help, but it is not a finished compiler for our chip. We should keep the Golem/SST path for simulation and add our own chip target beside it.</p>
+      <div class="grid">
+        <div class="card">
+          <strong>Reuse</strong>
+          <p>We can reuse `analog-mlir` as a starting point for finding model layers, representing analog-style work, separating stable weights from changing inputs, and learning from the Golem/SST simulation path. This gives us compiler structure, but it does not give us a finished product compiler for our chip.</p>
+        </div>
+        <div class="card">
+          <strong>Modify</strong>
+          <p>We need to add the parts that only our chip can define: the final chip target, physical tile sizes, bit-slicing rules, signal-converter scheduling, calibration data, weight-update data, runtime package format, board loader path, and clear error reporting when a model cannot be mapped.</p>
+        </div>
+        <div class="card">
+          <strong>Expose</strong>
+          <p>The frontend should tell the user exactly where the compiler result stands. It should say whether the result is simulation-only, whether the real chip target is missing, whether a board-loadable package was generated, or whether the path is blocked with a specific reason.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="toolkits">
+      <h2>External Toolkits In The Product</h2>
+      <p>Toolkit names can sound abstract. In this platform, each toolkit is just a helper that answers one narrow question. No single toolkit proves the whole chip.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>How To Read Toolkit Results</strong>
+          <p>A toolkit result should be read as one piece of proof. It says something useful about one part of the chip story, such as accuracy risk, layout risk, compiler mapping, or system timing.</p>
+        </div>
+        <div class="card">
+          <strong>What The Platform Adds</strong>
+          <p>The platform translates each toolkit result into plain language, stores it with the package, checks what claim it can support, and shows what evidence is still missing.</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="card"><strong>AIHWKIT</strong><p>AIHWKIT is a Python and PyTorch toolkit for testing how analog hardware behavior may affect a neural network. It can help show whether noise, drift, limited converter precision, and imperfect weight programming may hurt the model. It does not prove board speed, board power, final silicon behavior, or production readiness.</p></div>
+        <div class="card"><strong>AIHWKIT-Lightning</strong><p>AIHWKIT-Lightning is the faster path for larger analog simulation sweeps. It helps when the model is too large for slow detailed experiments. It is still simulator evidence. It does not replace a real board run or a power measurement.</p></div>
+        <div class="card"><strong>CrossSim</strong><p>CrossSim helps test the physical memory grid. It can model risks from wire resistance, read noise, programming error, bit slicing, and converter range. It helps answer whether the array layout may damage accuracy. It does not prove the final packaged chip behaves the same way.</p></div>
+        <div class="card"><strong>analog-mlir</strong><p>analog-mlir is a compiler starting point. It can help identify model regions that look suitable for analog execution and can produce simulation-oriented runtime plans. It does not automatically produce code for our real chip. We need a chip-specific target before it becomes a deployment compiler.</p></div>
+        <div class="card"><strong>SST/Golem</strong><p>SST/Golem is a system simulation path. It helps test how a CPU or controller might send work to an analog accelerator, wait for results, and move data. It is useful before hardware is ready. It does not prove what a real board will measure.</p></div>
+        <div class="card"><strong>ALPINE/gem5-X</strong><p>ALPINE/gem5-X is a fuller computer-system simulator. It can include CPU behavior, memory behavior, operating-system effects, and accelerator calls. It helps find system bottlenecks. It does not prove real energy, heat, or production readiness.</p></div>
+        <div class="card"><strong>NeuroSim</strong><p>NeuroSim helps estimate chip-level cost such as area, latency, energy, and memory needs. It is useful for early hardware planning. It is not a measured silicon result, so its output must be shown as an estimate.</p></div>
+        <div class="card"><strong>TxSim, XBTorch, And RxNN</strong><p>These tools can help explore training behavior, update behavior, and memory-device behavior for crossbar-style hardware. They are useful when we need to understand write noise, drift, or memristor behavior. They do not prove write endurance, rollback, or retention unless those are measured.</p></div>
+        <div class="card"><strong>Board, Power, Thermal, And Task Tools</strong><p>These are the lab and product evidence sources. They show whether the package ran, how long it took, how much energy it used, how hot it got, and whether it solved the task. They prove only the setup that was actually tested.</p></div>
+      </div>
+    </section>
+
+    <section id="evidence-ladder">
+      <h2>Evidence Ladder</h2>
+      <p>The platform must keep weak and strong proof separate. A market trend can explain why the roadmap matters. A simulator can show likely technical risk. A board and lab run can support stronger claims. The page should always show which level the user is looking at.</p>
+      <div class="proof-ladder">
+        <div class="proof-card weak">
+          <strong>Source Context</strong>
+          <p>Papers, public examples, market research, and competitor notes explain why an area matters. They do not prove our chip works.</p>
+        </div>
+        <div class="proof-card weak">
+          <strong>Local Estimate</strong>
+          <p>A rough model-based estimate helps plan the roadmap. It is useful early, but it should not be sold as measured proof.</p>
+        </div>
+        <div class="proof-card weak">
+          <strong>Toolkit Smoke Result</strong>
+          <p>A smoke result shows that a tool or adapter can run. It does not prove the uploaded workload is ready for the chip.</p>
+        </div>
+        <div class="proof-card mid">
+          <strong>Simulator Output</strong>
+          <p>AIHWKIT, CrossSim, or related tools can show likely analog accuracy or layout risk under stated assumptions.</p>
+        </div>
+        <div class="proof-card mid">
+          <strong>Compiler Mapping</strong>
+          <p>A compiler report shows what can be placed on analog compute, what stays digital, and what is blocked.</p>
+        </div>
+        <div class="proof-card mid">
+          <strong>System Simulation</strong>
+          <p>SST/Golem, ALPINE, or similar tools can show whether CPU work, memory movement, and dispatch overhead change the result.</p>
+        </div>
+        <div class="proof-card strong">
+          <strong>Board Runtime</strong>
+          <p>A board trace shows that the package ran on hardware or a prototype setup and records timing, status, and failures.</p>
+        </div>
+        <div class="proof-card strong">
+          <strong>Power And Thermal</strong>
+          <p>Power and temperature traces show measured energy, peak power, heat, and which part of the setup was measured.</p>
+        </div>
+        <div class="proof-card strong">
+          <strong>Task Accuracy</strong>
+          <p>Task accuracy proves whether the mapped or hardware-run model still solves the user's real task.</p>
+        </div>
+        <div class="proof-card strong">
+          <strong>Reliability And Updates</strong>
+          <p>Repeated runs, drift tests, calibration checks, weight-update tests, retention, and rollback evidence support the strongest claims.</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <strong>Allowed</strong>
+          <p>AIHWKIT can support analog-risk discussion. CrossSim can support crossbar-risk discussion. Board runtime can support latency claims. Power traces can support power claims.</p>
+        </div>
+        <div class="card">
+          <strong>Blocked</strong>
+          <p>Simulation cannot become board proof. Board latency cannot become task accuracy. Power measurement cannot become compiler readiness. Source examples cannot become proof for our chip.</p>
+        </div>
+      </div>
+      <div class="claim-flow" aria-label="Animated evidence to claim flow">
+        <div class="claim-step">
+          <b>Level 1</b>
+          <strong>Idea Or Market Context</strong>
+          <p>Allowed wording: this is why the roadmap matters. Not allowed: this proves our chip works.</p>
+        </div>
+        <div class="claim-step">
+          <b>Level 2</b>
+          <strong>Estimate Or Local Check</strong>
+          <p>Allowed wording: this is an early planning result. Not allowed: this is measured silicon performance.</p>
+        </div>
+        <div class="claim-step">
+          <b>Level 3</b>
+          <strong>Simulator Or Compiler Result</strong>
+          <p>Allowed wording: this shows expected risk or mapping under stated assumptions. Not allowed: the board ran successfully.</p>
+        </div>
+        <div class="claim-step">
+          <b>Level 4</b>
+          <strong>Board And Lab Result</strong>
+          <p>Allowed wording: this exact package ran on this exact setup. Not allowed: all workloads or production chips are proven.</p>
+        </div>
+        <div class="claim-step">
+          <b>Level 5</b>
+          <strong>Repeated Task Proof</strong>
+          <p>Allowed wording: this workload is supported under tested conditions. Stronger product claims still need repeated runs, drift, updates, and fallback proof.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Animation meaning:</strong>
+        <p>The moving line is a reminder that evidence can move a claim forward only one proof level at a time. The platform should never jump from a paper, estimate, or simulator output straight to a production-ready claim.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>User Journeys</h2>
+      <div class="grid four">
+        <div class="card">
+          <strong>Founder</strong>
+          <p>The founder uses the platform to decide what the company should build next. The page should show whether the biggest blocker is the compiler, simulator, board setup, power proof, task accuracy, update support, sensor path, or packaging evidence.</p>
+        </div>
+        <div class="card">
+          <strong>Engineer</strong>
+          <p>The engineer uses the platform to get a concrete work order. The work order should say what to map, what to simulate, what to measure, what model part to rewrite, what adapter to connect, and what evidence file to import.</p>
+        </div>
+        <div class="card">
+          <strong>Customer</strong>
+          <p>The customer uses the platform to decide whether a pilot is worth starting. The page should show which parts of their workload fit the chip, which parts do not, what proof exists, and what proof they should ask for before trusting the result.</p>
+        </div>
+        <div class="card">
+          <strong>Investor</strong>
+          <p>The investor uses the platform to see whether the company has a repeatable proof workflow. The page should separate measured evidence from estimates so the investor can see what is real, what is missing, and what funding would unlock next.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What We Build Now</h2>
+      <div class="grid two">
+        <div class="card"><strong>Expandable Journey Cards</strong><p>Each of the fourteen steps should open into a detailed view. The detailed view should show the current result, the proof level, the toolkits that help, the missing inputs, and the next action. This lets the user operate the workflow instead of reading a static page.</p></div>
+        <div class="card"><strong>Final Answer Panel</strong><p>The frontend should directly answer the main question. It should show whether the workload is a fit, partial fit, not a fit, or unknown. It should also show proof, broken parts, safe claims, blocked claims, and next engineering work.</p></div>
+        <div class="card"><strong>Per-Step Run Buttons</strong><p>Steps with working local adapters should have buttons the user can click. Examples are local evidence, AIHWKIT, CrossSim, board runtime simulation, power/thermal simulation, and task accuracy checks.</p></div>
+        <div class="card"><strong>Evidence Import Buttons</strong><p>Steps that need outside proof should let the user import files. Examples are board runtime logs, power traces, thermal traces, task accuracy reports, weight update reports, and sensor path reports.</p></div>
+        <div class="card"><strong>Backend Journey Endpoint</strong><p>The backend should produce the fourteen-step journey as data. The frontend should read this data instead of hardcoding every status. This makes the page reflect the actual package.</p></div>
+        <div class="card"><strong>One Artifact Per Step</strong><p>Each step should save one clear JSON artifact. That makes it possible to reopen the package, compare runs, export a review package, and audit what changed.</p></div>
+        <div class="card"><strong>Archive Persistence</strong><p>The exported package should include the full journey, all step artifacts, all imported evidence, all adapter runs, and all failed connection attempts. The archive should tell the whole story without relying on memory.</p></div>
+        <div class="card"><strong>Blocking Tests</strong><p>Smoke tests should prove that missing evidence stays blocked. For example, an AIHWKIT result should not accidentally unlock a board power claim, and a board latency result should not unlock a task accuracy claim.</p></div>
+      </div>
+      <div class="decision">
+        <strong>Why now:</strong>
+        <p>This gives us the complete product shell. Every deeper toolkit and chip integration can plug into it without changing the user journey.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>What We Build Later</h2>
+      <div class="grid two">
+        <div class="card"><strong>Model-Level AIHWKIT Runner</strong><p>Run the actual uploaded model through analog-behavior simulation. The result should show the analog assumptions used and whether the model still appears accurate enough under those assumptions.</p></div>
+        <div class="card"><strong>Model-Level CrossSim Runner</strong><p>Run the actual mapped layers through crossbar-style simulation. The result should show whether the physical memory grid creates accuracy risk because of wire effects, read noise, bit slicing, programming error, or converter limits.</p></div>
+        <div class="card"><strong>Hardware Cost Adapter</strong><p>Add NeuroSim or another estimator so the platform can show area, energy, latency, memory, and converter cost before silicon exists. The result must remain labeled as an estimate until measured.</p></div>
+        <div class="card"><strong>Compiler Target Adapter</strong><p>Connect analog-mlir or another compiler path so the platform can show real compiler mapping. Later, add our own chip target so the compiler can produce a board-loadable package.</p></div>
+        <div class="card"><strong>System Simulation Adapters</strong><p>Connect SST/Golem and ALPINE/gem5-X as service adapters. These should show CPU overhead, memory movement, accelerator dispatch, and system timing before real board evidence exists.</p></div>
+        <div class="card"><strong>Transformer/VLA Partitioner</strong><p>Add a checker that separates static matrix-heavy parts from dynamic attention, Softmax, LayerNorm, action timing, and safety logic. This prevents false claims about full VLA readiness.</p></div>
+        <div class="card"><strong>Board Execution Service</strong><p>Add a service that sends compiled packages to a prototype board, starts a run, collects status, and returns measured runtime logs. This moves the platform from simulation toward hardware proof.</p></div>
+        <div class="card"><strong>Synchronized Lab Test Flow</strong><p>Run board timing, power measurement, temperature measurement, and task accuracy against the same package and setup. This prevents mismatched proof from being used to support strong claims.</p></div>
+        <div class="card"><strong>Calibration And Drift Loop</strong><p>Add evidence showing how the chip is corrected, how often it needs correction, how temperature and time change behavior, and what happens if calibration fails.</p></div>
+        <div class="card"><strong>Weight Update Workflow</strong><p>Add tests for write time, write energy, endurance, retention, rollback, and accuracy after update. This decides whether the chip supports fixed models only or can support adaptation.</p></div>
+        <div class="card"><strong>Sensor Path Workflow</strong><p>Add evidence for sensor capture, preprocessing, buffering, synchronization, latency, and energy. This keeps the product honest about work that happens before the model input.</p></div>
+        <div class="card"><strong>Review Exports</strong><p>Create investor, customer, and engineering exports. Each export should use the same evidence but explain it for the audience: business risk, pilot readiness, or engineering tasks.</p></div>
+      </div>
+    </section>
+
+    <section id="review-package-export">
+      <h2>What The Review Package Exports</h2>
+      <p>The review package is the saved answer to the whole workflow. It should not be a folder of unexplained logs. It should be a readable package with the same facts organized for different audiences.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>Package Contents</strong>
+          <p>The package should include the model summary, chip target, workload goal, assumptions, fourteen journey artifacts, toolkit outputs, imported lab files, failed adapter runs, safe claims, blocked claims, next engineering work, and source notes.</p>
+        </div>
+        <div class="card">
+          <strong>Package Rule</strong>
+          <p>Every exported claim must point back to an artifact. If a claim has no artifact, the export should mark it as an idea, missing proof, or blocked claim. This keeps the package useful after the meeting ends.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Open Demo Artifacts:</strong>
+        <p>This demo package shows the export shape before real lab evidence exists. Open the <a href="review-package-demo/index.html">readable package index</a> for an executive and engineering view, open the <a href="review-package-demo/end-to-end-meaty-goal.md">end-to-end goal</a> to see the intended finished experience, open the <a href="review-package-demo/research-backlog.md">research backlog</a> to see what must be verified next, open the <a href="review-package-demo/executive-brief.md">executive brief</a>, open the <a href="review-package-demo/meeting-walkthrough.md">meeting walkthrough</a>, open the <a href="review-package-demo/engineering-work-queue.md">engineering work queue</a>, open the <a href="review-package-demo/completion-audit.md">completion audit</a>, open the <a href="review-package-demo/source-review-register.md">source review register</a>, download the <a href="review-package-demo/demo-analog-roadmap-001-package.zip">package archive</a>, open the <a href="review-package-demo/schema.md">package schema</a> to see the required fields, open the <a href="review-package-demo/manifest.json">package manifest</a> to see the full artifact list, or open <a href="review-package-demo/artifacts/final_answer.json">final_answer.json</a> to see the claim boundary. When the backend is running, engineers can also inspect <a href="http://127.0.0.1:8020/roadmap-demo-package">/roadmap-demo-package</a> and <a href="http://127.0.0.1:8020/roadmap-demo-package/artifacts/final_answer">/roadmap-demo-package/artifacts/final_answer</a>. These files and endpoints are demo evidence records, not measured chip proof.</p>
+      </div>
+      <div class="export-map" role="table" aria-label="Review package audience export map">
+        <div class="export-cell header" role="columnheader">Audience</div>
+        <div class="export-cell header" role="columnheader">What They Need</div>
+        <div class="export-cell header" role="columnheader">What The Export Shows</div>
+        <div class="export-cell header" role="columnheader">What It Must Not Hide</div>
+
+        <div class="export-cell audience" role="rowheader">Executive</div>
+        <div class="export-cell"><strong>Decision clarity</strong><p>Whether to fund, pause, narrow, partner, or move into a customer pilot.</p></div>
+        <div class="export-cell"><strong>Fit, blockers, and proof level</strong><p>Safe claim, blocked claims, top risks, next proof milestone, and expected workstream.</p></div>
+        <div class="export-cell"><strong>Unproven claims</strong><p>Do not hide missing board proof, missing power proof, missing calibration proof, or full-VLA limits.</p></div>
+
+        <div class="export-cell audience" role="rowheader">Customer</div>
+        <div class="export-cell"><strong>Pilot confidence</strong><p>Whether their workload is a fit, partial fit, not fit, or unknown.</p></div>
+        <div class="export-cell"><strong>Workload-specific answer</strong><p>Analog candidates, digital-required parts, accuracy risk, power status, board status, and task result.</p></div>
+        <div class="export-cell"><strong>Generic chip claims</strong><p>Do not replace their workload evidence with market claims, paper examples, or unrelated demos.</p></div>
+
+        <div class="export-cell audience" role="rowheader">Investor</div>
+        <div class="export-cell"><strong>Repeatable proof system</strong><p>Whether the company can turn many workloads into auditable evidence packages.</p></div>
+        <div class="export-cell"><strong>Evidence maturity</strong><p>Measured, simulated, estimated, source-context, missing, failed, and blocked items shown separately.</p></div>
+        <div class="export-cell"><strong>Demo-only progress</strong><p>Do not hide that a demo can work while production evidence is still missing.</p></div>
+
+        <div class="export-cell audience" role="rowheader">Engineering</div>
+        <div class="export-cell"><strong>Build instructions</strong><p>What to map, simulate, measure, import, validate, test, and expose in the frontend.</p></div>
+        <div class="export-cell"><strong>Artifact-level work queue</strong><p>Per-step JSON artifact, adapter source, proof level, missing fields, validation failure, and next action.</p></div>
+        <div class="export-cell"><strong>Ambiguous ownership</strong><p>Do not leave unclear whether a gap belongs to silicon, compiler, runtime, backend, frontend, lab, or customer data.</p></div>
+      </div>
+      <div class="decision">
+        <strong>Export acceptance rule:</strong>
+        <p>A reader should be able to open the package later and understand the same decision without needing the presenter in the room. If the package needs verbal explanation to separate proof from assumption, the export is not finished.</p>
+      </div>
+    </section>
+
+    <section id="readiness-audit">
+      <h2>Readiness Audit Before Sharing</h2>
+      <p>Use this audit before sending the roadmap to an executive, customer, investor, or engineering lead. The goal is to catch unclear language and unsupported claims before they become part of the company story.</p>
+      <div class="audit-grid">
+        <div class="audit-item">
+          <b>Clarity</b>
+          <strong>Does every section explain the idea first?</strong>
+          <p>Pass: a reader can understand the paragraph before knowing terms like ADC, DAC, VLA, calibration, MLIR, or board runtime.</p>
+          <p>Fail: the section starts with tool names, acronyms, or chip details before explaining why the reader should care.</p>
+        </div>
+        <div class="audit-item">
+          <b>Reason</b>
+          <strong>Does every roadmap item say why we are doing it?</strong>
+          <p>Pass: the section explains the user problem, product decision, and business or engineering reason.</p>
+          <p>Fail: the item only says "add X" without explaining what breaks if X is missing.</p>
+        </div>
+        <div class="audit-item">
+          <b>Evidence</b>
+          <strong>Does every claim point to the right proof level?</strong>
+          <p>Pass: market context, estimates, simulator output, compiler mapping, board runtime, power traces, task accuracy, and reliability evidence stay separate.</p>
+          <p>Fail: simulation wording is used like measured board proof, or a demo is used like production evidence.</p>
+        </div>
+        <div class="audit-item">
+          <b>Ownership</b>
+          <strong>Does every gap name the owner?</strong>
+          <p>Pass: the gap clearly belongs to silicon, compiler/runtime, backend, frontend, lab measurement, customer data, or external toolkit integration.</p>
+          <p>Fail: the roadmap says "needs more work" without saying who must do what next.</p>
+        </div>
+        <div class="audit-item">
+          <b>Action</b>
+          <strong>Does every blocked claim have a next step?</strong>
+          <p>Pass: the page says what artifact, adapter, test, measurement, or compiler change would unblock the claim.</p>
+          <p>Fail: the page says a claim is blocked but gives no path to prove or reject it.</p>
+        </div>
+        <div class="audit-item">
+          <b>Audience</b>
+          <strong>Can both audiences use the same page?</strong>
+          <p>Pass: executives can find decisions, blockers, safe claims, and proof maturity; engineers can find schemas, adapters, artifacts, tests, and build tasks.</p>
+          <p>Fail: the page works only as a pitch deck or only as an engineering note.</p>
+        </div>
+      </div>
+      <div class="decision">
+        <strong>Share rule:</strong>
+        <p>If a section fails this audit, rewrite it before presenting. The page should make the company more credible by being precise about what is known, what is assumed, what is missing, and what must be measured.</p>
+      </div>
+    </section>
+
+    <section id="final-answer">
+      <h2>Final Product Answer</h2>
+      <p>This is the answer the platform should give after the fourteen-step review. It should be direct enough for an executive and specific enough for an engineer.</p>
+      <div class="audience-only active" data-mode-panel="executive">
+        <div class="audience-band executive">
+          <strong>Executive Use</strong>
+          <p>Use this panel to decide whether to proceed with a customer pilot, investor discussion, partner integration, or deeper lab proof. It should make the safe claim obvious and keep unproven claims out of the story.</p>
+        </div>
+      </div>
+      <div class="audience-only" data-mode-panel="engineering">
+        <div class="audience-band engineering">
+          <strong>Engineering Use</strong>
+          <p>Use this panel as the work queue. Every missing proof item should point to a concrete artifact, adapter, measurement, or compiler change. The page should never leave the team with only a broad strategy phrase.</p>
+        </div>
+      </div>
+      <div class="verdict">
+        <div class="verdict-main pulse">
+          <b>Current Verdict</b>
+          <strong>Partial fit</strong>
+          <p>The workload has analog-friendly parts, but the full claim is not proven yet. The platform should say this clearly instead of turning a partial result into a full success story.</p>
+          <div>
+            <span class="tag good">analog candidate</span>
+            <span class="tag warn">needs more proof</span>
+            <span class="tag bad">do not claim production-ready</span>
+          </div>
+        </div>
+        <div class="verdict-grid">
+          <div class="verdict-card">
+            <strong>Analog Helps Here</strong>
+            <p>Static matrix-heavy regions may fit the analog array because the same stored weights can be reused many times.</p>
+            <p>Selected projection layers, feed-forward blocks, and low-power local inference paths are the first places to test.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Digital Is Still Needed Here</strong>
+            <p>Dynamic attention, Softmax, LayerNorm, control logic, safety behavior, memory scheduling, and sensor preprocessing should remain digital unless a specific analog path is proven.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Proof We Have</strong>
+            <p>The platform can show the parsed model, analog-fit estimate, AIHWKIT-style simulation, CrossSim-style layout risk, compiler mapping or compiler gap, and local runtime estimate.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Proof Still Missing</strong>
+            <p>The stronger claim still needs real chip target compiler output, board runtime, measured power, measured heat, task accuracy, calibration stability, update endurance, and sensor-path timing.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Safe Claim Today</strong>
+            <p>This workload is an early analog-fit candidate under the current assumptions. That is useful, but it is not the same as measured product readiness.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Do Not Claim Yet</strong>
+            <p>Do not claim measured power savings, production readiness, full VLA execution, or adaptive Physical AI until the missing evidence exists.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Next Engineering Work</strong>
+            <p>Run model-level simulation, connect compiler mapping, generate or import board runtime, import power and thermal traces, run task accuracy, and measure update behavior.</p>
+          </div>
+          <div class="verdict-card">
+            <strong>Review Package</strong>
+            <p>Export the model, chip settings, assumptions, tool results, failed runs, imported evidence, safe claims, blocked claims, and next-work list for review.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    let steps = [
+      {
+        title: "Model Intake",
+        intro: "The user learns whether the platform can open the model and understand its basic shape. This starts the review from a real file instead of a slide claim.",
+        question: "Can the platform read the model inputs, outputs, layers, operators, and size?",
+        evidence: "Model parser output and package metadata. This is not proof that the chip can run the model.",
+        next: "Run analog fit after the model structure is available.",
+        primary: "Run Model Intake",
+        secondary: "Show Missing Proof",
+        result: "Demo result: the model structure is available, but chip fit is still unknown until analog fit and compiler mapping run.",
+        missing: "Missing proof: no analog mapping, no simulator result, no compiler result, and no hardware result yet."
+      },
+      {
+        title: "Analog Fit",
+        intro: "The user learns which model parts may be good candidates for analog compute and which parts should stay digital.",
+        question: "Which layers are repeated matrix math, and which layers need digital logic or fallback?",
+        evidence: "Analog candidate list, digital-required list, unsupported operator list, and analog/digital boundary.",
+        next: "Run analog accuracy risk and crossbar layout checks for the candidate layers.",
+        primary: "Run Analog Fit",
+        secondary: "Show Blocked Parts",
+        result: "Demo result: the platform can separate likely analog candidates from parts that need digital compute or rewrite.",
+        missing: "Missing proof: this is a fit estimate until simulator, compiler, and board evidence confirm it."
+      },
+      {
+        title: "Analog Accuracy",
+        intro: "The user learns whether analog behavior may change the model answer enough to matter.",
+        question: "Will noise, drift, limited precision, or imperfect weight writing hurt the output?",
+        evidence: "AIHWKIT, local analog-error adapter, or related simulator output. This is simulation unless backed by hardware.",
+        next: "Compare simulated accuracy risk with the task tolerance.",
+        primary: "Run AIHWKIT Simulation",
+        secondary: "Show Assumptions",
+        result: "Demo result: simulator evidence can show likely accuracy risk under stated analog assumptions.",
+        missing: "Missing proof: simulator output does not prove board accuracy or production behavior."
+      },
+      {
+        title: "Crossbar Layout",
+        intro: "The user learns whether the physical memory grid may create errors after the model is placed on arrays.",
+        question: "Do wire effects, bit slicing, read noise, programming error, or converter range create risk?",
+        evidence: "CrossSim output or local crossbar layout estimates tied to the mapped layers.",
+        next: "Use layout risk to update the hardware cost and compiler mapping.",
+        primary: "Run CrossSim Check",
+        secondary: "Show Layout Risks",
+        result: "Demo result: layout evidence can show whether the memory grid may damage model accuracy.",
+        missing: "Missing proof: crossbar simulation does not prove the final packaged chip or board."
+      },
+      {
+        title: "Hardware Cost",
+        intro: "The user learns whether the workload is realistic for the chip budget.",
+        question: "How much area, memory, energy, latency, and converter work does this workload need?",
+        evidence: "NeuroSim, MNSIM, or local estimator output. This stays an estimate until measured.",
+        next: "Use the cost estimate to decide whether the workload is a first target or later target.",
+        primary: "Run Cost Estimate",
+        secondary: "Show Cost Drivers",
+        result: "Demo result: the platform can estimate area, energy, latency, memory, and converter cost for planning.",
+        missing: "Missing proof: estimates must stay labeled until silicon or board measurements exist."
+      },
+      {
+        title: "Compiler Mapping",
+        intro: "The user learns whether normal model code can become a chip execution plan.",
+        question: "Can the compiler place the model on analog tiles, digital logic, memory, and runtime commands?",
+        evidence: "analog-mlir, local compiler estimate, or our future chip target report.",
+        next: "Generate a simulation target now and a board-loadable package later.",
+        primary: "Run Compiler Mapping",
+        secondary: "Show Unsupported Operators",
+        result: "Demo result: compiler evidence can show what maps to analog, what stays digital, and what is blocked.",
+        missing: "Missing proof: a simulation target is not the same as a board-loadable chip package."
+      },
+      {
+        title: "Transformer And VLA",
+        intro: "The user learns which modern model parts are analog candidates and which parts should stay digital.",
+        question: "Which static projection or feed-forward parts can use analog, and which attention, normalization, action, or safety parts stay digital?",
+        evidence: "Transformer/VLA partition report with analog candidates, digital-required regions, and rewrite options.",
+        next: "Block full-VLA analog claims unless mapping, runtime, and task evidence support them.",
+        primary: "Run Transformer Split",
+        secondary: "Show Digital Boundaries",
+        result: "Demo result: the platform can prevent a partial analog fit from becoming a false full-VLA claim.",
+        missing: "Missing proof: full VLA readiness needs mapping, runtime, task, safety, and update evidence."
+      },
+      {
+        title: "Full-System Runtime",
+        intro: "The user learns whether the surrounding system overhead may erase the analog benefit.",
+        question: "Do CPU work, memory movement, dispatch, synchronization, ADCs, or DACs dominate runtime?",
+        evidence: "SST/Golem, ALPINE/gem5-X, gem5, or local runtime estimator output.",
+        next: "Use system timing to decide what must be scheduled, moved, or redesigned.",
+        primary: "Run Runtime Estimate",
+        secondary: "Show Bottlenecks",
+        result: "Demo result: system evidence can show whether host, memory, or signal conversion overhead changes the story.",
+        missing: "Missing proof: system simulation still needs board traces before measured latency claims."
+      },
+      {
+        title: "Board Runtime",
+        intro: "The user learns whether the package actually ran on a prototype board or lab setup.",
+        question: "Did the board load the package, start the run, finish the run, and report timing?",
+        evidence: "Board trace with firmware version, board setup, pass/fail, latency, jitter, and failure reason.",
+        next: "Tie the same run to power, thermal, and task accuracy evidence.",
+        primary: "Import Board Trace",
+        secondary: "Show Required Fields",
+        result: "Demo result: board runtime can support a measured latency claim for the exact setup tested.",
+        missing: "Missing proof: board runtime alone does not prove energy savings or task accuracy."
+      },
+      {
+        title: "Power And Thermal",
+        intro: "The user learns how much energy the run used and how hot the setup became.",
+        question: "Was power measured for the whole board, the chip, or only one rail, and what temperature was reached?",
+        evidence: "Power trace, energy per run, peak power, thermal trace, and measurement setup.",
+        next: "Separate measured power from estimates and connect it to task accuracy.",
+        primary: "Import Power Trace",
+        secondary: "Show Measurement Scope",
+        result: "Demo result: power and thermal traces can support measured energy and heat claims.",
+        missing: "Missing proof: the trace must match the same model package, board, firmware, and task run."
+      },
+      {
+        title: "Task Accuracy",
+        intro: "The user learns whether the mapped or hardware-run model still solves the real task.",
+        question: "Does the result match the baseline closely enough for the user's actual workload?",
+        evidence: "Baseline metric, mapped-model metric, hardware-run metric when available, tolerance, and sample count.",
+        next: "Use task accuracy to decide whether speed or power evidence is meaningful.",
+        primary: "Import Task Result",
+        secondary: "Show Accuracy Gap",
+        result: "Demo result: task accuracy shows whether the hardware path still solves the user's real problem.",
+        missing: "Missing proof: speed and power are incomplete if the model no longer meets the task target."
+      },
+      {
+        title: "Weight Updates",
+        intro: "The user learns whether the chip can change model weights after deployment.",
+        question: "Is the chip fixed-weight only, occasional-update capable, adapter-update capable, or adaptive blocked?",
+        evidence: "Update scope, update frequency, write time, write energy, endurance, retention, rollback, and post-update accuracy.",
+        next: "Block adaptive Physical AI claims until update evidence exists.",
+        primary: "Import Update Evidence",
+        secondary: "Show Update Class",
+        result: "Demo result: update evidence decides whether the chip supports fixed weights, rare updates, adapter updates, or adaptation.",
+        missing: "Missing proof: adaptive claims need write cost, endurance, retention, rollback, and post-update accuracy."
+      },
+      {
+        title: "Sensor Path",
+        intro: "The user learns what happens before the model input.",
+        question: "Are sensor capture, preprocessing, buffering, synchronization, latency, and energy counted?",
+        evidence: "Sensor path report for camera, event, tactile, audio, industrial, or other physical inputs.",
+        next: "Tie sensor-to-answer cost to the final fit decision.",
+        primary: "Import Sensor Path",
+        secondary: "Show Sensor Costs",
+        result: "Demo result: sensor-path evidence shows whether the chip claim includes the cost of getting real-world signals into the model.",
+        missing: "Missing proof: chip-only results are incomplete if sensor capture and preprocessing are ignored."
+      },
+      {
+        title: "Final Answer",
+        intro: "The user gets one direct answer that separates fit, proof, broken parts, safe claims, blocked claims, and next work.",
+        question: "What can we safely say today, and what must be built or measured next?",
+        evidence: "Combined evidence package from every completed step and every blocked step.",
+        next: "Export the review package for executives, customers, investors, and engineering teams.",
+        primary: "Generate Final Answer",
+        secondary: "Show Claim Boundary",
+        result: "Demo result: the final answer gives fit, proof, broken parts, safe claims, blocked claims, and next work.",
+        missing: "Missing proof: any unverified claim stays blocked in the exported review package."
+      }
+    ];
+
+    const detail = document.getElementById("step-detail");
+    const packageSummary = document.getElementById("package-summary");
+    const nodes = Array.from(document.querySelectorAll(".node[data-step]"));
+    const rail = Array.from(document.querySelectorAll(".flow-rail span"));
+    let activeStep = 0;
+    let demoArtifactRecords = {};
+    let demoArtifactSource = "inline journey fallback";
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[character]);
+    }
+
+    function artifactIdFromFilename(filename) {
+      return String(filename || "").replace(/^.*\//, "").replace(/\.json$/, "");
+    }
+
+    function shortList(items, emptyText) {
+      if (!Array.isArray(items) || items.length === 0) return escapeHtml(emptyText);
+      return items.slice(0, 3).map((item) => escapeHtml(item)).join("<br>");
+    }
+
+    function dependencyList(items, emptyText) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return `<li>${escapeHtml(emptyText)}</li>`;
+      }
+      return items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    }
+
+    function renderPackageSummary(payload, sourceLabel) {
+      if (!packageSummary || !payload) return;
+      const artifactCount = payload.artifact_count ?? (payload.artifacts || []).length ?? Object.keys(payload.artifact_records || {}).length;
+      const packageId = payload.package_id || "demo package";
+      const warning = payload.warning || "This is a demo evidence record, not measured chip proof.";
+      const reviewRule = payload.review_rule || "Every claim must point to a saved artifact.";
+      packageSummary.innerHTML = `
+        <div><b>Package Source</b><span>${escapeHtml(sourceLabel)}<br>${escapeHtml(packageId)}</span></div>
+        <div><b>Artifact Count</b><span>${escapeHtml(artifactCount)} step artifacts loaded.</span></div>
+        <div><b>Proof Warning</b><span>${escapeHtml(warning)}</span></div>
+        <div><b>Review Rule</b><span>${escapeHtml(reviewRule)}</span></div>
+      `;
+    }
+
+    function setStep(index) {
+      activeStep = index;
+      const step = steps[index];
+      const artifact = step.artifact || "backend artifact to be connected";
+      const proofLevel = step.proof_level || "demo proof level";
+      const artifactId = artifactIdFromFilename(artifact);
+      const artifactRecord = demoArtifactRecords[artifactId];
+      const artifactStatus = artifactRecord?.status || "artifact record not loaded";
+      const artifactSupports = artifactRecord
+        ? shortList(artifactRecord.what_this_supports, "No supported claim listed.")
+        : "Load the backend or static demo package to inspect supported claims.";
+      const artifactDoesNotProve = artifactRecord
+        ? shortList(artifactRecord.what_this_does_not_prove, "No limitation listed.")
+        : "Load the backend or static demo package to inspect claim limits.";
+      const artifactMissing = artifactRecord
+        ? shortList(artifactRecord.missing_evidence, "No missing evidence listed.")
+        : "Load the backend or static demo package to inspect missing evidence.";
+      const artifactNext = artifactRecord
+        ? shortList(artifactRecord.next_actions, "No next action listed.")
+        : "Load the backend or static demo package to inspect next actions.";
+      const upstreamEvidence = dependencyList(step.upstream_evidence, "No upstream evidence listed yet.");
+      const downstreamClaims = dependencyList(step.downstream_claims, "No downstream claim dependency listed yet.");
+      const upstreamSteps = new Set((step.depends_on_steps || []).map((stepNumber) => Number(stepNumber) - 1));
+      const downstreamSteps = new Set((step.unlocks_steps || []).map((stepNumber) => Number(stepNumber) - 1));
+      nodes.forEach((node, nodeIndex) => {
+        node.classList.toggle("active", nodeIndex === index);
+        node.classList.toggle("upstream", nodeIndex !== index && upstreamSteps.has(nodeIndex));
+        node.classList.toggle("downstream", nodeIndex !== index && downstreamSteps.has(nodeIndex));
+      });
+      rail.forEach((item, itemIndex) => item.classList.toggle("active", itemIndex <= index));
+      detail.innerHTML = `
+        <h3>${escapeHtml(step.title)}</h3>
+        <p>${escapeHtml(step.intro)}</p>
+        <div class="step-detail-grid">
+          <div><strong>User Question</strong><p>${escapeHtml(step.question)}</p></div>
+          <div><strong>Evidence</strong><p>${escapeHtml(step.evidence)}</p></div>
+          <div><strong>Next Action</strong><p>${escapeHtml(step.next)}</p></div>
+          <div><strong>Saved Artifact</strong><p>${escapeHtml(artifact)}</p></div>
+          <div><strong>Proof Level</strong><p>${escapeHtml(proofLevel)}</p></div>
+          <div><strong>Claim Rule</strong><p>This step can support only the claims allowed by its proof level.</p></div>
+          <div><strong>Artifact Status</strong><p>${escapeHtml(artifactStatus)}</p></div>
+          <div><strong>Artifact Source</strong><p>${escapeHtml(demoArtifactSource)}</p></div>
+          <div><strong>What This Supports</strong><p>${artifactSupports}</p></div>
+          <div><strong>What This Does Not Prove</strong><p>${artifactDoesNotProve}</p></div>
+          <div><strong>Missing Evidence</strong><p>${artifactMissing}</p></div>
+          <div><strong>Artifact Next Work</strong><p>${artifactNext}</p></div>
+          <div><strong>Evidence This Step Needs</strong><ul>${upstreamEvidence}</ul></div>
+          <div><strong>Claims That Depend On It</strong><ul>${downstreamClaims}</ul></div>
+          <div><strong>Diagram Links</strong><p>Green nodes feed this step. Gold nodes depend on this step. This keeps the diagram tied to evidence instead of acting like a decorative timeline.</p></div>
+        </div>
+        <div class="action-row">
+          <button type="button" class="action-button" data-primary-action>${escapeHtml(step.primary)}</button>
+          <button type="button" class="action-button secondary" data-secondary-action>${escapeHtml(step.secondary)}</button>
+        </div>
+        <div class="status-strip" id="step-status">
+          <b>Demo status</b>
+          <span>Select a run or import action to see what this step would collect and what it still cannot prove.</span>
+        </div>
+      `;
+    }
+
+    function setStatus(kind) {
+      const step = steps[activeStep];
+      const status = document.getElementById("step-status");
+      if (!status) return;
+      const text = kind === "primary" ? step.result : step.missing;
+      status.innerHTML = `<b>${escapeHtml(kind === "primary" ? step.primary : step.secondary)}</b><span>${escapeHtml(text)}</span>`;
+    }
+
+    detail.addEventListener("click", (event) => {
+      if (event.target.matches("[data-primary-action]")) setStatus("primary");
+      if (event.target.matches("[data-secondary-action]")) setStatus("secondary");
+    });
+
+    nodes.forEach((node) => {
+      const index = Number(node.dataset.step);
+      node.addEventListener("click", () => setStep(index));
+      node.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setStep(index);
+        }
+      });
+    });
+
+    const modeButtons = Array.from(document.querySelectorAll("[data-mode-button]"));
+    const modePanels = Array.from(document.querySelectorAll("[data-mode-panel]"));
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.modeButton;
+        modeButtons.forEach((item) => item.classList.toggle("active", item === button));
+        modePanels.forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.modePanel === mode);
+        });
+      });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && entry.target.dataset.step) {
+          setStep(Number(entry.target.dataset.step));
+        }
+      });
+    }, { rootMargin: "-25% 0px -55% 0px", threshold: 0.1 });
+
+    nodes.forEach((node) => observer.observe(node));
+
+    async function loadJourneyArtifact() {
+      const sources = [
+        "http://127.0.0.1:8020/roadmap-journey",
+        "roadmap-journey-demo.json"
+      ];
+
+      for (const source of sources) {
+        try {
+          const response = await fetch(source, { cache: "no-store" });
+          if (!response.ok) continue;
+          const payload = await response.json();
+          if (Array.isArray(payload.steps) && payload.steps.length === nodes.length) {
+            steps = payload.steps;
+            setStep(activeStep);
+            return;
+          }
+        } catch (error) {
+          console.info("Roadmap journey source was not available.", source, error);
+        }
+      }
+
+      console.info("Using inline journey fallback because no roadmap journey source was loaded.");
+    }
+
+    async function loadDemoPackageArtifactRecords() {
+      try {
+        const response = await fetch("http://127.0.0.1:8020/roadmap-demo-package", { cache: "no-store" });
+        if (response.ok) {
+          const payload = await response.json();
+          if (payload.artifact_records && Object.keys(payload.artifact_records).length === nodes.length) {
+            demoArtifactRecords = payload.artifact_records;
+            demoArtifactSource = "/roadmap-demo-package";
+            renderPackageSummary(payload, "backend endpoint");
+            setStep(activeStep);
+            return;
+          }
+        }
+      } catch (error) {
+        console.info("Backend demo package endpoint was not available.", error);
+      }
+
+      try {
+        const manifestResponse = await fetch("review-package-demo/manifest.json", { cache: "no-store" });
+        if (!manifestResponse.ok) return;
+        const manifest = await manifestResponse.json();
+        if (!Array.isArray(manifest.artifacts) || manifest.artifacts.length !== nodes.length) return;
+        const records = {};
+        for (const artifactPath of manifest.artifacts) {
+          const artifactResponse = await fetch(`review-package-demo/${artifactPath}`, { cache: "no-store" });
+          if (!artifactResponse.ok) continue;
+          const artifact = await artifactResponse.json();
+          records[artifact.artifact_id] = artifact;
+        }
+        if (Object.keys(records).length === nodes.length) {
+          demoArtifactRecords = records;
+          demoArtifactSource = "review-package-demo static files";
+          renderPackageSummary(manifest, "static files");
+          setStep(activeStep);
+        }
+      } catch (error) {
+        console.info("Static demo package files were not available.", error);
+      }
+    }
+
+    loadJourneyArtifact();
+    loadDemoPackageArtifactRecords();
+  </script>
+</body>
+</html>

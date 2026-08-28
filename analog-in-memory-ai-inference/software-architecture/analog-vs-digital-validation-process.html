@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analog IMC Vs Digital Validation Process</title>
+  <style>
+    :root{color-scheme:light;--text:#172026;--muted:#5e6a71;--line:#d9e1e5;--bg:#f6f8f9;--panel:#fff;--soft:#fbfcfc;--accent:#0a6f73;--good:#287a3e;--warn:#a76213;--bad:#a13a32;--code:#eef3f4}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}
+    header,main{max-width:1220px;margin:0 auto;padding:28px 24px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+    nav a,.jump a{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;color:var(--accent);font-size:14px;font-weight:800;text-decoration:none}
+    a{color:var(--accent);font-weight:800;text-decoration:none}a:hover{text-decoration:underline}h1{margin:0 0 12px;font-size:clamp(32px,5vw,54px);line-height:1.05;letter-spacing:0}h2{margin:0 0 12px;font-size:27px;line-height:1.15;letter-spacing:0}h3{margin:22px 0 8px;font-size:19px;letter-spacing:0}
+    p{margin:8px 0}.lead{max-width:930px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid var(--accent);border-radius:8px;background:#eef7f6;padding:14px 16px;font-weight:850}
+    section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{border:1px solid var(--line);border-radius:8px;background:var(--soft);padding:15px}.card strong,.card b{display:block;margin-bottom:6px}
+    .warning{border:1px solid #e2d1a4;border-left:5px solid var(--warn);border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:16px}.safe{color:var(--good);font-weight:850}.blocked{color:var(--bad);font-weight:850}.tag{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:850;background:var(--code);margin-top:6px}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#eef7f6}td p{margin:0 0 8px}td p:last-child{margin-bottom:0}ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:var(--code);border-radius:6px;padding:2px 5px}
+    .process-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:12px 0;background:#fff}.process-row>div{padding:14px;border-right:1px solid var(--line)}.process-row>div:last-child{border-right:0}.process-row h3{margin:0 0 8px}.process-row .label{font-size:12px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+    @media(max-width:900px){header,main{padding:20px 16px}.grid,.three,.process-row{grid-template-columns:1fr}.process-row>div{border-right:0;border-bottom:1px solid var(--line)}.process-row>div:last-child{border-bottom:0}table{font-size:13px}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Company Roadmap</a>
+      <a href="proof-ladder-step-by-step.html">14-Step Proof Ladder</a>
+      <a href="hybrid-benchmarking-practical-pipeline.html">Hybrid Benchmarking</a>
+      <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+      <a href="partner-ecosystem-variations.html">Partners</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+    </nav>
+    <h1>Analog IMC Vs Established Digital Validation Process</h1>
+    <p class="lead">This page compares the analog in-memory computing proof process against the way mature digital semiconductor companies usually validate chips, software stacks, and customer workloads.</p>
+    <p class="question">Main question: where is our analog proof flow the same as an established digital process, and where does analog need extra evidence?</p>
+    <div class="warning">
+      <strong>Plain rule:</strong>
+      <p>Digital validation asks whether the hardware executes the workload correctly and efficiently. Analog IMC validation asks a harder question: can the workload survive imperfect physical math and still beat the digital baseline on the metric that matters?</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>The Shared Shape</h2>
+      <p>Both digital and analog hardware companies are trying to avoid the same failure: building silicon that looks impressive in a demo but does not help a real customer workload. The process starts with customer requirements, moves through modeling and compiler work, reaches board measurements, and ends with a controlled claim.</p>
+      <div class="grid three">
+        <div class="card"><strong>Same Starting Point</strong><p>A customer has a workload, a model, a task, power limits, latency limits, accuracy limits, and safety or reliability needs.</p></div>
+        <div class="card"><strong>Same Middle Work</strong><p>The engineering team profiles the model, maps it to hardware, tests software support, simulates performance, and prepares a board or lab run.</p></div>
+        <div class="card"><strong>Same Final Need</strong><p>The company must show evidence: what ran, where it ran, how fast, how much energy, what accuracy, what failed, and what claim is allowed.</p></div>
+      </div>
+      <p>The difference is the kind of uncertainty. A mature digital accelerator is mostly limited by throughput, memory movement, compiler support, power, and software maturity. An analog IMC chip has all of those problems plus physical math uncertainty: drift, noise, limited precision, imperfect writes, tile mismatch, voltage variation, temperature variation, and calibration.</p>
+    </section>
+
+    <section>
+      <h2>The Core Comparison</h2>
+      <table>
+        <tr><th>Question</th><th>Established Digital Process</th><th>Analog IMC Process</th></tr>
+        <tr>
+          <td>What is the main proof target?</td>
+          <td>Prove that the chip executes the workload correctly, quickly, and efficiently using its digital compute units and memory system.</td>
+          <td>Prove that the workload still works after analog physical imperfections are included, and that the full hybrid system beats a digital baseline.</td>
+        </tr>
+        <tr>
+          <td>What does the compiler mostly decide?</td>
+          <td>Which operators run on CPU, GPU, NPU, DSP, or fixed-function units; how tensors move through memory; which kernels are used.</td>
+          <td>Which model parts can run on analog arrays, which must stay digital, how weights are tiled, how bit slicing works, how ADC/DAC sharing is scheduled, and which calibration profile is required.</td>
+        </tr>
+        <tr>
+          <td>What does simulation mean?</td>
+          <td>Performance, power, memory, RTL, system timing, and sometimes quantization accuracy.</td>
+          <td>All of that, plus analog device behavior: write error, read noise, drift, IR drop, converter precision, tile variation, voltage, temperature, and calibration.</td>
+        </tr>
+        <tr>
+          <td>What can erase the advantage?</td>
+          <td>Memory bandwidth, software overhead, bad kernels, poor utilization, thermal throttling, or weak customer fit.</td>
+          <td>All digital risks, plus converter overhead, calibration cost, write cost, drift correction, limited precision, analog/digital handoff cost, and task accuracy loss.</td>
+        </tr>
+        <tr>
+          <td>What is the safest claim style?</td>
+          <td>"This workload runs on this chip under these measured settings."</td>
+          <td>"These selected parts of this workload run on analog under these assumptions or measurements, the rest runs digitally, and this is the proof level."</td>
+        </tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Side-By-Side Step Map</h2>
+      <p>This is the detailed connection between our analog proof ladder and an established digital company process.</p>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 1</div>
+          <h3>Customer Workload Intake</h3>
+          <p>Collect the model, task, sensor path, latency target, power target, update behavior, environment, and safety boundary.</p>
+          <p><strong>Why analog asks more:</strong> analog fit depends heavily on whether weights are stable, the task tolerates small numerical error, and the system benefits from compute near sensors.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Product Requirements And Workload Capture</h3>
+          <p>A digital company collects customer workloads, target benchmarks, accuracy needs, latency targets, memory footprint, software stack, and deployment environment.</p>
+          <p><strong>Common artifacts:</strong> product requirements document, benchmark list, customer constraints, software support matrix.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Must Classify Update And Sensor Risk Early</h3>
+          <p>For digital chips, frequent model updates are usually a software/storage problem. For analog memory, updates are a physical write problem involving write energy, write time, endurance, retention, and recalibration.</p>
+          <span class="tag">extra analog gate</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 2</div>
+          <h3>Model And Operator Analysis</h3>
+          <p>Break the model into parts: matrix-heavy layers, dynamic attention, normalization, nonlinear functions, action heads, preprocessing, and safety/control logic.</p>
+          <p><strong>What we are looking for:</strong> repeated matrix work with stable weights. That is where analog arrays may help.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Model Profiling And Operator Coverage</h3>
+          <p>A digital accelerator team checks which operations are supported by kernels, which fall back to CPU, which tensors dominate runtime, and where memory bandwidth is spent.</p>
+          <p><strong>Common artifacts:</strong> profiler report, operator support list, unsupported-op report, kernel coverage table.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Must Separate Static From Dynamic Work</h3>
+          <p>A digital accelerator can often run many operator types if kernels exist. Analog arrays are best at stable vector-matrix work. Dynamic attention, Softmax, LayerNorm, routing, and safety usually need digital support.</p>
+          <span class="tag">hybrid split required</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 3</div>
+          <h3>Analog Non-Ideality Simulation</h3>
+          <p>Simulate lower precision, noise, drift, imperfect weight writing, ADC/DAC limits, voltage and temperature variation, tile differences, and accumulation error.</p>
+          <p><strong>Goal:</strong> find out whether the task result survives realistic analog behavior before a board run exists.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Quantization And Numerical Accuracy Testing</h3>
+          <p>Digital teams test INT8, FP16, BF16, sparsity, kernel approximations, and numerical differences between training and deployment.</p>
+          <p><strong>Common artifacts:</strong> quantization report, accuracy delta, calibration dataset, precision tradeoff report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Simulation Has To Include Physics</h3>
+          <p>Digital quantization error is usually stable and repeatable. Analog error can change with time, temperature, voltage, device variation, tile location, and write history.</p>
+          <span class="tag">physics model needed</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 4</div>
+          <h3>Physical Mapping, Tiling, And Bit Slicing</h3>
+          <p>Split large matrices across physical arrays. If one logical weight needs more precision than one analog cell can store, map it across multiple cells and combine partial results.</p>
+          <p><strong>Goal:</strong> prove that the model can fit the actual chip shape, not an imaginary unlimited array.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Kernel Selection, Tiling, And Memory Planning</h3>
+          <p>Digital teams tile tensors into cache, SRAM, tensor cores, vector units, or systolic arrays. They schedule memory movement and choose kernels.</p>
+          <p><strong>Common artifacts:</strong> compiler schedule, memory plan, kernel trace, utilization report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Tiling Changes Accuracy, Not Just Speed</h3>
+          <p>In digital systems, tiling mostly affects performance. In analog systems, tile size, wire resistance, bit slicing, ADC sharing, and partial accumulation can also change the numerical result.</p>
+          <span class="tag">fit plus accuracy</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 5</div>
+          <h3>Compiler Target And Runtime Package</h3>
+          <p>Turn model sections into chip commands: placement, weight-write plan, converter schedule, digital fallback, calibration metadata, and runtime instructions.</p>
+          <p><strong>Goal:</strong> move from "this could map to analog" to "this package could actually run on our chip."</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Compiler Lowering To ISA, Drivers, And Runtime</h3>
+          <p>Digital companies lower model graphs to device-specific kernels, instruction streams, driver calls, memory commands, and runtime graphs.</p>
+          <p><strong>Common artifacts:</strong> compiled binary, runtime graph, driver trace, device command log.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Compiler Must Carry Calibration And Write Rules</h3>
+          <p>The analog compiler cannot only schedule math. It must also know how weights are physically written, corrected, checked, and recovered when cells or tiles behave badly.</p>
+          <span class="tag">chip-specific lowering</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 6</div>
+          <h3>System Timing Simulation</h3>
+          <p>Measure or estimate the full path: sensor capture, preprocessing, host transfer, DAC, analog compute, ADC, digital coprocessor, memory movement, safety check, and output.</p>
+          <p><strong>Goal:</strong> prevent a fast analog core from being described as a fast product if the full loop is slow.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>SoC Performance Modeling</h3>
+          <p>Digital teams model CPU/NPU dispatch, DMA, cache behavior, DRAM bandwidth, interconnect traffic, interrupts, OS overhead, and accelerator utilization.</p>
+          <p><strong>Common artifacts:</strong> cycle model, system trace, bandwidth report, latency histogram.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Adds Converter And Boundary Costs</h3>
+          <p>The analog/digital boundary is expensive if crossed too often. ADCs, DACs, buffering, and digital accumulation can dominate the workload even when the array itself is efficient.</p>
+          <span class="tag">full-loop timing</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 7</div>
+          <h3>Hardware-Aware Training Or Adaptation</h3>
+          <p>Train or fine-tune the model while simulating analog errors so the model learns weights that are less fragile when deployed on imperfect hardware.</p>
+          <p><strong>Goal:</strong> avoid training a perfect digital model that collapses when physical noise is introduced.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Quantization-Aware Training And Deployment Tuning</h3>
+          <p>Digital teams use quantization-aware training, distillation, pruning, sparsity, and kernel-specific tuning to preserve accuracy on deployment hardware.</p>
+          <p><strong>Common artifacts:</strong> QAT run, tuned checkpoint, distillation report, deployment accuracy report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Training Must Match Measured Device Behavior</h3>
+          <p>Hardware-aware training is useful only if the simulated noise resembles the real device. Otherwise the model becomes robust to the wrong problem.</p>
+          <span class="tag">calibrated HAT</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 8</div>
+          <h3>Board Bring-Up And Runtime Proof</h3>
+          <p>Load the package on a board or prototype setup, program weights, start inference, collect runtime logs, and record failures.</p>
+          <p><strong>Goal:</strong> prove the workload moved beyond a simulator into a physical setup.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Silicon Bring-Up And Driver Validation</h3>
+          <p>Digital teams boot the chip, validate firmware, load drivers, run diagnostics, execute known workloads, and collect traces.</p>
+          <p><strong>Common artifacts:</strong> bring-up log, firmware version, driver log, benchmark run, board configuration.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Bring-Up Includes Programming And Calibration</h3>
+          <p>The board must show not only that code ran, but that weights were written, verified, calibrated, corrected, and used under known voltage and temperature conditions.</p>
+          <span class="tag">measured board gate</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 9</div>
+          <h3>Power And Thermal Measurement</h3>
+          <p>Measure energy per inference, peak power, duty cycle, temperature, cooling assumptions, and whether heat changes accuracy over time.</p>
+          <p><strong>Goal:</strong> prove the full system saves energy or heat, not only that the analog array is efficient in isolation.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Power Lab And Thermal Characterization</h3>
+          <p>Digital companies measure power rails, thermal throttling, peak workloads, sustained workloads, package temperature, and cooling needs.</p>
+          <p><strong>Common artifacts:</strong> power trace, thermal trace, workload configuration, measurement setup, sustained-run report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Heat Can Change The Computation</h3>
+          <p>For digital chips, heat mostly affects speed, leakage, and reliability. For analog IMC, heat can also change stored conductance, drift, noise, and calibration validity.</p>
+          <span class="tag">power plus accuracy</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 10</div>
+          <h3>Task Accuracy And Real Metric</h3>
+          <p>Run the workload against the actual task metric: slip detection, obstacle detection per watt, fault detection false alarms, missed faults, action success, or another customer-defined score.</p>
+          <p><strong>Goal:</strong> prove that lower power or faster math still matters because the task result remains useful.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Application Benchmark And Customer Acceptance</h3>
+          <p>Digital teams run application benchmarks, customer datasets, MLPerf-style workloads, regression suites, and acceptance tests.</p>
+          <p><strong>Common artifacts:</strong> benchmark report, accuracy score, latency score, baseline comparison, customer acceptance result.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Must Tie Accuracy To Physical Conditions</h3>
+          <p>The task score should record calibration, temperature, voltage, chip state, update history, and simulator profile. Otherwise the result may not repeat.</p>
+          <span class="tag">metric under conditions</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 11</div>
+          <h3>Weight Update, Retention, And Rollback</h3>
+          <p>Measure whether weights can be rewritten, how long writing takes, how much energy writing uses, whether cells wear out, whether values stay stable, and whether rollback works.</p>
+          <p><strong>Goal:</strong> decide whether the product is fixed-weight, rare-update, adapter-update, or not ready for frequent learning.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Firmware, Model Update, And OTA Validation</h3>
+          <p>Digital teams test software updates, model replacement, rollback, secure boot, version control, failure recovery, and update timing.</p>
+          <p><strong>Common artifacts:</strong> update log, rollback log, version manifest, security check, post-update regression report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Update Is A Physical Operation</h3>
+          <p>Changing a digital model file is mostly data movement. Changing analog weights means physically programming cells, verifying them, possibly recalibrating, and consuming device endurance.</p>
+          <span class="tag">update class decides product fit</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 12</div>
+          <h3>Safety And Fallback Proof</h3>
+          <p>Show who owns unsafe-action blocking, watchdogs, shutdown, digital override, host fallback, and safe behavior when analog confidence is low.</p>
+          <p><strong>Goal:</strong> prevent learned analog inference from being the only safety layer in a physical system.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Functional Safety And Fault Handling</h3>
+          <p>Digital teams use watchdogs, safety islands, secure firmware, fault detection, reset handling, redundant checks, and safety standards depending on the market.</p>
+          <p><strong>Common artifacts:</strong> safety case, fault injection result, watchdog trace, reset behavior, fallback mode report.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Output Needs Trust Boundaries</h3>
+          <p>If analog values drift or confidence drops, the system needs a digital lane or companion controller that can block, scale down, or override actions.</p>
+          <span class="tag">independent safety lane</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 13</div>
+          <h3>Evidence Matrix And Claim Control</h3>
+          <p>Map every claim to proof: simulator output, compiler map, board trace, power trace, thermal trace, task result, update result, calibration result, and failed runs.</p>
+          <p><strong>Goal:</strong> stop weak evidence from unlocking strong sales, investor, or customer claims.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Validation Report And Release Criteria</h3>
+          <p>Mature companies use validation matrices, sign-off checklists, quality gates, benchmark reports, errata, and release notes.</p>
+          <p><strong>Common artifacts:</strong> validation report, release checklist, known-issues list, benchmark table, customer qualification package.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Needs More Proof-Level Separation</h3>
+          <p>A simulator result, calibrated simulator result, board runtime result, and long-run reliability result must not be treated as the same kind of evidence.</p>
+          <span class="tag">claim boundaries</span>
+        </div>
+      </div>
+
+      <div class="process-row">
+        <div>
+          <div class="label">Analog Step 14</div>
+          <h3>Final Fit Answer And Next Work</h3>
+          <p>Return a direct answer: fit, partial fit, not fit, or unknown. Explain what proof exists, what breaks, what is safe to say, what is blocked, and what must be built or measured next.</p>
+          <p><strong>Goal:</strong> make the next engineering, customer, partner, or investor decision concrete.</p>
+        </div>
+        <div>
+          <div class="label">Digital Equivalent</div>
+          <h3>Go/No-Go, Customer Pilot, Or Product Release Decision</h3>
+          <p>Digital companies decide whether to continue development, ship a software update, enter a customer pilot, fix blockers, respin silicon, or move to production qualification.</p>
+          <p><strong>Common artifacts:</strong> go/no-go memo, pilot readiness report, product release note, errata plan, next milestone plan.</p>
+        </div>
+        <div>
+          <div class="label">Main Difference</div>
+          <h3>Analog Fit Is Usually Narrower At First</h3>
+          <p>The first safe answer is often "this selected workload may fit under these conditions," not "the chip is generally ready for Physical AI."</p>
+          <span class="tag">narrow proof first</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How Mature Digital Companies Usually Think About Sign-Off</h2>
+      <p>Established digital companies already have strong sign-off habits. They usually separate product requirements, architecture modeling, RTL verification, emulation, firmware, drivers, compiler support, board validation, power, thermal, reliability, and customer acceptance.</p>
+      <p>That discipline is useful for us. We should copy the structure: clear requirements, owned artifacts, test gates, traceable results, release criteria, known limitations, and customer-facing proof packages.</p>
+      <div class="grid two">
+        <div class="card">
+          <strong>What We Should Copy Directly</strong>
+          <ul>
+            <li>Requirement traceability from customer need to test result.</li>
+            <li>Compiler/runtime validation before customer demos.</li>
+            <li>Board bring-up logs tied to firmware and hardware versions.</li>
+            <li>Power and thermal measurements from controlled setups.</li>
+            <li>Known-issues and errata style documentation.</li>
+            <li>Go/no-go gates before expanding claims.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>What We Must Add For Analog</strong>
+          <ul>
+            <li>Measured write error and write endurance.</li>
+            <li>Retention and drift over time.</li>
+            <li>Temperature and voltage impact on task accuracy.</li>
+            <li>ADC/DAC precision and scheduling impact.</li>
+            <li>Tile-to-tile mismatch and weak-tile fallback.</li>
+            <li>Calibration profile, recalibration frequency, and failure behavior.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Where Analog Can Be Stronger Than Digital</h2>
+      <p>Analog IMC should not compete everywhere. The best comparison is against digital systems on selected workloads where data movement, sensor distance, power, heat, or latency dominate the problem.</p>
+      <table>
+        <tr><th>Workload Condition</th><th>Why Digital Can Struggle</th><th>Why Analog Might Win</th><th>Proof Needed</th></tr>
+        <tr>
+          <td>Fixed or rarely updated matrix-heavy inference</td>
+          <td>Moving weights and activations through memory can cost a lot of energy.</td>
+          <td>Weights can stay in analog memory and repeated matrix math can happen where the weights live.</td>
+          <td>Energy per inference, task accuracy, retention, drift, calibration, and digital baseline comparison.</td>
+        </tr>
+        <tr>
+          <td>Sensor-near processing</td>
+          <td>Sending raw high-rate sensor data to a central processor can waste power and add latency.</td>
+          <td>The chip may reduce or classify data close to the sensor before the main processor is involved.</td>
+          <td>Full sensor-to-answer timing, sensor-path energy, preprocessing cost, and task metric.</td>
+        </tr>
+        <tr>
+          <td>Tight power or heat limits</td>
+          <td>Even efficient digital edge processors may be too power-hungry for tiny, sealed, or battery systems.</td>
+          <td>Analog arrays may reduce energy for the repeated matrix section if converters and host transfers are controlled.</td>
+          <td>Same-run power, thermal, latency, and task result under the real duty cycle.</td>
+        </tr>
+        <tr>
+          <td>Clear task metric</td>
+          <td>Digital baselines are already strong, so a vague "AI acceleration" claim is not persuasive.</td>
+          <td>Analog can win if it preserves the score that matters while reducing power, heat, or latency.</td>
+          <td>A customer metric such as slip detection, obstacle detection per watt, false alarms, missed faults, or action success.</td>
+        </tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Where Established Digital Still Has The Advantage</h2>
+      <p>The roadmap should be honest about where digital remains better. This makes the analog claim more credible because it narrows the target instead of pretending analog is universal.</p>
+      <div class="grid two">
+        <div class="card"><strong>Highly Dynamic Workloads</strong><p>If the model changes constantly or attention patterns dominate runtime, a digital accelerator may be a better fit unless analog only handles stable subparts.</p></div>
+        <div class="card"><strong>High-Precision General Compute</strong><p>Digital hardware is better for exact logic, branching, control flow, safety rules, cryptography, and many software-heavy workloads.</p></div>
+        <div class="card"><strong>Mature Software Ecosystems</strong><p>Digital GPUs, NPUs, CPUs, and DSPs already have strong compilers, libraries, drivers, debuggers, and deployment paths.</p></div>
+        <div class="card"><strong>Production Qualification</strong><p>Established digital companies often have mature reliability, packaging, supply-chain, security, and customer-support systems.</p></div>
+      </div>
+      <p class="safe">Safe conclusion: analog should be positioned as a hybrid accelerator for selected workloads, not as a replacement for the whole digital stack.</p>
+    </section>
+
+    <section>
+      <h2>What This Means For Our Workbench</h2>
+      <p>The workbench should feel like a digital semiconductor validation flow, but with extra analog proof gates. A customer or investor should be able to see the familiar structure and then understand why analog needs additional evidence.</p>
+      <ol>
+        <li><strong>Start like a digital company:</strong> collect the workload, profile the model, map operators, estimate timing, build a runtime package, and compare against a baseline.</li>
+        <li><strong>Add analog proof:</strong> simulate physical imperfections, calibrate the simulator, track weight writes, measure drift, include converters, and separate analog from digital sections.</li>
+        <li><strong>Validate like a product company:</strong> run on a board, measure power and heat, score the task, test updates, test fallback, and export a claim-controlled evidence package.</li>
+      </ol>
+      <p>The product should not merely say "analog is efficient." It should say, "Here is the same kind of evidence a mature digital company would require, plus the extra evidence needed because the compute is analog."</p>
+    </section>
+
+    <section>
+      <h2>Final Answer</h2>
+      <p>Our analog IMC process is not separate from established digital process. It is the digital validation process extended downward into device physics and upward into claim control.</p>
+      <p>That is the correct shape for the company. It lets us speak the language of mature semiconductor validation while showing the extra work required to make analog useful: calibrated simulation, hybrid compiler mapping, board evidence, task evidence, update evidence, safety evidence, and careful claim boundaries.</p>
+      <p class="blocked">Blocked claim: analog IMC is broadly better than digital.</p>
+      <p class="safe">Safe claim: analog IMC can win selected physical-edge workloads when the full evidence package shows task success, power or latency improvement, calibration stability, update fit, and a clear digital baseline comparison.</p>
+    </section>
+  </main>
+</body>
+</html>

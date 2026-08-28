@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulation As The Compiler And Hardware-Aware Training</title>
+  <style>
+    :root {
+      --bg: #f7f8f6;
+      --panel: #ffffff;
+      --soft: #eef5ef;
+      --text: #1c211d;
+      --muted: #5f695f;
+      --line: #dce3dc;
+      --accent: #2f6f4e;
+      --warn: #9a6700;
+      --bad: #a33b3b;
+      --code: #edf1ed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(31px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 900px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fff9e8;
+      padding: 14px 16px;
+      margin-top: 18px;
+    }
+    main { padding-top: 8px; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      margin-bottom: 6px;
+    }
+    ol, ul {
+      margin: 10px 0 0 22px;
+      padding: 0;
+    }
+    li { margin: 8px 0; }
+    code {
+      background: var(--code);
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+    pre {
+      overflow: auto;
+      background: #17201f;
+      color: #eef7f5;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--soft); }
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 4px 4px 0 0;
+    }
+    .bad {
+      color: var(--bad);
+      font-weight: 800;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    @media (max-width: 720px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+      <a href="platform-completion-end-to-end-goal.md">Spec</a>
+    </nav>
+    <h1>Simulation As The Compiler And Hardware-Aware Training</h1>
+    <p class="lead">This page explains the idea in plain terms: before customers can trust an analog AI chip, the software must let them train and test models as if the chip already exists, including the chip's flaws.</p>
+    <p class="question">The core question: can we make normal AI developers use the chip without asking them to understand analog circuits?</p>
+    <div class="warning">
+      <strong>Claim boundary:</strong>
+      <p>A simulator can show that a model survived stated assumptions. It does not prove the real chip works. Real proof still requires measured silicon, board logs, power data, temperature data, and task results.</p>
+    </div>
+    <div class="jump">
+      <a href="#meaning">Meaning</a>
+      <a href="#why">Why It Matters</a>
+      <a href="#three-jobs">Three Jobs</a>
+      <a href="#hat">Hardware-Aware Training</a>
+      <a href="#code">PyTorch Example</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#tools">Tools</a>
+      <a href="#evidence">Evidence</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="meaning">
+      <h2>What This Means</h2>
+      <p>Digital chips usually try to do exact math. If the software asks for a multiply, the chip gives the same answer every time within the rules of the number format. That is why normal AI software can mostly ignore the physical details of the chip.</p>
+      <p>An analog in-memory chip is different. It stores numbers as physical states inside memory cells. It computes by letting electrical signals move through those cells. That can be much more power-efficient for matrix math, but the result is not perfectly exact.</p>
+      <p>The chip has physical behavior. Signals can be noisy. Stored weights can drift. A programmed value may not land exactly where the software wanted it. Wires can lose voltage. Temperature can change the answer. Converters between digital and analog values have limited precision.</p>
+      <p>So the software stack cannot pretend the chip is a normal digital calculator. It has to teach the model about the chip's behavior before the model is deployed.</p>
+      <p><strong>Simulation as the compiler</strong> means the simulator is not just a research demo. It becomes part of the path from model to product. The simulator tells us whether the model can tolerate the real behavior of the chip, and the compiler uses that information when deciding what runs on analog arrays, what stays digital, and what needs calibration.</p>
+    </section>
+
+    <section id="why">
+      <h2>Why This Matters For Physical AI</h2>
+      <p>Physical AI means AI that acts in the real world: robots, drones, factory equipment, smart cameras, smart home devices, and machines with sensors and motors.</p>
+      <p>These systems are hard because the world changes. A robot may grab a different object. A drone may fly in different light or wind. A factory arm may see a slightly different part. A smart device may need to respond locally without sending everything to the cloud.</p>
+      <p>Training only on real machines is usually too slow and expensive. The machine can wear out, break objects, damage itself, or create safety issues while learning. That is why robotics teams often train and test in simulation first.</p>
+      <p>A robotics simulator is like a controlled virtual world. It can contain the robot body, cameras, force sensors, objects, physics, lighting, and task rules. NVIDIA Isaac Sim is one example of a robotics simulation environment used for simulation, testing, synthetic data, and digital-twin workflows.</p>
+      <p>For our chip, the important move is this: the robot should not train against a perfect chip. It should train against a virtual version of our imperfect analog chip. Then the model learns to survive the kinds of imperfections it will see later on hardware.</p>
+    </section>
+
+    <section id="three-jobs">
+      <h2>The Three Jobs We Must Do</h2>
+      <p>The strategy becomes practical only if we build three connected pieces. Each piece has a different job.</p>
+
+      <h3>1. Build A Virtual Twin Of The Chip</h3>
+      <p>This is the software model of the chip. It does not have to simulate every transistor at first. It does need to simulate the things that affect model accuracy and runtime behavior.</p>
+      <ul>
+        <li>How many bits the inputs and outputs have.</li>
+        <li>How much programming error appears when writing weights.</li>
+        <li>How weights drift over time.</li>
+        <li>How much read noise appears during matrix multiplication.</li>
+        <li>How voltage loss changes large arrays.</li>
+        <li>How tile size limits split large layers.</li>
+        <li>How temperature changes the error profile.</li>
+      </ul>
+      <p>The first version can be a Python simulator. Later versions should connect to AIHWKIT, CrossSim, circuit models, thermal models, and measured silicon data.</p>
+
+      <h3>2. Make The Chip Hybrid</h3>
+      <p>Analog arrays are attractive because matrix multiplication is a huge part of modern AI. But the whole AI model is not just matrix multiplication.</p>
+      <p>Some parts are better suited to analog arrays, especially repeated linear projections with mostly fixed weights. Other parts are better suited to digital logic, especially control flow, routing, normalization, Softmax, dynamic attention, scheduling, and exact bookkeeping.</p>
+      <p>So the product should not be presented as a pure analog chip that does everything. The safer design is a hybrid system: analog arrays for the heavy repeated math, digital blocks for the parts that need precision, flexibility, or fast decisions.</p>
+
+      <h3>3. Build A Zero-Touch Translator</h3>
+      <p>AI developers write models in tools like PyTorch or JAX. They do not want to manually program voltages, memory cells, DAC settings, ADC timing, calibration tables, or tile placement.</p>
+      <p>The compiler has to translate a normal model into a chip execution plan. It should decide which layers go to analog, which layers stay digital, how large matrices are split, how weights are programmed, how outputs are accumulated, and how calibration data is applied.</p>
+      <p>Zero-touch does not mean there is no complexity. It means the complexity is hidden behind the software stack, so a customer can use the chip without becoming a circuit designer.</p>
+    </section>
+
+    <section id="hat">
+      <h2>What Hardware-Aware Training Does</h2>
+      <p>Hardware-aware training is the practice of training the model while exposing it to hardware-like imperfections. Instead of training in a perfect digital world and discovering hardware failure later, we inject the expected analog behavior during training.</p>
+      <p>Think of it like training a driver in rain, glare, and rough roads before asking them to drive in the real world. The goal is not to make the road perfect. The goal is to make the driver less fragile.</p>
+      <p>In model terms, the training loop sees noisy weights, quantized inputs, quantized outputs, drifted conductance values, and noisy results. The optimizer then learns weights that still work when those small changes happen.</p>
+      <div class="grid">
+        <div class="card">
+          <b>Normal Training</b>
+          <p>The model learns in a clean mathematical environment. That is useful, but it may produce weights that only work when computation is exact.</p>
+        </div>
+        <div class="card">
+          <b>Hardware-Aware Training</b>
+          <p>The model learns while the training loop imitates the chip's errors. The final model may be less fragile when deployed to analog hardware.</p>
+        </div>
+      </div>
+      <p>This is common enough that real libraries exist for it. IBM AIHWKIT is an open-source Python/PyTorch toolkit for analog in-memory computing experiments. IBM also describes AIHWKIT-Lightning as a scalable hardware-aware training toolkit for larger models. Sandia CrossSim is a Python-based simulator focused on analog in-memory computing and crossbar accuracy effects.</p>
+    </section>
+
+    <section id="code">
+      <h2>A Simple PyTorch Example</h2>
+      <p>The code below is not a production simulator. It is a teaching example. It shows the basic idea behind a hardware-aware layer: during the forward pass, we make the layer behave a little like imperfect analog hardware.</p>
+      <p>The important part is the direction of the idea, not the exact numbers. Real values must come from device measurements, circuit simulation, board tests, and calibrated tool models.</p>
+      <pre><code>import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class SimpleAnalogLinear(nn.Module):
+    def __init__(
+        self,
+        in_features,
+        out_features,
+        programming_noise=0.04,
+        read_noise=0.02,
+        drift_alpha=0.03,
+        adc_bits=8,
+    ):
+        super().__init__()
+        self.weight = nn.Parameter(torch.empty(out_features, in_features))
+        self.bias = nn.Parameter(torch.zeros(out_features))
+        self.programming_noise = programming_noise
+        self.read_noise = read_noise
+        self.drift_alpha = drift_alpha
+        self.adc_bits = adc_bits
+        nn.init.kaiming_uniform_(self.weight, a=5 ** 0.5)
+
+    def quantize(self, x, bits):
+        levels = (2 ** bits) - 1
+        x_min = x.detach().min()
+        x_max = x.detach().max()
+        if torch.isclose(x_min, x_max):
+            return x
+        scaled = (x - x_min) / (x_max - x_min)
+        rounded = torch.round(scaled * levels) / levels
+        return rounded * (x_max - x_min) + x_min
+
+    def forward(self, x, hours_after_programming=0.0):
+        # DAC limit: the analog array receives a quantized input voltage.
+        x = self.quantize(x, self.adc_bits)
+
+        # Weight write error: the physical cell does not land exactly on target.
+        if self.training:
+            scale = self.weight.detach().abs().mean().clamp_min(1e-6)
+            write_error = torch.randn_like(self.weight) * self.programming_noise * scale
+            effective_weight = self.weight + write_error
+        else:
+            effective_weight = self.weight
+
+        # Drift: stored conductance slowly moves over time.
+        if hours_after_programming > 0:
+            drift = (hours_after_programming + 1.0) ** (-self.drift_alpha)
+            effective_weight = effective_weight * drift
+
+        # Analog vector-matrix multiply.
+        y = x.matmul(effective_weight.t()) + self.bias
+
+        # Read noise: each analog execution has some transient error.
+        if self.training:
+            noise_scale = y.detach().std().clamp_min(1e-6)
+            y = y + torch.randn_like(y) * self.read_noise * noise_scale
+
+        # ADC limit: the output current is converted back to a digital number.
+        return self.quantize(y, self.adc_bits)
+
+
+class TinyClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            SimpleAnalogLinear(10, 32),
+            nn.ReLU(),
+            SimpleAnalogLinear(32, 1),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x, hours_after_programming=0.0):
+        for layer in self.net:
+            if isinstance(layer, SimpleAnalogLinear):
+                x = layer(x, hours_after_programming)
+            else:
+                x = layer(x)
+        return x
+
+
+torch.manual_seed(7)
+X = torch.randn(1000, 10)
+y = ((X[:, 0] * X[:, 1]) > 0).float().unsqueeze(1)
+
+model = TinyClassifier()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+loss_fn = nn.BCELoss()
+
+model.train()
+for _ in range(200):
+    optimizer.zero_grad()
+    prediction = model(X, hours_after_programming=0.0)
+    loss = loss_fn(prediction, y)
+    loss.backward()
+    optimizer.step()
+
+model.eval()
+with torch.no_grad():
+    fresh = model(X, hours_after_programming=0.0)
+    old = model(X, hours_after_programming=1000.0)
+    fresh_acc = ((fresh > 0.5) == y.bool()).float().mean().item()
+    old_acc = ((old > 0.5) == y.bool()).float().mean().item()
+
+print(f"Accuracy right after programming: {fresh_acc:.3f}")
+print(f"Accuracy after simulated drift:  {old_acc:.3f}")</code></pre>
+      <p>This example teaches the mechanism. It does not prove an analog chip is accurate. It also does not replace AIHWKIT, CrossSim, SPICE, thermal modeling, firmware logs, or silicon measurement.</p>
+    </section>
+
+    <section id="workflow">
+      <h2>The Real Workflow</h2>
+      <p>The production workflow should look like a ladder. Each stage adds one stronger kind of proof.</p>
+      <ol>
+        <li><strong>Start with a normal model.</strong> The customer brings a PyTorch, JAX, ONNX, or similar model.</li>
+        <li><strong>Classify the layers.</strong> The software identifies repeated matrix-heavy layers, dynamic layers, control logic, normalization, activation functions, and sensor preprocessing.</li>
+        <li><strong>Run hardware-aware training or fine-tuning.</strong> The model is trained or adjusted while simulated analog errors are injected.</li>
+        <li><strong>Run accuracy sweeps.</strong> The team tests many levels of noise, drift, quantization, temperature, tile mismatch, and write error.</li>
+        <li><strong>Map the model.</strong> The compiler decides which layers run on analog arrays, which layers run on digital blocks, and where memory movement happens.</li>
+        <li><strong>Estimate runtime and power.</strong> The stack predicts latency, energy, data movement, converter use, memory pressure, and thermal risk.</li>
+        <li><strong>Test in robot simulation.</strong> For robotics, the model is tested in a simulator with task metrics, not just generic model accuracy.</li>
+        <li><strong>Run on a board.</strong> When hardware exists, the same workload is run through real firmware, real drivers, and real I/O.</li>
+        <li><strong>Measure the result.</strong> The final answer needs measured task success, latency, power, temperature, update behavior, and failure cases.</li>
+      </ol>
+    </section>
+
+    <section id="tools">
+      <h2>Where The Tools Fit</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tool Area</th>
+            <th>What It Helps With</th>
+            <th>What It Does Not Prove</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AIHWKIT / AIHWKIT-Lightning</td>
+            <td>PyTorch-level analog layers, training with analog-like non-idealities, model robustness experiments.</td>
+            <td>It does not prove our exact chip layout, board runtime, firmware, package thermals, or customer task success.</td>
+          </tr>
+          <tr>
+            <td>CrossSim</td>
+            <td>Crossbar accuracy effects, array-level analog behavior, matrix-operation degradation from hardware assumptions.</td>
+            <td>It does not replace a full SoC simulator, compiler, board test, or tape-out signoff flow.</td>
+          </tr>
+          <tr>
+            <td>Robot Simulators</td>
+            <td>Testing robot tasks in a virtual environment before running on real hardware.</td>
+            <td>They do not prove real-world safety or reliability unless matched against physical tests.</td>
+          </tr>
+          <tr>
+            <td>Compiler Stack</td>
+            <td>Splitting the model, mapping layers, tiling matrices, scheduling analog and digital work, creating runtime packages.</td>
+            <td>It does not prove the analog math is accurate unless connected to calibrated simulation and measured hardware.</td>
+          </tr>
+          <tr>
+            <td>Lab And Board Tools</td>
+            <td>Measuring real latency, power, temperature, drift, calibration, firmware behavior, and task outputs.</td>
+            <td>They usually do not explain all model-level failures unless tied back to simulator and compiler logs.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="evidence">
+      <h2>What Evidence We Need</h2>
+      <p>For this strategy to be credible, each claim needs a matching artifact.</p>
+      <div class="grid">
+        <div class="card">
+          <b>Virtual Twin Evidence</b>
+          <p>Simulator version, chip profile, noise parameters, drift assumptions, quantization settings, thermal assumptions, and raw run output.</p>
+        </div>
+        <div class="card">
+          <b>Training Evidence</b>
+          <p>Before-and-after accuracy, task metric, robustness sweeps, failure thresholds, and comparison against a clean digital baseline.</p>
+        </div>
+        <div class="card">
+          <b>Compiler Evidence</b>
+          <p>Layer placement, tile map, digital fallback list, memory movement estimate, runtime schedule, and unsupported operation list.</p>
+        </div>
+        <div class="card">
+          <b>Hardware Evidence</b>
+          <p>Board logs, power measurements, temperature measurements, calibration logs, drift measurements, and real task results.</p>
+        </div>
+      </div>
+      <p>The final customer answer should be direct: this workload runs well, partly runs, or does not run well yet. Then we show the proof and the next missing measurement.</p>
+    </section>
+
+    <section>
+      <h2>Important Corrections To The Pasted Example</h2>
+      <ul>
+        <li>A toy PyTorch script is useful for teaching, but it is not a high-fidelity chip model.</li>
+        <li>A result around 54% on a binary classification task is not strong evidence. It is close to weak baseline behavior unless the task is unusually imbalanced.</li>
+        <li>It is safer to say hardware-aware training may improve robustness, not that it automatically makes the model run flawlessly.</li>
+        <li>The real simulator must be calibrated from measured devices. Guessed noise numbers are only placeholders.</li>
+        <li>Simulation should guide the compiler and roadmap, but it cannot replace physical validation.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>References For Review</h2>
+      <ul>
+        <li><a href="https://github.com/IBM/aihwkit">IBM AIHWKIT GitHub</a></li>
+        <li><a href="https://aihwkit.readthedocs.io/">IBM AIHWKIT documentation</a></li>
+        <li><a href="https://research.ibm.com/publications/aihwkit-lightning-a-scalable-hw-aware-training-toolkit-for-analog-in-memory-computing">IBM AIHWKIT-Lightning publication page</a></li>
+        <li><a href="https://cross-sim.sandia.gov/">Sandia CrossSim</a></li>
+        <li><a href="https://developer.nvidia.com/isaac/sim">NVIDIA Isaac Sim</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

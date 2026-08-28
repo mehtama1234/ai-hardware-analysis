@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timing And Latency Budget Plan</title>
+  <style>
+    body{margin:0;background:#f7f8f6;color:#1c211d;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}header,main{max-width:1080px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}nav a{border:1px solid #dce3dd;border-radius:8px;background:#fff;padding:8px 10px;color:#3f6f45;font-size:14px;font-weight:800;text-decoration:none}a{color:#3f6f45;font-weight:800;text-decoration:none}h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05}h2{margin:0 0 12px;font-size:28px;line-height:1.15}p{margin:8px 0}.lead{max-width:900px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid #3f6f45;border-radius:8px;background:#eef4ef;padding:14px 16px;font-weight:800}.warning{border:1px solid #e2d1a4;border-left:5px solid #966b00;border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:18px}section{background:#fff;border:1px solid #dce3dd;border-radius:8px;padding:22px;margin:18px 0}ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:#edf1ed;border-radius:6px;padding:2px 5px}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid #dce3dd;padding:10px;text-align:left;vertical-align:top}th{background:#eef4ef}@media(max-width:820px){header,main{padding:20px 16px}table{font-size:13px}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav><a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a><a href="customer-workload-intake-plan.html">Intake</a><a href="evidence-matrix-plan.html">Evidence Matrix</a><a href="memory-technology-decision-plan.html">Memory Decision</a><a href="benchmark-suite-plan.html">Benchmarks</a><a href="simulator-calibration-plan.html">Calibration</a></nav>
+    <h1>Timing And Latency Budget Plan</h1>
+    <p class="lead">This page defines how to measure whether analog compute helps the complete Physical AI loop, not just one matrix operation.</p>
+    <p class="question">Question: does the full sensor-to-action path meet the timing deadline?</p>
+    <div class="warning"><strong>Rule:</strong><p>Average analog-core latency is not enough. Robotics and safety claims need full-path and worst-case timing.</p></div>
+  </header>
+  <main>
+    <section>
+      <h2>Plain-Language Vocabulary</h2>
+      <p>Latency means delay. If a sensor sees something now but the system reacts too late, the AI may be correct and still fail the physical task.</p>
+      <p>A loop is the repeated path from sensing to action. A robot gripper may read force sensors, detect slip, choose a correction, and change motor force many times per second.</p>
+      <p>ADC means analog-to-digital converter. It turns a real electrical signal into a number. DAC means digital-to-analog converter. It turns a number into an electrical signal.</p>
+      <p>AFE means analog front end. It is the circuit that first touches the sensor signal, such as a force, voltage, current, pressure, or vibration signal.</p>
+      <p>VMM means vector-matrix multiplication. In plain terms, it is a common neural-network math operation where many input numbers are multiplied by many stored weight numbers and added together.</p>
+      <p>A safety override is an independent path that can stop or change an action if the learned policy suggests something unsafe.</p>
+    </section>
+    <section>
+      <h2>Loop Types</h2>
+      <table>
+        <tr><th>Loop</th><th>Plain Meaning</th><th>What Must Be Counted</th></tr>
+        <tr><td>Sensor front-end</td><td>Physical signal becomes usable data.</td><td>Sensor response, AFE, filtering, quantization.</td></tr>
+        <tr><td>Reflex loop</td><td>Fast local reaction such as slip or contact detection.</td><td>AFE, DAC, analog VMM, ADC, threshold logic, output.</td></tr>
+        <tr><td>Policy loop</td><td>Model chooses the next action.</td><td>Analog layers, digital layers, memory movement, host runtime.</td></tr>
+        <tr><td>Safety override</td><td>Independent path blocks unsafe actions.</td><td>Detection, decision, override, actuator command delay.</td></tr>
+        <tr><td>Adaptation loop</td><td>Model or adapter updates after new data.</td><td>Training/fine-tune time, writes, recalibration, rollback.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Timing Stages</h2>
+      <ol>
+        <li>Sensor capture.</li>
+        <li>Analog front-end conditioning.</li>
+        <li>Input conversion or direct analog ingest.</li>
+        <li>Analog array computation.</li>
+        <li>ADC output conversion.</li>
+        <li>Digital accumulation and nonlinear operations.</li>
+        <li>Memory movement and host scheduling.</li>
+        <li>Safety filter check.</li>
+        <li>Command output or upstream feature transfer.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>How The Timing Budget Happens Practically</h2>
+      <ol>
+        <li>Start with the task deadline. For example: "detect slip and react within 2 ms."</li>
+        <li>Break the deadline into stages: sensor read, AFE, conversion, analog compute, digital compute, memory movement, safety check, and output.</li>
+        <li>Put an estimate or measurement beside each stage.</li>
+        <li>Mark the evidence level: guessed, source-backed, simulated, firmware-measured, board-measured, or lab-measured.</li>
+        <li>Add the stages together for average timing and worst-case timing.</li>
+        <li>Identify the bottleneck: the slowest or riskiest stage.</li>
+        <li>Decide whether analog improves the complete loop or only one small part of it.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Example Budget</h2>
+      <table>
+        <tr><th>Stage</th><th>Example Time</th><th>Why It Matters</th></tr>
+        <tr><td>Sensor read</td><td>0.30 ms</td><td>The chip cannot react before the signal is available.</td></tr>
+        <tr><td>AFE and filtering</td><td>0.20 ms</td><td>Raw signals may need cleaning before inference.</td></tr>
+        <tr><td>Analog compute</td><td>0.15 ms</td><td>This is where analog may be faster or lower power.</td></tr>
+        <tr><td>ADC output</td><td>0.10 ms</td><td>Analog results often must become digital numbers.</td></tr>
+        <tr><td>Digital helper logic</td><td>0.45 ms</td><td>Softmax, thresholds, control, or safety checks may dominate.</td></tr>
+        <tr><td>Command output</td><td>0.20 ms</td><td>The final command still needs to reach the actuator or controller.</td></tr>
+        <tr><td>Total</td><td>1.40 ms</td><td>This fits a 2 ms deadline if worst-case timing also fits.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Common Mistakes This Page Prevents</h2>
+      <ul>
+        <li>Quoting only analog array speed while ignoring converters and digital support.</li>
+        <li>Using average latency when the safety case needs worst-case latency.</li>
+        <li>Forgetting memory movement and host runtime overhead.</li>
+        <li>Using one timing number for all Physical AI loops.</li>
+        <li>Claiming a reflex loop works before measuring the whole path.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Detailed Walkthrough</h2>
+      <p>The timing budget should start from the physical consequence of being late. In a search engine, a late answer is annoying. In a robot hand, a late answer can mean the object already slipped. In a drone, it can mean the obstacle is too close. That is why the timing page must measure the whole path.</p>
+      <h3>Before The Timing Budget</h3>
+      <p>Start with the task metric and ask which deadline matters. There may be more than one. A tactile reflex may need a response in a few milliseconds. A higher-level policy may run every 20 or 50 milliseconds. A calibration update may happen over seconds or minutes.</p>
+      <h3>During The Timing Budget</h3>
+      <p>Each stage gets three values: target time, estimated or measured time, and evidence level. Evidence level matters because a guessed timing number should not be treated like a measured board trace.</p>
+      <h3>After The Timing Budget</h3>
+      <p>The output should identify the bottleneck. If analog compute is 0.1 ms but memory movement is 3 ms, then the analog core is not the current problem. If ADC conversion dominates, the hardware architecture needs converter or scheduling changes. If safety override is too slow, the workload cannot support safety claims yet.</p>
+    </section>
+    <section>
+      <h2>Detailed Timing Record</h2>
+      <table>
+        <tr><th>Stage</th><th>Target</th><th>Current Evidence</th><th>Status</th><th>What To Do If It Fails</th></tr>
+        <tr><td>Sensor capture</td><td>0.30 ms</td><td>Sensor datasheet or lab trace</td><td>Pass, fail, or unknown</td><td>Use faster sensor mode or move compute closer to sensor.</td></tr>
+        <tr><td>Analog front end</td><td>0.20 ms</td><td>Circuit estimate or board measurement</td><td>Pass, fail, or unknown</td><td>Reduce filtering delay or change signal conditioning.</td></tr>
+        <tr><td>Analog compute</td><td>0.20 ms</td><td>Array simulator or silicon trace</td><td>Pass, fail, or unknown</td><td>Change tile mapping, precision, or batch strategy.</td></tr>
+        <tr><td>ADC/DAC conversion</td><td>0.20 ms</td><td>Converter model or measurement</td><td>Pass, fail, or unknown</td><td>Change converter precision, parallelism, or scheduling.</td></tr>
+        <tr><td>Digital helper</td><td>0.50 ms</td><td>Firmware trace or digital simulator</td><td>Pass, fail, or unknown</td><td>Optimize Softmax, LayerNorm, thresholds, or fallback logic.</td></tr>
+        <tr><td>Safety override</td><td>0.20 ms</td><td>Controller timing measurement</td><td>Pass, fail, or unknown</td><td>Move safety path to deterministic MCU, FPGA, or dedicated logic.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>What The User Should Conclude</h2>
+      <p>The final timing answer should not be "the chip is fast." It should be more specific:</p>
+      <ul>
+        <li>The full loop meets the deadline.</li>
+        <li>The analog core is fast but another stage dominates.</li>
+        <li>The loop only meets average timing, not worst-case timing.</li>
+        <li>The timing evidence is still estimated, so measured timing claims remain blocked.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Outputs And Done Criteria</h2>
+      <ul>
+        <li><code>latency_budget.json</code>: per-stage target, estimate, measurement, and evidence level.</li>
+        <li><code>loop_classification.json</code>: loop type and timing criticality.</li>
+        <li><code>timing_bottlenecks.md</code>: what stage dominates and what must be improved.</li>
+      </ul>
+      <p>Done means the final answer can say whether analog improves the complete loop and whether any timing claim is still blocked.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hybrid Analog-Digital Benchmarking Pipeline</title>
+  <style>
+    body{margin:0;background:#f7f8f6;color:#1c211d;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}
+    header,main{max-width:1120px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+    nav a,.jump a{border:1px solid #dce3dd;border-radius:8px;background:#fff;padding:8px 10px;color:#3f6f45;font-size:14px;font-weight:800;text-decoration:none}
+    a{color:#3f6f45;font-weight:800;text-decoration:none}a:hover{text-decoration:underline}h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05}h2{margin:0 0 12px;font-size:28px;line-height:1.15}h3{margin:22px 0 8px;font-size:18px}
+    p{margin:8px 0}.lead{max-width:920px;font-size:19px;font-weight:650}.question{display:inline-block;margin-top:10px;border-left:5px solid #3f6f45;border-radius:8px;background:#eef4ef;padding:14px 16px;font-weight:800}
+    .warning{border:1px solid #e2d1a4;border-left:5px solid #966b00;border-radius:8px;background:#fff9e8;padding:14px 16px;margin-top:18px}
+    section{background:#fff;border:1px solid #dce3dd;border-radius:8px;padding:22px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}.card{border:1px solid #dce3dd;border-radius:8px;background:#fbfcfb;padding:15px}.card b{display:block;margin-bottom:6px}
+    ol,ul{margin:10px 0 0 22px;padding:0}li{margin:8px 0}code{background:#edf1ed;border-radius:6px;padding:2px 5px}pre{overflow:auto;background:#17201f;color:#eef7f5;border-radius:8px;padding:16px;font-size:13px;line-height:1.45}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border:1px solid #dce3dd;padding:10px;text-align:left;vertical-align:top}th{background:#eef4ef}.safe{color:#3f6f45;font-weight:800}.blocked{color:#a33b3b;font-weight:800}
+    @media(max-width:820px){header,main{padding:20px 16px}.grid{grid-template-columns:1fr}table{font-size:13px}}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
+      <a href="benchmark-suite-plan.html">Benchmarks</a>
+      <a href="timing-latency-budget-plan.html">Timing Budget</a>
+      <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+    </nav>
+    <h1>Hybrid Analog-Digital Benchmarking Pipeline</h1>
+    <p class="lead">This page explains how benchmarking actually happens when an analog chip must work with digital blocks, memory, software, sensors, and a host system.</p>
+    <p class="question">Question: how do we practically test whether a workload runs better on a hybrid analog + digital system than on a normal digital baseline?</p>
+    <div class="warning"><strong>Rule:</strong><p>Do not benchmark the analog array alone and call it workload performance. The real result is the complete path: input, analog compute, converters, digital helpers, memory movement, runtime, output, and task score.</p></div>
+    <div class="jump">
+      <a href="#why">Why Hybrid</a>
+      <a href="#step-1">1 Split</a>
+      <a href="#step-2">2 Hardware Profile</a>
+      <a href="#step-3">3 Map</a>
+      <a href="#step-4">4 Simulate</a>
+      <a href="#step-5">5 Compare</a>
+      <a href="#step-6">6 Benchmarks</a>
+      <a href="#step-7">7 Hardware</a>
+      <a href="#outputs">Outputs</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="why">
+      <h2>Why This Must Be Hybrid</h2>
+      <p>An analog in-memory compute array can be very good at repeated matrix math. But a real AI workload contains more than matrix math.</p>
+      <p>Modern models also contain normalization, Softmax, activation functions, attention control, memory movement, safety checks, sensor handling, buffering, and runtime scheduling. Many of those pieces are better handled by digital logic.</p>
+      <p>So the practical benchmark target is not:</p>
+      <pre><code>analog array only</code></pre>
+      <p>The practical benchmark target is:</p>
+      <pre><code>sensor or model input
+-> analog compute
+-> ADC/DAC conversion
+-> digital helper logic
+-> memory movement
+-> host/runtime control
+-> output
+-> task score</code></pre>
+      <p>ADC means analog-to-digital converter. DAC means digital-to-analog converter. These matter because analog arrays still need to communicate with digital software and control systems.</p>
+    </section>
+
+    <section id="step-1">
+      <h2>Step 1: Split The Workload</h2>
+      <p>Start by opening the model and listing what it actually does. The goal is to identify which parts are good analog candidates and which parts must stay digital.</p>
+      <h3>Practical Work</h3>
+      <ul>
+        <li>Load the model file, usually ONNX, PyTorch export, JAX export, or another graph format.</li>
+        <li>Read the model graph and list every operation.</li>
+        <li>Mark linear layers, convolutions, and repeated matrix operations as analog candidates.</li>
+        <li>Mark Softmax, LayerNorm, dynamic attention, control flow, safety logic, and unsupported operators as digital or blocked.</li>
+        <li>Mark large reshape, buffer, token-cache, or memory-copy steps as system costs.</li>
+      </ul>
+      <h3>Transformer Example</h3>
+      <table>
+        <tr><th>Model Part</th><th>Plain Meaning</th><th>Likely Placement</th></tr>
+        <tr><td><code>W_Q</code>, <code>W_K</code>, <code>W_V</code>, <code>W_O</code></td><td>Linear projection matrices that turn input tokens into query, key, value, and output representations.</td><td>Analog candidate if weights are stable and tile mapping works.</td></tr>
+        <tr><td><code>QK^T</code></td><td>Computes how strongly tokens attend to each other.</td><td>Usually digital or hybrid because it changes with each input.</td></tr>
+        <tr><td><code>Softmax</code></td><td>Turns attention scores into normalized weights.</td><td>Digital.</td></tr>
+        <tr><td><code>LayerNorm</code></td><td>Stabilizes values inside the model.</td><td>Digital.</td></tr>
+        <tr><td>Feed-forward linear layers</td><td>Large repeated matrix operations after attention.</td><td>Analog candidate.</td></tr>
+      </table>
+      <p><strong>Output:</strong> <code>workload_partition.json</code></p>
+    </section>
+
+    <section id="step-2">
+      <h2>Step 2: Define The Hybrid Hardware Profile</h2>
+      <p>Now describe the whole system being tested. If we only describe the analog core, the benchmark will miss the digital and physical costs that may dominate the result.</p>
+      <h3>Practical Work</h3>
+      <ul>
+        <li>Write down analog tile size, such as <code>512 x 512</code>.</li>
+        <li>Write down analog weight precision, such as 2-bit, 4-bit, or 8-bit effective weight storage.</li>
+        <li>Write down ADC and DAC precision, latency, and energy.</li>
+        <li>Write down what the digital helper can do: Softmax, LayerNorm, accumulation, control, safety, or scheduling.</li>
+        <li>Write down SRAM or buffer size. SRAM is fast digital memory used for temporary data.</li>
+        <li>Write down memory bandwidth, host processor role, power per block, and thermal limits.</li>
+      </ul>
+      <pre><code>analog tile: 512 x 512
+weight precision: 4-bit effective
+ADC: 8-bit, measured or estimated latency
+DAC: 8-bit, measured or estimated latency
+digital helper: Softmax, LayerNorm, accumulation, control
+SRAM: 8 MB
+target power: under 1 W
+thermal limit: stated package and board limit</code></pre>
+      <p><strong>Output:</strong> <code>hybrid_hardware_profile.json</code></p>
+    </section>
+
+    <section id="step-3">
+      <h2>Step 3: Compile Or Map The Model</h2>
+      <p>This step matches the model to the hardware. It answers: where does each operation run, how is it split, and what does the runtime actually execute?</p>
+      <h3>Practical Work</h3>
+      <ul>
+        <li>Take each analog candidate layer from Step 1.</li>
+        <li>Check whether it fits on one analog tile.</li>
+        <li>If it is too large, split it across several tiles.</li>
+        <li>Decide how partial outputs from multiple tiles are added back together.</li>
+        <li>Schedule when inputs are converted, when outputs are digitized, and when digital operations run.</li>
+        <li>Report unsupported operations instead of hiding them.</li>
+      </ul>
+      <p>Example: a <code>2048 x 2048</code> matrix cannot fit on one <code>512 x 512</code> tile. It becomes 16 tile-sized chunks. The execution plan must say how those chunks run and how their results are combined.</p>
+      <p><strong>Output:</strong> <code>hybrid_execution_plan.json</code></p>
+    </section>
+
+    <section id="step-4">
+      <h2>Step 4: Run A Hybrid Simulator</h2>
+      <p>Now simulate the whole system. This is where analog behavior and digital overhead meet.</p>
+      <div class="grid">
+        <div class="card">
+          <b>Analog Side</b>
+          <p>Simulate lower precision, read noise, drift, imperfect weight writing, IR drop, tile mismatch, and ADC/DAC limits.</p>
+        </div>
+        <div class="card">
+          <b>Digital Side</b>
+          <p>Simulate Softmax, LayerNorm, accumulation, memory movement, scheduling, unsupported operations, and host/runtime overhead.</p>
+        </div>
+      </div>
+      <p>The simulator should produce accuracy, latency, energy, memory movement, thermal risk, and failure notes.</p>
+      <pre><code>Example result:
+Analog matrix layers save energy.
+ADC conversion and memory movement dominate latency.
+Final task accuracy drops 4%.
+Thermal risk is low.
+Compiler fallback is required for Softmax and LayerNorm.</code></pre>
+      <p><strong>Output:</strong> <code>hybrid_simulation_result.json</code></p>
+    </section>
+
+    <section id="step-5">
+      <h2>Step 5: Compare Against A Digital Baseline</h2>
+      <p>A result is only meaningful if we compare it with a fair alternative. The baseline is the normal digital path the customer would use if our analog chip did not exist.</p>
+      <h3>Practical Work</h3>
+      <ul>
+        <li>Use the same model or a clearly explained equivalent model.</li>
+        <li>Use the same input data and task metric.</li>
+        <li>Use the same latency, power, and accuracy targets.</li>
+        <li>Compare full-system results, not just core math speed.</li>
+      </ul>
+      <table>
+        <tr><th>Metric</th><th>Digital Baseline</th><th>Hybrid Analog + Digital</th><th>Decision</th></tr>
+        <tr><td>Task accuracy</td><td>94%</td><td>92%</td><td>May be acceptable if the task tolerates the drop.</td></tr>
+        <tr><td>Latency</td><td>8 ms</td><td>5 ms</td><td>Hybrid is better if worst-case timing also passes.</td></tr>
+        <tr><td>Power</td><td>3 W</td><td>0.8 W</td><td>Hybrid is better if measured at full system level.</td></tr>
+        <tr><td>Integration risk</td><td>Low</td><td>Medium</td><td>Analog benefit must justify added complexity.</td></tr>
+      </table>
+      <p><strong>Output:</strong> <code>digital_baseline_comparison.json</code></p>
+    </section>
+
+    <section id="step-6">
+      <h2>Step 6: Run Workload-Specific Benchmarks</h2>
+      <p>Generic matrix tests are not enough. We need workloads that resemble real customer jobs.</p>
+      <div class="grid">
+        <div class="card"><b>Tactile Slip Detection</b><p>Tests whether sensor-near analog compute can detect object slipping quickly and with low false alarms.</p></div>
+        <div class="card"><b>Event-Vision Feature Extraction</b><p>Tests whether high-rate visual change signals can be turned into compact useful features.</p></div>
+        <div class="card"><b>Drone Perception</b><p>Tests battery-limited perception where heat, size, and energy are tight.</p></div>
+        <div class="card"><b>Industrial Anomaly Detection</b><p>Tests fixed or rarely updated sensing with clear fault and false-alarm metrics.</p></div>
+        <div class="card"><b>Small VLA Projection Block</b><p>Tests the analog-friendly linear layers from a vision-language-action style model without claiming full robot-brain support.</p></div>
+        <div class="card"><b>Known Bad Fit</b><p>Tests whether the system honestly rejects workloads with frequent full-weight updates, vague metrics, or heavy unsupported operations.</p></div>
+      </div>
+      <p>Each benchmark should produce the same type of result: task score, partition, mapping, timing, power, failure reason, safe claim, and next measurement.</p>
+      <p><strong>Output:</strong> <code>benchmark_run_results.json</code></p>
+    </section>
+
+    <section id="step-7">
+      <h2>Step 7: Move From Simulation To Hardware</h2>
+      <p>When a board or chip exists, the benchmark should not change shape. The evidence level changes. Estimates are replaced with measurements.</p>
+      <h3>Practical Work</h3>
+      <ul>
+        <li>Run the same benchmark on the real board or prototype.</li>
+        <li>Capture board latency traces.</li>
+        <li>Capture power traces.</li>
+        <li>Capture temperature traces.</li>
+        <li>Capture calibration logs.</li>
+        <li>Compare real output against simulator output.</li>
+        <li>Update simulator assumptions when the board disagrees with the model.</li>
+      </ul>
+      <p>Example: if simulation predicted <code>0.8 W</code> but the board measures <code>1.4 W</code>, the simulator profile must be corrected and old power claims must be weakened.</p>
+      <p><strong>Output:</strong> <code>measured_hardware_result.json</code></p>
+    </section>
+
+    <section id="outputs">
+      <h2>Final Output Of The Pipeline</h2>
+      <p>At the end, the system should produce a clear answer with attached proof.</p>
+      <pre><code>customer model
+-> model graph analysis
+-> analog/digital partition
+-> hybrid hardware profile
+-> compiler mapping
+-> hybrid simulation
+-> digital baseline comparison
+-> workload benchmark result
+-> board measurement when available
+-> calibrated final claim</code></pre>
+      <table>
+        <tr><th>Before Hardware Exists</th><th>After Hardware Exists</th></tr>
+        <tr><td>Under these assumptions, this workload looks promising, partial, blocked, or unknown.</td><td>On this measured setup, this workload achieved these accuracy, latency, power, thermal, and task results.</td></tr>
+      </table>
+      <p class="safe">The main discipline is simple: prove the complete hybrid path, not only the analog math block.</p>
+    </section>
+  </main>
+</body>
+</html>

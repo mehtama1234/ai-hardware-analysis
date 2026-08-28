@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hardware Tape-Out Risk Roadmap</title>
+  <style>
+    :root {
+      --bg: #f6f8f8;
+      --panel: #ffffff;
+      --soft: #eef7f5;
+      --text: #17201f;
+      --muted: #5b6765;
+      --line: #d8e1df;
+      --accent: #0f766e;
+      --warn: #9a6700;
+      --bad: #a33b3b;
+      --code: #edf2f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 880px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .sub { color: var(--muted); }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fffaf0;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 24px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+    li { margin: 5px 0; }
+    code, pre {
+      background: var(--code);
+      border-radius: 8px;
+      color: #1c2b2a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    code { padding: 2px 5px; }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+    .safe { color: var(--accent); font-weight: 800; }
+    .blocked { color: var(--bad); font-weight: 800; }
+    @media (max-width: 780px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+      <a href="platform-completion-end-to-end-goal.md">Spec</a>
+    </nav>
+    <h1>Hardware Tape-Out Risk Roadmap</h1>
+    <p class="lead">This page explains the hard hardware work that must happen before a commercial analog AI chip can be taped out. It avoids treating research ideas as finished design choices.</p>
+    <p class="question">The main question: what physical, thermal, packaging, and circuit risks must be proven before we commit to silicon?</p>
+    <div class="warning">
+      <strong>Claim boundary:</strong>
+      <p>The items below are proof gates. They are not proof that the chip works, that a package is chosen, or that a speedup is guaranteed. Each item must be modeled, measured, or validated before it becomes a roadmap commitment.</p>
+    </div>
+    <div class="jump">
+      <a href="#why">Why This Matters</a>
+      <a href="#chiplets">1 Packaging</a>
+      <a href="#noise">2 Noise</a>
+      <a href="#thermal">3 Heat</a>
+      <a href="#device">4 Device Choice</a>
+      <a href="#adc">5 ADC Bottleneck</a>
+      <a href="#pruning">6 Early Filtering</a>
+      <a href="#phases">Roadmap Phases</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="why">
+      <h2>Why This Matters</h2>
+      <p>The proof ladder asks whether a workload can run well on the chip. This page asks a deeper hardware question: what must be true about the actual chip before we build it?</p>
+      <p>An analog AI chip is not only a software problem. The chip has physical arrays, digital logic, converters, memory, wires, heat, packaging, and calibration. If those pieces fight each other, the model may look good in software but fail in silicon.</p>
+      <pre>Good roadmap wording:
+This is a risk we must prove or retire.
+
+Bad roadmap wording:
+This exact architecture is required and will deliver the claimed speedup.</pre>
+      <p>The right roadmap should turn each idea into a testable gate: what we believe, what we need to model, what we need to measure, and what claim is blocked until then.</p>
+    </section>
+
+    <section id="chiplets">
+      <h2>1. Packaging And Chiplets</h2>
+      <p class="question">Should the analog arrays and digital logic live on one die, or should they be split across chiplets?</p>
+      <p>Analog blocks and digital blocks often want different manufacturing processes. Digital logic can benefit from very advanced nodes. Sensitive analog and memory arrays may prefer a more mature process that gives better matching, lower leakage, better device behavior, or easier memory integration.</p>
+      <p>A chiplet approach means splitting the system into smaller dies inside one package. One die could hold analog compute arrays. Another could hold digital compute. Another could hold SRAM and data routing. A standard such as UCIe is one possible way chiplets communicate inside a package.</p>
+      <div class="grid">
+        <div class="card"><b>Why It Could Help</b><p>Each die can use the process that fits its job. Analog arrays avoid being forced onto a digital-first node. Digital logic can still use a faster, denser process.</p></div>
+        <div class="card"><b>Why It Could Hurt</b><p>Chiplets add package cost, link power, link latency, test complexity, software complexity, and more ways for timing or heat to break the system.</p></div>
+      </div>
+      <h3>What We Should Prove</h3>
+      <ul>
+        <li>Does the link between dies move enough data for the target workload?</li>
+        <li>Does the link use less energy than the benefit we hope to gain?</li>
+        <li>Does packaging cost still fit the first product?</li>
+        <li>Does the chiplet split reduce analog noise and thermal risk enough to justify complexity?</li>
+        <li>Can the compiler and runtime schedule work across dies without losing the benefit?</li>
+      </ul>
+      <p class="safe">Safe claim: chiplets are a design option that may help separate analog and digital process needs.</p>
+      <p class="blocked">Blocked claim: we must use a three-chiplet UCIe architecture, or it will automatically be better than a monolithic chip.</p>
+    </section>
+
+    <section id="noise">
+      <h2>2. Noise Isolation</h2>
+      <p class="question">Will fast digital switching disturb the analog compute arrays?</p>
+      <p>Digital logic switches on and off quickly. That switching can create electrical noise in power lines, ground, the silicon substrate, and package wiring. Analog compute is sensitive because small voltage or current changes can look like changes in the computed result.</p>
+      <p>If this noise reaches the analog arrays, the model answer can change. That means this is not just a circuit cleanliness issue. It can become an accuracy issue.</p>
+      <h3>Plain Terms</h3>
+      <ul>
+        <li>Substrate noise: unwanted electrical disturbance moving through the silicon body.</li>
+        <li>Deep well or triple-well isolation: extra process structures that help separate sensitive analog devices from noisy neighbors.</li>
+        <li>Guard rings: layout structures that help collect or block unwanted noise.</li>
+        <li>Package noise: noise that comes through power delivery, chiplet links, bumps, vias, or routing.</li>
+      </ul>
+      <h3>What We Should Prove</h3>
+      <ul>
+        <li>How much noise reaches the analog arrays under realistic digital activity?</li>
+        <li>How much does that noise change model outputs?</li>
+        <li>Do isolation structures reduce the noise enough?</li>
+        <li>Do supply isolation, floorplanning, shielding, and package choices reduce it further?</li>
+        <li>What noise level is acceptable before task accuracy fails?</li>
+      </ul>
+      <p class="safe">Safe claim: substrate and package noise must be modeled and measured because analog arrays are sensitive.</p>
+      <p class="blocked">Blocked claim: one isolation technique completely eliminates noise, or noise will cause catastrophic failure in all cases.</p>
+    </section>
+
+    <section id="thermal">
+      <h2>3. Heat And Thermal Gradients</h2>
+      <p class="question">Will heat change the analog weights or make the package unstable?</p>
+      <p>Digital processors, chiplet links, memory, and converters can create hotspots. Heat can move from those blocks into analog arrays. Analog weights and circuits may shift with temperature, and that can hurt accuracy or force extra calibration.</p>
+      <p>The issue is not only maximum temperature. Uneven temperature across the chip can also matter. If one tile is hot and another is cooler, they may behave differently.</p>
+      <h3>What We Should Model First</h3>
+      <ul>
+        <li>Where the hotspots are.</li>
+        <li>How heat moves across the package.</li>
+        <li>How much hotter analog tiles get during sustained workloads.</li>
+        <li>How temperature changes weight drift, ADC behavior, DAC behavior, and calibration.</li>
+        <li>Whether floorplanning can keep hot digital blocks away from sensitive analog blocks.</li>
+      </ul>
+      <h3>Cooling Options</h3>
+      <p>Compact thermal models are a good Phase 1 tool because they let us test many floorplans quickly. Advanced cooling, such as microchannels in the package, should be treated as an option only if simpler package and floorplan choices cannot meet the thermal target.</p>
+      <p class="safe">Safe claim: thermal modeling and temperature-aware calibration are required before tape-out.</p>
+      <p class="blocked">Blocked claim: a specific advanced cooling structure is required before we prove that conventional packaging fails.</p>
+    </section>
+
+    <section id="device">
+      <h2>4. Process And Device Choice</h2>
+      <p class="question">What manufacturing process should hold the analog arrays?</p>
+      <p>The analog compute tile needs stable devices. The memory cells, transistors, ADCs, DACs, and calibration circuits must behave consistently enough for model accuracy. The best process for dense digital logic may not be the best process for analog accuracy.</p>
+      <p>FD-SOI is an attractive candidate for some analog and mixed-signal work because it can offer useful isolation and body-bias control. Mature nodes can also be easier for analog blocks and memory integration. But the roadmap should not lock a node before the device stack, PDK, foundry path, yield, and memory integration are proven.</p>
+      <h3>What We Should Compare</h3>
+      <ul>
+        <li>Device matching and variation.</li>
+        <li>Noise and leakage.</li>
+        <li>RRAM, memristor, PCM, SRAM, or other memory integration path.</li>
+        <li>ADC and DAC quality on the chosen process.</li>
+        <li>Temperature range and drift behavior.</li>
+        <li>Body-bias usefulness, if available.</li>
+        <li>Foundry access, PDK maturity, test chip cost, and packaging support.</li>
+      </ul>
+      <p class="safe">Safe claim: process selection is a Phase 1 gate because it affects every simulator, layout, calibration, and tape-out decision.</p>
+      <p class="blocked">Blocked claim: one specific node is mandatory before a process trade study is complete.</p>
+    </section>
+
+    <section id="adc">
+      <h2>5. ADC Bottleneck And Parallelism</h2>
+      <p class="question">Will converting analog results back to digital slow the chip down?</p>
+      <p>The analog array may compute quickly, but the result often has to be converted back into digital numbers. That conversion is done by ADCs. ADCs take area and power. They are often wider than memory columns, so one ADC may be shared by many columns through a switch. Sharing can serialize the output and limit throughput.</p>
+      <p>This means the chip may do analog math quickly but still wait on conversion.</p>
+      <h3>What We Should Build</h3>
+      <ul>
+        <li>A model of how many ADC conversions each layer needs.</li>
+        <li>A compiler rule that knows which columns share ADCs.</li>
+        <li>A scheduler that maps independent work across different ADC groups.</li>
+        <li>A runtime trace that shows whether ADCs are busy or idle.</li>
+        <li>A test that compares expected throughput against actual conversion scheduling.</li>
+      </ul>
+      <h3>Why Compiler Co-Design Matters</h3>
+      <p>The hardware alone is not enough. If the compiler maps work badly, ADCs may sit idle or serialize too much data. A group-level parallelism idea is useful because it tells the compiler how to spread independent work across physical groups that can convert in parallel.</p>
+      <p class="safe">Safe claim: ADC scheduling is a core hardware/software co-design task.</p>
+      <p class="blocked">Blocked claim: a published speedup number applies to our chip or workload before we reproduce it with our model, tile size, ADC design, and compiler rules.</p>
+    </section>
+
+    <section id="pruning">
+      <h2>6. Early Analog Filtering</h2>
+      <p class="question">Can we avoid expensive digital work by filtering weak signals early?</p>
+      <p>Transformer attention can create a lot of data movement and conversion work. One idea is to use a low-power analog stage to identify weak token relationships early, then send only the stronger candidates to a more precise digital processor.</p>
+      <p>In plain terms: do a cheap first pass to decide what is probably not important, then spend expensive digital work only on what remains.</p>
+      <h3>Why It Could Help</h3>
+      <ul>
+        <li>Fewer tokens may need high-precision digital attention.</li>
+        <li>Fewer ADC conversions may be needed.</li>
+        <li>Less global buffer traffic may be needed.</li>
+        <li>Power may drop if the early filter is accurate enough.</li>
+      </ul>
+      <h3>What Could Go Wrong</h3>
+      <ul>
+        <li>The filter may remove tokens that actually matter.</li>
+        <li>Low precision may hurt hard examples.</li>
+        <li>The filter itself may add area, power, calibration, and noise sensitivity.</li>
+        <li>The compiler must know how to route the kept and discarded tokens.</li>
+        <li>The task metric may fail even if compute drops.</li>
+      </ul>
+      <p class="safe">Safe claim: analog filtering is a promising research direction for reducing attention cost.</p>
+      <p class="blocked">Blocked claim: the chip will prune a fixed percentage of tokens or preserve accuracy before workload-specific simulation and measurement exist.</p>
+    </section>
+
+    <section id="phases">
+      <h2>How This Fits The Roadmap</h2>
+      <p>The roadmap should not say that all six solutions are already chosen. It should say that all six risks must be closed before commercial tape-out.</p>
+      <h3>Phase 1: Months 0-9</h3>
+      <ul>
+        <li>Choose candidate workload and success metric.</li>
+        <li>Build chip profile assumptions.</li>
+        <li>Run process and memory-stack trade study.</li>
+        <li>Build substrate-noise, ADC, layout, and thermal models.</li>
+        <li>Prototype group-level ADC scheduling in software.</li>
+        <li>Simulate early analog filtering and check task accuracy impact.</li>
+      </ul>
+      <h3>Phase 2: Months 9-18</h3>
+      <ul>
+        <li>Move from high-level models to PDK-level circuit and layout studies.</li>
+        <li>Decide monolithic versus chiplet packaging from measured tradeoffs.</li>
+        <li>Build test structures for analog tile behavior, ADC behavior, isolation, calibration, and thermal sensitivity.</li>
+        <li>Verify compiler mapping against real physical constraints.</li>
+      </ul>
+      <h3>Phase 3: Months 18-36</h3>
+      <ul>
+        <li>Bring up board and runtime path.</li>
+        <li>Measure latency, power, temperature, calibration, drift, and task accuracy on the same setup.</li>
+        <li>Repeat across voltage, temperature, and workload conditions.</li>
+        <li>Only then decide what commercial claims are allowed.</li>
+      </ul>
+      <h3>Short Version</h3>
+      <pre>These are not marketing claims.
+They are hardware proof gates.
+
+Each one needs:
+- a model
+- a test
+- a measurement plan
+- a claim boundary
+- a pass/fail decision before tape-out</pre>
+    </section>
+
+    <section>
+      <h2>References For Review</h2>
+      <p>These links are context for the ideas above. They do not prove our chip or our package.</p>
+      <ul>
+        <li><a href="https://arxiv.org/abs/2511.15397">Hemlet: heterogeneous CIM chiplet architecture for vision transformers</a></li>
+        <li><a href="https://arxiv.org/abs/2410.09188">MFIT: multi-fidelity thermal modeling for 2.5D and 3D chiplets</a></li>
+        <li><a href="https://arxiv.org/abs/2409.04940">Hybrid analog/digital attention accelerator with analog token pruning</a></li>
+        <li><a href="https://arxiv.org/pdf/2605.29867">TSV substrate-noise modeling for mixed-signal circuits</a></li>
+        <li><a href="https://www.arteris.com/learn/ucie/">UCIe overview</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

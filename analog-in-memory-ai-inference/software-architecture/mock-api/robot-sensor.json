@@ -1,0 +1,132 @@
+{
+  "project": "Robot sensor fusion",
+  "target": "AS-EDGE robotics profile",
+  "model": {
+    "name": "fusion_transformer_small.onnx",
+    "parameters": "24.2M",
+    "operators": 212,
+    "input": "camera+imu+depth tokens",
+    "device_class": "mobile robot perception"
+  },
+  "summary": {
+    "fit": "Medium",
+    "grade": "C",
+    "analog_coverage_percent": 58,
+    "fallback_count": 17,
+    "energy_estimate_uj": 138,
+    "next_step": "operator rewrite",
+    "main_risk": "irregular fusion and attention boundaries",
+    "caption": "Dense layers help, but sensor-fusion control and attention reduce fit."
+  },
+  "layers": [
+    {
+      "id": "vision.proj",
+      "operator": "MatMul",
+      "shape": "[1,256,768]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Dense projection with strong reuse.",
+      "risk": "low",
+      "latency_ms": 0.77,
+      "energy_uj": 8.9,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Keep analog."
+    },
+    {
+      "id": "imu.fusion.gate",
+      "operator": "Elementwise",
+      "shape": "[1,256,768]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "Control-heavy fusion logic.",
+      "risk": "medium",
+      "latency_ms": 0.38,
+      "energy_uj": 5.7,
+      "boundaries": "ADC before, DAC after",
+      "suggestion": "Look for fusion rewrite to reduce crossings."
+    },
+    {
+      "id": "attention.qkv",
+      "operator": "MatMul",
+      "shape": "[1,256,2304]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Large matrix work, but attention path is boundary-heavy.",
+      "risk": "medium",
+      "latency_ms": 0.93,
+      "energy_uj": 12.4,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Measure conversion cost before claiming a win."
+    },
+    {
+      "id": "attention.softmax",
+      "operator": "Softmax",
+      "shape": "[1,8,256,256]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "Nonlinear attention operation.",
+      "risk": "high",
+      "latency_ms": 1.42,
+      "energy_uj": 18.5,
+      "boundaries": "ADC before, DAC after",
+      "suggestion": "Main cost center; explore supported attention approximation."
+    },
+    {
+      "id": "planner.head",
+      "operator": "MatMul",
+      "shape": "[1,768,64]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Dense output projection.",
+      "risk": "medium",
+      "latency_ms": 0.18,
+      "energy_uj": 2.2,
+      "boundaries": "ADC after",
+      "suggestion": "Validate safety margin under analog noise."
+    }
+  ],
+  "boundaries": [
+    { "kind": "digital", "title": "Sensors", "description": "Camera, IMU, and depth preprocessing." },
+    { "kind": "convert", "title": "DAC", "description": "Projection enters analog path." },
+    { "kind": "analog", "title": "Projection", "description": "Dense token projection." },
+    { "kind": "convert", "title": "ADC", "description": "Fusion gate boundary." },
+    { "kind": "digital", "title": "Fusion gate", "description": "Irregular sensor fusion logic." },
+    { "kind": "convert", "title": "DAC", "description": "Attention projection begins." },
+    { "kind": "analog", "title": "QKV matmul", "description": "Large dense attention setup." },
+    { "kind": "convert", "title": "ADC", "description": "Softmax boundary." },
+    { "kind": "digital", "title": "Output", "description": "Planner decision output." }
+  ],
+  "quantization": [
+    { "label": "Baseline", "value": 91.4, "tone": "analog" },
+    { "label": "INT8", "value": 90.7, "tone": "analog" },
+    { "label": "Analog estimate", "value": 89.1, "tone": "warn" },
+    { "label": "INT4 all layers", "value": 84.6, "tone": "warn" }
+  ],
+  "energy_breakdown": [
+    { "label": "Analog compute", "value": 31, "tone": "analog" },
+    { "label": "ADC/DAC", "value": 24, "tone": "warn" },
+    { "label": "Memory movement", "value": 20, "tone": "digital" },
+    { "label": "Digital fallback", "value": 19, "tone": "digital" },
+    { "label": "Host/runtime", "value": 6, "tone": "digital" }
+  ],
+  "calibration": {
+    "status": "Needs wider sweep",
+    "board": "AS-EDGE-ROB-004",
+    "temperature": "-20C to 60C tested",
+    "voltage": "0.74V to 0.88V",
+    "weak_rows": "31 masked",
+    "accuracy_impact": "-1.1%"
+  },
+  "recommendations": [
+    { "id": "01", "text": "Prototype an attention approximation before positioning this as a strong fit.", "tag": "mapping" },
+    { "id": "02", "text": "Keep planner head at higher precision because wrong outputs carry higher risk.", "tag": "safety" },
+    { "id": "03", "text": "Measure latency under sustained robot thermal load.", "tag": "thermal" }
+  ],
+  "targets": {
+    "accuracy": "90.0%",
+    "latency": "< 8 ms",
+    "energy": "< 150 uJ",
+    "status": "needs follow-up"
+  }
+}
+

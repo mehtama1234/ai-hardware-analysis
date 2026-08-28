@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>analog-mlir To Silicon Compiler Plan</title>
+  <style>
+    :root {
+      --bg: #f6f8f8;
+      --panel: #ffffff;
+      --soft: #eef7f5;
+      --text: #17201f;
+      --muted: #5b6765;
+      --line: #d8e1df;
+      --accent: #0f766e;
+      --warn: #9a6700;
+      --bad: #a33b3b;
+      --code: #edf2f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 880px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fffaf0;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 24px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+    li { margin: 5px 0; }
+    code, pre {
+      background: var(--code);
+      border-radius: 8px;
+      color: #1c2b2a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    code { padding: 2px 5px; }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+    .safe { color: var(--accent); font-weight: 800; }
+    .blocked { color: var(--bad); font-weight: 800; }
+    @media (max-width: 780px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+      <a href="platform-completion-end-to-end-goal.md">Spec</a>
+    </nav>
+    <h1>analog-mlir To Silicon Compiler Plan</h1>
+    <p class="lead">This page explains, from first principles, why a research compiler like analog-mlir is useful but not enough to deploy neural networks on a real analog AI chip.</p>
+    <p class="question">The main question: can analog-mlir translate a normal AI model into something our physical chip can run?</p>
+    <div class="warning">
+      <strong>Short answer:</strong>
+      <p>Not by itself. It can be a starting point, but real silicon needs chip-specific placement, scheduling, calibration, runtime packaging, and board validation.</p>
+    </div>
+    <div class="jump">
+      <a href="#problem">Basic Problem</a>
+      <a href="#gives">What It Gives</a>
+      <a href="#not-enough">Why Not Enough</a>
+      <a href="#five-problems">Five Problems</a>
+      <a href="#build">What To Build</a>
+      <a href="#output">Compiler Output</a>
+      <a href="#boundary">Claim Boundary</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="problem">
+      <h2>The Basic Problem</h2>
+      <p>A trained AI model is a file full of math instructions and learned numbers. A physical chip cannot run that file directly.</p>
+      <p>Something has to translate the model into a plan the chip can execute.</p>
+      <pre>model file
+-> chip-specific execution plan
+-> commands the hardware can actually perform</pre>
+      <p>That translator is the compiler.</p>
+      <p>So the real question is not only whether the model has analog-friendly layers. The real question is whether the compiler can turn those layers into a physical plan for our chip.</p>
+    </section>
+
+    <section id="gives">
+      <h2>What analog-mlir Gives Us</h2>
+      <p>analog-mlir already has a useful research shape. It understands that a model has layers, that some layers can become analog operations, that weights need to be set up, and that execution needs a runtime plan.</p>
+      <pre>1. Find model layers that look analog-friendly.
+2. Convert those layers into an analog representation.
+3. Separate weight setup from runtime execution.
+4. Build a task graph.
+5. Lower the analog work to a simulator target.
+6. Emit runtime graph builders.</pre>
+      <div class="grid">
+        <div class="card"><b>Why This Helps</b><p>It gives us a compiler structure to learn from: layer extraction, analog operations, weight handling, task graph assembly, and runtime lowering.</p></div>
+        <div class="card"><b>The Limit</b><p>The current target is a simulator-style runtime, not our future board and physical silicon.</p></div>
+      </div>
+    </section>
+
+    <section id="not-enough">
+      <h2>Why That Is Not Enough</h2>
+      <p>A simulator can pretend there is an analog array. A real chip has physical limits and failure modes.</p>
+      <h3>Real Chip Facts The Compiler Must Know</h3>
+      <ul>
+        <li>How large each analog tile is.</li>
+        <li>How many tiles exist.</li>
+        <li>How much precision the memory cells support.</li>
+        <li>How ADCs and DACs are shared.</li>
+        <li>How much memory is available.</li>
+        <li>Which operations must stay digital.</li>
+        <li>How data moves between analog, digital, memory, and host logic.</li>
+        <li>What firmware commands the board accepts.</li>
+        <li>What calibration profile is tied to the chip.</li>
+        <li>Which tiles are weak or unavailable.</li>
+      </ul>
+      <p>A useful product compiler cannot only say <code>this layer is analog</code>. It must say exactly where the layer goes, how it is split, how weights are loaded, how conversion happens, what stays digital, and what command package gets sent to the board.</p>
+    </section>
+
+    <section id="five-problems">
+      <h2>The Five Compiler Problems</h2>
+
+      <h3>1. Replace The Simulator Target</h3>
+      <p>Current research flow lowers to a simulator runtime. Our chip will need a real output format.</p>
+      <p>That output might be custom instructions, firmware calls, command packets, register writes, DMA descriptors, or a runtime package. We should not lock that too early.</p>
+      <p class="safe">Safe statement: we need a chip-specific backend.</p>
+      <p class="blocked">Blocked statement: we already know the exact instruction format before the board/runtime interface exists.</p>
+
+      <h3>2. Split The Model Into Analog And Digital Work</h3>
+      <p>Analog compute is good at stored-weight multiply-add work. AI models also contain normalization, probabilities, reshaping, memory movement, control logic, and safety checks. Those may need digital compute.</p>
+      <pre>analog candidate
+digital required
+fallback
+unsupported
+needs review</pre>
+      <p>For transformers, fixed projection and feed-forward layers may be analog candidates. Softmax, LayerNorm, token movement, and dynamic attention often need digital or system handling. For VLA, sensor timing, action timing, control handoff, and safety logic also matter.</p>
+      <p class="safe">Safe statement: the compiler must classify model pieces by where they can actually run.</p>
+      <p class="blocked">Blocked statement: the whole transformer or VLA model is analog-ready because some layers are matrix-heavy.</p>
+
+      <h3>3. Fit The Model Onto Physical Tiles</h3>
+      <p>A model layer can be larger than the physical analog tile. The compiler must split large layers into smaller pieces, place those pieces, and combine partial results.</p>
+      <pre>model layer: 8192 x 8192
+chip tile: 512 x 512
+
+The layer cannot fit in one tile.
+It must be split, placed, run, and recombined.</pre>
+      <p>If the model needs more precision than one memory cell supports, the compiler may also split a weight across multiple cells or columns. That is bit-slicing.</p>
+      <p class="safe">Safe statement: the compiler must know tile size, precision limits, partial sums, memory limits, and conversion points.</p>
+      <p class="blocked">Blocked statement: a logical analog layer automatically fits the physical chip.</p>
+
+      <h3>4. Avoid The ADC Bottleneck</h3>
+      <p>The analog array produces analog results. The rest of the system usually needs digital numbers. ADCs convert analog results back to digital.</p>
+      <p>ADCs cost area, power, and time. They may be shared by many columns. If the compiler schedules work poorly, the chip can spend too much time waiting for conversions.</p>
+      <pre>Do not let expensive ADCs sit idle.
+Do not force too much data through one shared ADC group.
+Spread independent work across groups that can run in parallel.</pre>
+      <p class="safe">Safe statement: ADC-aware scheduling is needed.</p>
+      <p class="blocked">Blocked statement: a published speedup applies to our chip before we test it with our workload, tile size, ADC design, and compiler rules.</p>
+
+      <h3>5. Use Calibration Data</h3>
+      <p>Analog hardware is not perfectly identical everywhere. Two tiles may behave differently. A programmed weight may not land exactly. Temperature and voltage may shift behavior. Some tiles may be weak.</p>
+      <p>Calibration means measuring how the real chip behaves, storing correction data, and using that correction data when compiling or programming the model.</p>
+      <pre>lab measures chip
+-> calibration service writes profile
+-> compiler consumes profile
+-> runtime programs chip
+-> board run checks output
+-> task accuracy confirms result</pre>
+      <p class="safe">Safe statement: calibration profiles should be first-class compiler inputs.</p>
+      <p class="blocked">Blocked statement: calibration works until board output and task accuracy confirm it.</p>
+    </section>
+
+    <section id="build">
+      <h2>What We Should Build</h2>
+      <p>Instead of saying we will simply hack analog-mlir, the clean roadmap is to keep the useful ideas and add our chip's physical truth.</p>
+      <pre>1. Use analog-mlir as a reference compiler frontend.
+2. Keep its useful front half where it finds analog-shaped layers.
+3. Add a chip profile that describes our real hardware limits.
+4. Add model partitioning.
+5. Add physical placement.
+6. Add ADC-aware scheduling.
+7. Add a chip-specific backend.
+8. Add calibration-profile input.
+9. Add runtime package generation.
+10. Add tests that block unsupported claims.</pre>
+      <div class="grid">
+        <div class="card"><b>Early Version</b><p>A local placement estimator and compiler report that says what would map to analog, what stays digital, and what is blocked.</p></div>
+        <div class="card"><b>Later Version</b><p>A chip-specific compiler backend that generates board-loadable packages tied to calibration profiles and runtime traces.</p></div>
+      </div>
+    </section>
+
+    <section id="output">
+      <h2>What The Compiler Must Output</h2>
+      <p>A product compiler should output more than <code>compiled successfully</code>. It should produce reviewable evidence.</p>
+      <ul>
+        <li>Runtime package.</li>
+        <li>Weight programming plan.</li>
+        <li>Tile placement map.</li>
+        <li>Analog/digital split.</li>
+        <li>ADC/DAC schedule.</li>
+        <li>Memory movement plan.</li>
+        <li>Fallback plan.</li>
+        <li>Calibration profile used.</li>
+        <li>Debug trace configuration.</li>
+        <li>Claim boundary.</li>
+      </ul>
+      <p>This output feeds the rest of the proof ladder. It should make board runtime, power measurement, task accuracy, and calibration checks easier to connect to the same package.</p>
+    </section>
+
+    <section id="boundary">
+      <h2>Claim Boundary</h2>
+      <p>If this compiler work succeeds, we can make a narrow claim.</p>
+      <p class="safe">Safe claim: the model has a chip-specific compiler plan, selected layers were placed onto physical resources, and a runtime package was generated with clear analog, digital, fallback, and calibration records.</p>
+      <p>But this still does not prove the chip works as a product.</p>
+      <p class="blocked">Blocked claims: the board ran it, the chip saved power, task accuracy passed, the package is thermally safe, the chip is production-ready, or the chip is VLA-ready.</p>
+      <p>Those require later proof: board runtime, power and thermal measurement, task accuracy, calibration and drift testing, update testing, and sensor-to-answer evidence.</p>
+      <h3>Bottom Line</h3>
+      <pre>analog-mlir cannot directly deploy to commercial silicon unchanged.
+
+It gives us a useful research compiler structure.
+
+To make it useful for real silicon, we must add the chip's physical truth:
+tile sizes, precision limits, ADC/DAC behavior, digital fallback,
+runtime commands, calibration data, and board-package generation.</pre>
+    </section>
+  </main>
+</body>
+</html>

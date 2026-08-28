@@ -1,0 +1,132 @@
+{
+  "project": "Smart camera classifier",
+  "target": "AS-EDGE camera profile",
+  "model": {
+    "name": "camera_defect_classifier.onnx",
+    "parameters": "11.6M",
+    "operators": 138,
+    "input": "image[1,3,224,224]",
+    "device_class": "smart camera vision"
+  },
+  "summary": {
+    "fit": "High",
+    "grade": "A",
+    "analog_coverage_percent": 84,
+    "fallback_count": 5,
+    "energy_estimate_uj": 73,
+    "next_step": "INT4 trial",
+    "main_risk": "classifier head sensitivity",
+    "caption": "Convolution and dense layers map well, with limited fallback."
+  },
+  "layers": [
+    {
+      "id": "stem.conv",
+      "operator": "Conv2D",
+      "shape": "[1,32,112,112]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Convolution maps to repeated matrix work.",
+      "risk": "low",
+      "latency_ms": 0.62,
+      "energy_uj": 8.1,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Good analog candidate."
+    },
+    {
+      "id": "block3.depthwise",
+      "operator": "DepthwiseConv",
+      "shape": "[1,96,56,56]",
+      "placement": "fallback",
+      "placement_label": "fallback",
+      "reason": "Depthwise mapping has low reuse on this target.",
+      "risk": "medium",
+      "latency_ms": 0.55,
+      "energy_uj": 6.3,
+      "boundaries": "ADC before fallback",
+      "suggestion": "Consider operator rewrite or digital accelerator path."
+    },
+    {
+      "id": "block5.pointwise",
+      "operator": "Conv2D",
+      "shape": "[1,192,28,28]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "High weight reuse and regular dataflow.",
+      "risk": "low",
+      "latency_ms": 0.49,
+      "energy_uj": 5.8,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Try INT4 after sensitivity check."
+    },
+    {
+      "id": "classifier.norm",
+      "operator": "LayerNorm",
+      "shape": "[1,1024]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "Normalization remains digital.",
+      "risk": "low",
+      "latency_ms": 0.08,
+      "energy_uj": 0.9,
+      "boundaries": "ADC before",
+      "suggestion": "Keep digital; small cost."
+    },
+    {
+      "id": "classifier.fc",
+      "operator": "MatMul",
+      "shape": "[1,1024,40]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Dense layer supported but accuracy-sensitive.",
+      "risk": "medium",
+      "latency_ms": 0.14,
+      "energy_uj": 1.4,
+      "boundaries": "ADC after",
+      "suggestion": "Protect high-sensitivity output weights."
+    }
+  ],
+  "boundaries": [
+    { "kind": "digital", "title": "Input", "description": "Image preprocessing and resize." },
+    { "kind": "convert", "title": "DAC", "description": "Convolution input enters analog." },
+    { "kind": "analog", "title": "Analog conv stack", "description": "Most convolution blocks run near weights." },
+    { "kind": "convert", "title": "ADC", "description": "Depthwise fallback boundary." },
+    { "kind": "digital", "title": "Fallback op", "description": "Depthwise block runs outside analog array." },
+    { "kind": "convert", "title": "DAC", "description": "Return to analog pointwise conv." },
+    { "kind": "analog", "title": "Classifier matmul", "description": "Dense output layer." },
+    { "kind": "convert", "title": "ADC", "description": "Output scores converted." },
+    { "kind": "digital", "title": "Output", "description": "Defect class returned." }
+  ],
+  "quantization": [
+    { "label": "Baseline", "value": 96.2, "tone": "analog" },
+    { "label": "INT8", "value": 96.0, "tone": "analog" },
+    { "label": "Analog estimate", "value": 95.6, "tone": "analog" },
+    { "label": "INT4 all layers", "value": 93.1, "tone": "warn" }
+  ],
+  "energy_breakdown": [
+    { "label": "Analog compute", "value": 49, "tone": "analog" },
+    { "label": "ADC/DAC", "value": 12, "tone": "warn" },
+    { "label": "Memory movement", "value": 18, "tone": "digital" },
+    { "label": "Digital fallback", "value": 13, "tone": "digital" },
+    { "label": "Host/runtime", "value": 8, "tone": "digital" }
+  ],
+  "calibration": {
+    "status": "Valid",
+    "board": "AS-EDGE-CAM-011",
+    "temperature": "-10C to 80C",
+    "voltage": "0.76V to 0.90V",
+    "weak_rows": "19 masked",
+    "accuracy_impact": "-0.2%"
+  },
+  "recommendations": [
+    { "id": "01", "text": "Try INT4 for pointwise convolution blocks, but protect classifier weights.", "tag": "accuracy" },
+    { "id": "02", "text": "Keep depthwise convolution on fallback path unless a better mapping is available.", "tag": "mapping" },
+    { "id": "03", "text": "Validate sustained thermal behavior for wall-mounted enclosure.", "tag": "thermal" }
+  ],
+  "targets": {
+    "accuracy": "95.0%",
+    "latency": "< 12 ms",
+    "energy": "< 90 uJ",
+    "status": "analysis ready"
+  }
+}
+

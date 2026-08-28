@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIHWKIT And The Analog AI Tool Stack</title>
+  <style>
+    :root {
+      --bg: #f6f8f8;
+      --panel: #ffffff;
+      --soft: #eef7f5;
+      --text: #17201f;
+      --muted: #5b6765;
+      --line: #d8e1df;
+      --accent: #0f766e;
+      --warn: #9a6700;
+      --bad: #a33b3b;
+      --code: #edf2f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a {
+      color: var(--accent);
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 880px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fffaf0;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 24px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 14px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--soft);
+      color: var(--text);
+    }
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+    li { margin: 5px 0; }
+    code, pre {
+      background: var(--code);
+      border-radius: 8px;
+      color: #1c2b2a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    code { padding: 2px 5px; }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+    .safe { color: var(--accent); font-weight: 800; }
+    .blocked { color: var(--bad); font-weight: 800; }
+    @media (max-width: 780px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      table { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+      <a href="platform-completion-end-to-end-goal.md">Spec</a>
+    </nav>
+    <h1>AIHWKIT And The Analog AI Tool Stack</h1>
+    <p class="lead">This page explains where IBM AIHWKIT fits, where it does not fit, and why the startup should build adapters around several tools instead of relying on one simulator or building everything from scratch.</p>
+    <p class="question">The main question: can AIHWKIT take care of the full software stack for a custom analog AI chip?</p>
+    <div class="warning">
+      <strong>Short answer:</strong>
+      <p>No. AIHWKIT is useful for model-level analog training and inference simulation. It does not replace compiler mapping, physical layout, board runtime, power measurement, thermal analysis, calibration proof, or task evidence from real hardware.</p>
+    </div>
+    <div class="jump">
+      <a href="#basic">Basic Idea</a>
+      <a href="#does">What AIHWKIT Does</a>
+      <a href="#limits">Limits</a>
+      <a href="#stack">Tool Stack</a>
+      <a href="#adapters">Adapters</a>
+      <a href="#build">Build Plan</a>
+      <a href="#boundary">Claim Boundary</a>
+      <a href="#refs">References</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="basic">
+      <h2>The Basic Idea</h2>
+      <p>AIHWKIT helps answer one important question:</p>
+      <pre>If model math is run with analog-like device behavior,
+does the model answer get worse?</pre>
+      <p>That is a Step 3 question in the proof ladder. It is about analog accuracy risk. It is not the whole product.</p>
+      <p>A startup still has to answer many other questions:</p>
+      <ul>
+        <li>Can the model fit the physical tile layout?</li>
+        <li>Can a compiler place the model on the chip?</li>
+        <li>Can the runtime package run on a board?</li>
+        <li>How much power and heat does the board produce?</li>
+        <li>Does the task still pass on the real setup?</li>
+        <li>Does calibration work across time, voltage, and temperature?</li>
+      </ul>
+      <p>AIHWKIT is valuable, but it is one part of the evidence system.</p>
+    </section>
+
+    <section id="does">
+      <h2>What AIHWKIT Does Well</h2>
+      <p>AIHWKIT is a PyTorch-centered toolkit for analog in-memory training and inference simulation. It lets engineers replace ideal digital layers with analog-style layers and test how hardware-like effects change model behavior.</p>
+      <div class="grid">
+        <div class="card"><b>Model-Level Simulation</b><p>It can simulate analog tile behavior inside neural-network training or inference experiments.</p></div>
+        <div class="card"><b>Noise And Variation</b><p>It can model output noise, device variation, programming effects, and other non-ideal behavior.</p></div>
+        <div class="card"><b>ADC/DAC Effects</b><p>It can apply adjustable converter discretization and bounds, which helps estimate precision loss.</p></div>
+        <div class="card"><b>Hardware-Aware Training</b><p>It can train or adapt models while analog effects are present, so the model may become more tolerant of those effects.</p></div>
+      </div>
+      <h3>Plain Meaning</h3>
+      <p>If we have a model and want to know whether analog-like errors damage its answer, AIHWKIT is a strong early tool. It is especially useful before hardware exists because it gives us a way to test model fragility.</p>
+      <p class="safe">Safe claim: AIHWKIT can support analog accuracy-risk experiments under stated assumptions.</p>
+      <p class="blocked">Blocked claim: AIHWKIT proves the real chip preserves accuracy.</p>
+    </section>
+
+    <section id="limits">
+      <h2>Where AIHWKIT Falls Short</h2>
+      <p>AIHWKIT does not know the full physical and system reality of a custom chip unless we add that information. It does not replace the compiler, the board runtime, the package design, or the lab.</p>
+      <h3>Questions AIHWKIT Does Not Answer By Itself</h3>
+      <ul>
+        <li>Can this model be split across the actual tile sizes on our chip?</li>
+        <li>How many ADC and DAC conversions happen in the real data path?</li>
+        <li>Can our compiler generate a board-loadable runtime package?</li>
+        <li>How long does a CPU, firmware runtime, or chiplet link take to move data?</li>
+        <li>How much power does the actual board consume?</li>
+        <li>How hot does the package get during sustained use?</li>
+        <li>Which tiles are weak, noisy, or badly calibrated?</li>
+        <li>Does the real task pass on the same package and board setup?</li>
+      </ul>
+      <p>This is why the software stack needs several tools and a common evidence format.</p>
+      <pre>AIHWKIT result:
+The model may tolerate this analog noise setting in PyTorch.
+
+Not an AIHWKIT result:
+The commercial chip runs this workload at measured low power.</pre>
+    </section>
+
+    <section id="stack">
+      <h2>The Tool Stack</h2>
+      <p>Use the right tool for the right proof step. Do not expect one tool to answer everything.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Tool Type</th>
+            <th>What It Can Support</th>
+            <th>What It Cannot Prove Alone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Will analog-like behavior damage model accuracy?</td>
+            <td>AIHWKIT or AIHWKIT-Lightning</td>
+            <td>Analog accuracy-risk simulation and hardware-aware training.</td>
+            <td>Board runtime, measured power, physical layout, or production readiness.</td>
+          </tr>
+          <tr>
+            <td>Do crossbar effects and parasitic resistance hurt results?</td>
+            <td>CrossSim or similar crossbar simulator</td>
+            <td>Crossbar accuracy risk, parasitic effects, bit slicing, and array-level assumptions.</td>
+            <td>Compiler package generation or real board behavior.</td>
+          </tr>
+          <tr>
+            <td>Can normal model code become a chip execution plan?</td>
+            <td>analog-mlir or custom compiler path</td>
+            <td>Model partitioning, placement, analog/digital split, and runtime package planning.</td>
+            <td>Measured latency, measured power, or task quality.</td>
+          </tr>
+          <tr>
+            <td>Does CPU, memory, runtime, or chiplet communication erase the benefit?</td>
+            <td>SST/Golem, ALPINE/gem5-X, or system simulator</td>
+            <td>System timing estimates and runtime bottleneck analysis.</td>
+            <td>Lab-measured board latency or power.</td>
+          </tr>
+          <tr>
+            <td>Will heat or package layout hurt analog behavior?</td>
+            <td>MFIT, compact thermal models, or package thermal tools</td>
+            <td>Thermal risk, hotspot location, and floorplan tradeoffs.</td>
+            <td>Measured package behavior unless validated in lab.</td>
+          </tr>
+          <tr>
+            <td>Do circuits, devices, and converters behave as assumed?</td>
+            <td>SPICE, circuit tools, PDK simulations, device characterization</td>
+            <td>Device, ADC, DAC, substrate-noise, and circuit-level evidence.</td>
+            <td>Full-system product claims.</td>
+          </tr>
+          <tr>
+            <td>Did the real setup run and pass?</td>
+            <td>Board runtime, power instruments, thermal traces, task harness</td>
+            <td>Measured board runtime, power, temperature, and task accuracy.</td>
+            <td>Other boards, other workloads, or production reliability without repeated evidence.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="adapters">
+      <h2>Why We Build Adapters</h2>
+      <p>The platform should not be locked to one simulator. It should treat each tool as an evidence source.</p>
+      <pre>model package
+-> adapter
+-> external tool or local runner
+-> raw output
+-> normalized evidence artifact
+-> claim engine
+-> frontend and review package</pre>
+      <p>An adapter is a small translator. It prepares input for a tool, runs or imports the tool result, saves the raw output, converts the result into our common artifact shape, and labels what the result can and cannot prove.</p>
+      <h3>Every Adapter Should Report</h3>
+      <ul>
+        <li>What was run.</li>
+        <li>Which model, package, chip profile, and dataset were used.</li>
+        <li>What assumptions were used.</li>
+        <li>What proof level the result has.</li>
+        <li>What claim is safe.</li>
+        <li>What claim remains blocked.</li>
+        <li>What evidence is missing.</li>
+        <li>What should happen next.</li>
+      </ul>
+      <h3>Failure Is Useful</h3>
+      <p>If CrossSim, AIHWKIT, a board service, or a power meter is missing, the adapter should return a blocked result. It should not silently fall back to a fake success.</p>
+      <pre>Good failure:
+CrossSim executable not configured.
+No simulation claim is allowed.
+Next action: configure simulator and rerun probe.
+
+Bad failure:
+CrossSim failed, so the platform used a made-up estimate and marked it complete.</pre>
+    </section>
+
+    <section id="build">
+      <h2>Practical Build Plan</h2>
+      <p>Do not integrate every tool at once. Build one proof path at a time.</p>
+      <h3>First</h3>
+      <ul>
+        <li>Build a local analog sensitivity adapter.</li>
+        <li>Use it to apply simple precision, noise, and write-error sweeps.</li>
+        <li>Write <code>analog_accuracy_risk.json</code>.</li>
+        <li>Mark the result as estimated or simulated only.</li>
+      </ul>
+      <h3>Next</h3>
+      <ul>
+        <li>Add an AIHWKIT adapter for stronger Step 3 experiments.</li>
+        <li>Add a CrossSim adapter for Step 4 crossbar/layout risk.</li>
+        <li>Add an analog-mlir or local compiler adapter for Step 6 compiler mapping.</li>
+      </ul>
+      <h3>Then</h3>
+      <ul>
+        <li>Add system simulation only when runtime and memory movement need deeper timing proof.</li>
+        <li>Add compact thermal modeling when package/floorplan thermal risk matters.</li>
+        <li>Add board, power, thermal, calibration, and task-accuracy import adapters as hardware appears.</li>
+      </ul>
+      <h3>Recommended Order</h3>
+      <pre>1. local analog sensitivity adapter
+2. AIHWKIT adapter
+3. CrossSim adapter
+4. compiler mapping adapter
+5. system runtime adapter
+6. thermal/package adapter
+7. board runtime import
+8. power/thermal import
+9. task accuracy import
+10. calibration/update import</pre>
+    </section>
+
+    <section id="boundary">
+      <h2>Claim Boundary</h2>
+      <p>AIHWKIT results should make our claims more careful, not broader.</p>
+      <p class="safe">Safe claim: under the stated AIHWKIT configuration, the model was tested against analog-like noise, variation, and converter assumptions.</p>
+      <p class="safe">Safe claim: the result helps decide whether this workload is worth deeper simulation, compiler work, or board testing.</p>
+      <p class="blocked">Blocked claim: the real chip preserves accuracy.</p>
+      <p class="blocked">Blocked claim: the board ran the model.</p>
+      <p class="blocked">Blocked claim: the chip saves power or stays thermally safe.</p>
+      <p class="blocked">Blocked claim: the platform is production-ready or VLA-ready.</p>
+      <h3>Bottom Line</h3>
+      <pre>Use AIHWKIT early.
+Do not rely on AIHWKIT alone.
+Do not build every simulator from scratch.
+Build adapters that connect the right tool to the right proof step.
+
+AIHWKIT helps answer:
+Will analog-like behavior damage the model answer?
+
+It does not answer:
+Can our chip be taped out, programmed, cooled, calibrated,
+and proven on a real workload?</pre>
+    </section>
+
+    <section id="refs">
+      <h2>References For Review</h2>
+      <p>These links provide context for the tool choices. They do not prove our chip.</p>
+      <ul>
+        <li><a href="https://aihwkit.readthedocs.io/">IBM AIHWKIT documentation</a></li>
+        <li><a href="https://github.com/IBM/aihwkit">IBM AIHWKIT GitHub repository</a></li>
+        <li><a href="https://arxiv.org/abs/2307.09357">AIHWKIT tutorial paper</a></li>
+        <li><a href="https://research.ibm.com/publications/aihwkit-lightning-a-scalable-hw-aware-training-toolkit-for-analog-in-memory-computing">AIHWKIT-Lightning publication</a></li>
+        <li><a href="https://cross-sim.sandia.gov/">Sandia CrossSim</a></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

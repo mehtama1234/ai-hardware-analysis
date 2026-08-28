@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analog Chip Proof Ladder Step By Step</title>
+  <style>
+    :root {
+      --bg: #f6f8f8;
+      --panel: #ffffff;
+      --soft: #eef7f5;
+      --text: #17201f;
+      --muted: #5b6765;
+      --line: #d8e1df;
+      --accent: #0f766e;
+      --warn: #9a6700;
+      --bad: #a33b3b;
+      --code: #edf2f2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+    header, main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 22px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    nav a, .jump a {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    p { margin: 8px 0; }
+    .lead {
+      max-width: 860px;
+      font-size: 19px;
+      font-weight: 650;
+    }
+    .sub { color: var(--muted); }
+    .question {
+      display: inline-block;
+      margin-top: 10px;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px 16px;
+      font-weight: 800;
+    }
+    .warning {
+      border: 1px solid #e2d1a4;
+      border-left: 5px solid var(--warn);
+      border-radius: 8px;
+      background: #fffaf0;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 24px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 15px;
+    }
+    .card b {
+      display: block;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+    li { margin: 5px 0; }
+    code, pre {
+      background: var(--code);
+      border-radius: 8px;
+      color: #1c2b2a;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    code { padding: 2px 5px; }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+    .safe { color: var(--accent); font-weight: 800; }
+    .blocked { color: var(--bad); font-weight: 800; }
+    @media (max-width: 780px) {
+      header, main { padding: 20px 16px; }
+      section { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
+      <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
+      <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
+      <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a>
+      <a href="aihwkit-tool-stack-plan.html">AIHWKIT Tool Stack</a>
+      <a href="simulation-as-compiler-hat-plan.html">Simulation As Compiler</a>
+      <a href="physical-ai-opportunity-roadmap-digital-twins.html">Physical AI Opportunity</a>
+      <a href="physical-ai-robot-learning-implications.html">Robot Learning</a>
+      <a href="review-package-demo/index.html">Review Package</a>
+      <a href="platform-completion-end-to-end-goal.md">Spec</a>
+    </nav>
+    <h1>Analog Chip Proof Ladder Step By Step</h1>
+    <p class="lead">This page explains what happens at each step when we ask: can this workload run well on this analog chip, what proof do we have, what breaks, and what must be built or measured next?</p>
+    <p class="question">The important rule: each step adds one kind of evidence. No step is allowed to prove more than it actually proves.</p>
+    <div class="warning">
+      <strong>Proof warning:</strong>
+      <p>This is a plain-language explanation of the proof workflow. It is not measured chip evidence. A demo artifact, estimate, or simulator result must not be treated as board, power, task, or production proof.</p>
+    </div>
+    <div class="jump">
+      <a href="#step-1">1 Intake</a>
+      <a href="#step-2">2 Analog Fit</a>
+      <a href="#step-3">3 Accuracy Risk</a>
+      <a href="#step-4">4 Layout Risk</a>
+      <a href="#step-5">5 Cost Estimate</a>
+      <a href="#step-6">6 Compiler Mapping</a>
+      <a href="#step-7">7 Transformer/VLA</a>
+      <a href="#step-8">8 Runtime</a>
+      <a href="#step-9">9 Board</a>
+      <a href="#step-10">10 Power/Thermal</a>
+      <a href="#step-11">11 Task Accuracy</a>
+      <a href="#step-12">12 Updates</a>
+      <a href="#step-13">13 Sensor Boundary</a>
+      <a href="#step-14">14 Final Answer</a>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>The Whole Flow</h2>
+      <p>Think of the workflow like a case for the chip. We do not start by saying the chip works. We build up evidence one layer at a time.</p>
+      <pre>Step 1: know the problem.
+Step 2: see if the model shape is promising.
+Steps 3-8: estimate, simulate, map, and count the full system.
+Steps 9-11: prove board runtime, power, and task behavior.
+Steps 12-13: prove deployment realities.
+Step 14: say only what the evidence allows.</pre>
+      <p>The important pattern is that a weaker proof level cannot quietly become a stronger one. A model parse is not analog fit. Analog fit is not compiler placement. Compiler placement is not board runtime. Board runtime is not power proof. Power proof is not task accuracy. The final answer must keep those boundaries visible.</p>
+    </section>
+
+    <section id="step-1">
+      <h2>Step 1: Define The Workload</h2>
+      <p class="question">What exact job are we testing?</p>
+      <p>This is the intake step. The goal is to stop the review from being vague. We want to know the actual workload, the actual model, the target chip profile, and the success target before anyone talks about whether the chip is a fit.</p>
+      <p>Example: always-on wake-word detection on a battery wearable. That is much clearer than saying "audio AI" or "edge inference."</p>
+      <h3>What We Identify</h3>
+      <ul>
+        <li>The workload: what real-world job the model is doing.</li>
+        <li>The model: file, format, version, hash, size, and parameter count.</li>
+        <li>The input: shape, type, sensor source, and preprocessing path.</li>
+        <li>The output: class, score, action, command, probability, or detection result.</li>
+        <li>The success metric: false accepts, false rejects, accuracy, F1, recall, task success rate, or another clear metric.</li>
+        <li>The budget: latency, energy, memory, temperature, voltage, and reliability targets.</li>
+        <li>The update pattern: fixed weights, rare firmware update, periodic update, adapter update, or continuous learning.</li>
+        <li>The evidence source for each field: parsed from model, user-provided, inferred, assumed, or missing.</li>
+      </ul>
+      <h3>Why These Fields Matter</h3>
+      <p>A clear task metric matters because speed and power only matter if the model still solves the job. A chip can be fast and low-power while producing worse answers. Update pattern matters because analog weights may be physically stored, so frequent updates can require write-energy, endurance, retention, rollback, recalibration, and post-update accuracy proof.</p>
+      <div class="grid">
+        <div class="card"><b>What Happens</b><p>The platform parses the model, combines it with project settings, labels unknowns explicitly, and writes a real <code>model_intake.json</code>.</p></div>
+        <div class="card"><b>Useful Workload Profile</b><p>Best early workloads tend to be fixed-weight, repeated, matrix-heavy, low-update, power-constrained, and measured by a clear task metric.</p></div>
+        <div class="card"><b>What It Proves</b><p class="safe">We know what problem we are evaluating, what model is involved, and what success means.</p></div>
+        <div class="card"><b>What It Does Not Prove</b><p class="blocked">It does not prove analog fit, board execution, power savings, or task accuracy.</p></div>
+      </div>
+      <h3>Step 1 Answer</h3>
+      <pre>We are evaluating workload X, model Y, on chip target Z, against success targets A, B, and C.
+These fields are parsed, these are user-provided, these are assumed, and these are missing.</pre>
+    </section>
+
+    <section id="step-2">
+      <h2>Step 2: Check Analog Fit</h2>
+      <p class="question">Which parts of the model look suitable for analog compute?</p>
+      <p>A model is not one single block. It is a recipe made of smaller steps. In model files those steps are called layers, operators, or nodes. Step 2 sorts those model pieces into analog candidates, digital-required pieces, runtime overhead, and blocked unknowns.</p>
+      <h3>The Basic Idea</h3>
+      <p>Analog in-memory compute is strongest when the workload is fixed-weight, repeated, matrix-heavy math. In plain language: take many input numbers, multiply them by learned weights, add the results, and repeat many times.</p>
+      <p>Digital compute is better for decisions, exact cleanup math, normalization, control flow, data movement, safety logic, and dynamic behavior.</p>
+      <div class="grid">
+        <div class="card"><b>Analog Candidates</b><p>Dense, Linear, MatMul, Gemm, and Convolution layers often use learned weights repeatedly. These are the heavy math layers.</p></div>
+        <div class="card"><b>Digital Required</b><p>Softmax turns scores into probabilities. LayerNorm rescales values. Control flow decides what happens next. These usually stay digital.</p></div>
+        <div class="card"><b>Runtime Overhead</b><p>Reshape, Transpose, Gather, Slice, Flatten, and memory movement rearrange data. They do not create analog compute wins.</p></div>
+        <div class="card"><b>Unknown Or Blocked</b><p>Custom or unsupported operations stay blocked until someone inspects them, replaces them, writes support, or keeps them digital.</p></div>
+      </div>
+      <h3>Transformer Pieces In This Step</h3>
+      <p>For transformers, we do not say "the transformer is analog-ready." We split the block apart. Q/K/V projection layers and feed-forward layers may be analog candidates because they are fixed-weight matrix math. Softmax and LayerNorm usually stay digital. Attention score/value mixing is hybrid or needs review because the values are dynamic. KV cache and token movement are memory/runtime overhead.</p>
+      <h3>VLA Pieces In This Step</h3>
+      <p>VLA means vision-language-action. Vision input, language input, fusion, action output, sensors, robot control, and safety handoff all matter. Analog may help selected matrix-heavy pieces, but the robot control and safety boundary remains digital/system proof.</p>
+      <pre>Fixed-weight repeated matrix math -> possible analog.
+Tiny matrix ops -> cost review.
+Large matrix ops -> tiling review.
+Dynamic decisions, normalization, control, movement -> digital or system work.
+Unknown operations -> blocked.</pre>
+      <p class="safe">What it proves: some model parts may be analog candidates, and some parts clearly need digital/system support.</p>
+      <p class="blocked">What it does not prove: those parts fit the physical chip, save power, run on the board, or preserve task accuracy.</p>
+    </section>
+
+    <section id="step-3">
+      <h2>Step 3: Check Accuracy Risk</h2>
+      <p class="question">If we use analog-style math, does the model answer get worse?</p>
+      <p>Step 2 says which pieces look analog-friendly. Step 3 asks whether analog imperfections could damage the answer. Analog chips are physical systems. The numbers can be slightly wrong, and the question is whether slightly wrong numbers still lead to the correct task result.</p>
+      <h3>What Can Go Wrong</h3>
+      <ul>
+        <li>Lower precision: weights or activations may use fewer bits than normal digital math.</li>
+        <li>Noise: repeated runs of the same input may produce slightly different outputs.</li>
+        <li>Drift: stored values or behavior may shift over time.</li>
+        <li>Imperfect weight writing: the chip may not store the exact target value.</li>
+        <li>Limited ADC/DAC precision: converting digital numbers to analog signals and back loses detail.</li>
+        <li>Voltage and temperature variation: behavior can change under operating conditions.</li>
+        <li>Tile-to-tile differences: different physical arrays may behave differently.</li>
+        <li>Accumulation error: adding many partial results can introduce numeric error.</li>
+      </ul>
+      <h3>Where The Numbers Come From</h3>
+      <p>Early on, the numbers are assumptions or literature-backed ranges. During design, they come from circuit/device simulation. After silicon, they come from measured hardware: repeated runs, voltage sweeps, temperature sweeps, calibration records, and known-vector tests.</p>
+      <h3>What We Actually Build First</h3>
+      <p>We do not build a full chip simulator first. We start with a local sensitivity adapter that applies lower precision, noise, write error, clipping, and conversion assumptions to see where the model starts failing. Later we plug in tools like AIHWKIT or CrossSim through adapters, and later still use chip-specific measured profiles. The separate <a href="aihwkit-tool-stack-plan.html">AIHWKIT tool-stack page</a> explains what these tools can and cannot prove. The <a href="simulation-as-compiler-hat-plan.html">simulation-as-compiler page</a> explains how hardware-aware training fits into this workflow.</p>
+      <div class="grid">
+        <div class="card"><b>Adapter Role</b><p>The adapter prepares simulator input, runs a local check or external tool, normalizes the result, stores raw output, and writes <code>analog_accuracy_risk.json</code>.</p></div>
+        <div class="card"><b>Important Boundary</b><p>A simulation can say the model looks low/medium/high risk under stated assumptions. It cannot say the real chip preserves accuracy.</p></div>
+      </div>
+      <p class="safe">What it proves: analog-style error was tested under stated assumptions or simulator settings.</p>
+      <p class="blocked">What it does not prove: real board accuracy, measured chip accuracy, power savings, or production behavior.</p>
+    </section>
+
+    <section id="step-4">
+      <h2>Step 4: Check Physical Layout Risk</h2>
+      <p class="question">Can the analog-friendly parts actually fit onto the physical analog array layout?</p>
+      <p>Step 2 says a layer has the right kind of math. Step 4 asks whether it can live on the physical chip structure. An analog chip has limited arrays or tiles. A model layer may be much larger than one tile, so it has to be split.</p>
+      <h3>Key Terms</h3>
+      <ul>
+        <li>Tile: one limited-size analog compute grid.</li>
+        <li>Tiling: splitting a large layer across multiple tiles or passes.</li>
+        <li>Bit-slicing: splitting a number into smaller precision slices because the physical cells support fewer bits.</li>
+        <li>Partial sums: results from different tiles that must be added together.</li>
+        <li>Wire effects: resistance, voltage drop, noise, mismatch, and signal range limits.</li>
+      </ul>
+      <p>Example: a <code>1024 x 512</code> layer on a <code>128 x 128</code> tile may need <code>8 x 4 = 32</code> tile chunks or passes. Then we need to ask how partial sums are combined, how many conversions happen, and whether calibration covers all those tiles.</p>
+      <h3>Tools Needed</h3>
+      <p>The first tool is a built-in layout estimator. It reads model layer shapes, analog fit classifications, and chip profile. Later, CrossSim or similar crossbar simulators can estimate physical array effects. A compiler or placement tool then checks whether the rough placement can become a real chip plan.</p>
+      <p class="safe">What it proves: the model was checked against an assumed or simulated physical layout.</p>
+      <p class="blocked">What it does not prove: real compiler placement, board execution, measured power, or final accuracy.</p>
+    </section>
+
+    <section id="step-5">
+      <h2>Step 5: Estimate Hardware Cost</h2>
+      <p class="question">Even if the model can map to analog pieces, does the hardware cost look worth it?</p>
+      <p>Cost here means more than dollars. It includes chip area, memory, latency, energy, ADC/DAC work, digital fallback, host overhead, and calibration overhead.</p>
+      <p>A workload can be analog-friendly and still be a bad first target. If it needs too many conversions, too much data movement, too much fallback, or too much area, the analog benefit may disappear.</p>
+      <h3>What We Estimate</h3>
+      <ul>
+        <li>Tile count and analog operations.</li>
+        <li>Digital fallback operations.</li>
+        <li>ADC/DAC conversions.</li>
+        <li>Memory movement and activation storage.</li>
+        <li>Latency, energy, area pressure, and memory pressure.</li>
+        <li>Calibration overhead and host/runtime support.</li>
+      </ul>
+      <pre>Target latency <= 20 ms
+Estimated latency = 13 ms
+Status = plausible
+
+Target energy <= 50 uJ
+Estimated energy = 80 uJ
+Status = risk</pre>
+      <p class="safe">What it proves: the workload can be ranked as promising, risky, or poor-fit for deeper hardware work.</p>
+      <p class="blocked">What it does not prove: measured latency, measured power, final chip area, board execution, or production cost.</p>
+    </section>
+
+    <section id="step-6">
+      <h2>Step 6: Compiler Mapping</h2>
+      <p class="question">Can normal model code become a chip execution plan?</p>
+      <p>A model file is not something a chip can run directly. The compiler has to turn it into a plan: this layer goes to analog tile 1, this layer stays digital, these weights go here, this data moves there, run this first, combine these partial results, and fall back here if needed.</p>
+      <h3>What The Compiler Must Decide</h3>
+      <ul>
+        <li>Which layers can be placed on analog arrays.</li>
+        <li>Which layers stay digital or require fallback.</li>
+        <li>How large layers are tiled and bit-sliced.</li>
+        <li>Where weights, activations, and calibration data are stored.</li>
+        <li>Where ADC/DAC boundaries happen.</li>
+        <li>How memory movement and partial sums are scheduled.</li>
+        <li>Whether a board-loadable runtime package can be generated.</li>
+      </ul>
+      <h3>What Can Break</h3>
+      <p>The compiler may not support an operator, dynamic shapes may break placement, memory scheduling may not fit, unsupported precision may be required, fallback cost may be too high, or the runtime package format may not exist yet.</p>
+      <p class="safe">What it proves: there is or is not a concrete compiler placement plan.</p>
+      <p class="blocked">What it does not prove: the board ran it, power improved, task accuracy passed, or the production compiler is ready.</p>
+    </section>
+
+    <section id="step-7">
+      <h2>Step 7: Transformer / VLA Check</h2>
+      <p class="question">If this is a modern transformer or VLA-style workload, what extra problems appear?</p>
+      <p>This step exists because a workload can pass simple analog-fit checks and still be hard. Transformers and VLA systems include dynamic attention, memory movement, normalization, sensor timing, action timing, and safety boundaries.</p>
+      <h3>Transformer In Plain English</h3>
+      <p>A transformer is built from repeated blocks. Tokens go in, attention decides what other tokens matter, feed-forward layers do heavy learned math, and the output head produces the answer. Some fixed-weight projection and feed-forward layers are analog candidates. Softmax, LayerNorm, token movement, and cache handling usually stay digital or system-level.</p>
+      <h3>VLA In Plain English</h3>
+      <p>VLA means vision-language-action. The model combines what the robot sees, what the human asked, and what action should happen next. That means the proof is not just about a neural network layer. It includes sensor capture, preprocessing, fusion, action output, robot control, safety checks, and control handoff.</p>
+      <h3>Honest VLA Answer</h3>
+      <pre>VLA fit: partial and highly conditional.
+
+Analog compute may help fixed-weight matrix-heavy parts of the vision encoder,
+language model, and action head.
+
+Full VLA readiness remains blocked until sensor-to-action latency,
+dynamic attention, memory movement, task accuracy, board runtime,
+power/thermal behavior, calibration, updates, and control safety are proven.</pre>
+      <p class="safe">What it proves: which transformer or VLA pieces are analog candidates and which remain digital/system risks.</p>
+      <p class="blocked">What it does not prove: full transformer execution, robot action readiness, or full VLA readiness.</p>
+    </section>
+
+    <section id="step-8">
+      <h2>Step 8: Full System Runtime</h2>
+      <p class="question">After analog compute, digital fallback, memory movement, and conversion overhead are counted, does the full system still look fast enough?</p>
+      <p>Analog math alone is not the product. The full path includes sensor or input data, preprocessing, host/controller work, DAC into the analog array, analog compute, ADC back to digital, digital fallback, memory movement, postprocessing, and the final answer.</p>
+      <h3>Why It Matters</h3>
+      <p>A chip can have a fast analog core and still miss the workload target because the rest of the system is slow.</p>
+      <pre>Analog compute: 2 ms
+ADC/DAC conversion: 6 ms
+Digital fallback: 10 ms
+Memory movement: 8 ms
+Host/runtime overhead: 5 ms
+Total: 31 ms
+Target: 20 ms</pre>
+      <p>In this example, the analog core is fast, but the full workload misses the target.</p>
+      <h3>Tools</h3>
+      <p>Early tools are a local runtime estimator, layout estimate, compiler mapping, chip profile, and latency budget. Later tools can include SST/Golem-style system simulation, ALPINE/gem5-X-style full-system simulation, runtime profilers, board logs, and firmware timing traces.</p>
+      <p class="safe">What it proves: the full path has been estimated beyond the analog core.</p>
+      <p class="blocked">What it does not prove: measured board latency, measured power, task accuracy, or production runtime stability.</p>
+    </section>
+
+    <section id="step-9">
+      <h2>Step 9: Board Runtime</h2>
+      <p class="question">Did the compiled package actually run on a board?</p>
+      <p>This is the first step where we move from model, simulation, and planning toward real hardware proof. The board must load this exact package, execute it, and produce a trace of what happened.</p>
+      <h3>What We Collect</h3>
+      <ul>
+        <li>Board ID, chip ID, firmware version, runtime version, and compiler package hash.</li>
+        <li>Calibration profile used for the run.</li>
+        <li>Load status, execution status, pass/fail, latency, p95 latency, and jitter.</li>
+        <li>Fallback events, runtime errors, watchdog resets, communication timeouts, and debug trace files.</li>
+      </ul>
+      <h3>Why It Matters</h3>
+      <p>A compiler plan is not board execution. The package may fail because firmware is incompatible, memory allocation fails, calibration is missing, commands are unsupported, fallback is unavailable, or communication times out.</p>
+      <p class="safe">What it proves: this exact package ran or failed on this exact board setup.</p>
+      <p class="blocked">What it does not prove: power savings, thermal behavior, task accuracy, long-term reliability, or production readiness.</p>
+    </section>
+
+    <section id="step-10">
+      <h2>Step 10: Power And Thermal Evidence</h2>
+      <p class="question">How much energy did the run use, and how hot did the setup get?</p>
+      <p>Step 9 may prove the package ran. It does not prove the chip saved power or stayed within thermal limits. Step 10 measures the full setup, not just the analog array.</p>
+      <h3>What We Measure</h3>
+      <ul>
+        <li>Energy per inference, average power, peak power, and idle power.</li>
+        <li>Power rails, converter power, memory power, fallback power, host/controller power, and sensor power when available.</li>
+        <li>Temperature start, peak temperature, ambient temperature, thermal warnings, and throttling.</li>
+        <li>Measurement instrument, sampling rate, setup file, trace files, and timestamp.</li>
+        <li>The same package, board, firmware, runtime, workload, and ideally task run.</li>
+      </ul>
+      <h3>Why Same Setup Matters</h3>
+      <p>A power trace from a different model or board cannot prove this workload's power. The strongest claim ties power and thermal evidence to the same package and board runtime from Step 9.</p>
+      <p class="safe">What it proves: measured energy and temperature for this exact setup.</p>
+      <p class="blocked">What it does not prove: task accuracy, long-term reliability, all-temperature behavior, production readiness, or other workloads.</p>
+    </section>
+
+    <section id="step-11">
+      <h2>Step 11: Task Accuracy</h2>
+      <p class="question">After all the mapping, analog effects, board execution, and power measurement, does the model still solve the actual task?</p>
+      <p>This is one of the most important steps. A chip can be fast, low power, and able to run the package, but still be useless if the answers are wrong.</p>
+      <h3>What We Compare</h3>
+      <ul>
+        <li>Baseline digital model result.</li>
+        <li>Mapped or quantized model result.</li>
+        <li>Simulated analog result.</li>
+        <li>Board-run result, if available.</li>
+        <li>The task metric and pass/fail threshold from Step 1.</li>
+        <li>The same dataset or test set, with version and hash.</li>
+      </ul>
+      <h3>Example</h3>
+      <pre>Task: wake-word detection
+Target: false accept <= 1%, false reject <= 5%
+
+Baseline digital model:
+false accept = 0.6%
+false reject = 3.2%
+
+Analog mapped or board-run model:
+false accept = 0.9%
+false reject = 4.6%
+
+Result: passes, but with reduced margin.</pre>
+      <p class="safe">What it proves: the hardware path preserved or failed task quality for this model, dataset, package, and setup.</p>
+      <p class="blocked">What it does not prove: all environments, all real-world conditions, or long-term reliability.</p>
+    </section>
+
+    <section id="step-12">
+      <h2>Step 12: Weight Update Readiness</h2>
+      <p class="question">Can the chip handle model weight changes after deployment?</p>
+      <p>A neural network has learned numbers called weights. During inference, it uses those weights. Analog in-memory chips often store those weights physically. That can be efficient for fixed inference, but frequent updates are harder.</p>
+      <h3>Update Categories</h3>
+      <ul>
+        <li>Fixed-weight inference: the model is trained offline and mostly never changes on the device. This is the best early case.</li>
+        <li>Rare firmware update: the model changes occasionally through a controlled update. This needs write time, write energy, verification, rollback, and post-update accuracy proof.</li>
+        <li>Periodic update: the model refreshes on a schedule. This needs endurance, retention, recalibration, and field reliability proof.</li>
+        <li>Adapter update: only a small part of the model changes. This needs compiler and hardware support to isolate writable blocks.</li>
+        <li>Continuous on-device learning: the model learns frequently in the field. This is high proof burden and usually blocked early.</li>
+      </ul>
+      <h3>What We Need To Measure</h3>
+      <p>Write latency, write energy, endurance cycles, retention, rollback behavior, recalibration cost, failed-update behavior, and post-update task accuracy.</p>
+      <p class="safe">What it proves: whether the workload is fixed-weight only, rare-update capable, adapter-update capable, or adaptive-ready.</p>
+      <p class="blocked">What it does not prove: adaptive learning unless the full update path is measured and task accuracy still passes after update.</p>
+    </section>
+
+    <section id="step-13">
+      <h2>Step 13: Sensor Boundary</h2>
+      <p class="question">Did we count the real-world input path before the model?</p>
+      <p>The chip does not receive AI-ready numbers by magic. Real workloads start with microphones, cameras, radar, lidar, tactile sensors, vibration sensors, temperature sensors, or other physical signals.</p>
+      <h3>Examples</h3>
+      <pre>Wake word:
+sound -> sampling -> filtering -> windowing -> feature extraction -> model input
+
+Camera:
+frame -> sensor readout -> resize/crop -> normalization -> model input
+
+Robot/VLA:
+camera + joint sensors + force sensor -> synchronization -> preprocessing -> model input</pre>
+      <h3>What We Count</h3>
+      <ul>
+        <li>Sensor type, sample rate, frame rate, resolution, event rate, or signal shape.</li>
+        <li>Preprocessing steps and where they run.</li>
+        <li>Buffering, synchronization, host transfer, and stale-data behavior.</li>
+        <li>Sensor energy, preprocessing energy, sensor-to-model latency, and sensor-to-answer latency.</li>
+        <li>For VLA and robotics: multiple sensor streams, timestamp alignment, control-loop deadline, and missed-frame behavior.</li>
+      </ul>
+      <p class="safe">What it proves: the review includes or explicitly excludes the cost of getting real-world signals into the model.</p>
+      <p class="blocked">What it does not prove: the analog core alone solves the full product or full Physical AI system.</p>
+    </section>
+
+    <section id="step-14">
+      <h2>Step 14: Final Answer</h2>
+      <p class="question">So what can we honestly say?</p>
+      <p>The final step combines all prior evidence into one direct answer. It is not a sales paragraph. It is the boundary of what the company can safely say today.</p>
+      <pre>Fit: yes, partial, no, or unknown.
+Proof: measured, simulated, compiled, estimated, source-checked, or missing.
+Breaks: exact model, chip, compiler, runtime, sensor, power, task, or update gaps.
+Safe claim: what can be said today.
+Do not claim: what is blocked.
+Next work: what to build, connect, simulate, or measure next.</pre>
+      <div class="grid">
+        <div class="card"><b>Good Final Answer</b><p>This workload is a partial fit. Some fixed-weight matrix-heavy layers may be analog candidates. Board runtime, measured power, task accuracy, calibration, updates, and sensor-to-answer proof are still missing.</p></div>
+        <div class="card"><b>Bad Final Answer</b><p>The chip is VLA-ready or production-ready because some layers look analog-friendly. That skips the proof ladder and overclaims.</p></div>
+      </div>
+      <h3>Current Demo Style Answer</h3>
+      <pre>Fit: partial / not proven yet.
+Proof: demo package, source context, estimates, and structured artifact examples.
+Breaks: no real board runtime, no measured power/thermal result, no same-setup task accuracy, no real calibration/drift proof, no complete chip-specific compiler target.
+Next: connect/import compiler output, simulator output, board traces, power logs, thermal logs, task accuracy results, update evidence, and sensor-path evidence.</pre>
+      <p>The final answer should make the next engineering work obvious without hiding missing proof.</p>
+    </section>
+  </main>
+</body>
+</html>

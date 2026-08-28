@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Toolkit Results First-Principles Review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --text: #172026;
+      --muted: #5e6a71;
+      --line: #d9e1e5;
+      --bg: #f6f8f9;
+      --panel: #ffffff;
+      --soft: #fbfcfc;
+      --accent: #0a6f73;
+      --good: #287a3e;
+      --warn: #a76213;
+      --bad: #a13a32;
+      --code: #eef3f4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--bg);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+    }
+    .bar {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .title { font-weight: 750; }
+    .links { display: flex; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+    a { color: var(--accent); font-weight: 650; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    .hero,
+    .panel,
+    .tool-page {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+    h2, h3 {
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    h2 { margin: 0 0 10px; font-size: 24px; }
+    h3 { margin: 0 0 8px; font-size: 20px; }
+    p { margin: 8px 0; }
+    .sub { color: var(--muted); }
+    .section {
+      margin-top: 18px;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    select,
+    button {
+      min-height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      font: inherit;
+    }
+    select { width: 100%; }
+    button {
+      cursor: pointer;
+      font-weight: 750;
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    button.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .card,
+    .result-card,
+    .point {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px;
+    }
+    .card strong,
+    .result-card strong,
+    .point strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .card span,
+    .result-card span,
+    .point span {
+      color: var(--muted);
+      display: block;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .status-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 13px;
+      font-weight: 750;
+      border: 1px solid var(--line);
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .status-pill.good { color: var(--good); background: #edf8ef; border-color: #b9d9c0; }
+    .status-pill.warn { color: var(--warn); background: #fff6e8; border-color: #eccb9d; }
+    .status-pill.bad { color: var(--bad); background: #fff0ee; border-color: #edc0bb; }
+    .status-pill.neutral { color: var(--muted); background: var(--code); }
+    .tool-list {
+      display: grid;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .journey-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .journey-map {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .journey-node {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      min-height: 112px;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+    .journey-node strong {
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .journey-node span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .journey-node.good { border-color: #b9d9c0; background: #f4fbf5; }
+    .journey-node.warn { border-color: #eccb9d; background: #fffaf1; }
+    .journey-node.bad { border-color: #edc0bb; background: #fff6f5; }
+    .journey-results {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .journey-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .journey-head {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .journey-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 800;
+    }
+    .journey-step h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+    .journey-question {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .journey-benefit {
+      border-left: 4px solid var(--accent);
+      background: #f0f7f6;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-size: 14px;
+    }
+    .journey-detail {
+      border-top: 1px solid var(--line);
+      padding-top: 9px;
+      display: grid;
+      gap: 7px;
+      font-size: 14px;
+    }
+    .journey-detail strong {
+      color: var(--text);
+    }
+    .journey-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tool-chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .tool-page {
+      display: grid;
+      gap: 14px;
+    }
+    .tool-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    code {
+      background: var(--code);
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+    .small { font-size: 13px; color: var(--muted); }
+    .message {
+      border: 1px solid #b9d8d6;
+      border-left: 5px solid var(--accent);
+      border-radius: 8px;
+      background: #f0f7f6;
+      padding: 14px;
+    }
+    @media (max-width: 840px) {
+      .bar,
+      .tool-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .controls,
+      .grid,
+      .journey-grid,
+      .journey-map,
+      .journey-results,
+      .two,
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="title">Toolkit Results First-Principles Review</div>
+      <nav class="links">
+        <a href="index.html">Workbench</a>
+        <a href="simulation-to-silicon-first-principles-spec-review.html">Spec Review</a>
+        <a href="simulation-to-silicon-first-principles-spec.md">Markdown Spec</a>
+        <a href="frontend-1-14-user-journey-design.md">1-14 Journey</a>
+        <a href="platform-completion-end-to-end-goal.md">Completion Goal</a>
+        <a href="platform-roadmap-architecture.md">Roadmap Architecture</a>
+        <a href="analog-mlir-chip-target-roadmap.md">Compiler Target</a>
+        <a href="company-roadmap-end-to-end.html">Company Roadmap</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <h1>What did each toolkit actually tell us?</h1>
+      <p class="sub">This page turns adapter runs and connection probes into plain-language result pages. It separates real imported evidence, local estimates, simulator-style evidence, blocked connections, and missing tools.</p>
+      <p><strong>Central question:</strong> Can this workload credibly run on this analog chip, what proof exists, what breaks, and what must be built or measured next?</p>
+    </section>
+
+    <section class="section panel">
+      <h2>Run And Review</h2>
+      <div class="controls">
+        <div>
+          <label for="packageSelect">Package</label>
+          <select id="packageSelect"></select>
+        </div>
+        <button id="runLocalEvidence" type="button">Run Local Evidence</button>
+        <button id="runInstalledSimulators" class="secondary" type="button">Run AIHWKIT + CrossSim</button>
+        <button id="refreshResults" class="secondary" type="button">Refresh Results</button>
+      </div>
+      <p id="status" class="message">Loading packages...</p>
+      <div id="summaryGrid" class="grid"></div>
+    </section>
+
+    <section class="section panel">
+      <h2>Question-Led Journey</h2>
+      <p class="sub">The user should not have to know tool names first. These are the fourteen benefits the platform gives them, from opening a model to writing the final claim. Tool names appear inside each step as proof sources.</p>
+      <div id="journeyGraph" class="journey-map"></div>
+      <div id="journeyResults" class="journey-results"></div>
+      <div id="journeySteps" class="journey-grid"></div>
+    </section>
+
+    <section class="section">
+      <div id="toolPages" class="tool-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const API = "http://127.0.0.1:8020";
+    const $ = (id) => document.getElementById(id);
+
+    const TOOL_PAGES = [
+      {
+        name: "AIHWKIT",
+        adapterIds: ["sim.aihwkit", "analog.error-simulator"],
+        runnableNow: "Through the local analog-error adapter today. Through real AIHWKIT when installed locally or connected as a service.",
+        plain: "A software test bench for checking whether analog chip imperfections could hurt model accuracy.",
+        userQuestion: "If analog memory is noisy, drifts, or has limited converter precision, will the model still work?",
+        input: "Model summary, chip profile, calibration profile, converter settings, noise assumptions, drift assumptions, and task target.",
+        output: "Analog-error evidence or a connection result showing whether AIHWKIT is available.",
+        claim: "Supports analog accuracy-risk discussion. It does not prove board speed, board power, or production readiness."
+      },
+      {
+        name: "AIHWKIT-Lightning",
+        adapterIds: ["sim.aihwkit"],
+        runnableNow: "Not separately connected in this first page. It belongs behind the AIHWKIT service path when larger simulation sweeps are needed.",
+        plain: "A faster simulation path for larger analog-AI tests.",
+        userQuestion: "Can we run more analog simulation checks on a larger model without waiting too long?",
+        input: "Large model, chip settings, simulation range, and accuracy target.",
+        output: "Faster large-model simulation results when the service is connected.",
+        claim: "Helps scale simulation. It is still simulation evidence, not hardware evidence."
+      },
+      {
+        name: "CrossSim",
+        adapterIds: ["sim.crosssim", "analog.error-simulator"],
+        runnableNow: "Through the local analog-error adapter today. Through real CrossSim when installed locally or connected as a service.",
+        plain: "A simulator for the physical memory grid used by analog compute.",
+        userQuestion: "Will wire resistance, read noise, bit slicing, ADC range, or programming error hurt accuracy?",
+        input: "Model or layer summary, crossbar assumptions, array size, precision, converter range, and physical-error settings.",
+        output: "Analog-error evidence or a connection result showing whether CrossSim is available.",
+        claim: "Supports crossbar accuracy-risk discussion. It does not prove the final chip behaves the same."
+      },
+      {
+        name: "analog-mlir",
+        adapterIds: ["compiler.analog-mlir-golem", "compiler.tvm-mlir-iree"],
+        runnableNow: "Through the local compiler-placement adapter today. Through real analog-mlir when its service is connected.",
+        plain: "A compiler path that checks whether model parts can be prepared for analog execution.",
+        userQuestion: "Can this model actually be mapped toward the analog chip path?",
+        input: "Model graph, supported operators, chip limits, memory limits, and fallback rules.",
+        output: "Compiler-placement evidence, unsupported operators, analog regions, digital regions, and rewrite needs.",
+        claim: "Supports model-placement discussion. It does not prove low power or measured runtime."
+      },
+      {
+        name: "Attention Partitioner",
+        adapterIds: ["compiler.attention-partitioner"],
+        runnableNow: "Connection target exists. A local product pass still needs to be added or an external service must be configured.",
+        plain: "A checker for transformer and VLA hard parts.",
+        userQuestion: "Which transformer parts are analog-friendly and which parts must stay digital or be rewritten?",
+        input: "Transformer graph, sequence shape, attention blocks, Softmax and LayerNorm locations, and target hardware limits.",
+        output: "Static projection candidates, dynamic attention blockers, digital boundaries, and rewrite options.",
+        claim: "Stops overclaiming transformer or VLA readiness from partial layer fit."
+      },
+      {
+        name: "SST/Golem",
+        adapterIds: ["system.sst-golem", "board.runtime"],
+        runnableNow: "Through the local board-runtime adapter today. Through real SST/Golem when its service is connected.",
+        plain: "A system timing simulator for processor-to-accelerator behavior.",
+        userQuestion: "Will CPU dispatch, memory movement, or synchronization slow down the analog benefit?",
+        input: "Mapped workload, processor assumptions, memory assumptions, accelerator dispatch rules, and timing target.",
+        output: "Runtime evidence or a connection result showing whether SST/Golem is available.",
+        claim: "Supports system timing discussion. It does not replace a real board trace."
+      },
+      {
+        name: "ALPINE/gem5-X",
+        adapterIds: ["system.alpine-gem5x", "board.runtime"],
+        runnableNow: "Through the local board-runtime adapter today. Through real ALPINE/gem5-X when its service is connected.",
+        plain: "A fuller computer-system simulator for analog acceleration inside a CPU and memory system.",
+        userQuestion: "What happens when the analog accelerator runs inside a full software and hardware stack?",
+        input: "Workload, runtime assumptions, CPU setup, memory setup, and analog accelerator settings.",
+        output: "Full-system runtime evidence or a connection result showing whether ALPINE/gem5-X is available.",
+        claim: "Supports pre-board system-readiness discussion. It does not prove real board power or production readiness."
+      },
+      {
+        name: "TxSim, XBTorch, And RxNN",
+        adapterIds: ["analog.error-simulator"],
+        runnableNow: "Not directly connected yet. Their first product role is covered by the weight-update and analog-error evidence gates until real services are added.",
+        plain: "Simulation paths for training risk, update risk, and memory-device behavior.",
+        userQuestion: "Are model updates, write noise, device variation, or drift likely to break the workload?",
+        input: "Model, update pattern, memory-device assumptions, fine-tuning settings, and acceptable accuracy loss.",
+        output: "Early update-risk and device-risk evidence when connected.",
+        claim: "Helps classify update readiness. It does not prove write energy, endurance, rollback, or retention."
+      },
+      {
+        name: "LIMCA",
+        adapterIds: [],
+        runnableNow: "Not part of the current workload-proof path. It belongs in future chip-design exploration.",
+        plain: "A design exploration helper for future chip or memory-array choices.",
+        userQuestion: "If the current chip cannot support the workload, what chip design direction should we test next?",
+        input: "Power, area, accuracy, memory-array, and circuit constraints.",
+        output: "Candidate future design directions when a LIMCA connector is added.",
+        claim: "Supports roadmap planning, not proof that the current workload runs on the current chip."
+      },
+      {
+        name: "Board, Power, Thermal, And Task Services",
+        adapterIds: ["board.runtime", "metrics.power-thermal", "accuracy.local-task-check"],
+        runnableNow: "Runnable today through local evidence adapters. Stronger claims need real board, meter, thermal, and task-service imports.",
+        plain: "Measurement feeds for what happened on hardware and whether the task still worked.",
+        userQuestion: "How long did it take, how much energy did it use, how hot did it get, and did it solve the task?",
+        input: "Board run, power trace, temperature trace, task dataset, update test, or lab report.",
+        output: "Runtime, power, thermal, and task-accuracy evidence.",
+        claim: "This is the path that moves claims from estimated to measured when the evidence comes from real hardware or real task tests."
+      }
+    ];
+
+    const JOURNEY_STEPS = [
+      {
+        number: 1,
+        label: "Model Intake",
+        question: "Can we open and understand the model?",
+        userGives: "Model file, model format, workload type, target chip profile, and optional dataset.",
+        checks: "Inputs, outputs, layer list, operator list, model size, unknown parts, and unsupported parts.",
+        tools: ["ONNX parser", "ONNX Runtime later", "PyTorch parser later", "our model analyzer"],
+        result: "Model loaded, inputs and outputs found, layers listed, unsupported parts flagged.",
+        proof: "Model parsed evidence",
+        nextAction: "Build the analog fit map.",
+        adapterIds: []
+      },
+      {
+        number: 2,
+        label: "Analog Fit",
+        question: "Which parts can run on analog compute, and which parts cannot?",
+        userGives: "Model graph, chip profile, supported operator list, precision assumptions, memory limits, and array limits.",
+        checks: "Analog candidates, digital-only parts, fallback path, handoffs, data movement risk, and rewrite needs.",
+        tools: ["model mapper", "analog-mlir", "TVM/IREE/MLIR", "compiler placement adapter"],
+        result: "Analog candidate layers, digital layers, fallback layers, and rewrite needs.",
+        proof: "Local mapping estimate or compiler mapping",
+        nextAction: "Run compiler mapping or import a compiler placement report.",
+        adapterIds: ["compiler.tvm-mlir-iree", "compiler.analog-mlir-golem"],
+        sourceIds: ["compiler_mapping"]
+      },
+      {
+        number: 3,
+        label: "Analog Accuracy Risk",
+        question: "Will analog imperfections hurt the answer?",
+        userGives: "Model or selected layers, chip profile, calibration profile, precision assumptions, and task target.",
+        checks: "Noise risk, drift risk, converter precision risk, weight programming risk, and estimated accuracy drop.",
+        tools: ["AIHWKIT", "MemTorch later", "local analog-error adapter"],
+        result: "Analog error estimate, sensitive areas, and likely accuracy risk.",
+        proof: "Toolkit smoke, analog simulator result, or local estimate",
+        nextAction: "Run AIHWKIT or import analog simulation evidence.",
+        adapterIds: ["sim.aihwkit", "analog.error-simulator"],
+        sourceIds: ["analog_error_simulation"]
+      },
+      {
+        number: 4,
+        label: "Crossbar Layout Risk",
+        question: "Will the physical memory grid change the math?",
+        userGives: "Layer shapes, array size, bit slicing, converter range, wire assumptions, and chip profile.",
+        checks: "Wire resistance, read noise, programming error, range clipping, and layout-sensitive accuracy loss.",
+        tools: ["CrossSim", "local analog-error adapter"],
+        result: "Crossbar risk, layout-sensitive error, and whether a better layout or smaller tile is needed.",
+        proof: "Crossbar simulator result or local estimate",
+        nextAction: "Run CrossSim or import a crossbar simulation report.",
+        adapterIds: ["sim.crosssim", "analog.error-simulator"],
+        sourceIds: ["analog_error_simulation"]
+      },
+      {
+        number: 5,
+        label: "Hardware Cost Estimate",
+        question: "How much area, time, and energy might the hardware need?",
+        userGives: "Mapped model, chip assumptions, memory assumptions, precision target, and performance target.",
+        checks: "Rough area, latency, energy, memory size, converter cost, and whether the chip target is realistic.",
+        tools: ["NeuroSim", "MNSIM later", "our hardware cost adapter"],
+        result: "Early hardware cost range and the assumptions behind it.",
+        proof: "Design estimate until measured hardware evidence exists",
+        nextAction: "Add or connect a hardware cost adapter.",
+        adapterIds: []
+      },
+      {
+        number: 6,
+        label: "Compiler Mapping",
+        question: "Can this model be prepared for the chip path?",
+        userGives: "Model graph, chip rules, supported operators, memory limits, and fallback rules.",
+        checks: "What can be lowered, what gets isolated as weights, what stays on the host, and what cannot compile.",
+        tools: ["analog-mlir", "TVM/IREE/MLIR", "compiler placement adapter"],
+        result: "Compiler placement, blocked operators, fallback plan, and rewrite list.",
+        proof: "Compiler mapping evidence",
+        nextAction: "Fix blocked operators or import a real compiler report.",
+        adapterIds: ["compiler.analog-mlir-golem", "compiler.tvm-mlir-iree"],
+        sourceIds: ["compiler_mapping"]
+      },
+      {
+        number: 7,
+        label: "Transformer And VLA Check",
+        question: "Are attention, Softmax, LayerNorm, or action heads a problem?",
+        userGives: "Transformer graph, sequence shape, attention blocks, action outputs, and target chip profile.",
+        checks: "Static projection fit, dynamic attention blockers, digital boundaries, memory movement, and rewrite options.",
+        tools: ["attention partitioner", "analog-mlir later", "our transformer checker"],
+        result: "What may run on analog, what must stay digital, and what should not be claimed yet.",
+        proof: "Transformer partition review",
+        nextAction: "Run the attention partitioner or mark transformer readiness as blocked.",
+        adapterIds: ["compiler.attention-partitioner"]
+      },
+      {
+        number: 8,
+        label: "Full-System Runtime",
+        question: "Does the full CPU, memory, software, and analog accelerator path still work?",
+        userGives: "Mapped workload, runtime assumptions, CPU setup, memory setup, and accelerator dispatch rules.",
+        checks: "Dispatch time, memory movement, synchronization, host overhead, and whether the analog gain survives the full system.",
+        tools: ["SST/Golem", "ALPINE/gem5-X", "gem5", "board-runtime adapter"],
+        result: "System timing risk and the parts that may erase the analog benefit.",
+        proof: "System simulation or board-runtime estimate",
+        nextAction: "Run full-system simulation or import board runtime.",
+        adapterIds: ["system.sst-golem", "system.alpine-gem5x", "board.runtime"],
+        sourceIds: ["board_runtime"]
+      },
+      {
+        number: 9,
+        label: "Board Runtime",
+        question: "Did it actually run on hardware, and how long did it take?",
+        userGives: "Board trace, firmware log, runtime log, model id, chip profile, and test setup.",
+        checks: "Latency, jitter, host overhead, failed runs, firmware version, and whether the trace matches the selected workload.",
+        tools: ["board runtime adapter", "firmware logs", "USB/Ethernet/JTAG bridge"],
+        result: "Measured or imported runtime evidence.",
+        proof: "Board runtime evidence",
+        nextAction: "Import a real board run when hardware exists.",
+        adapterIds: ["board.runtime"],
+        sourceIds: ["board_runtime"]
+      },
+      {
+        number: 10,
+        label: "Power And Thermal",
+        question: "Did it save power and stay cool?",
+        userGives: "Power trace, voltage/current data, thermal trace, board setup, and workload settings.",
+        checks: "Energy per run, peak power, heat, update cost, idle cost, and whether measurement includes the whole path.",
+        tools: ["power meter adapter", "thermal adapter", "on-board monitors", "lab tools"],
+        result: "Measured or imported power and thermal evidence.",
+        proof: "Power and thermal evidence",
+        nextAction: "Import meter and thermal traces before making power claims.",
+        adapterIds: ["metrics.power-thermal"],
+        sourceIds: ["power_thermal"]
+      },
+      {
+        number: 11,
+        label: "Task Accuracy",
+        question: "Did the mapped model still solve the user's real task?",
+        userGives: "Dataset, task metric, baseline result, mapped-model result, and pass target.",
+        checks: "Accuracy drop, task pass/fail, sample count, dataset match, and whether the test reflects the customer use case.",
+        tools: ["task accuracy adapter", "dataset runner", "metric runner"],
+        result: "Baseline result, candidate result, pass/fail, and confidence.",
+        proof: "Task accuracy evidence",
+        nextAction: "Run or import the real task test.",
+        adapterIds: ["accuracy.local-task-check"],
+        sourceIds: ["task_accuracy"]
+      },
+      {
+        number: 12,
+        label: "Weight Update Readiness",
+        question: "Can the chip update weights after deployment?",
+        userGives: "Update scope, update frequency, memory type, write limits, rollback plan, and adaptation target.",
+        checks: "Fixed weights, periodic updates, adapter updates, local adaptation, write latency, write energy, endurance, retention, and rollback.",
+        tools: ["AIHWKIT update simulation", "TxSim later", "XBTorch later", "RxNN later", "board write tests"],
+        result: "Fixed-weight ready, periodic-update candidate, adapter-update candidate, or adaptive Physical AI blocked.",
+        proof: "Update readiness evidence or blocked claim",
+        nextAction: "Measure write latency, write energy, endurance, retention, and rollback.",
+        adapterIds: ["sim.aihwkit"]
+      },
+      {
+        number: 13,
+        label: "Sensor To Model Path",
+        question: "What happens before the model input?",
+        userGives: "Sensor type, sample rate, preprocessing steps, timing target, and data format.",
+        checks: "AFE cost, camera/audio/tactile/event preprocessing, sync, buffering, latency, and who owns the sensor boundary.",
+        tools: ["sensor adapter later", "preprocessing logs", "customer data path"],
+        result: "Sensor boundary map and missing cost that must be counted.",
+        proof: "Sensor-boundary evidence or assumption",
+        nextAction: "Add the sensor path or mark it as outside the claim.",
+        adapterIds: []
+      },
+      {
+        number: 14,
+        label: "Final Answer",
+        question: "So what can we safely say?",
+        userGives: "All step results, evidence imports, failed runs, assumptions, and target claim.",
+        checks: "Fit, proof, broken parts, missing evidence, safe claim, do-not-claim list, and next work.",
+        tools: ["claim engine", "evidence store", "roadmap generator", "archive exporter"],
+        result: "One answer: yes, partial, no, or unknown, with proof and next work.",
+        proof: "Evidence-backed claim summary",
+        nextAction: "Export the review package or run the highest-impact missing test.",
+        adapterIds: ["compiler.tvm-mlir-iree", "analog.error-simulator", "board.runtime", "metrics.power-thermal", "accuracy.local-task-check"],
+        sourceIds: ["compiler_mapping", "analog_error_simulation", "board_runtime", "power_thermal", "task_accuracy"]
+      }
+    ];
+
+    const STEP_EXPERIENCE = {
+      1: {
+        phase: "Start",
+        benefit: "The user knows whether the uploaded model is readable before spending time on chip-fit claims.",
+        shortResult: "Model can be inspected"
+      },
+      2: {
+        phase: "Fit",
+        benefit: "The user sees the first honest split: what may use analog compute and what still needs digital compute.",
+        shortResult: "Analog and digital parts separated"
+      },
+      3: {
+        phase: "Risk",
+        benefit: "The user sees whether normal analog behavior may damage accuracy before claiming the chip is a fit.",
+        shortResult: "Analog accuracy risk shown"
+      },
+      4: {
+        phase: "Risk",
+        benefit: "The user sees whether the physical memory grid could change results, not just whether the math works on paper.",
+        shortResult: "Crossbar layout risk shown"
+      },
+      5: {
+        phase: "Cost",
+        benefit: "The user gets an early view of whether the target chip budget is realistic for area, energy, memory, and speed.",
+        shortResult: "Hardware cost range planned"
+      },
+      6: {
+        phase: "Build Path",
+        benefit: "The user sees whether there is a real path from model graph to chip execution, or just a manual demo.",
+        shortResult: "Compiler path checked"
+      },
+      7: {
+        phase: "Modern Models",
+        benefit: "The user avoids overclaiming transformer or VLA readiness when only simple matrix layers look good.",
+        shortResult: "Transformer hard parts separated"
+      },
+      8: {
+        phase: "System",
+        benefit: "The user sees whether CPU, memory, software, and dispatch overhead erase the analog advantage.",
+        shortResult: "Full-system overhead checked"
+      },
+      9: {
+        phase: "Hardware",
+        benefit: "The user sees whether the workload actually ran on a board and how long it took.",
+        shortResult: "Board runtime reviewed"
+      },
+      10: {
+        phase: "Hardware",
+        benefit: "The user sees whether the chip saves power in the real setup and whether heat becomes a problem.",
+        shortResult: "Power and heat reviewed"
+      },
+      11: {
+        phase: "Task",
+        benefit: "The user sees whether the mapped model still solves the job they care about, not only whether it runs.",
+        shortResult: "Task result checked"
+      },
+      12: {
+        phase: "Adapt",
+        benefit: "The user sees whether the chip is only good for fixed weights or can support updates after deployment.",
+        shortResult: "Weight-update claim bounded"
+      },
+      13: {
+        phase: "Input Path",
+        benefit: "The user sees whether sensor capture, preprocessing, and timing are included in the claim or left outside it.",
+        shortResult: "Sensor boundary named"
+      },
+      14: {
+        phase: "Answer",
+        benefit: "The user gets one plain answer: what works, what proof exists, what breaks, and what must happen next.",
+        shortResult: "Safe final claim produced"
+      }
+    };
+
+    let packages = [];
+    let selectedPackageId = "";
+    let registry = null;
+    let probes = {};
+    let runs = [];
+    let measurement = null;
+    let claims = null;
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function pillClass(status) {
+      const normalized = String(status || "").toLowerCase();
+      if (["completed", "supported", "available", "configured", "imported"].some((word) => normalized.includes(word))) return "good";
+      if (["blocked", "missing", "failed", "not connected"].some((word) => normalized.includes(word))) return "bad";
+      if (["estimate", "needs", "local", "partial"].some((word) => normalized.includes(word))) return "warn";
+      return "neutral";
+    }
+
+    async function fetchJson(path, options = {}) {
+      const response = await fetch(`${API}${path}`, options);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`${response.status} ${response.statusText}: ${text}`);
+      }
+      return response.json();
+    }
+
+    function adapterById(adapterId) {
+      return (registry?.adapters || []).find((adapter) => adapter.id === adapterId);
+    }
+
+    function latestRunFor(adapterId) {
+      return [...runs].reverse().find((run) => run.adapter_id === adapterId);
+    }
+
+    function metricFromRun(run) {
+      if (!run) return "No run yet.";
+      const summary = run.summary || {};
+      const evidence = run.normalized_evidence_payload || {};
+      if (run.adapter_id === "compiler.tvm-mlir-iree") {
+        return `Analog layers: ${summary.analog_layers ?? "not reported"}. Fallback or unsupported layers: ${summary.fallback_or_unsupported_layers ?? "not reported"}.`;
+      }
+      if (run.adapter_id === "analog.error-simulator") {
+        const impact = evidence.accuracy_impact || {};
+        return `Accuracy impact estimate: ${impact.expected_delta ?? summary.expected_accuracy_delta ?? "not reported"}. Confidence: ${evidence.confidence || summary.confidence || "not reported"}.`;
+      }
+      if (run.adapter_id === "accuracy.local-task-check") {
+        return `Baseline: ${evidence.baseline_metric ?? summary.baseline_metric ?? "not reported"}. Candidate: ${evidence.candidate_metric ?? summary.candidate_metric ?? "not reported"}. Pass: ${evidence.pass ?? summary.pass ?? "not reported"}.`;
+      }
+      if (run.adapter_id === "board.runtime") {
+        return `Latency: ${evidence.latency_ms ?? summary.latency_ms ?? "not reported"} ms. Trace layers: ${(evidence.trace || []).length || summary.trace_layers || "not reported"}.`;
+      }
+      if (run.adapter_id === "metrics.power-thermal") {
+        return `Energy: ${evidence.energy_uj ?? summary.energy_uj ?? "not reported"} uJ. Peak power: ${summary.peak_power_mw ?? "not reported"} mW.`;
+      }
+      return summary.message || "Run result available.";
+    }
+
+    function proofLevelFor(tool) {
+      const toolRuns = tool.adapterIds.map(latestRunFor).filter(Boolean);
+      if (toolRuns.some((run) => run.status === "completed")) {
+        return "Result available";
+      }
+      const toolProbes = tool.adapterIds.map((id) => probes[id]).filter(Boolean);
+      if (toolProbes.length) {
+        return "Connection checked";
+      }
+      return "Not connected";
+    }
+
+    function selectedPackage() {
+      return packages.find((pkg) => pkg.package_id === selectedPackageId) || null;
+    }
+
+    function measurementSource(sourceId) {
+      const sources = measurement?.required_sources || [];
+      return sources.find((source) => source.source_id === sourceId || source.id === sourceId || source.name === sourceId);
+    }
+
+    function stepStatus(step) {
+      if (step.number === 1 && selectedPackageId) {
+        return { label: "Package loaded", detail: "The selected package is available for review." };
+      }
+      const completedRuns = (step.adapterIds || []).map(latestRunFor).filter((run) => run?.status === "completed");
+      if (completedRuns.length) {
+        return { label: "Result available", detail: `${completedRuns.length} supporting adapter run${completedRuns.length === 1 ? "" : "s"} saved for this package.` };
+      }
+      const importedSources = (step.sourceIds || []).map(measurementSource).filter((source) => {
+        const status = String(source?.status || source?.evidence_status || "").toLowerCase();
+        return status.includes("imported") || status.includes("available") || status.includes("validated");
+      });
+      if (importedSources.length) {
+        return { label: "Evidence imported", detail: `${importedSources.length} evidence source${importedSources.length === 1 ? "" : "s"} connected to this step.` };
+      }
+      const checkedProbes = (step.adapterIds || []).map((id) => probes[id]).filter(Boolean);
+      if (checkedProbes.length) {
+        return { label: "Connection checked", detail: "No completed result yet, but the adapter path has been checked." };
+      }
+      return { label: "Needs setup", detail: "This step still needs an adapter, import, or manual evidence path." };
+    }
+
+    function statusRank(status) {
+      const label = String(status?.label || "").toLowerCase();
+      if (label.includes("result") || label.includes("loaded") || label.includes("imported")) return "good";
+      if (label.includes("connection") || label.includes("needs")) return "warn";
+      if (label.includes("blocked") || label.includes("failed")) return "bad";
+      return "neutral";
+    }
+
+    function renderSummary() {
+      const measurementSummary = measurement?.summary || {};
+      const claimSummary = claims?.summary || {};
+      $("summaryGrid").innerHTML = `
+        <div class="card"><strong>Package</strong><span>${escapeHtml(selectedPackageId || "none")}</span></div>
+        <div class="card"><strong>Adapter Runs</strong><span>${escapeHtml(runs.length)} saved runs for this package.</span></div>
+        <div class="card"><strong>Evidence Sources</strong><span>${escapeHtml(measurementSummary.imported_sources ?? "not loaded")} imported, ${escapeHtml(measurementSummary.missing_sources ?? "not loaded")} missing.</span></div>
+        <div class="card"><strong>Claim State</strong><span>${escapeHtml(claimSummary.supported_lab_claims ?? "not loaded")} supported, ${escapeHtml(claimSummary.needs_review_lab_claims ?? "not loaded")} need review, ${escapeHtml(claimSummary.blocked_lab_claims ?? "not loaded")} blocked.</span></div>
+      `;
+    }
+
+    function renderJourneyGraph() {
+      $("journeyGraph").innerHTML = JOURNEY_STEPS.map((step) => {
+        const status = stepStatus(step);
+        const experience = STEP_EXPERIENCE[step.number];
+        const rank = statusRank(status);
+        return `
+          <div class="journey-node ${rank}">
+            <span>${escapeHtml(step.number)}. ${escapeHtml(experience.phase)}</span>
+            <strong>${escapeHtml(step.label)}</strong>
+            <span>${escapeHtml(experience.shortResult)}</span>
+            <span class="status-pill ${pillClass(status.label)}">${escapeHtml(status.label)}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderJourneyResults() {
+      const statuses = JOURNEY_STEPS.map(stepStatus);
+      const resultCount = statuses.filter((status) => status.label === "Result available" || status.label === "Package loaded").length;
+      const evidenceCount = statuses.filter((status) => status.label === "Evidence imported").length;
+      const checkedCount = statuses.filter((status) => status.label === "Connection checked").length;
+      const needsSetupCount = statuses.filter((status) => status.label === "Needs setup").length;
+      $("journeyResults").innerHTML = `
+        <div class="result-card">
+          <strong>What The User Can Trust Now</strong>
+          <span>${escapeHtml(resultCount)} journey steps already have a loaded package or completed result.</span>
+        </div>
+        <div class="result-card">
+          <strong>What Has Evidence</strong>
+          <span>${escapeHtml(evidenceCount)} steps have imported evidence attached to the package.</span>
+        </div>
+        <div class="result-card">
+          <strong>What Is Ready To Connect</strong>
+          <span>${escapeHtml(checkedCount)} steps have adapter paths checked but still need a real result.</span>
+        </div>
+        <div class="result-card">
+          <strong>What The User Should Do Next</strong>
+          <span>${escapeHtml(needsSetupCount)} steps still need an adapter, upload, measurement, or manual evidence path.</span>
+        </div>
+      `;
+    }
+
+    function renderJourneySteps() {
+      $("journeySteps").innerHTML = JOURNEY_STEPS.map((step) => {
+        const status = stepStatus(step);
+        const experience = STEP_EXPERIENCE[step.number];
+        const tools = step.tools.map((tool) => `<span class="tool-chip">${escapeHtml(tool)}</span>`).join("");
+        return `
+          <article class="journey-step">
+            <div class="journey-head">
+              <div class="journey-num">${escapeHtml(step.number)}</div>
+              <div>
+                <h3>${escapeHtml(step.label)}</h3>
+                <p class="journey-question">${escapeHtml(step.question)}</p>
+              </div>
+            </div>
+            <div class="journey-benefit"><strong>User benefit:</strong> ${escapeHtml(experience.benefit)}</div>
+            <div>
+              <span class="status-pill ${pillClass(status.label)}">${escapeHtml(status.label)}</span>
+              <span class="small">${escapeHtml(status.detail)}</span>
+            </div>
+            <div class="journey-tools">${tools}</div>
+            <div class="journey-detail">
+              <div><strong>Journey role:</strong> ${escapeHtml(experience.phase)} - ${escapeHtml(experience.shortResult)}</div>
+              <div><strong>User gives:</strong> ${escapeHtml(step.userGives)}</div>
+              <div><strong>Platform checks:</strong> ${escapeHtml(step.checks)}</div>
+              <div><strong>User sees:</strong> ${escapeHtml(step.result)}</div>
+              <div><strong>Proof level:</strong> ${escapeHtml(step.proof)}</div>
+              <div><strong>Next action:</strong> ${escapeHtml(step.nextAction)}</div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderToolPage(tool) {
+      const toolRuns = tool.adapterIds.map((id) => [id, latestRunFor(id)]).filter(([, run]) => run);
+      const toolProbes = tool.adapterIds.map((id) => [id, probes[id]]).filter(([, probe]) => probe);
+      const adapters = tool.adapterIds.map(adapterById).filter(Boolean);
+      const status = proofLevelFor(tool);
+      const runCards = toolRuns.length
+        ? toolRuns.map(([id, run]) => `
+          <div class="result-card">
+            <strong>${escapeHtml(id)}</strong>
+            <span><span class="status-pill ${pillClass(run.status)}">${escapeHtml(run.status)}</span>${escapeHtml(metricFromRun(run))}</span>
+            <span>${escapeHtml(run.summary?.next_step || run.claim_rule || "")}</span>
+          </div>
+        `).join("")
+        : `<div class="result-card"><strong>No concrete run yet</strong><span>No saved runnable result exists for this exact tool path on the selected package.</span></div>`;
+      const probeCards = toolProbes.length
+        ? toolProbes.map(([id, probe]) => `
+          <div class="result-card">
+            <strong>${escapeHtml(id)}</strong>
+            <span><span class="status-pill ${pillClass(probe.status)}">${escapeHtml(probe.status)}</span>${escapeHtml(probe.summary?.plain_reading || probe.summary?.message || "Probe result loaded.")}</span>
+          </div>
+        `).join("")
+        : `<div class="result-card"><strong>No connection probe</strong><span>This page has no backend adapter probe for this tool yet.</span></div>`;
+      const adapterCards = adapters.length
+        ? adapters.map((adapter) => `
+          <div class="result-card">
+            <strong>${escapeHtml(adapter.name)}</strong>
+            <span><span class="status-pill ${pillClass(adapter.status)}">${escapeHtml(adapter.status)}</span>${escapeHtml(adapter.purpose)}</span>
+            <span>Next: ${escapeHtml(adapter.next_step)}</span>
+          </div>
+        `).join("")
+        : `<div class="result-card"><strong>No adapter registered</strong><span>This needs a new backend connector before it can produce product evidence.</span></div>`;
+      return `
+        <article class="tool-page">
+          <div class="tool-head">
+            <div>
+              <h3>${escapeHtml(tool.name)}</h3>
+              <p class="sub">${escapeHtml(tool.plain)}</p>
+            </div>
+            <div><span class="status-pill ${pillClass(status)}">${escapeHtml(status)}</span></div>
+          </div>
+          <div class="two">
+            <div class="point"><strong>User Question</strong><span>${escapeHtml(tool.userQuestion)}</span></div>
+            <div class="point"><strong>Runnable Now</strong><span>${escapeHtml(tool.runnableNow)}</span></div>
+            <div class="point"><strong>What We Send</strong><span>${escapeHtml(tool.input)}</span></div>
+            <div class="point"><strong>What Comes Back</strong><span>${escapeHtml(tool.output)}</span></div>
+          </div>
+          <div>
+            <h3>Concrete Results For This Package</h3>
+            <div class="result-grid">${runCards}</div>
+          </div>
+          <div>
+            <h3>Connection Or Availability Check</h3>
+            <div class="result-grid">${probeCards}</div>
+          </div>
+          <div>
+            <h3>Backend Adapter Contract</h3>
+            <div class="result-grid">${adapterCards}</div>
+          </div>
+          <div class="message">
+            <strong>What this can and cannot prove</strong>
+            <p>${escapeHtml(tool.claim)}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderToolPages() {
+      $("toolPages").innerHTML = TOOL_PAGES.map(renderToolPage).join("");
+    }
+
+    async function loadPackages() {
+      const data = await fetchJson("/deployment-packages");
+      packages = data.packages || [];
+      const params = new URLSearchParams(window.location.search);
+      selectedPackageId = params.get("package_id") || packages[0]?.package_id || "";
+      $("packageSelect").innerHTML = packages.map((pkg) => `
+        <option value="${escapeHtml(pkg.package_id)}" ${pkg.package_id === selectedPackageId ? "selected" : ""}>
+          ${escapeHtml(pkg.package_id)} - ${escapeHtml(pkg.readiness_stage || "unknown")}
+        </option>
+      `).join("");
+      if (!packages.length) {
+        $("status").textContent = "No packages found. Build a package in the main workbench first.";
+      }
+    }
+
+    async function loadPackageResults() {
+      if (!selectedPackageId) return;
+      $("status").textContent = `Loading results for ${selectedPackageId}...`;
+      const [registryData, runsData, measurementData, claimsData] = await Promise.all([
+        fetchJson("/adapters"),
+        fetchJson(`/deployment-packages/${encodeURIComponent(selectedPackageId)}/adapter-runs`),
+        fetchJson(`/deployment-packages/${encodeURIComponent(selectedPackageId)}/measurement-evidence`),
+        fetchJson(`/deployment-packages/${encodeURIComponent(selectedPackageId)}/claim-readiness`)
+      ]);
+      registry = registryData;
+      runs = runsData.adapter_runs || [];
+      measurement = measurementData;
+      claims = claimsData;
+      const adapterIds = Array.from(new Set(TOOL_PAGES.flatMap((tool) => tool.adapterIds)));
+      probes = {};
+      await Promise.all(adapterIds.map(async (adapterId) => {
+        try {
+          probes[adapterId] = await fetchJson(`/adapters/${encodeURIComponent(adapterId)}/probe`);
+        } catch (error) {
+          probes[adapterId] = { status: "probe failed", summary: { plain_reading: error.message } };
+        }
+      }));
+      renderSummary();
+      renderJourneyGraph();
+      renderJourneyResults();
+      renderJourneySteps();
+      renderToolPages();
+      $("status").textContent = `Loaded ${runs.length} saved adapter runs for ${selectedPackageId}.`;
+    }
+
+    async function runLocalEvidence() {
+      if (!selectedPackageId) return;
+      $("status").textContent = `Running local evidence adapters for ${selectedPackageId}...`;
+      const result = await fetchJson(`/deployment-packages/${encodeURIComponent(selectedPackageId)}/local-evidence?force=true`, { method: "POST" });
+      $("status").textContent = `Local evidence run finished: ${result.accepted_count} imported, ${result.saved_adapter_run_count} runs saved, ${result.rejected_count} rejected, ${result.skipped_count} skipped.`;
+      await loadPackageResults();
+    }
+
+    async function runInstalledSimulators() {
+      const pkg = selectedPackage();
+      if (!pkg) return;
+      $("status").textContent = `Running installed AIHWKIT and CrossSim adapters for ${selectedPackageId}...`;
+      const params = `model_id=${encodeURIComponent(pkg.model_id)}&target_profile=wearable&calibration_profile=sim-wearable-v0&modality=vision_classification&runtime_mode=balanced&package_id=${encodeURIComponent(selectedPackageId)}`;
+      const results = [];
+      for (const adapterId of ["sim.aihwkit", "sim.crosssim"]) {
+        const result = await fetchJson(`/adapters/${encodeURIComponent(adapterId)}/run?${params}`, { method: "POST" });
+        results.push(`${adapterId}: ${result.status}`);
+      }
+      $("status").textContent = `Installed simulator run finished. ${results.join(". ")}.`;
+      await loadPackageResults();
+    }
+
+    async function init() {
+      try {
+        await loadPackages();
+        await loadPackageResults();
+      } catch (error) {
+        $("status").textContent = `Could not load toolkit results: ${error.message}`;
+      }
+    }
+
+    $("packageSelect").addEventListener("change", async (event) => {
+      selectedPackageId = event.target.value;
+      await loadPackageResults();
+    });
+    $("runLocalEvidence").addEventListener("click", async () => {
+      try {
+        await runLocalEvidence();
+      } catch (error) {
+        $("status").textContent = `Local evidence run failed: ${error.message}`;
+      }
+    });
+    $("runInstalledSimulators").addEventListener("click", async () => {
+      try {
+        await runInstalledSimulators();
+      } catch (error) {
+        $("status").textContent = `Installed simulator run failed: ${error.message}`;
+      }
+    });
+    $("refreshResults").addEventListener("click", async () => {
+      try {
+        await loadPackageResults();
+      } catch (error) {
+        $("status").textContent = `Refresh failed: ${error.message}`;
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

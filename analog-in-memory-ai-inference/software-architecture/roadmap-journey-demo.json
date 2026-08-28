@@ -1,0 +1,468 @@
+{
+  "schema_version": "roadmap_journey_demo.v1",
+  "purpose": "Demo data contract for the end-to-end analog chip readiness journey.",
+  "main_question": "Can this workload run well on this analog chip, what proof do we have, what breaks, and what must be built or measured next?",
+  "steps": [
+    {
+      "title": "Model Intake",
+      "phase": "Start",
+      "intro": "The user learns whether the platform can open the model and understand its basic shape. This starts the review from a real file instead of a slide claim.",
+      "question": "Can the platform read the model inputs, outputs, layers, operators, and size?",
+      "evidence": "Model parser output and package metadata. This is not proof that the chip can run the model.",
+      "next": "Run analog fit after the model structure is available.",
+      "primary": "Run Model Intake",
+      "secondary": "Show Missing Proof",
+      "result": "Demo result: the model structure is available, but chip fit is still unknown until analog fit and compiler mapping run.",
+      "missing": "Missing proof: no analog mapping, no simulator result, no compiler result, and no hardware result yet.",
+      "artifact": "model_intake.json",
+      "proof_level": "model parser result",
+      "upstream_evidence": [
+        "uploaded model file",
+        "workload goal",
+        "chip target assumptions"
+      ],
+      "downstream_claims": [
+        "analog fit report",
+        "compiler mapping report",
+        "final fit decision"
+      ],
+      "depends_on_steps": [],
+      "unlocks_steps": [
+        2,
+        6,
+        14
+      ]
+    },
+    {
+      "title": "Analog Fit",
+      "phase": "Fit",
+      "intro": "The user learns which model parts may be good candidates for analog compute and which parts should stay digital.",
+      "question": "Which layers are repeated matrix math, and which layers need digital logic or fallback?",
+      "evidence": "Analog candidate list, digital-required list, unsupported operator list, and analog/digital boundary.",
+      "next": "Run analog accuracy risk and crossbar layout checks for the candidate layers.",
+      "primary": "Run Analog Fit",
+      "secondary": "Show Blocked Parts",
+      "result": "Demo result: the platform can separate likely analog candidates from parts that need digital compute or rewrite.",
+      "missing": "Missing proof: this is a fit estimate until simulator, compiler, and board evidence confirm it.",
+      "artifact": "analog_fit.json",
+      "proof_level": "local estimate",
+      "upstream_evidence": [
+        "model intake result",
+        "workload goal",
+        "chip target assumptions"
+      ],
+      "downstream_claims": [
+        "analog accuracy simulation",
+        "crossbar layout check",
+        "compiler mapping",
+        "transformer/VLA split"
+      ],
+      "depends_on_steps": [
+        1
+      ],
+      "unlocks_steps": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "title": "Analog Accuracy Risk",
+      "phase": "Risk",
+      "intro": "The user learns whether analog behavior may change the model answer enough to matter.",
+      "question": "Will noise, drift, limited precision, or imperfect weight writing hurt the output?",
+      "evidence": "AIHWKIT, local analog-error adapter, or related simulator output. This is simulation unless backed by hardware.",
+      "next": "Compare simulated accuracy risk with the task tolerance.",
+      "primary": "Run AIHWKIT Simulation",
+      "secondary": "Show Assumptions",
+      "result": "Demo result: simulator evidence can show likely accuracy risk under stated analog assumptions.",
+      "missing": "Missing proof: simulator output does not prove board accuracy or production behavior.",
+      "artifact": "analog_accuracy_risk.json",
+      "proof_level": "simulator output",
+      "upstream_evidence": [
+        "analog candidate list",
+        "hardware assumption profile"
+      ],
+      "downstream_claims": [
+        "task accuracy risk",
+        "safe accuracy wording",
+        "calibration requirements"
+      ],
+      "depends_on_steps": [
+        2
+      ],
+      "unlocks_steps": [
+        11,
+        14
+      ]
+    },
+    {
+      "title": "Crossbar Layout Risk",
+      "phase": "Risk",
+      "intro": "The user learns whether the physical memory grid may create errors after the model is placed on arrays.",
+      "question": "Do wire effects, bit slicing, read noise, programming error, or converter range create risk?",
+      "evidence": "CrossSim output or local crossbar layout estimates tied to the mapped layers.",
+      "next": "Use layout risk to update the hardware cost and compiler mapping.",
+      "primary": "Run CrossSim Check",
+      "secondary": "Show Layout Risks",
+      "result": "Demo result: layout evidence can show whether the memory grid may damage model accuracy.",
+      "missing": "Missing proof: crossbar simulation does not prove the final packaged chip or board.",
+      "artifact": "crossbar_layout_risk.json",
+      "proof_level": "simulator output",
+      "upstream_evidence": [
+        "analog candidate list",
+        "tile and precision assumptions"
+      ],
+      "downstream_claims": [
+        "hardware cost estimate",
+        "compiler placement",
+        "layout-risk wording"
+      ],
+      "depends_on_steps": [
+        2
+      ],
+      "unlocks_steps": [
+        5,
+        6,
+        8
+      ]
+    },
+    {
+      "title": "Hardware Cost Estimate",
+      "phase": "Cost",
+      "intro": "The user learns whether the workload is realistic for the chip budget.",
+      "question": "How much area, memory, energy, latency, and converter work does this workload need?",
+      "evidence": "NeuroSim, MNSIM, or local estimator output. This stays an estimate until measured.",
+      "next": "Use the cost estimate to decide whether the workload is a first target or later target.",
+      "primary": "Run Cost Estimate",
+      "secondary": "Show Cost Drivers",
+      "result": "Demo result: the platform can estimate area, energy, latency, memory, and converter cost for planning.",
+      "missing": "Missing proof: estimates must stay labeled until silicon or board measurements exist.",
+      "artifact": "hardware_cost_estimate.json",
+      "proof_level": "local estimate",
+      "upstream_evidence": [
+        "analog fit report",
+        "crossbar layout risk",
+        "converter assumptions"
+      ],
+      "downstream_claims": [
+        "first-market choice",
+        "power/thermal target",
+        "compiler feasibility"
+      ],
+      "depends_on_steps": [
+        2,
+        4
+      ],
+      "unlocks_steps": [
+        6,
+        10,
+        14
+      ]
+    },
+    {
+      "title": "Compiler Mapping",
+      "phase": "Build",
+      "intro": "The user learns whether normal model code can become a chip execution plan.",
+      "question": "Can the compiler place the model on analog tiles, digital logic, memory, and runtime commands?",
+      "evidence": "analog-mlir, local compiler estimate, or our future chip target report.",
+      "next": "Generate a simulation target now and a board-loadable package later.",
+      "primary": "Run Compiler Mapping",
+      "secondary": "Show Unsupported Operators",
+      "result": "Demo result: compiler evidence can show what maps to analog, what stays digital, and what is blocked.",
+      "missing": "Missing proof: a simulation target is not the same as a board-loadable chip package.",
+      "artifact": "compiler_mapping.json",
+      "proof_level": "compiler mapping",
+      "upstream_evidence": [
+        "model intake result",
+        "analog fit report",
+        "tile and converter rules"
+      ],
+      "downstream_claims": [
+        "simulation target",
+        "board package",
+        "unsupported-operator decision"
+      ],
+      "depends_on_steps": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "unlocks_steps": [
+        8,
+        9,
+        14
+      ]
+    },
+    {
+      "title": "Transformer And VLA Check",
+      "phase": "Modern AI",
+      "intro": "The user learns which modern model parts are analog candidates and which parts should stay digital.",
+      "question": "Which static projection or feed-forward parts can use analog, and which attention, normalization, action, or safety parts stay digital?",
+      "evidence": "Transformer/VLA partition report with analog candidates, digital-required regions, and rewrite options.",
+      "next": "Block full-VLA analog claims unless mapping, runtime, and task evidence support them.",
+      "primary": "Run Transformer Split",
+      "secondary": "Show Digital Boundaries",
+      "result": "Demo result: the platform can prevent a partial analog fit from becoming a false full-VLA claim.",
+      "missing": "Missing proof: full VLA readiness needs mapping, runtime, task, safety, and update evidence.",
+      "artifact": "transformer_vla_check.json",
+      "proof_level": "partition report",
+      "upstream_evidence": [
+        "model graph",
+        "analog fit report",
+        "compiler mapping assumptions"
+      ],
+      "downstream_claims": [
+        "full-VLA claim boundary",
+        "digital coprocessor work",
+        "task accuracy plan"
+      ],
+      "depends_on_steps": [
+        1,
+        2,
+        6
+      ],
+      "unlocks_steps": [
+        8,
+        11,
+        14
+      ]
+    },
+    {
+      "title": "Full-System Runtime",
+      "phase": "System",
+      "intro": "The user learns whether the surrounding system overhead may erase the analog benefit.",
+      "question": "Do CPU work, memory movement, dispatch, synchronization, ADCs, or DACs dominate runtime?",
+      "evidence": "SST/Golem, ALPINE/gem5-X, gem5, or local runtime estimator output.",
+      "next": "Use system timing to decide what must be scheduled, moved, or redesigned.",
+      "primary": "Run Runtime Estimate",
+      "secondary": "Show Bottlenecks",
+      "result": "Demo result: system evidence can show whether host, memory, or signal conversion overhead changes the story.",
+      "missing": "Missing proof: system simulation still needs board traces before measured latency claims.",
+      "artifact": "full_system_runtime.json",
+      "proof_level": "system simulation",
+      "upstream_evidence": [
+        "compiler mapping report",
+        "converter schedule assumptions",
+        "host and memory assumptions"
+      ],
+      "downstream_claims": [
+        "board runtime plan",
+        "latency claim boundary",
+        "bottleneck decision"
+      ],
+      "depends_on_steps": [
+        6,
+        7
+      ],
+      "unlocks_steps": [
+        9,
+        10,
+        14
+      ]
+    },
+    {
+      "title": "Board Runtime",
+      "phase": "Hardware",
+      "intro": "The user learns whether the package actually ran on a prototype board or lab setup.",
+      "question": "Did the board load the package, start the run, finish the run, and report timing?",
+      "evidence": "Board trace with firmware version, board setup, pass/fail, latency, jitter, and failure reason.",
+      "next": "Tie the same run to power, thermal, and task accuracy evidence.",
+      "primary": "Import Board Trace",
+      "secondary": "Show Required Fields",
+      "result": "Demo result: board runtime can support a measured latency claim for the exact setup tested.",
+      "missing": "Missing proof: board runtime alone does not prove energy savings or task accuracy.",
+      "artifact": "board_runtime.json",
+      "proof_level": "board runtime",
+      "upstream_evidence": [
+        "board-loadable package",
+        "firmware metadata",
+        "calibration profile"
+      ],
+      "downstream_claims": [
+        "measured latency claim",
+        "power/thermal import",
+        "task accuracy import"
+      ],
+      "depends_on_steps": [
+        6,
+        8
+      ],
+      "unlocks_steps": [
+        10,
+        11,
+        14
+      ]
+    },
+    {
+      "title": "Power And Thermal",
+      "phase": "Hardware",
+      "intro": "The user learns how much energy the run used and how hot the setup became.",
+      "question": "Was power measured for the whole board, the chip, or only one rail, and what temperature was reached?",
+      "evidence": "Power trace, energy per run, peak power, thermal trace, and measurement setup.",
+      "next": "Separate measured power from estimates and connect it to task accuracy.",
+      "primary": "Import Power Trace",
+      "secondary": "Show Measurement Scope",
+      "result": "Demo result: power and thermal traces can support measured energy and heat claims.",
+      "missing": "Missing proof: the trace must match the same model package, board, firmware, and task run.",
+      "artifact": "power_thermal.json",
+      "proof_level": "power and thermal measurement",
+      "upstream_evidence": [
+        "board runtime trace",
+        "measurement setup",
+        "power and temperature files"
+      ],
+      "downstream_claims": [
+        "energy claim",
+        "thermal risk claim",
+        "same-run task proof"
+      ],
+      "depends_on_steps": [
+        9
+      ],
+      "unlocks_steps": [
+        11,
+        14
+      ]
+    },
+    {
+      "title": "Task Accuracy",
+      "phase": "Task",
+      "intro": "The user learns whether the mapped or hardware-run model still solves the real task.",
+      "question": "Does the result match the baseline closely enough for the user's actual workload?",
+      "evidence": "Baseline metric, mapped-model metric, hardware-run metric when available, tolerance, and sample count.",
+      "next": "Use task accuracy to decide whether speed or power evidence is meaningful.",
+      "primary": "Import Task Result",
+      "secondary": "Show Accuracy Gap",
+      "result": "Demo result: task accuracy shows whether the hardware path still solves the user's real problem.",
+      "missing": "Missing proof: speed and power are incomplete if the model no longer meets the task target.",
+      "artifact": "task_accuracy.json",
+      "proof_level": "task accuracy result",
+      "upstream_evidence": [
+        "baseline task result",
+        "mapped or board-run result",
+        "success tolerance"
+      ],
+      "downstream_claims": [
+        "final fit answer",
+        "customer pilot decision",
+        "safe claim wording"
+      ],
+      "depends_on_steps": [
+        3,
+        8,
+        9,
+        10
+      ],
+      "unlocks_steps": [
+        14
+      ]
+    },
+    {
+      "title": "Weight Update Readiness",
+      "phase": "Adapt",
+      "intro": "The user learns whether the chip can change model weights after deployment.",
+      "question": "Is the chip fixed-weight only, occasional-update capable, adapter-update capable, or adaptive blocked?",
+      "evidence": "Update scope, update frequency, write time, write energy, endurance, retention, rollback, and post-update accuracy.",
+      "next": "Block adaptive Physical AI claims until update evidence exists.",
+      "primary": "Import Update Evidence",
+      "secondary": "Show Update Class",
+      "result": "Demo result: update evidence decides whether the chip supports fixed weights, rare updates, adapter updates, or adaptation.",
+      "missing": "Missing proof: adaptive claims need write cost, endurance, retention, rollback, and post-update accuracy.",
+      "artifact": "weight_update_readiness.json",
+      "proof_level": "reliability and update evidence",
+      "upstream_evidence": [
+        "memory/device profile",
+        "write plan",
+        "calibration plan"
+      ],
+      "downstream_claims": [
+        "adaptive claim boundary",
+        "field-update roadmap",
+        "reliability plan"
+      ],
+      "depends_on_steps": [
+        6,
+        9
+      ],
+      "unlocks_steps": [
+        14
+      ]
+    },
+    {
+      "title": "Sensor Boundary Readiness",
+      "phase": "Input",
+      "intro": "The user learns what happens before the model input.",
+      "question": "Are sensor capture, preprocessing, buffering, synchronization, latency, and energy counted?",
+      "evidence": "Sensor path report for camera, event, tactile, audio, industrial, or other physical inputs.",
+      "next": "Tie sensor-to-answer cost to the final fit decision.",
+      "primary": "Import Sensor Path",
+      "secondary": "Show Sensor Costs",
+      "result": "Demo result: sensor-path evidence shows whether the chip claim includes the cost of getting real-world signals into the model.",
+      "missing": "Missing proof: chip-only results are incomplete if sensor capture and preprocessing are ignored.",
+      "artifact": "sensor_boundary_readiness.json",
+      "proof_level": "sensor path evidence",
+      "upstream_evidence": [
+        "sensor setup",
+        "preprocessing path",
+        "timing and power assumptions"
+      ],
+      "downstream_claims": [
+        "full workload energy claim",
+        "physical AI fit claim",
+        "final answer"
+      ],
+      "depends_on_steps": [
+        1,
+        8,
+        10
+      ],
+      "unlocks_steps": [
+        14
+      ]
+    },
+    {
+      "title": "Final Answer",
+      "phase": "Answer",
+      "intro": "The user gets one direct answer that separates fit, proof, broken parts, safe claims, blocked claims, and next work.",
+      "question": "What can we safely say today, and what must be built or measured next?",
+      "evidence": "Combined evidence package from every completed step and every blocked step.",
+      "next": "Export the review package for executives, customers, investors, and engineering teams.",
+      "primary": "Generate Final Answer",
+      "secondary": "Show Claim Boundary",
+      "result": "Demo result: the final answer gives fit, proof, broken parts, safe claims, blocked claims, and next work.",
+      "missing": "Missing proof: any unverified claim stays blocked in the exported review package.",
+      "artifact": "final_answer.json",
+      "proof_level": "claim engine output",
+      "upstream_evidence": [
+        "all prior artifacts",
+        "safe claims",
+        "blocked claims"
+      ],
+      "downstream_claims": [
+        "review package",
+        "executive decision",
+        "engineering work queue"
+      ],
+      "depends_on_steps": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "unlocks_steps": []
+    }
+  ]
+}

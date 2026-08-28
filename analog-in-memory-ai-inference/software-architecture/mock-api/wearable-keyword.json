@@ -1,0 +1,145 @@
+{
+  "project": "Wearable keyword detector",
+  "target": "AS-EDGE wearable profile",
+  "model": {
+    "name": "keyword_detector_v3.onnx",
+    "parameters": "3.8M",
+    "operators": 94,
+    "input": "audio_window[1,16000]",
+    "device_class": "wearable always-on audio"
+  },
+  "summary": {
+    "fit": "Medium",
+    "grade": "B",
+    "analog_coverage_percent": 71,
+    "fallback_count": 8,
+    "energy_estimate_uj": 42,
+    "next_step": "INT8",
+    "main_risk": "repeated analog/digital crossings around attention",
+    "caption": "Good matrix coverage, but attention creates repeated conversion boundaries."
+  },
+  "layers": [
+    {
+      "id": "input.proj",
+      "operator": "MatMul",
+      "shape": "[1,128,768]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Dense matrix work with reused weights.",
+      "risk": "low",
+      "latency_ms": 0.31,
+      "energy_uj": 2.7,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Safe default analog placement. Keep INT8 unless accuracy margin is tight."
+    },
+    {
+      "id": "attention.softmax",
+      "operator": "Softmax",
+      "shape": "[1,8,128,128]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "Nonlinear operator, not mapped to analog array.",
+      "risk": "medium",
+      "latency_ms": 0.48,
+      "energy_uj": 5.4,
+      "boundaries": "ADC before, DAC after",
+      "suggestion": "Check whether attention blocks can be fused or scheduled to reduce repeated conversion."
+    },
+    {
+      "id": "attention.value",
+      "operator": "MatMul",
+      "shape": "[1,128,768]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Supported matrix path, quantization needed.",
+      "risk": "medium",
+      "latency_ms": 0.36,
+      "energy_uj": 3.2,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Run sensitivity before trying INT4."
+    },
+    {
+      "id": "encoder.layernorm",
+      "operator": "LayerNorm",
+      "shape": "[1,128,768]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "Better handled in digital support logic.",
+      "risk": "medium",
+      "latency_ms": 0.22,
+      "energy_uj": 2.1,
+      "boundaries": "ADC before, DAC after",
+      "suggestion": "Keep digital unless a supported approximation exists."
+    },
+    {
+      "id": "ffn.matmul.1",
+      "operator": "MatMul",
+      "shape": "[1,128,3072]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Large repeated matrix work.",
+      "risk": "low",
+      "latency_ms": 0.42,
+      "energy_uj": 4.0,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Good candidate for lower precision testing."
+    },
+    {
+      "id": "classifier.out",
+      "operator": "MatMul",
+      "shape": "[1,768,12]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "Small dense layer, safe with INT8.",
+      "risk": "low",
+      "latency_ms": 0.09,
+      "energy_uj": 0.8,
+      "boundaries": "ADC after",
+      "suggestion": "Keep analog; low contribution to risk."
+    }
+  ],
+  "boundaries": [
+    { "kind": "digital", "title": "Input", "description": "Audio window prepared by sensor pipeline." },
+    { "kind": "convert", "title": "DAC", "description": "Input values enter analog domain." },
+    { "kind": "analog", "title": "Analog matmul", "description": "Weights stay near compute array." },
+    { "kind": "convert", "title": "ADC", "description": "Result returns to digital path." },
+    { "kind": "digital", "title": "Softmax", "description": "Digital nonlinear operator." },
+    { "kind": "convert", "title": "DAC", "description": "Data re-enters analog path." },
+    { "kind": "analog", "title": "FFN matmul", "description": "High reuse dense work." },
+    { "kind": "convert", "title": "ADC", "description": "Final analog result converted." },
+    { "kind": "digital", "title": "Output", "description": "Class scores returned to app." }
+  ],
+  "quantization": [
+    { "label": "Baseline", "value": 94.8, "tone": "analog" },
+    { "label": "INT8", "value": 94.5, "tone": "analog" },
+    { "label": "Analog estimate", "value": 93.9, "tone": "warn" },
+    { "label": "INT4 all layers", "value": 91.2, "tone": "warn" }
+  ],
+  "energy_breakdown": [
+    { "label": "Analog compute", "value": 38, "tone": "analog" },
+    { "label": "ADC/DAC", "value": 17, "tone": "warn" },
+    { "label": "Memory movement", "value": 21, "tone": "digital" },
+    { "label": "Digital fallback", "value": 16, "tone": "digital" },
+    { "label": "Host/runtime", "value": 8, "tone": "digital" }
+  ],
+  "calibration": {
+    "status": "Valid",
+    "board": "AS-EDGE-0237",
+    "temperature": "0C to 70C",
+    "voltage": "0.72V to 0.88V",
+    "weak_rows": "12 masked",
+    "accuracy_impact": "-0.3%"
+  },
+  "recommendations": [
+    { "id": "01", "text": "Keep softmax and LayerNorm on the digital path for this target.", "tag": "mapping" },
+    { "id": "02", "text": "Run sensitivity on attention projection weights before trying INT4.", "tag": "accuracy" },
+    { "id": "03", "text": "Measure ADC/DAC overhead around attention before claiming energy win.", "tag": "energy" }
+  ],
+  "targets": {
+    "accuracy": "94.0%",
+    "latency": "< 6 ms",
+    "energy": "< 50 uJ",
+    "status": "analysis ready"
+  }
+}
+
