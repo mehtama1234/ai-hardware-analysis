@@ -1,0 +1,108 @@
+{
+  "generated_at": "2026-08-31T01:53:22.197431+00:00",
+  "status": "reproducibility-ready",
+  "scenario_count": 5,
+  "passed_scenarios": 4,
+  "tolerance_review_scenarios": 1,
+  "source_reports": [
+    "quantization-memory-formats/quantization-report.json",
+    "kernel-benchmarks/reports/kernel-benchmark-report.json",
+    "model-integration/reports/tiny-transformer-report.json",
+    "moe-routing-all-to-all/moe-routing-report.json"
+  ],
+  "source_facts": {
+    "quantization_formats": 7,
+    "kernel_benchmarks": 14,
+    "model_cases": 3,
+    "moe_scenarios": 5
+  },
+  "scenarios": [
+    {
+      "mode": "fp32-deterministic",
+      "category": "strict",
+      "status": "passed",
+      "tolerance": 1e-06,
+      "repeat_count": 5,
+      "repeat_max_abs_drift": 0.0,
+      "reference_max_abs_error": 0.0,
+      "cosine_similarity": 1.00000238,
+      "determinism_policy": "bitwise-repeatable"
+    },
+    {
+      "mode": "fp32-reversed-reduction",
+      "category": "order-sensitive",
+      "status": "passed",
+      "tolerance": 0.0001,
+      "repeat_count": 5,
+      "repeat_max_abs_drift": 0.0,
+      "reference_max_abs_error": 5.341e-05,
+      "cosine_similarity": 1.0000025,
+      "determinism_policy": "bitwise-repeatable"
+    },
+    {
+      "mode": "tf32-like",
+      "category": "fast-math",
+      "status": "passed",
+      "tolerance": 0.005,
+      "repeat_count": 5,
+      "repeat_max_abs_drift": 0.0,
+      "reference_max_abs_error": 0.00490952,
+      "cosine_similarity": 1.00000238,
+      "determinism_policy": "bitwise-repeatable"
+    },
+    {
+      "mode": "bf16-like",
+      "category": "low-precision",
+      "status": "passed",
+      "tolerance": 0.2,
+      "repeat_count": 5,
+      "repeat_max_abs_drift": 0.0,
+      "reference_max_abs_error": 0.15905762,
+      "cosine_similarity": 1.00000191,
+      "determinism_policy": "bitwise-repeatable"
+    },
+    {
+      "mode": "fp8-like",
+      "category": "calibration-required",
+      "status": "tolerance-review",
+      "tolerance": 2.0,
+      "repeat_count": 5,
+      "repeat_max_abs_drift": 0.0,
+      "reference_max_abs_error": 3.00914764,
+      "cosine_similarity": 0.99987316,
+      "determinism_policy": "bitwise-repeatable"
+    }
+  ],
+  "reduction_order": {
+    "case": "parallel-reduction-order",
+    "status": "passed",
+    "left_sum": 1005.44787598,
+    "right_sum": 1005.44787598,
+    "pairwise_sum": 1005.44787598,
+    "max_order_delta": 0.0,
+    "tolerance": 0.001
+  },
+  "recommendations": [
+    "Define per-kernel tolerances by precision mode instead of using one global epsilon.",
+    "Keep strict repeatability checks separate from reference-accuracy checks.",
+    "Treat fast-math and FP8-style modes as calibration-required until measured against model-level acceptance.",
+    "Promote on CUDA and ROCm hosts with deterministic flags, profiler traces, and repeated seed runs."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "cuda-deterministic-reductions",
+      "triton-fast-math-drift",
+      "rocm-repeatability",
+      "model-tolerance-gate"
+    ],
+    "commands": [
+      "CUBLAS_WORKSPACE_CONFIG=:4096:8 python3 scripts/run_numerical_reproducibility.py",
+      "NVIDIA_TF32_OVERRIDE=0 python3 scripts/verify_numerical_reproducibility.py",
+      "HIP_VISIBLE_DEVICES=0 python3 scripts/run_numerical_reproducibility.py",
+      "nsys profile -o numerical-reproducibility python3 <precision_probe.py>",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id numerical-reproducibility --execute"
+    ],
+    "note": "Local CPU checks validate tolerance policy; real acceptance requires repeated CUDA/ROCm/Triton runs and model-level drift checks on accelerator hosts."
+  }
+}

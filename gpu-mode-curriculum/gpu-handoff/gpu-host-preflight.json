@@ -1,0 +1,323 @@
+{
+  "generated_at": "2026-08-31T01:53:33.754433+00:00",
+  "status": "preflight-complete",
+  "accelerator_ready": false,
+  "step_count": 18,
+  "runnable_step_count": 1,
+  "blocked_step_count": 17,
+  "capabilities": {
+    "python": true,
+    "torch": true,
+    "torch_device": "cpu",
+    "triton": true,
+    "jax": true,
+    "nvcc": false,
+    "hipcc": false,
+    "nvidia_smi": false,
+    "nsys": false,
+    "ncu": false,
+    "rocprof": false,
+    "torchrun": true
+  },
+  "steps": [
+    {
+      "step_id": "cuda-kernel-compile",
+      "title": "Compile CUDA kernel families",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 4,
+      "first_command": "nvcc -O3 kernel-benchmarks/kernels/cuda/memory.cu -c -o /tmp/gpumode-memory.o",
+      "validation": "Re-run python3 scripts/verify_kernel_benchmarks.py and confirm torch_device=cuda in the report."
+    },
+    {
+      "step_id": "triton-kernel-sweep",
+      "title": "Run Triton kernels on CUDA",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 5,
+      "first_command": "python3 kernel-benchmarks/kernels/triton/memory.py",
+      "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
+    },
+    {
+      "step_id": "tensor-core-gemm",
+      "title": "Build and profile CUTLASS/CuTe tensor-core GEMM",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 4,
+      "first_command": "python3 scripts/run_tensor_core_gemm.py",
+      "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
+    },
+    {
+      "step_id": "persistent-kernels",
+      "title": "Profile persistent Triton/CUDA kernels",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 6,
+      "first_command": "python3 scripts/run_persistent_kernels.py",
+      "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
+    },
+    {
+      "step_id": "parallel-primitives",
+      "title": "Profile GPU parallel primitives",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 6,
+      "first_command": "python3 scripts/run_parallel_primitives.py",
+      "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
+    },
+    {
+      "step_id": "torch-custom-extension",
+      "title": "Build and validate PyTorch custom extension",
+      "required_capabilities": [
+        "torch",
+        "nvcc",
+        "ninja",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "ninja",
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 2,
+      "first_command": "python3 scripts/run_custom_ops.py",
+      "validation": "Confirm compiled_extension_status changes from source-only to cuda-ready."
+    },
+    {
+      "step_id": "model-integration-gpu",
+      "title": "Run tiny transformer integration on GPU-backed operators",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 3,
+      "first_command": "python3 scripts/build_autotune_db.py",
+      "validation": "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs."
+    },
+    {
+      "step_id": "vllm-serving-trace",
+      "title": "Replay or import vLLM-style serving traces",
+      "required_capabilities": [
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 3,
+      "first_command": "vllm serve <model> --enable-prefix-caching",
+      "validation": "Replace deterministic timing constants with server trace measurements using the same schema."
+    },
+    {
+      "step_id": "attention-serving-stack",
+      "title": "Profile FlashAttention-to-vLLM serving stack",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 4,
+      "first_command": "python3 scripts/run_attention_serving_stack.py",
+      "validation": "GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces."
+    },
+    {
+      "step_id": "flash-attention-backward",
+      "title": "Profile FlashAttention backward training kernels",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 6,
+      "first_command": "python3 scripts/run_flash_attention_backward.py",
+      "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
+    },
+    {
+      "step_id": "sparse-attention-kernels",
+      "title": "Profile sparse and ragged attention kernels",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 7,
+      "first_command": "python3 scripts/run_sparse_attention_kernels.py",
+      "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
+    },
+    {
+      "step_id": "fused-training-kernels",
+      "title": "Profile fused LLM training kernels",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 7,
+      "first_command": "python3 scripts/run_fused_training_kernels.py",
+      "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
+    },
+    {
+      "step_id": "speculative-decoding-serving",
+      "title": "Profile speculative decoding serving scheduler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 7,
+      "first_command": "python3 scripts/run_speculative_decoding_serving.py",
+      "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
+    },
+    {
+      "step_id": "profiler-capture",
+      "title": "Capture Nsight and rocprof evidence",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 4,
+      "first_command": "ncu --set full --target-processes all python3 scripts/run_kernel_benchmarks.py",
+      "validation": "Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer."
+    },
+    {
+      "step_id": "rocm-hip-port",
+      "title": "Compile ROCm/HIP portability path",
+      "required_capabilities": [
+        "hipcc",
+        "rocprof"
+      ],
+      "missing_capabilities": [
+        "hipcc",
+        "rocprof"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 3,
+      "first_command": "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
+      "validation": "ROCm host should move the HIP project from source-only to measured runtime evidence."
+    },
+    {
+      "step_id": "distributed-collectives",
+      "title": "Run distributed collective tests",
+      "required_capabilities": [
+        "torchrun",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 7,
+      "first_command": "python3 scripts/run_distributed_collectives.py",
+      "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
+    },
+    {
+      "step_id": "distributed-training-optimizer",
+      "title": "Profile distributed training optimizer stacks",
+      "required_capabilities": [
+        "torchrun",
+        "nvidia_smi",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys"
+      ],
+      "runnable_on_this_host": false,
+      "command_count": 4,
+      "first_command": "python3 scripts/run_distributed_training_optimizer.py",
+      "validation": "Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host."
+    },
+    {
+      "step_id": "full-gpu-regression",
+      "title": "Refresh full GPU-host regression ledger",
+      "required_capabilities": [
+        "python",
+        "torch"
+      ],
+      "missing_capabilities": [],
+      "runnable_on_this_host": true,
+      "command_count": 6,
+      "first_command": "python3 run_all.py",
+      "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
+    }
+  ]
+}

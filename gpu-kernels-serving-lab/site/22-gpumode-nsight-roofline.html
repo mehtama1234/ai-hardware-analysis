@@ -1,0 +1,135 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 22 GPUMODE Nsight To Roofline</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+<nav><a href="index.html" class="brand">GPU Serving Lab</a><span><a href="00-orientation.html">00 - Orientation</a><a href="01-hf-baseline.html">01 - Hugging Face baseline</a><a href="02-roofline.html">02 - Roofline for AI ops</a><a href="03-cuda-vector-reduce.html">03 - CUDA vector/reduce</a><a href="04-cuda-tiled-matmul.html">04 - CUDA tiled matmul</a><a href="05-cuda-tiny-attention.html">05 - CUDA tiny attention</a><a href="06-triton-matmul.html">06 - Triton matmul</a><a href="07-triton-fused-attention.html">07 - Triton fused attention</a><a href="08-quantized-inference.html">08 - Quantized inference</a><a href="09-vllm-serving.html">09 - vLLM serving</a><a href="10-kv-cache-memory-manager.html">10 - KV-cache memory manager</a><a href="11-rocm-hip-port.html">11 - ROCm/HIP port</a><a href="12-jax-scaling.html">12 - JAX scaling practicum</a><a href="13-capstone.html">13 - Capstone diagnosis</a><a href="14-final-synthesis.html">14 - Final synthesis</a><a href="15-gpumode-coalescing.html">15 - GPUMODE coalescing</a><a href="16-gpumode-warp-reductions.html">16 - GPUMODE warp reductions</a><a href="17-gpumode-triton-autotune.html">17 - GPUMODE Triton autotune</a><a href="18-gpumode-online-softmax.html">18 - GPUMODE online softmax</a><a href="19-gpumode-torch-compile.html">19 - GPUMODE torch.compile</a><a href="20-gpumode-vllm-scheduler.html">20 - GPUMODE vLLM scheduler</a><a href="21-gpumode-quantized-kernels.html">21 - GPUMODE quantized kernels</a><a href="22-gpumode-nsight-roofline.html">22 - GPUMODE Nsight to roofline</a><a href="23-gpumode-shared-memory-gemm.html">23 - GPUMODE shared-memory GEMM</a><a href="24-gpumode-tensor-core-cutlass.html">24 - GPUMODE Tensor Core/CUTLASS</a><a href="25-gpumode-rocm-hip-portability.html">25 - GPUMODE ROCm/HIP portability</a><a href="26-gpumode-distributed-communication.html">26 - GPUMODE distributed communication</a></span></nav>
+
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 22</div>
+  <h1>GPUMODE Nsight counters to roofline decisions.</h1>
+  <p class="dek">This session turns profiler vocabulary into an optimization workflow:
+  map counters to memory, compute, synchronization, and launch overhead, then connect
+  each classification back to the local roofline measurements.</p>
+</header>
+
+<section>
+  <div class="eye">Profiler availability</div>
+  <h2>skipped</h2>
+  <div class="why"><h3>Reason</h3><p>Nsight Compute/System CLI tools are not available on PATH, so this session uses roofline-derived proxy counters.</p></div>
+  <div class="why"><h3>Finding</h3><p>Profiler counters become useful when mapped back to the roofline question: memory saturation, SM utilization, barrier stalls, launch count, and arithmetic intensity each imply a different next optimization.</p></div>
+  <div class="why"><h3>Correctness</h3><p>{&#x27;status&#x27;: &#x27;passed&#x27;, &#x27;checks&#x27;: {&#x27;roofline_rows_loaded&#x27;: True, &#x27;counter_rows_match_roofline_rows&#x27;: True, &#x27;every_row_classified&#x27;: True, &#x27;counter_map_populated&#x27;: True, &#x27;import_parser_ran&#x27;: True}}</p></div>
+</section>
+
+<section>
+  <div class="eye">Classifications</div>
+  <h2>Counter rows become next actions</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>operation</th><th>bottleneck</th><th>FLOP/byte</th><th>DRAM %</th><th>SM %</th><th>barrier stall</th><th>next action</th></tr>
+      <tr><td>vector_add</td><td>mixed</td><td>0.083333</td><td>13.97</td><td>1.17</td><td>0.08</td><td>Collect a real Nsight report and compare stall reasons against the roofline estimate.</td></tr>
+<tr><td>reduction_sum</td><td>memory-bandwidth</td><td>0.25</td><td>100.0</td><td>25.18</td><td>0.34</td><td>Inspect layout/coalescing, cache reuse, and avoidable materialization before changing math.</td></tr>
+<tr><td>matmul</td><td>compute</td><td>85.333333</td><td>1.16</td><td>100.0</td><td>0.14</td><td>Inspect tiling, tensor-core eligibility, occupancy, and library/kernel selection.</td></tr>
+<tr><td>kv_cache_score_scan</td><td>launch-overhead-or-memory-scan</td><td>0.492189</td><td>43.64</td><td>21.63</td><td>0.08</td><td>Inspect fusion opportunities, decode-loop granularity, and KV-cache scan shape.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Counter proxies</div>
+  <h2>Nsight-shaped measurements</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>operation</th><th>DRAM % peak</th><th>SM % peak</th><th>barrier stall</th><th>register limit</th><th>launches</th></tr>
+      <tr><td>vector_add</td><td>13.97</td><td>1.17</td><td>0.08</td><td>12.0</td><td>1</td></tr>
+<tr><td>reduction_sum</td><td>100.0</td><td>25.18</td><td>0.34</td><td>12.0</td><td>1</td></tr>
+<tr><td>matmul</td><td>1.16</td><td>100.0</td><td>0.14</td><td>42.0</td><td>1</td></tr>
+<tr><td>kv_cache_score_scan</td><td>43.64</td><td>21.63</td><td>0.08</td><td>12.0</td><td>4</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Imported reports</div>
+  <h2>ran</h2>
+  <div class="why"><h3>Finding</h3><p>Imported 2 Nsight-shaped kernel rows and classified them with the same roofline decision rules.</p></div>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>kernel</th><th>bottleneck</th><th>FLOP/byte</th><th>DRAM %</th><th>SM %</th><th>barrier stall</th><th>next action</th></tr>
+      <tr><td>fused_attention_decode</td><td>memory-bandwidth</td><td>2.1</td><td>71.4</td><td>28.5</td><td>0.07</td><td>Inspect layout/coalescing, cache reuse, and avoidable materialization before changing math.</td></tr>
+<tr><td>wmma_gemm_tile</td><td>compute</td><td>18.4</td><td>22.0</td><td>83.2</td><td>0.11</td><td>Inspect tiling, tensor-core eligibility, occupancy, and library/kernel selection.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Counter map</div>
+  <h2>Profiler terms used by this lab</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>counter</th><th>meaning</th></tr>
+      <tr><td>dram__throughput.avg.pct_of_peak_sustained_elapsed</td><td>memory bandwidth saturation</td></tr>
+<tr><td>sm__throughput.avg.pct_of_peak_sustained_elapsed</td><td>SM compute utilization</td></tr>
+<tr><td>smsp__sass_average_branch_targets_threads_uniform.pct</td><td>control-flow uniformity</td></tr>
+<tr><td>smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio</td><td>synchronization stalls</td></tr>
+<tr><td>launch__occupancy_limit_registers.pct</td><td>register pressure</td></tr>
+<tr><td>gpu__time_duration.sum</td><td>kernel duration</td></tr>
+<tr><td>kernel__launch_count</td><td>launch overhead</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">GPUMODE links</div>
+  <h2>Transcript-derived lesson anchors</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>lesson</th><th>topics</th><th>concepts</th><th>exercise candidates</th></tr>
+      <tr><td>1</td><td><a href="https://www.youtube.com/watch?v=TZnJYRTSGVk">Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives</a></td><td>cuda, profiling, attention, serving, hardware</td><td>memory coalescing, tensor cores, kv cache, collectives, compiler lowering</td><td>benchmark contiguous, strided, and gathered loads; simulate prefill/decode KV-cache memory growth</td></tr>
+<tr><td>2</td><td><a href="https://www.youtube.com/watch?v=loZ4xQ5RZuU">Lecture 112: Production Megakernels for Real-World Inference</a></td><td>cuda, attention, quantization, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>3</td><td><a href="https://www.youtube.com/watch?v=eujKd0lHegA">Lecture 111: Spectral Compute: Compile CUDA everywhere</a></td><td>cuda, profiling, hardware, cutlass</td><td>shared memory tiling, warp execution, tensor cores, compiler lowering</td><td>implement naive vs tiled matrix multiplication; compare shared-memory reduction with warp-shuffle reduction</td></tr>
+<tr><td>4</td><td><a href="https://www.youtube.com/watch?v=wiaUh82NEoE">Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, occupancy, tensor cores, autotuning, quantized numerics</td><td>compare shared-memory reduction with warp-shuffle reduction; sweep block sizes and record the winning kernel configuration</td></tr>
+<tr><td>5</td><td><a href="https://www.youtube.com/watch?v=nXRsasT1jIk">Lecture 109: TIRx</a></td><td>cuda, triton, attention, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>6</td><td><a href="https://www.youtube.com/watch?v=ustDJbxOu50">Lecture 108: One Layer Deeper competition</a></td><td>cuda, quantization, serving, hardware</td><td>autotuning, quantized numerics, compiler lowering</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>7</td><td><a href="https://www.youtube.com/watch?v=tBYm9PI5Jw0">Lecture 107: PithTrain</a></td><td>cuda, triton, profiling, quantization, serving</td><td>autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>8</td><td><a href="https://www.youtube.com/watch?v=Ok8vi6JemVQ">Lecture 106: Hugging Face Kernels</a></td><td>cuda, attention, serving, hardware, cutlass</td><td>tensor cores, online softmax, autotuning, compiler lowering</td><td>implement numerically stable online softmax and compare to materialized softmax; sweep block sizes and record the winning kernel configuration</td></tr>
+<tr><td>9</td><td><a href="https://www.youtube.com/watch?v=HcnybHRbTcc">Lecture 105: cuDNN mxfp8 attention</a></td><td>cuda, profiling, attention, quantization, serving</td><td>shared memory tiling, warp execution, tensor cores, online softmax, quantized numerics</td><td>implement naive vs tiled matrix multiplication; compare shared-memory reduction with warp-shuffle reduction</td></tr>
+<tr><td>10</td><td><a href="https://www.youtube.com/watch?v=oYs_qtuk2Pg">Lecture 104: Gluon and Linear Layouts</a></td><td>cuda, triton, profiling, attention, serving</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>11</td><td><a href="https://www.youtube.com/watch?v=MVh_guNbWMA">Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation</a></td><td>cuda, attention, cutlass</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, autotuning</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>12</td><td><a href="https://www.youtube.com/watch?v=E0G3hf4DneA">Lecture 102: quartet v2</a></td><td>cuda, quantization, serving, hardware, cutlass</td><td>tensor cores, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>13</td><td><a href="https://www.youtube.com/watch?v=jGouxuAHIfQ">Lecture 101: Learning CUTLASS the hard way</a></td><td>cuda, triton, profiling, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>14</td><td><a href="https://www.youtube.com/watch?v=kPBTBl7xvEY">Lecture 100: InferenceX Continuous OSS Inference Benchmarking</a></td><td>profiling, attention, serving</td><td>kv cache, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>simulate prefill/decode KV-cache memory growth; sweep block sizes and record the winning kernel configuration</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Evidence boundary</div>
+  <p>This lab builds the counter-to-roofline decision workflow from local measurements. When Nsight CLI tools are unavailable, counter values are explicit proxies derived from the roofline artifact, not vendor profiler output.</p>
+</section>
+
+</div>

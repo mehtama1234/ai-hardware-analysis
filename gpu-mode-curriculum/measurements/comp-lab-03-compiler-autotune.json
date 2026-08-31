@@ -1,0 +1,66 @@
+{
+  "lab_id": "comp-lab-03-compiler-autotune",
+  "status": "passed",
+  "measurement": {
+    "summary": "Scores CUDA/Triton-style schedules and fusion decisions with explicit cost signals.",
+    "results": {
+      "large_best": {
+        "block_m": 128,
+        "block_n": 64,
+        "block_k": 64,
+        "num_warps": 8,
+        "stages": 5,
+        "tiles": 131072,
+        "shared_bytes": 24576,
+        "reuse": 42.6667,
+        "cost": 6144.0
+      },
+      "small_best": {
+        "block_m": 128,
+        "block_n": 64,
+        "block_k": 64,
+        "num_warps": 8,
+        "stages": 5,
+        "tiles": 32,
+        "shared_bytes": 24576,
+        "reuse": 42.6667,
+        "cost": 1.5
+      },
+      "fusion": {
+        "fuse": true,
+        "saved_bytes": 16384,
+        "register_pressure": false
+      },
+      "no_fusion": {
+        "fuse": false,
+        "saved_bytes": 16384,
+        "register_pressure": true
+      }
+    },
+    "checks": [
+      {
+        "name": "large_problem_prefers_large_tile",
+        "passed": true,
+        "detail": "Schedule(block_m=128, block_n=64, block_k=64, num_warps=8, stages=5) {'tiles': 131072, 'shared_bytes': 24576, 'reuse': 42.6667, 'cost': 6144.0}"
+      },
+      {
+        "name": "small_problem_has_valid_schedule",
+        "passed": true,
+        "detail": "Schedule(block_m=128, block_n=64, block_k=64, num_warps=8, stages=5) {'tiles': 32, 'shared_bytes': 24576, 'reuse': 42.6667, 'cost': 1.5}"
+      },
+      {
+        "name": "fusion_saves_memory_when_pressure_ok",
+        "passed": true,
+        "detail": "{'fuse': True, 'saved_bytes': 16384, 'register_pressure': False}"
+      },
+      {
+        "name": "register_pressure_blocks_fusion",
+        "passed": true,
+        "detail": "{'fuse': False, 'saved_bytes': 16384, 'register_pressure': True}"
+      }
+    ]
+  },
+  "runtime_caveats": [
+    "Local run uses CPU/model implementations where GPU compiler/runtime support is unavailable."
+  ]
+}

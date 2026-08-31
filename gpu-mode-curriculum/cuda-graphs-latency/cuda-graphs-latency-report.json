@@ -1,0 +1,144 @@
+{
+  "generated_at": "2026-08-31T01:53:26.175134+00:00",
+  "status": "cuda-graphs-ready",
+  "scenario_count": 5,
+  "capture_ready_count": 3,
+  "fallback_required_count": 2,
+  "passed_reduction_count": 3,
+  "source_reports": [
+    "serving-traces/reports/serving-trace-report.json",
+    "profiler-evidence/reports/profiler-evidence-report.json",
+    "serving-engine-comparison/serving-engine-comparison.json",
+    "runtime-matrix/matrix.json"
+  ],
+  "source_facts": {
+    "serving_traces": 3,
+    "profiler_launch_overhead_rows": 1,
+    "serving_engines": 5,
+    "torch_device": "cpu"
+  },
+  "scenarios": [
+    {
+      "scenario_id": "static-decode-batch-1",
+      "status": "capture-ready",
+      "batch": 1,
+      "hidden": 512,
+      "steps": 48,
+      "shape_jitter": 0,
+      "eager_p50_ms": 0.088243,
+      "eager_p95_ms": 0.091243,
+      "graph_p50_ms": 0.010743,
+      "graph_p95_ms": 0.013743,
+      "p95_latency_reduction": 0.849381,
+      "latency_jitter_reduction": -0.0,
+      "capture_constraints": [
+        "static tensor shapes",
+        "stable memory addresses",
+        "warmup before capture",
+        "no data-dependent allocation in captured region"
+      ],
+      "fallback_strategy": "capture decode buckets"
+    },
+    {
+      "scenario_id": "static-decode-batch-8",
+      "status": "capture-ready",
+      "batch": 8,
+      "hidden": 512,
+      "steps": 48,
+      "shape_jitter": 0,
+      "eager_p50_ms": 0.204943,
+      "eager_p95_ms": 0.207943,
+      "graph_p50_ms": 0.047943,
+      "graph_p95_ms": 0.050943,
+      "p95_latency_reduction": 0.755014,
+      "latency_jitter_reduction": -0.0,
+      "capture_constraints": [
+        "static tensor shapes",
+        "stable memory addresses",
+        "warmup before capture",
+        "no data-dependent allocation in captured region"
+      ],
+      "fallback_strategy": "capture decode buckets"
+    },
+    {
+      "scenario_id": "bucketed-prefill-2k",
+      "status": "capture-ready",
+      "batch": 4,
+      "hidden": 256,
+      "steps": 24,
+      "shape_jitter": 0,
+      "eager_p50_ms": 0.267743,
+      "eager_p95_ms": 0.271243,
+      "graph_p50_ms": 0.012743,
+      "graph_p95_ms": 0.016243,
+      "p95_latency_reduction": 0.940117,
+      "latency_jitter_reduction": 0.0,
+      "capture_constraints": [
+        "static tensor shapes",
+        "stable memory addresses",
+        "warmup before capture",
+        "no data-dependent allocation in captured region"
+      ],
+      "fallback_strategy": "capture decode buckets"
+    },
+    {
+      "scenario_id": "rag-dynamic-prefill",
+      "status": "fallback-required",
+      "batch": 4,
+      "hidden": 768,
+      "steps": 24,
+      "shape_jitter": 96,
+      "eager_p50_ms": 0.101686,
+      "eager_p95_ms": 0.13257,
+      "graph_p50_ms": 0.101686,
+      "graph_p95_ms": 0.13257,
+      "p95_latency_reduction": 0.0,
+      "latency_jitter_reduction": 0.0,
+      "capture_constraints": [
+        "static tensor shapes",
+        "stable memory addresses",
+        "warmup before capture",
+        "no data-dependent allocation in captured region"
+      ],
+      "fallback_strategy": "bucket variable shapes or keep eager for dynamic prefill/adapters"
+    },
+    {
+      "scenario_id": "mixed-adapter-routing",
+      "status": "fallback-required",
+      "batch": 8,
+      "hidden": 512,
+      "steps": 32,
+      "shape_jitter": 64,
+      "eager_p50_ms": 0.091443,
+      "eager_p95_ms": 0.121534,
+      "graph_p50_ms": 0.091443,
+      "graph_p95_ms": 0.121534,
+      "p95_latency_reduction": 0.0,
+      "latency_jitter_reduction": 0.0,
+      "capture_constraints": [
+        "static tensor shapes",
+        "stable memory addresses",
+        "warmup before capture",
+        "no data-dependent allocation in captured region"
+      ],
+      "fallback_strategy": "bucket variable shapes or keep eager for dynamic prefill/adapters"
+    }
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "launch-overhead-profiler",
+      "serving-decode-capture",
+      "cuda-graph-replay",
+      "full-gpu-regression"
+    ],
+    "commands": [
+      "python3 scripts/run_gpu_host_preflight.py",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id cuda-graphs-latency --execute",
+      "nsys profile -o cuda-graphs-decode python3 <serving_decode_probe.py>",
+      "ncu --set full -o cuda-graphs-kernels python3 <captured_kernel_probe.py>",
+      "vllm serve <model> --enforce-eager=false --max-seq-len-to-capture <tokens>"
+    ],
+    "note": "Local CPU simulation validates capture eligibility and report wiring; real CUDA Graph replay evidence requires CUDA runtime and profiler traces."
+  }
+}

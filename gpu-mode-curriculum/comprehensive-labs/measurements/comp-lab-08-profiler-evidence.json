@@ -1,0 +1,63 @@
+{
+  "lab_id": "comp-lab-08-profiler-evidence",
+  "status": "passed",
+  "measurement": {
+    "summary": "Classifies profiler counters into bottleneck diagnoses and remediation actions.",
+    "results": {
+      "report": [
+        {
+          "kernel": "copy_stride8",
+          "classification": "memory-bandwidth",
+          "remediation": [
+            "coalesce loads",
+            "increase arithmetic intensity",
+            "reuse through shared memory"
+          ]
+        },
+        {
+          "kernel": "wgmma_mainloop",
+          "classification": "tensor-core-compute",
+          "remediation": [
+            "check tile shape",
+            "raise occupancy only if stalls dominate",
+            "use profiler source counters"
+          ]
+        },
+        {
+          "kernel": "tiny_ops",
+          "classification": "launch-overhead",
+          "remediation": [
+            "fuse kernels",
+            "capture graph",
+            "batch small operations"
+          ]
+        }
+      ]
+    },
+    "checks": [
+      {
+        "name": "detects_memory_bandwidth",
+        "passed": true,
+        "detail": "{'memory-bandwidth', 'tensor-core-compute', 'launch-overhead'}"
+      },
+      {
+        "name": "detects_tensor_compute",
+        "passed": true,
+        "detail": "{'memory-bandwidth', 'tensor-core-compute', 'launch-overhead'}"
+      },
+      {
+        "name": "detects_launch_overhead",
+        "passed": true,
+        "detail": "{'memory-bandwidth', 'tensor-core-compute', 'launch-overhead'}"
+      },
+      {
+        "name": "every_row_has_remediation",
+        "passed": true,
+        "detail": "[{'kernel': 'copy_stride8', 'classification': 'memory-bandwidth', 'remediation': ['coalesce loads', 'increase arithmetic intensity', 'reuse through shared memory']}, {'kernel': 'wgmma_mainloop', 'classification': 'tensor-core-compute', 'remediation': ['check tile shape', 'raise occupancy only if stalls dominate', 'use profiler source counters']}, {'kernel': 'tiny_ops', 'classification': 'launch-overhead', 'remediation': ['fuse kernels', 'capture graph', 'batch small operations']}]"
+      }
+    ]
+  },
+  "runtime_caveats": [
+    "Local run uses CPU/model implementations where GPU compiler/runtime support is unavailable."
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "session": "13-capstone-mini-serving-engine",
+  "timestamp": "2026-08-30T07:17:33.597621+00:00",
+  "inventory": {
+    "session": "13-capstone-mini-serving-engine",
+    "timestamp": "2026-08-30T07:17:33.597682+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "artifacts_used": [
+    "hf",
+    "roofline",
+    "cuda",
+    "cuda_matmul",
+    "attention",
+    "triton",
+    "triton_attention",
+    "quant",
+    "vllm",
+    "kv",
+    "hip",
+    "jax",
+    "load_test"
+  ],
+  "diagnosis": {
+    "current_serving_path": "huggingface-transformers",
+    "device": "cpu",
+    "tokens_per_sec": 309.682,
+    "serving_path_comparison": {
+      "high_level": {
+        "name": "single-request local endpoint",
+        "endpoint": "http://127.0.0.1:8765/v1/completions",
+        "backend": "deterministic-local",
+        "tokens_per_sec": 8805.208,
+        "latency_ms_total": 9.0855
+      },
+      "optimized": {
+        "name": "batched prefix-cache local endpoint",
+        "endpoint": "http://127.0.0.1:8765/v1/batch_completions",
+        "backend": "batched-prefix-cache-local",
+        "tokens_per_sec": 42342.492,
+        "latency_ms_total": 1.8894,
+        "prefix_tokens_reused": 20
+      },
+      "optimized_latency_speedup": 4.809
+    },
+    "main_bottleneck_now": "environment/runtime availability before GPU optimization",
+    "strongest_measured_signal": "HF baseline runs; the capstone compares single-request serving with a batched prefix-cache path; roofline and quantization produce local measurements; KV-cache simulator shows prefix reuse can decide whether batches fit.",
+    "next_optimization": "Expose CUDA/nvcc and install vLLM/bitsandbytes in that GPU environment, then rerun Sessions 03, 06, 08, and 09.",
+    "kv_cache_pressure_case": {
+      "name": "batch pressure",
+      "requests": 192,
+      "prompt_tokens": 512,
+      "generated_tokens": 128,
+      "shared_prefix_tokens": 256,
+      "block_size": 16,
+      "capacity_blocks": 4096,
+      "blocks_without_prefix_cache": 7680,
+      "blocks_with_prefix_cache": 4624,
+      "blocks_saved": 3056,
+      "saved_pct": 39.79,
+      "fits_without_prefix_cache": false,
+      "fits_with_prefix_cache": false
+    },
+    "blocked": [
+      {
+        "area": "cuda",
+        "status": "skipped",
+        "reason": "nvcc not found on PATH"
+      },
+      {
+        "area": "cuda_matmul",
+        "status": "skipped",
+        "reason": "nvcc not found on PATH"
+      },
+      {
+        "area": "triton",
+        "status": "skipped",
+        "reason": "Triton GPU kernels require a CUDA-visible device in this tutorial slice."
+      },
+      {
+        "area": "triton_attention",
+        "status": "skipped",
+        "reason": "Triton fused-attention kernel requires a CUDA-visible device."
+      },
+      {
+        "area": "vllm",
+        "status": "skipped",
+        "reason": "vLLM is not installed in this Python environment."
+      },
+      {
+        "area": "hip",
+        "status": "skipped",
+        "reason": "hipcc not found on PATH"
+      }
+    ]
+  },
+  "boundary": "This capstone currently aggregates measured tutorial artifacts into a serving diagnosis. It also runs two minimal HTTP completion paths: single-request high-level serving and batched prefix-cache serving. Optimized GPU serving still depends on a CUDA/ROCm environment with vLLM or equivalent runtime support."
+}

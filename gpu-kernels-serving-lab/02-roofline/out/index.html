@@ -1,0 +1,103 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 02 Roofline</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+
+<style>
+.barrow{display:grid;grid-template-columns:170px 1fr 1fr;gap:10px;align-items:center;margin:9px 0;font-family:var(--mono);font-size:12px}
+.blabel{color:var(--soft)}.track{height:18px;background:rgba(150,170,205,.07);border-radius:5px;overflow:hidden}.track span{display:block;height:100%}
+@media(max-width:720px){.barrow{grid-template-columns:1fr}}
+</style>
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 02</div>
+  <h1>Classify the work before optimizing it.</h1>
+  <p class="dek">The JAX Scaling Book starts from a simple discipline: decide whether a
+  workload is limited by math, memory, or communication. This session runs small AI-shaped
+  operations and reports arithmetic intensity, bandwidth, and FLOP/s.</p>
+</header>
+
+<section>
+  <div class="eye">Measured device</div>
+  <h2>cpu / float32</h2>
+  <div class="why"><h3>Boundary</h3><p>These are small microbenchmarks, useful for classifying operation shape. They are not vendor peak measurements and should not be compared to published peak specs.</p></div>
+</section>
+
+<section>
+  <div class="eye">Roofline table</div>
+  <h2>Operation shape decides the bottleneck</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>operation</th><th>shape</th><th>FLOP/byte</th><th>GB/s</th><th>TFLOP/s</th><th>classification</th></tr>
+      <tr><td>vector_add</td><td>[1000000]</td><td>0.083333</td><td>8.006</td><td>0.000667</td><td>memory-bound</td></tr>
+<tr><td>reduction_sum</td><td>[1000000]</td><td>0.25</td><td>57.324</td><td>0.014331</td><td>memory/synchronization-bound</td></tr>
+<tr><td>matmul</td><td>[512, 512, 512]</td><td>85.333333</td><td>0.667</td><td>0.056913</td><td>compute-bound when large enough</td></tr>
+<tr><td>kv_cache_score_scan</td><td>[4, 4096, 64]</td><td>0.492189</td><td>25.015</td><td>0.012312</td><td>memory-pressure attention primitive</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Relative picture</div>
+  <h2>Bandwidth bars vs compute bars</h2>
+  <p>Blue bars are effective bandwidth relative to the best bandwidth in this run. Amber
+  bars are effective compute relative to the best compute in this run. The absolute numbers
+  are less important than the shape.</p>
+  <div class="card">
+    <div class="barrow"><div></div><div class="mono">GB/s</div><div class="mono">TFLOP/s</div></div>
+    <div class="barrow">
+  <div class="blabel">vector_add</div>
+  <div class="track"><span style="width:14.0%;background:var(--accent)"></span></div>
+  <div class="track"><span style="width:2.0%;background:var(--amber)"></span></div>
+</div>
+<div class="barrow">
+  <div class="blabel">reduction_sum</div>
+  <div class="track"><span style="width:100.0%;background:var(--accent)"></span></div>
+  <div class="track"><span style="width:25.2%;background:var(--amber)"></span></div>
+</div>
+<div class="barrow">
+  <div class="blabel">matmul</div>
+  <div class="track"><span style="width:2.0%;background:var(--accent)"></span></div>
+  <div class="track"><span style="width:100.0%;background:var(--amber)"></span></div>
+</div>
+<div class="barrow">
+  <div class="blabel">kv_cache_score_scan</div>
+  <div class="track"><span style="width:43.6%;background:var(--accent)"></span></div>
+  <div class="track"><span style="width:21.6%;background:var(--amber)"></span></div>
+</div>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Takeaway</div>
+  <p class="next">Vector add and reductions have low arithmetic intensity, so memory traffic
+  dominates. Matrix multiply can reuse data enough to become compute-heavy. The KV-cache
+  score scan sits in the attention-serving danger zone: it does useful math, but its cost
+  grows with context memory.</p>
+</section>
+
+</div>

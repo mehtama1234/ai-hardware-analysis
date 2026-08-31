@@ -1,0 +1,285 @@
+{
+  "generated_at": "2026-08-31T01:53:08.945279+00:00",
+  "status": "attention-serving-ready",
+  "scenario_count": 5,
+  "passed_scenarios": 5,
+  "tuning_required_scenarios": 0,
+  "total_prefix_blocks_reused": 28512,
+  "source_reports": [
+    "kernel-benchmarks/reports/kernel-benchmark-report.json",
+    "kv-cache-paged-attention/kv-cache-report.json",
+    "serving-traces/reports/serving-trace-report.json",
+    "serving-engine-comparison/serving-engine-comparison.json",
+    "numerical-reproducibility/numerical-reproducibility-report.json",
+    "cuda-graphs-latency/cuda-graphs-latency-report.json"
+  ],
+  "source_facts": {
+    "kernel_benchmarks": 14,
+    "kv_cache_scenarios": 5,
+    "serving_traces": 3,
+    "serving_engines": 5,
+    "numerical_scenarios": 5,
+    "cuda_graph_capture_ready": 3
+  },
+  "scenarios": [
+    {
+      "scenario_id": "short-chat-prefill-decode",
+      "status": "passed",
+      "shape": {
+        "batch": 8,
+        "heads": 16,
+        "seq_q": 128,
+        "seq_kv": 128,
+        "head_dim": 64,
+        "dtype_bytes": 2
+      },
+      "tiles": {
+        "q": 64,
+        "k": 64,
+        "shared_memory_bytes": 25088
+      },
+      "baseline_hbm_mb": 25.1658,
+      "flash_hbm_mb": 8.5197,
+      "hbm_reduction": 0.661458,
+      "arithmetic_intensity": 63.0154,
+      "occupancy_proxy": 1.0,
+      "kv_cache": {
+        "prompt_blocks": 128,
+        "decode_blocks": 32,
+        "prefix_blocks": 32,
+        "prefix_blocks_reused": 480,
+        "new_blocks_after_reuse": 16,
+        "block_size": 16
+      },
+      "scheduler": {
+        "policy": "chunked-prefill-continuous-batching",
+        "prefill_tiles": 32,
+        "decode_steps": 512,
+        "decode_pressure": 16.0,
+        "graph_bucket_tokens": 256,
+        "graph_bucket_fit": true,
+        "prefix_blocks_reused": 480
+      },
+      "numerics_contract": {
+        "online_softmax_state": [
+          "row_max",
+          "row_sum"
+        ],
+        "requires_reference_check": true,
+        "recommended_tolerance": "match numerical-reproducibility fp32/tf32/bf16 policy by dtype"
+      }
+    },
+    {
+      "scenario_id": "long-context-rag",
+      "status": "passed",
+      "shape": {
+        "batch": 4,
+        "heads": 32,
+        "seq_q": 512,
+        "seq_kv": 4096,
+        "head_dim": 128,
+        "dtype_bytes": 2
+      },
+      "tiles": {
+        "q": 64,
+        "k": 128,
+        "shared_memory_bytes": 82432
+      },
+      "baseline_hbm_mb": 2449.4735,
+      "flash_hbm_mb": 302.5142,
+      "hbm_reduction": 0.876498,
+      "arithmetic_intensity": 454.3224,
+      "occupancy_proxy": 1.0,
+      "kv_cache": {
+        "prompt_blocks": 2048,
+        "decode_blocks": 128,
+        "prefix_blocks": 512,
+        "prefix_blocks_reused": 3584,
+        "new_blocks_after_reuse": 8,
+        "block_size": 16
+      },
+      "scheduler": {
+        "policy": "prefill-first-graph-bucket",
+        "prefill_tiles": 512,
+        "decode_steps": 2048,
+        "decode_pressure": 4.0,
+        "graph_bucket_tokens": 1024,
+        "graph_bucket_fit": true,
+        "prefix_blocks_reused": 3584
+      },
+      "numerics_contract": {
+        "online_softmax_state": [
+          "row_max",
+          "row_sum"
+        ],
+        "requires_reference_check": true,
+        "recommended_tolerance": "match numerical-reproducibility fp32/tf32/bf16 policy by dtype"
+      }
+    },
+    {
+      "scenario_id": "agent-prefix-cache",
+      "status": "passed",
+      "shape": {
+        "batch": 12,
+        "heads": 24,
+        "seq_q": 256,
+        "seq_kv": 2048,
+        "head_dim": 128,
+        "dtype_bytes": 2
+      },
+      "tiles": {
+        "q": 64,
+        "k": 128,
+        "shared_memory_bytes": 82432
+      },
+      "baseline_hbm_mb": 1547.6982,
+      "flash_hbm_mb": 340.3284,
+      "hbm_reduction": 0.780107,
+      "arithmetic_intensity": 227.1612,
+      "occupancy_proxy": 1.0,
+      "kv_cache": {
+        "prompt_blocks": 1536,
+        "decode_blocks": 192,
+        "prefix_blocks": 768,
+        "prefix_blocks_reused": 17664,
+        "new_blocks_after_reuse": 24,
+        "block_size": 16
+      },
+      "scheduler": {
+        "policy": "chunked-prefill-continuous-batching",
+        "prefill_tiles": 384,
+        "decode_steps": 3072,
+        "decode_pressure": 8.0,
+        "graph_bucket_tokens": 512,
+        "graph_bucket_fit": true,
+        "prefix_blocks_reused": 17664
+      },
+      "numerics_contract": {
+        "online_softmax_state": [
+          "row_max",
+          "row_sum"
+        ],
+        "requires_reference_check": true,
+        "recommended_tolerance": "match numerical-reproducibility fp32/tf32/bf16 policy by dtype"
+      }
+    },
+    {
+      "scenario_id": "mixed-batch-tail-latency",
+      "status": "passed",
+      "shape": {
+        "batch": 16,
+        "heads": 16,
+        "seq_q": 64,
+        "seq_kv": 1024,
+        "head_dim": 64,
+        "dtype_bytes": 2
+      },
+      "tiles": {
+        "q": 64,
+        "k": 64,
+        "shared_memory_bytes": 25088
+      },
+      "baseline_hbm_mb": 205.5209,
+      "flash_hbm_mb": 71.4342,
+      "hbm_reduction": 0.652423,
+      "arithmetic_intensity": 60.1248,
+      "occupancy_proxy": 1.0,
+      "kv_cache": {
+        "prompt_blocks": 1024,
+        "decode_blocks": 256,
+        "prefix_blocks": 128,
+        "prefix_blocks_reused": 3968,
+        "new_blocks_after_reuse": 32,
+        "block_size": 16
+      },
+      "scheduler": {
+        "policy": "chunked-prefill-continuous-batching",
+        "prefill_tiles": 256,
+        "decode_steps": 4096,
+        "decode_pressure": 16.0,
+        "graph_bucket_tokens": 256,
+        "graph_bucket_fit": true,
+        "prefix_blocks_reused": 3968
+      },
+      "numerics_contract": {
+        "online_softmax_state": [
+          "row_max",
+          "row_sum"
+        ],
+        "requires_reference_check": true,
+        "recommended_tolerance": "match numerical-reproducibility fp32/tf32/bf16 policy by dtype"
+      }
+    },
+    {
+      "scenario_id": "quantized-wide-heads",
+      "status": "passed",
+      "shape": {
+        "batch": 6,
+        "heads": 40,
+        "seq_q": 256,
+        "seq_kv": 2048,
+        "head_dim": 128,
+        "dtype_bytes": 1
+      },
+      "tiles": {
+        "q": 64,
+        "k": 128,
+        "shared_memory_bytes": 41472
+      },
+      "baseline_hbm_mb": 1148.1907,
+      "flash_hbm_mb": 142.0493,
+      "hbm_reduction": 0.876284,
+      "arithmetic_intensity": 453.5363,
+      "occupancy_proxy": 1.0,
+      "kv_cache": {
+        "prompt_blocks": 1152,
+        "decode_blocks": 96,
+        "prefix_blocks": 256,
+        "prefix_blocks_reused": 2816,
+        "new_blocks_after_reuse": 12,
+        "block_size": 16
+      },
+      "scheduler": {
+        "policy": "chunked-prefill-continuous-batching",
+        "prefill_tiles": 288,
+        "decode_steps": 1536,
+        "decode_pressure": 5.3333,
+        "graph_bucket_tokens": 512,
+        "graph_bucket_fit": true,
+        "prefix_blocks_reused": 2816
+      },
+      "numerics_contract": {
+        "online_softmax_state": [
+          "row_max",
+          "row_sum"
+        ],
+        "requires_reference_check": true,
+        "recommended_tolerance": "match numerical-reproducibility fp32/tf32/bf16 policy by dtype"
+      }
+    }
+  ],
+  "recommendations": [
+    "Teach attention kernels together with serving traces so prefill/decode choices are visible.",
+    "Use online softmax state as the correctness boundary between FlashAttention and reference attention.",
+    "Align KV block size, CUDA Graph capture buckets, and scheduler batches before GPU promotion.",
+    "Profile kernel HBM traffic and serving tail latency in the same acceptance report."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "flash-attention-forward",
+      "online-softmax-check",
+      "vllm-trace-replay",
+      "prefill-decode-profiler"
+    ],
+    "commands": [
+      "python3 scripts/run_gpu_host_preflight.py",
+      "python3 scripts/run_attention_serving_stack.py",
+      "python3 scripts/verify_attention_serving_stack.py",
+      "nsys profile -o flashattention-serving python3 <vllm_trace_replay.py>",
+      "ncu --set full -o flashattention-kernel python3 <flash_attention_probe.py>",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id attention-serving-stack --execute"
+    ],
+    "note": "Local model validates stack accounting; acceptance still needs real CUDA/Triton/ROCm kernel timings and serving traces."
+  }
+}

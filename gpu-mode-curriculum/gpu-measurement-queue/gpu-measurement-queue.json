@@ -1,0 +1,1142 @@
+{
+  "generated_at": "2026-08-31T02:44:10.812009+00:00",
+  "status": "queue-ready",
+  "task_count": 18,
+  "queued_task_count": 0,
+  "measured_task_count": 18,
+  "accepted_task_count": 15,
+  "failed_measured_task_count": 3,
+  "real_measured_completion": false,
+  "source_manifest": "gpu-promotion/gpu-host-promotion-manifest.json",
+  "source_gpu_runs": "gpu-runs/gpu-run-report.json",
+  "source_provenance": "gpu-provenance/gpu-provenance-report.json",
+  "real_gpu_evidence_status": "present",
+  "measured_run_count": 1,
+  "tasks": [
+    {
+      "step_id": "cuda-kernel-compile",
+      "title": "Compile CUDA kernel families",
+      "host_class": "nvidia-cuda",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "command_count": 4,
+      "commands": [
+        "nvcc -O3 kernel-benchmarks/kernels/cuda/memory.cu -c -o /tmp/gpumode-memory.o",
+        "nvcc -O3 kernel-benchmarks/kernels/cuda/reduction.cu -c -o /tmp/gpumode-reduction.o",
+        "nvcc -O3 kernel-benchmarks/kernels/cuda/softmax_layernorm.cu -c -o /tmp/gpumode-softmax-layernorm.o",
+        "nvcc -O3 kernel-benchmarks/kernels/cuda/matmul_mlp.cu -c -o /tmp/gpumode-matmul-mlp.o"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/kernels/cuda/*.cu",
+        "kernel-benchmarks/reports/kernel-benchmark-report.json"
+      ],
+      "required_metrics": [
+        "nvcc",
+        "nvidia_smi",
+        "torch_device",
+        "passed_benchmarks"
+      ],
+      "acceptance_thresholds": [
+        "nvcc == true",
+        "nvidia_smi == true",
+        "torch_device == cuda",
+        "passed_benchmarks >= 14"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": true,
+            "nvidia_smi == true": true,
+            "torch_device == cuda": true,
+            "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "triton-kernel-sweep",
+      "title": "Run Triton kernels on CUDA",
+      "host_class": "nvidia-cuda",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 5,
+      "commands": [
+        "python3 kernel-benchmarks/kernels/triton/memory.py",
+        "python3 kernel-benchmarks/kernels/triton/reduction.py",
+        "python3 kernel-benchmarks/kernels/triton/softmax_layernorm.py",
+        "python3 kernel-benchmarks/kernels/triton/matmul_mlp.py",
+        "python3 scripts/run_kernel_benchmarks.py"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/reports/kernel-benchmark-report.json",
+        "autotune-db/autotune-db.json"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "triton_cases",
+        "passed_benchmarks"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "triton_cases >= 4",
+        "passed_benchmarks >= 14"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "triton_cases >= 4": true,
+            "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "tensor-core-gemm",
+      "title": "Build and profile CUTLASS/CuTe tensor-core GEMM",
+      "host_class": "nvidia-cuda-profiler",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "command_count": 4,
+      "commands": [
+        "python3 scripts/run_tensor_core_gemm.py",
+        "python3 scripts/verify_tensor_core_gemm.py",
+        "ncu --set full -o tensor-core-gemm python3 <cutlass_gemm_probe.py>",
+        "cuobjdump --dump-sass <cutlass_gemm_binary>"
+      ],
+      "expected_evidence": [
+        "tensor-core-gemm/tensor-core-gemm-report.json",
+        "tensor-core-gemm/reports/tensor-core-gemm-report.md",
+        "site/tensor-core-gemm.html"
+      ],
+      "required_metrics": [
+        "nvcc",
+        "nvidia_smi",
+        "ncu",
+        "tensor_core_scenarios",
+        "mma_instruction_seen"
+      ],
+      "acceptance_thresholds": [
+        "nvcc == true",
+        "nvidia_smi == true",
+        "ncu == true",
+        "tensor_core_scenarios >= 5",
+        "mma_instruction_seen == true"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": true,
+            "nvidia_smi == true": true,
+            "ncu == true": true,
+            "tensor_core_scenarios >= 5": true,
+            "mma_instruction_seen == true": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "persistent-kernels",
+      "title": "Profile persistent Triton/CUDA kernels",
+      "host_class": "nvidia-cuda-profiler",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "command_count": 6,
+      "commands": [
+        "python3 scripts/run_persistent_kernels.py",
+        "python3 scripts/verify_persistent_kernels.py",
+        "python3 kernel-benchmarks/kernels/triton/softmax_layernorm.py",
+        "python3 kernel-benchmarks/kernels/triton/matmul_mlp.py",
+        "ncu --set full -o persistent-kernels python3 <persistent_kernel_probe.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id persistent-kernels --execute"
+      ],
+      "expected_evidence": [
+        "persistent-kernels/persistent-kernels-report.json",
+        "persistent-kernels/reports/persistent-kernels-report.md",
+        "site/persistent-kernels.html"
+      ],
+      "required_metrics": [
+        "triton",
+        "nvidia_smi",
+        "ncu",
+        "persistent_scenarios",
+        "speedup_vs_baseline",
+        "occupancy_proxy",
+        "hbm_reduction"
+      ],
+      "acceptance_thresholds": [
+        "triton == true",
+        "nvidia_smi == true",
+        "ncu == true",
+        "persistent_scenarios >= 6",
+        "speedup_vs_baseline >= 1.15",
+        "occupancy_proxy >= 0.30",
+        "hbm_reduction >= 0.15"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "triton == true": true,
+            "nvidia_smi == true": true,
+            "ncu == true": true,
+            "persistent_scenarios >= 6": true,
+            "speedup_vs_baseline >= 1.15": true,
+            "occupancy_proxy >= 0.30": true,
+            "hbm_reduction >= 0.15": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "parallel-primitives",
+      "title": "Profile GPU parallel primitives",
+      "host_class": "nvidia-or-amd-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu"
+      ],
+      "command_count": 6,
+      "commands": [
+        "python3 scripts/run_parallel_primitives.py",
+        "python3 scripts/verify_parallel_primitives.py",
+        "python3 kernel-benchmarks/kernels/triton/reduction.py",
+        "nvcc -O3 kernel-benchmarks/kernels/cuda/reduction.cu -c -o /tmp/gpumode-reduction.o",
+        "ncu --set full -o parallel-primitives python3 <parallel_primitives_probe.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id parallel-primitives --execute"
+      ],
+      "expected_evidence": [
+        "parallel-primitives/parallel-primitives-report.json",
+        "parallel-primitives/reports/parallel-primitives-report.md",
+        "site/parallel-primitives.html"
+      ],
+      "required_metrics": [
+        "accelerator_ready",
+        "primitive_scenarios",
+        "work_efficiency",
+        "bandwidth_proxy_gbps",
+        "occupancy_proxy",
+        "stable_order_scenarios"
+      ],
+      "acceptance_thresholds": [
+        "accelerator_ready == true",
+        "primitive_scenarios >= 6",
+        "work_efficiency >= 1.20",
+        "bandwidth_proxy_gbps > 0",
+        "occupancy_proxy >= 0.35",
+        "stable_order_scenarios >= 3"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "primitive_scenarios >= 6": true,
+            "work_efficiency >= 1.20": true,
+            "bandwidth_proxy_gbps > 0": true,
+            "occupancy_proxy >= 0.35": true,
+            "stable_order_scenarios >= 3": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "torch-custom-extension",
+      "title": "Build and validate PyTorch custom extension",
+      "host_class": "nvidia-cuda",
+      "required_capabilities": [
+        "torch",
+        "nvcc",
+        "ninja",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "ninja",
+        "nvidia_smi"
+      ],
+      "command_count": 2,
+      "commands": [
+        "python3 scripts/run_custom_ops.py",
+        "python3 scripts/verify_custom_ops.py"
+      ],
+      "expected_evidence": [
+        "custom-ops/csrc/fused_bias_gelu_residual.cpp",
+        "custom-ops/csrc/fused_bias_gelu_residual_kernel.cu",
+        "custom-ops/reports/custom-op-report.json"
+      ],
+      "required_metrics": [
+        "compiled_extension_status",
+        "passed_cases"
+      ],
+      "acceptance_thresholds": [
+        "compiled_extension_status == cuda-ready",
+        "passed_cases >= 4"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "compiled_extension_status == cuda-ready": true,
+            "passed_cases >= 4": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "model-integration-gpu",
+      "title": "Run tiny transformer integration on GPU-backed operators",
+      "host_class": "accelerator-torch",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 3,
+      "commands": [
+        "python3 scripts/build_autotune_db.py",
+        "python3 scripts/run_model_integration.py",
+        "python3 scripts/verify_model_integration.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/tiny-transformer-report.json",
+        "regression-ledger/regression-ledger.json"
+      ],
+      "required_metrics": [
+        "accelerator_ready",
+        "passed_cases",
+        "uses_custom_op"
+      ],
+      "acceptance_thresholds": [
+        "accelerator_ready == true",
+        "passed_cases >= 3",
+        "uses_custom_op == fused_bias_gelu_residual"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "passed_cases >= 3": true,
+            "uses_custom_op == fused_bias_gelu_residual": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "vllm-serving-trace",
+      "title": "Replay or import vLLM-style serving traces",
+      "host_class": "nvidia-cuda-serving",
+      "required_capabilities": [
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 3,
+      "commands": [
+        "vllm serve <model> --enable-prefix-caching",
+        "python3 scripts/run_serving_traces.py",
+        "python3 scripts/verify_serving_traces.py"
+      ],
+      "expected_evidence": [
+        "serving-traces/reports/serving-trace-report.json",
+        "site/serving-traces.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "passed_traces",
+        "prefix_cache_blocks_saved"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "passed_traces >= 3",
+        "prefix_cache_blocks_saved > 0"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "passed_traces >= 3": true,
+            "prefix_cache_blocks_saved > 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "attention-serving-stack",
+      "title": "Profile FlashAttention-to-vLLM serving stack",
+      "host_class": "nvidia-cuda-serving-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "command_count": 4,
+      "commands": [
+        "python3 scripts/run_attention_serving_stack.py",
+        "python3 scripts/verify_attention_serving_stack.py",
+        "nsys profile -o flashattention-serving python3 <vllm_trace_replay.py>",
+        "ncu --set full -o flashattention-kernel python3 <flash_attention_probe.py>"
+      ],
+      "expected_evidence": [
+        "attention-serving-stack/attention-serving-report.json",
+        "attention-serving-stack/reports/attention-serving-report.md",
+        "site/attention-serving-stack.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "attention_scenarios",
+        "hbm_reduction",
+        "prefix_blocks_reused",
+        "profiler_rows"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "attention_scenarios >= 5",
+        "hbm_reduction > 0",
+        "prefix_blocks_reused > 0",
+        "profiler_rows >= 1"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "attention_scenarios >= 5": true,
+            "hbm_reduction > 0": true,
+            "prefix_blocks_reused > 0": true,
+            "profiler_rows >= 1": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "flash-attention-backward",
+      "title": "Profile FlashAttention backward training kernels",
+      "host_class": "nvidia-cuda-training-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "command_count": 6,
+      "commands": [
+        "python3 scripts/run_flash_attention_backward.py",
+        "python3 scripts/verify_flash_attention_backward.py",
+        "python3 scripts/run_attention_serving_stack.py",
+        "ncu --set full -o flash-attention-backward python3 <flash_attention_backward_probe.py>",
+        "nsys profile -o flash-attention-training-step python3 <flash_attention_training_step.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id flash-attention-backward --execute"
+      ],
+      "expected_evidence": [
+        "flash-attention-backward/flash-attention-backward-report.json",
+        "flash-attention-backward/reports/flash-attention-backward-report.md",
+        "site/flash-attention-backward.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "flash_backward_scenarios",
+        "gradient_paths",
+        "max_abs_error",
+        "hbm_reduction",
+        "recompute_overhead_ratio",
+        "occupancy_proxy"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "flash_backward_scenarios >= 6",
+        "gradient_paths >= 4",
+        "max_abs_error <= 0.02",
+        "hbm_reduction >= 0.40",
+        "recompute_overhead_ratio >= 0",
+        "occupancy_proxy >= 0.45"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "flash_backward_scenarios >= 6": true,
+            "gradient_paths >= 4": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.40": true,
+            "recompute_overhead_ratio >= 0": true,
+            "occupancy_proxy >= 0.45": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "sparse-attention-kernels",
+      "title": "Profile sparse and ragged attention kernels",
+      "host_class": "nvidia-cuda-sparse-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "command_count": 7,
+      "commands": [
+        "python3 scripts/run_sparse_attention_kernels.py",
+        "python3 scripts/verify_sparse_attention_kernels.py",
+        "python3 scripts/run_attention_serving_stack.py",
+        "python3 scripts/run_flash_attention_backward.py",
+        "ncu --set full -o sparse-attention-kernels python3 <sparse_attention_probe.py>",
+        "nsys profile -o sparse-attention-ragged-decode python3 <ragged_decode_probe.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id sparse-attention-kernels --execute"
+      ],
+      "expected_evidence": [
+        "sparse-attention-kernels/sparse-attention-report.json",
+        "sparse-attention-kernels/reports/sparse-attention-report.md",
+        "site/sparse-attention-kernels.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "sparse_attention_scenarios",
+        "pattern_count",
+        "ragged_scenarios",
+        "backward_scenarios",
+        "max_abs_error",
+        "hbm_reduction",
+        "load_balance_proxy"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "sparse_attention_scenarios >= 6",
+        "pattern_count >= 6",
+        "ragged_scenarios >= 1",
+        "backward_scenarios >= 4",
+        "max_abs_error <= 0.02",
+        "hbm_reduction >= 0.55",
+        "load_balance_proxy >= 0.75"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "sparse_attention_scenarios >= 6": true,
+            "pattern_count >= 6": true,
+            "ragged_scenarios >= 1": true,
+            "backward_scenarios >= 4": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.55": true,
+            "load_balance_proxy >= 0.75": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "fused-training-kernels",
+      "title": "Profile fused LLM training kernels",
+      "host_class": "nvidia-cuda-training-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "ncu",
+        "nsys"
+      ],
+      "command_count": 7,
+      "commands": [
+        "python3 scripts/run_fused_training_kernels.py",
+        "python3 scripts/verify_fused_training_kernels.py",
+        "python3 scripts/run_model_integration.py",
+        "python3 scripts/run_distributed_training_optimizer.py",
+        "ncu --set full -o fused-training-kernels python3 <fused_training_probe.py>",
+        "nsys profile -o fused-training-step python3 <training_step_probe.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id fused-training-kernels --execute"
+      ],
+      "expected_evidence": [
+        "fused-training-kernels/fused-training-report.json",
+        "fused-training-kernels/reports/fused-training-report.md",
+        "site/fused-training-kernels.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "fused_training_scenarios",
+        "family_count",
+        "backward_scenarios",
+        "optimizer_state_scenarios",
+        "max_abs_error",
+        "hbm_reduction",
+        "launch_reduction"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "fused_training_scenarios >= 6",
+        "family_count >= 5",
+        "backward_scenarios >= 4",
+        "optimizer_state_scenarios >= 2",
+        "max_abs_error <= 0.02",
+        "hbm_reduction >= 0.45",
+        "launch_reduction >= 0.45"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "fused_training_scenarios >= 6": true,
+            "family_count >= 5": true,
+            "backward_scenarios >= 4": true,
+            "optimizer_state_scenarios >= 2": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.45": true,
+            "launch_reduction >= 0.45": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "speculative-decoding-serving",
+      "title": "Profile speculative decoding serving scheduler",
+      "host_class": "nvidia-cuda-serving-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "command_count": 7,
+      "commands": [
+        "python3 scripts/run_speculative_decoding_serving.py",
+        "python3 scripts/verify_speculative_decoding_serving.py",
+        "python3 scripts/run_serving_traces.py",
+        "python3 scripts/run_serving_engine_comparison.py",
+        "nsys profile -o speculative-decoding-serving python3 <speculative_serving_probe.py>",
+        "ncu --set full -o speculative-target-verify python3 <target_verify_probe.py>",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id speculative-decoding-serving --execute"
+      ],
+      "expected_evidence": [
+        "speculative-decoding-serving/speculative-decoding-report.json",
+        "speculative-decoding-serving/reports/speculative-decoding-report.md",
+        "site/speculative-decoding-serving.html"
+      ],
+      "required_metrics": [
+        "cuda_available",
+        "speculative_scenarios",
+        "passed_scenarios",
+        "engine_count",
+        "scheduler_policy_count",
+        "min_acceptance_rate",
+        "max_speedup_vs_baseline",
+        "max_wasted_draft_ratio"
+      ],
+      "acceptance_thresholds": [
+        "cuda_available == true",
+        "speculative_scenarios >= 6",
+        "passed_scenarios >= 4",
+        "engine_count >= 4",
+        "scheduler_policy_count >= 2",
+        "min_acceptance_rate < 0.50",
+        "max_speedup_vs_baseline >= 2.0",
+        "max_wasted_draft_ratio > 0.35"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "speculative_scenarios >= 6": true,
+            "passed_scenarios >= 4": true,
+            "engine_count >= 4": true,
+            "scheduler_policy_count >= 2": true,
+            "min_acceptance_rate < 0.50": true,
+            "max_speedup_vs_baseline >= 2.0": true,
+            "max_wasted_draft_ratio > 0.35": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "profiler-capture",
+      "title": "Capture Nsight and rocprof evidence",
+      "host_class": "nvidia-or-amd-profiler",
+      "required_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys",
+        "ncu"
+      ],
+      "command_count": 4,
+      "commands": [
+        "ncu --set full --target-processes all python3 scripts/run_kernel_benchmarks.py",
+        "nsys profile python3 scripts/run_model_integration.py",
+        "python3 scripts/run_profiler_evidence.py",
+        "python3 scripts/verify_profiler_evidence.py"
+      ],
+      "expected_evidence": [
+        "profiler-evidence/reports/profiler-evidence-report.json",
+        "site/profiler-evidence.html"
+      ],
+      "required_metrics": [
+        "ncu",
+        "nsys",
+        "rocprof",
+        "profiler_rows"
+      ],
+      "acceptance_thresholds": [
+        "ncu/nsys or rocprof available",
+        "profiler_rows >= 9"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 0,
+      "failed_measured_rows": 1,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "skipped:missing-profiler-tools",
+          "checks": {
+            "ncu/nsys or rocprof available": false,
+            "profiler_rows >= 9": true
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-failed"
+    },
+    {
+      "step_id": "rocm-hip-port",
+      "title": "Compile ROCm/HIP portability path",
+      "host_class": "amd-rocm",
+      "required_capabilities": [
+        "hipcc",
+        "rocprof"
+      ],
+      "missing_capabilities": [
+        "hipcc",
+        "rocprof"
+      ],
+      "command_count": 3,
+      "commands": [
+        "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
+        "rocprof /tmp/rocm-hip-port",
+        "python3 scripts/verify_gpu_programming_projects.py"
+      ],
+      "expected_evidence": [
+        "programming-projects/rocm-hip-port/kernel.hip.cpp",
+        "programming-projects/rocm-hip-port/measurements.json"
+      ],
+      "required_metrics": [
+        "hipcc",
+        "rocprof",
+        "starter_status"
+      ],
+      "acceptance_thresholds": [
+        "hipcc == true",
+        "rocprof == true",
+        "starter_status == ran"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 0,
+      "failed_measured_rows": 1,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "skipped:missing-hipcc-or-rocprof",
+          "checks": {
+            "hipcc == true": false,
+            "rocprof == true": false,
+            "starter_status == ran": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-failed"
+    },
+    {
+      "step_id": "distributed-collectives",
+      "title": "Run distributed collective tests",
+      "host_class": "multi-gpu",
+      "required_capabilities": [
+        "torchrun",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 7,
+      "commands": [
+        "python3 scripts/run_distributed_collectives.py",
+        "python3 scripts/verify_distributed_collectives.py",
+        "torchrun --nproc_per_node=2 scripts/run_distributed_collectives_benchmark.py",
+        "python3 scripts/verify_distributed_collectives_benchmark.py",
+        "nccl-tests/build/all_reduce_perf -b 8M -e 1G -f 2 -g 1",
+        "rocprof <rccl_collective_benchmark>",
+        "python3 scripts/gpu_workbench.py \"nccl nvshmem all reduce bandwidth\" --run-lab --dry-run"
+      ],
+      "expected_evidence": [
+        "distributed-collectives/distributed-collectives-report.json",
+        "distributed-collectives/reports/distributed-collectives-report.md",
+        "distributed-collectives/reports/collective-benchmark-run.json",
+        "site/distributed-collectives.html",
+        "programming-projects/distributed-collectives/measurements.json",
+        "comprehensive-labs/measurements/comp-lab-07-distributed-collectives.json"
+      ],
+      "required_metrics": [
+        "torchrun",
+        "accelerator_ready",
+        "collective_scenarios",
+        "bandwidth_efficiency",
+        "overlap_gain",
+        "nccl_or_rccl"
+      ],
+      "acceptance_thresholds": [
+        "torchrun == true",
+        "accelerator_ready == true",
+        "collective_scenarios >= 6",
+        "bandwidth_efficiency >= 0.45",
+        "overlap_gain > 0",
+        "nccl_or_rccl == true"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 0,
+      "failed_measured_rows": 1,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "skipped:missing-measured-collective-benchmark",
+          "checks": {
+            "torchrun == true": false,
+            "accelerator_ready == true": true,
+            "collective_scenarios >= 6": true,
+            "bandwidth_efficiency >= 0.45": true,
+            "overlap_gain > 0": true,
+            "nccl_or_rccl == true": true
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-failed"
+    },
+    {
+      "step_id": "distributed-training-optimizer",
+      "title": "Profile distributed training optimizer stacks",
+      "host_class": "multi-gpu-training",
+      "required_capabilities": [
+        "torchrun",
+        "nvidia_smi",
+        "nsys"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi",
+        "nsys"
+      ],
+      "command_count": 4,
+      "commands": [
+        "python3 scripts/run_distributed_training_optimizer.py",
+        "python3 scripts/verify_distributed_training_optimizer.py",
+        "torchrun --nproc_per_node=8 <fsdp_zero_training_step.py>",
+        "nsys profile -o fsdp-zero-step torchrun --nproc_per_node=8 <fsdp_zero_training_step.py>"
+      ],
+      "expected_evidence": [
+        "distributed-training-optimizer/distributed-training-optimizer-report.json",
+        "distributed-training-optimizer/reports/distributed-training-optimizer-report.md",
+        "site/distributed-training-optimizer.html"
+      ],
+      "required_metrics": [
+        "torchrun",
+        "accelerator_ready",
+        "training_optimizer_scenarios",
+        "passed_scenarios",
+        "max_memory_gb_per_gpu",
+        "step_time_ms",
+        "optimizer_state_savings"
+      ],
+      "acceptance_thresholds": [
+        "torchrun == true",
+        "accelerator_ready == true",
+        "training_optimizer_scenarios >= 6",
+        "passed_scenarios >= 4",
+        "max_memory_gb_per_gpu <= 80",
+        "step_time_ms > 0",
+        "optimizer_state_savings > 0"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "torchrun == true": true,
+            "accelerator_ready == true": true,
+            "training_optimizer_scenarios >= 6": true,
+            "passed_scenarios >= 4": true,
+            "max_memory_gb_per_gpu <= 80": true,
+            "step_time_ms > 0": true,
+            "optimizer_state_savings > 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "full-gpu-regression",
+      "title": "Refresh full GPU-host regression ledger",
+      "host_class": "final-gpu-regression",
+      "required_capabilities": [
+        "python",
+        "torch"
+      ],
+      "missing_capabilities": [],
+      "command_count": 6,
+      "commands": [
+        "python3 run_all.py",
+        "python3 scripts/collect_gpu_run.py --run-id <gpu-host-run-id>",
+        "python3 scripts/build_gpu_runs.py",
+        "python3 scripts/verify_gpu_runs.py",
+        "python3 scripts/build_regression_ledger.py",
+        "python3 scripts/verify_regression_ledger.py"
+      ],
+      "expected_evidence": [
+        "regression-ledger/regression-ledger.json",
+        "gpu-runs/gpu-run-report.json",
+        "analysis/end-to-end-audit.json",
+        "runtime-matrix/matrix.json"
+      ],
+      "required_metrics": [
+        "accelerator_ready",
+        "metric_count",
+        "failed_metrics"
+      ],
+      "acceptance_thresholds": [
+        "accelerator_ready == true",
+        "metric_count >= 79",
+        "failed_metrics == 0"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "metric_count >= 79": true,
+            "failed_metrics == 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    }
+  ]
+}

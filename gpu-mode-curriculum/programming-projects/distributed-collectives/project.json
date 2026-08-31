@@ -1,0 +1,737 @@
+{
+  "id": "distributed-collectives",
+  "generated_at": "2026-08-31T01:52:22.850727+00:00",
+  "query": "nccl nvshmem all reduce bandwidth topology",
+  "track": "Distributed communication",
+  "language": "Python collective model plus imported benchmark parser",
+  "profile": "distributed-communication",
+  "label": "Distributed communication / collective bottleneck",
+  "diagnosis": "Suspect collective latency, bandwidth regime, topology, NCCL/NVSHMEM runtime readiness, or lack of multi-device parallelism.",
+  "next_action": "Run gpu-kernels-serving-lab/26-gpumode-distributed-communication and compare its latest artifact against the recommended lessons.",
+  "starter": "starter.py",
+  "measure": "measure.py",
+  "source": "collective_model.py",
+  "tasks": "tasks.json",
+  "local_measurement": "measurements.json",
+  "lessons": [
+    {
+      "index": 1,
+      "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+      "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "tensor cores",
+        "kv cache",
+        "collectives",
+        "compiler lowering"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "simulate prefill/decode KV-cache memory growth",
+        "model all-reduce latency and bandwidth regimes"
+      ],
+      "score": 25
+    },
+    {
+      "index": 101,
+      "title": "Lecture 17: NCCL",
+      "url": "https://www.youtube.com/watch?v=T22e3fgit-A",
+      "topics": [
+        "cuda",
+        "profiling",
+        "hardware",
+        "distributed"
+      ],
+      "concepts": [
+        "collectives",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "model all-reduce latency and bandwidth regimes",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 25
+    },
+    {
+      "index": 57,
+      "title": "Lecture 57: CuTe",
+      "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "tensor cores",
+        "kernel fusion",
+        "autotuning",
+        "collectives",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "model all-reduce latency and bandwidth regimes",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 24
+    },
+    {
+      "index": 90,
+      "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+      "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+      "topics": [
+        "cuda",
+        "triton",
+        "profiling",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "tensor cores",
+        "kernel fusion",
+        "autotuning",
+        "collectives",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "model all-reduce latency and bandwidth regimes",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 24
+    },
+    {
+      "index": 47,
+      "title": "Lecture 67: NCCL and NVSHMEM",
+      "url": "https://www.youtube.com/watch?v=zxGVvMN6WaM",
+      "topics": [
+        "cuda",
+        "profiling",
+        "serving",
+        "hardware",
+        "distributed"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "kernel fusion",
+        "collectives"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "fuse bias, activation, and normalization into one measured path",
+        "model all-reduce latency and bandwidth regimes"
+      ],
+      "score": 21
+    },
+    {
+      "index": 70,
+      "title": "Lecture 46: Distributed GEMM",
+      "url": "https://www.youtube.com/watch?v=NHRTCQBZokg",
+      "topics": [
+        "cuda",
+        "attention",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "tensor cores",
+        "online softmax",
+        "kernel fusion",
+        "autotuning",
+        "collectives",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "model all-reduce latency and bandwidth regimes"
+      ],
+      "score": 21
+    }
+  ],
+  "tutorial_sources": [
+    {
+      "id": "jax-scaling-roofline",
+      "provider": "JAX Scaling Book",
+      "title": "All About Rooflines",
+      "url": "https://jax-ml.github.io/scaling-book/roofline/",
+      "focus_terms": [
+        "roofline",
+        "flops",
+        "memory bandwidth",
+        "communication",
+        "compute",
+        "latency"
+      ],
+      "why": "Use this as the math lens for deciding whether compute, memory, or communication dominates an LLM workload.",
+      "score": 12
+    },
+    {
+      "id": "jax-scaling-training",
+      "provider": "JAX Scaling Book",
+      "title": "How to Parallelize a Transformer for Training",
+      "url": "https://jax-ml.github.io/scaling-book/training/",
+      "focus_terms": [
+        "parallelism",
+        "training",
+        "data parallel",
+        "tensor parallel",
+        "pipeline",
+        "communication"
+      ],
+      "why": "Use this to connect local collectives and compiler behavior to large-model sharding choices.",
+      "score": 12
+    },
+    {
+      "id": "hf-tgi-overview",
+      "provider": "Hugging Face",
+      "title": "Text Generation Inference Documentation",
+      "url": "https://huggingface.co/docs/text-generation-inference/index",
+      "focus_terms": [
+        "text generation inference",
+        "tgi",
+        "serving",
+        "continuous batching",
+        "streaming"
+      ],
+      "why": "Use this as the production serving counterpart to the local scheduler, KV-cache, and collective-latency labs.",
+      "score": 11
+    },
+    {
+      "id": "jax-scaling-programming",
+      "provider": "JAX Scaling Book",
+      "title": "Programming TPUs in JAX",
+      "url": "https://jax-ml.github.io/scaling-book/jax-stuff/",
+      "focus_terms": [
+        "jax",
+        "jit",
+        "sharding",
+        "xla",
+        "parallelism",
+        "profiling"
+      ],
+      "why": "Use this to compare JAX/XLA programming patterns with PyTorch compiler and distributed-runtime labs.",
+      "score": 11
+    },
+    {
+      "id": "rocm-hip-docs",
+      "provider": "AMD ROCm",
+      "title": "HIP Documentation",
+      "url": "https://rocm.docs.amd.com/projects/HIP/en/latest/",
+      "focus_terms": [
+        "hip",
+        "rocm",
+        "amd",
+        "cuda portability",
+        "kernel programming",
+        "runtime api"
+      ],
+      "why": "Use this as the official HIP reference for porting CUDA-shaped kernels to AMD GPUs.",
+      "score": 10
+    },
+    {
+      "id": "jax-scaling-gpus",
+      "provider": "JAX Scaling Book",
+      "title": "How to Think About GPUs",
+      "url": "https://jax-ml.github.io/scaling-book/gpus/",
+      "focus_terms": [
+        "gpu",
+        "hbm",
+        "sm",
+        "tensor cores",
+        "network",
+        "nvidia",
+        "memory"
+      ],
+      "why": "Use this as the hardware mental model for SMs, HBM, Tensor Cores, and GPU interconnects.",
+      "score": 10
+    }
+  ],
+  "papers": [
+    {
+      "id": "hpca-2025-058",
+      "title": "TidalMesh: Topology-Driven AllReduce Collective Communication for Mesh Topology",
+      "venue": "HPCA",
+      "theme": "topology-native AllReduce algorithm for 2D mesh scale-out interconnects",
+      "confidence": "low",
+      "path": "analysis/per-paper/hpca-2025-058.json",
+      "linked_lessons": [
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "achieving",
+            "bandwidth",
+            "distributed",
+            "every",
+            "gpu"
+          ],
+          "score": 27
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed"
+          ],
+          "score": 24
+        },
+        {
+          "index": 90,
+          "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+          "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed"
+          ],
+          "score": 24
+        }
+      ],
+      "score": 9
+    },
+    {
+      "id": "hpca-2025-024",
+      "title": "Enhancing Large-Scale AI Training Efficiency: The C4 Solution for Real-Time Anomaly Detection and Communication Optimization",
+      "venue": "HPCA",
+      "theme": "Collective-communication-driven fault detection and traffic optimization for distributed LLM training",
+      "confidence": "low",
+      "path": "analysis/per-paper/hpca-2025-024.json",
+      "linked_lessons": [
+        {
+          "index": 90,
+          "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+          "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "hardware",
+            "llm",
+            "training"
+          ],
+          "score": 27
+        },
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "gpu",
+            "hardware"
+          ],
+          "score": 26
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "hardware"
+          ],
+          "score": 25
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "asplos-2025-028",
+      "title": "Concerto: Automatic Communication Optimization and Scheduling for Large-Scale Deep Learning",
+      "venue": "ASPLOS",
+      "theme": "Automatic computation-communication overlap scheduling for distributed DL training",
+      "confidence": "low",
+      "path": "analysis/per-paper/asplos-2025-028.json",
+      "linked_lessons": [
+        {
+          "index": 90,
+          "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+          "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "all-reduce",
+            "bottleneck",
+            "compiler",
+            "configuration",
+            "distributed",
+            "training"
+          ],
+          "score": 28
+        },
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "all-reduce",
+            "compiler",
+            "distributed",
+            "gpu"
+          ],
+          "score": 26
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "all-reduce",
+            "bottleneck",
+            "configuration",
+            "distributed"
+          ],
+          "score": 26
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "hotchips-2025-021",
+      "title": "UB-mesh: An New Interconnection Technology for Large AI SuperNode",
+      "venue": "HOTCHIPS",
+      "theme": "Custom mesh interconnect for AI GPU clusters",
+      "confidence": "low",
+      "path": "analysis/per-paper/hotchips-2025-021.json",
+      "linked_lessons": [
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "gpu",
+            "latency"
+          ],
+          "score": 26
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "latency"
+          ],
+          "score": 25
+        },
+        {
+          "index": 90,
+          "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+          "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bandwidth",
+            "distributed",
+            "latency"
+          ],
+          "score": 25
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "hpca-2025-017",
+      "title": "Mithril: A Scalable System for Deep GNN Training",
+      "venue": "HPCA",
+      "theme": "Layer-level model parallelism for scalable deep GNN distributed training",
+      "confidence": "low",
+      "path": "analysis/per-paper/hpca-2025-017.json",
+      "linked_lessons": [
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "distributed",
+            "gpu"
+          ],
+          "score": 24
+        },
+        {
+          "index": 90,
+          "title": "Lecture 28: Liger Kernel - Efficient Triton Kernels for LLM Training",
+          "url": "https://www.youtube.com/watch?v=gWble4FreV4",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "distributed",
+            "training"
+          ],
+          "score": 24
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "distributed"
+          ],
+          "score": 23
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "isca-2025-130",
+      "title": "Insights into DeepSeek-V3: Scaling Challenges and Reflections on Hardware for AI Architectures",
+      "venue": "ISCA",
+      "theme": "Hardware-software co-design analysis of a production 671B MoE LLM system with hardware architecture recommendations",
+      "confidence": "high",
+      "path": "analysis/per-paper/isca-2025-130.json",
+      "linked_lessons": [
+        {
+          "index": 1,
+          "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+          "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "achieving",
+            "attention",
+            "bandwidth",
+            "cache",
+            "gpu",
+            "hardware",
+            "kv-cache",
+            "memory"
+          ],
+          "score": 32
+        },
+        {
+          "index": 53,
+          "title": "Lecture 61: D-Matrix Corsair",
+          "url": "https://www.youtube.com/watch?v=xJ_VYUDAJZw",
+          "matched_topics": [
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "kv cache"
+          ],
+          "matched_terms": [
+            "attention",
+            "bandwidth",
+            "cache",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "quantization",
+            "serving"
+          ],
+          "score": 27
+        },
+        {
+          "index": 57,
+          "title": "Lecture 57: CuTe",
+          "url": "https://www.youtube.com/watch?v=vzUhbDO_0qk",
+          "matched_topics": [
+            "distributed",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "collectives",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "bandwidth",
+            "hardware",
+            "memory",
+            "tensor"
+          ],
+          "score": 27
+        }
+      ],
+      "score": 7
+    }
+  ],
+  "lab": {
+    "id": "gpumode-lab-12-distributed-communication",
+    "title": "Distributed communication and collectives workbench",
+    "path": "gpu-kernels-serving-lab/26-gpumode-distributed-communication",
+    "command": "cd ../gpu-kernels-serving-lab/26-gpumode-distributed-communication && python3 run.py && python3 build_page.py"
+  },
+  "measurement": {
+    "path": "26-gpumode-distributed-communication/out_gpumode_distributed_communication.json",
+    "summary": "Imported 6 collective benchmark rows from 2 tool family/families; compare best bus bandwidth against the modeled topology rows. Best imported rows: nccl-tests 52.76 GB/s at 134217728 bytes, nvshmem 34.86 GB/s at 134217728 bytes."
+  }
+}

@@ -1,0 +1,249 @@
+{
+  "generated_at": "2026-08-31T01:52:59.339469+00:00",
+  "status": "tensor-core-gemm-ready",
+  "scenario_count": 5,
+  "passed_scenarios": 5,
+  "tensor_core_eligible_scenarios": 5,
+  "fused_epilogue_scenarios": 5,
+  "source_reports": [
+    "kernel-benchmarks/reports/kernel-benchmark-report.json",
+    "compiler-runtime-inspection/compiler-runtime-report.json",
+    "autotune-db/autotune-db.json",
+    "quantization-memory-formats/quantization-report.json",
+    "numerical-reproducibility/numerical-reproducibility-report.json"
+  ],
+  "source_facts": {
+    "kernel_benchmarks": 14,
+    "compiler_sources": 13,
+    "autotune_records": 18,
+    "quantization_formats": 7,
+    "numerical_scenarios": 5
+  },
+  "scenarios": [
+    {
+      "scenario_id": "bf16-mlp-up-projection",
+      "status": "passed",
+      "shape": {
+        "m": 4096,
+        "n": 11008,
+        "k": 4096,
+        "dtype": "bf16",
+        "bytes_per_operand": 2
+      },
+      "cta_tile": {
+        "m": 128,
+        "n": 128,
+        "k": 64
+      },
+      "warp_tile": {
+        "m": 64,
+        "n": 64,
+        "k": 64
+      },
+      "mma_shape": {
+        "m": 16,
+        "n": 8,
+        "k": 16
+      },
+      "pipeline_stages": 3,
+      "epilogue": "bias-gelu",
+      "epilogue_fused": true,
+      "tile_count": 176128,
+      "shared_memory_bytes": 98304,
+      "register_pressure_proxy": 264,
+      "tensor_core_eligible": true,
+      "occupancy_proxy": 0.8702,
+      "arithmetic_intensity": 1214.6759,
+      "promotion_notes": [
+        "Map this CTA/warp/MMA hierarchy to CUTLASS or CuTe layouts on GPU host.",
+        "Inspect generated SASS for mma instructions and epilogue fusion.",
+        "Compare against cuBLAS and Triton matmul for the same shape."
+      ]
+    },
+    {
+      "scenario_id": "fp16-attention-qkv",
+      "status": "passed",
+      "shape": {
+        "m": 8192,
+        "n": 3072,
+        "k": 4096,
+        "dtype": "fp16",
+        "bytes_per_operand": 2
+      },
+      "cta_tile": {
+        "m": 128,
+        "n": 128,
+        "k": 64
+      },
+      "warp_tile": {
+        "m": 64,
+        "n": 64,
+        "k": 64
+      },
+      "mma_shape": {
+        "m": 16,
+        "n": 8,
+        "k": 16
+      },
+      "pipeline_stages": 3,
+      "epilogue": "bias",
+      "epilogue_fused": true,
+      "tile_count": 98304,
+      "shared_memory_bytes": 98304,
+      "register_pressure_proxy": 260,
+      "tensor_core_eligible": true,
+      "occupancy_proxy": 0.8713,
+      "arithmetic_intensity": 1068.5217,
+      "promotion_notes": [
+        "Map this CTA/warp/MMA hierarchy to CUTLASS or CuTe layouts on GPU host.",
+        "Inspect generated SASS for mma instructions and epilogue fusion.",
+        "Compare against cuBLAS and Triton matmul for the same shape."
+      ]
+    },
+    {
+      "scenario_id": "int8-weight-only-decode",
+      "status": "passed",
+      "shape": {
+        "m": 256,
+        "n": 4096,
+        "k": 4096,
+        "dtype": "int8",
+        "bytes_per_operand": 1
+      },
+      "cta_tile": {
+        "m": 64,
+        "n": 128,
+        "k": 64
+      },
+      "warp_tile": {
+        "m": 32,
+        "n": 64,
+        "k": 64
+      },
+      "mma_shape": {
+        "m": 16,
+        "n": 8,
+        "k": 32
+      },
+      "pipeline_stages": 4,
+      "epilogue": "dequant-bias",
+      "epilogue_fused": true,
+      "tile_count": 8192,
+      "shared_memory_bytes": 49152,
+      "register_pressure_proxy": 168,
+      "tensor_core_eligible": true,
+      "occupancy_proxy": 0.9118,
+      "arithmetic_intensity": 390.0952,
+      "promotion_notes": [
+        "Map this CTA/warp/MMA hierarchy to CUTLASS or CuTe layouts on GPU host.",
+        "Inspect generated SASS for mma instructions and epilogue fusion.",
+        "Compare against cuBLAS and Triton matmul for the same shape."
+      ]
+    },
+    {
+      "scenario_id": "fp8-training-gemm",
+      "status": "passed",
+      "shape": {
+        "m": 4096,
+        "n": 4096,
+        "k": 4096,
+        "dtype": "fp8",
+        "bytes_per_operand": 1
+      },
+      "cta_tile": {
+        "m": 128,
+        "n": 128,
+        "k": 128
+      },
+      "warp_tile": {
+        "m": 64,
+        "n": 64,
+        "k": 64
+      },
+      "mma_shape": {
+        "m": 16,
+        "n": 8,
+        "k": 32
+      },
+      "pipeline_stages": 4,
+      "epilogue": "amax-scale",
+      "epilogue_fused": true,
+      "tile_count": 32768,
+      "shared_memory_bytes": 131072,
+      "register_pressure_proxy": 264,
+      "tensor_core_eligible": true,
+      "occupancy_proxy": 0.8702,
+      "arithmetic_intensity": 1365.3333,
+      "promotion_notes": [
+        "Map this CTA/warp/MMA hierarchy to CUTLASS or CuTe layouts on GPU host.",
+        "Inspect generated SASS for mma instructions and epilogue fusion.",
+        "Compare against cuBLAS and Triton matmul for the same shape."
+      ]
+    },
+    {
+      "scenario_id": "small-batch-lora",
+      "status": "passed",
+      "shape": {
+        "m": 64,
+        "n": 4096,
+        "k": 512,
+        "dtype": "bf16",
+        "bytes_per_operand": 2
+      },
+      "cta_tile": {
+        "m": 64,
+        "n": 64,
+        "k": 64
+      },
+      "warp_tile": {
+        "m": 32,
+        "n": 32,
+        "k": 64
+      },
+      "mma_shape": {
+        "m": 16,
+        "n": 8,
+        "k": 16
+      },
+      "pipeline_stages": 2,
+      "epilogue": "residual-add",
+      "epilogue_fused": true,
+      "tile_count": 512,
+      "shared_memory_bytes": 32768,
+      "register_pressure_proxy": 100,
+      "tensor_core_eligible": true,
+      "occupancy_proxy": 0.9895,
+      "arithmetic_intensity": 50.5679,
+      "promotion_notes": [
+        "Map this CTA/warp/MMA hierarchy to CUTLASS or CuTe layouts on GPU host.",
+        "Inspect generated SASS for mma instructions and epilogue fusion.",
+        "Compare against cuBLAS and Triton matmul for the same shape."
+      ]
+    }
+  ],
+  "recommendations": [
+    "Teach GEMM as CTA tile, warp tile, MMA instruction shape, pipeline stage count, and epilogue as one design object.",
+    "Treat quantized GEMM as a memory-format and epilogue problem, not just a smaller dtype.",
+    "Use CuTe/CUTLASS layout reasoning before writing handwritten inline PTX or WMMA fragments.",
+    "Promote with cuBLAS, CUTLASS/CuTe, Triton, Nsight Compute, and numerical drift evidence on a GPU host."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "cutlass-build",
+      "cute-layout-check",
+      "tensor-core-sass",
+      "cublas-baseline",
+      "triton-baseline"
+    ],
+    "commands": [
+      "python3 scripts/run_gpu_host_preflight.py",
+      "python3 scripts/run_tensor_core_gemm.py",
+      "python3 scripts/verify_tensor_core_gemm.py",
+      "ncu --set full -o tensor-core-gemm python3 <cutlass_gemm_probe.py>",
+      "cuobjdump --dump-sass <cutlass_gemm_binary> | rg -i 'mma|wgmma'",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id tensor-core-gemm --execute"
+    ],
+    "note": "Local planner validates GEMM design constraints; final acceptance needs real CUTLASS/CuTe build, profiler counters, and cuBLAS/Triton comparisons."
+  }
+}

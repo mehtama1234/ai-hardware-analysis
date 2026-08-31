@@ -1,0 +1,47 @@
+<meta charset="utf-8">
+<title>GPUMODE Distributed Collectives</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated collective communication lab</div>
+  <h1>GPUMODE distributed collectives.</h1>
+  <p class="dek">Algorithm-level all-reduce, reduce-scatter, all-gather, all-to-all,
+  and broadcast planning across NCCL, RCCL, NVSHMEM, topology bandwidth, latency,
+  communication overlap, and GPU-host promotion requirements.</p>
+  <div class="grid">
+    <div class="card"><h2>6</h2><p>scenarios</p></div>
+    <div class="card"><h2>6</h2><p>passing scenarios</p></div>
+    <div class="card"><h2>5</h2><p>collective families</p></div>
+    <div class="card"><h2>skipped:missing-accelerator</h2><p>local benchmark artifact</p></div>
+    <div class="card"><h2><a href="../distributed-collectives/reports/distributed-collectives-report.md">Report</a></h2><p>Markdown collectives report</p></div>
+  </div>
+
+  <section>
+    <h2>Collective Scenarios</h2>
+    <table><tr><th>scenario</th><th>collective</th><th>algorithm</th><th>ranks</th><th>backend</th><th>exposed ms</th><th>efficiency</th><th>overlap gain</th><th>status</th></tr><tr><td>dp-grad-all-reduce-nvlink</td><td>all-reduce</td><td>ring</td><td>8</td><td>nccl</td><td>0.0</td><td>0.555797</td><td>0.214422</td><td>passed</td></tr>
+<tr><td>tp-activation-all-gather</td><td>all-gather</td><td>ring</td><td>4</td><td>nccl</td><td>0.0</td><td>1.273632</td><td>0.13215</td><td>passed</td></tr>
+<tr><td>zero-reduce-scatter-pcie</td><td>reduce-scatter</td><td>ring</td><td>4</td><td>nccl</td><td>3.627</td><td>1.329345</td><td>0.256813</td><td>passed</td></tr>
+<tr><td>moe-expert-all-to-all-ib</td><td>all-to-all</td><td>pairwise</td><td>16</td><td>nccl/nvshmem</td><td>0.0</td><td>0.980843</td><td>0.191771</td><td>passed</td></tr>
+<tr><td>small-control-broadcast</td><td>broadcast</td><td>tree</td><td>8</td><td>nccl</td><td>0.012</td><td>0.769231</td><td>0.088496</td><td>passed</td></tr>
+<tr><td>amd-rccl-grad-all-reduce</td><td>all-reduce</td><td>ring</td><td>8</td><td>rccl</td><td>0.0</td><td>0.552438</td><td>0.278586</td><td>passed</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Benchmark Artifact</h2>
+    <p class="small">Run on a GPU host with: <code>torchrun --nproc_per_node=2 scripts/run_distributed_collectives_benchmark.py</code></p>
+    <table><tr><th>collective</th><th>status</th><th>bytes/rank</th><th>mean ms</th><th>bus GB/s</th><th>reason</th></tr><tr><td colspan="6">No measured benchmark rows on this host.</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

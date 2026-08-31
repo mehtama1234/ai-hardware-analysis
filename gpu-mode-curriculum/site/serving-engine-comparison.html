@@ -1,0 +1,67 @@
+<meta charset="utf-8">
+<title>GPUMODE Serving Engine Comparison</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated production inference lab</div>
+  <h1>GPUMODE serving engine comparison.</h1>
+  <p class="dek">Scenario-weighted comparison of vLLM, Hugging Face TGI, SGLang,
+  TensorRT-LLM, and HF Transformers baseline using the local serving trace replay metrics.</p>
+  <div class="grid">
+    <div class="card"><h2>5</h2><p>engines compared</p></div>
+    <div class="card"><h2>5</h2><p>production scenarios</p></div>
+    <div class="card"><h2>comparison-ready</h2><p>comparison status</p></div>
+    <div class="card"><h2><a href="../serving-engine-comparison/reports/serving-engine-comparison.md">Report</a></h2><p>Markdown comparison</p></div>
+  </div>
+
+  <section>
+    <h2>Scenario Recommendations</h2>
+    <table><tr><th>scenario</th><th>recommended</th><th>runner up</th><th>why</th></tr><tr><td>interactive-chat</td><td>tensorrt-llm</td><td>vllm</td><td>TensorRT-LLM balances low TTFT with enough throughput for request/response latency.</td></tr>
+<tr><td>long-context-rag</td><td>vllm</td><td>tensorrt-llm</td><td>vLLM wins on KV-cache pressure and long-context memory efficiency.</td></tr>
+<tr><td>mixed-prefill-decode</td><td>vllm</td><td>tensorrt-llm</td><td>vLLM has the best weighted score for mixed prefill/decode traffic.</td></tr>
+<tr><td>offline-throughput</td><td>tensorrt-llm</td><td>vllm</td><td>TensorRT-LLM prioritizes output-token throughput over interactive latency.</td></tr>
+<tr><td>portable-amd-nvidia</td><td>vllm</td><td>tgi</td><td>vLLM has the strongest cross-vendor and operations-weighted score.</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Engine Scores</h2>
+    <table><tr><th>scenario</th><th>engine</th><th>score</th><th>tok/s</th><th>p50 TTFT</th><th>peak KV</th><th>features</th></tr><tr><td>interactive-chat</td><td>TensorRT-LLM</td><td>0.889</td><td>2230.5829</td><td>1.5593</td><td>13.26</td><td>engine-build, tensor-parallel, fp8, inflight-batching</td></tr>
+<tr><td>interactive-chat</td><td>vLLM</td><td>0.8821</td><td>1994.0059</td><td>1.7495</td><td>13.94</td><td>paged-attention, continuous-batching, prefix-cache, openai-api</td></tr>
+<tr><td>interactive-chat</td><td>SGLang</td><td>0.8631</td><td>1926.4125</td><td>1.6734</td><td>14.62</td><td>radix-cache, structured-output, speculative-decoding, continuous-batching</td></tr>
+<tr><td>interactive-chat</td><td>Hugging Face TGI</td><td>0.8399</td><td>1825.0223</td><td>1.9396</td><td>15.3</td><td>continuous-batching, hf-hub, tensor-parallel, quantization</td></tr>
+<tr><td>interactive-chat</td><td>HF Transformers Baseline</td><td>0.6831</td><td>1047.698</td><td>2.2819</td><td>19.04</td><td>hf-hub, eager-debugging, torch-compile-option, quantization-baseline</td></tr>
+<tr><td>long-context-rag</td><td>vLLM</td><td>0.8884</td><td>2661.8947</td><td>19.6006</td><td>345.22</td><td>paged-attention, continuous-batching, prefix-cache, openai-api</td></tr>
+<tr><td>long-context-rag</td><td>TensorRT-LLM</td><td>0.862</td><td>2977.7128</td><td>17.4701</td><td>328.38</td><td>engine-build, tensor-parallel, fp8, inflight-batching</td></tr>
+<tr><td>long-context-rag</td><td>Hugging Face TGI</td><td>0.8546</td><td>2436.3104</td><td>21.7311</td><td>378.9</td><td>continuous-batching, hf-hub, tensor-parallel, quantization</td></tr>
+<tr><td>long-context-rag</td><td>SGLang</td><td>0.8489</td><td>2571.661</td><td>18.7484</td><td>362.06</td><td>radix-cache, structured-output, speculative-decoding, continuous-batching</td></tr>
+<tr><td>long-context-rag</td><td>HF Transformers Baseline</td><td>0.7072</td><td>1398.6227</td><td>25.566</td><td>471.52</td><td>hf-hub, eager-debugging, torch-compile-option, quantization-baseline</td></tr>
+<tr><td>mixed-prefill-decode</td><td>vLLM</td><td>0.8797</td><td>3784.9922</td><td>7.0766</td><td>103.32</td><td>paged-attention, continuous-batching, prefix-cache, openai-api</td></tr>
+<tr><td>mixed-prefill-decode</td><td>TensorRT-LLM</td><td>0.862</td><td>4234.0591</td><td>6.3074</td><td>98.28</td><td>engine-build, tensor-parallel, fp8, inflight-batching</td></tr>
+<tr><td>mixed-prefill-decode</td><td>Hugging Face TGI</td><td>0.8466</td><td>3464.2301</td><td>7.8458</td><td>113.4</td><td>continuous-batching, hf-hub, tensor-parallel, quantization</td></tr>
+<tr><td>mixed-prefill-decode</td><td>SGLang</td><td>0.8458</td><td>3656.6874</td><td>6.769</td><td>108.36</td><td>radix-cache, structured-output, speculative-decoding, continuous-batching</td></tr>
+<tr><td>mixed-prefill-decode</td><td>HF Transformers Baseline</td><td>0.6839</td><td>1988.7247</td><td>9.2304</td><td>141.12</td><td>hf-hub, eager-debugging, torch-compile-option, quantization-baseline</td></tr>
+<tr><td>offline-throughput</td><td>TensorRT-LLM</td><td>0.889</td><td>4234.0591</td><td>6.3074</td><td>98.28</td><td>engine-build, tensor-parallel, fp8, inflight-batching</td></tr>
+<tr><td>offline-throughput</td><td>vLLM</td><td>0.8858</td><td>3784.9922</td><td>7.0766</td><td>103.32</td><td>paged-attention, continuous-batching, prefix-cache, openai-api</td></tr>
+<tr><td>offline-throughput</td><td>Hugging Face TGI</td><td>0.8466</td><td>3464.2301</td><td>7.8458</td><td>113.4</td><td>continuous-batching, hf-hub, tensor-parallel, quantization</td></tr>
+<tr><td>offline-throughput</td><td>SGLang</td><td>0.8448</td><td>3656.6874</td><td>6.769</td><td>108.36</td><td>radix-cache, structured-output, speculative-decoding, continuous-batching</td></tr>
+<tr><td>offline-throughput</td><td>HF Transformers Baseline</td><td>0.6303</td><td>1988.7247</td><td>9.2304</td><td>141.12</td><td>hf-hub, eager-debugging, torch-compile-option, quantization-baseline</td></tr>
+<tr><td>portable-amd-nvidia</td><td>vLLM</td><td>0.8602</td><td>2661.8947</td><td>19.6006</td><td>345.22</td><td>paged-attention, continuous-batching, prefix-cache, openai-api</td></tr>
+<tr><td>portable-amd-nvidia</td><td>Hugging Face TGI</td><td>0.8594</td><td>2436.3104</td><td>21.7311</td><td>378.9</td><td>continuous-batching, hf-hub, tensor-parallel, quantization</td></tr>
+<tr><td>portable-amd-nvidia</td><td>SGLang</td><td>0.8073</td><td>2571.661</td><td>18.7484</td><td>362.06</td><td>radix-cache, structured-output, speculative-decoding, continuous-batching</td></tr>
+<tr><td>portable-amd-nvidia</td><td>TensorRT-LLM</td><td>0.762</td><td>2977.7128</td><td>17.4701</td><td>328.38</td><td>engine-build, tensor-parallel, fp8, inflight-batching</td></tr>
+<tr><td>portable-amd-nvidia</td><td>HF Transformers Baseline</td><td>0.7476</td><td>1398.6227</td><td>25.566</td><td>471.52</td><td>hf-hub, eager-debugging, torch-compile-option, quantization-baseline</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

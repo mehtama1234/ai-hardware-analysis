@@ -1,0 +1,521 @@
+{
+  "session": "23-gpumode-shared-memory-gemm",
+  "timestamp": "2026-08-30T07:17:09.373193+00:00",
+  "inventory": {
+    "session": "23-gpumode-shared-memory-gemm",
+    "timestamp": "2026-08-30T07:17:09.373242+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "source": {
+    "gpumode_lab_id": "gpumode-lab-09-shared-memory-gemm",
+    "gpumode_lessons": [
+      {
+        "index": 1,
+        "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+        "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "tensor cores",
+          "kv cache",
+          "collectives",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "simulate prefill/decode KV-cache memory growth",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 2,
+        "title": "Lecture 112: Production Megakernels for Real-World Inference",
+        "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+        "topics": [
+          "cuda",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 3,
+        "title": "Lecture 111: Spectral Compute: Compile CUDA everywhere",
+        "url": "https://www.youtube.com/watch?v=eujKd0lHegA",
+        "topics": [
+          "cuda",
+          "profiling",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction"
+        ]
+      },
+      {
+        "index": 4,
+        "title": "Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL",
+        "url": "https://www.youtube.com/watch?v=wiaUh82NEoE",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 5,
+        "title": "Lecture 109: TIRx",
+        "url": "https://www.youtube.com/watch?v=nXRsasT1jIk",
+        "topics": [
+          "cuda",
+          "triton",
+          "attention",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 8,
+        "title": "Lecture 106: Hugging Face Kernels",
+        "url": "https://www.youtube.com/watch?v=Ok8vi6JemVQ",
+        "topics": [
+          "cuda",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "online softmax",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 9,
+        "title": "Lecture 105: cuDNN mxfp8 attention",
+        "url": "https://www.youtube.com/watch?v=HcnybHRbTcc",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 10,
+        "title": "Lecture 104: Gluon and Linear Layouts",
+        "url": "https://www.youtube.com/watch?v=oYs_qtuk2Pg",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kernel fusion",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "fuse bias, activation, and normalization into one measured path",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 11,
+        "title": "Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation",
+        "url": "https://www.youtube.com/watch?v=MVh_guNbWMA",
+        "topics": [
+          "cuda",
+          "attention",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "autotuning",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 12,
+        "title": "Lecture 102: quartet v2",
+        "url": "https://www.youtube.com/watch?v=E0G3hf4DneA",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 13,
+        "title": "Lecture 101: Learning CUTLASS the hard way",
+        "url": "https://www.youtube.com/watch?v=jGouxuAHIfQ",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 15,
+        "title": "Lecture 99: Distributed ML on consumer devices",
+        "url": "https://www.youtube.com/watch?v=sV0PJC1dOmM",
+        "topics": [
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "occupancy",
+          "tensor cores",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics"
+        ],
+        "exercise_candidates": [
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 16,
+        "title": "Lecture 98: GPU Observability",
+        "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 17,
+        "title": "Lecture 97: HipKittens",
+        "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+        "topics": [
+          "cuda",
+          "triton",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      }
+    ],
+    "extends": "04-cuda-tiled-matmul, 15-gpumode-coalescing, 17-gpumode-triton-autotune, and 22-gpumode-nsight-roofline"
+  },
+  "shared_memory_gemm": {
+    "status": "ran",
+    "shape": [
+      32,
+      32,
+      32
+    ],
+    "tile": 8,
+    "rows": [
+      {
+        "path": "naive_cpu_loop",
+        "seconds": 0.366288,
+        "gflops": 0.0002,
+        "max_abs_error": 3e-06,
+        "purpose": "Readable baseline matching one CUDA thread per output element."
+      },
+      {
+        "path": "tiled_cpu_proxy",
+        "seconds": 0.00134,
+        "gflops": 0.0489,
+        "max_abs_error": 4e-06,
+        "purpose": "Shows tile reuse and accumulation shape before moving to shared memory."
+      },
+      {
+        "path": "torch_matmul_reference",
+        "seconds": 7e-06,
+        "gflops": 8.876,
+        "max_abs_error": 0.0,
+        "purpose": "Vendor/library-style reference for correctness and scale contrast."
+      }
+    ],
+    "traffic_model": {
+      "shape": [
+        32,
+        32,
+        32
+      ],
+      "tile": 8,
+      "flops": 65536,
+      "naive_global_load_elements": 65536,
+      "tiled_global_load_elements_upper_bound": 8192,
+      "naive_bytes": 266240,
+      "tiled_bytes_upper_bound": 36864,
+      "modeled_global_memory_reduction_pct": 86.154,
+      "naive_arithmetic_intensity_flop_per_byte": 0.2462,
+      "tiled_arithmetic_intensity_flop_per_byte": 1.7778
+    },
+    "tiled_vs_naive_speedup": 273.2653,
+    "finding": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
+  },
+  "cuda": {
+    "status": "skipped",
+    "reason": "nvcc not found on PATH",
+    "source": "shared_memory_gemm.cu",
+    "boundary": "CUDA source is present, but compiling/running requires the NVIDIA CUDA toolkit and a visible CUDA device."
+  },
+  "correctness": {
+    "status": "passed",
+    "checks": {
+      "cpu_proxy_ran": true,
+      "all_cpu_paths_finite": true,
+      "naive_correct": true,
+      "tiled_correct": true,
+      "modeled_traffic_reduction": true,
+      "cuda_path_classified": true
+    }
+  },
+  "boundary": "This lab focuses on the shared-memory GEMM idea that sits between naive CUDA matmul and CUTLASS/Tensor Core kernels. Local CPU proxy numbers prove correctness and reuse math; CUDA timing is recorded only when the machine can compile and run it."
+}

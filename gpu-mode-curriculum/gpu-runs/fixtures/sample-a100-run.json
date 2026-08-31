@@ -1,0 +1,72 @@
+{
+  "run_id": "sample-a100-gpu-run",
+  "generated_at": "2026-08-30T00:00:00+00:00",
+  "provenance": {
+    "kind": "sample-fixture",
+    "measured": false,
+    "description": "Synthetic NVIDIA-shaped example for schema and verifier coverage."
+  },
+  "host": {
+    "name": "gpu-host-a100-reference",
+    "accelerator": "NVIDIA A100",
+    "vendor": "NVIDIA",
+    "driver": "sample",
+    "cuda": "12.x"
+  },
+  "promotion_steps": [
+    {
+      "id": "cuda-kernel-compile",
+      "status": "passed",
+      "evidence": ["kernel-benchmarks/reports/kernel-benchmark-report.json"],
+      "metrics": {"torch_device": "cuda", "compiled_cuda_sources": 4}
+    },
+    {
+      "id": "triton-kernel-sweep",
+      "status": "passed",
+      "evidence": ["kernel-benchmarks/reports/kernel-benchmark-report.json", "autotune-db/autotune-db.json"],
+      "metrics": {"median_speedup_vs_cpu": 18.6, "triton_cases": 4}
+    },
+    {
+      "id": "torch-custom-extension",
+      "status": "passed",
+      "evidence": ["custom-ops/reports/custom-op-report.json"],
+      "metrics": {"compiled_extension_status": "cuda-ready", "max_abs_error": 0.00003}
+    },
+    {
+      "id": "model-integration-gpu",
+      "status": "passed",
+      "evidence": ["model-integration/reports/tiny-transformer-report.json"],
+      "metrics": {"tokens_per_second": 182000.0, "max_abs_error": 0.00008}
+    },
+    {
+      "id": "vllm-serving-trace",
+      "status": "passed",
+      "evidence": ["serving-traces/reports/serving-trace-report.json"],
+      "metrics": {"throughput_tokens_per_second": 6400.0, "p50_ttft_ms": 32.4, "prefix_cache_blocks_saved": 642}
+    },
+    {
+      "id": "profiler-capture",
+      "status": "passed",
+      "evidence": ["profiler-evidence/reports/profiler-evidence-report.json"],
+      "metrics": {"nsight_compute_rows": 12, "nsight_systems_rows": 8}
+    },
+    {
+      "id": "distributed-collectives",
+      "status": "passed",
+      "evidence": ["distributed-collectives/reports/collective-benchmark-run.json", "distributed-collectives/distributed-collectives-report.json"],
+      "metrics": {"torchrun": true, "accelerator_ready": true, "collective_scenarios": 6, "collective_count": 5, "measured_collectives": 5, "bandwidth_efficiency": 0.78, "overlap_gain": 0.16, "best_bus_gbps": 138.2, "nccl_or_rccl": true, "backend": "nccl"}
+    },
+    {
+      "id": "distributed-training-optimizer",
+      "status": "passed",
+      "evidence": ["distributed-training-optimizer/distributed-training-optimizer-report.json"],
+      "metrics": {"torchrun": true, "accelerator_ready": true, "training_optimizer_scenarios": 6, "passed_scenarios": 5, "max_memory_gb_per_gpu": 70.51, "step_time_ms": 930.0, "optimizer_state_savings": 0.92}
+    },
+    {
+      "id": "full-gpu-regression",
+      "status": "passed",
+      "evidence": ["regression-ledger/regression-ledger.json"],
+      "metrics": {"failed_metrics": 0, "metric_count": 79}
+    }
+  ]
+}

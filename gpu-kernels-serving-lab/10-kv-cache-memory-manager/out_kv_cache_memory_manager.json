@@ -1,0 +1,126 @@
+{
+  "session": "10-kv-cache-memory-manager",
+  "timestamp": "2026-08-30T07:16:06.213718+00:00",
+  "inventory": {
+    "session": "10-kv-cache-memory-manager",
+    "timestamp": "2026-08-30T07:16:06.213847+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "assumptions": {
+    "block_size_tokens": 16,
+    "capacity_blocks": 4096,
+    "note": "This is a block allocator model, not vLLM internals."
+  },
+  "rows": [
+    {
+      "name": "short independent chats",
+      "requests": 64,
+      "prompt_tokens": 256,
+      "generated_tokens": 128,
+      "shared_prefix_tokens": 0,
+      "block_size": 16,
+      "capacity_blocks": 4096,
+      "blocks_without_prefix_cache": 1536,
+      "blocks_with_prefix_cache": 1536,
+      "blocks_saved": 0,
+      "saved_pct": 0.0,
+      "fits_without_prefix_cache": true,
+      "fits_with_prefix_cache": true
+    },
+    {
+      "name": "shared system prompt",
+      "requests": 64,
+      "prompt_tokens": 1024,
+      "generated_tokens": 128,
+      "shared_prefix_tokens": 768,
+      "block_size": 16,
+      "capacity_blocks": 4096,
+      "blocks_without_prefix_cache": 4608,
+      "blocks_with_prefix_cache": 1584,
+      "blocks_saved": 3024,
+      "saved_pct": 65.62,
+      "fits_without_prefix_cache": false,
+      "fits_with_prefix_cache": true
+    },
+    {
+      "name": "long context low concurrency",
+      "requests": 8,
+      "prompt_tokens": 8192,
+      "generated_tokens": 256,
+      "shared_prefix_tokens": 4096,
+      "block_size": 16,
+      "capacity_blocks": 4096,
+      "blocks_without_prefix_cache": 4224,
+      "blocks_with_prefix_cache": 2432,
+      "blocks_saved": 1792,
+      "saved_pct": 42.42,
+      "fits_without_prefix_cache": false,
+      "fits_with_prefix_cache": true
+    },
+    {
+      "name": "batch pressure",
+      "requests": 192,
+      "prompt_tokens": 512,
+      "generated_tokens": 128,
+      "shared_prefix_tokens": 256,
+      "block_size": 16,
+      "capacity_blocks": 4096,
+      "blocks_without_prefix_cache": 7680,
+      "blocks_with_prefix_cache": 4624,
+      "blocks_saved": 3056,
+      "saved_pct": 39.79,
+      "fits_without_prefix_cache": false,
+      "fits_with_prefix_cache": false
+    }
+  ],
+  "boundary": "This proves the memory-accounting shape of block-based KV allocation and prefix reuse. It does not claim to reproduce vLLM's exact scheduler or eviction policy."
+}

@@ -1,0 +1,709 @@
+{
+  "generated_at": "2026-08-31T01:53:09.498485+00:00",
+  "status": "topology-plan-ready",
+  "topology_count": 5,
+  "workload_count": 5,
+  "candidate_count": 17,
+  "rejected_count": 8,
+  "source_reports": {
+    "collective_model": "comprehensive-labs/measurements/comp-lab-07-distributed-collectives.json",
+    "serving_engine_comparison": "serving-engine-comparison/serving-engine-comparison.json"
+  },
+  "source_facts": {
+    "collective_checks": 0,
+    "serving_engine_status": "comparison-ready"
+  },
+  "topologies": [
+    {
+      "id": "single-gpu",
+      "gpus": 1,
+      "hbm_gb_per_gpu": 80,
+      "intra_gbps": 0,
+      "inter_gbps": 0,
+      "latency_us": 0.0,
+      "fabric": "none"
+    },
+    {
+      "id": "dual-pcie",
+      "gpus": 2,
+      "hbm_gb_per_gpu": 48,
+      "intra_gbps": 64,
+      "inter_gbps": 64,
+      "latency_us": 9.0,
+      "fabric": "pcie"
+    },
+    {
+      "id": "quad-nvlink",
+      "gpus": 4,
+      "hbm_gb_per_gpu": 80,
+      "intra_gbps": 300,
+      "inter_gbps": 64,
+      "latency_us": 5.0,
+      "fabric": "nvlink"
+    },
+    {
+      "id": "eight-nvlink",
+      "gpus": 8,
+      "hbm_gb_per_gpu": 80,
+      "intra_gbps": 450,
+      "inter_gbps": 200,
+      "latency_us": 4.0,
+      "fabric": "nvlink"
+    },
+    {
+      "id": "sixteen-ib",
+      "gpus": 16,
+      "hbm_gb_per_gpu": 80,
+      "intra_gbps": 450,
+      "inter_gbps": 200,
+      "latency_us": 7.0,
+      "fabric": "infiniband"
+    }
+  ],
+  "workloads": [
+    {
+      "id": "llama-7b-chat",
+      "params_b": 7,
+      "active_params_b": 7,
+      "context": 4096,
+      "target_qps": 12,
+      "mode": "serving"
+    },
+    {
+      "id": "llama-13b-rag",
+      "params_b": 13,
+      "active_params_b": 13,
+      "context": 16384,
+      "target_qps": 8,
+      "mode": "serving"
+    },
+    {
+      "id": "llama-70b-batch",
+      "params_b": 70,
+      "active_params_b": 70,
+      "context": 8192,
+      "target_qps": 20,
+      "mode": "serving"
+    },
+    {
+      "id": "mixtral-8x7b",
+      "params_b": 47,
+      "active_params_b": 13,
+      "context": 8192,
+      "target_qps": 16,
+      "mode": "serving"
+    },
+    {
+      "id": "dense-70b-sft",
+      "params_b": 70,
+      "active_params_b": 70,
+      "context": 4096,
+      "microbatch_tokens": 8192,
+      "mode": "training"
+    }
+  ],
+  "recommendations": [
+    {
+      "workload_id": "llama-7b-chat",
+      "recommended_topology": "single-gpu",
+      "strategy": {
+        "tensor_parallel": 1,
+        "pipeline_parallel": 1,
+        "data_parallel": 1
+      },
+      "bottleneck": "compute-or-scheduler",
+      "estimated_collective_ms": 0.0,
+      "status": "candidate"
+    },
+    {
+      "workload_id": "llama-13b-rag",
+      "recommended_topology": "single-gpu",
+      "strategy": {
+        "tensor_parallel": 1,
+        "pipeline_parallel": 1,
+        "data_parallel": 1
+      },
+      "bottleneck": "compute-or-scheduler",
+      "estimated_collective_ms": 0.0,
+      "status": "candidate"
+    },
+    {
+      "workload_id": "llama-70b-batch",
+      "recommended_topology": "eight-nvlink",
+      "strategy": {
+        "tensor_parallel": 8,
+        "pipeline_parallel": 1,
+        "data_parallel": 1
+      },
+      "bottleneck": "intra-node-collective",
+      "estimated_collective_ms": 68.1116,
+      "status": "candidate"
+    },
+    {
+      "workload_id": "mixtral-8x7b",
+      "recommended_topology": "eight-nvlink",
+      "strategy": {
+        "tensor_parallel": 4,
+        "pipeline_parallel": 2,
+        "data_parallel": 1
+      },
+      "bottleneck": "compute-or-scheduler",
+      "estimated_collective_ms": 21.6907,
+      "status": "candidate"
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "recommended_topology": "sixteen-ib",
+      "strategy": {
+        "tensor_parallel": 8,
+        "pipeline_parallel": 2,
+        "data_parallel": 1
+      },
+      "bottleneck": "intra-node-collective",
+      "estimated_collective_ms": 68.1536,
+      "status": "candidate"
+    }
+  ],
+  "plans": [
+    {
+      "workload": {
+        "id": "llama-7b-chat",
+        "params_b": 7,
+        "active_params_b": 7,
+        "context": 4096,
+        "target_qps": 12,
+        "mode": "serving"
+      },
+      "candidates": [
+        {
+          "workload_id": "llama-7b-chat",
+          "topology_id": "single-gpu",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 16.0428,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 0.0,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-7b-chat",
+          "topology_id": "dual-pcie",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 2
+          },
+          "memory_gb_per_gpu": 16.0857,
+          "hbm_limit_gb": 48,
+          "estimated_collective_ms": 7.8305,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=2 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-7b-chat",
+          "topology_id": "eight-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 8
+          },
+          "memory_gb_per_gpu": 16.3427,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 17.556,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-7b-chat",
+          "topology_id": "quad-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 4
+          },
+          "memory_gb_per_gpu": 16.1713,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 23.4675,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=4 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-7b-chat",
+          "topology_id": "sixteen-ib",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 16
+          },
+          "memory_gb_per_gpu": 16.6854,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 37.71,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        }
+      ]
+    },
+    {
+      "workload": {
+        "id": "llama-13b-rag",
+        "params_b": 13,
+        "active_params_b": 13,
+        "context": 16384,
+        "target_qps": 8,
+        "mode": "serving"
+      },
+      "candidates": [
+        {
+          "workload_id": "llama-13b-rag",
+          "topology_id": "single-gpu",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 28.2335,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 0.0,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-13b-rag",
+          "topology_id": "dual-pcie",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 2
+          },
+          "memory_gb_per_gpu": 28.467,
+          "hbm_limit_gb": 48,
+          "estimated_collective_ms": 7.8305,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=2 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-13b-rag",
+          "topology_id": "eight-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 2,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 5.3084,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 21.6907,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-13b-rag",
+          "topology_id": "sixteen-ib",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 4,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 3.6834,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 21.7087,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-13b-rag",
+          "topology_id": "quad-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 8.5584,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 32.53,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=4 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        }
+      ]
+    },
+    {
+      "workload": {
+        "id": "llama-70b-batch",
+        "params_b": 70,
+        "active_params_b": 70,
+        "context": 8192,
+        "target_qps": 20,
+        "mode": "serving"
+      },
+      "candidates": [
+        {
+          "workload_id": "llama-70b-batch",
+          "topology_id": "eight-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 8,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 19.5339,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 68.1116,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-70b-batch",
+          "topology_id": "sixteen-ib",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 8,
+            "pipeline_parallel": 2,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 10.7839,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 68.1536,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-70b-batch",
+          "topology_id": "quad-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 37.0677,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 175.03,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=4 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-70b-batch",
+          "topology_id": "single-gpu",
+          "status": "rejected-memory",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 142.2709,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 0.0,
+          "bottleneck": "memory-capacity",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "llama-70b-batch",
+          "topology_id": "dual-pcie",
+          "status": "rejected-memory",
+          "strategy": {
+            "tensor_parallel": 2,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 72.1355,
+          "hbm_limit_gb": 48,
+          "estimated_collective_ms": 1093.768,
+          "bottleneck": "memory-capacity",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=2 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        }
+      ]
+    },
+    {
+      "workload": {
+        "id": "mixtral-8x7b",
+        "params_b": 47,
+        "active_params_b": 13,
+        "context": 8192,
+        "target_qps": 16,
+        "mode": "serving"
+      },
+      "candidates": [
+        {
+          "workload_id": "mixtral-8x7b",
+          "topology_id": "eight-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 2,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 13.7792,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 21.6907,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "mixtral-8x7b",
+          "topology_id": "sixteen-ib",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 4,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 7.9042,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 21.7087,
+          "bottleneck": "compute-or-scheduler",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "mixtral-8x7b",
+          "topology_id": "quad-nvlink",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 25.5292,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 32.53,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=4 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "mixtral-8x7b",
+          "topology_id": "single-gpu",
+          "status": "rejected-memory",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 96.1168,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 0.0,
+          "bottleneck": "memory-capacity",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        },
+        {
+          "workload_id": "mixtral-8x7b",
+          "topology_id": "dual-pcie",
+          "status": "rejected-memory",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 2
+          },
+          "memory_gb_per_gpu": 96.2335,
+          "hbm_limit_gb": 48,
+          "estimated_collective_ms": 7.8305,
+          "bottleneck": "memory-capacity",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=2 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_serving_engine_comparison.py"
+          ]
+        }
+      ]
+    },
+    {
+      "workload": {
+        "id": "dense-70b-sft",
+        "params_b": 70,
+        "active_params_b": 70,
+        "context": 4096,
+        "microbatch_tokens": 8192,
+        "mode": "training"
+      },
+      "candidates": [
+        {
+          "workload_id": "dense-70b-sft",
+          "topology_id": "sixteen-ib",
+          "status": "candidate",
+          "strategy": {
+            "tensor_parallel": 8,
+            "pipeline_parallel": 2,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 45.0,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 68.1536,
+          "bottleneck": "intra-node-collective",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_runtime_matrix.py"
+          ]
+        },
+        {
+          "workload_id": "dense-70b-sft",
+          "topology_id": "single-gpu",
+          "status": "rejected-scale",
+          "strategy": {
+            "tensor_parallel": 1,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 570.0,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 0.0,
+          "bottleneck": "insufficient-data-parallel-scale",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "python3 scripts/verify_runtime_matrix.py"
+          ]
+        },
+        {
+          "workload_id": "dense-70b-sft",
+          "topology_id": "eight-nvlink",
+          "status": "rejected-memory",
+          "strategy": {
+            "tensor_parallel": 8,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 80.0,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 68.1116,
+          "bottleneck": "memory-capacity",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=8 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_runtime_matrix.py"
+          ]
+        },
+        {
+          "workload_id": "dense-70b-sft",
+          "topology_id": "quad-nvlink",
+          "status": "rejected-scale",
+          "strategy": {
+            "tensor_parallel": 4,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 150.0,
+          "hbm_limit_gb": 80,
+          "estimated_collective_ms": 175.03,
+          "bottleneck": "insufficient-data-parallel-scale",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=4 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_runtime_matrix.py"
+          ]
+        },
+        {
+          "workload_id": "dense-70b-sft",
+          "topology_id": "dual-pcie",
+          "status": "rejected-scale",
+          "strategy": {
+            "tensor_parallel": 2,
+            "pipeline_parallel": 1,
+            "data_parallel": 1
+          },
+          "memory_gb_per_gpu": 290.0,
+          "hbm_limit_gb": 48,
+          "estimated_collective_ms": 1093.768,
+          "bottleneck": "insufficient-data-parallel-scale",
+          "validation_commands": [
+            "python3 scripts/verify_distributed_topology.py",
+            "torchrun --nproc_per_node=2 <tp-or-collective-benchmark>",
+            "python3 scripts/verify_runtime_matrix.py"
+          ]
+        }
+      ]
+    }
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "distributed-collectives",
+      "vllm-serving-trace",
+      "profiler-capture",
+      "full-gpu-regression"
+    ],
+    "note": "This planner is source-ready locally; final acceptance requires measured NCCL/RCCL bandwidth and serving/training throughput on the selected topology."
+  }
+}

@@ -1,0 +1,51 @@
+<meta charset="utf-8">
+<title>GPUMODE GPU Promotion</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated GPU-host runbook</div>
+  <h1>GPUMODE GPU promotion.</h1>
+  <p class="dek">Ordered promotion manifest for moving local CPU/source-ready
+  evidence onto CUDA, Triton, ROCm/HIP, profiler, serving, and multi-GPU hosts.</p>
+  <div class="grid">
+    <div class="card"><h2>18</h2><p>promotion steps</p></div>
+    <div class="card"><h2>1</h2><p>ready here</p></div>
+    <div class="card"><h2>17</h2><p>GPU-host steps</p></div>
+    <div class="card"><h2><a href="../gpu-promotion/reports/gpu-host-promotion-runbook.md">Runbook</a></h2><p>Markdown runbook</p></div>
+  </div>
+
+  <section>
+    <h2>Promotion Steps</h2>
+    <table><tr><th>step</th><th>status</th><th>required</th><th>missing locally</th><th>first command</th><th>validation</th></tr><tr><td>cuda-kernel-compile</td><td>ready-on-gpu-host</td><td>nvcc, nvidia_smi</td><td>nvcc, nvidia_smi</td><td>nvcc -O3 kernel-benchmarks/kernels/cuda/memory.cu -c -o /tmp/gpumode-memory.o</td><td>Re-run python3 scripts/verify_kernel_benchmarks.py and confirm torch_device=cuda in the report.</td></tr>
+<tr><td>triton-kernel-sweep</td><td>ready-on-gpu-host</td><td>triton, nvidia_smi</td><td>nvidia_smi</td><td>python3 kernel-benchmarks/kernels/triton/memory.py</td><td>Refresh autotune records and verify selected configs after GPU timings are present.</td></tr>
+<tr><td>tensor-core-gemm</td><td>ready-on-gpu-host</td><td>nvcc, nvidia_smi, ncu</td><td>nvcc, nvidia_smi, ncu</td><td>python3 scripts/run_tensor_core_gemm.py</td><td>GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters.</td></tr>
+<tr><td>persistent-kernels</td><td>ready-on-gpu-host</td><td>triton, nvidia_smi, ncu</td><td>nvidia_smi, ncu</td><td>python3 scripts/run_persistent_kernels.py</td><td>GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines.</td></tr>
+<tr><td>parallel-primitives</td><td>ready-on-gpu-host</td><td>nvidia_smi, ncu</td><td>nvidia_smi, ncu</td><td>python3 scripts/run_parallel_primitives.py</td><td>GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels.</td></tr>
+<tr><td>torch-custom-extension</td><td>ready-on-gpu-host</td><td>torch, nvcc, ninja, nvidia_smi</td><td>nvcc, ninja, nvidia_smi</td><td>python3 scripts/run_custom_ops.py</td><td>Confirm compiled_extension_status changes from source-only to cuda-ready.</td></tr>
+<tr><td>model-integration-gpu</td><td>ready-on-gpu-host</td><td>torch, nvidia_smi</td><td>nvidia_smi</td><td>python3 scripts/build_autotune_db.py</td><td>Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs.</td></tr>
+<tr><td>vllm-serving-trace</td><td>ready-on-gpu-host</td><td>nvidia_smi</td><td>nvidia_smi</td><td>vllm serve &lt;model&gt; --enable-prefix-caching</td><td>Replace deterministic timing constants with server trace measurements using the same schema.</td></tr>
+<tr><td>attention-serving-stack</td><td>ready-on-gpu-host</td><td>nvidia_smi, nsys, ncu</td><td>nvidia_smi, nsys, ncu</td><td>python3 scripts/run_attention_serving_stack.py</td><td>GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces.</td></tr>
+<tr><td>flash-attention-backward</td><td>ready-on-gpu-host</td><td>nvidia_smi, ncu, nsys</td><td>nvidia_smi, ncu, nsys</td><td>python3 scripts/run_flash_attention_backward.py</td><td>GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence.</td></tr>
+<tr><td>sparse-attention-kernels</td><td>ready-on-gpu-host</td><td>nvidia_smi, ncu, nsys</td><td>nvidia_smi, ncu, nsys</td><td>python3 scripts/run_sparse_attention_kernels.py</td><td>GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error.</td></tr>
+<tr><td>fused-training-kernels</td><td>ready-on-gpu-host</td><td>nvidia_smi, ncu, nsys</td><td>nvidia_smi, ncu, nsys</td><td>python3 scripts/run_fused_training_kernels.py</td><td>GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels.</td></tr>
+<tr><td>speculative-decoding-serving</td><td>ready-on-gpu-host</td><td>nvidia_smi, nsys, ncu</td><td>nvidia_smi, nsys, ncu</td><td>python3 scripts/run_speculative_decoding_serving.py</td><td>GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines.</td></tr>
+<tr><td>profiler-capture</td><td>ready-on-gpu-host</td><td>nvidia_smi, nsys, ncu</td><td>nvidia_smi, nsys, ncu</td><td>ncu --set full --target-processes all python3 scripts/run_kernel_benchmarks.py</td><td>Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer.</td></tr>
+<tr><td>rocm-hip-port</td><td>ready-on-gpu-host</td><td>hipcc, rocprof</td><td>hipcc, rocprof</td><td>hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port</td><td>ROCm host should move the HIP project from source-only to measured runtime evidence.</td></tr>
+<tr><td>distributed-collectives</td><td>ready-on-gpu-host</td><td>torchrun, nvidia_smi</td><td>nvidia_smi</td><td>python3 scripts/run_distributed_collectives.py</td><td>Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host.</td></tr>
+<tr><td>distributed-training-optimizer</td><td>ready-on-gpu-host</td><td>torchrun, nvidia_smi, nsys</td><td>nvidia_smi, nsys</td><td>python3 scripts/run_distributed_training_optimizer.py</td><td>Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host.</td></tr>
+<tr><td>full-gpu-regression</td><td>ready-on-this-host</td><td>python, torch</td><td>none</td><td>python3 run_all.py</td><td>Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles.</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

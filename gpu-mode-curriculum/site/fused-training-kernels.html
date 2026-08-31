@@ -1,0 +1,40 @@
+<meta charset="utf-8">
+<title>GPUMODE fused training kernels</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated fused training kernel lab</div>
+  <h1>GPUMODE fused training kernels.</h1>
+  <p class="dek">LLM training kernel scenarios covering RMSNorm, SwiGLU, fused
+  cross-entropy, AdamW, grad clipping, dropout/residual/norm fusion, backward
+  checks, optimizer state, launch count, HBM traffic, and profiler promotion.</p>
+  <div class="grid">
+    <div class="card"><h2>6</h2><p>scenarios</p></div>
+    <div class="card"><h2>5</h2><p>kernel families</p></div>
+    <div class="card"><h2>2</h2><p>optimizer cases</p></div>
+    <div class="card"><h2><a href="../fused-training-kernels/reports/fused-training-report.md">Report</a></h2><p>Markdown fused training report</p></div>
+  </div>
+
+  <section>
+    <h2>Training Kernel Scenarios</h2>
+    <table><tr><th>scenario</th><th>family</th><th>dtype</th><th>speedup</th><th>HBM reduction</th><th>launch reduction</th><th>max error</th><th>kernel paths</th><th>status</th></tr><tr><td>rmsnorm-residual-backward</td><td>rmsnorm</td><td>bf16/fp32-acc</td><td>2.2941</td><td>0.582609</td><td>0.6</td><td>0.002</td><td>forward, backward, epilogue</td><td>passed</td></tr>
+<tr><td>swiglu-mlp-fusion</td><td>swiglu-mlp</td><td>bf16/fp32-acc</td><td>2.0724</td><td>0.532847</td><td>0.5</td><td>0.0038</td><td>forward, backward, epilogue</td><td>passed</td></tr>
+<tr><td>cross-entropy-zloss</td><td>cross-entropy</td><td>fp32-reduction</td><td>2.4719</td><td>0.814634</td><td>0.75</td><td>0.0012</td><td>forward, backward, epilogue</td><td>passed</td></tr>
+<tr><td>adamw-multi-tensor</td><td>optimizer</td><td>fp32-master,bf16-param</td><td>2.3784</td><td>0.602041</td><td>0.714286</td><td>0.0008</td><td>forward, state-update, reduction</td><td>passed</td></tr>
+<tr><td>grad-clip-unscale</td><td>optimizer</td><td>fp32-reduction</td><td>2.2778</td><td>0.596154</td><td>0.6</td><td>0.001</td><td>forward, state-update, reduction</td><td>passed</td></tr>
+<tr><td>dropout-residual-norm</td><td>fusion</td><td>fp16/fp32-acc</td><td>2.3415</td><td>0.588235</td><td>0.6</td><td>0.0045</td><td>forward, backward, epilogue</td><td>passed</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

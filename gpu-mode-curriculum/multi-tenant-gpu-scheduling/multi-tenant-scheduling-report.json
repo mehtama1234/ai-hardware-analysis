@@ -1,0 +1,451 @@
+{
+  "generated_at": "2026-08-31T01:53:26.814667+00:00",
+  "status": "scheduling-ready",
+  "policy_count": 4,
+  "tenant_count": 5,
+  "placement_count": 20,
+  "accepted_count": 4,
+  "rejected_count": 1,
+  "recommended_policy": "cluster-queue",
+  "source_reports": [
+    "hardware-capacity-planning/hardware-capacity-plan.json",
+    "distributed-topology/distributed-topology-plan.json",
+    "serving-traces/reports/serving-trace-report.json",
+    "cuda-graphs-latency/cuda-graphs-latency-report.json"
+  ],
+  "source_facts": {
+    "hardware_profiles": 6,
+    "capacity_workloads": 5,
+    "topologies": 5,
+    "serving_traces": 3,
+    "cuda_graph_capture_ready": 3
+  },
+  "policies": [
+    {
+      "id": "exclusive",
+      "label": "Full GPU exclusive tenancy",
+      "partitions": [
+        {
+          "id": "gpu0-full",
+          "memory_gb": 80,
+          "sm_fraction": 1.0,
+          "isolation": "exclusive",
+          "max_tenants": 1
+        }
+      ],
+      "queue": true
+    },
+    {
+      "id": "mig-pack",
+      "label": "MIG-style packed inference slices",
+      "partitions": [
+        {
+          "id": "gpu0-mig-4g-40gb",
+          "memory_gb": 40,
+          "sm_fraction": 0.5,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        },
+        {
+          "id": "gpu0-mig-2g-20gb",
+          "memory_gb": 20,
+          "sm_fraction": 0.25,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        },
+        {
+          "id": "gpu0-mig-1g-10gb-a",
+          "memory_gb": 10,
+          "sm_fraction": 0.125,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        },
+        {
+          "id": "gpu0-mig-1g-10gb-b",
+          "memory_gb": 10,
+          "sm_fraction": 0.125,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        }
+      ],
+      "queue": true
+    },
+    {
+      "id": "mps-fair-share",
+      "label": "MPS-style shared full GPU fair share",
+      "partitions": [
+        {
+          "id": "gpu0-mps-pool",
+          "memory_gb": 80,
+          "sm_fraction": 1.0,
+          "isolation": "process-share",
+          "max_tenants": 4
+        }
+      ],
+      "queue": true
+    },
+    {
+      "id": "cluster-queue",
+      "label": "Kubernetes device-plugin cluster queue",
+      "partitions": [
+        {
+          "id": "node-a-gpu0-full",
+          "memory_gb": 80,
+          "sm_fraction": 1.0,
+          "isolation": "exclusive",
+          "max_tenants": 1
+        },
+        {
+          "id": "node-b-gpu0-mig-4g-40gb",
+          "memory_gb": 40,
+          "sm_fraction": 0.5,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        },
+        {
+          "id": "node-b-gpu0-mig-2g-20gb",
+          "memory_gb": 20,
+          "sm_fraction": 0.25,
+          "isolation": "hardware-slice",
+          "max_tenants": 1
+        },
+        {
+          "id": "node-c-gpu0-mps-pool",
+          "memory_gb": 80,
+          "sm_fraction": 1.0,
+          "isolation": "process-share",
+          "max_tenants": 3
+        }
+      ],
+      "queue": true
+    }
+  ],
+  "tenants": [
+    {
+      "id": "tenant-a-interactive-7b",
+      "kind": "serving",
+      "memory_gb": 18,
+      "sm_fraction": 0.35,
+      "latency_slo_ms": 85,
+      "priority": 4,
+      "isolation_required": true
+    },
+    {
+      "id": "tenant-b-batch-embedding",
+      "kind": "batch",
+      "memory_gb": 10,
+      "sm_fraction": 0.2,
+      "latency_slo_ms": 220,
+      "priority": 2,
+      "isolation_required": false
+    },
+    {
+      "id": "tenant-c-long-context-rag",
+      "kind": "serving",
+      "memory_gb": 36,
+      "sm_fraction": 0.55,
+      "latency_slo_ms": 160,
+      "priority": 5,
+      "isolation_required": true
+    },
+    {
+      "id": "tenant-d-kernel-ci",
+      "kind": "ci",
+      "memory_gb": 6,
+      "sm_fraction": 0.15,
+      "latency_slo_ms": 500,
+      "priority": 1,
+      "isolation_required": false
+    },
+    {
+      "id": "tenant-e-70b-training-smoke",
+      "kind": "training",
+      "memory_gb": 72,
+      "sm_fraction": 0.9,
+      "latency_slo_ms": 1000,
+      "priority": 3,
+      "isolation_required": true
+    }
+  ],
+  "plans": [
+    {
+      "policy_id": "exclusive",
+      "label": "Full GPU exclusive tenancy",
+      "accepted_count": 1,
+      "rejected_count": 4,
+      "isolated_count": 1,
+      "slo_pass_count": 1,
+      "fairness_index": 1.0,
+      "estimated_utilization": 0.55,
+      "policy_score": 16.5,
+      "placements": [
+        {
+          "tenant_id": "tenant-c-long-context-rag",
+          "partition_id": "gpu0-full",
+          "status": "accepted",
+          "memory_headroom_gb": 44,
+          "sm_share": 0.55,
+          "isolation": "exclusive",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-a-interactive-7b",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-e-70b-training-smoke",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-b-batch-embedding",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-d-kernel-ci",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        }
+      ]
+    },
+    {
+      "policy_id": "mig-pack",
+      "label": "MIG-style packed inference slices",
+      "accepted_count": 2,
+      "rejected_count": 3,
+      "isolated_count": 2,
+      "slo_pass_count": 2,
+      "fairness_index": 0.930769,
+      "estimated_utilization": 0.55,
+      "policy_score": 51.461538,
+      "placements": [
+        {
+          "tenant_id": "tenant-c-long-context-rag",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-a-interactive-7b",
+          "partition_id": "gpu0-mig-4g-40gb",
+          "status": "accepted",
+          "memory_headroom_gb": 22,
+          "sm_share": 0.35,
+          "isolation": "hardware-slice",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-e-70b-training-smoke",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-b-batch-embedding",
+          "partition_id": "gpu0-mig-2g-20gb",
+          "status": "accepted",
+          "memory_headroom_gb": 10,
+          "sm_share": 0.2,
+          "isolation": "hardware-slice",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-d-kernel-ci",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        }
+      ]
+    },
+    {
+      "policy_id": "mps-fair-share",
+      "label": "MPS-style shared full GPU fair share",
+      "accepted_count": 2,
+      "rejected_count": 3,
+      "isolated_count": 0,
+      "slo_pass_count": 1,
+      "fairness_index": 0.98,
+      "estimated_utilization": 0.35,
+      "policy_score": 39.2,
+      "placements": [
+        {
+          "tenant_id": "tenant-c-long-context-rag",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-a-interactive-7b",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-e-70b-training-smoke",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-b-batch-embedding",
+          "partition_id": "gpu0-mps-pool",
+          "status": "accepted",
+          "memory_headroom_gb": 70,
+          "sm_share": 0.2,
+          "isolation": "process-share",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-d-kernel-ci",
+          "partition_id": "gpu0-mps-pool",
+          "status": "accepted",
+          "memory_headroom_gb": 64,
+          "sm_share": 0.15,
+          "isolation": "process-share",
+          "slo_status": "risk",
+          "reason": "fits partition with required isolation and capacity"
+        }
+      ]
+    },
+    {
+      "policy_id": "cluster-queue",
+      "label": "Kubernetes device-plugin cluster queue",
+      "accepted_count": 4,
+      "rejected_count": 1,
+      "isolated_count": 3,
+      "slo_pass_count": 4,
+      "fairness_index": 0.801282,
+      "estimated_utilization": 0.454545,
+      "policy_score": 117.564685,
+      "placements": [
+        {
+          "tenant_id": "tenant-c-long-context-rag",
+          "partition_id": "node-a-gpu0-full",
+          "status": "accepted",
+          "memory_headroom_gb": 44,
+          "sm_share": 0.55,
+          "isolation": "exclusive",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-a-interactive-7b",
+          "partition_id": "node-b-gpu0-mig-4g-40gb",
+          "status": "accepted",
+          "memory_headroom_gb": 22,
+          "sm_share": 0.35,
+          "isolation": "hardware-slice",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-e-70b-training-smoke",
+          "partition_id": "queue",
+          "status": "queued",
+          "memory_headroom_gb": 0,
+          "sm_share": 0.0,
+          "isolation": "none",
+          "slo_status": "queued",
+          "reason": "no partition satisfies memory, SM, and isolation constraints"
+        },
+        {
+          "tenant_id": "tenant-b-batch-embedding",
+          "partition_id": "node-b-gpu0-mig-2g-20gb",
+          "status": "accepted",
+          "memory_headroom_gb": 10,
+          "sm_share": 0.2,
+          "isolation": "hardware-slice",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        },
+        {
+          "tenant_id": "tenant-d-kernel-ci",
+          "partition_id": "node-c-gpu0-mps-pool",
+          "status": "accepted",
+          "memory_headroom_gb": 74,
+          "sm_share": 0.15,
+          "isolation": "process-share",
+          "slo_status": "pass",
+          "reason": "fits partition with required isolation and capacity"
+        }
+      ]
+    }
+  ],
+  "recommendations": [
+    "Use hardware-isolated MIG-style slices for latency-sensitive tenants when memory fits.",
+    "Route training smoke and oversized long-context jobs through a cluster queue instead of squeezing them into shared MPS.",
+    "Allow MPS only for non-isolation-required batch and CI tenants, and cap active tenants per pool.",
+    "Promote this local model on a GPU cluster with Kubernetes device-plugin, MIG inventory, MPS control, and per-tenant profiler traces."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "mig-inventory",
+      "mps-daemon",
+      "kubernetes-device-plugin",
+      "tenant-load-test",
+      "per-tenant-profiler-traces"
+    ],
+    "commands": [
+      "kubectl get nodes -o json",
+      "kubectl describe node <gpu-node>",
+      "nvidia-smi -L",
+      "nvidia-smi mig -lgip",
+      "nvidia-cuda-mps-control -d",
+      "kubectl apply -f <gpu-workload.yaml>",
+      "kubectl top pods -A --containers",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id multi-tenant-scheduling --execute"
+    ],
+    "note": "Local model checks placement logic; real acceptance requires device-plugin inventory, MIG/MPS telemetry, and measured per-tenant latency/throughput."
+  }
+}

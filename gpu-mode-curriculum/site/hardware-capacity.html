@@ -1,0 +1,67 @@
+<meta charset="utf-8">
+<title>GPUMODE Hardware Capacity</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated hardware planning lab</div>
+  <h1>GPUMODE hardware capacity.</h1>
+  <p class="dek">Workload-to-GPU sizing for model memory, KV-cache pressure,
+  memory headroom, bottleneck class, power, cost, and measured GPU-host validation commands.</p>
+  <div class="grid">
+    <div class="card"><h2>6</h2><p>hardware profiles</p></div>
+    <div class="card"><h2>5</h2><p>workloads sized</p></div>
+    <div class="card"><h2>5</h2><p>recommendations</p></div>
+    <div class="card"><h2><a href="../hardware-capacity-planning/reports/hardware-capacity-plan.md">Report</a></h2><p>Markdown capacity plan</p></div>
+  </div>
+
+  <section>
+    <h2>Recommendations</h2>
+    <table><tr><th>workload</th><th>profile</th><th>bottleneck</th><th>memory GB</th><th>memory headroom</th><th>power W</th><th>cost/hr</th></tr><tr><td>kernel-dev-smoke</td><td>single-24gb-dev-gpu</td><td>mixed</td><td>2.0</td><td>22.0</td><td>320</td><td>0.6</td></tr>
+<tr><td>interactive-7b-chat</td><td>datacenter-80gb-training-gpu</td><td>memory-bandwidth</td><td>22.64</td><td>57.36</td><td>700</td><td>3.4</td></tr>
+<tr><td>long-context-13b-rag</td><td>large-memory-192gb-inference-gpu</td><td>kv-cache-capacity</td><td>97.26</td><td>94.74</td><td>760</td><td>4.2</td></tr>
+<tr><td>batch-70b-inference</td><td>multi-node-cluster-slice</td><td>communication</td><td>42.97</td><td>37.03</td><td>5600</td><td>24.0</td></tr>
+<tr><td>dense-70b-sft</td><td>large-memory-training-slice</td><td>communication</td><td>155.16</td><td>36.84</td><td>6080</td><td>34.0</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Evaluation Matrix</h2>
+    <table><tr><th>workload</th><th>profile</th><th>status</th><th>memory GB</th><th>headroom</th><th>bottleneck</th><th>score</th></tr><tr><td>kernel-dev-smoke</td><td>local-cpu-fallback</td><td>rejected</td><td>2.0</td><td>-2.0</td><td>accelerator-unavailable</td><td>0.0</td></tr>
+<tr><td>kernel-dev-smoke</td><td>single-24gb-dev-gpu</td><td>viable</td><td>2.0</td><td>22.0</td><td>mixed</td><td>4.0</td></tr>
+<tr><td>kernel-dev-smoke</td><td>datacenter-80gb-training-gpu</td><td>viable</td><td>2.0</td><td>78.0</td><td>mixed</td><td>15.04</td></tr>
+<tr><td>kernel-dev-smoke</td><td>large-memory-192gb-inference-gpu</td><td>viable</td><td>2.0</td><td>190.0</td><td>mixed</td><td>12.48</td></tr>
+<tr><td>kernel-dev-smoke</td><td>multi-node-cluster-slice</td><td>viable</td><td>0.25</td><td>79.75</td><td>mixed</td><td>86.4</td></tr>
+<tr><td>kernel-dev-smoke</td><td>large-memory-training-slice</td><td>viable</td><td>0.25</td><td>191.75</td><td>mixed</td><td>73.6</td></tr>
+<tr><td>interactive-7b-chat</td><td>local-cpu-fallback</td><td>rejected</td><td>22.64</td><td>-22.64</td><td>accelerator-unavailable</td><td>0.0</td></tr>
+<tr><td>interactive-7b-chat</td><td>single-24gb-dev-gpu</td><td>rejected</td><td>22.64</td><td>1.36</td><td>memory-bandwidth</td><td>3.534</td></tr>
+<tr><td>interactive-7b-chat</td><td>datacenter-80gb-training-gpu</td><td>viable</td><td>22.64</td><td>57.36</td><td>memory-bandwidth</td><td>13.286</td></tr>
+<tr><td>interactive-7b-chat</td><td>large-memory-192gb-inference-gpu</td><td>viable</td><td>22.64</td><td>169.36</td><td>memory-bandwidth</td><td>11.025</td></tr>
+<tr><td>interactive-7b-chat</td><td>multi-node-cluster-slice</td><td>viable</td><td>2.83</td><td>77.17</td><td>memory-bandwidth</td><td>86.4</td></tr>
+<tr><td>interactive-7b-chat</td><td>large-memory-training-slice</td><td>viable</td><td>2.83</td><td>189.17</td><td>memory-bandwidth</td><td>73.6</td></tr>
+<tr><td>long-context-13b-rag</td><td>local-cpu-fallback</td><td>rejected</td><td>97.26</td><td>-97.26</td><td>accelerator-unavailable</td><td>0.0</td></tr>
+<tr><td>long-context-13b-rag</td><td>single-24gb-dev-gpu</td><td>rejected</td><td>97.26</td><td>-73.26</td><td>memory-capacity</td><td>0.0</td></tr>
+<tr><td>long-context-13b-rag</td><td>datacenter-80gb-training-gpu</td><td>rejected</td><td>97.26</td><td>-17.26</td><td>memory-capacity</td><td>0.0</td></tr>
+<tr><td>long-context-13b-rag</td><td>large-memory-192gb-inference-gpu</td><td>viable</td><td>97.26</td><td>94.74</td><td>kv-cache-capacity</td><td>2.566</td></tr>
+<tr><td>long-context-13b-rag</td><td>multi-node-cluster-slice</td><td>viable</td><td>12.16</td><td>67.84</td><td>kv-cache-capacity</td><td>86.4</td></tr>
+<tr><td>long-context-13b-rag</td><td>large-memory-training-slice</td><td>viable</td><td>12.16</td><td>179.84</td><td>kv-cache-capacity</td><td>73.6</td></tr>
+<tr><td>batch-70b-inference</td><td>local-cpu-fallback</td><td>rejected</td><td>343.79</td><td>-343.79</td><td>accelerator-unavailable</td><td>0.0</td></tr>
+<tr><td>batch-70b-inference</td><td>single-24gb-dev-gpu</td><td>rejected</td><td>343.79</td><td>-319.79</td><td>memory-capacity</td><td>0.0</td></tr>
+<tr><td>batch-70b-inference</td><td>datacenter-80gb-training-gpu</td><td>rejected</td><td>343.79</td><td>-263.79</td><td>memory-capacity</td><td>0.0</td></tr>
+<tr><td>batch-70b-inference</td><td>large-memory-192gb-inference-gpu</td><td>rejected</td><td>343.79</td><td>-151.79</td><td>memory-capacity</td><td>0.0</td></tr>
+<tr><td>batch-70b-inference</td><td>multi-node-cluster-slice</td><td>viable</td><td>42.97</td><td>37.03</td><td>communication</td><td>40.214</td></tr>
+<tr><td>batch-70b-inference</td><td>large-memory-training-slice</td><td>viable</td><td>42.97</td><td>149.03</td><td>communication</td><td>34.256</td></tr>
+<tr><td>dense-70b-sft</td><td>local-cpu-fallback</td><td>rejected</td><td>1241.29</td><td>-1241.29</td><td>accelerator-unavailable</td><td>0.0</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

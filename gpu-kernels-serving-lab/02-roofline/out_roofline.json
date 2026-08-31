@@ -1,0 +1,119 @@
+{
+  "session": "02-roofline",
+  "timestamp": "2026-08-30T07:15:25.184847+00:00",
+  "inventory": {
+    "session": "02-roofline",
+    "timestamp": "2026-08-30T07:15:25.184871+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "device": "cpu",
+  "dtype": "float32",
+  "rows": [
+    {
+      "operation": "vector_add",
+      "shape": [
+        1000000
+      ],
+      "seconds": 0.001499,
+      "bytes_moved": 12000000,
+      "flops": 1000000,
+      "effective_gbps": 8.006,
+      "effective_tflops": 0.000667,
+      "arithmetic_intensity_flop_per_byte": 0.083333,
+      "classification": "memory-bound"
+    },
+    {
+      "operation": "reduction_sum",
+      "shape": [
+        1000000
+      ],
+      "seconds": 7e-05,
+      "bytes_moved": 4000000,
+      "flops": 1000000,
+      "effective_gbps": 57.324,
+      "effective_tflops": 0.014331,
+      "arithmetic_intensity_flop_per_byte": 0.25,
+      "classification": "memory/synchronization-bound"
+    },
+    {
+      "operation": "matmul",
+      "shape": [
+        512,
+        512,
+        512
+      ],
+      "seconds": 0.004717,
+      "bytes_moved": 3145728,
+      "flops": 268435456,
+      "effective_gbps": 0.667,
+      "effective_tflops": 0.056913,
+      "arithmetic_intensity_flop_per_byte": 85.333333,
+      "classification": "compute-bound when large enough"
+    },
+    {
+      "operation": "kv_cache_score_scan",
+      "shape": [
+        4,
+        4096,
+        64
+      ],
+      "seconds": 0.00017,
+      "bytes_moved": 4260864,
+      "flops": 2097152,
+      "effective_gbps": 25.015,
+      "effective_tflops": 0.012312,
+      "arithmetic_intensity_flop_per_byte": 0.492189,
+      "classification": "memory-pressure attention primitive"
+    }
+  ],
+  "boundary": "These are small microbenchmarks, useful for classifying operation shape. They are not vendor peak measurements and should not be compared to published peak specs."
+}

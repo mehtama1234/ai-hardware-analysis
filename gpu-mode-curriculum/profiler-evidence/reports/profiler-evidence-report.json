@@ -1,0 +1,197 @@
+{
+  "artifact": "profiler-evidence-report",
+  "row_count": 9,
+  "source_count": 3,
+  "classification_counts": {
+    "cache-locality": 1,
+    "communication": 1,
+    "compute-occupancy": 1,
+    "host-device-transfer": 1,
+    "launch-overhead": 1,
+    "memory-bandwidth": 2,
+    "mixed": 1,
+    "tensor-core-compute": 1
+  },
+  "rows": [
+    {
+      "source": "nsight-compute",
+      "name": "vector_copy_strided",
+      "kind": "kernel",
+      "duration_us": 412.0,
+      "metrics": {
+        "dram_util_pct": 91.2,
+        "sm_util_pct": 33.4,
+        "tensor_util_pct": 0.0,
+        "l2_hit_pct": 42.1,
+        "launches": 8.0,
+        "bytes": 536870912.0,
+        "flops": 0.0
+      },
+      "classification": "memory-bandwidth",
+      "remediation": [
+        "coalesce or vectorize memory access",
+        "raise arithmetic intensity",
+        "add tiling/reuse before retiming"
+      ]
+    },
+    {
+      "source": "nsight-compute",
+      "name": "wgmma_gemm_mainloop",
+      "kind": "kernel",
+      "duration_us": 193.0,
+      "metrics": {
+        "dram_util_pct": 54.0,
+        "sm_util_pct": 94.3,
+        "tensor_util_pct": 78.5,
+        "l2_hit_pct": 88.0,
+        "launches": 4.0,
+        "bytes": 134217728.0,
+        "flops": 35184372088832.0
+      },
+      "classification": "tensor-core-compute",
+      "remediation": [
+        "inspect MMA tile shape",
+        "check tensor-core eligibility",
+        "compare occupancy against stall reasons"
+      ]
+    },
+    {
+      "source": "nsight-compute",
+      "name": "row_softmax_small",
+      "kind": "kernel",
+      "duration_us": 77.0,
+      "metrics": {
+        "dram_util_pct": 68.0,
+        "sm_util_pct": 58.0,
+        "tensor_util_pct": 0.0,
+        "l2_hit_pct": 49.0,
+        "launches": 64.0,
+        "bytes": 67108864.0,
+        "flops": 268435456.0
+      },
+      "classification": "cache-locality",
+      "remediation": [
+        "change layout or blocking",
+        "reduce gathers",
+        "separate L2-hit and DRAM-bound kernels"
+      ]
+    },
+    {
+      "source": "nsight-systems",
+      "name": "token_prefill",
+      "kind": "cuda_api",
+      "duration_us": 9100.0,
+      "metrics": {
+        "kernels": 12.0,
+        "memcpy_us": 820.0
+      },
+      "classification": "host-device-transfer",
+      "remediation": [
+        "remove sync copies",
+        "pin and batch transfers",
+        "move preprocessing onto device"
+      ]
+    },
+    {
+      "source": "nsight-systems",
+      "name": "decode_step_batch_1",
+      "kind": "cuda_graph",
+      "duration_us": 1400.0,
+      "metrics": {
+        "kernels": 1750.0,
+        "memcpy_us": 25.0
+      },
+      "classification": "launch-overhead",
+      "remediation": [
+        "fuse small kernels",
+        "use CUDA graphs",
+        "batch decode work"
+      ]
+    },
+    {
+      "source": "nsight-systems",
+      "name": "all_reduce_logits",
+      "kind": "nccl",
+      "duration_us": 760.0,
+      "metrics": {
+        "kernels": 2.0,
+        "memcpy_us": 0.0
+      },
+      "classification": "communication",
+      "remediation": [
+        "compare ring/tree/channel topology",
+        "increase payload aggregation",
+        "inspect overlap with compute"
+      ]
+    },
+    {
+      "source": "rocprof",
+      "name": "hip_vector_add",
+      "kind": "kernel",
+      "duration_us": 533.0,
+      "metrics": {
+        "vgpr": 24.0,
+        "sgpr": 32.0,
+        "waves_per_eu": 8.0,
+        "valu_util_pct": 38.5,
+        "fetch_size_bytes": 268435456.0,
+        "write_size_bytes": 134217728.0
+      },
+      "classification": "mixed",
+      "remediation": [
+        "split by kernel",
+        "collect roofline counters",
+        "compare against baseline"
+      ]
+    },
+    {
+      "source": "rocprof",
+      "name": "ck_gemm_xdl",
+      "kind": "kernel",
+      "duration_us": 221.0,
+      "metrics": {
+        "vgpr": 96.0,
+        "sgpr": 80.0,
+        "waves_per_eu": 3.0,
+        "valu_util_pct": 89.1,
+        "fetch_size_bytes": 67108864.0,
+        "write_size_bytes": 33554432.0
+      },
+      "classification": "compute-occupancy",
+      "remediation": [
+        "reduce register pressure",
+        "check wave occupancy",
+        "try smaller tiles"
+      ]
+    },
+    {
+      "source": "rocprof",
+      "name": "hip_layernorm",
+      "kind": "kernel",
+      "duration_us": 118.0,
+      "metrics": {
+        "vgpr": 44.0,
+        "sgpr": 48.0,
+        "waves_per_eu": 5.0,
+        "valu_util_pct": 51.0,
+        "fetch_size_bytes": 50331648.0,
+        "write_size_bytes": 16777216.0
+      },
+      "classification": "memory-bandwidth",
+      "remediation": [
+        "coalesce or vectorize memory access",
+        "raise arithmetic intensity",
+        "add tiling/reuse before retiming"
+      ]
+    }
+  ],
+  "checks": {
+    "has_nsight_compute": true,
+    "has_nsight_systems": true,
+    "has_rocprof": true,
+    "has_memory_bandwidth": true,
+    "has_launch_overhead": true,
+    "has_communication": true,
+    "all_rows_have_remediation": true
+  }
+}

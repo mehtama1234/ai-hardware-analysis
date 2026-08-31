@@ -1,0 +1,683 @@
+{
+  "session": "22-gpumode-nsight-roofline",
+  "timestamp": "2026-08-30T07:17:01.558528+00:00",
+  "inventory": {
+    "session": "22-gpumode-nsight-roofline",
+    "timestamp": "2026-08-30T07:17:01.558611+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "source": {
+    "gpumode_lab_id": "gpumode-lab-08-nsight-to-roofline",
+    "gpumode_lessons": [
+      {
+        "index": 1,
+        "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+        "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "tensor cores",
+          "kv cache",
+          "collectives",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "simulate prefill/decode KV-cache memory growth",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 2,
+        "title": "Lecture 112: Production Megakernels for Real-World Inference",
+        "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+        "topics": [
+          "cuda",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 3,
+        "title": "Lecture 111: Spectral Compute: Compile CUDA everywhere",
+        "url": "https://www.youtube.com/watch?v=eujKd0lHegA",
+        "topics": [
+          "cuda",
+          "profiling",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction"
+        ]
+      },
+      {
+        "index": 4,
+        "title": "Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL",
+        "url": "https://www.youtube.com/watch?v=wiaUh82NEoE",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 5,
+        "title": "Lecture 109: TIRx",
+        "url": "https://www.youtube.com/watch?v=nXRsasT1jIk",
+        "topics": [
+          "cuda",
+          "triton",
+          "attention",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 6,
+        "title": "Lecture 108: One Layer Deeper competition",
+        "url": "https://www.youtube.com/watch?v=ustDJbxOu50",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware"
+        ],
+        "concepts": [
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 7,
+        "title": "Lecture 107: PithTrain",
+        "url": "https://www.youtube.com/watch?v=tBYm9PI5Jw0",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 8,
+        "title": "Lecture 106: Hugging Face Kernels",
+        "url": "https://www.youtube.com/watch?v=Ok8vi6JemVQ",
+        "topics": [
+          "cuda",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "online softmax",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 9,
+        "title": "Lecture 105: cuDNN mxfp8 attention",
+        "url": "https://www.youtube.com/watch?v=HcnybHRbTcc",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 10,
+        "title": "Lecture 104: Gluon and Linear Layouts",
+        "url": "https://www.youtube.com/watch?v=oYs_qtuk2Pg",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kernel fusion",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "fuse bias, activation, and normalization into one measured path",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 11,
+        "title": "Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation",
+        "url": "https://www.youtube.com/watch?v=MVh_guNbWMA",
+        "topics": [
+          "cuda",
+          "attention",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "autotuning",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 12,
+        "title": "Lecture 102: quartet v2",
+        "url": "https://www.youtube.com/watch?v=E0G3hf4DneA",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 13,
+        "title": "Lecture 101: Learning CUTLASS the hard way",
+        "url": "https://www.youtube.com/watch?v=jGouxuAHIfQ",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 14,
+        "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+        "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+        "topics": [
+          "profiling",
+          "attention",
+          "serving"
+        ],
+        "concepts": [
+          "kv cache",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "simulate prefill/decode KV-cache memory growth",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      }
+    ],
+    "extends": "02-roofline, 15-gpumode-coalescing, and 16-gpumode-warp-reductions"
+  },
+  "profiler_roofline": {
+    "status": "ran",
+    "source_artifact": "02-roofline/out_roofline.json",
+    "profiler": {
+      "status": "skipped",
+      "tools": {
+        "ncu": null,
+        "nsys": null,
+        "nv-nsight-cu-cli": null
+      },
+      "reason": "Nsight Compute/System CLI tools are not available on PATH, so this session uses roofline-derived proxy counters."
+    },
+    "counter_map": {
+      "dram__throughput.avg.pct_of_peak_sustained_elapsed": "memory bandwidth saturation",
+      "sm__throughput.avg.pct_of_peak_sustained_elapsed": "SM compute utilization",
+      "smsp__sass_average_branch_targets_threads_uniform.pct": "control-flow uniformity",
+      "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": "synchronization stalls",
+      "launch__occupancy_limit_registers.pct": "register pressure",
+      "gpu__time_duration.sum": "kernel duration",
+      "kernel__launch_count": "launch overhead"
+    },
+    "rows": [
+      {
+        "operation": "vector_add",
+        "shape": [
+          1000000
+        ],
+        "seconds": 0.001499,
+        "bytes_moved": 12000000,
+        "flops": 1000000,
+        "effective_gbps": 8.006,
+        "effective_tflops": 0.000667,
+        "arithmetic_intensity_flop_per_byte": 0.083333,
+        "classification": "memory-bound",
+        "counters": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": 13.97,
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": 1.17,
+          "smsp__sass_average_branch_targets_threads_uniform.pct": 98.0,
+          "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.08,
+          "launch__occupancy_limit_registers.pct": 12.0,
+          "gpu__time_duration.sum": 0.001499,
+          "kernel__launch_count": 1
+        }
+      },
+      {
+        "operation": "reduction_sum",
+        "shape": [
+          1000000
+        ],
+        "seconds": 7e-05,
+        "bytes_moved": 4000000,
+        "flops": 1000000,
+        "effective_gbps": 57.324,
+        "effective_tflops": 0.014331,
+        "arithmetic_intensity_flop_per_byte": 0.25,
+        "classification": "memory/synchronization-bound",
+        "counters": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": 100.0,
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": 25.18,
+          "smsp__sass_average_branch_targets_threads_uniform.pct": 98.0,
+          "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.34,
+          "launch__occupancy_limit_registers.pct": 12.0,
+          "gpu__time_duration.sum": 7e-05,
+          "kernel__launch_count": 1
+        }
+      },
+      {
+        "operation": "matmul",
+        "shape": [
+          512,
+          512,
+          512
+        ],
+        "seconds": 0.004717,
+        "bytes_moved": 3145728,
+        "flops": 268435456,
+        "effective_gbps": 0.667,
+        "effective_tflops": 0.056913,
+        "arithmetic_intensity_flop_per_byte": 85.333333,
+        "classification": "compute-bound when large enough",
+        "counters": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": 1.16,
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": 100.0,
+          "smsp__sass_average_branch_targets_threads_uniform.pct": 98.0,
+          "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.14,
+          "launch__occupancy_limit_registers.pct": 42.0,
+          "gpu__time_duration.sum": 0.004717,
+          "kernel__launch_count": 1
+        }
+      },
+      {
+        "operation": "kv_cache_score_scan",
+        "shape": [
+          4,
+          4096,
+          64
+        ],
+        "seconds": 0.00017,
+        "bytes_moved": 4260864,
+        "flops": 2097152,
+        "effective_gbps": 25.015,
+        "effective_tflops": 0.012312,
+        "arithmetic_intensity_flop_per_byte": 0.492189,
+        "classification": "memory-pressure attention primitive",
+        "counters": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": 43.64,
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": 21.63,
+          "smsp__sass_average_branch_targets_threads_uniform.pct": 92.0,
+          "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.08,
+          "launch__occupancy_limit_registers.pct": 12.0,
+          "gpu__time_duration.sum": 0.00017,
+          "kernel__launch_count": 4
+        }
+      }
+    ],
+    "classifications": [
+      {
+        "operation": "vector_add",
+        "bottleneck": "mixed",
+        "evidence": {
+          "arithmetic_intensity_flop_per_byte": 0.083333,
+          "dram_pct_proxy": 13.97,
+          "sm_pct_proxy": 1.17,
+          "barrier_stall_proxy": 0.08,
+          "launch_count_proxy": 1
+        },
+        "next_action": "Collect a real Nsight report and compare stall reasons against the roofline estimate."
+      },
+      {
+        "operation": "reduction_sum",
+        "bottleneck": "memory-bandwidth",
+        "evidence": {
+          "arithmetic_intensity_flop_per_byte": 0.25,
+          "dram_pct_proxy": 100.0,
+          "sm_pct_proxy": 25.18,
+          "barrier_stall_proxy": 0.34,
+          "launch_count_proxy": 1
+        },
+        "next_action": "Inspect layout/coalescing, cache reuse, and avoidable materialization before changing math."
+      },
+      {
+        "operation": "matmul",
+        "bottleneck": "compute",
+        "evidence": {
+          "arithmetic_intensity_flop_per_byte": 85.333333,
+          "dram_pct_proxy": 1.16,
+          "sm_pct_proxy": 100.0,
+          "barrier_stall_proxy": 0.14,
+          "launch_count_proxy": 1
+        },
+        "next_action": "Inspect tiling, tensor-core eligibility, occupancy, and library/kernel selection."
+      },
+      {
+        "operation": "kv_cache_score_scan",
+        "bottleneck": "launch-overhead-or-memory-scan",
+        "evidence": {
+          "arithmetic_intensity_flop_per_byte": 0.492189,
+          "dram_pct_proxy": 43.64,
+          "sm_pct_proxy": 21.63,
+          "barrier_stall_proxy": 0.08,
+          "launch_count_proxy": 4
+        },
+        "next_action": "Inspect fusion opportunities, decode-loop granularity, and KV-cache scan shape."
+      }
+    ],
+    "imported_reports": {
+      "status": "ran",
+      "import_dir": "imports",
+      "rows": [
+        {
+          "operation": "fused_attention_decode",
+          "source": "sample-ncu-report.json",
+          "tool": "ncu",
+          "arithmetic_intensity_flop_per_byte": 2.1,
+          "counters": {
+            "dram__throughput.avg.pct_of_peak_sustained_elapsed": 71.4,
+            "sm__throughput.avg.pct_of_peak_sustained_elapsed": 28.5,
+            "smsp__sass_average_branch_targets_threads_uniform.pct": 0.0,
+            "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.07,
+            "launch__occupancy_limit_registers.pct": 18.0,
+            "gpu__time_duration.sum": 0.0,
+            "kernel__launch_count": 1.0
+          }
+        },
+        {
+          "operation": "wmma_gemm_tile",
+          "source": "sample-ncu-report.json",
+          "tool": "ncu",
+          "arithmetic_intensity_flop_per_byte": 18.4,
+          "counters": {
+            "dram__throughput.avg.pct_of_peak_sustained_elapsed": 22.0,
+            "sm__throughput.avg.pct_of_peak_sustained_elapsed": 83.2,
+            "smsp__sass_average_branch_targets_threads_uniform.pct": 0.0,
+            "smsp__average_warps_issue_stalled_barrier_per_issue_active.ratio": 0.11,
+            "launch__occupancy_limit_registers.pct": 39.0,
+            "gpu__time_duration.sum": 0.0,
+            "kernel__launch_count": 1.0
+          }
+        }
+      ],
+      "classifications": [
+        {
+          "operation": "fused_attention_decode",
+          "bottleneck": "memory-bandwidth",
+          "evidence": {
+            "arithmetic_intensity_flop_per_byte": 2.1,
+            "dram_pct_proxy": 71.4,
+            "sm_pct_proxy": 28.5,
+            "barrier_stall_proxy": 0.07,
+            "launch_count_proxy": 1.0
+          },
+          "next_action": "Inspect layout/coalescing, cache reuse, and avoidable materialization before changing math."
+        },
+        {
+          "operation": "wmma_gemm_tile",
+          "bottleneck": "compute",
+          "evidence": {
+            "arithmetic_intensity_flop_per_byte": 18.4,
+            "dram_pct_proxy": 22.0,
+            "sm_pct_proxy": 83.2,
+            "barrier_stall_proxy": 0.11,
+            "launch_count_proxy": 1.0
+          },
+          "next_action": "Inspect tiling, tensor-core eligibility, occupancy, and library/kernel selection."
+        }
+      ],
+      "finding": "Imported 2 Nsight-shaped kernel rows and classified them with the same roofline decision rules."
+    },
+    "correctness": {
+      "status": "passed",
+      "checks": {
+        "roofline_rows_loaded": true,
+        "counter_rows_match_roofline_rows": true,
+        "every_row_classified": true,
+        "counter_map_populated": true,
+        "import_parser_ran": true
+      }
+    },
+    "finding": "Profiler counters become useful when mapped back to the roofline question: memory saturation, SM utilization, barrier stalls, launch count, and arithmetic intensity each imply a different next optimization."
+  },
+  "correctness": {
+    "status": "passed",
+    "checks": {
+      "roofline_rows_loaded": true,
+      "counter_rows_match_roofline_rows": true,
+      "every_row_classified": true,
+      "counter_map_populated": true,
+      "import_parser_ran": true
+    }
+  },
+  "boundary": "This lab builds the counter-to-roofline decision workflow from local measurements. When Nsight CLI tools are unavailable, counter values are explicit proxies derived from the roofline artifact, not vendor profiler output."
+}

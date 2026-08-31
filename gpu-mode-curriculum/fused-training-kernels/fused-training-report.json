@@ -1,0 +1,271 @@
+{
+  "generated_at": "2026-08-31T01:53:09.235048+00:00",
+  "status": "fused-training-ready",
+  "scenario_count": 6,
+  "passed_scenarios": 6,
+  "family_count": 5,
+  "families": [
+    "cross-entropy",
+    "fusion",
+    "optimizer",
+    "rmsnorm",
+    "swiglu-mlp"
+  ],
+  "backward_scenarios": 4,
+  "optimizer_state_scenarios": 2,
+  "checkpoint_safe_scenarios": 3,
+  "source_reports": [
+    "custom-ops/reports/custom-op-report.json",
+    "model-integration/reports/tiny-transformer-report.json",
+    "flash-attention-backward/flash-attention-backward-report.json",
+    "distributed-training-optimizer/distributed-training-optimizer-report.json",
+    "quantization-memory-formats/quantization-report.json",
+    "profiler-evidence/reports/profiler-evidence-report.json"
+  ],
+  "source_facts": {
+    "custom_op_cases": 4,
+    "model_cases": 3,
+    "flash_backward_scenarios": 6,
+    "training_optimizer_scenarios": 6,
+    "quantization_formats": 7,
+    "profiler_rows": 9
+  },
+  "scenarios": [
+    {
+      "scenario_id": "rmsnorm-residual-backward",
+      "kernel_family": "rmsnorm",
+      "status": "passed",
+      "shape": "batch=8,seq=2048,hidden=8192",
+      "dtype": "bf16/fp32-acc",
+      "unfused_ops": 5,
+      "fused_ops": 2,
+      "baseline_ms": 7.8,
+      "fused_ms": 3.4,
+      "speedup_vs_unfused": 2.2941,
+      "baseline_hbm_mb": 920.0,
+      "fused_hbm_mb": 384.0,
+      "hbm_reduction": 0.582609,
+      "launch_reduction": 0.6,
+      "occupancy_proxy": 0.8557,
+      "register_pressure_proxy": 0.76,
+      "max_abs_error": 0.002,
+      "supports_backward": true,
+      "optimizer_state": false,
+      "activation_checkpoint_safe": true,
+      "kernel_paths": [
+        "forward",
+        "backward",
+        "epilogue"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "swiglu-mlp-fusion",
+      "kernel_family": "swiglu-mlp",
+      "status": "passed",
+      "shape": "tokens=16384,hidden=8192,intermediate=28672",
+      "dtype": "bf16/fp32-acc",
+      "unfused_ops": 6,
+      "fused_ops": 3,
+      "baseline_ms": 31.5,
+      "fused_ms": 15.2,
+      "speedup_vs_unfused": 2.0724,
+      "baseline_hbm_mb": 5480.0,
+      "fused_hbm_mb": 2560.0,
+      "hbm_reduction": 0.532847,
+      "launch_reduction": 0.5,
+      "occupancy_proxy": 0.8082,
+      "register_pressure_proxy": 0.84,
+      "max_abs_error": 0.0038,
+      "supports_backward": true,
+      "optimizer_state": false,
+      "activation_checkpoint_safe": true,
+      "kernel_paths": [
+        "forward",
+        "backward",
+        "epilogue"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "cross-entropy-zloss",
+      "kernel_family": "cross-entropy",
+      "status": "passed",
+      "shape": "tokens=8192,vocab=128k",
+      "dtype": "fp32-reduction",
+      "unfused_ops": 4,
+      "fused_ops": 1,
+      "baseline_ms": 22.0,
+      "fused_ms": 8.9,
+      "speedup_vs_unfused": 2.4719,
+      "baseline_hbm_mb": 4100.0,
+      "fused_hbm_mb": 760.0,
+      "hbm_reduction": 0.814634,
+      "launch_reduction": 0.75,
+      "occupancy_proxy": 0.9662,
+      "register_pressure_proxy": 0.68,
+      "max_abs_error": 0.0012,
+      "supports_backward": true,
+      "optimizer_state": false,
+      "activation_checkpoint_safe": false,
+      "kernel_paths": [
+        "forward",
+        "backward",
+        "epilogue"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "adamw-multi-tensor",
+      "kernel_family": "optimizer",
+      "status": "passed",
+      "shape": "params=7B,shards=8",
+      "dtype": "fp32-master,bf16-param",
+      "unfused_ops": 7,
+      "fused_ops": 2,
+      "baseline_ms": 44.0,
+      "fused_ms": 18.5,
+      "speedup_vs_unfused": 2.3784,
+      "baseline_hbm_mb": 9800.0,
+      "fused_hbm_mb": 3900.0,
+      "hbm_reduction": 0.602041,
+      "launch_reduction": 0.714286,
+      "occupancy_proxy": 0.9005,
+      "register_pressure_proxy": 0.66,
+      "max_abs_error": 0.0008,
+      "supports_backward": false,
+      "optimizer_state": true,
+      "activation_checkpoint_safe": false,
+      "kernel_paths": [
+        "forward",
+        "state-update",
+        "reduction"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "grad-clip-unscale",
+      "kernel_family": "optimizer",
+      "status": "passed",
+      "shape": "params=7B,shards=8",
+      "dtype": "fp32-reduction",
+      "unfused_ops": 5,
+      "fused_ops": 2,
+      "baseline_ms": 16.4,
+      "fused_ms": 7.2,
+      "speedup_vs_unfused": 2.2778,
+      "baseline_hbm_mb": 5200.0,
+      "fused_hbm_mb": 2100.0,
+      "hbm_reduction": 0.596154,
+      "launch_reduction": 0.6,
+      "occupancy_proxy": 0.859,
+      "register_pressure_proxy": 0.66,
+      "max_abs_error": 0.001,
+      "supports_backward": false,
+      "optimizer_state": true,
+      "activation_checkpoint_safe": false,
+      "kernel_paths": [
+        "forward",
+        "state-update",
+        "reduction"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "dropout-residual-norm",
+      "kernel_family": "fusion",
+      "status": "passed",
+      "shape": "batch=8,seq=4096,hidden=4096",
+      "dtype": "fp16/fp32-acc",
+      "unfused_ops": 5,
+      "fused_ops": 2,
+      "baseline_ms": 9.6,
+      "fused_ms": 4.1,
+      "speedup_vs_unfused": 2.3415,
+      "baseline_hbm_mb": 1360.0,
+      "fused_hbm_mb": 560.0,
+      "hbm_reduction": 0.588235,
+      "launch_reduction": 0.6,
+      "occupancy_proxy": 0.8571,
+      "register_pressure_proxy": 0.76,
+      "max_abs_error": 0.0045,
+      "supports_backward": true,
+      "optimizer_state": false,
+      "activation_checkpoint_safe": true,
+      "kernel_paths": [
+        "forward",
+        "backward",
+        "epilogue"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "launch_count",
+        "sm__throughput",
+        "registers_per_thread",
+        "achieved_occupancy",
+        "max_abs_error"
+      ]
+    }
+  ],
+  "recommendations": [
+    "Teach LLM training fusion after attention backward because optimizer, norm, and loss kernels are the next launch and HBM bottlenecks.",
+    "Separate numerical-error checks for reductions, activation epilogues, and optimizer state updates.",
+    "Promote with launch count, DRAM bytes, occupancy, register pressure, and max error rather than speedup alone."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "rmsnorm-bwd",
+      "swiglu-bwd",
+      "cross-entropy-loss",
+      "adamw-update",
+      "grad-clip-unscale",
+      "dropout-residual-norm"
+    ],
+    "commands": [
+      "python3 scripts/run_fused_training_kernels.py",
+      "python3 scripts/verify_fused_training_kernels.py",
+      "python3 scripts/run_model_integration.py",
+      "python3 scripts/run_distributed_training_optimizer.py",
+      "ncu --set full -o fused-training-kernels python3 <fused_training_probe.py>",
+      "nsys profile -o fused-training-step python3 <training_step_probe.py>",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id fused-training-kernels --execute"
+    ],
+    "note": "Local report models fused training-kernel constraints; final acceptance requires measured Triton/CUDA kernels and profiler traces on a GPU host."
+  }
+}

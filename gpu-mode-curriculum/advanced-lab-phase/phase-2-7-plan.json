@@ -1,0 +1,110 @@
+{
+  "status": "phase-plan-ready",
+  "phase": "advanced-gpu-ai-systems-2-through-7",
+  "execution_target": "local CPU readiness now, Google Colab or remote GPU host for measured accelerator evidence",
+  "lanes": [
+    {
+      "id": "speculative-decoding-serving",
+      "priority": 2,
+      "status": "implemented-first-class",
+      "objective": "Build speculative decoding serving labs with draft/target verification, acceptance rate, rollback pressure, KV commit accounting, TTFT/TPOT, and serving-engine comparison.",
+      "primary_evidence": [
+        "speculative-decoding-serving/speculative-decoding-report.json",
+        "scripts/run_speculative_decoding_serving.py",
+        "scripts/verify_speculative_decoding_serving.py",
+        "site/speculative-decoding-serving.html"
+      ],
+      "gpu_measurement_step": "speculative-decoding-serving"
+    },
+    {
+      "id": "multi-node-training-systems",
+      "priority": 3,
+      "status": "implemented-existing-lanes",
+      "objective": "FSDP/TP/PP/ZeRO, activation checkpointing, overlap, failure recovery, memory budgets, and collective bottleneck evidence.",
+      "primary_evidence": [
+        "distributed-topology/distributed-topology-plan.json",
+        "distributed-collectives/distributed-collectives-report.json",
+        "distributed-training-optimizer/distributed-training-optimizer-report.json",
+        "scripts/run_distributed_training_optimizer.py",
+        "scripts/verify_distributed_training_optimizer.py",
+        "site/distributed-training-optimizer.html"
+      ],
+      "gpu_measurement_step": "distributed-training-optimizer"
+    },
+    {
+      "id": "compiler-stack-deep-dive",
+      "priority": 4,
+      "status": "implemented-existing-lanes",
+      "objective": "torch.compile/Triton IR/PTX/CUTLASS/CuTe lowering, graph breaks, generated kernel inspection, occupancy prediction, and SASS/PTX evidence.",
+      "primary_evidence": [
+        "compiler-runtime-inspection/compiler-runtime-report.json",
+        "tensor-core-gemm/tensor-core-gemm-report.json",
+        "persistent-kernels/persistent-kernels-report.json",
+        "scripts/run_compiler_runtime_inspection.py",
+        "scripts/verify_compiler_runtime_inspection.py",
+        "site/compiler-runtime-inspection.html"
+      ],
+      "gpu_measurement_step": "tensor-core-gemm"
+    },
+    {
+      "id": "quantized-training-inference-kernels",
+      "priority": 5,
+      "status": "implemented-existing-lanes",
+      "objective": "FP8/NF4/INT4 calibration, fused dequant-GEMM, quantized optimizer state, accuracy drift, memory savings, and throughput evidence.",
+      "primary_evidence": [
+        "quantization-memory-formats/quantization-report.json",
+        "numerical-reproducibility/numerical-reproducibility-report.json",
+        "programming-projects/hf-quant-serving/measurements.json",
+        "fused-training-kernels/fused-training-report.json",
+        "scripts/run_quantization_memory_formats.py",
+        "scripts/verify_quantization_memory_formats.py",
+        "site/quantization-memory-formats.html"
+      ],
+      "gpu_measurement_step": "full-gpu-regression"
+    },
+    {
+      "id": "moe-end-to-end-systems",
+      "priority": 6,
+      "status": "implemented-existing-lanes",
+      "objective": "Expert-parallel routing, all-to-all overlap, capacity factor, token dropping, expert imbalance, and serving/training tradeoffs.",
+      "primary_evidence": [
+        "moe-routing-all-to-all/moe-routing-report.json",
+        "distributed-collectives/distributed-collectives-report.json",
+        "distributed-training-optimizer/distributed-training-optimizer-report.json",
+        "scripts/run_moe_routing_all_to_all.py",
+        "scripts/verify_moe_routing_all_to_all.py",
+        "site/moe-routing-all-to-all.html"
+      ],
+      "gpu_measurement_step": "distributed-collectives"
+    },
+    {
+      "id": "jax-scaling-book-implementation",
+      "priority": 7,
+      "status": "implemented-project-lane",
+      "objective": "JAX scaling-book roofline models, sharding, pjit/remat planning, communication/computation overlap, and transformer inference/training scaling estimates.",
+      "primary_evidence": [
+        "programming-projects/jax-scaling-roofline/project.json",
+        "programming-projects/jax-scaling-roofline/roofline_model.py",
+        "programming-projects/jax-scaling-roofline/measurements.json",
+        "programming-projects/jax-scaling-roofline/jax-scaling-roofline.ipynb",
+        "site/project-jax-scaling-roofline.html"
+      ],
+      "gpu_measurement_step": "model-integration-gpu"
+    }
+  ],
+  "colab_handoff": {
+    "notebook_goal": "Run the GPU-backed versions of each lane in Colab and import measured JSON rows into gpu-runs/imports/.",
+    "first_commands": [
+      "python3 scripts/verify_advanced_phase.py",
+      "python3 scripts/run_gpu_host_preflight.py",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id colab-advanced-phase --execute",
+      "python3 scripts/collect_gpu_run.py --run-id colab-advanced-phase",
+      "python3 scripts/build_gpu_measurement_queue.py"
+    ],
+    "required_outputs": [
+      "gpu-runs/imports/colab-advanced-phase.json",
+      "gpu-measurement-queue/gpu-measurement-queue.json",
+      "capstone-acceptance/capstone-acceptance.json"
+    ]
+  }
+}

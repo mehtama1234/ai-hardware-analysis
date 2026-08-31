@@ -1,0 +1,96 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 21 GPUMODE Quantized Kernels</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 21</div>
+  <h1>GPUMODE quantized matmul kernel ladder.</h1>
+  <p class="dek">This session moves past stored-weight compression into executable
+  matmul paths: fp16, int8, int4 groupwise, and MXFP4-like dequantization are compared
+  for runtime, modeled memory traffic, and numerical drift.</p>
+</header>
+
+<section>
+  <div class="eye">Quantized matmul</div>
+  <h2>Smaller weights still need the right kernel</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>scheme</th><th>seconds</th><th>GFLOP/s</th><th>modeled MB</th><th>memory reduction</th><th>relative error</th><th>cosine</th></tr>
+      <tr><td>fp16_dequant_baseline</td><td>0.000944</td><td>106.6841</td><td>1.0486</td><td>0.0%</td><td>0.02072%</td><td>1.0000002</td></tr>
+<tr><td>int8_per_tensor_dequant_matmul</td><td>0.001178</td><td>85.4668</td><td>0.852</td><td>18.75%</td><td>1.04486%</td><td>0.9999458</td></tr>
+<tr><td>int4_group64_dequant_matmul</td><td>0.001528</td><td>65.8792</td><td>0.766</td><td>26.95%</td><td>10.76844%</td><td>0.9942616</td></tr>
+<tr><td>mxfp4_like_group64_dequant_matmul</td><td>0.001118</td><td>90.0099</td><td>0.766</td><td>26.95%</td><td>12.4362%</td><td>0.9922605</td></tr>
+    </table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>Weight-only quantization reduces modeled memory traffic, but this CPU proxy also exposes the dequantization tax that a real GPU kernel must fuse away to turn smaller weights into speed.</p></div>
+  <div class="why"><h3>Correctness</h3><p>{&#x27;status&#x27;: &#x27;passed&#x27;, &#x27;checks&#x27;: {&#x27;all_paths_ran&#x27;: True, &#x27;all_outputs_finite&#x27;: True, &#x27;quantized_paths_reduce_modeled_memory&#x27;: True, &#x27;low_bit_paths_show_measured_drift&#x27;: True}, &#x27;max_relative_error_pct&#x27;: 12.4362, &#x27;note&#x27;: &#x27;All quantized paths are compared against fp32 matmul. Relative error is reported as a measured quality signal, not used as a pass/fail proxy for model quality.&#x27;}</p></div>
+</section>
+
+<section>
+  <div class="eye">GPU kernel boundary</div>
+  <h2>CUDA and Triton path status</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>path</th><th>status</th><th>reason</th><th>next</th></tr>
+      <tr><td>triton</td><td>skipped</td><td>Triton quantized matmul requires a CUDA-visible device in this lab.</td><td>Fuse dequantization into a tiled Triton matmul and compare against this CPU proxy.</td></tr>
+<tr><td>cuda</td><td>skipped</td><td>No nvcc-backed packed int4 CUDA kernel is built in this session yet.</td><td>Implement nibble-packed int4 loads plus per-group scales in CUDA or CUTLASS.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">GPUMODE links</div>
+  <h2>Transcript-derived lesson anchors</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>lesson</th><th>topics</th><th>concepts</th><th>exercise candidates</th></tr>
+      <tr><td>2</td><td><a href="https://www.youtube.com/watch?v=loZ4xQ5RZuU">Lecture 112: Production Megakernels for Real-World Inference</a></td><td>cuda, attention, quantization, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>4</td><td><a href="https://www.youtube.com/watch?v=wiaUh82NEoE">Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, occupancy, tensor cores, autotuning, quantized numerics</td><td>compare shared-memory reduction with warp-shuffle reduction; sweep block sizes and record the winning kernel configuration</td></tr>
+<tr><td>6</td><td><a href="https://www.youtube.com/watch?v=ustDJbxOu50">Lecture 108: One Layer Deeper competition</a></td><td>cuda, quantization, serving, hardware</td><td>autotuning, quantized numerics, compiler lowering</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>7</td><td><a href="https://www.youtube.com/watch?v=tBYm9PI5Jw0">Lecture 107: PithTrain</a></td><td>cuda, triton, profiling, quantization, serving</td><td>autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>9</td><td><a href="https://www.youtube.com/watch?v=HcnybHRbTcc">Lecture 105: cuDNN mxfp8 attention</a></td><td>cuda, profiling, attention, quantization, serving</td><td>shared memory tiling, warp execution, tensor cores, online softmax, quantized numerics</td><td>implement naive vs tiled matrix multiplication; compare shared-memory reduction with warp-shuffle reduction</td></tr>
+<tr><td>12</td><td><a href="https://www.youtube.com/watch?v=E0G3hf4DneA">Lecture 102: quartet v2</a></td><td>cuda, quantization, serving, hardware, cutlass</td><td>tensor cores, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>sweep block sizes and record the winning kernel configuration; measure int8/int4/fp8-style quantization error and memory savings</td></tr>
+<tr><td>14</td><td><a href="https://www.youtube.com/watch?v=kPBTBl7xvEY">Lecture 100: InferenceX Continuous OSS Inference Benchmarking</a></td><td>profiling, attention, serving</td><td>kv cache, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>simulate prefill/decode KV-cache memory growth; sweep block sizes and record the winning kernel configuration</td></tr>
+<tr><td>15</td><td><a href="https://www.youtube.com/watch?v=sV0PJC1dOmM">Lecture 99: Distributed ML on consumer devices</a></td><td>attention, quantization, serving, hardware, distributed</td><td>occupancy, tensor cores, kv cache, kernel fusion, autotuning</td><td>simulate prefill/decode KV-cache memory growth; fuse bias, activation, and normalization into one measured path</td></tr>
+<tr><td>18</td><td><a href="https://www.youtube.com/watch?v=TH1i-GmMZuQ">Lecture 96: TLX</a></td><td>cuda, triton, pytorch-compiler, attention, quantization</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>28</td><td><a href="https://www.youtube.com/watch?v=9-dfte_N3yk">Lecture 86: Getting Started with CuTe DSL</a></td><td>cuda, cutlass</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, autotuning</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>30</td><td><a href="https://www.youtube.com/watch?v=ua2NhlenIKo">Lecture 84: Numerics and AI</a></td><td>cuda, hardware, distributed</td><td>occupancy, quantized numerics, compiler lowering, profiling workflow</td><td>measure int8/int4/fp8-style quantization error and memory savings; capture a profiler trace and classify bottleneck type</td></tr>
+<tr><td>31</td><td><a href="https://www.youtube.com/watch?v=pB8jRHHGJcE">Lecture 83: Formalized Kernel Derivation</a></td><td>cuda, profiling, attention, quantization, hardware</td><td>tensor cores, online softmax, autotuning, quantized numerics, profiling workflow</td><td>implement numerically stable online softmax and compare to materialized softmax; sweep block sizes and record the winning kernel configuration</td></tr>
+<tr><td>34</td><td><a href="https://www.youtube.com/watch?v=VPslgC9piIw">Lecture 80: How FlashAttention 4 Works</a></td><td>cuda, profiling, attention, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>benchmark contiguous, strided, and gathered loads; implement naive vs tiled matrix multiplication</td></tr>
+<tr><td>41</td><td><a href="https://www.youtube.com/watch?v=6Cxnnvv3DnY">Lecture 73: [ScaleML Series] Quantization in Large Models</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, tensor cores, kv cache, autotuning, quantized numerics</td><td>compare shared-memory reduction with warp-shuffle reduction; simulate prefill/decode KV-cache memory growth</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Evidence boundary</div>
+  <p>This session measures weight-only quantized matmul with explicit dequantization on the local runtime. It does not claim packed GPU int4 Tensor Core throughput until CUDA/Triton kernels are added and run.</p>
+</section>
+
+</div>

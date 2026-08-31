@@ -1,0 +1,67 @@
+<meta charset="utf-8">
+<title>GPUMODE Distributed Topology</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated multi-GPU planning lab</div>
+  <h1>GPUMODE distributed topology.</h1>
+  <p class="dek">Topology and parallelism plan for tensor parallel, pipeline parallel,
+  data parallel, memory capacity, and collective latency tradeoffs.</p>
+  <div class="grid">
+    <div class="card"><h2>5</h2><p>topologies</p></div>
+    <div class="card"><h2>5</h2><p>workloads</p></div>
+    <div class="card"><h2>17</h2><p>viable candidates</p></div>
+    <div class="card"><h2><a href="../distributed-topology/reports/distributed-topology-plan.md">Report</a></h2><p>Markdown topology plan</p></div>
+  </div>
+
+  <section>
+    <h2>Recommendations</h2>
+    <table><tr><th>workload</th><th>topology</th><th>tensor</th><th>pipeline</th><th>data</th><th>bottleneck</th><th>collective ms</th></tr><tr><td>llama-7b-chat</td><td>single-gpu</td><td>1</td><td>1</td><td>1</td><td>compute-or-scheduler</td><td>0.0</td></tr>
+<tr><td>llama-13b-rag</td><td>single-gpu</td><td>1</td><td>1</td><td>1</td><td>compute-or-scheduler</td><td>0.0</td></tr>
+<tr><td>llama-70b-batch</td><td>eight-nvlink</td><td>8</td><td>1</td><td>1</td><td>intra-node-collective</td><td>68.1116</td></tr>
+<tr><td>mixtral-8x7b</td><td>eight-nvlink</td><td>4</td><td>2</td><td>1</td><td>compute-or-scheduler</td><td>21.6907</td></tr>
+<tr><td>dense-70b-sft</td><td>sixteen-ib</td><td>8</td><td>2</td><td>1</td><td>intra-node-collective</td><td>68.1536</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Candidate Plans</h2>
+    <table><tr><th>workload</th><th>topology</th><th>status</th><th>memory GB/GPU</th><th>collective ms</th><th>bottleneck</th></tr><tr><td>llama-7b-chat</td><td>single-gpu</td><td>candidate</td><td>16.0428</td><td>0.0</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-7b-chat</td><td>dual-pcie</td><td>candidate</td><td>16.0857</td><td>7.8305</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-7b-chat</td><td>eight-nvlink</td><td>candidate</td><td>16.3427</td><td>17.556</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-7b-chat</td><td>quad-nvlink</td><td>candidate</td><td>16.1713</td><td>23.4675</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-7b-chat</td><td>sixteen-ib</td><td>candidate</td><td>16.6854</td><td>37.71</td><td>intra-node-collective</td></tr>
+<tr><td>llama-13b-rag</td><td>single-gpu</td><td>candidate</td><td>28.2335</td><td>0.0</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-13b-rag</td><td>dual-pcie</td><td>candidate</td><td>28.467</td><td>7.8305</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-13b-rag</td><td>eight-nvlink</td><td>candidate</td><td>5.3084</td><td>21.6907</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-13b-rag</td><td>sixteen-ib</td><td>candidate</td><td>3.6834</td><td>21.7087</td><td>compute-or-scheduler</td></tr>
+<tr><td>llama-13b-rag</td><td>quad-nvlink</td><td>candidate</td><td>8.5584</td><td>32.53</td><td>intra-node-collective</td></tr>
+<tr><td>llama-70b-batch</td><td>eight-nvlink</td><td>candidate</td><td>19.5339</td><td>68.1116</td><td>intra-node-collective</td></tr>
+<tr><td>llama-70b-batch</td><td>sixteen-ib</td><td>candidate</td><td>10.7839</td><td>68.1536</td><td>intra-node-collective</td></tr>
+<tr><td>llama-70b-batch</td><td>quad-nvlink</td><td>candidate</td><td>37.0677</td><td>175.03</td><td>intra-node-collective</td></tr>
+<tr><td>llama-70b-batch</td><td>single-gpu</td><td>rejected-memory</td><td>142.2709</td><td>0.0</td><td>memory-capacity</td></tr>
+<tr><td>llama-70b-batch</td><td>dual-pcie</td><td>rejected-memory</td><td>72.1355</td><td>1093.768</td><td>memory-capacity</td></tr>
+<tr><td>mixtral-8x7b</td><td>eight-nvlink</td><td>candidate</td><td>13.7792</td><td>21.6907</td><td>compute-or-scheduler</td></tr>
+<tr><td>mixtral-8x7b</td><td>sixteen-ib</td><td>candidate</td><td>7.9042</td><td>21.7087</td><td>compute-or-scheduler</td></tr>
+<tr><td>mixtral-8x7b</td><td>quad-nvlink</td><td>candidate</td><td>25.5292</td><td>32.53</td><td>intra-node-collective</td></tr>
+<tr><td>mixtral-8x7b</td><td>single-gpu</td><td>rejected-memory</td><td>96.1168</td><td>0.0</td><td>memory-capacity</td></tr>
+<tr><td>mixtral-8x7b</td><td>dual-pcie</td><td>rejected-memory</td><td>96.2335</td><td>7.8305</td><td>memory-capacity</td></tr>
+<tr><td>dense-70b-sft</td><td>sixteen-ib</td><td>candidate</td><td>45.0</td><td>68.1536</td><td>intra-node-collective</td></tr>
+<tr><td>dense-70b-sft</td><td>single-gpu</td><td>rejected-scale</td><td>570.0</td><td>0.0</td><td>insufficient-data-parallel-scale</td></tr>
+<tr><td>dense-70b-sft</td><td>eight-nvlink</td><td>rejected-memory</td><td>80.0</td><td>68.1116</td><td>memory-capacity</td></tr>
+<tr><td>dense-70b-sft</td><td>quad-nvlink</td><td>rejected-scale</td><td>150.0</td><td>175.03</td><td>insufficient-data-parallel-scale</td></tr>
+<tr><td>dense-70b-sft</td><td>dual-pcie</td><td>rejected-scale</td><td>290.0</td><td>1093.768</td><td>insufficient-data-parallel-scale</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

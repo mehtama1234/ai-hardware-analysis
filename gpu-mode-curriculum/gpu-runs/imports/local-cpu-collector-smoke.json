@@ -1,0 +1,272 @@
+{
+  "run_id": "local-cpu-collector-smoke",
+  "generated_at": "2026-08-31T01:26:35.065412+00:00",
+  "collector": "gpu_runs.collector",
+  "provenance": {
+    "kind": "host-collected",
+    "measured": false,
+    "description": "Collected from the current host after local or GPU promotion commands."
+  },
+  "host": {
+    "name": "MithusLaptop",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "accelerator": "unavailable",
+    "vendor": "unknown",
+    "python": "3.10.12",
+    "cuda_available": false,
+    "rocm_available": false,
+    "tools": {
+      "nvcc": false,
+      "nvidia_smi": false,
+      "hipcc": false,
+      "rocprof": false,
+      "nsys": false,
+      "ncu": false,
+      "torchrun": true,
+      "triton": true
+    }
+  },
+  "promotion_steps": [
+    {
+      "id": "cuda-kernel-compile",
+      "status": "skipped:missing-nvcc-or-nvidia-gpu",
+      "evidence": [
+        "kernel-benchmarks/kernels/cuda/*.cu",
+        "kernel-benchmarks/reports/kernel-benchmark-report.json"
+      ],
+      "metrics": {
+        "nvcc": false,
+        "nvidia_smi": false,
+        "torch_device": "cpu",
+        "passed_benchmarks": 14
+      }
+    },
+    {
+      "id": "triton-kernel-sweep",
+      "status": "skipped:missing-cuda-gpu",
+      "evidence": [
+        "kernel-benchmarks/reports/kernel-benchmark-report.json",
+        "autotune-db/autotune-db.json"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "triton_cases": 4,
+        "passed_benchmarks": 14
+      }
+    },
+    {
+      "id": "persistent-kernels",
+      "status": "skipped:missing-cuda-triton-or-ncu",
+      "evidence": [
+        "persistent-kernels/persistent-kernels-report.json",
+        "persistent-kernels/reports/persistent-kernels-report.md"
+      ],
+      "metrics": {
+        "triton": true,
+        "nvidia_smi": false,
+        "ncu": false,
+        "persistent_scenarios": 6,
+        "speedup_vs_baseline": 1.3636,
+        "occupancy_proxy": 0.5,
+        "hbm_reduction": 0.2
+      }
+    },
+    {
+      "id": "parallel-primitives",
+      "status": "skipped:missing-measured-primitive-run",
+      "evidence": [
+        "parallel-primitives/parallel-primitives-report.json",
+        "parallel-primitives/reports/parallel-primitives-report.md"
+      ],
+      "metrics": {
+        "accelerator_ready": false,
+        "primitive_scenarios": 6,
+        "work_efficiency": 1.4194,
+        "bandwidth_proxy_gbps": 16.236,
+        "occupancy_proxy": 1.0,
+        "stable_order_scenarios": 3
+      }
+    },
+    {
+      "id": "torch-custom-extension",
+      "status": "skipped:extension-source-only",
+      "evidence": [
+        "custom-ops/reports/custom-op-report.json",
+        "custom-ops/csrc/fused_bias_gelu_residual_kernel.cu"
+      ],
+      "metrics": {
+        "compiled_extension_status": "source-only",
+        "passed_cases": 4
+      }
+    },
+    {
+      "id": "model-integration-gpu",
+      "status": "skipped:missing-accelerator-runtime",
+      "evidence": [
+        "model-integration/reports/tiny-transformer-report.json"
+      ],
+      "metrics": {
+        "accelerator_ready": false,
+        "passed_cases": 3,
+        "uses_custom_op": "fused_bias_gelu_residual"
+      }
+    },
+    {
+      "id": "vllm-serving-trace",
+      "status": "skipped:missing-vllm-cuda-runtime",
+      "evidence": [
+        "serving-traces/reports/serving-trace-report.json"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "passed_traces": 3,
+        "prefix_cache_blocks_saved": 642
+      }
+    },
+    {
+      "id": "flash-attention-backward",
+      "status": "skipped:missing-measured-flash-backward-run",
+      "evidence": [
+        "flash-attention-backward/flash-attention-backward-report.json",
+        "flash-attention-backward/reports/flash-attention-backward-report.md"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "flash_backward_scenarios": 6,
+        "gradient_paths": 4,
+        "max_abs_error": 0.009,
+        "hbm_reduction": 0.658854,
+        "recompute_overhead_ratio": 0.34,
+        "occupancy_proxy": 0.75
+      }
+    },
+    {
+      "id": "sparse-attention-kernels",
+      "status": "skipped:missing-measured-sparse-attention-run",
+      "evidence": [
+        "sparse-attention-kernels/sparse-attention-report.json",
+        "sparse-attention-kernels/reports/sparse-attention-report.md"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "sparse_attention_scenarios": 6,
+        "pattern_count": 6,
+        "ragged_scenarios": 2,
+        "backward_scenarios": 5,
+        "max_abs_error": 0.0065,
+        "hbm_reduction": 0.749878,
+        "load_balance_proxy": 0.752
+      }
+    },
+    {
+      "id": "fused-training-kernels",
+      "status": "skipped:missing-measured-fused-training-run",
+      "evidence": [
+        "fused-training-kernels/fused-training-report.json",
+        "fused-training-kernels/reports/fused-training-report.md"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "fused_training_scenarios": 6,
+        "family_count": 5,
+        "backward_scenarios": 4,
+        "optimizer_state_scenarios": 2,
+        "max_abs_error": 0.0045,
+        "hbm_reduction": 0.532847,
+        "launch_reduction": 0.5
+      }
+    },
+    {
+      "id": "speculative-decoding-serving",
+      "status": "skipped:missing-measured-speculative-decoding-run",
+      "evidence": [
+        "speculative-decoding-serving/speculative-decoding-report.json",
+        "speculative-decoding-serving/reports/speculative-decoding-report.md"
+      ],
+      "metrics": {
+        "cuda_available": false,
+        "speculative_scenarios": 6,
+        "passed_scenarios": 4,
+        "engine_count": 5,
+        "scheduler_policy_count": 2,
+        "min_acceptance_rate": 0.43,
+        "max_speedup_vs_baseline": 6.6498,
+        "max_wasted_draft_ratio": 0.57
+      }
+    },
+    {
+      "id": "profiler-capture",
+      "status": "skipped:missing-profiler-tools",
+      "evidence": [
+        "profiler-evidence/reports/profiler-evidence-report.json"
+      ],
+      "metrics": {
+        "ncu": false,
+        "nsys": false,
+        "rocprof": false,
+        "profiler_rows": 9
+      }
+    },
+    {
+      "id": "rocm-hip-port",
+      "status": "skipped:missing-hipcc-or-rocprof",
+      "evidence": [
+        "programming-projects/rocm-hip-port/measurements.json"
+      ],
+      "metrics": {
+        "hipcc": false,
+        "rocprof": false,
+        "starter_status": "source-only"
+      }
+    },
+    {
+      "id": "distributed-collectives",
+      "status": "skipped:missing-measured-collective-benchmark",
+      "evidence": [
+        "distributed-collectives/reports/collective-benchmark-run.json",
+        "distributed-collectives/distributed-collectives-report.json",
+        "programming-projects/distributed-collectives/measurements.json"
+      ],
+      "metrics": {
+        "torchrun": false,
+        "accelerator_ready": false,
+        "collective_scenarios": 6,
+        "collective_count": 5,
+        "measured_collectives": 0,
+        "bandwidth_efficiency": 1.0,
+        "overlap_gain": 0.278586,
+        "best_bus_gbps": 0.0,
+        "nccl_or_rccl": false,
+        "backend": "gloo"
+      }
+    },
+    {
+      "id": "distributed-training-optimizer",
+      "status": "skipped:missing-measured-training-optimizer-run",
+      "evidence": [
+        "distributed-training-optimizer/distributed-training-optimizer-report.json"
+      ],
+      "metrics": {
+        "torchrun": true,
+        "accelerator_ready": false,
+        "training_optimizer_scenarios": 6,
+        "passed_scenarios": 5,
+        "max_memory_gb_per_gpu": 74.0,
+        "step_time_ms": 1057.1475,
+        "optimizer_state_savings": 0.927083
+      }
+    },
+    {
+      "id": "full-gpu-regression",
+      "status": "skipped:missing-accelerator-regression-run",
+      "evidence": [
+        "regression-ledger/regression-ledger.json"
+      ],
+      "metrics": {
+        "accelerator_ready": false,
+        "metric_count": 746,
+        "failed_metrics": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,849 @@
+{
+  "id": "cuda-memory-kernel",
+  "generated_at": "2026-08-31T01:52:21.096169+00:00",
+  "query": "cuda memory coalescing shared memory roofline",
+  "track": "CUDA kernels",
+  "language": "CUDA C++ plus Python harness",
+  "profile": "memory-bandwidth",
+  "label": "Memory bandwidth / layout bottleneck",
+  "diagnosis": "Suspect memory layout, HBM bandwidth, KV-cache growth, or avoidable materialization before changing math.",
+  "next_action": "Run gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm and compare its latest artifact against the recommended lessons.",
+  "starter": "starter.py",
+  "measure": "measure.py",
+  "source": "kernel.cu",
+  "tasks": "tasks.json",
+  "local_measurement": "measurements.json",
+  "lessons": [
+    {
+      "index": 115,
+      "title": "Lecture 4 Compute and Memory Basics",
+      "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+      "topics": [
+        "cuda",
+        "attention",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "kv cache",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "simulate prefill/decode KV-cache memory growth",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 37
+    },
+    {
+      "index": 2,
+      "title": "Lecture 112: Production Megakernels for Real-World Inference",
+      "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+      "topics": [
+        "cuda",
+        "attention",
+        "quantization",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "kernel fusion",
+        "autotuning",
+        "quantized numerics",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path"
+      ],
+      "score": 36
+    },
+    {
+      "index": 17,
+      "title": "Lecture 97: HipKittens",
+      "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+      "topics": [
+        "cuda",
+        "triton",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 36
+    },
+    {
+      "index": 16,
+      "title": "Lecture 98: GPU Observability",
+      "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "kv cache",
+        "kernel fusion",
+        "autotuning",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 35
+    },
+    {
+      "index": 34,
+      "title": "Lecture 80: How FlashAttention 4 Works",
+      "url": "https://www.youtube.com/watch?v=VPslgC9piIw",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "kernel fusion",
+        "quantized numerics"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path"
+      ],
+      "score": 35
+    },
+    {
+      "index": 10,
+      "title": "Lecture 104: Gluon and Linear Layouts",
+      "url": "https://www.youtube.com/watch?v=oYs_qtuk2Pg",
+      "topics": [
+        "cuda",
+        "triton",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kernel fusion",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "fuse bias, activation, and normalization into one measured path",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 34
+    }
+  ],
+  "tutorial_sources": [
+    {
+      "id": "jax-scaling-roofline",
+      "provider": "JAX Scaling Book",
+      "title": "All About Rooflines",
+      "url": "https://jax-ml.github.io/scaling-book/roofline/",
+      "focus_terms": [
+        "roofline",
+        "flops",
+        "memory bandwidth",
+        "communication",
+        "compute",
+        "latency"
+      ],
+      "why": "Use this as the math lens for deciding whether compute, memory, or communication dominates an LLM workload.",
+      "score": 15
+    },
+    {
+      "id": "jax-scaling-inference",
+      "provider": "JAX Scaling Book",
+      "title": "All About Transformer Inference",
+      "url": "https://jax-ml.github.io/scaling-book/inference/",
+      "focus_terms": [
+        "inference",
+        "kv cache",
+        "prefill",
+        "decode",
+        "batching",
+        "latency",
+        "throughput"
+      ],
+      "why": "Use this to ground prefill/decode, KV-cache, and batching measurements in an explicit inference cost model.",
+      "score": 13
+    },
+    {
+      "id": "jax-scaling-gpus",
+      "provider": "JAX Scaling Book",
+      "title": "How to Think About GPUs",
+      "url": "https://jax-ml.github.io/scaling-book/gpus/",
+      "focus_terms": [
+        "gpu",
+        "hbm",
+        "sm",
+        "tensor cores",
+        "network",
+        "nvidia",
+        "memory"
+      ],
+      "why": "Use this as the hardware mental model for SMs, HBM, Tensor Cores, and GPU interconnects.",
+      "score": 13
+    },
+    {
+      "id": "cuda-best-practices",
+      "provider": "NVIDIA",
+      "title": "CUDA C++ Best Practices Guide",
+      "url": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html",
+      "focus_terms": [
+        "cuda",
+        "performance",
+        "optimization",
+        "memory coalescing",
+        "occupancy",
+        "profiling"
+      ],
+      "why": "Use this to turn profiler symptoms into concrete CUDA optimization checks.",
+      "score": 12
+    },
+    {
+      "id": "cuda-programming-guide",
+      "provider": "NVIDIA",
+      "title": "CUDA C++ Programming Guide",
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/index.html",
+      "focus_terms": [
+        "cuda",
+        "thread",
+        "block",
+        "memory",
+        "shared memory",
+        "warp",
+        "programming model"
+      ],
+      "why": "Use this as the official CUDA programming-model reference behind the memory, warp, and matmul kernel labs.",
+      "score": 12
+    },
+    {
+      "id": "rocm-hip-programming-model",
+      "provider": "AMD ROCm",
+      "title": "Introduction to the HIP Programming Model",
+      "url": "https://rocm.docs.amd.com/projects/HIP/en/latest/understand/programming_model.html",
+      "focus_terms": [
+        "hip",
+        "programming model",
+        "simd",
+        "kernel",
+        "memory",
+        "amd gpu"
+      ],
+      "why": "Use this to compare CUDA block/warp assumptions with HIP's AMD GPU execution model.",
+      "score": 11
+    }
+  ],
+  "papers": [
+    {
+      "id": "isca-2025-080",
+      "title": "Hybe: GPU-NPU Hybrid System for Efficient LLM Inference with Million-Token Context Window",
+      "venue": "ISCA",
+      "theme": "Heterogeneous GPU-NPU disaggregation for long-context LLM inference",
+      "confidence": "low",
+      "path": "analysis/per-paper/isca-2025-080.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "activation",
+            "attention",
+            "cache",
+            "cores",
+            "decode",
+            "hardware",
+            "inference",
+            "kv-cache"
+          ],
+          "score": 42
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "activation",
+            "attention",
+            "cache",
+            "cores",
+            "decode",
+            "gpu",
+            "hardware",
+            "kv-cache"
+          ],
+          "score": 41
+        },
+        {
+          "index": 115,
+          "title": "Lecture 4 Compute and Memory Basics",
+          "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "compute",
+            "cores",
+            "decode",
+            "hardware",
+            "kv-cache",
+            "memory"
+          ],
+          "score": 41
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "isca-2025-130",
+      "title": "Insights into DeepSeek-V3: Scaling Challenges and Reflections on Hardware for AI Architectures",
+      "venue": "ISCA",
+      "theme": "Hardware-software co-design analysis of a production 671B MoE LLM system with hardware architecture recommendations",
+      "confidence": "high",
+      "path": "analysis/per-paper/isca-2025-130.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "production",
+            "quantization",
+            "serving"
+          ],
+          "score": 41
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "gpu",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "serving",
+            "tensor"
+          ],
+          "score": 39
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "serving",
+            "tensor"
+          ],
+          "score": 39
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "micro-2025-012",
+      "title": "Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving",
+      "venue": "MICRO",
+      "theme": "Mono3D DRAM NMP system for MoE LLM inference with in-memory tiering",
+      "confidence": "high",
+      "path": "analysis/per-paper/micro-2025-012.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cores",
+            "hardware",
+            "inference",
+            "matrix",
+            "multiplication",
+            "prefill",
+            "serving"
+          ],
+          "score": 42
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cores",
+            "hardware",
+            "matrix",
+            "multiplication",
+            "prefill",
+            "serving",
+            "softmax"
+          ],
+          "score": 41
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "attention",
+            "cores",
+            "gpu",
+            "hardware",
+            "matrix",
+            "multiplication",
+            "prefill",
+            "serving"
+          ],
+          "score": 40
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "sc-2025-029",
+      "title": "Benchmark-driven Models for Energy Analysis and Attribution of GPU-Accelerated Supercomputing",
+      "venue": "SC",
+      "theme": "Fine-grained GPU energy attribution via microbenchmarking",
+      "confidence": "high",
+      "path": "analysis/per-paper/sc-2025-029.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "hardware",
+            "inference",
+            "memory",
+            "tensor"
+          ],
+          "score": 38
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "gpu",
+            "hardware",
+            "memory",
+            "tensor"
+          ],
+          "score": 37
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "hardware",
+            "memory",
+            "tensor"
+          ],
+          "score": 37
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "asplos-2025-024",
+      "title": "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs",
+      "venue": "ASPLOS",
+      "theme": "CPU-GPU-IO pipeline for high-throughput MoE inference on memory-constrained GPUs",
+      "confidence": "low",
+      "path": "analysis/per-paper/asplos-2025-024.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "inference",
+            "memory"
+          ],
+          "score": 34
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "gpu",
+            "memory"
+          ],
+          "score": 33
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "memory"
+          ],
+          "score": 33
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "asplos-2025-032",
+      "title": "Treelet Accelerated Ray Tracing on GPUs",
+      "venue": "ASPLOS",
+      "theme": "Treelet-based BVH traversal with ray virtualization for GPU ray tracing",
+      "confidence": "low",
+      "path": "analysis/per-paper/asplos-2025-032.json",
+      "linked_lessons": [
+        {
+          "index": 2,
+          "title": "Lecture 112: Production Megakernels for Real-World Inference",
+          "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "cuda",
+            "hardware",
+            "memory",
+            "naive",
+            "warp"
+          ],
+          "score": 39
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "cuda",
+            "gpu",
+            "hardware",
+            "memory",
+            "naive",
+            "warp"
+          ],
+          "score": 39
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "attention",
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "memory coalescing",
+            "profiling workflow",
+            "shared memory tiling"
+          ],
+          "matched_terms": [
+            "cache",
+            "cores",
+            "cuda",
+            "hardware",
+            "memory",
+            "naive",
+            "warp"
+          ],
+          "score": 39
+        }
+      ],
+      "score": 7
+    }
+  ],
+  "lab": {
+    "id": "gpumode-lab-09-shared-memory-gemm",
+    "title": "Shared-memory tiled GEMM microscope",
+    "path": "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm",
+    "command": "cd ../gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm && python3 run.py && python3 build_page.py"
+  },
+  "measurement": {
+    "path": "23-gpumode-shared-memory-gemm/out_gpumode_shared_memory_gemm.json",
+    "summary": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
+  }
+}

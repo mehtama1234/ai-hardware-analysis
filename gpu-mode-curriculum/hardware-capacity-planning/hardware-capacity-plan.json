@@ -1,0 +1,828 @@
+{
+  "generated_at": "2026-08-31T01:53:15.573891+00:00",
+  "status": "capacity-plan-ready",
+  "profile_count": 6,
+  "workload_count": 5,
+  "recommendation_count": 5,
+  "rejected_count": 15,
+  "source_reports": [
+    "kernel-benchmarks/reports/kernel-benchmark-report.json",
+    "profiler-evidence/reports/profiler-evidence-report.json",
+    "serving-engine-comparison/serving-engine-comparison.json",
+    "distributed-topology/distributed-topology-plan.json"
+  ],
+  "source_facts": {
+    "kernel_benchmarks": 14,
+    "profiler_rows": 9,
+    "profiler_classifications": [
+      "cache-locality",
+      "communication",
+      "compute-occupancy",
+      "host-device-transfer",
+      "launch-overhead",
+      "memory-bandwidth",
+      "mixed",
+      "tensor-core-compute"
+    ],
+    "serving_scenarios": 5,
+    "distributed_topologies": 5
+  },
+  "hardware_profiles": [
+    {
+      "id": "local-cpu-fallback",
+      "class": "development fallback",
+      "accelerators": 0,
+      "memory_gb_per_accelerator": 0,
+      "interconnect": "host-memory",
+      "relative_tensor_score": 0.05,
+      "relative_bandwidth_score": 0.08,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "best_for": [
+        "schema validation",
+        "unit tests",
+        "CPU proxy timing"
+      ]
+    },
+    {
+      "id": "single-24gb-dev-gpu",
+      "class": "single developer GPU",
+      "accelerators": 1,
+      "memory_gb_per_accelerator": 24,
+      "interconnect": "single-card",
+      "relative_tensor_score": 1.0,
+      "relative_bandwidth_score": 1.0,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "best_for": [
+        "kernel smoke",
+        "small-model serving",
+        "profiler practice"
+      ]
+    },
+    {
+      "id": "datacenter-80gb-training-gpu",
+      "class": "single datacenter GPU",
+      "accelerators": 1,
+      "memory_gb_per_accelerator": 80,
+      "interconnect": "single-card",
+      "relative_tensor_score": 4.0,
+      "relative_bandwidth_score": 3.4,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "best_for": [
+        "large single-GPU inference",
+        "fine-tuning smoke",
+        "Nsight profiling"
+      ]
+    },
+    {
+      "id": "large-memory-192gb-inference-gpu",
+      "class": "large-memory inference GPU",
+      "accelerators": 1,
+      "memory_gb_per_accelerator": 192,
+      "interconnect": "single-card-large-memory",
+      "relative_tensor_score": 3.2,
+      "relative_bandwidth_score": 3.0,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "best_for": [
+        "long context",
+        "large KV cache",
+        "high batch inference"
+      ]
+    },
+    {
+      "id": "multi-node-cluster-slice",
+      "class": "8 accelerator distributed slice",
+      "accelerators": 8,
+      "memory_gb_per_accelerator": 80,
+      "interconnect": "high-bandwidth-fabric",
+      "relative_tensor_score": 24.0,
+      "relative_bandwidth_score": 18.0,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "best_for": [
+        "70B training",
+        "tensor parallel serving",
+        "collective profiling"
+      ]
+    },
+    {
+      "id": "large-memory-training-slice",
+      "class": "8 accelerator large-memory training slice",
+      "accelerators": 8,
+      "memory_gb_per_accelerator": 192,
+      "interconnect": "high-bandwidth-large-memory-fabric",
+      "relative_tensor_score": 20.0,
+      "relative_bandwidth_score": 16.0,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "best_for": [
+        "long-context fine-tuning",
+        "optimizer-state-heavy training",
+        "large activation checkpoints"
+      ]
+    }
+  ],
+  "workloads": [
+    {
+      "id": "kernel-dev-smoke",
+      "model_parameters_b": 0,
+      "dtype_bytes": 4,
+      "batch": 1,
+      "context_tokens": 0,
+      "output_tokens": 0,
+      "activation_gb": 2.0,
+      "target": "correctness, launch, memory, reduction, normalization, fusion, and profiler smoke checks",
+      "intensity": "mixed"
+    },
+    {
+      "id": "interactive-7b-chat",
+      "model_parameters_b": 7,
+      "dtype_bytes": 2,
+      "batch": 8,
+      "context_tokens": 4096,
+      "output_tokens": 512,
+      "activation_gb": 4.0,
+      "target": "interactive vLLM or TGI serving with bounded TTFT",
+      "intensity": "memory-bandwidth"
+    },
+    {
+      "id": "long-context-13b-rag",
+      "model_parameters_b": 13,
+      "dtype_bytes": 2,
+      "batch": 8,
+      "context_tokens": 32768,
+      "output_tokens": 1024,
+      "activation_gb": 8.0,
+      "target": "long-context retrieval workload with heavy KV cache pressure",
+      "intensity": "kv-cache-capacity"
+    },
+    {
+      "id": "batch-70b-inference",
+      "model_parameters_b": 70,
+      "dtype_bytes": 2,
+      "batch": 16,
+      "context_tokens": 8192,
+      "output_tokens": 1024,
+      "activation_gb": 18.0,
+      "target": "offline or high-throughput serving with tensor parallelism",
+      "intensity": "tensor-core-compute"
+    },
+    {
+      "id": "dense-70b-sft",
+      "model_parameters_b": 70,
+      "dtype_bytes": 2,
+      "batch": 8,
+      "context_tokens": 4096,
+      "output_tokens": 0,
+      "activation_gb": 220.0,
+      "target": "supervised fine-tuning step with optimizer state and all-reduce pressure",
+      "intensity": "communication"
+    }
+  ],
+  "recommendations": [
+    {
+      "workload_id": "kernel-dev-smoke",
+      "recommended_profile": "single-24gb-dev-gpu",
+      "bottleneck": "mixed",
+      "memory_required_gb": 2.0,
+      "memory_headroom_gb": 22.0,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "why": "single-24gb-dev-gpu has modeled memory headroom and the preferred hardware class for correctness, launch, memory, reduction, normalization, fusion, and profiler smoke checks.",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "recommended_profile": "datacenter-80gb-training-gpu",
+      "bottleneck": "memory-bandwidth",
+      "memory_required_gb": 22.64,
+      "memory_headroom_gb": 57.36,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "why": "datacenter-80gb-training-gpu has modeled memory headroom and the preferred hardware class for interactive vLLM or TGI serving with bounded TTFT.",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "recommended_profile": "large-memory-192gb-inference-gpu",
+      "bottleneck": "kv-cache-capacity",
+      "memory_required_gb": 97.26,
+      "memory_headroom_gb": 94.74,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "why": "large-memory-192gb-inference-gpu has modeled memory headroom and the preferred hardware class for long-context retrieval workload with heavy KV cache pressure.",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "recommended_profile": "multi-node-cluster-slice",
+      "bottleneck": "communication",
+      "memory_required_gb": 42.97,
+      "memory_headroom_gb": 37.03,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "why": "multi-node-cluster-slice has modeled memory headroom and the preferred hardware class for offline or high-throughput serving with tensor parallelism.",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "recommended_profile": "large-memory-training-slice",
+      "bottleneck": "communication",
+      "memory_required_gb": 155.16,
+      "memory_headroom_gb": 36.84,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "why": "large-memory-training-slice has modeled memory headroom and the preferred hardware class for supervised fine-tuning step with optimizer state and all-reduce pressure.",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    }
+  ],
+  "evaluations": [
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "local-cpu-fallback",
+      "status": "rejected",
+      "memory_required_gb": 2.0,
+      "memory_headroom_gb": -2.0,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "throughput_score": 0.0,
+      "bottleneck": "accelerator-unavailable",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "python3 scripts/verify_hardware_capacity_plan.py"
+      ]
+    },
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "single-24gb-dev-gpu",
+      "status": "viable",
+      "memory_required_gb": 2.0,
+      "memory_headroom_gb": 22.0,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "throughput_score": 4.0,
+      "bottleneck": "mixed",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "datacenter-80gb-training-gpu",
+      "status": "viable",
+      "memory_required_gb": 2.0,
+      "memory_headroom_gb": 78.0,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "throughput_score": 15.04,
+      "bottleneck": "mixed",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "large-memory-192gb-inference-gpu",
+      "status": "viable",
+      "memory_required_gb": 2.0,
+      "memory_headroom_gb": 190.0,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "throughput_score": 12.48,
+      "bottleneck": "mixed",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "multi-node-cluster-slice",
+      "status": "viable",
+      "memory_required_gb": 0.25,
+      "memory_headroom_gb": 79.75,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "throughput_score": 86.4,
+      "bottleneck": "mixed",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "kernel-dev-smoke",
+      "profile_id": "large-memory-training-slice",
+      "status": "viable",
+      "memory_required_gb": 0.25,
+      "memory_headroom_gb": 191.75,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "throughput_score": 73.6,
+      "bottleneck": "mixed",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "local-cpu-fallback",
+      "status": "rejected",
+      "memory_required_gb": 22.64,
+      "memory_headroom_gb": -22.64,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "throughput_score": 0.0,
+      "bottleneck": "accelerator-unavailable",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "python3 scripts/verify_hardware_capacity_plan.py"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "single-24gb-dev-gpu",
+      "status": "rejected",
+      "memory_required_gb": 22.64,
+      "memory_headroom_gb": 1.36,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "throughput_score": 3.534,
+      "bottleneck": "memory-bandwidth",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "datacenter-80gb-training-gpu",
+      "status": "viable",
+      "memory_required_gb": 22.64,
+      "memory_headroom_gb": 57.36,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "throughput_score": 13.286,
+      "bottleneck": "memory-bandwidth",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "large-memory-192gb-inference-gpu",
+      "status": "viable",
+      "memory_required_gb": 22.64,
+      "memory_headroom_gb": 169.36,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "throughput_score": 11.025,
+      "bottleneck": "memory-bandwidth",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "multi-node-cluster-slice",
+      "status": "viable",
+      "memory_required_gb": 2.83,
+      "memory_headroom_gb": 77.17,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "throughput_score": 86.4,
+      "bottleneck": "memory-bandwidth",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "interactive-7b-chat",
+      "profile_id": "large-memory-training-slice",
+      "status": "viable",
+      "memory_required_gb": 2.83,
+      "memory_headroom_gb": 189.17,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "throughput_score": 73.6,
+      "bottleneck": "memory-bandwidth",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "local-cpu-fallback",
+      "status": "rejected",
+      "memory_required_gb": 97.26,
+      "memory_headroom_gb": -97.26,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "throughput_score": 0.0,
+      "bottleneck": "accelerator-unavailable",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "python3 scripts/verify_hardware_capacity_plan.py"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "single-24gb-dev-gpu",
+      "status": "rejected",
+      "memory_required_gb": 97.26,
+      "memory_headroom_gb": -73.26,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "datacenter-80gb-training-gpu",
+      "status": "rejected",
+      "memory_required_gb": 97.26,
+      "memory_headroom_gb": -17.26,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "large-memory-192gb-inference-gpu",
+      "status": "viable",
+      "memory_required_gb": 97.26,
+      "memory_headroom_gb": 94.74,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "throughput_score": 2.566,
+      "bottleneck": "kv-cache-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "multi-node-cluster-slice",
+      "status": "viable",
+      "memory_required_gb": 12.16,
+      "memory_headroom_gb": 67.84,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "throughput_score": 86.4,
+      "bottleneck": "kv-cache-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "long-context-13b-rag",
+      "profile_id": "large-memory-training-slice",
+      "status": "viable",
+      "memory_required_gb": 12.16,
+      "memory_headroom_gb": 179.84,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "throughput_score": 73.6,
+      "bottleneck": "kv-cache-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "local-cpu-fallback",
+      "status": "rejected",
+      "memory_required_gb": 343.79,
+      "memory_headroom_gb": -343.79,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "throughput_score": 0.0,
+      "bottleneck": "accelerator-unavailable",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "python3 scripts/verify_hardware_capacity_plan.py"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "single-24gb-dev-gpu",
+      "status": "rejected",
+      "memory_required_gb": 343.79,
+      "memory_headroom_gb": -319.79,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "datacenter-80gb-training-gpu",
+      "status": "rejected",
+      "memory_required_gb": 343.79,
+      "memory_headroom_gb": -263.79,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "large-memory-192gb-inference-gpu",
+      "status": "rejected",
+      "memory_required_gb": 343.79,
+      "memory_headroom_gb": -151.79,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "multi-node-cluster-slice",
+      "status": "viable",
+      "memory_required_gb": 42.97,
+      "memory_headroom_gb": 37.03,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "throughput_score": 40.214,
+      "bottleneck": "communication",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "batch-70b-inference",
+      "profile_id": "large-memory-training-slice",
+      "status": "viable",
+      "memory_required_gb": 42.97,
+      "memory_headroom_gb": 149.03,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "throughput_score": 34.256,
+      "bottleneck": "communication",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "vllm serve <model> --tensor-parallel-size <tp> --max-model-len <tokens>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "local-cpu-fallback",
+      "status": "rejected",
+      "memory_required_gb": 1241.29,
+      "memory_headroom_gb": -1241.29,
+      "estimated_power_w": 120,
+      "estimated_cost_per_hour": 0.0,
+      "throughput_score": 0.0,
+      "bottleneck": "accelerator-unavailable",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "python3 scripts/verify_hardware_capacity_plan.py"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "single-24gb-dev-gpu",
+      "status": "rejected",
+      "memory_required_gb": 1241.29,
+      "memory_headroom_gb": -1217.29,
+      "estimated_power_w": 320,
+      "estimated_cost_per_hour": 0.6,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "datacenter-80gb-training-gpu",
+      "status": "rejected",
+      "memory_required_gb": 1241.29,
+      "memory_headroom_gb": -1161.29,
+      "estimated_power_w": 700,
+      "estimated_cost_per_hour": 3.4,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "large-memory-192gb-inference-gpu",
+      "status": "rejected",
+      "memory_required_gb": 1241.29,
+      "memory_headroom_gb": -1049.29,
+      "estimated_power_w": 760,
+      "estimated_cost_per_hour": 4.2,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "multi-node-cluster-slice",
+      "status": "rejected",
+      "memory_required_gb": 155.16,
+      "memory_headroom_gb": -75.16,
+      "estimated_power_w": 5600,
+      "estimated_cost_per_hour": 24.0,
+      "throughput_score": 0.0,
+      "bottleneck": "memory-capacity",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    },
+    {
+      "workload_id": "dense-70b-sft",
+      "profile_id": "large-memory-training-slice",
+      "status": "viable",
+      "memory_required_gb": 155.16,
+      "memory_headroom_gb": 36.84,
+      "estimated_power_w": 6080,
+      "estimated_cost_per_hour": 34.0,
+      "throughput_score": 9.487,
+      "bottleneck": "communication",
+      "validation_commands": [
+        "python3 scripts/run_gpu_host_preflight.py",
+        "nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv",
+        "python3 scripts/run_gpu_promotion_suite.py --run-id capacity-plan --execute",
+        "torchrun --nproc-per-node=<gpus> <training_script.py>",
+        "nsys profile -o capacity-plan python3 <workload.py>",
+        "ncu --set full -o capacity-plan python3 <kernel_or_serving_probe.py>"
+      ]
+    }
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "preflight",
+      "promotion-suite",
+      "profiler-evidence",
+      "gpu-run-import",
+      "provenance"
+    ],
+    "note": "Modeled capacity choices must be replaced by measured GPU-host memory, power, throughput, and profiler counters before production claims."
+  }
+}

@@ -1,0 +1,54 @@
+<meta charset="utf-8">
+<title>GPUMODE Profiler Evidence</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated profiler parser</div>
+  <h1>GPUMODE profiler evidence.</h1>
+  <p class="dek">Normalized Nsight Compute, Nsight Systems, and rocprof-shaped rows into
+  bottleneck classifications and remediation actions.</p>
+  <div class="grid">
+    <div class="card"><h2>9</h2><p>normalized rows</p></div>
+    <div class="card"><h2>3</h2><p>profiler sources</p></div>
+    <div class="card"><h2><a href="../profiler-evidence/reports/profiler-evidence-report.md">Report</a></h2><p>Markdown evidence</p></div>
+    <div class="card"><h2><a href="../profiler-evidence/README.md">README</a></h2><p>fixture contract</p></div>
+  </div>
+
+  <section>
+    <h2>Classification Counts</h2>
+    <table><tr><th>classification</th><th>rows</th></tr><tr><td>cache-locality</td><td>1</td></tr>
+<tr><td>communication</td><td>1</td></tr>
+<tr><td>compute-occupancy</td><td>1</td></tr>
+<tr><td>host-device-transfer</td><td>1</td></tr>
+<tr><td>launch-overhead</td><td>1</td></tr>
+<tr><td>memory-bandwidth</td><td>2</td></tr>
+<tr><td>mixed</td><td>1</td></tr>
+<tr><td>tensor-core-compute</td><td>1</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Profiler Rows</h2>
+    <table><tr><th>source</th><th>name</th><th>classification</th><th>duration us</th><th>remediation</th></tr><tr><td>nsight-compute</td><td>vector_copy_strided</td><td>memory-bandwidth</td><td>412.0</td><td>coalesce or vectorize memory access; raise arithmetic intensity; add tiling/reuse before retiming</td></tr>
+<tr><td>nsight-compute</td><td>wgmma_gemm_mainloop</td><td>tensor-core-compute</td><td>193.0</td><td>inspect MMA tile shape; check tensor-core eligibility; compare occupancy against stall reasons</td></tr>
+<tr><td>nsight-compute</td><td>row_softmax_small</td><td>cache-locality</td><td>77.0</td><td>change layout or blocking; reduce gathers; separate L2-hit and DRAM-bound kernels</td></tr>
+<tr><td>nsight-systems</td><td>token_prefill</td><td>host-device-transfer</td><td>9100.0</td><td>remove sync copies; pin and batch transfers; move preprocessing onto device</td></tr>
+<tr><td>nsight-systems</td><td>decode_step_batch_1</td><td>launch-overhead</td><td>1400.0</td><td>fuse small kernels; use CUDA graphs; batch decode work</td></tr>
+<tr><td>nsight-systems</td><td>all_reduce_logits</td><td>communication</td><td>760.0</td><td>compare ring/tree/channel topology; increase payload aggregation; inspect overlap with compute</td></tr>
+<tr><td>rocprof</td><td>hip_vector_add</td><td>mixed</td><td>533.0</td><td>split by kernel; collect roofline counters; compare against baseline</td></tr>
+<tr><td>rocprof</td><td>ck_gemm_xdl</td><td>compute-occupancy</td><td>221.0</td><td>reduce register pressure; check wave occupancy; try smaller tiles</td></tr>
+<tr><td>rocprof</td><td>hip_layernorm</td><td>memory-bandwidth</td><td>118.0</td><td>coalesce or vectorize memory access; raise arithmetic intensity; add tiling/reuse before retiming</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

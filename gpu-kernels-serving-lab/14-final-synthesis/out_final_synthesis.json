@@ -1,0 +1,265 @@
+{
+  "session": "14-final-synthesis",
+  "timestamp": "2026-08-30T07:17:52.783831+00:00",
+  "inventory": {
+    "session": "14-final-synthesis",
+    "timestamp": "2026-08-30T07:17:52.783915+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "artifacts_used": [
+    "02-roofline",
+    "05-cuda-tiny-attention",
+    "08-quantized-inference",
+    "09-vllm-serving",
+    "10-kv-cache-memory-manager",
+    "12-jax-scaling-practicum",
+    "13-capstone-mini-serving-engine",
+    "15-gpumode-coalescing",
+    "16-gpumode-warp-reductions",
+    "17-gpumode-triton-autotune",
+    "18-gpumode-online-softmax",
+    "19-gpumode-torch-compile",
+    "20-gpumode-vllm-scheduler",
+    "21-gpumode-quantized-kernels",
+    "22-gpumode-nsight-roofline",
+    "23-gpumode-shared-memory-gemm",
+    "24-gpumode-tensor-core-cutlass",
+    "25-gpumode-rocm-hip-portability",
+    "26-gpumode-distributed-communication"
+  ],
+  "synthesis": {
+    "scaling_book_language": {
+      "compute": "matmul is the clearest compute-shaped local benchmark at arithmetic intensity 85.333333 FLOP/byte and 0.056913 TFLOP/s.",
+      "memory": "vector_add and KV-cache score scans expose memory pressure; the KV-cache simulator shows 65.62% block savings for shared system prompt.",
+      "communication": "JAX currently sees 1 device(s), so the lab records single-device execution and treats cross-device communication as the next scaling layer."
+    },
+    "serving_language": {
+      "kv_cache": "Session 10 models block allocation and prefix reuse; the strongest case is shared system prompt.",
+      "batching": "Session 13 compares single-request serving with a batched endpoint, showing 4.809x total-latency speedup on the local proxy.",
+      "prefix_reuse": "The optimized capstone path reused 20 prefix tokens across logical prompts.",
+      "quantization": "The smallest measured scheme is int4_block at 0.0595 MB with 3.2399% relative error.",
+      "deployment_runtime": "vLLM status is skipped: vLLM is not installed in this Python environment."
+    },
+    "capstone_result": {
+      "high_level": {
+        "name": "single-request local endpoint",
+        "endpoint": "http://127.0.0.1:8765/v1/completions",
+        "backend": "deterministic-local",
+        "tokens_per_sec": 8805.208,
+        "latency_ms_total": 9.0855
+      },
+      "optimized": {
+        "name": "batched prefix-cache local endpoint",
+        "endpoint": "http://127.0.0.1:8765/v1/batch_completions",
+        "backend": "batched-prefix-cache-local",
+        "tokens_per_sec": 42342.492,
+        "latency_ms_total": 1.8894,
+        "prefix_tokens_reused": 20
+      },
+      "blocked_runtime_areas": [
+        {
+          "area": "cuda",
+          "status": "skipped",
+          "reason": "nvcc not found on PATH"
+        },
+        {
+          "area": "cuda_matmul",
+          "status": "skipped",
+          "reason": "nvcc not found on PATH"
+        },
+        {
+          "area": "triton",
+          "status": "skipped",
+          "reason": "Triton GPU kernels require a CUDA-visible device in this tutorial slice."
+        },
+        {
+          "area": "triton_attention",
+          "status": "skipped",
+          "reason": "Triton fused-attention kernel requires a CUDA-visible device."
+        },
+        {
+          "area": "vllm",
+          "status": "skipped",
+          "reason": "vLLM is not installed in this Python environment."
+        },
+        {
+          "area": "hip",
+          "status": "skipped",
+          "reason": "hipcc not found on PATH"
+        }
+      ]
+    },
+    "gpumode_deep_labs": [
+      {
+        "session": "15-gpumode-coalescing",
+        "lab_id": "gpumode-lab-01-coalescing",
+        "lesson_anchor_count": 12,
+        "cpu_finding": "contiguous measured highest effective bandwidth at 6.83 GB/s; random_gather measured lowest at 2.777 GB/s.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "16-gpumode-warp-reductions",
+        "lab_id": "gpumode-lab-02-warp-reductions",
+        "lesson_anchor_count": 12,
+        "cpu_finding": "Reduction and scan are both bandwidth-sensitive primitives, but scan has stricter ordering and dependency structure than a plain sum.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "17-gpumode-triton-autotune",
+        "lab_id": "gpumode-lab-03-triton-autotune",
+        "lesson_anchor_count": 12,
+        "cpu_finding": "CPU PyTorch matmul is the correctness and portability baseline; Triton config sweep requires CUDA.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "18-gpumode-online-softmax",
+        "lab_id": "gpumode-lab-04-online-softmax",
+        "lesson_anchor_count": 12,
+        "cpu_finding": "Online softmax matches materialized attention while avoiding the full SxS probability matrix; the CPU loop is slower here because it prioritizes algorithm shape over fused-kernel speed.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "19-gpumode-torch-compile",
+        "lab_id": "gpumode-lab-05-torch-compile",
+        "lesson_anchor_count": 12,
+        "cpu_finding": "torch.compile is useful when it can keep tensor programs inside captured graphs; data-dependent Python control flow is a visible graph-break risk.",
+        "cuda_status": null,
+        "correctness": "passed"
+      },
+      {
+        "session": "20-gpumode-vllm-scheduler",
+        "lab_id": "gpumode-lab-06-vllm-scheduler",
+        "lesson_anchor_count": 14,
+        "cpu_finding": "Continuous batching lowers mean TTFT and improves output throughput on this deterministic workload, while paged prefix-cache accounting reduces KV blocks versus per-request prompt storage.",
+        "cuda_status": null,
+        "correctness": "passed"
+      },
+      {
+        "session": "21-gpumode-quantized-kernels",
+        "lab_id": "gpumode-lab-07-quantized-kernels",
+        "lesson_anchor_count": 14,
+        "cpu_finding": "Weight-only quantization reduces modeled memory traffic, but this CPU proxy also exposes the dequantization tax that a real GPU kernel must fuse away to turn smaller weights into speed.",
+        "cuda_status": null,
+        "correctness": "passed"
+      },
+      {
+        "session": "22-gpumode-nsight-roofline",
+        "lab_id": "gpumode-lab-08-nsight-to-roofline",
+        "lesson_anchor_count": 14,
+        "cpu_finding": "Profiler counters become useful when mapped back to the roofline question: memory saturation, SM utilization, barrier stalls, launch count, and arithmetic intensity each imply a different next optimization.",
+        "cuda_status": null,
+        "correctness": "passed"
+      },
+      {
+        "session": "23-gpumode-shared-memory-gemm",
+        "lab_id": "gpumode-lab-09-shared-memory-gemm",
+        "lesson_anchor_count": 14,
+        "cpu_finding": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "24-gpumode-tensor-core-cutlass",
+        "lab_id": "gpumode-lab-10-tensor-core-cutlass",
+        "lesson_anchor_count": 16,
+        "cpu_finding": "Tensor Core kernels buy throughput by using low-precision inputs with controlled accumulation. On this CPU proxy, fp16 relative L2 error is 0.035858% and bf16 relative L2 error is 0.287636% against fp32.",
+        "cuda_status": "skipped",
+        "correctness": "passed"
+      },
+      {
+        "session": "25-gpumode-rocm-hip-portability",
+        "lab_id": "gpumode-lab-11-rocm-hip-portability",
+        "lesson_anchor_count": 16,
+        "cpu_finding": "Plain CUDA runtime calls and launch-shape kernels mostly translate mechanically to HIP, but WMMA/Tensor Core source is a real portability boundary that needs rocWMMA/Composable Kernel or a CUTLASS-equivalent rewrite.",
+        "cuda_status": null,
+        "correctness": "passed"
+      },
+      {
+        "session": "26-gpumode-distributed-communication",
+        "lab_id": "gpumode-lab-12-distributed-communication",
+        "lesson_anchor_count": 18,
+        "cpu_finding": "All-reduce choice changes with message size, world size, latency, and bandwidth: small reductions are latency sensitive, while large gradients/KV transfers are bandwidth dominated.",
+        "cuda_status": null,
+        "correctness": "passed"
+      }
+    ],
+    "corpus_bridge": {
+      "top_level_synthesis": "synthesis.html",
+      "venue_bigpicture_pages": [
+        "asplos-2025-bigpicture.html",
+        "cgo-2025-bigpicture.html",
+        "dac-2025-bigpicture.html",
+        "date-2025-bigpicture.html",
+        "fccm-2025-bigpicture.html",
+        "hotchips-2025-bigpicture.html",
+        "hpca-2025-bigpicture.html",
+        "iccad-2025-bigpicture.html",
+        "isca-2025-bigpicture.html",
+        "isscc-2025-bigpicture.html",
+        "micro-2025-bigpicture.html",
+        "mlsys-2025-bigpicture.html",
+        "osdi-2025-bigpicture.html",
+        "sc-2025-bigpicture.html",
+        "usenix-2025-bigpicture.html",
+        "vlsid-2025-bigpicture.html"
+      ],
+      "per_paper_json_count": 2412,
+      "interpretation": "The lab turns the corpus-level hardware/software co-design themes into runnable exercises: MLSys-style serving software, ISCA/MICRO/HPCA-style memory and kernel bottlenecks, SC-style scaling and communication pressure, and Hot Chips/ISSCC-style deployment reality where availability, power, memory, and portability matter as much as a single kernel."
+    },
+    "final_read": "The runnable core now proves the teaching path on this machine: high-level HF inference, operation-level roofline measurements, attention/KV-cache behavior, quantization tradeoffs, JAX cost modeling, runtime readiness checks, GPUMODE-derived access-pattern, reduction/scan, Triton autotune, online-softmax, torch.compile, vLLM-style scheduler, quantized-matmul, and profiler-to-roofline measurement, shared-memory GEMM reuse, Tensor Core/CUTLASS readiness, ROCm/HIP portability, distributed collective modeling, and a measured capstone serving comparison. GPU-specific CUDA, Triton, HIP, and vLLM throughput remain environment-gated and are recorded as explicit skip artifacts rather than hidden assumptions."
+  },
+  "boundary": "This synthesis is generated from local artifacts. It explains the measured system state; it does not invent GPU benchmark numbers when this environment cannot run them."
+}

@@ -1,0 +1,164 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 26 GPUMODE Distributed Communication</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+<nav><a href="index.html" class="brand">GPU Serving Lab</a><span><a href="00-orientation.html">00 - Orientation</a><a href="01-hf-baseline.html">01 - Hugging Face baseline</a><a href="02-roofline.html">02 - Roofline for AI ops</a><a href="03-cuda-vector-reduce.html">03 - CUDA vector/reduce</a><a href="04-cuda-tiled-matmul.html">04 - CUDA tiled matmul</a><a href="05-cuda-tiny-attention.html">05 - CUDA tiny attention</a><a href="06-triton-matmul.html">06 - Triton matmul</a><a href="07-triton-fused-attention.html">07 - Triton fused attention</a><a href="08-quantized-inference.html">08 - Quantized inference</a><a href="09-vllm-serving.html">09 - vLLM serving</a><a href="10-kv-cache-memory-manager.html">10 - KV-cache memory manager</a><a href="11-rocm-hip-port.html">11 - ROCm/HIP port</a><a href="12-jax-scaling.html">12 - JAX scaling practicum</a><a href="13-capstone.html">13 - Capstone diagnosis</a><a href="14-final-synthesis.html">14 - Final synthesis</a><a href="15-gpumode-coalescing.html">15 - GPUMODE coalescing</a><a href="16-gpumode-warp-reductions.html">16 - GPUMODE warp reductions</a><a href="17-gpumode-triton-autotune.html">17 - GPUMODE Triton autotune</a><a href="18-gpumode-online-softmax.html">18 - GPUMODE online softmax</a><a href="19-gpumode-torch-compile.html">19 - GPUMODE torch.compile</a><a href="20-gpumode-vllm-scheduler.html">20 - GPUMODE vLLM scheduler</a><a href="21-gpumode-quantized-kernels.html">21 - GPUMODE quantized kernels</a><a href="22-gpumode-nsight-roofline.html">22 - GPUMODE Nsight to roofline</a><a href="23-gpumode-shared-memory-gemm.html">23 - GPUMODE shared-memory GEMM</a><a href="24-gpumode-tensor-core-cutlass.html">24 - GPUMODE Tensor Core/CUTLASS</a><a href="25-gpumode-rocm-hip-portability.html">25 - GPUMODE ROCm/HIP portability</a><a href="26-gpumode-distributed-communication.html">26 - GPUMODE distributed communication</a></span></nav>
+
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 26</div>
+  <h1>GPUMODE distributed communication and collectives.</h1>
+  <p class="dek">This session turns NCCL, NVSHMEM, distributed GEMM, and scaling lessons into
+  a measured local all-reduce semantic check plus a topology/message-size model for collective
+  bottleneck triage.</p>
+</header>
+
+<section>
+  <div class="eye">Collective model</div>
+  <h2>Latency regime versus bandwidth regime</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>topology</th><th>world</th><th>bytes</th><th>ring us</th><th>tree us</th><th>NVSHMEM proxy us</th><th>winner</th><th>regime</th></tr>
+      <tr><td>pcie4_x16_proxy</td><td>2</td><td>1024</td><td>16.032</td><td>16.064</td><td>8.032</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+<tr><td>pcie4_x16_proxy</td><td>8</td><td>1024</td><td>112.056</td><td>48.064</td><td>8.032</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+<tr><td>nvlink_proxy</td><td>2</td><td>1024</td><td>6.007</td><td>6.014</td><td>3.007</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+<tr><td>nvlink_proxy</td><td>8</td><td>1024</td><td>42.012</td><td>18.014</td><td>3.007</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+<tr><td>ethernet_200g_proxy</td><td>2</td><td>1024</td><td>40.041</td><td>40.082</td><td>20.041</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+<tr><td>ethernet_200g_proxy</td><td>8</td><td>1024</td><td>280.072</td><td>120.082</td><td>20.041</td><td>nvshmem_put_reduce_proxy</td><td>latency-dominated</td></tr>
+    </table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>All-reduce choice changes with message size, world size, latency, and bandwidth: small reductions are latency sensitive, while large gradients/KV transfers are bandwidth dominated.</p></div>
+</section>
+
+<section>
+  <div class="eye">Crossover guide</div>
+  <h2>Where the model becomes bandwidth dominated</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>topology</th><th>world</th><th>first bandwidth-dominated bytes</th><th>winner</th></tr>
+      <tr><td>pcie4_x16_proxy</td><td>2</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>pcie4_x16_proxy</td><td>4</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>pcie4_x16_proxy</td><td>8</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>nvlink_proxy</td><td>2</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>nvlink_proxy</td><td>4</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>nvlink_proxy</td><td>8</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>ethernet_200g_proxy</td><td>2</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>ethernet_200g_proxy</td><td>4</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+<tr><td>ethernet_200g_proxy</td><td>8</td><td>524288</td><td>nvshmem_put_reduce_proxy</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Local all-reduce proxy</div>
+  <h2>Correctness before cluster claims</h2>
+  <div class="card" style="overflow-x:auto">
+    <table><tr><th>world size</th><td>4</td></tr>
+<tr><th>elements per rank</th><td>4096</td></tr>
+<tr><th>bytes reduced</th><td>65536</td></tr>
+<tr><th>seconds</th><td>0.056772</td></tr>
+<tr><th>effective GB/s</th><td>0.001154</td></tr>
+<tr><th>max abs error</th><td>0.0</td></tr></table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>The local multiprocessing proxy proves all ranks contribute to the same reduced tensor; it is a semantic check, not a GPU interconnect benchmark.</p></div>
+</section>
+
+<section>
+  <div class="eye">Imported benchmarks</div>
+  <h2>ran</h2>
+  <div class="why"><h3>Finding</h3><p>Imported 6 collective benchmark rows from 2 tool family/families; compare best bus bandwidth against the modeled topology rows.</p></div>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>source</th><th>tool</th><th>bytes</th><th>time us</th><th>alg GB/s</th><th>bus GB/s</th><th>errors</th></tr>
+      <tr><td>sample-nccl-all-reduce.csv</td><td>nccl-tests</td><td>1048576</td><td>84.2</td><td>12.45</td><td>21.78</td><td>0</td></tr>
+<tr><td>sample-nccl-all-reduce.csv</td><td>nccl-tests</td><td>16777216</td><td>620.5</td><td>27.04</td><td>47.32</td><td>0</td></tr>
+<tr><td>sample-nccl-all-reduce.csv</td><td>nccl-tests</td><td>134217728</td><td>4451.3</td><td>30.15</td><td>52.76</td><td>0</td></tr>
+<tr><td>sample-nvshmem-put.json</td><td>nvshmem</td><td>1048576</td><td>52.4</td><td>20.01</td><td>20.01</td><td>0</td></tr>
+<tr><td>sample-nvshmem-put.json</td><td>nvshmem</td><td>16777216</td><td>482.2</td><td>34.79</td><td>34.79</td><td>0</td></tr>
+<tr><td>sample-nvshmem-put.json</td><td>nvshmem</td><td>134217728</td><td>3850.7</td><td>34.86</td><td>34.86</td><td>0</td></tr>
+    </table>
+  </div>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>tool</th><th>best bytes</th><th>best bus GB/s</th><th>best time us</th></tr>
+      <tr><td>nccl-tests</td><td>134217728</td><td>52.76</td><td>4451.3</td></tr>
+<tr><td>nvshmem</td><td>134217728</td><td>34.86</td><td>3850.7</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Runtime readiness</div>
+  <h2>skipped</h2>
+  <div class="card" style="overflow-x:auto">
+    <table><tr><th>status</th><td>skipped</td></tr>
+<tr><th>torch.distributed</th><td>True</td></tr>
+<tr><th>NCCL backend</th><td>True</td></tr>
+<tr><th>Gloo backend</th><td>True</td></tr>
+<tr><th>CUDA device count</th><td>0</td></tr>
+<tr><th>nvidia-smi</th><td>None</td></tr>
+<tr><th>all_reduce_perf</th><td>None</td></tr>
+<tr><th>nvshmem-info</th><td>None</td></tr>
+<tr><th>ibv_devinfo</th><td>None</td></tr>
+<tr><th>reason</th><td>Real NCCL all-reduce timing needs at least two CUDA-visible GPUs plus NCCL test/runtime tools; NVSHMEM needs its runtime tools.</td></tr></table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">GPUMODE links</div>
+  <h2>Transcript-derived lesson anchors</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>lesson</th><th>topics</th><th>concepts</th><th>tools</th></tr>
+      <tr><td>1</td><td><a href="https://www.youtube.com/watch?v=TZnJYRTSGVk">Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives</a></td><td>cuda, profiling, attention, serving, hardware</td><td>memory coalescing, tensor cores, kv cache, collectives, compiler lowering</td><td>CUTLASS/CuTe, TVM</td></tr>
+<tr><td>4</td><td><a href="https://www.youtube.com/watch?v=wiaUh82NEoE">Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, occupancy, tensor cores, autotuning, quantized numerics</td><td>Nsight, TVM</td></tr>
+<tr><td>5</td><td><a href="https://www.youtube.com/watch?v=nXRsasT1jIk">Lecture 109: TIRx</a></td><td>cuda, triton, attention, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+<tr><td>7</td><td><a href="https://www.youtube.com/watch?v=tBYm9PI5Jw0">Lecture 107: PithTrain</a></td><td>cuda, triton, profiling, quantization, serving</td><td>autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>Triton, PyTorch, CUTLASS/CuTe, ROCm/HIP</td></tr>
+<tr><td>9</td><td><a href="https://www.youtube.com/watch?v=HcnybHRbTcc">Lecture 105: cuDNN mxfp8 attention</a></td><td>cuda, profiling, attention, quantization, serving</td><td>shared memory tiling, warp execution, tensor cores, online softmax, quantized numerics</td><td>CUDA, PyTorch, vLLM, JAX</td></tr>
+<tr><td>13</td><td><a href="https://www.youtube.com/watch?v=jGouxuAHIfQ">Lecture 101: Learning CUTLASS the hard way</a></td><td>cuda, triton, profiling, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+<tr><td>15</td><td><a href="https://www.youtube.com/watch?v=sV0PJC1dOmM">Lecture 99: Distributed ML on consumer devices</a></td><td>attention, quantization, serving, hardware, distributed</td><td>occupancy, tensor cores, kv cache, kernel fusion, autotuning</td><td>PyTorch, CUTLASS/CuTe, ROCm/HIP, JAX</td></tr>
+<tr><td>18</td><td><a href="https://www.youtube.com/watch?v=TH1i-GmMZuQ">Lecture 96: TLX</a></td><td>cuda, triton, pytorch-compiler, attention, quantization</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>Triton, PyTorch, torch.compile, CUTLASS/CuTe</td></tr>
+<tr><td>19</td><td><a href="https://www.youtube.com/watch?v=PO3CN3UYx7w">Lecture 95: Single controller programming with Monarch</a></td><td>hardware, distributed</td><td>warp execution, collectives, compiler lowering</td><td>PyTorch, ROCm/HIP, JAX, TVM</td></tr>
+<tr><td>27</td><td><a href="https://www.youtube.com/watch?v=6bqnqDZg4_0">Lecture 87: Low Latency Communication Kernels with NVSHMEM</a></td><td>cuda, profiling, distributed</td><td>collectives</td><td>NVSHMEM</td></tr>
+<tr><td>30</td><td><a href="https://www.youtube.com/watch?v=ua2NhlenIKo">Lecture 84: Numerics and AI</a></td><td>cuda, hardware, distributed</td><td>occupancy, quantized numerics, compiler lowering, profiling workflow</td><td>CUDA, PyTorch, ROCm/HIP, TVM</td></tr>
+<tr><td>32</td><td><a href="https://www.youtube.com/watch?v=MBOPzfl1JBo">Lecture 82 Helion: A high-level DSL for ML kernels</a></td><td>cuda, triton, hardware, distributed</td><td>shared memory tiling, warp execution, kernel fusion, autotuning, compiler lowering</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+<tr><td>36</td><td><a href="https://www.youtube.com/watch?v=i6Y2EelEC04">Lecture 78 Iris: Multi-GPU Programming in Triton</a></td><td>cuda, triton, hardware, distributed, cutlass</td><td>memory coalescing, shared memory tiling, tensor cores, kernel fusion, autotuning</td><td>Triton, PyTorch, ROCm/HIP, TVM</td></tr>
+<tr><td>37</td><td><a href="https://www.youtube.com/watch?v=5qSN-R_E3w0">Lecture 77: Domain Specific Languages for GPU Kernels</a></td><td>cuda, triton, pytorch-compiler, profiling, attention</td><td>warp execution, online softmax, kernel fusion, autotuning, compiler lowering</td><td>CUDA, Triton, PyTorch, torch.compile</td></tr>
+<tr><td>41</td><td><a href="https://www.youtube.com/watch?v=6Cxnnvv3DnY">Lecture 73: [ScaleML Series] Quantization in Large Models</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, tensor cores, kv cache, autotuning, quantized numerics</td><td>Nsight, TVM</td></tr>
+<tr><td>43</td><td><a href="https://www.youtube.com/watch?v=KorF7Xpozhg">Lecture 71: [ScaleML Series] FlexOlmo: Open Language Models for Flexible Data Use</a></td><td>cuda, attention, quantization, serving, hardware</td><td>online softmax, kv cache, autotuning, quantized numerics</td><td></td></tr>
+<tr><td>44</td><td><a href="https://www.youtube.com/watch?v=2KUyEdlVBsw">Lecture 70: PCCL Fault tolerant collectives</a></td><td>cuda, quantization, hardware, distributed</td><td>warp execution, collectives, quantized numerics</td><td>NCCL</td></tr>
+<tr><td>45</td><td><a href="https://www.youtube.com/watch?v=beuOWBbiJfQ">Lecture 68: Landscape of GPU Centric communication</a></td><td>cuda, profiling, hardware, distributed, cutlass</td><td>memory coalescing, shared memory tiling, tensor cores, kernel fusion, compiler lowering</td><td>CUDA, TVM</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Evidence boundary</div>
+  <p>This lab models collective communication regimes and verifies all-reduce semantics locally. It does not claim NCCL, NVSHMEM, InfiniBand, or multi-GPU performance unless those runtimes and devices are actually visible.</p>
+</section>
+
+</div>

@@ -1,0 +1,109 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 25 GPUMODE ROCm HIP Portability</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 25</div>
+  <h1>GPUMODE ROCm/HIP portability workbench.</h1>
+  <p class="dek">This session turns CUDA-centered GPUMODE kernel lessons into an AMD portability
+  exercise: translate runtime calls, preserve operation semantics, and identify which CUDA patterns
+  need manual ROCm-specific replacements.</p>
+</header>
+
+<section>
+  <div class="eye">Translation report</div>
+  <h2>Mechanical ports versus real portability boundaries</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>CUDA source</th><th>translated HIP file</th><th>status</th><th>replacements</th><th>hard boundaries</th><th>remaining CUDA symbols</th></tr>
+      <tr><td>15-gpumode-coalescing/coalescing.cu</td><td>coalescing.translated.hip.cpp</td><td>ported-by-token-map</td><td>25</td><td></td><td></td></tr>
+<tr><td>16-gpumode-warp-reductions/reductions.cu</td><td>reductions.translated.hip.cpp</td><td>ported-by-token-map</td><td>23</td><td></td><td></td></tr>
+<tr><td>23-gpumode-shared-memory-gemm/shared_memory_gemm.cu</td><td>shared_memory_gemm.translated.hip.cpp</td><td>ported-by-token-map</td><td>30</td><td></td><td></td></tr>
+<tr><td>24-gpumode-tensor-core-cutlass/wmma_tensor_core_gemm.cu</td><td>wmma_tensor_core_gemm.translated.hip.cpp</td><td>needs-manual-port</td><td>28</td><td>nvcuda, mma.h, wmma::, cuda_fp16.h, __half2float, __float2half</td><td>cuda_fp16</td></tr>
+    </table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>Plain CUDA runtime calls and launch-shape kernels mostly translate mechanically to HIP, but WMMA/Tensor Core source is a real portability boundary that needs rocWMMA/Composable Kernel or a CUTLASS-equivalent rewrite.</p></div>
+</section>
+
+<section>
+  <div class="eye">CPU semantic proxy</div>
+  <h2>Portability starts with same answers</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>operation</th><th>seconds</th><th>size</th><th>max error</th></tr>
+      <tr><td>vector_add</td><td>4e-06</td><td>8192</td><td>0.0</td></tr>
+<tr><td>reduction_sum</td><td>3e-06</td><td>8192</td><td>0.0</td></tr>
+<tr><td>small_gemm</td><td>7e-06</td><td>[32, 32, 32]</td><td>0.0</td></tr>
+    </table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>The CPU proxy validates the operation semantics that the HIP source is expected to preserve: elementwise add, reduction, and tiled GEMM.</p></div>
+</section>
+
+<section>
+  <div class="eye">HIP compile/run path</div>
+  <h2>skipped</h2>
+  <div class="card" style="overflow-x:auto">
+    <table><tr><th>status</th><td>skipped</td></tr>
+<tr><th>reason</th><td>hipcc not found on PATH</td></tr>
+<tr><th>source</th><td>hip_portability_kernels.hip.cpp</td></tr></table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">GPUMODE links</div>
+  <h2>Transcript-derived lesson anchors</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>lesson</th><th>topics</th><th>concepts</th><th>tools</th></tr>
+      <tr><td>1</td><td><a href="https://www.youtube.com/watch?v=TZnJYRTSGVk">Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives</a></td><td>cuda, profiling, attention, serving, hardware</td><td>memory coalescing, tensor cores, kv cache, collectives, compiler lowering</td><td>CUTLASS/CuTe, TVM</td></tr>
+<tr><td>2</td><td><a href="https://www.youtube.com/watch?v=loZ4xQ5RZuU">Lecture 112: Production Megakernels for Real-World Inference</a></td><td>cuda, attention, quantization, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>CUDA, TVM</td></tr>
+<tr><td>3</td><td><a href="https://www.youtube.com/watch?v=eujKd0lHegA">Lecture 111: Spectral Compute: Compile CUDA everywhere</a></td><td>cuda, profiling, hardware, cutlass</td><td>shared memory tiling, warp execution, tensor cores, compiler lowering</td><td>CUDA, ROCm/HIP, TVM</td></tr>
+<tr><td>4</td><td><a href="https://www.youtube.com/watch?v=wiaUh82NEoE">Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, occupancy, tensor cores, autotuning, quantized numerics</td><td>Nsight, TVM</td></tr>
+<tr><td>5</td><td><a href="https://www.youtube.com/watch?v=nXRsasT1jIk">Lecture 109: TIRx</a></td><td>cuda, triton, attention, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+<tr><td>7</td><td><a href="https://www.youtube.com/watch?v=tBYm9PI5Jw0">Lecture 107: PithTrain</a></td><td>cuda, triton, profiling, quantization, serving</td><td>autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>Triton, PyTorch, CUTLASS/CuTe, ROCm/HIP</td></tr>
+<tr><td>8</td><td><a href="https://www.youtube.com/watch?v=Ok8vi6JemVQ">Lecture 106: Hugging Face Kernels</a></td><td>cuda, attention, serving, hardware, cutlass</td><td>tensor cores, online softmax, autotuning, compiler lowering</td><td>CUDA, Triton, PyTorch, ROCm/HIP</td></tr>
+<tr><td>9</td><td><a href="https://www.youtube.com/watch?v=HcnybHRbTcc">Lecture 105: cuDNN mxfp8 attention</a></td><td>cuda, profiling, attention, quantization, serving</td><td>shared memory tiling, warp execution, tensor cores, online softmax, quantized numerics</td><td>CUDA, PyTorch, vLLM, JAX</td></tr>
+<tr><td>10</td><td><a href="https://www.youtube.com/watch?v=oYs_qtuk2Pg">Lecture 104: Gluon and Linear Layouts</a></td><td>cuda, triton, profiling, attention, serving</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>CUDA, Triton, CUTLASS/CuTe, Nsight</td></tr>
+<tr><td>11</td><td><a href="https://www.youtube.com/watch?v=MVh_guNbWMA">Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation</a></td><td>cuda, attention, cutlass</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, autotuning</td><td>CUTLASS/CuTe, ROCm/HIP</td></tr>
+<tr><td>12</td><td><a href="https://www.youtube.com/watch?v=E0G3hf4DneA">Lecture 102: quartet v2</a></td><td>cuda, quantization, serving, hardware, cutlass</td><td>tensor cores, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>CUDA, TVM</td></tr>
+<tr><td>13</td><td><a href="https://www.youtube.com/watch?v=jGouxuAHIfQ">Lecture 101: Learning CUTLASS the hard way</a></td><td>cuda, triton, profiling, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+<tr><td>14</td><td><a href="https://www.youtube.com/watch?v=kPBTBl7xvEY">Lecture 100: InferenceX Continuous OSS Inference Benchmarking</a></td><td>profiling, attention, serving</td><td>kv cache, autotuning, quantized numerics, compiler lowering, profiling workflow</td><td>torch.compile, vLLM, ROCm/HIP, TVM</td></tr>
+<tr><td>15</td><td><a href="https://www.youtube.com/watch?v=sV0PJC1dOmM">Lecture 99: Distributed ML on consumer devices</a></td><td>attention, quantization, serving, hardware, distributed</td><td>occupancy, tensor cores, kv cache, kernel fusion, autotuning</td><td>PyTorch, CUTLASS/CuTe, ROCm/HIP, JAX</td></tr>
+<tr><td>16</td><td><a href="https://www.youtube.com/watch?v=-6FlMJ-AP74">Lecture 98: GPU Observability</a></td><td>cuda, profiling, attention, serving, hardware</td><td>shared memory tiling, warp execution, tensor cores, kv cache, kernel fusion</td><td>CUDA, CUTLASS/CuTe, Nsight, TVM</td></tr>
+<tr><td>17</td><td><a href="https://www.youtube.com/watch?v=jsYyF03Fs3o">Lecture 97: HipKittens</a></td><td>cuda, triton, attention, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>CUDA, Triton, PyTorch, CUTLASS/CuTe</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Evidence boundary</div>
+  <p>This lab separates mechanical CUDA-to-HIP syntax translation from real performance portability. Runtime API calls, elementwise kernels, reductions, and shared-memory GEMM map cleanly enough to test; WMMA/Tensor Core code requires AMD-specific libraries or a manual algorithmic rewrite.</p>
+</section>
+
+</div>

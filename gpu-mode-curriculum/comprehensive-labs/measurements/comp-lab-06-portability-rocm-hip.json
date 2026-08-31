@@ -1,0 +1,68 @@
+{
+  "lab_id": "comp-lab-06-portability-rocm-hip",
+  "status": "passed",
+  "measurement": {
+    "summary": "Implements a CUDA-to-HIP portability scanner, rewriter, and manual-risk report.",
+    "results": {
+      "findings_before": [
+        {
+          "severity": "manual",
+          "issue": "wmma header requires backend-specific replacement or abstraction"
+        },
+        {
+          "severity": "check",
+          "issue": "kernel launch syntax is HIP-compatible after hipify but still needs compile validation"
+        },
+        {
+          "severity": "rewrite",
+          "issue": "CUDA runtime symbol remains after automatic rewrite"
+        }
+      ],
+      "findings_after": [
+        {
+          "severity": "manual",
+          "issue": "wmma header requires backend-specific replacement or abstraction"
+        },
+        {
+          "severity": "check",
+          "issue": "kernel launch syntax is HIP-compatible after hipify but still needs compile validation"
+        }
+      ],
+      "migrated_excerpt": [
+        "",
+        "#include <hip/hip_runtime.h>",
+        "#include <mma.h>",
+        "__global__ void saxpy(float* y, const float* x, float a, int n) {",
+        "  int i = blockIdx.x * blockDim.x + threadIdx.x;",
+        "  if (i < n) y[i] = a * x[i] + y[i];",
+        "}",
+        "int main() {"
+      ]
+    },
+    "checks": [
+      {
+        "name": "runtime_header_rewritten",
+        "passed": true,
+        "detail": "header migrated"
+      },
+      {
+        "name": "stream_symbol_rewritten",
+        "passed": true,
+        "detail": "stream migrated"
+      },
+      {
+        "name": "manual_wmma_finding_retained",
+        "passed": true,
+        "detail": "[{'severity': 'manual', 'issue': 'wmma header requires backend-specific replacement or abstraction'}, {'severity': 'check', 'issue': 'kernel launch syntax is HIP-compatible after hipify but still needs compile validation'}]"
+      },
+      {
+        "name": "findings_do_not_disappear",
+        "passed": true,
+        "detail": "3->2"
+      }
+    ]
+  },
+  "runtime_caveats": [
+    "Local run uses CPU/model implementations where GPU compiler/runtime support is unavailable."
+  ]
+}

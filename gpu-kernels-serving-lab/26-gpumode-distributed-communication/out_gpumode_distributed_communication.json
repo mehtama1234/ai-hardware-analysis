@@ -1,0 +1,1429 @@
+{
+  "session": "26-gpumode-distributed-communication",
+  "timestamp": "2026-08-30T07:17:21.950009+00:00",
+  "inventory": {
+    "session": "26-gpumode-distributed-communication",
+    "timestamp": "2026-08-30T07:17:21.950072+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "source": {
+    "gpumode_lab_id": "gpumode-lab-12-distributed-communication",
+    "gpumode_lessons": [
+      {
+        "index": 1,
+        "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+        "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "tensor cores",
+          "kv cache",
+          "collectives",
+          "compiler lowering"
+        ],
+        "tools": [
+          "CUTLASS/CuTe",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "simulate prefill/decode KV-cache memory growth",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 4,
+        "title": "Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL",
+        "url": "https://www.youtube.com/watch?v=wiaUh82NEoE",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "tools": [
+          "Nsight",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 5,
+        "title": "Lecture 109: TIRx",
+        "url": "https://www.youtube.com/watch?v=nXRsasT1jIk",
+        "topics": [
+          "cuda",
+          "triton",
+          "attention",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "tools": [
+          "CUDA",
+          "Triton",
+          "PyTorch",
+          "CUTLASS/CuTe",
+          "ROCm/HIP",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 7,
+        "title": "Lecture 107: PithTrain",
+        "url": "https://www.youtube.com/watch?v=tBYm9PI5Jw0",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "tools": [
+          "Triton",
+          "PyTorch",
+          "CUTLASS/CuTe",
+          "ROCm/HIP",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 9,
+        "title": "Lecture 105: cuDNN mxfp8 attention",
+        "url": "https://www.youtube.com/watch?v=HcnybHRbTcc",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "tools": [
+          "CUDA",
+          "PyTorch",
+          "vLLM",
+          "JAX",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 13,
+        "title": "Lecture 101: Learning CUTLASS the hard way",
+        "url": "https://www.youtube.com/watch?v=jGouxuAHIfQ",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning"
+        ],
+        "tools": [
+          "CUDA",
+          "Triton",
+          "PyTorch",
+          "CUTLASS/CuTe"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 15,
+        "title": "Lecture 99: Distributed ML on consumer devices",
+        "url": "https://www.youtube.com/watch?v=sV0PJC1dOmM",
+        "topics": [
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "occupancy",
+          "tensor cores",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics"
+        ],
+        "tools": [
+          "PyTorch",
+          "CUTLASS/CuTe",
+          "ROCm/HIP",
+          "JAX"
+        ],
+        "exercise_candidates": [
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 18,
+        "title": "Lecture 96: TLX",
+        "url": "https://www.youtube.com/watch?v=TH1i-GmMZuQ",
+        "topics": [
+          "cuda",
+          "triton",
+          "pytorch-compiler",
+          "attention",
+          "quantization",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "online softmax",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "tools": [
+          "Triton",
+          "PyTorch",
+          "torch.compile",
+          "CUTLASS/CuTe",
+          "ROCm/HIP"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 19,
+        "title": "Lecture 95: Single controller programming with Monarch",
+        "url": "https://www.youtube.com/watch?v=PO3CN3UYx7w",
+        "topics": [
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "warp execution",
+          "collectives",
+          "compiler lowering"
+        ],
+        "tools": [
+          "PyTorch",
+          "ROCm/HIP",
+          "JAX",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 27,
+        "title": "Lecture 87: Low Latency Communication Kernels with NVSHMEM",
+        "url": "https://www.youtube.com/watch?v=6bqnqDZg4_0",
+        "topics": [
+          "cuda",
+          "profiling",
+          "distributed"
+        ],
+        "concepts": [
+          "collectives"
+        ],
+        "tools": [
+          "NVSHMEM"
+        ],
+        "exercise_candidates": [
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 30,
+        "title": "Lecture 84: Numerics and AI",
+        "url": "https://www.youtube.com/watch?v=ua2NhlenIKo",
+        "topics": [
+          "cuda",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "occupancy",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "tools": [
+          "CUDA",
+          "PyTorch",
+          "ROCm/HIP",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 32,
+        "title": "Lecture 82 Helion: A high-level DSL for ML kernels",
+        "url": "https://www.youtube.com/watch?v=MBOPzfl1JBo",
+        "topics": [
+          "cuda",
+          "triton",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "tools": [
+          "CUDA",
+          "Triton",
+          "PyTorch",
+          "CUTLASS/CuTe",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 36,
+        "title": "Lecture 78 Iris: Multi-GPU Programming in Triton",
+        "url": "https://www.youtube.com/watch?v=i6Y2EelEC04",
+        "topics": [
+          "cuda",
+          "triton",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "tensor cores",
+          "kernel fusion",
+          "autotuning",
+          "collectives",
+          "compiler lowering"
+        ],
+        "tools": [
+          "Triton",
+          "PyTorch",
+          "ROCm/HIP",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 37,
+        "title": "Lecture 77: Domain Specific Languages for GPU Kernels",
+        "url": "https://www.youtube.com/watch?v=5qSN-R_E3w0",
+        "topics": [
+          "cuda",
+          "triton",
+          "pytorch-compiler",
+          "profiling",
+          "attention",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "warp execution",
+          "online softmax",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "tools": [
+          "CUDA",
+          "Triton",
+          "PyTorch",
+          "torch.compile",
+          "CUTLASS/CuTe"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 41,
+        "title": "Lecture 73: [ScaleML Series] Quantization in Large Models",
+        "url": "https://www.youtube.com/watch?v=6Cxnnvv3DnY",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "warp execution",
+          "tensor cores",
+          "kv cache",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "tools": [
+          "Nsight",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "simulate prefill/decode KV-cache memory growth",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 43,
+        "title": "Lecture 71: [ScaleML Series] FlexOlmo: Open Language Models for Flexible Data Use",
+        "url": "https://www.youtube.com/watch?v=KorF7Xpozhg",
+        "topics": [
+          "cuda",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "online softmax",
+          "kv cache",
+          "autotuning",
+          "quantized numerics"
+        ],
+        "tools": [],
+        "exercise_candidates": [
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 44,
+        "title": "Lecture 70: PCCL Fault tolerant collectives",
+        "url": "https://www.youtube.com/watch?v=2KUyEdlVBsw",
+        "topics": [
+          "cuda",
+          "quantization",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "warp execution",
+          "collectives",
+          "quantized numerics"
+        ],
+        "tools": [
+          "NCCL"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "model all-reduce latency and bandwidth regimes",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 45,
+        "title": "Lecture 68: Landscape of GPU Centric communication",
+        "url": "https://www.youtube.com/watch?v=beuOWBbiJfQ",
+        "topics": [
+          "cuda",
+          "profiling",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "tensor cores",
+          "kernel fusion",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "tools": [
+          "CUDA",
+          "TVM"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "fuse bias, activation, and normalization into one measured path",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      }
+    ],
+    "extends": "12-jax-scaling-practicum, 20-gpumode-vllm-scheduler, 22-gpumode-nsight-roofline, and 25-gpumode-rocm-hip-portability"
+  },
+  "collective_model": {
+    "status": "ran",
+    "rows": [
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 1024,
+        "ring_us": 16.032,
+        "tree_us": 16.064,
+        "nvshmem_put_reduce_proxy_us": 8.032,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 8192,
+        "ring_us": 16.256,
+        "tree_us": 16.512,
+        "nvshmem_put_reduce_proxy_us": 8.256,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 65536,
+        "ring_us": 18.048,
+        "tree_us": 20.096,
+        "nvshmem_put_reduce_proxy_us": 10.048,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 524288,
+        "ring_us": 32.384,
+        "tree_us": 48.768,
+        "nvshmem_put_reduce_proxy_us": 24.384,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 4194304,
+        "ring_us": 147.072,
+        "tree_us": 278.144,
+        "nvshmem_put_reduce_proxy_us": 139.072,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 33554432,
+        "ring_us": 1064.576,
+        "tree_us": 2113.152,
+        "nvshmem_put_reduce_proxy_us": 1056.576,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "message_bytes": 268435456,
+        "ring_us": 8404.608,
+        "tree_us": 16793.216,
+        "nvshmem_put_reduce_proxy_us": 8396.608,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 1024,
+        "ring_us": 48.048,
+        "tree_us": 32.064,
+        "nvshmem_put_reduce_proxy_us": 8.032,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 8192,
+        "ring_us": 48.384,
+        "tree_us": 32.512,
+        "nvshmem_put_reduce_proxy_us": 8.256,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 65536,
+        "ring_us": 51.072,
+        "tree_us": 36.096,
+        "nvshmem_put_reduce_proxy_us": 10.048,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 524288,
+        "ring_us": 72.576,
+        "tree_us": 64.768,
+        "nvshmem_put_reduce_proxy_us": 24.384,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 4194304,
+        "ring_us": 244.608,
+        "tree_us": 294.144,
+        "nvshmem_put_reduce_proxy_us": 139.072,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 33554432,
+        "ring_us": 1620.864,
+        "tree_us": 2129.152,
+        "nvshmem_put_reduce_proxy_us": 1056.576,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "message_bytes": 268435456,
+        "ring_us": 12630.912,
+        "tree_us": 16809.216,
+        "nvshmem_put_reduce_proxy_us": 8396.608,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 1024,
+        "ring_us": 112.056,
+        "tree_us": 48.064,
+        "nvshmem_put_reduce_proxy_us": 8.032,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 8192,
+        "ring_us": 112.448,
+        "tree_us": 48.512,
+        "nvshmem_put_reduce_proxy_us": 8.256,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 65536,
+        "ring_us": 115.584,
+        "tree_us": 52.096,
+        "nvshmem_put_reduce_proxy_us": 10.048,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 524288,
+        "ring_us": 140.672,
+        "tree_us": 80.768,
+        "nvshmem_put_reduce_proxy_us": 24.384,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 4194304,
+        "ring_us": 341.376,
+        "tree_us": 310.144,
+        "nvshmem_put_reduce_proxy_us": 139.072,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 33554432,
+        "ring_us": 1947.008,
+        "tree_us": 2145.152,
+        "nvshmem_put_reduce_proxy_us": 1056.576,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "message_bytes": 268435456,
+        "ring_us": 14792.064,
+        "tree_us": 16825.216,
+        "nvshmem_put_reduce_proxy_us": 8396.608,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 1024,
+        "ring_us": 6.007,
+        "tree_us": 6.014,
+        "nvshmem_put_reduce_proxy_us": 3.007,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 8192,
+        "ring_us": 6.055,
+        "tree_us": 6.109,
+        "nvshmem_put_reduce_proxy_us": 3.055,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 65536,
+        "ring_us": 6.437,
+        "tree_us": 6.874,
+        "nvshmem_put_reduce_proxy_us": 3.437,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 524288,
+        "ring_us": 9.495,
+        "tree_us": 12.991,
+        "nvshmem_put_reduce_proxy_us": 6.495,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 4194304,
+        "ring_us": 33.962,
+        "tree_us": 61.924,
+        "nvshmem_put_reduce_proxy_us": 30.962,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 33554432,
+        "ring_us": 229.696,
+        "tree_us": 453.392,
+        "nvshmem_put_reduce_proxy_us": 226.696,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "message_bytes": 268435456,
+        "ring_us": 1795.57,
+        "tree_us": 3585.139,
+        "nvshmem_put_reduce_proxy_us": 1792.57,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 1024,
+        "ring_us": 18.01,
+        "tree_us": 12.014,
+        "nvshmem_put_reduce_proxy_us": 3.007,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 8192,
+        "ring_us": 18.082,
+        "tree_us": 12.109,
+        "nvshmem_put_reduce_proxy_us": 3.055,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 65536,
+        "ring_us": 18.655,
+        "tree_us": 12.874,
+        "nvshmem_put_reduce_proxy_us": 3.437,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 524288,
+        "ring_us": 23.243,
+        "tree_us": 18.991,
+        "nvshmem_put_reduce_proxy_us": 6.495,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 4194304,
+        "ring_us": 59.943,
+        "tree_us": 67.924,
+        "nvshmem_put_reduce_proxy_us": 30.962,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 33554432,
+        "ring_us": 353.544,
+        "tree_us": 459.392,
+        "nvshmem_put_reduce_proxy_us": 226.696,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "message_bytes": 268435456,
+        "ring_us": 2702.355,
+        "tree_us": 3591.139,
+        "nvshmem_put_reduce_proxy_us": 1792.57,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 1024,
+        "ring_us": 42.012,
+        "tree_us": 18.014,
+        "nvshmem_put_reduce_proxy_us": 3.007,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 8192,
+        "ring_us": 42.096,
+        "tree_us": 18.109,
+        "nvshmem_put_reduce_proxy_us": 3.055,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 65536,
+        "ring_us": 42.765,
+        "tree_us": 18.874,
+        "nvshmem_put_reduce_proxy_us": 3.437,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 524288,
+        "ring_us": 48.117,
+        "tree_us": 24.991,
+        "nvshmem_put_reduce_proxy_us": 6.495,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 4194304,
+        "ring_us": 90.934,
+        "tree_us": 73.924,
+        "nvshmem_put_reduce_proxy_us": 30.962,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 33554432,
+        "ring_us": 433.468,
+        "tree_us": 465.392,
+        "nvshmem_put_reduce_proxy_us": 226.696,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "message_bytes": 268435456,
+        "ring_us": 3173.747,
+        "tree_us": 3597.139,
+        "nvshmem_put_reduce_proxy_us": 1792.57,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 1024,
+        "ring_us": 40.041,
+        "tree_us": 40.082,
+        "nvshmem_put_reduce_proxy_us": 20.041,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 8192,
+        "ring_us": 40.328,
+        "tree_us": 40.655,
+        "nvshmem_put_reduce_proxy_us": 20.328,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 65536,
+        "ring_us": 42.621,
+        "tree_us": 45.243,
+        "nvshmem_put_reduce_proxy_us": 22.621,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 524288,
+        "ring_us": 60.972,
+        "tree_us": 81.943,
+        "nvshmem_put_reduce_proxy_us": 40.972,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 4194304,
+        "ring_us": 207.772,
+        "tree_us": 375.544,
+        "nvshmem_put_reduce_proxy_us": 187.772,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 33554432,
+        "ring_us": 1382.177,
+        "tree_us": 2724.355,
+        "nvshmem_put_reduce_proxy_us": 1362.177,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "message_bytes": 268435456,
+        "ring_us": 10777.418,
+        "tree_us": 21514.836,
+        "nvshmem_put_reduce_proxy_us": 10757.418,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 1024,
+        "ring_us": 120.061,
+        "tree_us": 80.082,
+        "nvshmem_put_reduce_proxy_us": 20.041,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 8192,
+        "ring_us": 120.492,
+        "tree_us": 80.655,
+        "nvshmem_put_reduce_proxy_us": 20.328,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 65536,
+        "ring_us": 123.932,
+        "tree_us": 85.243,
+        "nvshmem_put_reduce_proxy_us": 22.621,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 524288,
+        "ring_us": 151.457,
+        "tree_us": 121.943,
+        "nvshmem_put_reduce_proxy_us": 40.972,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 4194304,
+        "ring_us": 371.658,
+        "tree_us": 415.544,
+        "nvshmem_put_reduce_proxy_us": 187.772,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 33554432,
+        "ring_us": 2133.266,
+        "tree_us": 2764.355,
+        "nvshmem_put_reduce_proxy_us": 1362.177,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "message_bytes": 268435456,
+        "ring_us": 16226.127,
+        "tree_us": 21554.836,
+        "nvshmem_put_reduce_proxy_us": 10757.418,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 1024,
+        "ring_us": 280.072,
+        "tree_us": 120.082,
+        "nvshmem_put_reduce_proxy_us": 20.041,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 8192,
+        "ring_us": 280.573,
+        "tree_us": 120.655,
+        "nvshmem_put_reduce_proxy_us": 20.328,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 65536,
+        "ring_us": 284.588,
+        "tree_us": 125.243,
+        "nvshmem_put_reduce_proxy_us": 22.621,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "latency-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 524288,
+        "ring_us": 316.7,
+        "tree_us": 161.943,
+        "nvshmem_put_reduce_proxy_us": 40.972,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 4194304,
+        "ring_us": 573.601,
+        "tree_us": 455.544,
+        "nvshmem_put_reduce_proxy_us": 187.772,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 33554432,
+        "ring_us": 2628.81,
+        "tree_us": 2804.355,
+        "nvshmem_put_reduce_proxy_us": 1362.177,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "message_bytes": 268435456,
+        "ring_us": 19070.482,
+        "tree_us": 21594.836,
+        "nvshmem_put_reduce_proxy_us": 10757.418,
+        "modeled_winner": "nvshmem_put_reduce_proxy",
+        "regime": "bandwidth-dominated"
+      }
+    ],
+    "crossover": [
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 2,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 4,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "pcie4_x16_proxy",
+        "world_size": 8,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 2,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 4,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "nvlink_proxy",
+        "world_size": 8,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 2,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 4,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      },
+      {
+        "topology": "ethernet_200g_proxy",
+        "world_size": 8,
+        "first_bandwidth_dominated_bytes": 524288,
+        "winner_at_crossover": "nvshmem_put_reduce_proxy"
+      }
+    ],
+    "finding": "All-reduce choice changes with message size, world size, latency, and bandwidth: small reductions are latency sensitive, while large gradients/KV transfers are bandwidth dominated."
+  },
+  "local_allreduce_proxy": {
+    "status": "ran",
+    "world_size": 4,
+    "elements_per_rank": 4096,
+    "bytes_reduced": 65536,
+    "seconds": 0.056772,
+    "effective_gbps": 0.001154,
+    "max_abs_error": 0.0,
+    "finding": "The local multiprocessing proxy proves all ranks contribute to the same reduced tensor; it is a semantic check, not a GPU interconnect benchmark."
+  },
+  "runtime_readiness": {
+    "status": "skipped",
+    "torch_distributed_available": true,
+    "nccl_backend_available": true,
+    "gloo_backend_available": true,
+    "torch_cuda_device_count": 0,
+    "tools": {
+      "nvidia-smi": null,
+      "nccl-tests-all_reduce_perf": null,
+      "nvshmem-info": null,
+      "ibv_devinfo": null
+    },
+    "nvshmem_probe": null,
+    "reason": "Real NCCL all-reduce timing needs at least two CUDA-visible GPUs plus NCCL test/runtime tools; NVSHMEM needs its runtime tools."
+  },
+  "imported_benchmarks": {
+    "status": "ran",
+    "import_dir": "imports",
+    "rows": [
+      {
+        "source": "sample-nccl-all-reduce.csv",
+        "tool": "nccl-tests",
+        "message_bytes": 1048576,
+        "time_us": 84.2,
+        "algbw_gbps": 12.45,
+        "busbw_gbps": 21.78,
+        "errors": 0
+      },
+      {
+        "source": "sample-nccl-all-reduce.csv",
+        "tool": "nccl-tests",
+        "message_bytes": 16777216,
+        "time_us": 620.5,
+        "algbw_gbps": 27.04,
+        "busbw_gbps": 47.32,
+        "errors": 0
+      },
+      {
+        "source": "sample-nccl-all-reduce.csv",
+        "tool": "nccl-tests",
+        "message_bytes": 134217728,
+        "time_us": 4451.3,
+        "algbw_gbps": 30.15,
+        "busbw_gbps": 52.76,
+        "errors": 0
+      },
+      {
+        "source": "sample-nvshmem-put.json",
+        "tool": "nvshmem",
+        "message_bytes": 1048576,
+        "time_us": 52.4,
+        "algbw_gbps": 20.01,
+        "busbw_gbps": 20.01,
+        "errors": 0
+      },
+      {
+        "source": "sample-nvshmem-put.json",
+        "tool": "nvshmem",
+        "message_bytes": 16777216,
+        "time_us": 482.2,
+        "algbw_gbps": 34.79,
+        "busbw_gbps": 34.79,
+        "errors": 0
+      },
+      {
+        "source": "sample-nvshmem-put.json",
+        "tool": "nvshmem",
+        "message_bytes": 134217728,
+        "time_us": 3850.7,
+        "algbw_gbps": 34.86,
+        "busbw_gbps": 34.86,
+        "errors": 0
+      }
+    ],
+    "best_by_tool": [
+      {
+        "tool": "nccl-tests",
+        "best_message_bytes": 134217728,
+        "best_busbw_gbps": 52.76,
+        "best_time_us": 4451.3,
+        "rows": 3
+      },
+      {
+        "tool": "nvshmem",
+        "best_message_bytes": 134217728,
+        "best_busbw_gbps": 34.86,
+        "best_time_us": 3850.7,
+        "rows": 3
+      }
+    ],
+    "finding": "Imported 6 collective benchmark rows from 2 tool family/families; compare best bus bandwidth against the modeled topology rows."
+  },
+  "correctness": {
+    "status": "passed",
+    "checks": {
+      "model_ran": true,
+      "model_has_world_sizes": true,
+      "proxy_ran": true,
+      "proxy_correct": true,
+      "runtime_classified": true,
+      "import_parser_ran": true,
+      "import_rows_error_free": true
+    }
+  },
+  "boundary": "This lab models collective communication regimes and verifies all-reduce semantics locally. It does not claim NCCL, NVSHMEM, InfiniBand, or multi-GPU performance unless those runtimes and devices are actually visible."
+}

@@ -1,0 +1,562 @@
+[
+  {
+    "id": "memory-bandwidth-end-to-end-path",
+    "title": "Memory bandwidth / layout bottleneck end-to-end tutorial path",
+    "profile_id": "memory-bandwidth",
+    "objective": "Suspect memory layout, HBM bandwidth, KV-cache growth, or avoidable materialization before changing math.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "All About Rooflines",
+      "url": "https://jax-ml.github.io/scaling-book/roofline/",
+      "why": "Use this as the math lens for deciding whether compute, memory, or communication dominates an LLM workload."
+    },
+    "gpumode_anchor": {
+      "index": 115,
+      "title": "Lecture 4 Compute and Memory Basics",
+      "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-09-shared-memory-gemm",
+      "title": "Shared-memory tiled GEMM microscope",
+      "path": "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm",
+      "command": "cd ../gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "23-gpumode-shared-memory-gemm/out_gpumode_shared_memory_gemm.json",
+      "summary": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
+    },
+    "paper_check": {
+      "title": "Hybe: GPU-NPU Hybrid System for Efficient LLM Inference with Million-Token Context Window",
+      "path": "analysis/per-paper/isca-2025-080.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - All About Rooflines and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #115: Lecture 4 Compute and Memory Basics and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm and preserve the generated JSON artifact.",
+      "Compare 23-gpumode-shared-memory-gemm/out_gpumode_shared_memory_gemm.json against the source model and the GPUMODE lesson concept.",
+      "Use Hybe: GPU-NPU Hybrid System for Efficient LLM Inference with Million-Token Context Window as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "profiling-roofline-end-to-end-path",
+    "title": "Profiler counters / roofline triage end-to-end tutorial path",
+    "profile_id": "profiling-roofline",
+    "objective": "Suspect the next optimization is unclear until counters are mapped to memory, compute, synchronization, launch, or communication limits.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "How to Profile TPU Programs",
+      "url": "https://jax-ml.github.io/scaling-book/profiling/",
+      "why": "Use this to compare theoretical roofline reasoning with profiler-driven compiler/runtime debugging."
+    },
+    "gpumode_anchor": {
+      "index": 111,
+      "title": "Lecture 8: CUDA Performance Checklist",
+      "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "quantized numerics"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-08-nsight-to-roofline",
+      "title": "Nsight-to-roofline workflow",
+      "path": "gpu-kernels-serving-lab/22-gpumode-nsight-roofline",
+      "command": "cd ../gpu-kernels-serving-lab/22-gpumode-nsight-roofline && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "22-gpumode-nsight-roofline/out_gpumode_nsight_roofline.json",
+      "summary": "Imported 2 Nsight-shaped kernel rows and classified them with the same roofline decision rules. Imported bottleneck counts: {'memory-bandwidth': 1, 'compute': 1}."
+    },
+    "paper_check": {
+      "title": "Profiling Application-Specific Properties of Irregular Graph Algorithms on GPUs",
+      "path": "analysis/per-paper/sc-2025-311.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - How to Profile TPU Programs and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #111: Lecture 8: CUDA Performance Checklist and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/22-gpumode-nsight-roofline and preserve the generated JSON artifact.",
+      "Compare 22-gpumode-nsight-roofline/out_gpumode_nsight_roofline.json against the source model and the GPUMODE lesson concept.",
+      "Use Profiling Application-Specific Properties of Irregular Graph Algorithms on GPUs as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "warp-synchronization-end-to-end-path",
+    "title": "Warp execution / synchronization bottleneck end-to-end tutorial path",
+    "profile_id": "warp-synchronization",
+    "objective": "Suspect synchronization shape, block partials, divergent work, or reduction/scan dependency structure.",
+    "source_reading": {
+      "provider": "NVIDIA",
+      "title": "CUDA C++ Programming Guide",
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/index.html",
+      "why": "Use this as the official CUDA programming-model reference behind the memory, warp, and matmul kernel labs."
+    },
+    "gpumode_anchor": {
+      "index": 39,
+      "title": "Lecture 75 [ScaleML Series] GPU Programming Fundamentals + ThunderKittens",
+      "url": "https://www.youtube.com/watch?v=Cl2B_hmg4gA",
+      "concepts": [
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "kv cache"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-02-warp-reductions",
+      "title": "Warp reductions and scans",
+      "path": "gpu-kernels-serving-lab/16-gpumode-warp-reductions",
+      "command": "cd ../gpu-kernels-serving-lab/16-gpumode-warp-reductions && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "16-gpumode-warp-reductions/out_gpumode_warp_reductions.json",
+      "summary": "Reduction and scan are both bandwidth-sensitive primitives, but scan has stricter ordering and dependency structure than a plain sum."
+    },
+    "paper_check": {
+      "title": "SparseWeaver: Converting Sparse Operations as Dense Operations on GPUs for Graph Workloads",
+      "path": "analysis/per-paper/hpca-2025-039.json"
+    },
+    "steps": [
+      "Read NVIDIA - CUDA C++ Programming Guide and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #39: Lecture 75 [ScaleML Series] GPU Programming Fundamentals + ThunderKittens and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/16-gpumode-warp-reductions and preserve the generated JSON artifact.",
+      "Compare 16-gpumode-warp-reductions/out_gpumode_warp_reductions.json against the source model and the GPUMODE lesson concept.",
+      "Use SparseWeaver: Converting Sparse Operations as Dense Operations on GPUs for Graph Workloads as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "triton-autotune-end-to-end-path",
+    "title": "Triton custom-kernel / autotuning path end-to-end tutorial path",
+    "profile_id": "triton-autotune",
+    "objective": "Suspect block sizes, masks, fusion boundaries, or compiler-generated kernel choices.",
+    "source_reading": {
+      "provider": "Triton",
+      "title": "Triton Tutorials",
+      "url": "https://triton-lang.org/main/getting-started/tutorials/",
+      "why": "Use this as the official progression from simple Triton kernels to fused softmax and matmul tuning."
+    },
+    "gpumode_anchor": {
+      "index": 13,
+      "title": "Lecture 101: Learning CUTLASS the hard way",
+      "url": "https://www.youtube.com/watch?v=jGouxuAHIfQ",
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-03-triton-autotune",
+      "title": "Triton matmul autotuning workbench",
+      "path": "gpu-kernels-serving-lab/17-gpumode-triton-autotune",
+      "command": "cd ../gpu-kernels-serving-lab/17-gpumode-triton-autotune && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "23-gpumode-shared-memory-gemm/out_gpumode_shared_memory_gemm.json",
+      "summary": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
+    },
+    "paper_check": {
+      "title": "FlexAttention: A Programming Model for Generating Optimized Attention Kernels",
+      "path": "analysis/per-paper/mlsys-2025-015.json"
+    },
+    "steps": [
+      "Read Triton - Triton Tutorials and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #13: Lecture 101: Learning CUTLASS the hard way and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/17-gpumode-triton-autotune and preserve the generated JSON artifact.",
+      "Compare 23-gpumode-shared-memory-gemm/out_gpumode_shared_memory_gemm.json against the source model and the GPUMODE lesson concept.",
+      "Use FlexAttention: A Programming Model for Generating Optimized Attention Kernels as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "tensor-core-cutlass-end-to-end-path",
+    "title": "Tensor Core / CUTLASS matmul path end-to-end tutorial path",
+    "profile_id": "tensor-core-cutlass",
+    "objective": "Suspect missing Tensor Core eligibility, low-precision numerical drift, layout mismatch, or missing CUTLASS/CuTe production kernel coverage.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "How to Think About GPUs",
+      "url": "https://jax-ml.github.io/scaling-book/gpus/",
+      "why": "Use this as the hardware mental model for SMs, HBM, Tensor Cores, and GPU interconnects."
+    },
+    "gpumode_anchor": {
+      "index": 80,
+      "title": "Lecture 36: CUTLASS and Flash Attention 3",
+      "url": "https://www.youtube.com/watch?v=JwUcZwPOCpA",
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-10-tensor-core-cutlass",
+      "title": "Tensor Core and CUTLASS matmul readiness",
+      "path": "gpu-kernels-serving-lab/24-gpumode-tensor-core-cutlass",
+      "command": "cd ../gpu-kernels-serving-lab/24-gpumode-tensor-core-cutlass && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "24-gpumode-tensor-core-cutlass/out_gpumode_tensor_core_cutlass.json",
+      "summary": "Tensor Core kernels buy throughput by using low-precision inputs with controlled accumulation. On this CPU proxy, fp16 relative L2 error is 0.035858% and bf16 relative L2 error is 0.287636% against fp32."
+    },
+    "paper_check": {
+      "title": "LUT Tensor Core: A Software-Hardware Co-Design for LUT-Based Low-Bit LLM Inference",
+      "path": "analysis/per-paper/isca-2025-079.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - How to Think About GPUs and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #80: Lecture 36: CUTLASS and Flash Attention 3 and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/24-gpumode-tensor-core-cutlass and preserve the generated JSON artifact.",
+      "Compare 24-gpumode-tensor-core-cutlass/out_gpumode_tensor_core_cutlass.json against the source model and the GPUMODE lesson concept.",
+      "Use LUT Tensor Core: A Software-Hardware Co-Design for LUT-Based Low-Bit LLM Inference as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "rocm-hip-portability-end-to-end-path",
+    "title": "ROCm/HIP portability path end-to-end tutorial path",
+    "profile_id": "rocm-hip-portability",
+    "objective": "Suspect CUDA-specific runtime calls, warp-size assumptions, WMMA/Tensor Core dependencies, or missing ROCm compiler/runtime support.",
+    "source_reading": {
+      "provider": "AMD ROCm",
+      "title": "HIP Documentation",
+      "url": "https://rocm.docs.amd.com/projects/HIP/en/latest/",
+      "why": "Use this as the official HIP reference for porting CUDA-shaped kernels to AMD GPUs."
+    },
+    "gpumode_anchor": {
+      "index": 80,
+      "title": "Lecture 36: CUTLASS and Flash Attention 3",
+      "url": "https://www.youtube.com/watch?v=JwUcZwPOCpA",
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-11-rocm-hip-portability",
+      "title": "ROCm/HIP portability workbench",
+      "path": "gpu-kernels-serving-lab/25-gpumode-rocm-hip-portability",
+      "command": "cd ../gpu-kernels-serving-lab/25-gpumode-rocm-hip-portability && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "25-gpumode-rocm-hip-portability/out_gpumode_rocm_hip_portability.json",
+      "summary": "Plain CUDA runtime calls and launch-shape kernels mostly translate mechanically to HIP, but WMMA/Tensor Core source is a real portability boundary that needs rocWMMA/Composable Kernel or a CUTLASS-equivalent rewrite."
+    },
+    "paper_check": {
+      "title": "A Study of Performance Portability of Low-bit Fused Matrix-Vector Multiplication Kernels in SYCL",
+      "path": "analysis/per-paper/sc-2025-165.json"
+    },
+    "steps": [
+      "Read AMD ROCm - HIP Documentation and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #80: Lecture 36: CUTLASS and Flash Attention 3 and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/25-gpumode-rocm-hip-portability and preserve the generated JSON artifact.",
+      "Compare 25-gpumode-rocm-hip-portability/out_gpumode_rocm_hip_portability.json against the source model and the GPUMODE lesson concept.",
+      "Use A Study of Performance Portability of Low-bit Fused Matrix-Vector Multiplication Kernels in SYCL as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "pytorch-compiler-fusion-end-to-end-path",
+    "title": "PyTorch compiler / graph-break bottleneck end-to-end tutorial path",
+    "profile_id": "pytorch-compiler-fusion",
+    "objective": "Suspect graph breaks, unsupported Python control flow, missed fusion, or backend-generated kernels that need inspection.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "How to Profile TPU Programs",
+      "url": "https://jax-ml.github.io/scaling-book/profiling/",
+      "why": "Use this to compare theoretical roofline reasoning with profiler-driven compiler/runtime debugging."
+    },
+    "gpumode_anchor": {
+      "index": 63,
+      "title": "Lecture 53: torch.compile Q&A",
+      "url": "https://www.youtube.com/watch?v=mG8TRTWs9Aw",
+      "concepts": [
+        "shared memory tiling",
+        "autotuning",
+        "compiler lowering",
+        "profiling workflow"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-05-torch-compile",
+      "title": "torch.compile fusion and graph-break lab",
+      "path": "gpu-kernels-serving-lab/19-gpumode-torch-compile",
+      "command": "cd ../gpu-kernels-serving-lab/19-gpumode-torch-compile && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "19-gpumode-torch-compile/out_gpumode_torch_compile.json",
+      "summary": "torch.compile is useful when it can keep tensor programs inside captured graphs; data-dependent Python control flow is a visible graph-break risk."
+    },
+    "paper_check": {
+      "title": "FlexAttention: A Programming Model for Generating Optimized Attention Kernels",
+      "path": "analysis/per-paper/mlsys-2025-015.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - How to Profile TPU Programs and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #63: Lecture 53: torch.compile Q&A and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/19-gpumode-torch-compile and preserve the generated JSON artifact.",
+      "Compare 19-gpumode-torch-compile/out_gpumode_torch_compile.json against the source model and the GPUMODE lesson concept.",
+      "Use FlexAttention: A Programming Model for Generating Optimized Attention Kernels as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "attention-serving-end-to-end-path",
+    "title": "Attention, KV cache, and serving bottleneck end-to-end tutorial path",
+    "profile_id": "attention-serving",
+    "objective": "Suspect prefill/decode split, KV-cache allocation, batching policy, prefix reuse, or attention materialization.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "All About Transformer Inference",
+      "url": "https://jax-ml.github.io/scaling-book/inference/",
+      "why": "Use this to ground prefill/decode, KV-cache, and batching measurements in an explicit inference cost model."
+    },
+    "gpumode_anchor": {
+      "index": 54,
+      "title": "Lecture 60: Optimizing Linear Attention",
+      "url": "https://www.youtube.com/watch?v=RTJKXK5L8gw",
+      "concepts": [
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "kernel fusion",
+        "autotuning"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-04-online-softmax",
+      "title": "FlashAttention-style online softmax",
+      "path": "gpu-kernels-serving-lab/18-gpumode-online-softmax",
+      "command": "cd ../gpu-kernels-serving-lab/18-gpumode-online-softmax && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "18-gpumode-online-softmax/out_gpumode_online_softmax.json",
+      "summary": "Online softmax matches materialized attention while avoiding the full SxS probability matrix; the CPU loop is slower here because it prioritizes algorithm shape over fused-kernel speed."
+    },
+    "paper_check": {
+      "title": "Past-Future Scheduler for LLM Serving under SLA Guarantees",
+      "path": "analysis/per-paper/asplos-2025-049.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - All About Transformer Inference and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #54: Lecture 60: Optimizing Linear Attention and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/18-gpumode-online-softmax and preserve the generated JSON artifact.",
+      "Compare 18-gpumode-online-softmax/out_gpumode_online_softmax.json against the source model and the GPUMODE lesson concept.",
+      "Use Past-Future Scheduler for LLM Serving under SLA Guarantees as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "serving-scheduler-end-to-end-path",
+    "title": "vLLM scheduler / TTFT and batching bottleneck end-to-end tutorial path",
+    "profile_id": "serving-scheduler",
+    "objective": "Suspect batching policy, chunked prefill, prefix-cache reuse, admission control, or SLA-driven decode scheduling.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "All About Transformer Inference",
+      "url": "https://jax-ml.github.io/scaling-book/inference/",
+      "why": "Use this to ground prefill/decode, KV-cache, and batching measurements in an explicit inference cost model."
+    },
+    "gpumode_anchor": {
+      "index": 14,
+      "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+      "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+      "concepts": [
+        "kv cache",
+        "autotuning",
+        "quantized numerics",
+        "compiler lowering",
+        "profiling workflow"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-06-vllm-scheduler",
+      "title": "vLLM scheduler and KV-cache pressure lab",
+      "path": "gpu-kernels-serving-lab/20-gpumode-vllm-scheduler",
+      "command": "cd ../gpu-kernels-serving-lab/20-gpumode-vllm-scheduler && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "20-gpumode-vllm-scheduler/out_gpumode_vllm_scheduler.json",
+      "summary": "Continuous batching lowers mean TTFT and improves output throughput on this deterministic workload, while paged prefix-cache accounting reduces KV blocks versus per-request prompt storage."
+    },
+    "paper_check": {
+      "title": "Past-Future Scheduler for LLM Serving under SLA Guarantees",
+      "path": "analysis/per-paper/asplos-2025-049.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - All About Transformer Inference and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #14: Lecture 100: InferenceX Continuous OSS Inference Benchmarking and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/20-gpumode-vllm-scheduler and preserve the generated JSON artifact.",
+      "Compare 20-gpumode-vllm-scheduler/out_gpumode_vllm_scheduler.json against the source model and the GPUMODE lesson concept.",
+      "Use Past-Future Scheduler for LLM Serving under SLA Guarantees as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "quantized-numerics-end-to-end-path",
+    "title": "Quantization / low-precision numerics path end-to-end tutorial path",
+    "profile_id": "quantized-numerics",
+    "objective": "Suspect memory savings versus numerical drift, dequantization overhead, or unsupported low-precision kernels.",
+    "source_reading": {
+      "provider": "Hugging Face",
+      "title": "Transformers Quantization",
+      "url": "https://huggingface.co/docs/transformers/en/quantization/overview",
+      "why": "Use this to compare framework quantization choices with the local numerical-drift and kernel-readiness labs."
+    },
+    "gpumode_anchor": {
+      "index": 4,
+      "title": "Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL",
+      "url": "https://www.youtube.com/watch?v=wiaUh82NEoE",
+      "concepts": [
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "autotuning",
+        "quantized numerics"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-07-quantized-kernels",
+      "title": "Quantized matmul kernel ladder",
+      "path": "gpu-kernels-serving-lab/21-gpumode-quantized-kernels",
+      "command": "cd ../gpu-kernels-serving-lab/21-gpumode-quantized-kernels && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "21-gpumode-quantized-kernels/out_gpumode_quantized_kernels.json",
+      "summary": "Weight-only quantization reduces modeled memory traffic, but this CPU proxy also exposes the dequantization tax that a real GPU kernel must fuse away to turn smaller weights into speed."
+    },
+    "paper_check": {
+      "title": "Precon: A Precision-Convertible Architecture for Accelerating Quantized Deep Learning Models across Various Domains Including LLMs",
+      "path": "analysis/per-paper/dac-2025-273.json"
+    },
+    "steps": [
+      "Read Hugging Face - Transformers Quantization and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #4: Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/21-gpumode-quantized-kernels and preserve the generated JSON artifact.",
+      "Compare 21-gpumode-quantized-kernels/out_gpumode_quantized_kernels.json against the source model and the GPUMODE lesson concept.",
+      "Use Precon: A Precision-Convertible Architecture for Accelerating Quantized Deep Learning Models across Various Domains Including LLMs as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  },
+  {
+    "id": "distributed-communication-end-to-end-path",
+    "title": "Distributed communication / collective bottleneck end-to-end tutorial path",
+    "profile_id": "distributed-communication",
+    "objective": "Suspect collective latency, bandwidth regime, topology, NCCL/NVSHMEM runtime readiness, or lack of multi-device parallelism.",
+    "source_reading": {
+      "provider": "JAX Scaling Book",
+      "title": "All About Rooflines",
+      "url": "https://jax-ml.github.io/scaling-book/roofline/",
+      "why": "Use this as the math lens for deciding whether compute, memory, or communication dominates an LLM workload."
+    },
+    "gpumode_anchor": {
+      "index": 1,
+      "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+      "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+      "concepts": [
+        "memory coalescing",
+        "tensor cores",
+        "kv cache",
+        "collectives",
+        "compiler lowering"
+      ]
+    },
+    "lab": {
+      "id": "gpumode-lab-12-distributed-communication",
+      "title": "Distributed communication and collectives workbench",
+      "path": "gpu-kernels-serving-lab/26-gpumode-distributed-communication",
+      "command": "cd ../gpu-kernels-serving-lab/26-gpumode-distributed-communication && python3 run.py && python3 build_page.py"
+    },
+    "measurement": {
+      "path": "26-gpumode-distributed-communication/out_gpumode_distributed_communication.json",
+      "summary": "Imported 6 collective benchmark rows from 2 tool family/families; compare best bus bandwidth against the modeled topology rows. Best imported rows: nccl-tests 52.76 GB/s at 134217728 bytes, nvshmem 34.86 GB/s at 134217728 bytes."
+    },
+    "paper_check": {
+      "title": "TidalMesh: Topology-Driven AllReduce Collective Communication for Mesh Topology",
+      "path": "analysis/per-paper/hpca-2025-058.json"
+    },
+    "steps": [
+      "Read JAX Scaling Book - All About Rooflines and write down the claimed bottleneck model.",
+      "Open GPUMODE lesson #1: Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives and extract the kernel/runtime concept that should be measurable.",
+      "Run gpu-kernels-serving-lab/26-gpumode-distributed-communication and preserve the generated JSON artifact.",
+      "Compare 26-gpumode-distributed-communication/out_gpumode_distributed_communication.json against the source model and the GPUMODE lesson concept.",
+      "Use TidalMesh: Topology-Driven AllReduce Collective Communication for Mesh Topology as the research cross-check for whether this bottleneck appears in current AI systems work."
+    ],
+    "success_checks": [
+      "Correctness status is passed or the artifact records an explicit environment-gated skip.",
+      "The generated tutorial page names the same bottleneck class as the workbench profile.",
+      "The measurement summary explains what changed or why real GPU execution was unavailable.",
+      "At least one GPUMODE lesson, external tutorial source, and corpus paper can be traversed from the profile page."
+    ]
+  }
+]

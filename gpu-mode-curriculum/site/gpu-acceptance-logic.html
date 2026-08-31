@@ -1,0 +1,50 @@
+<meta charset="utf-8">
+<title>GPUMODE GPU Acceptance Logic</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Threshold regression gate</div>
+  <h1>GPUMODE GPU acceptance logic.</h1>
+  <p class="dek">Regression checks proving each GPU measurement threshold accepts canonical good metrics and rejects canonical bad metrics.</p>
+  <div class="grid">
+    <div class="card"><h2>passed</h2><p>logic status</p></div>
+    <div class="card"><h2>18</h2><p>step cases</p></div>
+    <div class="card"><h2>18/18</h2><p>accepted good / rejected bad</p></div>
+    <div class="card"><h2><a href="../gpu-measurement-queue/reports/acceptance-logic-report.md">Report</a></h2><p>Markdown logic</p></div>
+  </div>
+
+  <section>
+    <h2>Cases</h2>
+    <table><tr><th>step</th><th>good accepted</th><th>bad rejected</th><th>checks</th></tr><tr><td>attention-serving-stack</td><td>True</td><td>True</td><td>cuda_available == true, attention_scenarios &gt;= 5, hbm_reduction &gt; 0, prefix_blocks_reused &gt; 0, profiler_rows &gt;= 1</td></tr>
+<tr><td>cuda-kernel-compile</td><td>True</td><td>True</td><td>nvcc == true, nvidia_smi == true, torch_device == cuda, passed_benchmarks &gt;= 14</td></tr>
+<tr><td>distributed-collectives</td><td>True</td><td>True</td><td>torchrun == true, accelerator_ready == true, collective_scenarios &gt;= 6, bandwidth_efficiency &gt;= 0.45, overlap_gain &gt; 0, nccl_or_rccl == true</td></tr>
+<tr><td>distributed-training-optimizer</td><td>True</td><td>True</td><td>torchrun == true, accelerator_ready == true, training_optimizer_scenarios &gt;= 6, passed_scenarios &gt;= 4, max_memory_gb_per_gpu &lt;= 80, step_time_ms &gt; 0, optimizer_state_savings &gt; 0</td></tr>
+<tr><td>flash-attention-backward</td><td>True</td><td>True</td><td>cuda_available == true, flash_backward_scenarios &gt;= 6, gradient_paths &gt;= 4, max_abs_error &lt;= 0.02, hbm_reduction &gt;= 0.40, recompute_overhead_ratio &gt;= 0, occupancy_proxy &gt;= 0.45</td></tr>
+<tr><td>full-gpu-regression</td><td>True</td><td>True</td><td>accelerator_ready == true, metric_count &gt;= 79, failed_metrics == 0</td></tr>
+<tr><td>fused-training-kernels</td><td>True</td><td>True</td><td>cuda_available == true, fused_training_scenarios &gt;= 6, family_count &gt;= 5, backward_scenarios &gt;= 4, optimizer_state_scenarios &gt;= 2, max_abs_error &lt;= 0.02, hbm_reduction &gt;= 0.45, launch_reduction &gt;= 0.45</td></tr>
+<tr><td>model-integration-gpu</td><td>True</td><td>True</td><td>accelerator_ready == true, passed_cases &gt;= 3, uses_custom_op == fused_bias_gelu_residual</td></tr>
+<tr><td>parallel-primitives</td><td>True</td><td>True</td><td>accelerator_ready == true, primitive_scenarios &gt;= 6, work_efficiency &gt;= 1.20, bandwidth_proxy_gbps &gt; 0, occupancy_proxy &gt;= 0.35, stable_order_scenarios &gt;= 3</td></tr>
+<tr><td>persistent-kernels</td><td>True</td><td>True</td><td>triton == true, nvidia_smi == true, ncu == true, persistent_scenarios &gt;= 6, speedup_vs_baseline &gt;= 1.15, occupancy_proxy &gt;= 0.30, hbm_reduction &gt;= 0.15</td></tr>
+<tr><td>profiler-capture</td><td>True</td><td>True</td><td>ncu/nsys or rocprof available, profiler_rows &gt;= 9</td></tr>
+<tr><td>rocm-hip-port</td><td>True</td><td>True</td><td>hipcc == true, rocprof == true, starter_status == ran</td></tr>
+<tr><td>sparse-attention-kernels</td><td>True</td><td>True</td><td>cuda_available == true, sparse_attention_scenarios &gt;= 6, pattern_count &gt;= 6, ragged_scenarios &gt;= 1, backward_scenarios &gt;= 4, max_abs_error &lt;= 0.02, hbm_reduction &gt;= 0.55, load_balance_proxy &gt;= 0.75</td></tr>
+<tr><td>speculative-decoding-serving</td><td>True</td><td>True</td><td>cuda_available == true, speculative_scenarios &gt;= 6, passed_scenarios &gt;= 4, engine_count &gt;= 4, scheduler_policy_count &gt;= 2, min_acceptance_rate &lt; 0.50, max_speedup_vs_baseline &gt;= 2.0, max_wasted_draft_ratio &gt; 0.35</td></tr>
+<tr><td>tensor-core-gemm</td><td>True</td><td>True</td><td>nvcc == true, nvidia_smi == true, ncu == true, tensor_core_scenarios &gt;= 5, mma_instruction_seen == true</td></tr>
+<tr><td>torch-custom-extension</td><td>True</td><td>True</td><td>compiled_extension_status == cuda-ready, passed_cases &gt;= 4</td></tr>
+<tr><td>triton-kernel-sweep</td><td>True</td><td>True</td><td>cuda_available == true, triton_cases &gt;= 4, passed_benchmarks &gt;= 14</td></tr>
+<tr><td>vllm-serving-trace</td><td>True</td><td>True</td><td>cuda_available == true, passed_traces &gt;= 3, prefix_cache_blocks_saved &gt; 0</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

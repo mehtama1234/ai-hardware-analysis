@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-08-31T01:52:59.236107+00:00",
+  "status": "inspection-ready",
+  "source_count": 13,
+  "group_count": 4,
+  "groups": [
+    "cuda",
+    "custom-op",
+    "hip",
+    "triton"
+  ],
+  "feature_counts": {
+    "global_kernel": 10,
+    "shared_memory": 4,
+    "barrier": 4,
+    "vectorized_load": 4,
+    "tensor_core_hint": 5,
+    "launch_indexing": 10,
+    "bounds_mask": 10,
+    "atomic": 0
+  },
+  "risk_counts": {
+    "tensor_core_without_shape_contract": 2
+  },
+  "promotion_command_count": 26,
+  "risk_rules": [
+    {
+      "id": "missing_bounds_mask",
+      "description": "source has kernel launch indexing but no visible bounds/mask guard"
+    },
+    {
+      "id": "barrier_without_shared_memory",
+      "description": "barrier appears without an obvious shared-memory or block-pointer use"
+    },
+    {
+      "id": "tensor_core_without_shape_contract",
+      "description": "tensor-core hint appears without an explicit tile or shape contract"
+    },
+    {
+      "id": "no_runtime_validation_command",
+      "description": "source group lacks a concrete GPU-host validation command"
+    }
+  ],
+  "source_rows": [
+    {
+      "group": "cuda",
+      "path": "kernel-benchmarks/kernels/cuda/matmul_mlp.cu",
+      "lines": 25,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": true,
+        "barrier": true,
+        "vectorized_load": false,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "nvcc -O3 --ptx kernel-benchmarks/kernels/cuda/memory.cu -o /tmp/gpumode-memory.ptx",
+        "ncu --set full python3 scripts/run_kernel_benchmarks.py"
+      ]
+    },
+    {
+      "group": "cuda",
+      "path": "kernel-benchmarks/kernels/cuda/memory.cu",
+      "lines": 25,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": true,
+        "barrier": true,
+        "vectorized_load": false,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "nvcc -O3 --ptx kernel-benchmarks/kernels/cuda/memory.cu -o /tmp/gpumode-memory.ptx",
+        "ncu --set full python3 scripts/run_kernel_benchmarks.py"
+      ]
+    },
+    {
+      "group": "cuda",
+      "path": "kernel-benchmarks/kernels/cuda/reduction.cu",
+      "lines": 27,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": true,
+        "barrier": true,
+        "vectorized_load": false,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "nvcc -O3 --ptx kernel-benchmarks/kernels/cuda/memory.cu -o /tmp/gpumode-memory.ptx",
+        "ncu --set full python3 scripts/run_kernel_benchmarks.py"
+      ]
+    },
+    {
+      "group": "cuda",
+      "path": "kernel-benchmarks/kernels/cuda/softmax_layernorm.cu",
+      "lines": 47,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": true,
+        "barrier": true,
+        "vectorized_load": false,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "nvcc -O3 --ptx kernel-benchmarks/kernels/cuda/memory.cu -o /tmp/gpumode-memory.ptx",
+        "ncu --set full python3 scripts/run_kernel_benchmarks.py"
+      ]
+    },
+    {
+      "group": "triton",
+      "path": "kernel-benchmarks/kernels/triton/matmul_mlp.py",
+      "lines": 17,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": true,
+        "tensor_core_hint": true,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [
+        "tensor_core_without_shape_contract"
+      ],
+      "promotion_commands": [
+        "TRITON_KERNEL_DUMP=1 python3 scripts/run_kernel_benchmarks.py",
+        "python3 scripts/build_autotune_db.py"
+      ]
+    },
+    {
+      "group": "triton",
+      "path": "kernel-benchmarks/kernels/triton/memory.py",
+      "lines": 11,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": true,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "TRITON_KERNEL_DUMP=1 python3 scripts/run_kernel_benchmarks.py",
+        "python3 scripts/build_autotune_db.py"
+      ]
+    },
+    {
+      "group": "triton",
+      "path": "kernel-benchmarks/kernels/triton/reduction.py",
+      "lines": 11,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": true,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "TRITON_KERNEL_DUMP=1 python3 scripts/run_kernel_benchmarks.py",
+        "python3 scripts/build_autotune_db.py"
+      ]
+    },
+    {
+      "group": "triton",
+      "path": "kernel-benchmarks/kernels/triton/softmax_layernorm.py",
+      "lines": 26,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": true,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "TRITON_KERNEL_DUMP=1 python3 scripts/run_kernel_benchmarks.py",
+        "python3 scripts/build_autotune_db.py"
+      ]
+    },
+    {
+      "group": "custom-op",
+      "path": "custom-ops/csrc/fused_bias_gelu_residual.cpp",
+      "lines": 15,
+      "features": {
+        "global_kernel": false,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": false,
+        "tensor_core_hint": true,
+        "launch_indexing": false,
+        "bounds_mask": false,
+        "atomic": false
+      },
+      "risk_ids": [
+        "tensor_core_without_shape_contract"
+      ],
+      "promotion_commands": [
+        "python3 scripts/run_custom_ops.py",
+        "nsys profile python3 scripts/run_model_integration.py"
+      ]
+    },
+    {
+      "group": "custom-op",
+      "path": "custom-ops/csrc/fused_bias_gelu_residual_kernel.cu",
+      "lines": 48,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": false,
+        "tensor_core_hint": true,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "python3 scripts/run_custom_ops.py",
+        "nsys profile python3 scripts/run_model_integration.py"
+      ]
+    },
+    {
+      "group": "hip",
+      "path": "programming-projects/rocm-hip-port/kernel.hip.cpp",
+      "lines": 12,
+      "features": {
+        "global_kernel": true,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": false,
+        "tensor_core_hint": false,
+        "launch_indexing": true,
+        "bounds_mask": true,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
+        "rocprof /tmp/rocm-hip-port"
+      ]
+    },
+    {
+      "group": "hip",
+      "path": "programming-projects/rocm-hip-port/measure.py",
+      "lines": 65,
+      "features": {
+        "global_kernel": false,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": false,
+        "tensor_core_hint": true,
+        "launch_indexing": false,
+        "bounds_mask": false,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
+        "rocprof /tmp/rocm-hip-port"
+      ]
+    },
+    {
+      "group": "hip",
+      "path": "programming-projects/rocm-hip-port/starter.py",
+      "lines": 46,
+      "features": {
+        "global_kernel": false,
+        "shared_memory": false,
+        "barrier": false,
+        "vectorized_load": false,
+        "tensor_core_hint": true,
+        "launch_indexing": false,
+        "bounds_mask": false,
+        "atomic": false
+      },
+      "risk_ids": [],
+      "promotion_commands": [
+        "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
+        "rocprof /tmp/rocm-hip-port"
+      ]
+    }
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "cuda-kernel-compile",
+      "triton-kernel-sweep",
+      "torch-custom-extension",
+      "rocm-hip-port",
+      "profiler-capture"
+    ],
+    "note": "Static inspection identifies source-level compiler/runtime risks; final acceptance requires PTX/LLVM/profiler evidence from a GPU host."
+  }
+}

@@ -1,0 +1,48 @@
+<meta charset="utf-8">
+<title>GPUMODE Quantization Memory Formats</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Generated quantization lab</div>
+  <h1>GPUMODE quantization memory formats.</h1>
+  <p class="dek">Format sweep for BF16, FP8-style, INT8, INT4, and NF4 weight-only
+  paths with compression, accuracy drift, dequant tax, serving fit, and GPU promotion commands.</p>
+  <div class="grid">
+    <div class="card"><h2>7</h2><p>formats swept</p></div>
+    <div class="card"><h2>4</h2><p>accuracy-passing formats</p></div>
+    <div class="card"><h2>3</h2><p>need calibration</p></div>
+    <div class="card"><h2><a href="../quantization-memory-formats/reports/quantization-report.md">Report</a></h2><p>Markdown quantization report</p></div>
+  </div>
+
+  <section>
+    <h2>Format Sweep</h2>
+    <table><tr><th>format</th><th>bits</th><th>compression</th><th>max error</th><th>cosine</th><th>dequant tax</th><th>speedup proxy</th><th>serving fit</th><th>status</th></tr><tr><td>fp32-reference</td><td>32</td><td>1.0</td><td>0.0</td><td>0.99999988</td><td>0.1566</td><td>0.8646</td><td>debug-only</td><td>passed</td></tr>
+<tr><td>bf16-activation</td><td>16</td><td>2.0</td><td>0.122993</td><td>0.99999881</td><td>1.4695</td><td>0.8099</td><td>good</td><td>passed</td></tr>
+<tr><td>fp8-e4m3-sim</td><td>8</td><td>4.0</td><td>1.680189</td><td>0.99968785</td><td>7.4277</td><td>0.8</td><td>debug-only</td><td>needs-calibration</td></tr>
+<tr><td>int8-per-tensor</td><td>8</td><td>4.0</td><td>0.92488</td><td>0.99990535</td><td>0.6308</td><td>2.4528</td><td>best</td><td>passed</td></tr>
+<tr><td>int8-per-channel</td><td>8</td><td>3.9385</td><td>0.752085</td><td>0.99998999</td><td>0.6981</td><td>2.3194</td><td>good</td><td>passed</td></tr>
+<tr><td>int4-symmetric</td><td>4</td><td>7.7576</td><td>10.188474</td><td>0.9967792</td><td>0.9375</td><td>4.004</td><td>debug-only</td><td>needs-calibration</td></tr>
+<tr><td>nf4-weight-only</td><td>4</td><td>7.7576</td><td>8.692532</td><td>0.99550164</td><td>29.9441</td><td>1.5515</td><td>debug-only</td><td>needs-calibration</td></tr></table>
+  </section>
+
+  <section>
+    <h2>Recommendations</h2>
+    <table><tr><th>scenario</th><th>format</th><th>compression</th><th>cosine</th><th>why</th></tr><tr><td>debug-correctness</td><td>bf16-activation</td><td>2.0</td><td>0.99999881</td><td>Preserves high cosine similarity while cutting payload bytes in half for activation-oriented checks.</td></tr>
+<tr><td>interactive-serving</td><td>int8-per-channel</td><td>3.9385</td><td>0.99998999</td><td>Balances 4x weight compression with low output drift and avoids the larger dequantization tax of 4-bit formats.</td></tr>
+<tr><td>memory-constrained-serving</td><td>nf4-weight-only</td><td>7.7576</td><td>0.99550164</td><td>Maximizes memory compression for serving when a fused dequantization kernel can hide the codebook lookup cost.</td></tr>
+<tr><td>tensor-core-kernel-promotion</td><td>fp8-e4m3-sim</td><td>4.0</td><td>0.99968785</td><td>Models FP8-style range and mantissa pressure before promoting to hardware-specific tensor-core kernels.</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

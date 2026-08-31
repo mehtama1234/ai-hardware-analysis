@@ -1,0 +1,777 @@
+{
+  "id": "nsight-evidence-loop",
+  "generated_at": "2026-08-31T01:52:22.550808+00:00",
+  "query": "nsight roofline dram sm stall counters",
+  "track": "Profiler-to-roofline evidence",
+  "language": "Python profiler import workflow",
+  "profile": "profiling-roofline",
+  "label": "Profiler counters / roofline triage",
+  "diagnosis": "Suspect the next optimization is unclear until counters are mapped to memory, compute, synchronization, launch, or communication limits.",
+  "next_action": "Run gpu-kernels-serving-lab/22-gpumode-nsight-roofline and compare its latest artifact against the recommended lessons.",
+  "starter": "starter.py",
+  "measure": "measure.py",
+  "source": "classify_counters.py",
+  "tasks": "tasks.json",
+  "local_measurement": "measurements.json",
+  "lessons": [
+    {
+      "index": 111,
+      "title": "Lecture 8: CUDA Performance Checklist",
+      "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "quantized numerics",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "measure int8/int4/fp8-style quantization error and memory savings",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 38
+    },
+    {
+      "index": 17,
+      "title": "Lecture 97: HipKittens",
+      "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+      "topics": [
+        "cuda",
+        "triton",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 34
+    },
+    {
+      "index": 97,
+      "title": "Lecture 21: Scan Algorithm Part 2",
+      "url": "https://www.youtube.com/watch?v=MH5_FeSSdIE",
+      "topics": [
+        "cuda",
+        "hardware",
+        "distributed"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 34
+    },
+    {
+      "index": 102,
+      "title": "Lecture 16: On Hands Profiling",
+      "url": "https://www.youtube.com/watch?v=SKV6kDk1s94",
+      "topics": [
+        "cuda",
+        "profiling",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "kernel fusion",
+        "autotuning",
+        "quantized numerics",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "measure int8/int4/fp8-style quantization error and memory savings",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 34
+    },
+    {
+      "index": 115,
+      "title": "Lecture 4 Compute and Memory Basics",
+      "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+      "topics": [
+        "cuda",
+        "attention",
+        "hardware",
+        "distributed",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "kv cache",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "simulate prefill/decode KV-cache memory growth",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 34
+    },
+    {
+      "index": 10,
+      "title": "Lecture 104: Gluon and Linear Layouts",
+      "url": "https://www.youtube.com/watch?v=oYs_qtuk2Pg",
+      "topics": [
+        "cuda",
+        "triton",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kernel fusion",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "fuse bias, activation, and normalization into one measured path",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 33
+    }
+  ],
+  "tutorial_sources": [
+    {
+      "id": "jax-scaling-profiling",
+      "provider": "JAX Scaling Book",
+      "title": "How to Profile TPU Programs",
+      "url": "https://jax-ml.github.io/scaling-book/profiling/",
+      "focus_terms": [
+        "profiling",
+        "xla",
+        "profiler",
+        "tensorboard",
+        "compiler",
+        "trace"
+      ],
+      "why": "Use this to compare theoretical roofline reasoning with profiler-driven compiler/runtime debugging.",
+      "score": 16
+    },
+    {
+      "id": "cuda-best-practices",
+      "provider": "NVIDIA",
+      "title": "CUDA C++ Best Practices Guide",
+      "url": "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html",
+      "focus_terms": [
+        "cuda",
+        "performance",
+        "optimization",
+        "memory coalescing",
+        "occupancy",
+        "profiling"
+      ],
+      "why": "Use this to turn profiler symptoms into concrete CUDA optimization checks.",
+      "score": 14
+    },
+    {
+      "id": "jax-scaling-roofline",
+      "provider": "JAX Scaling Book",
+      "title": "All About Rooflines",
+      "url": "https://jax-ml.github.io/scaling-book/roofline/",
+      "focus_terms": [
+        "roofline",
+        "flops",
+        "memory bandwidth",
+        "communication",
+        "compute",
+        "latency"
+      ],
+      "why": "Use this as the math lens for deciding whether compute, memory, or communication dominates an LLM workload.",
+      "score": 12
+    },
+    {
+      "id": "jax-scaling-gpus",
+      "provider": "JAX Scaling Book",
+      "title": "How to Think About GPUs",
+      "url": "https://jax-ml.github.io/scaling-book/gpus/",
+      "focus_terms": [
+        "gpu",
+        "hbm",
+        "sm",
+        "tensor cores",
+        "network",
+        "nvidia",
+        "memory"
+      ],
+      "why": "Use this as the hardware mental model for SMs, HBM, Tensor Cores, and GPU interconnects.",
+      "score": 10
+    },
+    {
+      "id": "cuda-programming-guide",
+      "provider": "NVIDIA",
+      "title": "CUDA C++ Programming Guide",
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/index.html",
+      "focus_terms": [
+        "cuda",
+        "thread",
+        "block",
+        "memory",
+        "shared memory",
+        "warp",
+        "programming model"
+      ],
+      "why": "Use this as the official CUDA programming-model reference behind the memory, warp, and matmul kernel labs.",
+      "score": 10
+    },
+    {
+      "id": "hf-tgi-overview",
+      "provider": "Hugging Face",
+      "title": "Text Generation Inference Documentation",
+      "url": "https://huggingface.co/docs/text-generation-inference/index",
+      "focus_terms": [
+        "text generation inference",
+        "tgi",
+        "serving",
+        "continuous batching",
+        "streaming"
+      ],
+      "why": "Use this as the production serving counterpart to the local scheduler, KV-cache, and collective-latency labs.",
+      "score": 1
+    }
+  ],
+  "papers": [
+    {
+      "id": "sc-2025-311",
+      "title": "Profiling Application-Specific Properties of Irregular Graph Algorithms on GPUs",
+      "venue": "SC",
+      "theme": "GPU Performance Analysis & Optimization",
+      "confidence": "low",
+      "path": "analysis/per-paper/sc-2025-311.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "performance",
+            "profiling"
+          ],
+          "score": 34
+        },
+        {
+          "index": 26,
+          "title": "Lecture 89: cuTile (from friends at NVIDIA)",
+          "url": "https://www.youtube.com/watch?v=_b4I4rKpsGA",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "nsight",
+            "nvidia",
+            "profiling"
+          ],
+          "score": 30
+        },
+        {
+          "index": 80,
+          "title": "Lecture 36: CUTLASS and Flash Attention 3",
+          "url": "https://www.youtube.com/watch?v=JwUcZwPOCpA",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "nsight",
+            "profiling"
+          ],
+          "score": 30
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "sc-2025-427",
+      "title": "RedSan: A Redundant Memory Instruction Sanitizer for GPU Programs",
+      "venue": "SC",
+      "theme": "Identifying redundant memory operations in optimized GPU code",
+      "confidence": "high",
+      "path": "analysis/per-paper/sc-2025-427.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "cuda",
+            "loads",
+            "memory",
+            "performance",
+            "profiling"
+          ],
+          "score": 37
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "cuda",
+            "loads",
+            "memory",
+            "profiling"
+          ],
+          "score": 32
+        },
+        {
+          "index": 26,
+          "title": "Lecture 89: cuTile (from friends at NVIDIA)",
+          "url": "https://www.youtube.com/watch?v=_b4I4rKpsGA",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "cuda",
+            "loads",
+            "memory",
+            "nvidia",
+            "profiling"
+          ],
+          "score": 32
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "asplos-2025-024",
+      "title": "MoE-Lightning: High-Throughput MoE Inference on Memory-constrained GPUs",
+      "venue": "ASPLOS",
+      "theme": "CPU-GPU-IO pipeline for high-throughput MoE inference on memory-constrained GPUs",
+      "confidence": "low",
+      "path": "analysis/per-paper/asplos-2025-024.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "memory",
+            "performance"
+          ],
+          "score": 34
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "memory"
+          ],
+          "score": 29
+        },
+        {
+          "index": 39,
+          "title": "Lecture 75 [ScaleML Series] GPU Programming Fundamentals + ThunderKittens",
+          "url": "https://www.youtube.com/watch?v=Cl2B_hmg4gA",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "gpu",
+            "memory"
+          ],
+          "score": 29
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "isca-2025-014",
+      "title": "HPVM-HDC: A Heterogeneous Programming System for Accelerating Hyperdimensional Computing",
+      "venue": "ISCA",
+      "theme": "Retargetable HDC programming system with DSL and heterogeneous compiler",
+      "confidence": "high",
+      "path": "analysis/per-paper/isca-2025-014.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "cuda",
+            "execution",
+            "hardware",
+            "matrix",
+            "performance",
+            "quantization",
+            "reduction",
+            "strided"
+          ],
+          "score": 40
+        },
+        {
+          "index": 80,
+          "title": "Lecture 36: CUTLASS and Flash Attention 3",
+          "url": "https://www.youtube.com/watch?v=JwUcZwPOCpA",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "compiler",
+            "cuda",
+            "execution",
+            "hardware",
+            "matrix",
+            "quantization",
+            "reduction",
+            "strided"
+          ],
+          "score": 36
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "compiler",
+            "cuda",
+            "execution",
+            "hardware",
+            "matrix",
+            "reduction",
+            "strided"
+          ],
+          "score": 35
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "mlsys-2025-033",
+      "title": "FlexInfer: A Flexible CPU-GPU Collaborative Framework for DNN Inference",
+      "venue": "MLSYS 2025",
+      "theme": "LLM inference systems",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-033.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "execution",
+            "hardware",
+            "memory",
+            "profiling"
+          ],
+          "score": 36
+        },
+        {
+          "index": 115,
+          "title": "Lecture 4 Compute and Memory Basics",
+          "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "compute",
+            "execution",
+            "hardware",
+            "memory",
+            "profiling"
+          ],
+          "score": 33
+        },
+        {
+          "index": 17,
+          "title": "Lecture 97: HipKittens",
+          "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "execution",
+            "hardware",
+            "memory",
+            "profiling"
+          ],
+          "score": 32
+        }
+      ],
+      "score": 7
+    },
+    {
+      "id": "mlsys-2025-056",
+      "title": "Rubick: Exploiting Job Reconfigurability for Deep Learning Cluster Scheduling",
+      "venue": "MLSYS 2025",
+      "theme": "DL Cluster Scheduling / Execution Plan Reconfigurability",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-056.json",
+      "linked_lessons": [
+        {
+          "index": 111,
+          "title": "Lecture 8: CUDA Performance Checklist",
+          "url": "https://www.youtube.com/watch?v=SGhfUhlowB4",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "execution",
+            "performance",
+            "profiling",
+            "reduction"
+          ],
+          "score": 36
+        },
+        {
+          "index": 115,
+          "title": "Lecture 4 Compute and Memory Basics",
+          "url": "https://www.youtube.com/watch?v=lTmYrKwjSOU",
+          "matched_topics": [
+            "cuda",
+            "hardware"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "profiling workflow",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "compute",
+            "execution",
+            "profiling",
+            "reduction"
+          ],
+          "score": 32
+        },
+        {
+          "index": 13,
+          "title": "Lecture 101: Learning CUTLASS the hard way",
+          "url": "https://www.youtube.com/watch?v=jGouxuAHIfQ",
+          "matched_topics": [
+            "cuda",
+            "hardware",
+            "profiling"
+          ],
+          "matched_concepts": [
+            "memory coalescing",
+            "occupancy",
+            "warp execution"
+          ],
+          "matched_terms": [
+            "execution",
+            "learning",
+            "profiling",
+            "reduction"
+          ],
+          "score": 31
+        }
+      ],
+      "score": 7
+    }
+  ],
+  "lab": {
+    "id": "gpumode-lab-08-nsight-to-roofline",
+    "title": "Nsight-to-roofline workflow",
+    "path": "gpu-kernels-serving-lab/22-gpumode-nsight-roofline",
+    "command": "cd ../gpu-kernels-serving-lab/22-gpumode-nsight-roofline && python3 run.py && python3 build_page.py"
+  },
+  "measurement": {
+    "path": "22-gpumode-nsight-roofline/out_gpumode_nsight_roofline.json",
+    "summary": "Imported 2 Nsight-shaped kernel rows and classified them with the same roofline decision rules. Imported bottleneck counts: {'memory-bandwidth': 1, 'compute': 1}."
+  }
+}

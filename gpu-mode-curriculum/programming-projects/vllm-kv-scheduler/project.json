@@ -1,0 +1,788 @@
+{
+  "id": "vllm-kv-scheduler",
+  "generated_at": "2026-08-31T01:52:21.832741+00:00",
+  "query": "vllm scheduler kv cache ttft batching",
+  "track": "vLLM-style serving",
+  "language": "Python serving scheduler model",
+  "profile": "serving-scheduler",
+  "label": "vLLM scheduler / TTFT and batching bottleneck",
+  "diagnosis": "Suspect batching policy, chunked prefill, prefix-cache reuse, admission control, or SLA-driven decode scheduling.",
+  "next_action": "Run gpu-kernels-serving-lab/20-gpumode-vllm-scheduler and compare its latest artifact against the recommended lessons.",
+  "starter": "starter.py",
+  "measure": "measure.py",
+  "source": "scheduler.py",
+  "tasks": "tasks.json",
+  "local_measurement": "measurements.json",
+  "lessons": [
+    {
+      "index": 14,
+      "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+      "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+      "topics": [
+        "profiling",
+        "attention",
+        "serving"
+      ],
+      "concepts": [
+        "kv cache",
+        "autotuning",
+        "quantized numerics",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "simulate prefill/decode KV-cache memory growth",
+        "sweep block sizes and record the winning kernel configuration",
+        "measure int8/int4/fp8-style quantization error and memory savings",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 26
+    },
+    {
+      "index": 16,
+      "title": "Lecture 98: GPU Observability",
+      "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "kv cache",
+        "kernel fusion",
+        "autotuning",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path",
+        "sweep block sizes and record the winning kernel configuration",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 26
+    },
+    {
+      "index": 88,
+      "title": "GPU MODE IRL 2024 Keynotes",
+      "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+      "topics": [
+        "cuda",
+        "profiling",
+        "attention",
+        "quantization",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "kernel fusion",
+        "quantized numerics",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path",
+        "measure int8/int4/fp8-style quantization error and memory savings",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 26
+    },
+    {
+      "index": 2,
+      "title": "Lecture 112: Production Megakernels for Real-World Inference",
+      "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+      "topics": [
+        "cuda",
+        "attention",
+        "quantization",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "kernel fusion",
+        "autotuning",
+        "quantized numerics",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "fuse bias, activation, and normalization into one measured path"
+      ],
+      "score": 22
+    },
+    {
+      "index": 17,
+      "title": "Lecture 97: HipKittens",
+      "url": "https://www.youtube.com/watch?v=jsYyF03Fs3o",
+      "topics": [
+        "cuda",
+        "triton",
+        "attention",
+        "serving",
+        "hardware",
+        "cutlass"
+      ],
+      "concepts": [
+        "memory coalescing",
+        "shared memory tiling",
+        "warp execution",
+        "occupancy",
+        "tensor cores",
+        "online softmax",
+        "kv cache",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "benchmark contiguous, strided, and gathered loads",
+        "implement naive vs tiled matrix multiplication",
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "implement numerically stable online softmax and compare to materialized softmax",
+        "simulate prefill/decode KV-cache memory growth",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 22
+    },
+    {
+      "index": 21,
+      "title": "Lecture 93: Cornserve Easy, Fast and Scalable Multimodal AI",
+      "url": "https://www.youtube.com/watch?v=uIulphvtyGs",
+      "topics": [
+        "attention",
+        "serving",
+        "hardware"
+      ],
+      "concepts": [
+        "warp execution",
+        "tensor cores",
+        "kv cache",
+        "autotuning",
+        "compiler lowering",
+        "profiling workflow"
+      ],
+      "exercise_candidates": [
+        "compare shared-memory reduction with warp-shuffle reduction",
+        "simulate prefill/decode KV-cache memory growth",
+        "sweep block sizes and record the winning kernel configuration",
+        "capture a profiler trace and classify bottleneck type"
+      ],
+      "score": 22
+    }
+  ],
+  "tutorial_sources": [
+    {
+      "id": "jax-scaling-inference",
+      "provider": "JAX Scaling Book",
+      "title": "All About Transformer Inference",
+      "url": "https://jax-ml.github.io/scaling-book/inference/",
+      "focus_terms": [
+        "inference",
+        "kv cache",
+        "prefill",
+        "decode",
+        "batching",
+        "latency",
+        "throughput"
+      ],
+      "why": "Use this to ground prefill/decode, KV-cache, and batching measurements in an explicit inference cost model.",
+      "score": 17
+    },
+    {
+      "id": "hf-llm-optimized-inference",
+      "provider": "Hugging Face",
+      "title": "LLM Course: Optimized Inference Deployment",
+      "url": "https://huggingface.co/learn/llm-course/chapter2/8",
+      "focus_terms": [
+        "tgi",
+        "vllm",
+        "llama.cpp",
+        "deployment",
+        "serving",
+        "inference"
+      ],
+      "why": "Use this to place the local vLLM-style scheduler lab in the production-serving framework landscape.",
+      "score": 13
+    },
+    {
+      "id": "hf-tgi-overview",
+      "provider": "Hugging Face",
+      "title": "Text Generation Inference Documentation",
+      "url": "https://huggingface.co/docs/text-generation-inference/index",
+      "focus_terms": [
+        "text generation inference",
+        "tgi",
+        "serving",
+        "continuous batching",
+        "streaming"
+      ],
+      "why": "Use this as the production serving counterpart to the local scheduler, KV-cache, and collective-latency labs.",
+      "score": 13
+    },
+    {
+      "id": "jax-scaling-applied-inference",
+      "provider": "JAX Scaling Book",
+      "title": "Serving LLaMA 3-70B on TPUs",
+      "url": "https://jax-ml.github.io/scaling-book/applied-inference/",
+      "focus_terms": [
+        "serving",
+        "llama",
+        "kv cache",
+        "batch size",
+        "roofline",
+        "latency",
+        "throughput"
+      ],
+      "why": "Use this as a worked serving-capacity example to compare against the vLLM-style scheduler lab.",
+      "score": 13
+    },
+    {
+      "id": "hf-transformers-causal-lm",
+      "provider": "Hugging Face",
+      "title": "Transformers: Causal Language Modeling",
+      "url": "https://huggingface.co/docs/transformers/en/tasks/language_modeling",
+      "focus_terms": [
+        "causal language modeling",
+        "text generation",
+        "inference",
+        "tokenization",
+        "transformers"
+      ],
+      "why": "Use this to connect model-level text generation to prefill/decode and KV-cache mechanics.",
+      "score": 12
+    },
+    {
+      "id": "hf-transformers-pipelines",
+      "provider": "Hugging Face",
+      "title": "Transformers Pipelines",
+      "url": "https://huggingface.co/docs/transformers/en/main_classes/pipelines",
+      "focus_terms": [
+        "pipeline",
+        "inference",
+        "transformers",
+        "preprocessing",
+        "postprocessing"
+      ],
+      "why": "Use this as the high-level API baseline before dropping down to kernels, batching, and memory behavior.",
+      "score": 11
+    }
+  ],
+  "papers": [
+    {
+      "id": "asplos-2025-049",
+      "title": "Past-Future Scheduler for LLM Serving under SLA Guarantees",
+      "venue": "ASPLOS",
+      "theme": "history-aware future memory estimation for LLM serving scheduler goodput",
+      "confidence": "high",
+      "path": "analysis/per-paper/asplos-2025-049.json",
+      "linked_lessons": [
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "gpu",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "serving",
+            "stable"
+          ],
+          "score": 29
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "gpu",
+            "hardware",
+            "kv-cache",
+            "memory",
+            "serving"
+          ],
+          "score": 28
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "continuous",
+            "kv-cache",
+            "memory",
+            "serving"
+          ],
+          "score": 27
+        }
+      ],
+      "score": 10
+    },
+    {
+      "id": "mlsys-2025-000",
+      "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+      "venue": "MLSYS 2025",
+      "theme": "attention-kernel-optimization",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-000.json",
+      "linked_lessons": [
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "compiler",
+            "cuda",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "serving"
+          ],
+          "score": 29
+        },
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "cuda",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "serving",
+            "softmax"
+          ],
+          "score": 29
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "compiler",
+            "inference",
+            "kv-cache",
+            "serving"
+          ],
+          "score": 27
+        }
+      ],
+      "score": 9
+    },
+    {
+      "id": "mlsys-2025-024",
+      "title": "NEO: Saving GPU Memory Crisis with CPU Offloading for Online LLM Inference",
+      "venue": "MLSYS 2025",
+      "theme": "memory-system",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-024.json",
+      "linked_lessons": [
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "decode",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "memory",
+            "online"
+          ],
+          "score": 31
+        },
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "decode",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "memory",
+            "prefill"
+          ],
+          "score": 30
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "attention",
+            "cache",
+            "decode",
+            "inference",
+            "kv-cache",
+            "memory",
+            "prefill"
+          ],
+          "score": 29
+        }
+      ],
+      "score": 9
+    },
+    {
+      "id": "isca-2025-034",
+      "title": "WindServe: Efficient Phase-Disaggregated LLM Serving with Stream-based Dynamic Scheduling",
+      "venue": "ISCA",
+      "theme": "dynamic scheduling for phase-disaggregated LLM inference serving",
+      "confidence": "low",
+      "path": "analysis/per-paper/isca-2025-034.json",
+      "linked_lessons": [
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "cache",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 29
+        },
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "cache",
+            "execution",
+            "gpu",
+            "kv-cache",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 29
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "cache",
+            "inference",
+            "kv-cache",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 28
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "mlsys-2025-023",
+      "title": "ThunderServe: High-performance and Cost-efficient LLM Serving in Cloud Environments",
+      "venue": "MLSYS 2025",
+      "theme": "scheduling",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-023.json",
+      "linked_lessons": [
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "decode",
+            "gpu",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 27
+        },
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "decode",
+            "gpu",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 27
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "decode",
+            "memory",
+            "prefill",
+            "serving"
+          ],
+          "score": 26
+        }
+      ],
+      "score": 8
+    },
+    {
+      "id": "mlsys-2025-018",
+      "title": "SOLA: Optimizing SLO Attainment for Large Language Model Serving with State-Aware Scheduling",
+      "venue": "MLSys 2025",
+      "theme": "inference-efficiency",
+      "confidence": "high",
+      "path": "analysis/per-paper/mlsys-2025-018.json",
+      "linked_lessons": [
+        {
+          "index": 16,
+          "title": "Lecture 98: GPU Observability",
+          "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bias",
+            "decode",
+            "gpu",
+            "prefill",
+            "serving"
+          ],
+          "score": 27
+        },
+        {
+          "index": 88,
+          "title": "GPU MODE IRL 2024 Keynotes",
+          "url": "https://www.youtube.com/watch?v=FH5wiwOyPX4",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "bias",
+            "decode",
+            "gpu",
+            "prefill",
+            "serving"
+          ],
+          "score": 27
+        },
+        {
+          "index": 14,
+          "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+          "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+          "matched_topics": [
+            "attention",
+            "profiling",
+            "serving"
+          ],
+          "matched_concepts": [
+            "kv cache",
+            "profiling workflow"
+          ],
+          "matched_terms": [
+            "decode",
+            "prefill",
+            "serving",
+            "vllm"
+          ],
+          "score": 26
+        }
+      ],
+      "score": 8
+    }
+  ],
+  "lab": {
+    "id": "gpumode-lab-06-vllm-scheduler",
+    "title": "vLLM scheduler and KV-cache pressure lab",
+    "path": "gpu-kernels-serving-lab/20-gpumode-vllm-scheduler",
+    "command": "cd ../gpu-kernels-serving-lab/20-gpumode-vllm-scheduler && python3 run.py && python3 build_page.py"
+  },
+  "measurement": {
+    "path": "20-gpumode-vllm-scheduler/out_gpumode_vllm_scheduler.json",
+    "summary": "Continuous batching lowers mean TTFT and improves output throughput on this deterministic workload, while paged prefix-cache accounting reduces KV blocks versus per-request prompt storage."
+  }
+}

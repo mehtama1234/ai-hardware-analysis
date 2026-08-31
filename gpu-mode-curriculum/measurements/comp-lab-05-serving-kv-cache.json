@@ -1,0 +1,86 @@
+{
+  "lab_id": "comp-lab-05-serving-kv-cache",
+  "status": "passed",
+  "measurement": {
+    "summary": "Implements paged KV allocation, prefix sharing, release, and continuous batching.",
+    "results": {
+      "allocated_blocks": {
+        "a": 17,
+        "b": 17,
+        "c": 17,
+        "d": 17
+      },
+      "timeline": [
+        {
+          "step": 1,
+          "active": [
+            "a",
+            "b"
+          ],
+          "finished": []
+        },
+        {
+          "step": 2,
+          "active": [
+            "a",
+            "b"
+          ],
+          "finished": []
+        },
+        {
+          "step": 3,
+          "active": [
+            "a",
+            "c"
+          ],
+          "finished": [
+            "b"
+          ]
+        },
+        {
+          "step": 4,
+          "active": [
+            "c",
+            "d"
+          ],
+          "finished": [
+            "a"
+          ]
+        },
+        {
+          "step": 5,
+          "active": [],
+          "finished": [
+            "c",
+            "d"
+          ]
+        }
+      ]
+    },
+    "checks": [
+      {
+        "name": "prefix_sharing_reduces_blocks",
+        "passed": true,
+        "detail": "17"
+      },
+      {
+        "name": "release_returns_blocks",
+        "passed": true,
+        "detail": "444->461"
+      },
+      {
+        "name": "continuous_batch_finishes_all",
+        "passed": true,
+        "detail": "{'step': 5, 'active': [], 'finished': ['c', 'd']}"
+      },
+      {
+        "name": "scheduler_refills_batch",
+        "passed": true,
+        "detail": "batch refill observed"
+      }
+    ]
+  },
+  "runtime_caveats": [
+    "Local run uses CPU/model implementations where GPU compiler/runtime support is unavailable."
+  ]
+}

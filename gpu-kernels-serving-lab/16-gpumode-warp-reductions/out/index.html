@@ -1,0 +1,92 @@
+<meta charset="utf-8">
+<title>GPU Serving Lab - 16 GPUMODE Warp Reductions</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--faint:#5A6577;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--rose:#E0748A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.72;font-size:17px}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px 72px}
+p{color:var(--soft);margin:0 0 16px}b{color:var(--ink)}
+nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12.5px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:4px}
+nav .brand{color:var(--accent);text-decoration:none;font-weight:700}
+nav span{margin-left:auto;display:flex;gap:16px;flex-wrap:wrap}
+nav span a{color:var(--dim);text-decoration:none}nav span a:hover{color:var(--accent)}
+.kick{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--serif);font-size:clamp(34px,6vw,54px);line-height:1.05;margin:14px 0 0;color:#fff}
+h2{font-family:var(--serif);font-size:27px;margin:0 0 8px;color:#fff}
+header{padding:58px 0 26px}.dek{font-size:19px;color:var(--soft);margin-top:18px;max-width:66ch}
+section{padding:38px 0;border-top:1px solid var(--line)}
+.eye{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:14px}
+.why{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:16px 20px;margin:18px 0}
+.why h3{margin:0 0 6px;font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.why p{margin:0;font-size:15px}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600}
+td{color:var(--soft)}td.ok{color:var(--green);font-family:var(--mono)}td.warn{color:var(--amber);font-family:var(--mono)}td.bad{color:var(--rose);font-family:var(--mono)}
+pre{background:#0C1119;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;color:var(--soft);font-size:12px}
+.next{font-family:var(--mono);font-size:13px;color:var(--dim);margin-top:12px}.next a{color:var(--accent);text-decoration:none}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+
+<header>
+  <div class="kick">GPU kernels and LLM serving lab - Session 16</div>
+  <h1>GPUMODE warp reductions and scans.</h1>
+  <p class="dek">This session turns GPUMODE warp-execution and shared-memory themes into
+  a concrete reduction/scan lab with CPU evidence and CUDA implementations for shared-memory
+  and warp-shuffle block reductions.</p>
+</header>
+
+<section>
+  <div class="eye">CPU proxy measurement</div>
+  <h2>Reduction and scan are different synchronization stories</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>pattern</th><th>primitive</th><th>semantic</th><th>seconds</th><th>GB/s</th><th>abs error</th></tr>
+      <tr><td>torch_sum</td><td>reduction</td><td>library reduction baseline</td><td>5.3e-05</td><td>79.134</td><td>0.00024255</td></tr>
+<tr><td>chunked_tree_sum</td><td>reduction</td><td>two-level tree reduction proxy for block partials</td><td>4.6e-05</td><td>91.529</td><td>0.00024255</td></tr>
+<tr><td>torch_cumsum</td><td>inclusive_scan</td><td>parallel prefix-sum API baseline</td><td>0.001308</td><td>6.412</td><td>0.0</td></tr>
+    </table>
+  </div>
+  <div class="why"><h3>Finding</h3><p>Reduction and scan are both bandwidth-sensitive primitives, but scan has stricter ordering and dependency structure than a plain sum.</p></div>
+  <div class="why"><h3>Correctness</h3><p>{&#x27;status&#x27;: &#x27;passed&#x27;, &#x27;note&#x27;: &#x27;CPU reductions and scan are checked against high-precision or reference PyTorch results; CUDA source measures shared-memory and warp-shuffle block reductions when nvcc is available.&#x27;}</p></div>
+</section>
+
+<section>
+  <div class="eye">CUDA path</div>
+  <h2>skipped</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>pattern/source</th><th>milliseconds/reason</th><th>GB/s/boundary</th><th>abs error</th></tr>
+      <tr><td>reductions.cu</td><td>nvcc not found on PATH</td><td>CUDA source is present, but this environment cannot compile GPU kernels.</td><td></td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">GPUMODE links</div>
+  <h2>Transcript-derived lesson anchors</h2>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>lesson</th><th>topics</th><th>concepts</th><th>prerequisites</th></tr>
+      <tr><td>2</td><td><a href="https://www.youtube.com/watch?v=loZ4xQ5RZuU">Lecture 112: Production Megakernels for Real-World Inference</a></td><td>cuda, attention, quantization, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>3</td><td><a href="https://www.youtube.com/watch?v=eujKd0lHegA">Lecture 111: Spectral Compute: Compile CUDA everywhere</a></td><td>cuda, profiling, hardware, cutlass</td><td>shared memory tiling, warp execution, tensor cores, compiler lowering</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>4</td><td><a href="https://www.youtube.com/watch?v=wiaUh82NEoE">Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL</a></td><td>cuda, quantization, serving, hardware, distributed</td><td>warp execution, occupancy, tensor cores, autotuning, quantized numerics</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>5</td><td><a href="https://www.youtube.com/watch?v=nXRsasT1jIk">Lecture 109: TIRx</a></td><td>cuda, triton, attention, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>Python tensor indexing, GPU program/block model, memory coalescing, C/C++ basics</td></tr>
+<tr><td>9</td><td><a href="https://www.youtube.com/watch?v=HcnybHRbTcc">Lecture 105: cuDNN mxfp8 attention</a></td><td>cuda, profiling, attention, quantization, serving</td><td>shared memory tiling, warp execution, tensor cores, online softmax, quantized numerics</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>10</td><td><a href="https://www.youtube.com/watch?v=oYs_qtuk2Pg">Lecture 104: Gluon and Linear Layouts</a></td><td>cuda, triton, profiling, attention, serving</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, online softmax</td><td>Python tensor indexing, GPU program/block model, memory coalescing, C/C++ basics</td></tr>
+<tr><td>11</td><td><a href="https://www.youtube.com/watch?v=MVh_guNbWMA">Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation</a></td><td>cuda, attention, cutlass</td><td>memory coalescing, shared memory tiling, warp execution, tensor cores, autotuning</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>13</td><td><a href="https://www.youtube.com/watch?v=jGouxuAHIfQ">Lecture 101: Learning CUTLASS the hard way</a></td><td>cuda, triton, profiling, hardware, distributed</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>Python tensor indexing, GPU program/block model, memory coalescing, C/C++ basics</td></tr>
+<tr><td>16</td><td><a href="https://www.youtube.com/watch?v=-6FlMJ-AP74">Lecture 98: GPU Observability</a></td><td>cuda, profiling, attention, serving, hardware</td><td>shared memory tiling, warp execution, tensor cores, kv cache, kernel fusion</td><td>C/C++ basics, thread/block indexing, host-device memory movement, tiled matmul</td></tr>
+<tr><td>17</td><td><a href="https://www.youtube.com/watch?v=jsYyF03Fs3o">Lecture 97: HipKittens</a></td><td>cuda, triton, attention, serving, hardware</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>Python tensor indexing, GPU program/block model, memory coalescing, C/C++ basics</td></tr>
+<tr><td>18</td><td><a href="https://www.youtube.com/watch?v=TH1i-GmMZuQ">Lecture 96: TLX</a></td><td>cuda, triton, pytorch-compiler, attention, quantization</td><td>memory coalescing, shared memory tiling, warp execution, occupancy, tensor cores</td><td>Python tensor indexing, GPU program/block model, memory coalescing, C/C++ basics</td></tr>
+<tr><td>19</td><td><a href="https://www.youtube.com/watch?v=PO3CN3UYx7w">Lecture 95: Single controller programming with Monarch</a></td><td>hardware, distributed</td><td>warp execution, collectives, compiler lowering</td><td>collectives, latency vs bandwidth, multi-GPU topology</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eye">Evidence boundary</div>
+  <p>This lab is designed to bridge GPUMODE warp-level execution lessons into measurable code. The CPU proxy proves semantics everywhere; CUDA timing requires nvcc plus a CUDA-visible GPU.</p>
+</section>
+
+</div>

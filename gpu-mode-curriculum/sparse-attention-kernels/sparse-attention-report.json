@@ -1,0 +1,327 @@
+{
+  "generated_at": "2026-08-31T01:53:09.139992+00:00",
+  "status": "sparse-attention-ready",
+  "scenario_count": 6,
+  "passed_scenarios": 6,
+  "pattern_count": 6,
+  "patterns": [
+    "block-sparse",
+    "dilated-global",
+    "neighborhood",
+    "ragged-paged",
+    "sliding-window",
+    "topk"
+  ],
+  "ragged_scenarios": 2,
+  "backward_scenarios": 5,
+  "decode_scenarios": 1,
+  "source_reports": [
+    "attention-serving-stack/attention-serving-report.json",
+    "flash-attention-backward/flash-attention-backward-report.json",
+    "kv-cache-paged-attention/kv-cache-report.json",
+    "parallel-primitives/parallel-primitives-report.json",
+    "moe-routing-all-to-all/moe-routing-report.json",
+    "profiler-evidence/reports/profiler-evidence-report.json"
+  ],
+  "source_facts": {
+    "attention_scenarios": 5,
+    "flash_backward_scenarios": 6,
+    "kv_cache_scenarios": 5,
+    "primitive_scenarios": 6,
+    "moe_scenarios": 5,
+    "profiler_rows": 9
+  },
+  "scenarios": [
+    {
+      "scenario_id": "block-sparse-prefill",
+      "pattern": "block-sparse",
+      "status": "passed",
+      "shape": {
+        "batch": 4,
+        "heads": 16,
+        "seq_q": 4096,
+        "seq_kv": 4096,
+        "head_dim": 128
+      },
+      "tiles": {
+        "tile_q": 64,
+        "tile_k": 128,
+        "blocks_q": 64,
+        "blocks_k": 32
+      },
+      "density": 0.25,
+      "baseline_ms": 52.0,
+      "sparse_ms": 19.0,
+      "speedup_vs_dense": 2.7368,
+      "hbm_reduction": 0.749878,
+      "metadata_overhead": 0.000488,
+      "occupancy_proxy": 0.8375,
+      "load_balance_proxy": 0.986,
+      "max_abs_error": 0.0028,
+      "requires_ragged": false,
+      "supports_backward": true,
+      "supports_decode": false,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "sliding-window-long-context",
+      "pattern": "sliding-window",
+      "status": "passed",
+      "shape": {
+        "batch": 2,
+        "heads": 32,
+        "seq_q": 8192,
+        "seq_kv": 8192,
+        "head_dim": 128
+      },
+      "tiles": {
+        "tile_q": 64,
+        "tile_k": 128,
+        "blocks_q": 128,
+        "blocks_k": 64
+      },
+      "density": 0.16,
+      "baseline_ms": 118.0,
+      "sparse_ms": 33.5,
+      "speedup_vs_dense": 3.5224,
+      "hbm_reduction": 0.839939,
+      "metadata_overhead": 0.000381,
+      "occupancy_proxy": 0.716,
+      "load_balance_proxy": 0.888,
+      "max_abs_error": 0.0032,
+      "requires_ragged": false,
+      "supports_backward": true,
+      "supports_decode": false,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "dilated-global-hybrid",
+      "pattern": "dilated-global",
+      "status": "passed",
+      "shape": {
+        "batch": 2,
+        "heads": 24,
+        "seq_q": 8192,
+        "seq_kv": 8192,
+        "head_dim": 96
+      },
+      "tiles": {
+        "tile_q": 64,
+        "tile_k": 128,
+        "blocks_q": 128,
+        "blocks_k": 64
+      },
+      "density": 0.22,
+      "baseline_ms": 91.0,
+      "sparse_ms": 31.0,
+      "speedup_vs_dense": 2.9355,
+      "hbm_reduction": 0.779878,
+      "metadata_overhead": 0.000555,
+      "occupancy_proxy": 0.797,
+      "load_balance_proxy": 0.972,
+      "max_abs_error": 0.0045,
+      "requires_ragged": false,
+      "supports_backward": true,
+      "supports_decode": false,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "ragged-paged-decode",
+      "pattern": "ragged-paged",
+      "status": "passed",
+      "shape": {
+        "batch": 16,
+        "heads": 32,
+        "seq_q": 1,
+        "seq_kv": 16384,
+        "head_dim": 128
+      },
+      "tiles": {
+        "tile_q": 1,
+        "tile_k": 128,
+        "blocks_q": 1,
+        "blocks_k": 128
+      },
+      "density": 0.12,
+      "baseline_ms": 8.8,
+      "sparse_ms": 3.1,
+      "speedup_vs_dense": 2.8387,
+      "hbm_reduction": 0.868281,
+      "metadata_overhead": 0.088968,
+      "occupancy_proxy": 0.582,
+      "load_balance_proxy": 0.752,
+      "max_abs_error": 0.0025,
+      "requires_ragged": true,
+      "supports_backward": false,
+      "supports_decode": true,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "neighborhood-vision-attention",
+      "pattern": "neighborhood",
+      "status": "passed",
+      "shape": {
+        "batch": 8,
+        "heads": 12,
+        "seq_q": 4096,
+        "seq_kv": 4096,
+        "head_dim": 64
+      },
+      "tiles": {
+        "tile_q": 64,
+        "tile_k": 64,
+        "blocks_q": 64,
+        "blocks_k": 64
+      },
+      "density": 0.18,
+      "baseline_ms": 37.0,
+      "sparse_ms": 13.8,
+      "speedup_vs_dense": 2.6812,
+      "hbm_reduction": 0.819817,
+      "metadata_overhead": 0.001016,
+      "occupancy_proxy": 0.743,
+      "load_balance_proxy": 0.916,
+      "max_abs_error": 0.0038,
+      "requires_ragged": false,
+      "supports_backward": true,
+      "supports_decode": false,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    },
+    {
+      "scenario_id": "topk-routing-attention",
+      "pattern": "topk",
+      "status": "passed",
+      "shape": {
+        "batch": 4,
+        "heads": 16,
+        "seq_q": 2048,
+        "seq_kv": 2048,
+        "head_dim": 128
+      },
+      "tiles": {
+        "tile_q": 64,
+        "tile_k": 128,
+        "blocks_q": 32,
+        "blocks_k": 16
+      },
+      "density": 0.2,
+      "baseline_ms": 26.0,
+      "sparse_ms": 10.7,
+      "speedup_vs_dense": 2.4299,
+      "hbm_reduction": 0.799756,
+      "metadata_overhead": 0.001219,
+      "occupancy_proxy": 0.77,
+      "load_balance_proxy": 0.864,
+      "max_abs_error": 0.0065,
+      "requires_ragged": true,
+      "supports_backward": true,
+      "supports_decode": false,
+      "kernel_paths": [
+        "metadata-build",
+        "qk-sparse",
+        "online-softmax",
+        "pv-sparse"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "branch_efficiency",
+        "warp_execution_efficiency",
+        "metadata_l2_hit_rate",
+        "active_blocks_per_sm",
+        "max_abs_error"
+      ]
+    }
+  ],
+  "recommendations": [
+    "Teach sparse attention as metadata plus online-softmax, not just as fewer QK scores.",
+    "Separate block-sparse, sliding-window, ragged decode, and top-k routing because their load-balance failures differ.",
+    "Promote with branch efficiency, warp execution efficiency, metadata cache hit rate, DRAM bytes, and numerical error.",
+    "Use dense attention and FlashAttention backward reports as baselines before accepting sparse-kernel wins."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "metadata-builder",
+      "sparse-qk",
+      "sparse-online-softmax",
+      "sparse-pv",
+      "ragged-decode",
+      "sparse-backward"
+    ],
+    "commands": [
+      "python3 scripts/run_sparse_attention_kernels.py",
+      "python3 scripts/verify_sparse_attention_kernels.py",
+      "python3 scripts/run_attention_serving_stack.py",
+      "python3 scripts/run_flash_attention_backward.py",
+      "ncu --set full -o sparse-attention-kernels python3 <sparse_attention_probe.py>",
+      "nsys profile -o sparse-attention-ragged-decode python3 <ragged_decode_probe.py>",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id sparse-attention-kernels --execute"
+    ],
+    "note": "Local report models sparse-kernel design constraints; final acceptance requires measured sparse attention kernels and profiler evidence on a GPU host."
+  }
+}

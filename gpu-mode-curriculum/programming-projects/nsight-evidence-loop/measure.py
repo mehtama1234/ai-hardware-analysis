@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""Run the starter and write the project measurement artifact."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve().parent
+STARTER = HERE / "starter.py"
+OUT = HERE / "measurements.json"
+
+
+def main() -> int:
+    proc = subprocess.run([sys.executable, str(STARTER)], cwd=HERE, capture_output=True, text=True, check=False)
+    starter_payload = {}
+    if proc.stdout.strip():
+        try:
+            starter_payload = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            starter_payload = {"raw_stdout": proc.stdout.strip()}
+    status = starter_payload.get("status") or ("ran" if proc.returncode == 0 else "failed")
+    artifact = {
+        "project": "nsight-evidence-loop",
+        "track": "Profiler-to-roofline evidence",
+        "profile": "profiling-roofline",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "status": status,
+        "correctness": {
+            "status": "passed" if proc.returncode == 0 else "failed",
+            "checks": {
+                "starter_exited_zero": proc.returncode == 0,
+                "starter_payload_status_present": bool(starter_payload.get("status")),
+                "source_named": bool(starter_payload.get("source")),
+            },
+        },
+        "runtime_readiness": {
+            "status": status,
+            "notes": starter_payload.get("runtime_notes", []),
+        },
+        "measurement": {
+            "rows": [starter_payload],
+            "summary": f"Starter {status} for Profiler-to-roofline evidence; return code {proc.returncode}.",
+        },
+        "source": "classify_counters.py",
+        "environment": "local",
+        "baseline_measurement": {"path": "22-gpumode-nsight-roofline/out_gpumode_nsight_roofline.json", "summary": "Imported 2 Nsight-shaped kernel rows and classified them with the same roofline decision rules. Imported bottleneck counts: {'memory-bandwidth': 1, 'compute': 1}."},
+        "starter": {
+            "command": f"{sys.executable} {STARTER.name}",
+            "returncode": proc.returncode,
+            "stdout_tail": proc.stdout.strip()[-2000:],
+            "stderr_tail": proc.stderr.strip()[-2000:],
+        },
+    }
+    OUT.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(json.dumps({"status": artifact["status"], "path": OUT.name, "correctness": artifact["correctness"]["status"]}, indent=2))
+    return 0 if artifact["correctness"]["status"] == "passed" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

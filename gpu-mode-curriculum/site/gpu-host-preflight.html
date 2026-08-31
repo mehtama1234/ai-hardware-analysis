@@ -1,0 +1,50 @@
+<meta charset="utf-8">
+<title>GPUMODE GPU Host Preflight</title>
+<style>
+:root{--bg:#0E1420;--bg2:#141D2C;--ink:#EAEEF4;--soft:#B4BFD0;--dim:#8493A8;--line:rgba(150,170,205,.14);--accent:#4FA8B8;--amber:#E3A63A;--green:#74B87A;--serif:"Iowan Old Style",Palatino,Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65}.wrap{max-width:1000px;margin:0 auto;padding:56px 24px 80px}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}h1{font-family:var(--serif);font-size:clamp(34px,6vw,56px);line-height:1.05;margin:14px 0 0;color:#fff}
+.dek{font-size:19px;color:var(--soft);max-width:72ch;margin-top:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:30px 0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:16px 18px}.card h2{font-family:var(--serif);font-size:22px;margin:0 0 8px;color:#fff}.card p{margin:0;color:var(--soft)}
+section{padding:34px 0;border-top:1px solid var(--line)}h2{font-family:var(--serif);font-size:28px;margin:0 0 12px;color:#fff}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+td{color:var(--soft)}a{color:var(--accent);text-decoration:none}.pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--line);border-radius:999px;padding:2px 7px;margin:2px}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}.small{font-size:12.5px;color:var(--dim)}.bridge-list{display:grid;gap:10px;margin:14px 0}.bridge-item{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:14px 16px}.bridge-item h3{font-size:16px;color:#fff;margin:0 0 5px}.bridge-item p{margin:0;color:var(--soft)}
+</style>
+<div class="wrap">
+  <div class="kick">Accelerator host readiness</div>
+  <h1>GPUMODE GPU host preflight.</h1>
+  <p class="dek">Capability snapshot and per-step runnable/blocked status before executing the GPU promotion suite.</p>
+  <div class="grid">
+    <div class="card"><h2>preflight-complete</h2><p>preflight status</p></div>
+    <div class="card"><h2>False</h2><p>accelerator ready</p></div>
+    <div class="card"><h2>1/18</h2><p>runnable steps</p></div>
+    <div class="card"><h2><a href="../gpu-handoff/reports/gpu-host-preflight.md">Report</a></h2><p>Markdown preflight</p></div>
+  </div>
+
+  <section>
+    <h2>Step Readiness</h2>
+    <table><tr><th>step</th><th>runnable</th><th>missing</th><th>commands</th><th>first command</th></tr><tr><td>cuda-kernel-compile</td><td>False</td><td>nvcc, nvidia_smi</td><td>4</td><td>nvcc -O3 kernel-benchmarks/kernels/cuda/memory.cu -c -o /tmp/gpumode-memory.o</td></tr>
+<tr><td>triton-kernel-sweep</td><td>False</td><td>nvidia_smi</td><td>5</td><td>python3 kernel-benchmarks/kernels/triton/memory.py</td></tr>
+<tr><td>tensor-core-gemm</td><td>False</td><td>nvcc, nvidia_smi, ncu</td><td>4</td><td>python3 scripts/run_tensor_core_gemm.py</td></tr>
+<tr><td>persistent-kernels</td><td>False</td><td>nvidia_smi, ncu</td><td>6</td><td>python3 scripts/run_persistent_kernels.py</td></tr>
+<tr><td>parallel-primitives</td><td>False</td><td>nvidia_smi, ncu</td><td>6</td><td>python3 scripts/run_parallel_primitives.py</td></tr>
+<tr><td>torch-custom-extension</td><td>False</td><td>nvcc, ninja, nvidia_smi</td><td>2</td><td>python3 scripts/run_custom_ops.py</td></tr>
+<tr><td>model-integration-gpu</td><td>False</td><td>nvidia_smi</td><td>3</td><td>python3 scripts/build_autotune_db.py</td></tr>
+<tr><td>vllm-serving-trace</td><td>False</td><td>nvidia_smi</td><td>3</td><td>vllm serve &lt;model&gt; --enable-prefix-caching</td></tr>
+<tr><td>attention-serving-stack</td><td>False</td><td>nvidia_smi, nsys, ncu</td><td>4</td><td>python3 scripts/run_attention_serving_stack.py</td></tr>
+<tr><td>flash-attention-backward</td><td>False</td><td>nvidia_smi, ncu, nsys</td><td>6</td><td>python3 scripts/run_flash_attention_backward.py</td></tr>
+<tr><td>sparse-attention-kernels</td><td>False</td><td>nvidia_smi, ncu, nsys</td><td>7</td><td>python3 scripts/run_sparse_attention_kernels.py</td></tr>
+<tr><td>fused-training-kernels</td><td>False</td><td>nvidia_smi, ncu, nsys</td><td>7</td><td>python3 scripts/run_fused_training_kernels.py</td></tr>
+<tr><td>speculative-decoding-serving</td><td>False</td><td>nvidia_smi, nsys, ncu</td><td>7</td><td>python3 scripts/run_speculative_decoding_serving.py</td></tr>
+<tr><td>profiler-capture</td><td>False</td><td>nvidia_smi, nsys, ncu</td><td>4</td><td>ncu --set full --target-processes all python3 scripts/run_kernel_benchmarks.py</td></tr>
+<tr><td>rocm-hip-port</td><td>False</td><td>hipcc, rocprof</td><td>3</td><td>hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port</td></tr>
+<tr><td>distributed-collectives</td><td>False</td><td>nvidia_smi</td><td>7</td><td>python3 scripts/run_distributed_collectives.py</td></tr>
+<tr><td>distributed-training-optimizer</td><td>False</td><td>nvidia_smi, nsys</td><td>4</td><td>python3 scripts/run_distributed_training_optimizer.py</td></tr>
+<tr><td>full-gpu-regression</td><td>True</td><td>none</td><td>6</td><td>python3 run_all.py</td></tr></table>
+  </section>
+
+  <section>
+    <p class="small"><a href="index.html">Back to curriculum index</a></p>
+  </section>
+</div>

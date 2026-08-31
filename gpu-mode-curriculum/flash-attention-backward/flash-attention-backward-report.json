@@ -1,0 +1,321 @@
+{
+  "generated_at": "2026-08-31T01:53:09.049488+00:00",
+  "status": "flash-attention-backward-ready",
+  "scenario_count": 6,
+  "passed_scenarios": 6,
+  "dropout_scenarios": 1,
+  "grouped_query_scenarios": 1,
+  "source_reports": [
+    "attention-serving-stack/attention-serving-report.json",
+    "parallel-primitives/parallel-primitives-report.json",
+    "persistent-kernels/persistent-kernels-report.json",
+    "numerical-reproducibility/numerical-reproducibility-report.json",
+    "profiler-evidence/reports/profiler-evidence-report.json",
+    "tensor-core-gemm/tensor-core-gemm-report.json"
+  ],
+  "source_facts": {
+    "attention_scenarios": 5,
+    "primitive_scenarios": 6,
+    "persistent_scenarios": 6,
+    "numerical_scenarios": 5,
+    "profiler_rows": 9,
+    "tensor_core_scenarios": 5
+  },
+  "scenarios": [
+    {
+      "scenario_id": "training-prefill-bf16",
+      "status": "passed",
+      "shape": {
+        "batch": 8,
+        "heads": 16,
+        "seq_q": 1024,
+        "seq_kv": 1024,
+        "head_dim": 64,
+        "dtype": "bf16/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 16,
+        "dk_dv_tiles": 16,
+        "tile_q": 64,
+        "tile_k": 64
+      },
+      "registers_per_thread": 88,
+      "shared_memory_kb": 72,
+      "baseline_ms": 9.8,
+      "backward_ms": 6.2,
+      "speedup_vs_baseline": 1.5806,
+      "recompute_overhead_ratio": 0.18,
+      "saved_activation_reduction": 0.860532,
+      "hbm_reduction": 0.860532,
+      "occupancy_proxy": 1.0,
+      "max_abs_error": 0.0015,
+      "dropout": false,
+      "causal": true,
+      "grouped_query": false,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    },
+    {
+      "scenario_id": "long-context-checkpointed",
+      "status": "passed",
+      "shape": {
+        "batch": 2,
+        "heads": 32,
+        "seq_q": 4096,
+        "seq_kv": 4096,
+        "head_dim": 128,
+        "dtype": "bf16/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 64,
+        "dk_dv_tiles": 32,
+        "tile_q": 64,
+        "tile_k": 128
+      },
+      "registers_per_thread": 116,
+      "shared_memory_kb": 112,
+      "baseline_ms": 46.0,
+      "backward_ms": 29.5,
+      "speedup_vs_baseline": 1.5593,
+      "recompute_overhead_ratio": 0.24,
+      "saved_activation_reduction": 0.926317,
+      "hbm_reduction": 0.926317,
+      "occupancy_proxy": 0.9458,
+      "max_abs_error": 0.0028,
+      "dropout": false,
+      "causal": true,
+      "grouped_query": false,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    },
+    {
+      "scenario_id": "dropout-causal-training",
+      "status": "passed",
+      "shape": {
+        "batch": 4,
+        "heads": 24,
+        "seq_q": 2048,
+        "seq_kv": 2048,
+        "head_dim": 128,
+        "dtype": "fp16/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 32,
+        "dk_dv_tiles": 16,
+        "tile_q": 64,
+        "tile_k": 128
+      },
+      "registers_per_thread": 120,
+      "shared_memory_kb": 120,
+      "baseline_ms": 28.0,
+      "backward_ms": 18.8,
+      "speedup_vs_baseline": 1.4894,
+      "recompute_overhead_ratio": 0.28,
+      "saved_activation_reduction": 0.860822,
+      "hbm_reduction": 0.860822,
+      "occupancy_proxy": 0.8533,
+      "max_abs_error": 0.0035,
+      "dropout": true,
+      "causal": true,
+      "grouped_query": false,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    },
+    {
+      "scenario_id": "gqa-decode-finetune",
+      "status": "passed",
+      "shape": {
+        "batch": 8,
+        "heads": 32,
+        "seq_q": 512,
+        "seq_kv": 2048,
+        "head_dim": 128,
+        "dtype": "bf16/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 8,
+        "dk_dv_tiles": 16,
+        "tile_q": 64,
+        "tile_k": 128
+      },
+      "registers_per_thread": 104,
+      "shared_memory_kb": 96,
+      "baseline_ms": 14.2,
+      "backward_ms": 9.1,
+      "speedup_vs_baseline": 1.5604,
+      "recompute_overhead_ratio": 0.2,
+      "saved_activation_reduction": 0.658854,
+      "hbm_reduction": 0.658854,
+      "occupancy_proxy": 1.0,
+      "max_abs_error": 0.0022,
+      "dropout": false,
+      "causal": true,
+      "grouped_query": true,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    },
+    {
+      "scenario_id": "fp8-activation-review",
+      "status": "passed",
+      "shape": {
+        "batch": 8,
+        "heads": 16,
+        "seq_q": 1024,
+        "seq_kv": 1024,
+        "head_dim": 128,
+        "dtype": "fp8/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 16,
+        "dk_dv_tiles": 8,
+        "tile_q": 64,
+        "tile_k": 128
+      },
+      "registers_per_thread": 128,
+      "shared_memory_kb": 128,
+      "baseline_ms": 12.4,
+      "backward_ms": 8.6,
+      "speedup_vs_baseline": 1.4419,
+      "recompute_overhead_ratio": 0.34,
+      "saved_activation_reduction": 0.860532,
+      "hbm_reduction": 0.860532,
+      "occupancy_proxy": 0.75,
+      "max_abs_error": 0.009,
+      "dropout": false,
+      "causal": true,
+      "grouped_query": false,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    },
+    {
+      "scenario_id": "noncausal-cross-attention",
+      "status": "passed",
+      "shape": {
+        "batch": 4,
+        "heads": 16,
+        "seq_q": 1024,
+        "seq_kv": 2048,
+        "head_dim": 64,
+        "dtype": "fp16/fp32-acc"
+      },
+      "tiles": {
+        "dq_tiles": 16,
+        "dk_dv_tiles": 32,
+        "tile_q": 64,
+        "tile_k": 64
+      },
+      "registers_per_thread": 84,
+      "shared_memory_kb": 64,
+      "baseline_ms": 13.6,
+      "backward_ms": 8.2,
+      "speedup_vs_baseline": 1.6585,
+      "recompute_overhead_ratio": 0.16,
+      "saved_activation_reduction": 0.881781,
+      "hbm_reduction": 0.881781,
+      "occupancy_proxy": 1.0,
+      "max_abs_error": 0.0018,
+      "dropout": false,
+      "causal": false,
+      "grouped_query": false,
+      "gradient_paths": [
+        "dQ",
+        "dK",
+        "dV",
+        "dSoftmax"
+      ],
+      "gpu_evidence_required": [
+        "dram__bytes",
+        "sm__throughput",
+        "registers_per_thread",
+        "shared_memory_per_cta",
+        "exp2_recompute",
+        "dQ_dK_dV_max_error"
+      ]
+    }
+  ],
+  "recommendations": [
+    "Teach FlashAttention backward separately from forward because recompute and gradient accumulation are the real training-kernel constraints.",
+    "Track dQ, dK, dV, and dSoftmax correctness independently before accepting performance numbers.",
+    "Use activation-recompute savings and HBM reduction together; recompute is only useful when memory pressure drops enough.",
+    "Promote with profiler evidence for DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and gradient error."
+  ],
+  "gpu_host_promotion": {
+    "required": true,
+    "target_steps": [
+      "flash-bwd-dq",
+      "flash-bwd-dkdv",
+      "dropout-mask-recompute",
+      "gqa-backward",
+      "gradient-error-check"
+    ],
+    "commands": [
+      "python3 scripts/run_flash_attention_backward.py",
+      "python3 scripts/verify_flash_attention_backward.py",
+      "python3 scripts/run_attention_serving_stack.py",
+      "ncu --set full -o flash-attention-backward python3 <flash_attention_backward_probe.py>",
+      "nsys profile -o flash-attention-training-step python3 <flash_attention_training_step.py>",
+      "python3 scripts/run_gpu_promotion_suite.py --run-id flash-attention-backward --execute"
+    ],
+    "note": "Local report models backward-pass design constraints; final acceptance requires measured dQ/dK/dV kernels and numerical comparisons on a GPU host."
+  }
+}

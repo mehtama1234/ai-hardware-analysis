@@ -1,0 +1,953 @@
+{
+  "session": "20-gpumode-vllm-scheduler",
+  "timestamp": "2026-08-30T07:16:54.541368+00:00",
+  "inventory": {
+    "session": "20-gpumode-vllm-scheduler",
+    "timestamp": "2026-08-30T07:16:54.541397+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "source": {
+    "gpumode_lab_id": "gpumode-lab-06-vllm-scheduler",
+    "gpumode_lessons": [
+      {
+        "index": 1,
+        "title": "Lecture 113: Every Microsecond Matters: Achieving Near Speed-of-Light Latency in GPU Collectives",
+        "url": "https://www.youtube.com/watch?v=TZnJYRTSGVk",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "tensor cores",
+          "kv cache",
+          "collectives",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "simulate prefill/decode KV-cache memory growth",
+          "model all-reduce latency and bandwidth regimes"
+        ]
+      },
+      {
+        "index": 2,
+        "title": "Lecture 112: Production Megakernels for Real-World Inference",
+        "url": "https://www.youtube.com/watch?v=loZ4xQ5RZuU",
+        "topics": [
+          "cuda",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 4,
+        "title": "Lecture 110: The 4-bitter lesson: Balancing Stability and Performance in NVFP4 RL",
+        "url": "https://www.youtube.com/watch?v=wiaUh82NEoE",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "warp execution",
+          "occupancy",
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 5,
+        "title": "Lecture 109: TIRx",
+        "url": "https://www.youtube.com/watch?v=nXRsasT1jIk",
+        "topics": [
+          "cuda",
+          "triton",
+          "attention",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path"
+        ]
+      },
+      {
+        "index": 6,
+        "title": "Lecture 108: One Layer Deeper competition",
+        "url": "https://www.youtube.com/watch?v=ustDJbxOu50",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware"
+        ],
+        "concepts": [
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 7,
+        "title": "Lecture 107: PithTrain",
+        "url": "https://www.youtube.com/watch?v=tBYm9PI5Jw0",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 8,
+        "title": "Lecture 106: Hugging Face Kernels",
+        "url": "https://www.youtube.com/watch?v=Ok8vi6JemVQ",
+        "topics": [
+          "cuda",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "online softmax",
+          "autotuning",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "sweep block sizes and record the winning kernel configuration"
+        ]
+      },
+      {
+        "index": 9,
+        "title": "Lecture 105: cuDNN mxfp8 attention",
+        "url": "https://www.youtube.com/watch?v=HcnybHRbTcc",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "quantized numerics",
+          "compiler lowering"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 10,
+        "title": "Lecture 104: Gluon and Linear Layouts",
+        "url": "https://www.youtube.com/watch?v=oYs_qtuk2Pg",
+        "topics": [
+          "cuda",
+          "triton",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "online softmax",
+          "kernel fusion",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "implement numerically stable online softmax and compare to materialized softmax",
+          "fuse bias, activation, and normalization into one measured path",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 11,
+        "title": "Lecture 103: Fundamentals of CuTe Layout Algebra and Category-theoretic Interpretation",
+        "url": "https://www.youtube.com/watch?v=MVh_guNbWMA",
+        "topics": [
+          "cuda",
+          "attention",
+          "cutlass"
+        ],
+        "concepts": [
+          "memory coalescing",
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "autotuning",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "benchmark contiguous, strided, and gathered loads",
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "sweep block sizes and record the winning kernel configuration",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 12,
+        "title": "Lecture 102: quartet v2",
+        "url": "https://www.youtube.com/watch?v=E0G3hf4DneA",
+        "topics": [
+          "cuda",
+          "quantization",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "tensor cores",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 14,
+        "title": "Lecture 100: InferenceX Continuous OSS Inference Benchmarking",
+        "url": "https://www.youtube.com/watch?v=kPBTBl7xvEY",
+        "topics": [
+          "profiling",
+          "attention",
+          "serving"
+        ],
+        "concepts": [
+          "kv cache",
+          "autotuning",
+          "quantized numerics",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "simulate prefill/decode KV-cache memory growth",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      },
+      {
+        "index": 15,
+        "title": "Lecture 99: Distributed ML on consumer devices",
+        "url": "https://www.youtube.com/watch?v=sV0PJC1dOmM",
+        "topics": [
+          "attention",
+          "quantization",
+          "serving",
+          "hardware",
+          "distributed"
+        ],
+        "concepts": [
+          "occupancy",
+          "tensor cores",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "quantized numerics"
+        ],
+        "exercise_candidates": [
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "measure int8/int4/fp8-style quantization error and memory savings"
+        ]
+      },
+      {
+        "index": 16,
+        "title": "Lecture 98: GPU Observability",
+        "url": "https://www.youtube.com/watch?v=-6FlMJ-AP74",
+        "topics": [
+          "cuda",
+          "profiling",
+          "attention",
+          "serving",
+          "hardware",
+          "cutlass"
+        ],
+        "concepts": [
+          "shared memory tiling",
+          "warp execution",
+          "tensor cores",
+          "kv cache",
+          "kernel fusion",
+          "autotuning",
+          "compiler lowering",
+          "profiling workflow"
+        ],
+        "exercise_candidates": [
+          "implement naive vs tiled matrix multiplication",
+          "compare shared-memory reduction with warp-shuffle reduction",
+          "simulate prefill/decode KV-cache memory growth",
+          "fuse bias, activation, and normalization into one measured path",
+          "sweep block sizes and record the winning kernel configuration",
+          "capture a profiler trace and classify bottleneck type"
+        ]
+      }
+    ],
+    "extends": "09-vllm-serving and 10-kv-cache-memory-manager"
+  },
+  "scheduler": {
+    "status": "ran",
+    "config": {
+      "block_size_tokens": 16,
+      "kv_capacity_blocks": 4096,
+      "prefill_tokens_per_ms": 384,
+      "decode_tokens_per_ms": 96,
+      "max_batch_seqs": 6
+    },
+    "workload": [
+      {
+        "id": "r00",
+        "arrival_ms": 0,
+        "prompt_tokens": 768,
+        "output_tokens": 96,
+        "prefix_group": "system-a",
+        "shared_prefix_tokens": 512
+      },
+      {
+        "id": "r01",
+        "arrival_ms": 0,
+        "prompt_tokens": 896,
+        "output_tokens": 96,
+        "prefix_group": "system-a",
+        "shared_prefix_tokens": 512
+      },
+      {
+        "id": "r02",
+        "arrival_ms": 12,
+        "prompt_tokens": 512,
+        "output_tokens": 128,
+        "prefix_group": "system-b",
+        "shared_prefix_tokens": 384
+      },
+      {
+        "id": "r03",
+        "arrival_ms": 24,
+        "prompt_tokens": 1536,
+        "output_tokens": 64,
+        "prefix_group": "system-a",
+        "shared_prefix_tokens": 512
+      },
+      {
+        "id": "r04",
+        "arrival_ms": 32,
+        "prompt_tokens": 384,
+        "output_tokens": 160,
+        "prefix_group": "system-c",
+        "shared_prefix_tokens": 256
+      },
+      {
+        "id": "r05",
+        "arrival_ms": 48,
+        "prompt_tokens": 2048,
+        "output_tokens": 96,
+        "prefix_group": "system-long",
+        "shared_prefix_tokens": 1024
+      },
+      {
+        "id": "r06",
+        "arrival_ms": 64,
+        "prompt_tokens": 640,
+        "output_tokens": 128,
+        "prefix_group": "system-b",
+        "shared_prefix_tokens": 384
+      },
+      {
+        "id": "r07",
+        "arrival_ms": 84,
+        "prompt_tokens": 512,
+        "output_tokens": 192,
+        "prefix_group": "system-c",
+        "shared_prefix_tokens": 256
+      },
+      {
+        "id": "r08",
+        "arrival_ms": 96,
+        "prompt_tokens": 3072,
+        "output_tokens": 64,
+        "prefix_group": "system-long",
+        "shared_prefix_tokens": 1024
+      },
+      {
+        "id": "r09",
+        "arrival_ms": 128,
+        "prompt_tokens": 768,
+        "output_tokens": 96,
+        "prefix_group": "system-a",
+        "shared_prefix_tokens": 512
+      },
+      {
+        "id": "r10",
+        "arrival_ms": 144,
+        "prompt_tokens": 896,
+        "output_tokens": 128,
+        "prefix_group": "system-b",
+        "shared_prefix_tokens": 384
+      },
+      {
+        "id": "r11",
+        "arrival_ms": 160,
+        "prompt_tokens": 512,
+        "output_tokens": 160,
+        "prefix_group": "system-c",
+        "shared_prefix_tokens": 256
+      }
+    ],
+    "policies": [
+      {
+        "name": "fcfs_static_batches",
+        "completed_requests": 12,
+        "makespan_ms": 164,
+        "output_tokens": 1408,
+        "tokens_per_second": 8585.37,
+        "mean_ttft_ms": 3.5,
+        "p95_ttft_ms": 6,
+        "mean_tpot_ms": 0.0146,
+        "p95_tpot_ms": 0.0208,
+        "peak_kv_blocks": 196,
+        "trace_rows": 11,
+        "trace_sample": [
+          {
+            "start_ms": 0,
+            "finish_ms": 7,
+            "requests": [
+              "r00",
+              "r01"
+            ],
+            "kv_blocks": 116
+          },
+          {
+            "start_ms": 12,
+            "finish_ms": 16,
+            "requests": [
+              "r02"
+            ],
+            "kv_blocks": 40
+          },
+          {
+            "start_ms": 24,
+            "finish_ms": 29,
+            "requests": [
+              "r03"
+            ],
+            "kv_blocks": 100
+          },
+          {
+            "start_ms": 32,
+            "finish_ms": 35,
+            "requests": [
+              "r04"
+            ],
+            "kv_blocks": 34
+          },
+          {
+            "start_ms": 48,
+            "finish_ms": 55,
+            "requests": [
+              "r05"
+            ],
+            "kv_blocks": 134
+          },
+          {
+            "start_ms": 64,
+            "finish_ms": 68,
+            "requests": [
+              "r06"
+            ],
+            "kv_blocks": 48
+          },
+          {
+            "start_ms": 84,
+            "finish_ms": 88,
+            "requests": [
+              "r07"
+            ],
+            "kv_blocks": 44
+          },
+          {
+            "start_ms": 96,
+            "finish_ms": 105,
+            "requests": [
+              "r08"
+            ],
+            "kv_blocks": 196
+          }
+        ],
+        "completed": [
+          {
+            "id": "r00",
+            "arrival_ms": 0,
+            "first_token_ms": 5,
+            "finish_ms": 7,
+            "ttft_ms": 5,
+            "tpot_ms": 0.0208,
+            "output_tokens": 96
+          },
+          {
+            "id": "r01",
+            "arrival_ms": 0,
+            "first_token_ms": 5,
+            "finish_ms": 7,
+            "ttft_ms": 5,
+            "tpot_ms": 0.0208,
+            "output_tokens": 96
+          },
+          {
+            "id": "r02",
+            "arrival_ms": 12,
+            "first_token_ms": 14,
+            "finish_ms": 16,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0156,
+            "output_tokens": 128
+          },
+          {
+            "id": "r03",
+            "arrival_ms": 24,
+            "first_token_ms": 28,
+            "finish_ms": 29,
+            "ttft_ms": 4,
+            "tpot_ms": 0.0156,
+            "output_tokens": 64
+          },
+          {
+            "id": "r04",
+            "arrival_ms": 32,
+            "first_token_ms": 33,
+            "finish_ms": 35,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0125,
+            "output_tokens": 160
+          },
+          {
+            "id": "r05",
+            "arrival_ms": 48,
+            "first_token_ms": 54,
+            "finish_ms": 55,
+            "ttft_ms": 6,
+            "tpot_ms": 0.0104,
+            "output_tokens": 96
+          },
+          {
+            "id": "r06",
+            "arrival_ms": 64,
+            "first_token_ms": 66,
+            "finish_ms": 68,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0156,
+            "output_tokens": 128
+          },
+          {
+            "id": "r07",
+            "arrival_ms": 84,
+            "first_token_ms": 86,
+            "finish_ms": 88,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0104,
+            "output_tokens": 192
+          },
+          {
+            "id": "r08",
+            "arrival_ms": 96,
+            "first_token_ms": 104,
+            "finish_ms": 105,
+            "ttft_ms": 8,
+            "tpot_ms": 0.0156,
+            "output_tokens": 64
+          },
+          {
+            "id": "r09",
+            "arrival_ms": 128,
+            "first_token_ms": 130,
+            "finish_ms": 131,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0104,
+            "output_tokens": 96
+          },
+          {
+            "id": "r10",
+            "arrival_ms": 144,
+            "first_token_ms": 147,
+            "finish_ms": 149,
+            "ttft_ms": 3,
+            "tpot_ms": 0.0156,
+            "output_tokens": 128
+          },
+          {
+            "id": "r11",
+            "arrival_ms": 160,
+            "first_token_ms": 162,
+            "finish_ms": 164,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0125,
+            "output_tokens": 160
+          }
+        ]
+      },
+      {
+        "name": "continuous_paged_prefix_cache",
+        "completed_requests": 12,
+        "makespan_ms": 162,
+        "output_tokens": 1408,
+        "tokens_per_second": 8691.36,
+        "mean_ttft_ms": 1.917,
+        "p95_ttft_ms": 3,
+        "mean_tpot_ms": 0.0034,
+        "p95_tpot_ms": 0.0078,
+        "peak_kv_blocks": 268,
+        "trace_rows": 28,
+        "trace_sample": [
+          {
+            "time_ms": 0,
+            "waiting": 10,
+            "prefill": 1,
+            "decode": 0,
+            "kv_blocks": 62
+          },
+          {
+            "time_ms": 1,
+            "waiting": 10,
+            "prefill": 0,
+            "decode": 0,
+            "kv_blocks": 32
+          },
+          {
+            "time_ms": 12,
+            "waiting": 9,
+            "prefill": 0,
+            "decode": 1,
+            "kv_blocks": 72
+          },
+          {
+            "time_ms": 13,
+            "waiting": 9,
+            "prefill": 0,
+            "decode": 0,
+            "kv_blocks": 56
+          },
+          {
+            "time_ms": 24,
+            "waiting": 8,
+            "prefill": 1,
+            "decode": 0,
+            "kv_blocks": 124
+          },
+          {
+            "time_ms": 25,
+            "waiting": 8,
+            "prefill": 1,
+            "decode": 0,
+            "kv_blocks": 124
+          },
+          {
+            "time_ms": 26,
+            "waiting": 8,
+            "prefill": 0,
+            "decode": 0,
+            "kv_blocks": 56
+          },
+          {
+            "time_ms": 32,
+            "waiting": 7,
+            "prefill": 0,
+            "decode": 1,
+            "kv_blocks": 90
+          }
+        ],
+        "completed": [
+          {
+            "id": "r00",
+            "arrival_ms": 0,
+            "first_token_ms": 1,
+            "finish_ms": 1,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0,
+            "output_tokens": 96
+          },
+          {
+            "id": "r01",
+            "arrival_ms": 0,
+            "first_token_ms": 2,
+            "finish_ms": 2,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0,
+            "output_tokens": 96
+          },
+          {
+            "id": "r02",
+            "arrival_ms": 12,
+            "first_token_ms": 13,
+            "finish_ms": 14,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0078,
+            "output_tokens": 128
+          },
+          {
+            "id": "r03",
+            "arrival_ms": 24,
+            "first_token_ms": 27,
+            "finish_ms": 27,
+            "ttft_ms": 3,
+            "tpot_ms": 0.0,
+            "output_tokens": 64
+          },
+          {
+            "id": "r04",
+            "arrival_ms": 32,
+            "first_token_ms": 33,
+            "finish_ms": 34,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0063,
+            "output_tokens": 160
+          },
+          {
+            "id": "r05",
+            "arrival_ms": 48,
+            "first_token_ms": 51,
+            "finish_ms": 51,
+            "ttft_ms": 3,
+            "tpot_ms": 0.0,
+            "output_tokens": 96
+          },
+          {
+            "id": "r06",
+            "arrival_ms": 64,
+            "first_token_ms": 65,
+            "finish_ms": 66,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0078,
+            "output_tokens": 128
+          },
+          {
+            "id": "r07",
+            "arrival_ms": 84,
+            "first_token_ms": 85,
+            "finish_ms": 86,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0052,
+            "output_tokens": 192
+          },
+          {
+            "id": "r08",
+            "arrival_ms": 96,
+            "first_token_ms": 102,
+            "finish_ms": 102,
+            "ttft_ms": 6,
+            "tpot_ms": 0.0,
+            "output_tokens": 64
+          },
+          {
+            "id": "r09",
+            "arrival_ms": 128,
+            "first_token_ms": 129,
+            "finish_ms": 129,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0,
+            "output_tokens": 96
+          },
+          {
+            "id": "r10",
+            "arrival_ms": 144,
+            "first_token_ms": 146,
+            "finish_ms": 147,
+            "ttft_ms": 2,
+            "tpot_ms": 0.0078,
+            "output_tokens": 128
+          },
+          {
+            "id": "r11",
+            "arrival_ms": 160,
+            "first_token_ms": 161,
+            "finish_ms": 162,
+            "ttft_ms": 1,
+            "tpot_ms": 0.0063,
+            "output_tokens": 160
+          }
+        ]
+      }
+    ],
+    "kv_accounting": {
+      "full_workload_blocks_without_prefix_cache": 872,
+      "full_workload_blocks_with_prefix_cache": 632,
+      "capacity_blocks": 4096
+    },
+    "comparison": {
+      "ttft_speedup": 1.826,
+      "throughput_speedup": 1.012,
+      "peak_kv_block_reduction_pct": -36.73,
+      "full_workload_prefix_block_saving_pct": 27.52
+    },
+    "correctness": {
+      "status": "passed",
+      "checks": {
+        "all_requests_completed": true,
+        "capacity_respected": true,
+        "prefix_cache_reduces_full_workload_blocks": true,
+        "continuous_scheduler_improves_mean_ttft": true
+      }
+    },
+    "finding": "Continuous batching lowers mean TTFT and improves output throughput on this deterministic workload, while paged prefix-cache accounting reduces KV blocks versus per-request prompt storage."
+  },
+  "correctness": {
+    "status": "passed",
+    "checks": {
+      "all_requests_completed": true,
+      "capacity_respected": true,
+      "prefix_cache_reduces_full_workload_blocks": true,
+      "continuous_scheduler_improves_mean_ttft": true
+    }
+  },
+  "boundary": "This is a deterministic scheduler and KV-accounting simulator. It models the serving shape behind vLLM-style continuous batching and paged KV caches, but it is not a vLLM internals clone and does not claim GPU kernel throughput."
+}

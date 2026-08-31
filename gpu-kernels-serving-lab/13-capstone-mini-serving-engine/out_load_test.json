@@ -1,0 +1,97 @@
+{
+  "session": "13-capstone-load-test",
+  "timestamp": "2026-08-30T07:17:24.219694+00:00",
+  "inventory": {
+    "session": "13-capstone-load-test",
+    "timestamp": "2026-08-30T07:17:24.219737+00:00",
+    "host": "MithusLaptop",
+    "software": {
+      "python": "3.10.12",
+      "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.4.1+cu121",
+      "cuda_available": false,
+      "cuda_version": "12.1",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": []
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": null
+      },
+      "nvcc": {
+        "path": null
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "paths": {
+    "high_level_single_request": {
+      "endpoint": "http://127.0.0.1:8765/v1/completions",
+      "requests": 5,
+      "completion_tokens": 80,
+      "latency_ms": {
+        "min": 1.3653,
+        "median": 1.782,
+        "max": 2.5779,
+        "total": 9.0855
+      },
+      "tokens_per_sec": 8805.208,
+      "backend": "deterministic-local",
+      "sample_text": "memory_0 memory_1 memory_2 memory_3 memory_4 memory_5 memory_6 memory_7 memory_8 memory_9 memory_10 memory_11 memory_12 memory_13 memory_14 memory_15"
+    },
+    "optimized_batched_prefix_cache": {
+      "endpoint": "http://127.0.0.1:8765/v1/batch_completions",
+      "requests": 1,
+      "logical_prompts": 5,
+      "completion_tokens": 80,
+      "latency_ms": {
+        "total": 1.8894
+      },
+      "tokens_per_sec": 42342.492,
+      "backend": "batched-prefix-cache-local",
+      "prefix_tokens_reused": 20,
+      "sample_text": "memory_0 memory_1 memory_2 memory_3 memory_4 memory_5 memory_6 memory_7 memory_8 memory_9 memory_10 memory_11 memory_12 memory_13 memory_14 memory_15"
+    }
+  },
+  "comparison": {
+    "high_level_path": "high_level_single_request",
+    "optimized_path": "optimized_batched_prefix_cache",
+    "optimized_latency_speedup": 4.809
+  },
+  "server_stdout": [
+    "serving http://127.0.0.1:8765"
+  ],
+  "server_stderr": [],
+  "boundary": "This is a minimal local endpoint and load-test harness. It proves the capstone has two measured serving paths: single-request high-level serving and a batched prefix-cache path. It is not production LLM quality or GPU vLLM throughput."
+}
