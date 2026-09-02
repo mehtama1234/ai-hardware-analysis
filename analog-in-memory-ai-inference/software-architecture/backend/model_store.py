@@ -43,6 +43,16 @@ class ModelStore:
     def _write_run_index(self):
         self.run_index.write_text(json.dumps(self.runs, indent=2, sort_keys=True) + "\n")
 
+    def _atomic_write_text(self, path, text):
+        tmp_path = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+        tmp_path.write_text(text)
+        tmp_path.replace(path)
+
+    def _atomic_write_bytes(self, path, data):
+        tmp_path = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+        tmp_path.write_bytes(data)
+        tmp_path.replace(path)
+
     def _recover_uploaded_models(self):
         changed = False
         malformed = [
@@ -250,6 +260,8 @@ class ModelStore:
             "quantization": "quantization-report.json",
             "runtime": "runtime-profile.json",
             "baseline": "baseline-comparison.json",
+            "hardware_placement": "hardware-placement.json",
+            "residual_aware_placement": "residual-aware-placement.json",
             "workload_fit": "workload-fit.json",
             "system_boundary": "system-boundary.json",
             "research": "research-guide.json",
@@ -282,10 +294,10 @@ class ModelStore:
         }
         artifact_files = {key: filename for key, filename in artifact_files.items() if key in artifacts}
         for key, filename in artifact_files.items():
-            (package_dir / filename).write_text(json.dumps(artifacts[key], indent=2, sort_keys=True) + "\n")
-        (package_dir / "review-report.md").write_text(artifacts["review"]["markdown"])
+            self._atomic_write_text(package_dir / filename, json.dumps(artifacts[key], indent=2, sort_keys=True) + "\n")
+        self._atomic_write_text(package_dir / "review-report.md", artifacts["review"]["markdown"])
         archive_path = package_dir / archive_filename
-        archive_path.write_bytes(archive_bytes)
+        self._atomic_write_bytes(archive_path, archive_bytes)
         metadata = {
             "package_id": package_id,
             "model_id": model_id,
@@ -298,7 +310,7 @@ class ModelStore:
             metadata["imported_evidence"] = existing_imports
         if existing_adapter_runs:
             metadata["adapter_runs"] = existing_adapter_runs
-        (package_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
+        self._atomic_write_text(package_dir / "metadata.json", json.dumps(metadata, indent=2, sort_keys=True) + "\n")
         return metadata
 
     def get_package_metadata(self, package_id):
@@ -457,6 +469,12 @@ class ModelStore:
         workload_fit = self.get_package_artifact(package_id, "workload_fit")
         if workload_fit is not None:
             artifacts["workload_fit"] = workload_fit
+        hardware_placement = self.get_package_artifact(package_id, "hardware_placement")
+        if hardware_placement is not None:
+            artifacts["hardware_placement"] = hardware_placement
+        residual_aware_placement = self.get_package_artifact(package_id, "residual_aware_placement")
+        if residual_aware_placement is not None:
+            artifacts["residual_aware_placement"] = residual_aware_placement
         system_boundary = self.get_package_artifact(package_id, "system_boundary")
         if system_boundary is not None:
             artifacts["system_boundary"] = system_boundary

@@ -59,6 +59,19 @@ Plain-language course spine: [`course.html`](course.html), covering the first-pr
 story across hardware venues, including topology as wiring, placement, network shape, and
 failure paths.
 
+## Hands-on GPU / serving lab goal
+
+The next meaty end-to-end tutorial track is specified in
+[`gpu-kernels-serving-lab/MEATY-GOAL.md`](gpu-kernels-serving-lab/MEATY-GOAL.md). It extends
+the existing Kimi K3 lab style into Hugging Face baselines, JAX Scaling Book cost models,
+CUDA kernels, Triton kernels, ROCm/HIP portability, quantization, vLLM/TGI serving, and a
+mini LLM serving-engine capstone.
+
+The next source-backed expansion starts from GPUMODE lectures:
+[`gpu-mode-curriculum/MEATY-GOAL.md`](gpu-mode-curriculum/MEATY-GOAL.md). It captures
+YouTube metadata/transcripts, maps lessons into GPU-systems topics, extracts lesson
+intelligence, and proposes deeper runnable labs that extend the kernel/serving track.
+
 (2026 editions of most venues are not yet indexed on DBLP — scale on the latest complete
 editions, upgrading a venue once DBLP shows its full list.)
 

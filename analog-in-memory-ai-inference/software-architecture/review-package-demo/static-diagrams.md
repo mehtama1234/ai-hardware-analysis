@@ -1,5 +1,7 @@
 # Static Diagrams
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). These diagrams use the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file gives simple diagrams for the review package.
 
 They are intentionally plain. Their job is to make the roadmap easier to explain when the interactive HTML page is not open.

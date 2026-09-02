@@ -8,6 +8,17 @@ Can my trained model run on this analog in-memory AI hardware with the accuracy,
 
 The chip may be the technical center, but the software has to turn the chip into a usable product. The software should make model conversion, quantization, operator mapping, calibration, runtime execution, debugging, profiling, and deployment visible.
 
+## Connected-System Contract
+
+The frontend and backend should implement the contract described in `connected-system-map.html`.
+
+- The **frontend** should show the object being judged, the constraint acting on it, the evidence available, and the claim state.
+- The **backend** should produce and store the artifacts that make that claim state auditable.
+- The **hardware lab** should export normalized evidence that the backend can import without changing the frontend contract.
+- The **claim engine** should keep local, simulated, RTL, OpenLane, board-measured, power-measured, silicon-backed, and production-backed evidence levels separate.
+
+The current package `pkg-e931662a01293df2` exercises this contract through hardware placement, hardware-lab evidence import, claim readiness, and a cross-repo proof. `C1` and `C4` are supported for the bounded local setup. `C2` and `C3` remain needs review until measured board runtime and measured power evidence exist. Production readiness remains blocked.
+
 ## First Principle
 
 The software exists because the analog core is not a general computer. It is good at specific work, mainly repeated matrix math near stored weights. Other work may need digital logic or a host processor.

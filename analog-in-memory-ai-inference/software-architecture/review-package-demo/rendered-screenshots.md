@@ -1,5 +1,7 @@
 # Rendered Screenshots
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This screenshot index uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file lists the rendered screenshots included with the review package.
 
 The screenshots are not chip proof. They prove only that the HTML review experience was rendered and captured for offline review.

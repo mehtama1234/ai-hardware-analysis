@@ -11,6 +11,8 @@
 <body>
   <header>
     <nav>
+      <a href="connected-system-map.html">Connected System Map</a>
+      <a href="master-review-path.html">Master Review</a>
       <a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a>
       <a href="customer-workload-intake-plan.html">Intake</a>
       <a href="timing-latency-budget-plan.html">Timing Budget</a>
@@ -30,6 +32,41 @@
       <p>Evidence is the proof behind that claim. Different claims need different evidence. A simulator result is useful, but it is not the same as a real board measurement.</p>
       <p>A board trace is a record from actual hardware while it runs. A power trace is a measurement of energy use over time. A thermal trace is a measurement of temperature over time.</p>
       <p>The evidence matrix is a rulebook: it tells the platform what a result is allowed to prove and what it is not allowed to prove.</p>
+    </section>
+    <section>
+      <h2>How This Page Fits The Connected System</h2>
+      <p>The <a href="connected-system-map.html">Connected System Map</a> explains the full path from model graph to frontend answer. The <a href="proof-ladder-step-by-step.html">Proof Ladder</a> explains the order of proof. This page turns that order into a claim rulebook: which evidence unlocks which sentence, and which sentence remains blocked.</p>
+      <table>
+        <tr><th>Role</th><th>Concrete Meaning</th></tr>
+        <tr><td>Consumes</td><td>Claim candidate, evidence source, provenance, measurement level, package ID, workload ID, and the current status of imported artifacts.</td></tr>
+        <tr><td>Checks</td><td>Whether the evidence is hypothetical, simulated, local-generated, RTL-checked, synthesized, routed, measured on a board, measured by a meter, or production-grade.</td></tr>
+        <tr><td>Produces</td><td>Allowed wording, blocked wording, missing evidence, and the claim-readiness state shown by the frontend.</td></tr>
+        <tr><td>Refuses</td><td>Any upgrade where a local trace, estimated power number, or routed educational flow is described as measured board, measured energy, calibrated silicon, or production readiness.</td></tr>
+        <tr><td>Next Page</td><td>The <a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a> and <a href="aihwkit-tool-stack-plan.html">AIHWKIT Plan</a> explain how stronger evidence should be produced for placement and analog error.</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>Current Package Evidence Status</h2>
+      <p>The current live package is <code>pkg-e931662a01293df2</code>. It has five hardware-lab evidence records imported from the sibling chip-design repo.</p>
+      <table>
+        <tr><th>Backend Claim</th><th>Current Evidence</th><th>Status</th><th>Reason</th></tr>
+        <tr><td><code>C1</code> compiler placement</td><td><code>compiler_mapping</code></td><td class="safe">supported</td><td>The backend and lab now share placement rows, analog candidates, digital-only regions, converter boundaries, and fallback points.</td></tr>
+        <tr><td><code>C2</code> latency</td><td><code>board_runtime</code></td><td>needs review</td><td>The runtime trace is local RTL/runtime evidence, not a measured board trace. The measured import path now requires a non-local board ID, board revision, runtime version, repeated latency samples, synchronized run window, and host-overhead boundary.</td></tr>
+        <tr><td><code>C3</code> energy</td><td><code>board_runtime</code> plus <code>power_thermal</code></td><td>needs review</td><td>The power record is OpenLane-derived context with no meter, no measured voltage/current samples, and no synchronized run window. The measured import path now requires a named meter, measured rail, power samples, thermal samples, and a runtime trace link.</td></tr>
+        <tr><td><code>C4</code> accuracy</td><td><code>analog_error_simulation</code> plus <code>task_accuracy</code></td><td class="safe">supported</td><td>The local analog residual and toy task-sensitivity proxy are present for the bounded lab setup.</td></tr>
+        <tr><td><code>P1</code> production readiness</td><td>all current lab evidence</td><td class="blocked">blocked</td><td>Production still needs calibrated silicon, repeated boards, measured power, measured thermal behavior, reliability, packaging, and signoff evidence.</td></tr>
+      </table>
+      <p>The live proof report is <a href="http://127.0.0.1:8023/research/cross-repo-aimc-loop-proof.html">Cross-Repo AIMC Loop Proof</a>. The upgrade rule for <code>C2</code> and <code>C3</code> is <a href="http://127.0.0.1:8023/research/board-and-power-measurement-boundary.html">Board And Power Measurement Boundary</a>.</p>
+      <p>The backend regression command is <code>./.venv/bin/python scripts/check_measured_evidence_readiness.py</code>. It proves that the current local runtime and power artifacts remain structurally useful but cannot pass the stricter measured-evidence gate.</p>
+    </section>
+    <section>
+      <h2>Measured Evidence Gate</h2>
+      <p>The ordinary evidence import path is allowed to attach useful local artifacts. The measured import path is stricter. It exists because a local estimate can guide engineering work, but it should not change the language of a board or energy claim.</p>
+      <table>
+        <tr><th>Source</th><th>Ordinary Import Can Accept</th><th>Measured Import Requires</th><th>Claim Impact</th></tr>
+        <tr><td><code>board_runtime</code></td><td>Local RTL/runtime trace, fallback events, synthesis context, OpenLane context, and provenance that says it is local-generated.</td><td>Real board identity, board revision, runtime version, repeated measured latency values, synchronized start/end timestamps, non-local provenance, and host-overhead boundary.</td><td>Without measured fields, latency remains needs review.</td></tr>
+        <tr><td><code>power_thermal</code></td><td>OpenLane-derived estimates, power context, thermal assumptions, and clear <code>not_measured_hardware</code> provenance.</td><td>Named meter, measured rail, voltage/current samples, average and peak power, temperature samples, runtime trace ID, synchronized integration window, and host-overhead boundary.</td><td>Without measured fields, energy and thermal claims remain needs review.</td></tr>
+      </table>
     </section>
     <section>
       <h2>Evidence Types Before The Matrix</h2>

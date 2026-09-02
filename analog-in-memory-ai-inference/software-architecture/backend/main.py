@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -29,9 +30,10 @@ from connection_playbook import build_connection_playbook
 from decision_report import build_decision_report
 from deployment_package import build_deployment_archive, build_deployment_package
 from evidence_brief import build_evidence_brief
-from evidence_imports import build_import_record, build_validation_report, validate_imported_evidence
+from evidence_imports import build_import_record, build_measured_readiness_report, build_tool_readiness_report, build_validation_report, validate_imported_evidence
 from evidence_gates import build_evidence_gates
 from external_connector_contract import build_external_connector_contract
+from hardware_placement import build_hardware_placement
 from hardware_profile import TARGET_PROFILES
 from interview_brief import build_interview_brief
 from interview_drill import build_interview_drill
@@ -42,6 +44,7 @@ from physical_ai_map import build_physical_ai_map
 from physical_ai_roadmap import build_physical_ai_roadmap
 from quantization import estimate_quantization, modality_profiles
 from review_report import build_review_report
+from residual_aware_placement import load_residual_aware_placement
 from research_guide import build_research_guide
 from rewrite_plan import build_rewrite_plan
 from rewrite_suggestions import build_rewrite_suggestions
@@ -75,6 +78,14 @@ LOCAL_EVIDENCE_TOOLS = {
     "local-board-runtime-adapter",
     "local-power-thermal-adapter",
 }
+HARDWARE_LAB_EVIDENCE_BATCH = (
+    BASE_DIR.parents[3]
+    / "analog-digital-chip-design-eda"
+    / "evidence"
+    / "aimc-hardware-lab"
+    / "import-batch.json"
+)
+HARDWARE_LAB_STRICT_TOOL_EVIDENCE = HARDWARE_LAB_EVIDENCE_BATCH.parent / "analog_error_simulation_strict_tool.json"
 
 app = FastAPI(title="Analog AI Model-Fit Backend", version="0.1.0")
 
@@ -157,6 +168,7 @@ def build_artifact_bundle(record, model_id, target_profile, calibration_profile,
         project_context=project_context,
     )
     baseline_report = compare_to_digital_baseline(analysis, runtime_report, target_profile=target_profile)
+    hardware_placement = build_hardware_placement(analysis, package_report=package_report)
     workload_fit = build_workload_fit_matrix(
         analysis,
         quantization_report,
@@ -357,6 +369,7 @@ def build_artifact_bundle(record, model_id, target_profile, calibration_profile,
         "runtime": runtime_report,
         "package": package_report,
         "baseline": baseline_report,
+        "hardware_placement": hardware_placement,
         "workload_fit": workload_fit,
         "system_boundary": system_boundary,
         "physical_ai_map": physical_ai_map,
@@ -598,6 +611,8 @@ def persist_artifact_bundle(record, model_id, artifacts):
         "rewrite_plan": f"/deployment-packages/{package_id}/rewrite-plan",
         "rewrite_work_order": f"/deployment-packages/{package_id}/rewrite-work-order",
         "measurement_evidence": f"/deployment-packages/{package_id}/measurement-evidence",
+        "hardware_placement": f"/deployment-packages/{package_id}/hardware-placement",
+        "residual_aware_placement": f"/deployment-packages/{package_id}/residual-aware-placement",
         "workload_fit": f"/deployment-packages/{package_id}/workload-fit",
         "system_boundary": f"/deployment-packages/{package_id}/system-boundary",
         "physical_ai_map": f"/deployment-packages/{package_id}/physical-ai-map",
@@ -638,6 +653,8 @@ def persist_artifact_bundle(record, model_id, artifacts):
         "local_evidence": f"/deployment-packages/{package_id}/local-evidence",
     }
     adapter_runs = STORE.list_adapter_runs(package_id) or []
+    current_residual_aware_placement = load_residual_aware_placement(artifacts["hardware_placement"])
+    artifacts["residual_aware_placement"] = current_residual_aware_placement
     archive, filename = build_deployment_archive(
         record["path"],
         artifacts["package"],
@@ -645,6 +662,8 @@ def persist_artifact_bundle(record, model_id, artifacts):
         artifacts["quantization"],
         artifacts["runtime"],
         baseline_comparison=artifacts["baseline"],
+        hardware_placement=artifacts["hardware_placement"],
+        residual_aware_placement=current_residual_aware_placement,
         workload_fit=artifacts["workload_fit"],
         system_boundary=artifacts["system_boundary"],
         physical_ai_map=current_physical_ai_map,
@@ -895,6 +914,14 @@ def refresh_saved_package_archive(package_id):
         evidence_audit=current_audit,
         source_check_register=current_source_check_register,
     )
+    current_hardware_placement = artifacts.get("hardware_placement") or build_hardware_placement(
+        artifacts["analysis"],
+        package_report=artifacts["package"],
+    )
+    artifacts["package"].setdefault("saved_artifacts", {})["hardware_placement"] = f"/deployment-packages/{package_id}/hardware-placement"
+    current_residual_aware_placement = load_residual_aware_placement(current_hardware_placement)
+    artifacts["residual_aware_placement"] = current_residual_aware_placement
+    artifacts["package"].setdefault("saved_artifacts", {})["residual_aware_placement"] = f"/deployment-packages/{package_id}/residual-aware-placement"
     archive, filename = build_deployment_archive(
         model_record["path"],
         artifacts["package"],
@@ -902,6 +929,8 @@ def refresh_saved_package_archive(package_id):
         artifacts["quantization"],
         artifacts["runtime"],
         baseline_comparison=artifacts["baseline"],
+        hardware_placement=current_hardware_placement,
+        residual_aware_placement=current_residual_aware_placement,
         workload_fit=current_workload_fit,
         system_boundary=current_system_boundary,
         physical_ai_map=current_physical_ai_map,
@@ -953,6 +982,8 @@ def refresh_saved_package_archive(package_id):
         {
             **artifacts,
             "measurement": current_measurement,
+            "hardware_placement": current_hardware_placement,
+            "residual_aware_placement": current_residual_aware_placement,
             "workload_fit": current_workload_fit,
             "system_boundary": current_system_boundary,
             "physical_ai_map": current_physical_ai_map,
@@ -991,13 +1022,48 @@ def refresh_saved_package_archive(package_id):
 def is_local_generated_import(record):
     payload = record.get("payload") or {}
     provenance = payload.get("provenance") or {}
+    if provenance.get("measurement_level") in {"calibrated_simulation", "calibrated_silicon"}:
+        return False
     if provenance.get("tool") in LOCAL_EVIDENCE_TOOLS:
         return True
+    if str(provenance.get("tool", "")).startswith("analog-digital-chip-design-eda."):
+        return True
+    if provenance.get("not_measured_silicon") is True:
+        return True
     if payload.get("dataset_id", "").startswith("local-synthetic-"):
+        return True
+    if payload.get("dataset_id", "").startswith("local-toy-"):
         return True
     if (payload.get("measurement_setup") or {}).get("not_measured_hardware") is True:
         return True
     return False
+
+
+def evidence_proof_level(record):
+    if not record:
+        return "missing"
+    payload = record.get("payload") or {}
+    provenance = payload.get("provenance") or {}
+    if record.get("source_id") == "physical_flow":
+        if payload.get("flow_status") == "flow completed":
+            return "routed exploratory physical flow"
+        if payload.get("flow_status"):
+            return "physical flow attempted"
+        return "physical flow evidence"
+    measurement_level = provenance.get("measurement_level")
+    if measurement_level == "calibrated_silicon":
+        return "calibrated silicon"
+    if measurement_level == "calibrated_simulation":
+        return "calibrated simulation"
+    if measurement_level in {"measured_board", "instrumented_runtime"}:
+        return "measured board runtime"
+    if measurement_level in {"measured_board_power", "instrumented_power"}:
+        return "measured power"
+    if is_local_generated_import(record):
+        return "local simulation"
+    if record.get("import_id"):
+        return "external evidence"
+    return "missing"
 
 
 def run_and_import_local_evidence(package_id, force=False):
@@ -1088,6 +1154,124 @@ def run_and_import_local_evidence(package_id, force=False):
     }
 
 
+def import_hardware_lab_evidence(package_id, force=False):
+    bundle = STORE.get_package_artifacts(package_id)
+    if not bundle:
+        raise HTTPException(status_code=404, detail="Unknown package_id.")
+    if not HARDWARE_LAB_EVIDENCE_BATCH.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Hardware-lab evidence batch not found at {HARDWARE_LAB_EVIDENCE_BATCH}. Run scripts/export_aimc_hardware_lab_evidence.py in analog-digital-chip-design-eda first.",
+        )
+    try:
+        payload = json.loads(HARDWARE_LAB_EVIDENCE_BATCH.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read hardware-lab evidence batch: {exc}") from exc
+    items = payload.get("items") if isinstance(payload, dict) else None
+    if not isinstance(items, list) or not items:
+        raise HTTPException(status_code=400, detail="Hardware-lab evidence batch must contain a non-empty items list.")
+
+    existing = STORE.list_imported_evidence(package_id) or []
+    existing_by_source = {}
+    for record in existing:
+        existing_by_source.setdefault(record.get("source_id"), []).append(record)
+
+    accepted = []
+    rejected = []
+    skipped = []
+    refreshed_sources = []
+    for index, item in enumerate(items):
+        source_id = item.get("source_id") if isinstance(item, dict) else None
+        evidence_payload = item.get("payload") if isinstance(item, dict) else None
+        source_existing = existing_by_source.get(source_id, [])
+        nonlocal_existing = [record for record in source_existing if not is_local_generated_import(record)]
+        if nonlocal_existing and not force:
+            skipped.append({
+                "index": index,
+                "source_id": source_id,
+                "reason": "Non-local evidence already exists for this source; hardware-lab import skipped to avoid overriding stronger evidence.",
+            })
+            continue
+        local_import_ids = [record["import_id"] for record in source_existing if is_local_generated_import(record)]
+        deleted_count = STORE.delete_imported_evidence(package_id, local_import_ids)
+        if deleted_count:
+            refreshed_sources.append({"source_id": source_id, "deleted_local_imports": deleted_count})
+        saved, errors = save_evidence_payload(source_id, evidence_payload, package_id)
+        if errors:
+            rejected.append({"index": index, "source_id": source_id, "errors": errors})
+        else:
+            accepted.append(saved)
+
+    strict_tool_import = None
+    if HARDWARE_LAB_STRICT_TOOL_EVIDENCE.exists():
+        try:
+            strict_payload = json.loads(HARDWARE_LAB_STRICT_TOOL_EVIDENCE.read_text(encoding="utf-8"))
+            readiness = build_tool_readiness_report("analog_error_simulation", strict_payload)
+            if readiness["tool_ready"]:
+                source_existing = STORE.list_imported_evidence(package_id) or []
+                local_import_ids = [
+                    record["import_id"]
+                    for record in source_existing
+                    if record.get("source_id") == "analog_error_simulation" and is_local_generated_import(record)
+                ]
+                deleted_count = STORE.delete_imported_evidence(package_id, local_import_ids)
+                if deleted_count:
+                    refreshed_sources.append({
+                        "source_id": "analog_error_simulation",
+                        "deleted_local_imports": deleted_count,
+                        "reason": "strict simulator/tool evidence replaced local analog evidence",
+                    })
+                saved, errors = save_evidence_payload("analog_error_simulation", strict_payload, package_id)
+                if errors:
+                    rejected.append({
+                        "index": "strict-tool",
+                        "source_id": "analog_error_simulation",
+                        "errors": errors,
+                        "tool_readiness": readiness,
+                    })
+                else:
+                    saved["tool_readiness"] = readiness
+                    strict_tool_import = saved
+                    accepted.append(saved)
+            else:
+                rejected.append({
+                    "index": "strict-tool",
+                    "source_id": "analog_error_simulation",
+                    "errors": readiness["issues"],
+                    "tool_readiness": readiness,
+                })
+        except Exception as exc:
+            rejected.append({
+                "index": "strict-tool",
+                "source_id": "analog_error_simulation",
+                "errors": [f"Could not import strict analog tool evidence: {exc}"],
+            })
+
+    if accepted or refreshed_sources:
+        refresh_saved_package_archive(package_id)
+    artifacts, measurement = current_package_measurement_or_404(package_id)
+    claim_readiness = build_claim_readiness(measurement, package_report=artifacts["package"])
+    return {
+        "result_type": "hardware_lab_evidence_import",
+        "package_id": package_id,
+        "source_batch": str(HARDWARE_LAB_EVIDENCE_BATCH),
+        "accepted_count": len(accepted),
+        "rejected_count": len(rejected),
+        "skipped_count": len(skipped),
+        "refreshed_sources": refreshed_sources,
+        "accepted": accepted,
+        "rejected": rejected,
+        "skipped": skipped,
+        "strict_tool_evidence": {
+            "source": str(HARDWARE_LAB_STRICT_TOOL_EVIDENCE),
+            "imported": strict_tool_import is not None,
+            "import_id": strict_tool_import.get("import_id") if strict_tool_import else None,
+        },
+        "measurement_summary": measurement["summary"],
+        "claim_readiness_summary": claim_readiness["summary"],
+    }
+
+
 def build_evidence_audit_from_records(package_id, measurement, claim_readiness, records):
     claims_by_source = {}
     for claim in claim_readiness.get("lab_claims", []):
@@ -1119,6 +1303,7 @@ def build_evidence_audit_from_records(package_id, measurement, claim_readiness, 
             "latest_import_id": latest.get("import_id") if latest else None,
             "latest_created_at": latest.get("created_at") if latest else None,
             "latest_is_local_generated": is_local_generated_import(latest) if latest else False,
+            "latest_proof_level": evidence_proof_level(latest),
             "latest_payload_status": ((latest or {}).get("payload") or {}).get("pass"),
             "local_refresh_behavior": "skipped because non-local evidence exists" if nonlocal_count else "local refresh can replace local-generated evidence" if local_count else "local refresh can add evidence",
             "claims": claims_by_source.get(source_id, []),
@@ -1967,6 +2152,116 @@ async def import_evidence(
     return saved
 
 
+@app.post("/evidence/validate-measured")
+async def validate_measured_evidence(
+    request: Request,
+    source_id: str,
+    package_id: str | None = None,
+    run_id: str | None = None,
+):
+    resolved_package_id = None
+    run = None
+    if package_id or run_id:
+        resolved_package_id, run = package_id_from_package_or_run(package_id=package_id, run_id=run_id)
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Request body must be a JSON measured-evidence artifact.") from exc
+    report = build_validation_report(source_id, payload)
+    report["measured_readiness"] = build_measured_readiness_report(source_id, payload)
+    report["preview"] = evidence_import_preview(
+        source_id,
+        payload=payload,
+        package_id=resolved_package_id,
+        valid=report["valid"],
+        run_id=(run or {}).get("run_id") or run_id,
+    )
+    return report
+
+
+@app.post("/evidence/validate-tool")
+async def validate_tool_evidence(
+    request: Request,
+    source_id: str,
+    package_id: str | None = None,
+    run_id: str | None = None,
+):
+    resolved_package_id = None
+    run = None
+    if package_id or run_id:
+        resolved_package_id, run = package_id_from_package_or_run(package_id=package_id, run_id=run_id)
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Request body must be a JSON tool-evidence artifact.") from exc
+    report = build_validation_report(source_id, payload)
+    report["tool_readiness"] = build_tool_readiness_report(source_id, payload)
+    report["preview"] = evidence_import_preview(
+        source_id,
+        payload=payload,
+        package_id=resolved_package_id,
+        valid=report["valid"],
+        run_id=(run or {}).get("run_id") or run_id,
+    )
+    return report
+
+
+@app.post("/evidence/import-measured")
+async def import_measured_evidence(
+    request: Request,
+    source_id: str,
+    package_id: str | None = None,
+    run_id: str | None = None,
+):
+    resolved_package_id, run = package_id_from_package_or_run(package_id=package_id, run_id=run_id)
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Request body must be a JSON measured-evidence artifact.") from exc
+    readiness = build_measured_readiness_report(source_id, payload)
+    if not readiness["measured_ready"]:
+        raise HTTPException(status_code=400, detail={"message": "Evidence is structurally useful but not measured enough for a measured-claim import.", "measured_readiness": readiness})
+    saved, errors = save_evidence_payload(
+        source_id,
+        payload,
+        resolved_package_id,
+        run_id=(run or {}).get("run_id") or run_id,
+    )
+    if errors:
+        raise HTTPException(status_code=400, detail={"message": "Measured evidence artifact failed validation.", "errors": errors, "measured_readiness": readiness})
+    refresh_saved_package_archive(resolved_package_id)
+    saved["measured_readiness"] = readiness
+    return saved
+
+
+@app.post("/evidence/import-tool")
+async def import_tool_evidence(
+    request: Request,
+    source_id: str,
+    package_id: str | None = None,
+    run_id: str | None = None,
+):
+    resolved_package_id, run = package_id_from_package_or_run(package_id=package_id, run_id=run_id)
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Request body must be a JSON tool-evidence artifact.") from exc
+    readiness = build_tool_readiness_report(source_id, payload)
+    if not readiness["tool_ready"]:
+        raise HTTPException(status_code=400, detail={"message": "Evidence is structurally useful but not ready for the strict tool-evidence import path.", "tool_readiness": readiness})
+    saved, errors = save_evidence_payload(
+        source_id,
+        payload,
+        resolved_package_id,
+        run_id=(run or {}).get("run_id") or run_id,
+    )
+    if errors:
+        raise HTTPException(status_code=400, detail={"message": "Tool evidence artifact failed validation.", "errors": errors, "tool_readiness": readiness})
+    refresh_saved_package_archive(resolved_package_id)
+    saved["tool_readiness"] = readiness
+    return saved
+
+
 @app.post("/evidence/import-batch")
 async def import_evidence_batch(
     request: Request,
@@ -2011,6 +2306,11 @@ async def import_evidence_batch(
 @app.post("/deployment-packages/{package_id}/local-evidence")
 def run_package_local_evidence(package_id: str, force: bool = False):
     return run_and_import_local_evidence(package_id, force=force)
+
+
+@app.post("/deployment-packages/{package_id}/hardware-lab-evidence")
+def import_package_hardware_lab_evidence(package_id: str, force: bool = False):
+    return import_hardware_lab_evidence(package_id, force=force)
 
 
 @app.get("/evidence/imports")
@@ -2706,6 +3006,8 @@ def get_saved_package_artifacts(package_id: str):
         or not bundle["artifacts"].get("compiler_ecosystem_readiness")
         or not bundle["artifacts"].get("physical_ai_roadmap")
         or not bundle["artifacts"].get("source_check_register")
+        or not bundle["artifacts"].get("hardware_placement")
+        or not bundle["artifacts"].get("residual_aware_placement")
     ):
         refresh_saved_package_archive(package_id)
         bundle = STORE.get_package_artifacts(package_id)
@@ -2721,11 +3023,17 @@ def get_saved_package_artifacts(package_id: str):
         or not bundle["artifacts"].get("compiler_ecosystem_readiness")
         or not bundle["artifacts"].get("physical_ai_roadmap")
         or not bundle["artifacts"].get("source_check_register")
+        or not bundle["artifacts"].get("hardware_placement")
     ):
         artifacts = bundle["artifacts"]
         _, measurement = current_package_measurement_or_404(package_id)
         system_boundary = current_package_system_boundary_or_404(package_id)
         derived = {}
+        if not artifacts.get("hardware_placement"):
+            derived["hardware_placement"] = build_hardware_placement(
+                artifacts["analysis"],
+                package_report=artifacts["package"],
+            )
         if not artifacts.get("physical_ai_map"):
             derived["physical_ai_map"] = build_physical_ai_map(
                 artifacts["package"],
@@ -2829,6 +3137,24 @@ def get_saved_decision_report(package_id: str):
 def get_saved_measurement_evidence(package_id: str):
     _, measurement = current_package_measurement_or_404(package_id)
     return measurement
+
+
+@app.get("/deployment-packages/{package_id}/hardware-placement")
+def get_saved_hardware_placement(package_id: str):
+    artifacts = get_saved_package_artifacts(package_id)["artifacts"]
+    placement = artifacts.get("hardware_placement")
+    if not placement:
+        raise HTTPException(status_code=404, detail="Unknown package_id or missing hardware placement.")
+    return placement
+
+
+@app.get("/deployment-packages/{package_id}/residual-aware-placement")
+def get_saved_residual_aware_placement(package_id: str):
+    artifacts = get_saved_package_artifacts(package_id)["artifacts"]
+    placement = artifacts.get("hardware_placement")
+    if not placement:
+        raise HTTPException(status_code=404, detail="Unknown package_id or missing hardware placement.")
+    return load_residual_aware_placement(placement)
 
 
 @app.get("/deployment-packages/{package_id}/workload-fit")

@@ -151,6 +151,7 @@
 <body>
   <header>
     <nav>
+      <a href="connected-system-map.html">Connected System Map</a>
       <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
       <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
       <a href="hardware-tapeout-risk-roadmap.html">Hardware Tape-Out Risks</a>
@@ -198,6 +199,46 @@ Steps 9-11: prove board runtime, power, and task behavior.
 Steps 12-13: prove deployment realities.
 Step 14: say only what the evidence allows.</pre>
       <p>The important pattern is that a weaker proof level cannot quietly become a stronger one. A model parse is not analog fit. Analog fit is not compiler placement. Compiler placement is not board runtime. Board runtime is not power proof. Power proof is not task accuracy. The final answer must keep those boundaries visible.</p>
+    </section>
+
+    <section>
+      <h2>How This Page Fits The Connected System</h2>
+      <p>The proof ladder is the evidence-order page. The <a href="connected-system-map.html">Connected System Map</a> shows the whole object flow. This page explains why the order matters and why later claims cannot be pulled backward into earlier evidence.</p>
+      <div class="grid">
+        <div class="card"><b>Consumes</b><p>Customer workload, model graph, proposed analog/digital placement, current lab evidence, and the claim the frontend wants to say.</p></div>
+        <div class="card"><b>Checks</b><p>Whether the claim is being made from the right proof level: model parse, simulation, compiler placement, RTL, synthesis, routed layout, board measurement, power measurement, task accuracy, or production evidence.</p></div>
+        <div class="card"><b>Produces</b><p>A step-by-step proof order that tells the workbench which artifact must exist before the next claim can be unlocked.</p></div>
+        <div class="card"><b>Next Page</b><p>The <a href="evidence-matrix-plan.html">Evidence Matrix</a> turns this order into concrete allowed and blocked wording.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The Object, Constraint, Evidence, Claim Pattern</h2>
+      <p>Every step below should be read in the same way. First name the object. Then name the constraint acting on it. Then ask what design move is allowed. Then attach evidence. Only then decide what can be said.</p>
+      <table>
+        <tr><th>Part</th><th>Plain Meaning</th><th>Example In This System</th></tr>
+        <tr><td>Object</td><td>The thing being judged.</td><td>Model graph, layer placement, analog residual, governor row, RTL trace, OpenLane report, board trace, power trace, or final claim.</td></tr>
+        <tr><td>Constraint</td><td>The reason the object may fail.</td><td>Converter cost, drift, noise, tile size, memory movement, deadline, unsupported operator, host overhead, thermal limit, or missing measurement.</td></tr>
+        <tr><td>Design Move</td><td>The system decision.</td><td>Run analog, keep digital, split around converter boundary, fall back, retry, calibrate, measure again, or block the claim.</td></tr>
+        <tr><td>Evidence</td><td>The artifact that proves the move happened or remains unproven.</td><td><code>hardware-placement.json</code>, governor CSV, Verilog trace, synthesis report, OpenLane report, imported evidence JSON, or measured board payload.</td></tr>
+        <tr><td>Claim</td><td>The sentence the frontend is allowed to say.</td><td>"This package has local analog sensitivity evidence" is allowed. "This chip has measured energy savings" is blocked until measured power evidence exists.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Current Live Proof Slice</h2>
+      <p>The current connected prototype uses package <code>pkg-e931662a01293df2</code>. The backend emits a hardware-placement artifact, the hardware lab imports it, the lab generates governor rows, RTL checks those rows, the lab records AIHWKIT/CrossSim adapter availability, exports six evidence records, and the backend imports those records back into claim readiness.</p>
+      <pre>backend hardware-placement endpoint
+-> hardware-lab placement import
+-> model-impact governor request rows
+-> Verilog governor check
+-> AIHWKIT/CrossSim adapter status
+-> hardware-lab evidence batch
+-> backend evidence import
+-> claim readiness</pre>
+      <p class="safe">Currently supported: compiler placement discussion and local analog accuracy/sensitivity discussion.</p>
+      <p class="blocked">Currently not supported: measured board latency, measured energy, calibrated silicon, analog macro integration, and production readiness.</p>
+      <p>Review the current proof report at <a href="http://127.0.0.1:8023/research/cross-repo-aimc-loop-proof.html">Cross-Repo AIMC Loop Proof</a> and the measurement upgrade contract at <a href="http://127.0.0.1:8023/research/board-and-power-measurement-boundary.html">Board And Power Measurement Boundary</a>.</p>
     </section>
 
     <section id="step-1">

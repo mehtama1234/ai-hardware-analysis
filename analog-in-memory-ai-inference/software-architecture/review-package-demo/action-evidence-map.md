@@ -2,6 +2,8 @@
 
 This file explains what each future button or import action should do.
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This map uses the same object, constraint, evidence, allowed-claim, refused-claim, and next-handoff contract for every future run or import action.
+
 The goal is simple:
 
 ```text
@@ -13,6 +15,16 @@ When a user clicks run or import, the platform should produce one clear artifact
 A button is not proof.
 
 An action becomes proof only when it creates or imports a validated artifact tied to the same package, workload, chip target, software version, board setup, and measurement setup.
+
+## Connected-System Contract
+
+Each action should follow this shape:
+
+```text
+object -> constraint -> design move -> evidence -> allowed claim -> refused claim -> next handoff
+```
+
+The ordinary import path can attach useful local, simulated, RTL, synthesis, or OpenLane evidence. The measured import path is stricter. It should reject a local runtime trace or OpenLane-derived power estimate when the user is trying to upgrade measured latency or measured energy claims.
 
 ## Run Actions
 
@@ -32,9 +44,9 @@ An action becomes proof only when it creates or imports a validated artifact tie
 
 | Action | What It Imports | Output Artifact | Proof Level | Claim It Can Support | Claim It Cannot Support |
 | --- | --- | --- | --- | --- | --- |
-| Import Board Trace | Board load status, firmware version, run status, latency, jitter, fallback events, failure reason, and debug trace. | `board_runtime.json` | board runtime | The exact package ran or failed on the exact board setup. | It does not prove power, heat, task accuracy, or reliability. |
-| Import Power Trace | Power rails, energy per run, peak power, sampling rate, equipment, board id, firmware id, and package id. | `power_thermal.json` | power measurement when tied to a run | Energy and peak power for the tested setup. | It does not prove task accuracy or long-term reliability. |
-| Import Thermal Trace | Temperature locations, temperature trace, sampling rate, equipment, board id, firmware id, and package id. | `power_thermal.json` | thermal measurement when tied to a run | Heat behavior for the tested setup. | It does not prove accuracy unless paired with task results under the same condition. |
+| Import Board Trace | Board load status, runtime version, run status, repeated latency values, synchronized start/end timestamps, host-overhead boundary, fallback events, failure reason, and debug trace. | `board_runtime.json` | board runtime only when tied to a real board id and revision | The exact package ran or failed on the exact board setup. | It does not prove power, heat, task accuracy, or reliability. |
+| Import Power Trace | Power rails, energy per run, average power, peak power, voltage/current samples, sampling rate, meter identity, runtime trace id, integration window, board id, firmware id, and package id. | `power_thermal.json` | power measurement only when tied to a measured board run | Energy and peak power for the tested setup. | It does not prove task accuracy or long-term reliability. |
+| Import Thermal Trace | Temperature locations, temperature trace, sampling rate, equipment, board id, firmware id, runtime trace id, integration window, and package id. | `power_thermal.json` | thermal measurement only when tied to the same measured run | Heat behavior for the tested setup. | It does not prove accuracy unless paired with task results under the same condition. |
 | Import Task Accuracy | Dataset, scenario, metric, baseline result, candidate result, hardware result when available, tolerance, sample count, and failure slices. | `task_accuracy.json` | task accuracy result | The mapped or hardware-run model still solves the tested task. | It does not prove energy, heat, or update safety. |
 | Import Calibration Trace | Calibration profile, monitor readings, weak tiles, correction values, drift profile, pass/fail status, recalibration commands, and fallback behavior. | `calibration_trace` and related step artifacts | lab or board evidence when measured | The run used a known correction profile under known conditions. | It does not prove long-term reliability unless repeated over time and conditions. |
 | Import Weight Update Report | Update scope, write latency, write energy, endurance, retention, rollback, recalibration, failed-update behavior, and post-update accuracy. | `weight_update_readiness.json` | reliability/update evidence when measured | Whether the chip supports fixed, periodic, adapter, or adaptive update behavior. | It does not prove full adaptive Physical AI without task and fallback evidence. |

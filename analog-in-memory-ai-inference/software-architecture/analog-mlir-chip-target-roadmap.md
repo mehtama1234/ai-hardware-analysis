@@ -1,5 +1,7 @@
 # analog-mlir Chip Target Roadmap
 
+Start from the [Connected System Map](connected-system-map.html). This roadmap uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 ## Purpose
 
 This document explains how `analog-mlir` fits our platform and what we would need to change before it can support a real startup analog chip.
@@ -581,7 +583,7 @@ Compiler mapping cannot support by itself:
 The chip is low power.
 The board meets latency.
 The model keeps task accuracy.
-The chip is production ready.
+Production readiness.
 The system supports adaptive Physical AI.
 ```
 

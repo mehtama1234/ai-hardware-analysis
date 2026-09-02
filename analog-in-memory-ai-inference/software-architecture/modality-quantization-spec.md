@@ -1,5 +1,7 @@
 # Modality-Aware Quantization Spec
 
+Start from the [Connected System Map](connected-system-map.html). This specification uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 ## Purpose
 
 Quantization sensitivity cannot be judged with one generic accuracy number.
@@ -332,4 +334,3 @@ Response:
 - The report must identify sensitive layers.
 - The report must recommend precision per layer or block.
 - The report must explain the primary failure risk in plain language.
-

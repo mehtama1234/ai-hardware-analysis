@@ -1,5 +1,7 @@
 # Platform Roadmap Architecture
 
+Start from the [Connected System Map](connected-system-map.html). This architecture uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 Related compiler target roadmap:
 
 - [analog-mlir Chip Target Roadmap](analog-mlir-chip-target-roadmap.md)

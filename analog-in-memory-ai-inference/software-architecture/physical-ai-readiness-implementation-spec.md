@@ -1,5 +1,7 @@
 # Physical AI Readiness Implementation Spec
 
+Start from the [Connected System Map](connected-system-map.html). This implementation spec uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 ## Purpose
 
 This spec translates the Physical AI and VLA-era writeup into concrete implementation work.

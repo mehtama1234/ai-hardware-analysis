@@ -1,5 +1,7 @@
 # Plain-Language Glossary
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This glossary uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file explains the terms used in the roadmap without assuming chip, compiler, or robotics background.
 
 Use this rule while reading:

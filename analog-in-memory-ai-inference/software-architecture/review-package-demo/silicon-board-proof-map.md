@@ -2,6 +2,8 @@
 
 This file explains what has to happen before the roadmap can claim that the analog chip works on real hardware.
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This file covers the hardware end of the same object, constraint, evidence, claim-boundary, and next-handoff contract.
+
 The short version:
 
 ```text
@@ -15,6 +17,16 @@ Analog chips are sensitive to physical conditions.
 A software model can look accurate. A simulator can look promising. A compiler can produce a plan. None of those prove that the physical chip returned the right answer under real temperature, voltage, timing, power, and calibration conditions.
 
 This map keeps the proof path explicit.
+
+## Connected-System Contract
+
+This file covers the measured-hardware end of the same workflow used by the live workbench:
+
+```text
+model package -> compiler placement -> board runtime -> power and thermal measurement -> calibration comparison -> task result -> claim readiness
+```
+
+Local simulator output, RTL checks, synthesis reports, and OpenLane context are useful earlier evidence. They do not become measured board or measured energy evidence unless the package is run on a real board and measured by a real setup tied to the same runtime trace.
 
 ## End-To-End Hardware Proof Path
 
@@ -298,7 +310,7 @@ Before any strong board claim, the package should contain:
 This map prevents a common mistake:
 
 ```text
-The board responded, so the chip is proven.
+Board response as full chip proof.
 ```
 
 The correct reading is:

@@ -1,5 +1,7 @@
 # Simulation-To-Silicon First-Principles Specification
 
+Start from the [Connected System Map](connected-system-map.html). This specification uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 ## Purpose
 
 This document defines the end-to-end product we are building around Analog In-Memory Computing (AIMC), Physical AI, and transformer/VLA-era workloads.

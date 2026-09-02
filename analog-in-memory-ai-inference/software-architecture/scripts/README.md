@@ -1,5 +1,7 @@
 # AIMC Toolkit Install Scripts
 
+Start from the [Connected System Map](../connected-system-map.html). These scripts use the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 Run this from `ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture`:
 
 ```bash

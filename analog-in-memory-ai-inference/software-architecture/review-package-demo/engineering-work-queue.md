@@ -4,9 +4,21 @@ Package: `demo-analog-roadmap-001`
 
 This file turns the demo package into concrete build work.
 
+Start from the main workbench [Connected System Map](../connected-system-map.html) before using this queue. The queue uses the same object, constraint, evidence, claim-boundary, and next-handoff contract, then turns missing proof into engineering work.
+
 ## Rule
 
 Every stronger claim needs a matching artifact. If the artifact is missing, weak, estimated, simulated, or from the wrong setup, the claim stays blocked.
+
+## Connected-System Contract
+
+Every build item below should produce or improve one object in this chain:
+
+```text
+workload -> model graph -> hardware placement -> analog/simulator evidence -> governor row -> RTL/EDA evidence -> backend import -> claim readiness
+```
+
+The build queue should not create features that only look complete in the UI. A feature is complete only when it emits a named artifact, records provenance, states what claim it can support, and states what stronger claim remains blocked.
 
 ## Build Now
 
@@ -44,11 +56,11 @@ Every stronger claim needs a matching artifact. If the artifact is missing, weak
 
 9. Board runtime
 
-   Define the board trace import contract. Required fields include package id, board id, firmware version, load status, start status, finish status, latency, jitter, failure reason, and debug trace.
+   Define the measured board trace import contract. Required fields include package id, workload id, board id, board revision, runtime version, load status, start status, finish status, repeated latency values, synchronized start/end timestamps, host-overhead boundary, fallback events, failure reason, and debug trace.
 
 10. Power and thermal evidence
 
-   Define import contracts for power rails, energy per run, peak power, temperature trace, equipment, sampling rate, board version, firmware version, and package id.
+   Define measured import contracts for power rails, energy per run, average power, peak power, voltage/current samples, temperature trace, equipment, sampling rate, runtime trace id, integration window, board version, firmware version, and package id.
 
 11. Task accuracy
 

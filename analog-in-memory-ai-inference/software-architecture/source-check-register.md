@@ -1,5 +1,7 @@
 # Source-Check Register
 
+Start from the [Connected System Map](connected-system-map.html). This register uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 Last checked: 2026-08-25
 
 Purpose: keep current company, product, and paper examples out of the app until they have an explicit source, date, and usage decision.

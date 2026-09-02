@@ -8,6 +8,18 @@ The product should take a trained model, analyze whether it fits the hardware, s
 
 The goal is not to build a generic dashboard. The goal is to build the software path that makes the hardware usable.
 
+## Connected-System Contract
+
+This goal now uses the same contract as `connected-system-map.html`.
+
+- **Object:** customer workload, model graph, hardware placement, analog error evidence, governor row, RTL trace, OpenLane report, imported evidence, board trace, power trace, and final claim.
+- **Constraint:** analog error, converter cost, tile size, memory movement, fallback, calibration, timing, power, thermal behavior, update behavior, unsupported operations, and evidence provenance.
+- **Design move:** place work in analog, keep work digital, split around converter boundaries, retry, fall back, calibrate, measure, import, or block.
+- **Evidence:** named JSON artifact, backend endpoint, simulator output, RTL check, synthesis report, OpenLane context, board trace, meter trace, task result, or package archive.
+- **Claim boundary:** supported claims must name their evidence; unsupported measured-board, measured-power, calibrated-silicon, analog-macro, production, or safety claims must remain blocked.
+
+The current live proof slice is package `pkg-e931662a01293df2`. It proves a local model-to-placement-to-lab-to-claim loop. It does not prove measured board latency, measured energy, calibrated silicon behavior, analog macro integration, package reliability, or production readiness.
+
 ```text
 trained model
   -> import

@@ -1,5 +1,7 @@
 # Research Backlog
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This backlog uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This backlog tells the team what to research next before the roadmap is used for investor, customer, or partner decisions.
 
 The goal is simple: every outside claim must be checked, dated, and tied to a roadmap decision. A source can explain why a topic matters. A source cannot prove that our chip works unless the source is a measured result from our chip, our board, our compiler, or our lab setup.

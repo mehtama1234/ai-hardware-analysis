@@ -1,5 +1,7 @@
 # Frontend Design For The Model-Fit Workbench
 
+Start from the [Connected System Map](connected-system-map.html). This design uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 ## Design Goal
 
 The frontend should help a hardware customer answer one question quickly:

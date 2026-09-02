@@ -2,6 +2,8 @@
 
 This folder is a demo evidence package for the analog chip roadmap page.
 
+Start from the main workbench [Connected System Map](../connected-system-map.html) before reading this package. The map explains how this review package fits the larger path from model graph to analog/digital placement, evidence import, claim readiness, and measured-board upgrade.
+
 It is not measured silicon proof. It shows the file shape the product should export after reviewing one workload against one analog chip target.
 
 Each artifact answers five plain questions:
@@ -11,6 +13,16 @@ Each artifact answers five plain questions:
 3. What claim can this support?
 4. What claim must stay blocked?
 5. What should the team build or measure next?
+
+The package should now follow the connected-system contract used by the main workbench pages:
+
+```text
+object -> constraint -> design move -> evidence -> allowed claim -> refused claim -> next handoff
+```
+
+That means every exported package file should make the evidence level explicit. A local simulator result, RTL check, synthesis report, OpenLane context, board trace, meter trace, task result, and production qualification record are different kinds of proof. The package must not let one substitute for another.
+
+For the current live AIMC package, `C1` placement and `C4` bounded local accuracy/sensitivity are supported, `C2` latency and `C3` energy need review, and production readiness remains blocked.
 
 The package should remain useful after a meeting. A reader should be able to open the files and understand what was tested, what was estimated, what was only assumed, and what is still missing.
 

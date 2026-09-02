@@ -1,5 +1,7 @@
 # Source Review Register
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This register uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This register explains how outside research and company examples may be used in the roadmap.
 
 Outside sources can explain why a topic matters. They do not prove that our analog chip works. They do not prove compatibility, measured speed, measured power, calibration behavior, production readiness, or customer deployment.

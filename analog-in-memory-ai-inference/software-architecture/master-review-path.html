@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analog AI Master Review Path</title>
+  <style>
+    :root{--bg:#f7f7f5;--panel:#fff;--soft:#eef2ee;--text:#1d211d;--muted:#60675f;--line:#dfe3dd;--accent:#536f35;--warn:#966b00;--bad:#a33b3b;--code:#edf1ec}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.58}
+    header,main{max-width:1120px;margin:0 auto;padding:28px 22px}nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+    nav a,.pill{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 10px;color:var(--accent);font-size:14px;font-weight:800;text-decoration:none}
+    a{color:var(--accent);font-weight:800;text-decoration:none}a:hover{text-decoration:underline}
+    h1{margin:0 0 12px;font-size:clamp(31px,5vw,52px);line-height:1.05;letter-spacing:0}h2{margin:34px 0 12px;font-size:28px;line-height:1.15;letter-spacing:0}h3{margin:0 0 8px;font-size:18px;letter-spacing:0}
+    p{margin:8px 0}.lead{max-width:920px;font-size:19px;font-weight:650}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:14px}
+    .card,.band{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}.band{margin:14px 0}.k{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:900;letter-spacing:.08em}
+    code,pre{background:var(--code);border-radius:6px;padding:2px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}pre{overflow:auto;padding:14px}
+    table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);display:block;overflow:auto}th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:var(--soft)}
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="connected-system-map.html">Connected System Map</a>
+      <a href="combined-system-end-to-end-workflow.html">Combined Workflow</a>
+      <a href="index.html">Workbench</a>
+      <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
+      <a href="evidence-matrix-plan.html">Evidence Matrix</a>
+      <a href="company-roadmap-end-to-end.html">Company Roadmap</a>
+    </nav>
+    <div class="k">start here</div>
+    <h1>Analog AI Master Review Path</h1>
+    <p class="lead">This is the reading and build order for the combined analog in-memory AI system. Start with the <a href="connected-system-map.html">Connected System Map</a>, then use this page to inspect the detailed proof path across strategy pages, frontend/backend implementation, compiler and simulator plans, and the newer hardware evidence lab.</p>
+  </header>
+  <main>
+    <section class="band">
+      <h2>The One Question</h2>
+      <p>Can a real model safely move some repeated matrix work into analog in-memory hardware, while digital logic keeps control of the places where small errors change the answer?</p>
+      <pre>model graph
+  -> placement boundary
+  -> analog error
+  -> model sensitivity
+  -> digital decision
+  -> RTL proof
+  -> physical-design evidence
+  -> evidence package
+  -> allowed claim</pre>
+    </section>
+
+    <section class="band">
+      <h2>How To Read The System</h2>
+      <p>Do not read these pages as a chip pitch. Read them as a chain of proof. The first object is the model graph. The graph is split into work that might tolerate analog error and work that should stay digital. The analog lab then asks how much error the tile creates. The model lab asks whether that error changes the answer. The digital controller decides when analog is allowed. RTL, synthesis, and OpenLane evidence ask whether that controller can become hardware. The frontend should only make the claim that this chain supports.</p>
+      <p>This is the standard for the rest of the pages: name the object, name the constraint, name the design move, show the evidence, and state the remaining failure mode.</p>
+    </section>
+
+    <section class="band">
+      <h2>Page Contract</h2>
+      <p>Every page in the review path should say what it consumes, what it produces, what claim it supports, and what stronger claim it refuses. That keeps the workbench, hardware lab, backend package, and frontend answer in one language.</p>
+      <table>
+        <thead><tr><th>Step</th><th>Consumes</th><th>Produces</th><th>Supports</th><th>Refuses</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend workbench</td><td>Model package, evidence records, hardware placement, claim readiness</td><td>User-facing answer</td><td>Narrow package claims backed by current evidence</td><td>Any claim hidden behind broad words like validated or ready</td></tr>
+          <tr><td>Backend hardware placement</td><td>Analyzed model graph</td><td>Analog candidates, digital-only regions, converter boundaries, fallback points</td><td>Model-to-hardware handoff exists</td><td>That placement is safe before analog error and model sensitivity are checked</td></tr>
+          <tr><td>Hardware lab</td><td>Placement rows, analog settings, local measurements</td><td>Residuals, sensitivity rows, governor requests, evidence batch</td><td>Local analog/model evidence exists for selected cases</td><td>Measured board, measured energy, calibrated silicon, or full model quality</td></tr>
+          <tr><td>RTL and EDA labs</td><td>Governor rows and controller RTL</td><td>Checked traces, synthesis reports, OpenLane physical-flow evidence</td><td>The control rule can become logic and selected physical artifacts</td><td>Signoff, macro integration, package reliability, or tapeout readiness</td></tr>
+          <tr><td>Claim readiness</td><td>Imported evidence records and provenance</td><td>Supported, needs-review, and blocked claims</td><td>The system refuses unsupported claims explicitly</td><td>Turning local lab proof into production language</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="band">
+      <h2>The Claim Ladder</h2>
+      <table>
+        <thead><tr><th>Evidence Level</th><th>What It Means</th><th>What It Cannot Claim</th></tr></thead>
+        <tbody>
+          <tr><td>Local simulation</td><td>The model or analog assumption was tested in local code with recorded inputs and outputs.</td><td>It cannot claim measured hardware behavior.</td></tr>
+          <tr><td>Model sensitivity</td><td>The same analog error was tested at different model locations to see where it changes choices.</td><td>It cannot claim full pretrained-model quality.</td></tr>
+          <tr><td>RTL checked</td><td>The digital rule was represented as Verilog and checked against generated cases.</td><td>It cannot claim physical timing, routing, or power.</td></tr>
+          <tr><td>Synthesized</td><td>The controller logic lowered into gates in the selected flow.</td><td>It cannot claim final layout or manufacturability.</td></tr>
+          <tr><td>OpenLane routed</td><td>The selected digital block completed an educational physical-design flow under recorded constraints.</td><td>It cannot claim signoff tapeout readiness.</td></tr>
+          <tr><td>Backend package imported</td><td>The old workbench can attach evidence to a model package and compute allowed or blocked claims.</td><td>It cannot erase missing silicon, board, power, thermal, or reliability evidence.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <h2>Read In This Order</h2>
+    <div class="grid">
+      <article class="card">
+        <div class="k">1</div>
+        <h3><a href="combined-system-end-to-end-workflow.html">Combined Workflow</a></h3>
+        <p>Shows the whole system as one path from customer model to frontend claim.</p>
+        <p><strong>Consumes:</strong> old workbench pages, backend behavior, current-lab evidence, and cross-repo proof.</p>
+        <p><strong>Produces:</strong> shared mental model for all other pages.</p>
+        <p><strong>Supports:</strong> the two repos should be read as one workflow.</p>
+        <p><strong>Refuses:</strong> treating a connected prototype loop as measured silicon proof.</p>
+      </article>
+      <article class="card">
+        <div class="k">2</div>
+        <h3><a href="index.html">Frontend Workbench</a></h3>
+        <p>Shows the product surface where model fit, evidence, adapters, packages, claims, and hardware-lab evidence are reviewed.</p>
+        <p><strong>Consumes:</strong> model package, backend placement, imported evidence, evidence audit, and claim readiness.</p>
+        <p><strong>Produces:</strong> the user-facing review surface for imported analog, RTL, synthesis, and OpenLane evidence. Load package <code>pkg-e931662a01293df2</code> to see the first connected hardware-lab evidence result.</p>
+        <p><strong>Supports:</strong> narrow package claims backed by active evidence.</p>
+        <p><strong>Refuses:</strong> hiding needs-review or blocked claims behind a single success badge.</p>
+      </article>
+      <article class="card">
+        <div class="k">3</div>
+        <h3><a href="customer-workload-intake-plan.html">Customer Intake</a></h3>
+        <p>Defines the model, task, timing, power, environment, update, and safety facts needed before a claim is meaningful.</p>
+        <p><strong>Consumes:</strong> user model, workload, device context, latency target, power target, update needs, and operating environment.</p>
+        <p><strong>Produces:</strong> workload record.</p>
+        <p><strong>Supports:</strong> judging analog fit against a real use case.</p>
+        <p><strong>Refuses:</strong> chip claims detached from workload constraints.</p>
+      </article>
+      <article class="card">
+        <div class="k">4</div>
+        <h3><a href="proof-ladder-step-by-step.html">Proof Ladder</a></h3>
+        <p>Orders the proof steps from workload definition through final answer.</p>
+        <p><strong>Consumes:</strong> workload record, proposed claim, and available evidence level.</p>
+        <p><strong>Produces:</strong> step-by-step proof map.</p>
+        <p><strong>Supports:</strong> moving from local simulation toward stronger evidence without skipping levels.</p>
+        <p><strong>Refuses:</strong> calling simulation, RTL, layout, board measurement, and production signoff the same kind of proof.</p>
+      </article>
+      <article class="card">
+        <div class="k">5</div>
+        <h3><a href="analog-mlir-to-silicon-compiler-plan.html">Compiler Plan</a></h3>
+        <p>Explains how model operators become analog candidates, digital-only regions, converter boundaries, and fallback points.</p>
+        <p><strong>Consumes:</strong> model graph, operator roles, tensor movement, hardware target assumptions, and analog/digital constraints.</p>
+        <p><strong>Produces:</strong> placement requirements.</p>
+        <p><strong>Supports:</strong> a compiler handoff that names analog candidates and digital escape paths.</p>
+        <p><strong>Refuses:</strong> claiming full compiler lowering from a placement sketch.</p>
+      </article>
+      <article class="card">
+        <div class="k">6</div>
+        <h3><a href="aihwkit-tool-stack-plan.html">AIHWKIT Plan</a></h3>
+        <p>Explains what analog simulation can and cannot prove for neural-network weights, noise, drift, and converters.</p>
+        <p><strong>Consumes:</strong> candidate layers, weight ranges, noise/drift assumptions, converter assumptions, and model task metric.</p>
+        <p><strong>Produces:</strong> simulator adapter requirements.</p>
+        <p><strong>Supports:</strong> analog accuracy-risk experiments under stated assumptions.</p>
+        <p><strong>Refuses:</strong> measured board behavior, measured power, or calibrated silicon accuracy.</p>
+      </article>
+      <article class="card">
+        <div class="k">7</div>
+        <h3><a href="simulator-calibration-plan.html">Simulator Calibration</a></h3>
+        <p>Explains how assumed analog behavior becomes stronger evidence only after comparison to better measurements.</p>
+        <p><strong>Consumes:</strong> simulator output, local analog measurements, calibration target, and mismatch/drift assumptions.</p>
+        <p><strong>Produces:</strong> calibration evidence levels.</p>
+        <p><strong>Supports:</strong> ranking simulator trust by comparison to stronger observations.</p>
+        <p><strong>Refuses:</strong> trusting a simulator because it has a precise-looking number.</p>
+      </article>
+      <article class="card">
+        <div class="k">8</div>
+        <h3><a href="evidence-matrix-plan.html">Evidence Matrix</a></h3>
+        <p>Defines which words are allowed for simulated, measured, RTL-verified, synthesized, routed, or blocked claims.</p>
+        <p><strong>Consumes:</strong> proposed claim and evidence source type.</p>
+        <p><strong>Produces:</strong> claim rulebook.</p>
+        <p><strong>Supports:</strong> matching wording to proof level.</p>
+        <p><strong>Refuses:</strong> overclaiming from incomplete or mismatched evidence.</p>
+      </article>
+      <article class="card">
+        <div class="k">9</div>
+        <h3><a href="hardware-tapeout-risk-roadmap.html">Tapeout Risk</a></h3>
+        <p>Names physical risks that still block production claims: ADC cost, heat, noise, process, chiplets, and layout.</p>
+        <p><strong>Consumes:</strong> architecture assumptions, memory choice, converter costs, layout evidence, power estimates, and packaging needs.</p>
+        <p><strong>Produces:</strong> physical-risk backlog.</p>
+        <p><strong>Supports:</strong> deciding which physical risks still need evidence.</p>
+        <p><strong>Refuses:</strong> production readiness without silicon, reliability, packaging, test, and signoff evidence.</p>
+      </article>
+      <article class="card">
+        <div class="k">10</div>
+        <h3><a href="http://127.0.0.1:8023/research/ai-hardware-architecture-to-working-lab-bridge.html">Hardware Lab Bridge</a></h3>
+        <p>Maps this workbench to concrete analog, RTL, synthesis, and OpenLane artifacts in the newer repo.</p>
+        <p><strong>Consumes:</strong> old architecture requirements and new lab artifacts.</p>
+        <p><strong>Produces:</strong> implemented-proof map.</p>
+        <p><strong>Supports:</strong> seeing which architecture claims now have working artifacts.</p>
+        <p><strong>Refuses:</strong> treating partial lab artifacts as full AIHWKIT, CrossSim, board, or silicon proof.</p>
+      </article>
+      <article class="card">
+        <div class="k">11</div>
+        <h3><a href="http://127.0.0.1:8023/research/combined-aimc-workbench-end-to-end-goal.html">Combined Build Goal</a></h3>
+        <p>States the actual development work needed to make both repos behave as one connected system.</p>
+        <p><strong>Consumes:</strong> frontend, backend, hardware lab, evidence ledger, and proof reports.</p>
+        <p><strong>Produces:</strong> build plan and acceptance criteria.</p>
+        <p><strong>Supports:</strong> the current end-to-end development target.</p>
+        <p><strong>Refuses:</strong> declaring the whole system done while page flow, measured board evidence, or claim boundaries remain incomplete.</p>
+      </article>
+      <article class="card">
+        <div class="k">12</div>
+        <h3><a href="http://127.0.0.1:8023/research/aimc-evidence-ledger.html">Hardware Evidence Ledger</a></h3>
+        <p>Lists each current proof artifact, what it proves, what it does not prove, and what should be imported into the backend.</p>
+        <p><strong>Consumes:</strong> analog, RTL, synthesis, OpenLane, backend-import, and cross-repo proof artifacts.</p>
+        <p><strong>Produces:</strong> evidence import source of truth.</p>
+        <p><strong>Supports:</strong> explaining why C1, C4, and C5 are supported while C2 and C3 need review.</p>
+        <p><strong>Refuses:</strong> turning local runtime and OpenLane estimates into measured board and power claims.</p>
+      </article>
+      <article class="card">
+        <div class="k">13</div>
+        <h3><a href="http://127.0.0.1:8023/research/board-and-power-measurement-boundary.html">Board And Power Boundary</a></h3>
+        <p>Defines what must be measured before latency and energy claims can be upgraded.</p>
+        <p><strong>Consumes:</strong> runtime trace, board setup, meter setup, voltage/current samples, thermal setup, workload ID, and host-overhead rule.</p>
+        <p><strong>Produces:</strong> measured-runtime and measured-energy evidence requirements.</p>
+        <p><strong>Supports:</strong> the exact next experiment for C2 and C3.</p>
+        <p><strong>Refuses:</strong> combining unrelated runtime and power estimates as measured evidence.</p>
+      </article>
+      <article class="card">
+        <div class="k">14</div>
+        <h3><a href="http://127.0.0.1:8023/research/aimc-page-flow-audit.html">Page Flow Audit</a></h3>
+        <p>Names which pages already carry the proof chain and which pages need richer handoffs.</p>
+        <p><strong>Consumes:</strong> the current old and new page set.</p>
+        <p><strong>Produces:</strong> rewrite batches for making the whole review path seamless.</p>
+        <p><strong>Supports:</strong> planning page rewrites from actual gaps, not taste.</p>
+        <p><strong>Refuses:</strong> adding pages that do not improve the evidence chain.</p>
+      </article>
+      <article class="card">
+        <div class="k">15</div>
+        <h3><a href="http://127.0.0.1:8023/research/current-aimc-system-state.html">Current AIMC System State</a></h3>
+        <p>Summarizes what is supported, what needs review, and what remains blocked in the current package.</p>
+        <p><strong>Consumes:</strong> cross-repo proof, simulator status, residual-aware placement, backend claim readiness, and measured-evidence boundaries.</p>
+        <p><strong>Produces:</strong> the short browser-reviewable current answer.</p>
+        <p><strong>Supports:</strong> starting a review without reading every artifact first.</p>
+        <p><strong>Refuses:</strong> treating supported local claims as production readiness.</p>
+      </article>
+      <article class="card">
+        <div class="k">16</div>
+        <h3><a href="http://127.0.0.1:8023/research/simulator-to-placement-decision-boundary.html">Simulator To Placement Boundary</a></h3>
+        <p>Explains why AIHWKIT and CrossSim payloads do not automatically become analog placement permission.</p>
+        <p><strong>Consumes:</strong> simulator payload status, strict importer result, residual threshold, backend operator family, and source matching policy.</p>
+        <p><strong>Produces:</strong> the rule for keeping a structural analog candidate analog-allowed.</p>
+        <p><strong>Supports:</strong> bounded analog placement for matched fixed-weight MatMul rows.</p>
+        <p><strong>Refuses:</strong> using simulator availability, threshold-fail output, or wrong-family evidence as placement proof.</p>
+      </article>
+      <article class="card">
+        <div class="k">17</div>
+        <h3><a href="http://127.0.0.1:8023/research/measured-runtime-power-claim-upgrade-path.html">Measured Runtime And Power Path</a></h3>
+        <p>Explains exactly how latency and energy claims move from needs-review to supported.</p>
+        <p><strong>Consumes:</strong> board runtime, meter trace, voltage/current samples, runtime trace ID, package, workload, board, run window, and host-overhead boundary.</p>
+        <p><strong>Produces:</strong> the upgrade rule for C2 measured latency and C3 measured energy.</p>
+        <p><strong>Supports:</strong> measured claims only for the exact synchronized run.</p>
+        <p><strong>Refuses:</strong> combining local RTL timing, OpenLane estimates, or mismatched meter traces into measured energy.</p>
+      </article>
+    </div>
+
+    <h2>What Must Become Seamless</h2>
+    <table>
+      <thead><tr><th>Current Gap</th><th>Why It Breaks Flow</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>Pages explain adjacent ideas but do not always name previous and next steps.</td><td>The reader has to infer the workflow.</td><td>Add flow blocks: question, input, output, previous page, next page, evidence used.</td></tr>
+        <tr><td>Old workbench has evidence APIs, but hardware-lab evidence is not imported automatically.</td><td>The frontend cannot yet show the real RTL/OpenLane proof.</td><td>Build a hardware-lab evidence exporter and backend import adapter.</td></tr>
+        <tr><td>Compiler plan and ONNX backend are not yet connected to scheduler/governor traces.</td><td>Placement decisions remain partly manual.</td><td>Add a placement mini-pass that converts graph operators into analog/digital schedule records.</td></tr>
+        <tr><td>AIHWKIT and CrossSim are installed and exercised through the current bridge.</td><td>Simulator claims still remain bounded: a payload must come from a real run, satisfy the adapter contract, pass backend strict-tool readiness, and match the placement source before it can support analog permission.</td><td>Review <a href="http://127.0.0.1:8023/research/current-simulator-adapter-status.html">current simulator status</a>, <a href="http://127.0.0.1:8023/research/analog-simulator-adapter-output-contract.html">adapter output contract</a>, and <a href="http://127.0.0.1:8023/research/simulator-to-placement-decision-boundary.html">simulator-to-placement boundary</a>; patch external tools only if wrapper output cannot expose the needed evidence fields.</td></tr>
+        <tr><td>Hardware proof exists but is spread across CSV, Markdown, Verilog, synthesis logs, OpenLane reports, simulator payloads, and backend archives.</td><td>The claim boundary is hard to audit.</td><td>Use the evidence ledger, simulator-to-placement boundary, and measured-runtime/power path as the browser review sequence.</td></tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

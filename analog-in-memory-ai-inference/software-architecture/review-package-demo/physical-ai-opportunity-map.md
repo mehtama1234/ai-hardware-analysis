@@ -1,5 +1,7 @@
 # Physical AI Opportunity Map
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This map uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file explains where an analog inference chip may fit across Physical AI.
 
 It is market framing, not chip proof. It helps choose where to test first.

@@ -29,6 +29,7 @@ def _active_evidence_rows(evidence_audit):
             "nonlocal_count": source.get("nonlocal_count", 0),
             "latest_import_id": source.get("latest_import_id"),
             "latest_is_local_generated": source.get("latest_is_local_generated", False),
+            "latest_proof_level": source.get("latest_proof_level", "missing"),
             "latest_payload_status": source.get("latest_payload_status"),
             "refresh_behavior": source.get("local_refresh_behavior"),
         })
@@ -68,7 +69,7 @@ def _what_to_say(package_report, claim_rows, evidence_audit):
     return [
         f"This package is for {summary.get('target_profile', 'the selected target')} and {summary.get('modality', 'the selected workload')}, not for every edge AI use case.",
         f"The current evidence set supports {len(supported)} lab claim(s) and leaves {len(needs_review)} lab claim(s) needing review.",
-        f"There are {nonlocal_sources} required evidence source(s) with non-local evidence attached.",
+        f"There are {nonlocal_sources} required evidence source(s) with evidence above local replay level attached.",
         "The useful comparison is completed inference at a fixed accuracy, latency, and energy target.",
         "Analog compute is most compelling when repeated matrix-style inference work is power or heat limited and the model can tolerate the numeric behavior of the analog path.",
     ]
@@ -132,7 +133,7 @@ def _readiness_ladder(claim_rows, active_evidence):
             "name": "Evidence-backed lab claims",
             "status": "allowed" if supported else "blocked",
             "what_it_allows": f"You can make the supported lab claim(s): {', '.join(claim['name'] for claim in supported) or 'none yet'}.",
-            "evidence_needed": "Attach normalized compiler, runtime, power, analog-error, and task-accuracy artifacts for each claim you want to make.",
+            "evidence_needed": "Attach normalized compiler, runtime, power, analog-error, task-accuracy, and physical-flow artifacts for each claim you want to make.",
             "do_not_cross": "Do not use one supported lab claim as proof for another claim.",
         },
         {
@@ -140,7 +141,7 @@ def _readiness_ladder(claim_rows, active_evidence):
             "name": "Measured workload claim",
             "status": "allowed" if all_lab_supported and nonlocal_sources >= 5 and local_latest == 0 else "needs evidence",
             "what_it_allows": "You can discuss completed-inference accuracy, latency, and energy for one defined model, dataset, hardware setup, and target condition.",
-            "evidence_needed": "Use non-local board or external-tool evidence for every required source, with passing payload checks and counted-cost details.",
+            "evidence_needed": "Use calibrated simulator evidence, measured board runtime, measured power, and external tool evidence for the required sources, with passing payload checks and counted-cost details.",
             "do_not_cross": "Do not generalize one workload result to all edge AI or all model classes.",
         },
         {
@@ -169,7 +170,7 @@ def _markdown(package_report, claim_rows, active_evidence, readiness_ladder, wha
         "| --- | ---: | ---: | ---: | --- |",
     ]
     for row in active_evidence:
-        latest = "local" if row.get("latest_is_local_generated") else "non-local" if row.get("latest_import_id") else "missing"
+        latest = row.get("latest_proof_level") or "missing"
         evidence_table.append(
             f"| {row.get('source_id', 'source')} | {row.get('imported_count', 0)} | {row.get('local_generated_count', 0)} | {row.get('nonlocal_count', 0)} | {latest} |"
         )

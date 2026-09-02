@@ -1,5 +1,7 @@
 # Backend Prototype
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). The backend turns each object, constraint, design move, evidence record, allowed claim, refused claim, and next handoff into API data.
+
 This is the first real backend slice for the model-fit workbench.
 
 It imports an ONNX model, extracts the graph, classifies operators against a simple hardware capability profile, estimates analog/digital boundaries, and returns JSON shaped like the frontend mock data.
@@ -76,6 +78,10 @@ POST /adapters/{adapter_id}/run
 POST /deployment-packages/{package_id}/local-evidence
 POST /evidence/validate
 POST /evidence/import
+POST /evidence/validate-tool
+POST /evidence/import-tool
+POST /evidence/validate-measured
+POST /evidence/import-measured
 POST /evidence/import-batch
 GET  /evidence/imports
 GET  /calibration-profiles

@@ -10,13 +10,33 @@
 </head>
 <body>
   <header>
-    <nav><a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a><a href="customer-workload-intake-plan.html">Intake</a><a href="evidence-matrix-plan.html">Evidence Matrix</a><a href="memory-technology-decision-plan.html">Memory Decision</a><a href="benchmark-suite-plan.html">Benchmarks</a><a href="simulator-calibration-plan.html">Calibration</a></nav>
+    <nav><a href="connected-system-map.html">Connected System Map</a><a href="page-contract-audit.html">Page Audit</a><a href="six-gap-end-to-end-goal.html">Six-Gap Goal</a><a href="customer-workload-intake-plan.html">Intake</a><a href="evidence-matrix-plan.html">Evidence Matrix</a><a href="memory-technology-decision-plan.html">Memory Decision</a><a href="benchmark-suite-plan.html">Benchmarks</a><a href="simulator-calibration-plan.html">Calibration</a></nav>
     <h1>Timing And Latency Budget Plan</h1>
     <p class="lead">This page defines how to measure whether analog compute helps the complete Physical AI loop, not just one matrix operation.</p>
     <p class="question">Question: does the full sensor-to-action path meet the timing deadline?</p>
     <div class="warning"><strong>Rule:</strong><p>Average analog-core latency is not enough. Robotics and safety claims need full-path and worst-case timing.</p></div>
   </header>
   <main>
+    <section>
+      <h2>How This Page Fits The Connected System</h2>
+      <p>The <a href="connected-system-map.html">Connected System Map</a> treats latency as a claim that must be earned. This page defines what must be counted before the backend can move <code>C2</code> from needs review toward measured runtime.</p>
+      <table>
+        <tr><th>Role</th><th>Concrete Meaning</th></tr>
+        <tr><td>Consumes</td><td>Workload deadline, sensor path, analog/digital placement, converter schedule, digital fallback, host overhead, runtime trace, and board identity when measured hardware exists.</td></tr>
+        <tr><td>Checks</td><td>Whether the complete loop meets average and worst-case timing after sensor, AFE, DAC, analog compute, ADC, digital helper logic, memory movement, safety filter, and output are counted.</td></tr>
+        <tr><td>Produces</td><td><code>latency_budget.json</code>, timing bottleneck report, and eventually a measured <code>board_runtime</code> payload with board ID, repeated latency values, synchronized run window, and host-overhead boundary.</td></tr>
+        <tr><td>Feeds</td><td>Evidence import, measured-evidence gate, claim readiness, and the frontend proof-chain panel.</td></tr>
+        <tr><td>Refuses</td><td>Calling local RTL/runtime traces, analog-core speed, or estimated stage timing a measured board-latency claim.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Current Evidence Boundary</h2>
+      <p>The current package <code>pkg-e931662a01293df2</code> has useful local runtime evidence. It shows the controller path, fallback events, generated cases, synthesis context, and OpenLane context. It is not measured board runtime.</p>
+      <p>To upgrade the claim, the next evidence must be a board run tied to the same workload and package. It must include board ID, board revision, runtime version, start and end timestamps, repeated latency values such as p50 and p95, trace samples, and a clear statement about host overhead.</p>
+      <p>Review the exact measured-runtime field contract in <a href="http://127.0.0.1:8023/research/board-and-power-measurement-boundary.html">Board And Power Measurement Boundary</a>.</p>
+    </section>
+
     <section>
       <h2>Plain-Language Vocabulary</h2>
       <p>Latency means delay. If a sensor sees something now but the system reacts too late, the AI may be correct and still fail the physical task.</p>

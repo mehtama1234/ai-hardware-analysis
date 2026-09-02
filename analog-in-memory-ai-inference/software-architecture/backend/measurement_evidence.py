@@ -37,6 +37,13 @@ REQUIRED_SOURCES = [
         "artifact_name": "task-accuracy-report.json",
         "minimum_fields": ["dataset_id", "metric_name", "baseline_metric", "candidate_metric", "tolerance", "pass"],
     },
+    {
+        "id": "physical_flow",
+        "adapter_category": "physical design",
+        "required_for": "bounded digital controller physical-flow claims",
+        "artifact_name": "physical-flow-report.json",
+        "minimum_fields": ["design_name", "flow_name", "flow_status", "artifacts", "checks", "timing", "claim_boundary", "provenance"],
+    },
 ]
 
 
@@ -115,6 +122,12 @@ def _claim_status(sources):
             "status": "supported" if imported("analog_error_simulation") and imported("task_accuracy") else "blocked",
             "required_sources": ["analog_error_simulation", "task_accuracy"],
             "plain_rule": "Do not say accuracy is preserved until task accuracy and analog error evidence are attached.",
+        },
+        {
+            "claim": "Digital controller physical flow is evidence-backed",
+            "status": "supported" if imported("physical_flow") else "blocked",
+            "required_sources": ["physical_flow"],
+            "plain_rule": "Do not say physical flow is backed until a routed OpenLane or equivalent physical-flow artifact is attached.",
         },
         {
             "claim": "Ready for production comparison",

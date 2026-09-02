@@ -1,5 +1,7 @@
 # Frontend 1-14 User Journey Design
 
+Start from the [Connected System Map](connected-system-map.html). This journey uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 Related completion target:
 
 - [Platform Completion End-To-End Goal](platform-completion-end-to-end-goal.md)

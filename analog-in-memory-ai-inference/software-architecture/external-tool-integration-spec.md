@@ -18,6 +18,22 @@ ONNX model
 
 External tools should be added later behind backend adapters. The frontend should not know whether a result came from a mock estimate, simulator, compiler run, board run, or production device. It should only show the result, provenance, and confidence level.
 
+## Connected-System Contract
+
+Every external tool integration must fit the object, constraint, evidence, and claim-boundary flow in `connected-system-map.html`.
+
+- **Compiler tools** emit placement, analog/digital split, converter boundaries, unsupported operations, fallback points, and runtime-package evidence.
+- **Simulator tools** emit analog error, drift, noise, converter, calibration, and task-sensitivity evidence under named assumptions.
+- **Board tools** emit measured runtime evidence tied to package, workload, board ID, board revision, runtime version, repeated latency values, synchronized run window, and host-overhead boundary.
+- **Power and thermal tools** emit measured rail, meter identity, voltage/current samples, temperature samples, integration window, runtime trace ID, and host-overhead boundary.
+- **Task tools** emit dataset or fixture identity, baseline metric, candidate metric, tolerance, and pass/fail result.
+
+The ordinary import path may attach useful local or simulated evidence. The measured import path must reject structurally useful evidence that is not measured enough for a measured claim. The backend regression command is:
+
+```bash
+./.venv/bin/python scripts/check_measured_evidence_readiness.py
+```
+
 ## Phased Integration
 
 ### Phase 1: Local Estimated Analysis

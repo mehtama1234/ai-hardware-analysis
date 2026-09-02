@@ -770,6 +770,10 @@
         <span>Analog in-memory AI inference</span>
       </div>
       <a class="ghost" href="toolkit-results-first-principles.html">Toolkit Results</a>
+      <a class="ghost" href="connected-system-map.html">System Map</a>
+      <a class="ghost" href="analog-digital-execution-plan.html">Execution Plan</a>
+      <a class="ghost" href="current-proof-ledger.html">Proof Ledger</a>
+      <a class="ghost" href="page-contract-audit.html">Evidence Audit</a>
       <div class="select-wrap">
         <span class="label">Project</span>
         <select id="projectSelect" aria-label="Project">
@@ -855,6 +859,7 @@
           <button id="buildPackage" class="ghost" type="button">Build Package Report</button>
           <button id="buildMeasurementEvidence" class="ghost" type="button">Build Measurement Evidence</button>
           <button id="runLocalEvidence" class="ghost" type="button">Run Local Evidence</button>
+          <button id="importHardwareLabEvidence" class="ghost" type="button">Import Hardware Lab</button>
           <button id="importSampleEvidence" class="ghost" type="button">Import Sample Evidence</button>
           <button id="runEvidenceGates" class="ghost" type="button">Run Evidence Gates</button>
           <button id="buildReviewReport" class="ghost" type="button">Build Review Report</button>
@@ -867,7 +872,7 @@
           <button id="refreshRegistry" class="ghost" type="button">Refresh Registry</button>
           <button id="refreshAdapters" class="ghost" type="button">Refresh Adapters</button>
           <button id="resetMock" class="ghost" type="button">Reset Mock</button>
-          <p id="backendStatus" class="status-line">Backend target: http://127.0.0.1:8020. Create a project, then import an ONNX model to replace mock data with real graph analysis.</p>
+          <p id="backendStatus" class="status-line">Backend target: http://127.0.0.1:8025. Create a project, then import an ONNX model to replace mock data with real graph analysis.</p>
         </section>
 
         <section class="evidence-import-panel">
@@ -882,13 +887,21 @@
             </select>
           </label>
           <label>
+            <span class="label">Import mode</span>
+            <select id="customEvidenceMode" aria-label="Evidence import mode">
+              <option value="ordinary">Ordinary evidence</option>
+              <option value="tool">Strict simulator/tool evidence</option>
+              <option value="measured">Strict measured board/power evidence</option>
+            </select>
+          </label>
+          <label>
             <span class="label">Load JSON file</span>
             <input id="customEvidenceFile" class="file-input" type="file" accept=".json,application/json">
           </label>
           <label>
             <span class="label">Normalized JSON artifact</span>
             <textarea id="customEvidenceJson" spellcheck="false" placeholder='{"dataset_id":"my-dataset","metric_name":"classification_accuracy","baseline_metric":0.97,"candidate_metric":0.965,"tolerance":0.01,"pass":true}'></textarea>
-            <span id="customEvidenceValidation" class="sub">Template fields will be checked before import.</span>
+            <span id="customEvidenceValidation" class="sub">Template fields will be checked before import. Use strict simulator/tool mode for AIHWKIT, CrossSim, SPICE, or calibrated analog simulator payloads.</span>
           </label>
           <div class="toolbar">
             <button id="loadEvidenceTemplate" class="ghost" type="button">Load Template</button>
@@ -1544,6 +1557,29 @@
 
         <section class="section split">
           <div class="panel">
+            <span class="label">Hardware lab evidence</span>
+            <h2>What Did The Chip Lab Add?</h2>
+            <p id="hardwareLabSummary" class="sub">Import the hardware-lab evidence batch to see analog error, model sensitivity, RTL/runtime, synthesis, and remaining blocked claims in one place.</p>
+            <div id="hardwareLabKv" class="kv"></div>
+          </div>
+          <div class="panel">
+            <span class="label">Lab proof chain</span>
+            <h2>Evidence From The New Repo</h2>
+            <div id="hardwareLabDetails" class="insight-list"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="panel">
+            <span class="label">End-to-end proof chain</span>
+            <h2>From Model Graph To Claim Boundary</h2>
+            <p id="proofChainSummary" class="sub">Load a package and hardware-lab evidence to see how the model graph, placement, lab evidence, backend import, and claim readiness connect. Review the complete page flow in <a href="connected-system-map.html">Connected System Map</a>, then use <a href="analog-digital-execution-plan.html">Execution Plan</a> and <a href="current-proof-ledger.html">Proof Ledger</a> to see the ordered build gates and current proof boundary.</p>
+            <div id="proofChainDetails" class="insight-list"></div>
+          </div>
+        </section>
+
+        <section class="section split">
+          <div class="panel">
             <span class="label">Evidence brief</span>
             <h2>What Can We Safely Say?</h2>
             <p id="evidenceBriefSummary" class="sub">Load a saved package to see the plain-language handoff derived from claim readiness and evidence audit.</p>
@@ -1849,20 +1885,33 @@
         provenance: { tool: "external-analog-simulator", version: "replace-me" }
       },
       board_runtime: {
+        package_id: "replace-with-package-id",
+        workload_id: "replace-with-workload-id",
         board_id: "board-001",
+        board_revision: "revA",
         runtime_version: "runtime-0.1",
         latency_ms: 2.3,
+        start_timestamp: "replace-with-runtime-start",
+        end_timestamp: "replace-with-runtime-end",
+        host_overhead_boundary: "reported_separately",
         trace: [{ layer_id: "dense1", operator: "MatMul", placement: "analog", latency_ms: 0.7 }],
         fallback_events: [],
-        provenance: { tool: "board-runtime-service", run_id: "replace-me" }
+        provenance: { tool: "ordinary-board-runtime-record", run_id: "replace-me", not_measured_silicon: true }
       },
       power_thermal: {
+        package_id: "replace-with-package-id",
+        workload_id: "replace-with-workload-id",
+        board_id: "board-001",
+        runtime_trace_id: "replace-with-runtime-trace-id",
         energy_uj: 18.9,
         power_trace: [{ time_ms: 0, power_mw: 7.8 }, { time_ms: 1, power_mw: 8.4 }],
         temperature_trace: [{ time_ms: 0, temperature_c: 31.2 }, { time_ms: 2, temperature_c: 31.6 }],
         sampling_rate: "1 kHz",
-        measurement_setup: { meter: "power-meter-001", supply_voltage: 0.82, includes_host_overhead: true },
-        provenance: { tool: "power-thermal-meter", run_id: "replace-me" }
+        integration_start_timestamp: "replace-with-runtime-start",
+        integration_end_timestamp: "replace-with-runtime-end",
+        host_overhead_boundary: "reported_separately",
+        measurement_setup: { meter: "none", supply_voltage: "not measured", includes_host_overhead: true, not_measured_hardware: true },
+        provenance: { tool: "ordinary-power-thermal-record", run_id: "replace-me", not_measured_silicon: true }
       },
       task_accuracy: {
         dataset_id: "task-dataset-v0",
@@ -1875,12 +1924,99 @@
       }
     };
 
+    const evidenceModeTemplates = {
+      tool: {
+        analog_error_simulation: {
+          error_model: {
+            name: "crosssim-rram-v1",
+            adc_bits: 6,
+            dac_bits: 4,
+            final_residual_relative: 0.031,
+            conductance_noise_sigma: 0.012,
+            drift_model: "power-law-24h"
+          },
+          temperature_range: { mode: "fixed-condition", ambient_c: 25.0, boundary: "bench fixture only" },
+          voltage_range: { mode: "sweep", row_voltage_v: [0.15, 0.20, 0.25] },
+          accuracy_impact: {
+            estimated_drop: 0.018,
+            pass: true,
+            metric: "task_accuracy_delta"
+          },
+          calibration_profile: "crosssim-rram-bench-profile-v1",
+          provenance: {
+            tool: "CrossSim calibrated analog simulator",
+            tool_version: "replace-me",
+            not_measured_silicon: true,
+            measurement_level: "calibrated_simulation"
+          }
+        }
+      },
+      measured: {
+        board_runtime: {
+          package_id: "replace-with-package-id",
+          workload_id: "replace-with-workload-id",
+          board_id: "aimc-board-a1",
+          board_revision: "revA",
+          runtime_version: "runtime-v1",
+          runtime_trace_id: "runtime-trace-001",
+          latency_ms: 1.2,
+          p50_latency_ms: 1.1,
+          p95_latency_ms: 1.4,
+          repetition_count: 5,
+          start_timestamp: "2026-08-29T18:00:00Z",
+          end_timestamp: "2026-08-29T18:00:02Z",
+          host_overhead_boundary: "reported_separately",
+          trace: [{ layer_id: "dense_0", latency_ms: 0.42 }],
+          fallback_events: [],
+          provenance: { tool: "bench-runtime-service", measurement_level: "measured_board" }
+        },
+        power_thermal: {
+          package_id: "replace-with-package-id",
+          workload_id: "replace-with-workload-id",
+          board_id: "aimc-board-a1",
+          runtime_trace_id: "runtime-trace-001",
+          energy_uj: 12.3,
+          average_power_mw: 4.1,
+          peak_power_mw: 5.2,
+          sampling_rate: "1000 Hz",
+          integration_start_timestamp: "2026-08-29T18:00:00Z",
+          integration_end_timestamp: "2026-08-29T18:00:02Z",
+          host_overhead_boundary: "reported_separately",
+          power_trace: [
+            { time_ms: 0.0, voltage_v: 0.8, current_a: 0.005, power_mw: 4.0 },
+            { time_ms: 1.0, voltage_v: 0.8, current_a: 0.0052, power_mw: 4.16 }
+          ],
+          temperature_trace: [
+            { time_ms: 0.0, temperature_c: 25.1 },
+            { time_ms: 1.0, temperature_c: 26.0 }
+          ],
+          measurement_setup: {
+            meter: "joulescope-js220",
+            measured_rail: "core_vdd",
+            includes_host_overhead: false,
+            not_measured_hardware: false
+          },
+          provenance: { tool: "bench-power-service", measurement_level: "measured_board_power" }
+        }
+      }
+    };
+
     const evidenceRequiredFields = {
       compiler_mapping: ["operator_placements", "tiling_plan", "memory_plan", "unsupported_operators", "provenance"],
       analog_error_simulation: ["error_model", "temperature_range", "voltage_range", "accuracy_impact", "calibration_profile"],
       board_runtime: ["board_id", "runtime_version", "latency_ms", "trace", "fallback_events", "provenance"],
       power_thermal: ["energy_uj", "power_trace", "temperature_trace", "sampling_rate", "measurement_setup"],
       task_accuracy: ["dataset_id", "metric_name", "baseline_metric", "candidate_metric", "tolerance", "pass"]
+    };
+
+    const evidenceModeRequiredFields = {
+      measured: {
+        board_runtime: ["package_id", "workload_id", "board_id", "board_revision", "runtime_version", "runtime_trace_id", "latency_ms", "p50_latency_ms", "p95_latency_ms", "repetition_count", "start_timestamp", "end_timestamp", "host_overhead_boundary", "trace", "fallback_events", "provenance"],
+        power_thermal: ["package_id", "workload_id", "board_id", "runtime_trace_id", "energy_uj", "average_power_mw", "peak_power_mw", "sampling_rate", "integration_start_timestamp", "integration_end_timestamp", "host_overhead_boundary", "power_trace", "temperature_trace", "measurement_setup", "provenance"]
+      },
+      tool: {
+        analog_error_simulation: ["error_model", "temperature_range", "voltage_range", "accuracy_impact", "calibration_profile", "provenance"]
+      }
     };
 
     let currentData = null;
@@ -1917,7 +2053,10 @@
     let currentConnectorDeliveryPlan = null;
     let currentConnectorRiskRegister = null;
     let currentClaimReadiness = null;
+    let currentEvidenceAudit = null;
     let currentEvidenceBrief = null;
+    let currentHardwarePlacement = null;
+    let currentResidualAwarePlacement = null;
     let currentInterviewBrief = null;
     let currentInterviewDrill = null;
     let currentResearchGuide = null;
@@ -1974,8 +2113,14 @@
 
     function loadEvidenceTemplate() {
       const sourceId = $("customEvidenceSource").value;
-      $("customEvidenceJson").value = JSON.stringify(evidenceTemplates[sourceId], null, 2);
+      const mode = $("customEvidenceMode")?.value || "ordinary";
+      const template = evidenceModeTemplates[mode]?.[sourceId] || evidenceTemplates[sourceId];
+      $("customEvidenceJson").value = JSON.stringify(template, null, 2);
       validateCustomEvidence(false);
+    }
+
+    function requiredEvidenceFields(sourceId, mode) {
+      return evidenceModeRequiredFields[mode]?.[sourceId] || evidenceRequiredFields[sourceId] || [];
     }
 
     function parseCustomEvidenceJson() {
@@ -1992,6 +2137,7 @@
 
     function validateCustomEvidence(throwOnError = true) {
       const sourceId = $("customEvidenceSource").value;
+      const mode = $("customEvidenceMode")?.value || "ordinary";
       let payload;
       try {
         payload = parseCustomEvidenceJson();
@@ -2000,14 +2146,15 @@
         if (throwOnError) throw error;
         return false;
       }
-      const missing = (evidenceRequiredFields[sourceId] || []).filter((field) => !(field in payload));
+      const requiredFields = requiredEvidenceFields(sourceId, mode);
+      const missing = requiredFields.filter((field) => !(field in payload));
       if (missing.length) {
         const message = `Missing required field(s): ${missing.join(", ")}`;
         $("customEvidenceValidation").textContent = message;
         if (throwOnError) throw new Error(message);
         return false;
       }
-      $("customEvidenceValidation").textContent = `Ready to import ${sourceId}. Required fields present: ${(evidenceRequiredFields[sourceId] || []).join(", ")}.`;
+      $("customEvidenceValidation").textContent = `Ready to import ${sourceId} through ${mode} mode. Required fields present: ${requiredFields.join(", ")}.`;
       return payload;
     }
 
@@ -2041,6 +2188,16 @@
         : "";
       const beforeSummary = preview.before_summary || {};
       const afterSummary = preview.after_summary || {};
+      const measured = report.measured_readiness;
+      const tool = report.tool_readiness;
+      const readinessText = measured
+        ? `<p>Measured readiness: ${escapeHtml(measured.measured_ready ? "ready" : "not ready")}. ${escapeHtml(measured.plain_reading || "")} ${(measured.issues || []).length ? `Issues: ${escapeHtml((measured.issues || []).join(" "))}` : ""}</p>`
+        : tool
+          ? `<p>Tool readiness: ${escapeHtml(tool.tool_ready ? "ready" : "not ready")}. ${escapeHtml(tool.plain_reading || "")} ${(tool.issues || []).length ? `Issues: ${escapeHtml((tool.issues || []).join(" "))}` : ""}</p>`
+          : "";
+      const measuredClaimNote = measured && report.source_id === "power_thermal"
+        ? `<p>Measured import readiness only says this power file has the right shape and provenance. C3 remains needs-review unless this power file matches the runtime trace ID, package, workload, board, start time, and end time.</p>`
+        : "";
       const afterSummaryText = preview.after_summary
         ? `After import: supported ${afterSummary.supported_lab_claims ?? 0}, needs review ${afterSummary.needs_review_lab_claims ?? 0}, blocked ${afterSummary.blocked_lab_claims ?? 0}.`
         : "After import: not projected until validation passes.";
@@ -2059,6 +2216,8 @@
       $("customEvidencePreview").innerHTML = `
         <p>${escapeHtml(report.valid ? "Backend validation passed." : "Backend validation failed.")} Fields: ${escapeHtml(summary.field_count ?? 0)} present, ${escapeHtml(summary.missing_field_count ?? 0)} missing. Existing imports for this source: ${escapeHtml(preview.existing_import_count ?? 0)}.</p>
         <p>Before import: supported ${escapeHtml(beforeSummary.supported_lab_claims ?? "n/a")}, needs review ${escapeHtml(beforeSummary.needs_review_lab_claims ?? "n/a")}, blocked ${escapeHtml(beforeSummary.blocked_lab_claims ?? "n/a")}. ${escapeHtml(afterSummaryText)}</p>
+        ${readinessText}
+        ${measuredClaimNote}
         ${errorText}
         <p>${escapeHtml(preview.plain_reading || "No package preview available.")}</p>
         ${claimText}
@@ -2067,11 +2226,17 @@
 
     async function validateCustomEvidenceWithBackend(throwOnError = true) {
       const sourceId = $("customEvidenceSource").value;
+      const mode = $("customEvidenceMode").value;
       const payload = validateCustomEvidence(true);
       const packageQuery = currentPackageReport?.package_id
         ? `&package_id=${encodeURIComponent(currentPackageReport.package_id)}`
         : "";
-      const response = await fetch(`http://127.0.0.1:8020/evidence/validate?source_id=${encodeURIComponent(sourceId)}${packageQuery}`, {
+      const endpoint = mode === "tool"
+        ? "validate-tool"
+        : mode === "measured"
+          ? "validate-measured"
+          : "validate";
+      const response = await fetch(`http://127.0.0.1:8025/evidence/${endpoint}?source_id=${encodeURIComponent(sourceId)}${packageQuery}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -2089,7 +2254,12 @@
           throw new Error(message);
         }
       } else {
-        $("customEvidenceValidation").textContent = `Backend validation passed for ${sourceId}.`;
+        const readiness = report.tool_readiness || report.measured_readiness;
+        if (readiness && (readiness.tool_ready === false || readiness.measured_ready === false)) {
+          $("customEvidenceValidation").textContent = `Backend validation passed for ${sourceId}, but strict ${mode} readiness is not satisfied.`;
+        } else {
+          $("customEvidenceValidation").textContent = `Backend ${mode} validation passed for ${sourceId}.`;
+        }
       }
       return report;
     }
@@ -2353,6 +2523,7 @@
         ["Saved archive", saved.archive || "build report to save"],
         ["Workload fit", saved.workload_fit || "build report to save"],
         ["System boundary", saved.system_boundary || "build report to save"],
+        ["Hardware placement", saved.hardware_placement || "build report to save"],
         ["Physical AI map", saved.physical_ai_map || "build report to save"],
         ["Physical AI roadmap", saved.physical_ai_roadmap || "build report to save"],
         ["VLA readiness", saved.vla_readiness || "build report to save"],
@@ -3916,14 +4087,30 @@
           ["Pass", detail.pass],
           ["Error drop", detail.estimated_accuracy_drop],
           ["Measure state", detail.measurement_status],
+          ["Measure level", detail.measurement_level],
+          ["Package", detail.package_id],
+          ["Workload", detail.workload_id],
           ["Board", detail.board_id],
+          ["Board revision", detail.board_revision],
           ["Runtime", detail.runtime_version],
+          ["Runtime trace", detail.runtime_trace_id],
           ["Runtime mode", detail.runtime_mode],
+          ["Start", detail.start_timestamp],
+          ["End", detail.end_timestamp],
+          ["Power start", detail.integration_start_timestamp],
+          ["Power end", detail.integration_end_timestamp],
+          ["Run count", detail.repetition_count],
+          ["P50 latency", detail.p50_latency_ms],
+          ["P95 latency", detail.p95_latency_ms],
+          ["Host boundary", detail.host_overhead_boundary],
           ["Trace events", detail.trace_events],
           ["Fallbacks", detail.fallback_events],
           ["Latency", detail.latency_ms],
           ["Energy", detail.energy_uj],
+          ["Average power", detail.average_power_mw],
+          ["Peak power", detail.peak_power_mw],
           ["Meter", detail.meter],
+          ["Measured rail", detail.measured_rail],
           ["Voltage", detail.supply_voltage],
           ["Host counted", detail.includes_host_overhead],
           ["Local sim", detail.not_measured_hardware],
@@ -3952,9 +4139,11 @@
           <p>${report.do_not_claim.map(escapeHtml).join(" ")}</p>
         </div>
       `;
+      renderHardwareLabEvidence();
     }
 
     function renderEvidenceAudit(report) {
+      currentEvidenceAudit = report;
       if (!report) {
         $("evidenceAuditSummary").textContent = "Load a saved package to see local-generated imports, stronger non-local imports, and refresh behavior.";
         renderKv("evidenceAuditKv", [
@@ -3967,7 +4156,7 @@
         return;
       }
       const summary = report.summary || {};
-      $("evidenceAuditSummary").textContent = "Evidence audit shows which imported artifact is latest for each required source and whether local refresh will replace or skip it.";
+      $("evidenceAuditSummary").textContent = "Evidence audit shows the latest proof level for each required source and whether local refresh will replace or skip it.";
       renderKv("evidenceAuditKv", [
         ["Sources", summary.sources],
         ["Total imports", summary.total_imports],
@@ -3980,12 +4169,214 @@
         <div class="insight">
           <h3>
             <span>${escapeHtml(source.source_id)}</span>
-            <span class="pill ${pillClass(source.latest_is_local_generated ? "medium" : source.nonlocal_count ? "low" : "high")}">${escapeHtml(source.latest_is_local_generated ? "local latest" : source.nonlocal_count ? "non-local latest" : "missing")}</span>
+            <span class="pill ${pillClass(source.latest_is_local_generated ? "medium" : source.nonlocal_count ? "low" : "high")}">${escapeHtml(source.latest_proof_level || (source.latest_is_local_generated ? "local latest" : source.nonlocal_count ? "non-local latest" : "missing"))}</span>
           </h3>
-          <p>Imports: ${escapeHtml(source.imported_count)}. Local: ${escapeHtml(source.local_generated_count)}. Non-local: ${escapeHtml(source.nonlocal_count)}. Latest: ${escapeHtml(source.latest_import_id || "none")}. Payload pass: ${escapeHtml(source.latest_payload_status ?? "n/a")}.</p>
+          <p>Imports: ${escapeHtml(source.imported_count)}. Local: ${escapeHtml(source.local_generated_count)}. Above local replay: ${escapeHtml(source.nonlocal_count)}. Latest: ${escapeHtml(source.latest_import_id || "none")}. Payload pass: ${escapeHtml(source.latest_payload_status ?? "n/a")}.</p>
           <p>${escapeHtml(source.local_refresh_behavior)}. Claims: ${(source.claims || []).map((claim) => `${escapeHtml(claim.claim_name)} (${escapeHtml(claim.claim_status)})`).join(", ") || "none"}.</p>
         </div>
       `).join("");
+      renderHardwareLabEvidence();
+    }
+
+    function renderHardwareLabEvidence() {
+      const claim = currentClaimReadiness;
+      const audit = currentEvidenceAudit;
+      if (!claim || !audit) {
+        $("hardwareLabSummary").textContent = "Import the hardware-lab evidence batch to see analog error, model sensitivity, RTL/runtime, synthesis, and remaining blocked claims in one place.";
+        renderKv("hardwareLabKv", [
+          ["Package", currentPackageReport?.package_id || "not loaded"],
+          ["Evidence batch", "not imported"],
+          ["Compiler placement", "not loaded"],
+          ["Analog accuracy", "not loaded"],
+          ["Runtime trace", "not loaded"],
+          ["Energy", "not loaded"]
+        ]);
+        $("hardwareLabDetails").innerHTML = `<div class="insight"><p>No hardware-lab evidence is active for the selected package yet.</p></div>`;
+        renderProofChain();
+        return;
+      }
+      const bySource = {};
+      (audit.sources || []).forEach((source) => { bySource[source.source_id] = source; });
+      const byClaim = {};
+      (claim.lab_claims || []).forEach((item) => { byClaim[item.id] = item; });
+      const sourceStatus = (sourceId) => {
+        const source = bySource[sourceId] || {};
+        if (!source.imported_count) return "missing";
+        return source.latest_proof_level || (source.latest_is_local_generated ? "local lab" : "external");
+      };
+      const sourceCounts = (sourceId) => bySource[sourceId] || {};
+      const claimStatus = (claimId) => byClaim[claimId]?.status || "missing";
+      const placementSummary = currentHardwarePlacement?.summary || {};
+      const residualPlacementSummary = currentResidualAwarePlacement?.summary || {};
+      const residualSourcePolicy = currentResidualAwarePlacement?.source_matching_policy || {};
+      const residualPlacementText = currentResidualAwarePlacement?.available
+        ? `${residualPlacementSummary.residual_aware_analog_allowed || 0} residual-aware analog allowed; source ${currentResidualAwarePlacement.accepted_calibrated_source || "unknown"}`
+        : "not loaded";
+      const analogSource = sourceCounts("analog_error_simulation");
+      const analogSimulatorStatus = analogSource.nonlocal_count
+        ? `strict simulator/tool (${analogSource.nonlocal_count})`
+        : sourceStatus("analog_error_simulation");
+      $("hardwareLabSummary").textContent = "Hardware-lab evidence is attached to this package. The workbench can use it for narrow lab claims while keeping measured hardware and production claims blocked. The cross-repo proof report is the shared audit anchor.";
+      renderKv("hardwareLabKv", [
+        ["Package", currentPackageReport?.package_id || claim.package_id || "loaded"],
+        ["Graph placement", currentHardwarePlacement ? `${placementSummary.analog_candidates || 0} structural analog candidates; ${placementSummary.fallback_points || 0} fallback points` : "not loaded"],
+        ["Residual-aware placement", residualPlacementText],
+        ["Compiler mapping", `${sourceStatus("compiler_mapping")} / ${claimStatus("C1")}`],
+        ["Analog simulator", analogSimulatorStatus],
+        ["Analog accuracy", `${analogSimulatorStatus} + ${sourceStatus("task_accuracy")} / ${claimStatus("C4")}`],
+        ["Runtime trace", `${sourceStatus("board_runtime")} / ${claimStatus("C2")}`],
+        ["Energy proof", `${sourceStatus("power_thermal")} / ${claimStatus("C3")}`],
+        ["Physical flow", `${sourceStatus("physical_flow")} / ${claimStatus("C5")}`],
+        ["Production", claim.production_claim?.status || "blocked"]
+      ]);
+      const detailForClaim = (claimId, title, plain) => {
+        const item = byClaim[claimId] || {};
+        return `
+          <div class="insight">
+            <h3>
+              <span>${escapeHtml(title)}</span>
+              <span class="pill ${pillClass(item.status === "supported" ? "low" : item.status === "needs review" ? "medium" : "high")}">${escapeHtml(item.status || "missing")}</span>
+            </h3>
+            <p>${escapeHtml(plain)} ${escapeHtml(item.safe_statement || "")}</p>
+            <p>Evidence: ${(item.imported_evidence || []).map((evidence) => escapeHtml(evidence.artifact_name)).join(", ") || "none"}. Issues: ${(item.quality_issues || []).map(escapeHtml).join(" ") || "none"}.</p>
+          </div>
+        `;
+      };
+      const placementDetail = currentHardwarePlacement ? `
+        <div class="insight">
+          <h3><span>Backend graph placement</span><span class="pill ${pillClass("medium")}">derived</span></h3>
+          <p>${escapeHtml(placementSummary.plain_reading || "The backend translated model graph layers into hardware placement rows.")}</p>
+          <p>Operators: ${escapeHtml(placementSummary.operators || 0)}. Analog candidates: ${escapeHtml(placementSummary.analog_candidates || 0)}. Converter boundaries: ${escapeHtml(placementSummary.converter_boundaries || 0)}. Fallback points: ${escapeHtml(placementSummary.fallback_points || 0)}.</p>
+        </div>
+      ` : "";
+      const residualPlacementDetail = currentResidualAwarePlacement?.available ? `
+        <div class="insight">
+          <h3><span>Residual-aware placement</span><span class="pill ${pillClass("low")}">filtered</span></h3>
+          <p>${escapeHtml(currentResidualAwarePlacement.plain_reading || "Structural placement has been filtered through calibrated simulator residual evidence.")}</p>
+          <p>Structural analog candidates: ${escapeHtml(residualPlacementSummary.structural_analog_candidates || 0)}. Residual-aware analog allowed: ${escapeHtml(residualPlacementSummary.residual_aware_analog_allowed || 0)}. Digital fallback: ${escapeHtml(residualPlacementSummary.digital_fallback || 0)}.</p>
+          <p>Selected calibrated source: <code>${escapeHtml(currentResidualAwarePlacement.accepted_calibrated_source || "unknown")}</code>. Source policy: <code>${escapeHtml(residualSourcePolicy.mode || "unknown")}</code>. Target: <code>${escapeHtml(currentResidualAwarePlacement.accepted_calibrated_target || residualSourcePolicy.selected_target || "unknown")}</code>.</p>
+          <p>${escapeHtml(residualSourcePolicy.selection_reason || "The residual-aware placement endpoint carries the source match used for analog-allowed rows.")}</p>
+          <p><a href="http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(currentPackageReport?.package_id || claim.package_id || "pkg-e931662a01293df2")}/residual-aware-placement" target="_blank" rel="noreferrer">Backend residual-aware placement endpoint</a></p>
+        </div>
+      ` : "";
+      $("hardwareLabDetails").innerHTML = `
+        ${placementDetail}
+        ${residualPlacementDetail}
+        ${detailForClaim("C1", "Model graph to placement", "The hardware lab exported placement-like records from model-impact governor rows.")}
+        <div class="insight">
+          <h3><span>Strict simulator/tool sidecar</span><span class="pill ${pillClass(analogSource.nonlocal_count ? "low" : "high")}">${escapeHtml(analogSource.nonlocal_count ? "imported" : "missing")}</span></h3>
+          <p>The lab exports <code>analog_error_simulation_strict_tool.json</code> from local SPICE row-drop and nonideality evidence. The backend imports it through the strict simulator/tool gate, so the latest analog evidence is stronger than ordinary local replay but still not measured silicon.</p>
+          <p>Local imports: ${escapeHtml(analogSource.local_generated_count || 0)}. Strict/above-local imports: ${escapeHtml(analogSource.nonlocal_count || 0)}. Latest proof level: ${escapeHtml(analogSource.latest_proof_level || "missing")}. Latest: ${escapeHtml(analogSource.latest_import_id || "none")}.</p>
+        </div>
+        <div class="insight">
+          <h3><span>AIHWKIT/CrossSim contract</span><span class="pill analog">small fixtures ran</span></h3>
+          <p>The lab checks AIHWKIT and CrossSim availability, runs small optional simulator fixtures from the simulator venv, validates the output contract a real simulator payload must satisfy, and guards the backend import path. This proves tool execution and bounded payload shape, not full model accuracy, measured silicon, board power, or production readiness. Review <a href="http://127.0.0.1:8023/research/current-simulator-adapter-status.html" target="_blank" rel="noreferrer">current simulator status</a>, <a href="http://127.0.0.1:8023/research/analog-simulator-adapter-output-contract.html" target="_blank" rel="noreferrer">adapter output contract</a>, <a href="http://127.0.0.1:8023/research/guarded-simulator-payload-import.html" target="_blank" rel="noreferrer">guarded import path</a>, and <a href="http://127.0.0.1:8023/research/simulator-to-placement-decision-boundary.html" target="_blank" rel="noreferrer">simulator-to-placement boundary</a>.</p>
+        </div>
+        ${detailForClaim("C4", "Analog error and model sensitivity", "The hardware lab attached analog nonideality and toy transformer-sensitivity evidence.")}
+        ${detailForClaim("C2", "RTL/runtime decision", "The hardware lab attached a local RTL/runtime trace. The same payload also points to the Yosys synthesis interpretation and the OpenLane 5 ns scheduler/governor run, but this is still not a measured board run.")}
+        ${detailForClaim("C3", "Power and thermal", "The hardware lab attached a local OpenLane-derived power/thermal estimate. It can explain a control-block estimate, but it is not synchronized measured hardware power. Measured energy needs runtime and power evidence with the same runtime trace ID, package, workload, board, start time, and end time.")}
+        ${detailForClaim("C5", "Digital physical flow", "The hardware lab attached a routed exploratory OpenLane physical-flow record for the selected scheduler/governor controller. This supports a bounded digital implementation claim, not analog macro integration or chip signoff.")}
+        <div class="insight">
+          <h3><span>Cross-repo proof anchor</span><span class="pill analog">50-gate proof</span></h3>
+          <p>The sibling hardware lab writes <code>evidence/aimc-hardware-lab/cross-repo-loop-proof.md</code> and <code>cross-repo-loop-proof.json</code>. That proof checks backend placement, lab import, governor generation, RTL trace, AIHWKIT/CrossSim adapter status, small-fixture simulator payloads, workload-shaped simulator payloads for selected analog candidates, tensor-shaped simulator payloads for backend analog MatMul candidates, trained-weight simulator payloads for the uploaded tiny MLP analog MatMul weights, projection-stack simulator payloads for a larger four-MatMul ONNX fixture, transformer-MLP-block simulator payloads with nonlinear and residual operations kept digital, calibrated transformer-MLP-block simulator payloads with held-out affine correction, calibrated deep transformer-MLP-stack simulator payloads with held-out affine correction, attention-block simulator payloads for static projections with dynamic attention kept digital, calibrated attention-block simulator payloads with held-out affine correction, calibrated residual governor bridge decisions, source-matched residual-aware placement decisions, backend residual-aware placement API and archive checks, physical-flow evidence export, strict simulator/tool sidecar import, dry-run simulator payload rejection, adapter output contract validation, guarded simulator payload import checks, backend import, and claim readiness in one run. Review the browser page at <a href="http://127.0.0.1:8023/research/cross-repo-aimc-loop-proof.html" target="_blank" rel="noreferrer">Cross-Repo AIMC Loop Proof</a>.</p>
+        </div>
+        <div class="insight">
+          <h3><span>Production boundary</span><span class="pill fallback">${escapeHtml(claim.production_claim?.status || "blocked")}</span></h3>
+          <p>${escapeHtml(claim.production_claim?.safe_statement || "Production readiness remains blocked.")}</p>
+        </div>
+      `;
+      renderProofChain();
+    }
+
+    function renderProofChain() {
+      const claim = currentClaimReadiness;
+      const audit = currentEvidenceAudit;
+      const packageId = currentPackageReport?.package_id || claim?.package_id || "not loaded";
+      const placementSummary = currentHardwarePlacement?.summary || {};
+      const residualPlacementSummary = currentResidualAwarePlacement?.summary || {};
+      const sourceMap = {};
+      (audit?.sources || []).forEach((source) => { sourceMap[source.source_id] = source; });
+      const claimMap = {};
+      (claim?.lab_claims || []).forEach((item) => { claimMap[item.id] = item; });
+      const sourceState = (sourceId) => {
+        const source = sourceMap[sourceId] || {};
+        if (!source.imported_count) return "missing";
+        return source.latest_proof_level || (source.latest_is_local_generated ? "local lab evidence" : "external evidence");
+      };
+      const claimState = (claimId) => claimMap[claimId]?.status || "missing";
+      if (!claim || !audit) {
+        $("proofChainSummary").textContent = "The proof chain is waiting for package evidence and claim readiness.";
+        $("proofChainDetails").innerHTML = `
+          <div class="insight">
+            <h3><span>Start with a package</span><span class="pill medium">waiting</span></h3>
+            <p>The workbench needs a package, active evidence audit, hardware placement, and claim-readiness result before it can show the complete model-to-claim path.</p>
+          </div>
+        `;
+        return;
+      }
+      $("proofChainSummary").textContent = `Package ${packageId} now has a visible proof chain from model placement to claim readiness. The current result is ${claim.summary?.overall || "not summarized"}; production remains ${claim.production_claim?.status || "blocked"}.`;
+      const stage = (title, status, body, link) => `
+        <div class="insight">
+          <h3><span>${escapeHtml(title)}</span><span class="pill ${pillClass(status)}">${escapeHtml(status)}</span></h3>
+          <p>${escapeHtml(body)}</p>
+          ${link ? `<p><a href="${link.href}" target="_blank" rel="noreferrer">${escapeHtml(link.label)}</a></p>` : ""}
+        </div>
+      `;
+      $("proofChainDetails").innerHTML = `
+        ${stage(
+          "1. Model graph",
+          currentPackageReport ? "loaded" : "missing",
+          "The package is the object being judged. The backend starts from graph structure, operators, and package metadata before any analog claim is allowed."
+        )}
+        ${stage(
+          "2. Hardware placement",
+          currentHardwarePlacement ? "derived" : "missing",
+          currentHardwarePlacement
+            ? `The backend marks ${placementSummary.analog_candidates || 0} analog candidates, ${placementSummary.fallback_points || 0} fallback points, and ${placementSummary.converter_boundaries || 0} converter boundaries.`
+            : "The placement handoff is not loaded yet, so the frontend cannot show where analog starts and where digital resumes.",
+          { href: `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/hardware-placement`, label: "Backend hardware placement endpoint" }
+        )}
+        ${stage(
+          "2b. Residual-aware placement",
+          currentResidualAwarePlacement?.available ? "filtered" : "missing",
+          currentResidualAwarePlacement?.available
+            ? `The backend residual-aware endpoint keeps ${residualPlacementSummary.residual_aware_analog_allowed || 0} rows analog-allowed after calibrated simulator residual evidence.`
+            : "The residual-aware placement endpoint is not loaded yet, so structural placement is not filtered by calibrated residual evidence in this view.",
+          { href: `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/residual-aware-placement`, label: "Backend residual-aware placement endpoint" }
+        )}
+        ${stage(
+          "3. Analog and model evidence",
+          claimState("C4"),
+          `Analog error source is ${sourceState("analog_error_simulation")}; task/model sensitivity is ${sourceState("task_accuracy")}. This supports only the local accuracy/sensitivity claim.`
+        )}
+        ${stage(
+          "4. Runtime and RTL evidence",
+          claimState("C2"),
+          `Runtime evidence is ${sourceState("board_runtime")}. It can show local RTL/runtime behavior, but measured board latency stays needs-review until a real board or stronger runtime trace is attached.`
+        )}
+        ${stage(
+          "5. Power and thermal evidence",
+          claimState("C3"),
+          `Power evidence is ${sourceState("power_thermal")}. The current local OpenLane-derived estimate is useful, but measured energy requires synchronized voltage/current samples that match the runtime trace ID, package, workload, board, start time, and end time.`,
+          { href: "http://127.0.0.1:8023/research/measured-runtime-power-claim-upgrade-path.html", label: "Measured runtime and power claim path" }
+        )}
+        ${stage(
+          "6. Digital physical flow",
+          claimState("C5"),
+          `Physical-flow evidence is ${sourceState("physical_flow")}. It supports the selected controller's routed exploratory OpenLane result, not full-chip signoff or measured power.`
+        )}
+        ${stage(
+          "7. Backend import",
+          "connected",
+          "The sibling hardware lab exports six ordinary evidence records and the backend imports them into this package through the hardware-lab evidence endpoint. The strict analog simulator/tool sidecar is imported separately.",
+          { href: "http://127.0.0.1:8023/research/cross-repo-aimc-loop-proof.html", label: "Cross-repo proof report" }
+        )}
+        ${stage(
+          "8. Claim boundary",
+          claim.production_claim?.status || "blocked",
+          `Claim readiness keeps C1, C4, and C5 supported when evidence allows it, keeps C2 and C3 in needs review for local runtime and power estimates, and blocks production readiness.`
+        )}
+      `;
     }
 
     function renderEvidenceBrief(report) {
@@ -4010,7 +4401,7 @@
         ["Needs review", summary.needs_review_lab_claims],
         ["Blocked", summary.blocked_lab_claims],
         ["Production", summary.production_readiness],
-        ["Imports", `${summary.active_imports} total / ${summary.nonlocal_imports} non-local`],
+        ["Imports", `${summary.active_imports} total / ${summary.nonlocal_imports} above local replay`],
         ["Confidence", report.confidence]
       ]);
       const say = (report.what_to_say || []).slice(0, 5).map((item) => `
@@ -4664,21 +5055,21 @@
         ["Evidence", summary.overall_status],
         ["Readiness", summary.readiness_stage]
       ]);
-      const archiveUrl = saved.archive ? `http://127.0.0.1:8020${saved.archive}` : "";
-      const reviewUrl = saved.review_markdown ? `http://127.0.0.1:8020${saved.review_markdown}` : "";
-      const briefUrl = saved.evidence_brief_markdown ? `http://127.0.0.1:8020${saved.evidence_brief_markdown}` : "";
-      const interviewUrl = saved.interview_brief_markdown ? `http://127.0.0.1:8020${saved.interview_brief_markdown}` : "";
-      const drillUrl = saved.interview_drill ? `http://127.0.0.1:8020${saved.interview_drill}` : "";
-      const workloadUrl = saved.workload_fit ? `http://127.0.0.1:8020${saved.workload_fit}` : "";
-      const boundaryUrl = saved.system_boundary ? `http://127.0.0.1:8020${saved.system_boundary}` : "";
-      const researchUrl = saved.research_guide ? `http://127.0.0.1:8020${saved.research_guide}` : "";
-      const glossaryUrl = saved.concept_glossary ? `http://127.0.0.1:8020${saved.concept_glossary}` : "";
-      const toolchainUrl = saved.toolchain_readiness ? `http://127.0.0.1:8020${saved.toolchain_readiness}` : "";
-      const connectionUrl = saved.connection_playbook ? `http://127.0.0.1:8020${saved.connection_playbook}` : "";
-      const claimUrl = saved.claim_readiness ? `http://127.0.0.1:8020${saved.claim_readiness}` : "";
-      const auditUrl = saved.evidence_audit ? `http://127.0.0.1:8020${saved.evidence_audit}` : "";
-      const importsUrl = saved.imported_evidence ? `http://127.0.0.1:8020${saved.imported_evidence}` : "";
-      const artifactUrl = run.package_id ? `http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(run.package_id)}/artifacts` : "";
+      const archiveUrl = saved.archive ? `http://127.0.0.1:8025${saved.archive}` : "";
+      const reviewUrl = saved.review_markdown ? `http://127.0.0.1:8025${saved.review_markdown}` : "";
+      const briefUrl = saved.evidence_brief_markdown ? `http://127.0.0.1:8025${saved.evidence_brief_markdown}` : "";
+      const interviewUrl = saved.interview_brief_markdown ? `http://127.0.0.1:8025${saved.interview_brief_markdown}` : "";
+      const drillUrl = saved.interview_drill ? `http://127.0.0.1:8025${saved.interview_drill}` : "";
+      const workloadUrl = saved.workload_fit ? `http://127.0.0.1:8025${saved.workload_fit}` : "";
+      const boundaryUrl = saved.system_boundary ? `http://127.0.0.1:8025${saved.system_boundary}` : "";
+      const researchUrl = saved.research_guide ? `http://127.0.0.1:8025${saved.research_guide}` : "";
+      const glossaryUrl = saved.concept_glossary ? `http://127.0.0.1:8025${saved.concept_glossary}` : "";
+      const toolchainUrl = saved.toolchain_readiness ? `http://127.0.0.1:8025${saved.toolchain_readiness}` : "";
+      const connectionUrl = saved.connection_playbook ? `http://127.0.0.1:8025${saved.connection_playbook}` : "";
+      const claimUrl = saved.claim_readiness ? `http://127.0.0.1:8025${saved.claim_readiness}` : "";
+      const auditUrl = saved.evidence_audit ? `http://127.0.0.1:8025${saved.evidence_audit}` : "";
+      const importsUrl = saved.imported_evidence ? `http://127.0.0.1:8025${saved.imported_evidence}` : "";
+      const artifactUrl = run.package_id ? `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(run.package_id)}/artifacts` : "";
       const changeText = comparisonRow
         ? `Against the baseline in this comparison: latency ${formatDelta(deltas.latency_ms, " ms")} (${formatDelta(deltas.latency_percent, "%")}), energy ${formatDelta(deltas.energy_uj, " uJ")} (${formatDelta(deltas.energy_percent, "%")}), coverage ${formatDelta(deltas.analog_coverage_points, " pts")}, energy ratio ${formatDelta(deltas.energy_efficiency_x, "x")}.`
         : "No comparison delta is available for this selected run yet.";
@@ -5049,12 +5440,12 @@
 
     async function refreshRegistry() {
       const runHistoryUrl = currentProjectId
-        ? `http://127.0.0.1:8020/projects/${encodeURIComponent(currentProjectId)}/runs`
-        : "http://127.0.0.1:8020/project-runs";
+        ? `http://127.0.0.1:8025/projects/${encodeURIComponent(currentProjectId)}/runs`
+        : "http://127.0.0.1:8025/project-runs";
       const [projectsResponse, modelsResponse, packagesResponse, runsResponse] = await Promise.all([
-        fetch("http://127.0.0.1:8020/projects"),
-        fetch("http://127.0.0.1:8020/models"),
-        fetch("http://127.0.0.1:8020/deployment-packages"),
+        fetch("http://127.0.0.1:8025/projects"),
+        fetch("http://127.0.0.1:8025/models"),
+        fetch("http://127.0.0.1:8025/deployment-packages"),
         fetch(runHistoryUrl)
       ]);
       const projectsPayload = await projectsResponse.json();
@@ -5085,8 +5476,8 @@
       renderRunHistory(runs);
       if (runs.length >= 2) {
         const comparisonUrl = currentProjectId
-          ? `http://127.0.0.1:8020/projects/${encodeURIComponent(currentProjectId)}/runs/compare`
-          : `http://127.0.0.1:8020/project-runs/compare?run_ids=${runs.slice(0, 4).reverse().map((run) => encodeURIComponent(run.run_id)).join(",")}`;
+          ? `http://127.0.0.1:8025/projects/${encodeURIComponent(currentProjectId)}/runs/compare`
+          : `http://127.0.0.1:8025/project-runs/compare?run_ids=${runs.slice(0, 4).reverse().map((run) => encodeURIComponent(run.run_id)).join(",")}`;
         const comparisonResponse = await fetch(comparisonUrl);
         const comparisonPayload = await comparisonResponse.json();
         if (!comparisonResponse.ok) {
@@ -5099,7 +5490,7 @@
     }
 
     async function refreshAdapters() {
-      const response = await fetch("http://127.0.0.1:8020/adapters");
+      const response = await fetch("http://127.0.0.1:8025/adapters");
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || "Adapter status fetch failed.");
@@ -5108,13 +5499,13 @@
     }
 
     async function probeAdapter(adapterId) {
-      const response = await fetch(`http://127.0.0.1:8020/adapters/${encodeURIComponent(adapterId)}/probe`);
+      const response = await fetch(`http://127.0.0.1:8025/adapters/${encodeURIComponent(adapterId)}/probe`);
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || payload.detail || "Adapter probe failed.");
       }
       adapterProbeCache[adapterId] = payload;
-      const registryResponse = await fetch("http://127.0.0.1:8020/adapters");
+      const registryResponse = await fetch("http://127.0.0.1:8025/adapters");
       const registryPayload = await registryResponse.json();
       if (!registryResponse.ok) {
         throw new Error(registryPayload.error || "Adapter status refresh failed.");
@@ -5134,7 +5525,7 @@
       const datasetPath = adapterId === "accuracy.local-task-check" ? $("accuracyDatasetPath").value.trim() : "";
       const datasetParam = datasetPath ? `&dataset_path=${encodeURIComponent(datasetPath)}` : "";
       const packageParam = currentPackageReport?.package_id ? `&package_id=${encodeURIComponent(currentPackageReport.package_id)}` : "";
-      const response = await fetch(`http://127.0.0.1:8020/adapters/${encodeURIComponent(adapterId)}/run?model_id=${encodeURIComponent(currentModelId)}&target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${datasetParam}${packageParam}`, {
+      const response = await fetch(`http://127.0.0.1:8025/adapters/${encodeURIComponent(adapterId)}/run?model_id=${encodeURIComponent(currentModelId)}&target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${datasetParam}${packageParam}`, {
         method: "POST"
       });
       const payload = await response.json();
@@ -5143,7 +5534,7 @@
       }
       adapterRunCache[adapterId] = payload;
       delete adapterEvidencePreviewCache[adapterId];
-      const registryResponse = await fetch("http://127.0.0.1:8020/adapters");
+      const registryResponse = await fetch("http://127.0.0.1:8025/adapters");
       const registryPayload = await registryResponse.json();
       if (!registryResponse.ok) {
         throw new Error(registryPayload.error || "Adapter status refresh failed.");
@@ -5160,7 +5551,7 @@
       if (!currentPackageReport?.package_id) {
         throw new Error("Build or select a package before previewing adapter evidence.");
       }
-      const response = await fetch(`http://127.0.0.1:8020/evidence/validate?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(run.normalized_evidence_source_id)}`, {
+      const response = await fetch(`http://127.0.0.1:8025/evidence/validate?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(run.normalized_evidence_source_id)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(run.normalized_evidence_payload)
@@ -5170,7 +5561,7 @@
         throw new Error(payload.error || payload.detail?.message || payload.detail || "Adapter evidence validation failed.");
       }
       adapterEvidencePreviewCache[adapterId] = payload;
-      const registryResponse = await fetch("http://127.0.0.1:8020/adapters");
+      const registryResponse = await fetch("http://127.0.0.1:8025/adapters");
       const registryPayload = await registryResponse.json();
       if (!registryResponse.ok) {
         throw new Error(registryPayload.error || "Adapter status refresh failed.");
@@ -5194,7 +5585,7 @@
       if (!validation.valid) {
         throw new Error((validation.errors || []).join(" ") || "Adapter evidence validation failed.");
       }
-      const response = await fetch(`http://127.0.0.1:8020/evidence/import?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(run.normalized_evidence_source_id)}`, {
+      const response = await fetch(`http://127.0.0.1:8025/evidence/import?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(run.normalized_evidence_source_id)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(run.normalized_evidence_payload)
@@ -5219,7 +5610,7 @@
       const calibration = $("calibrationSelect").value;
       const runtimeMode = $("runtimeModeSelect").value;
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
-      const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/deployment-package?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+      const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/deployment-package?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
         method: "POST"
       });
       const payload = await response.json();
@@ -5233,12 +5624,25 @@
 
     async function runLocalEvidenceWorkflow() {
       const packageId = await ensurePackageForEvidence();
-      const response = await fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/local-evidence`, {
+      const response = await fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/local-evidence`, {
         method: "POST"
       });
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || payload.detail || "Local evidence workflow failed.");
+      }
+      await loadSavedPackage(packageId);
+      return payload;
+    }
+
+    async function importHardwareLabEvidenceWorkflow() {
+      const packageId = await ensurePackageForEvidence();
+      const response = await fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/hardware-lab-evidence`, {
+        method: "POST"
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || payload.detail || "Hardware-lab evidence import failed.");
       }
       await loadSavedPackage(packageId);
       return payload;
@@ -5258,6 +5662,8 @@
       renderQuantizationReport(artifacts.quantization);
       renderRuntimeProfile(artifacts.runtime);
       renderBaselineComparison(artifacts.baseline);
+      currentHardwarePlacement = artifacts.hardware_placement || null;
+      currentResidualAwarePlacement = artifacts.residual_aware_placement || null;
       renderWorkloadFit(artifacts.workload_fit || null);
       renderSystemBoundary(artifacts.system_boundary || null);
       renderPhysicalAiMap(artifacts.physical_ai_map || null);
@@ -5320,7 +5726,7 @@
 
     async function loadSavedPackage(packageId) {
       $("backendStatus").textContent = `Loading saved package ${packageId}...`;
-      const response = await fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/artifacts`);
+      const response = await fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/artifacts`);
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || "Saved package artifact load failed.");
@@ -5334,42 +5740,46 @@
     }
 
     async function refreshPackageClaimReadiness(packageId) {
-      const [measurementResponse, workloadResponse, boundaryResponse, physicalAiResponse, physicalAiRoadmapResponse, vlaResponse, weightUpdateResponse, calibrationDriftResponse, controlBoundaryResponse, sensorBoundaryResponse, researchResponse, glossaryResponse, sourceCheckResponse, toolchainResponse, compilerEcosystemResponse, connectionResponse, adapterExecutionResponse, adapterConnectionKitResponse, adapterTemplateResponse, adapterSelfTestResponse, adapterIntegrationResponse, externalConnectorResponse, connectorGuideResponse, connectorHarnessResponse, connectorAcceptanceResponse, connectorBacklogResponse, connectorDeliveryResponse, connectorRiskResponse, claimResponse, auditResponse, briefResponse, interviewResponse, drillResponse] = await Promise.all([
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/measurement-evidence`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/workload-fit`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/system-boundary`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/physical-ai-map`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/physical-ai-roadmap`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/vla-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/weight-update-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/calibration-drift-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/control-boundary`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/sensor-boundary-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/research-guide`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/concept-glossary`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/source-check-register`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/toolchain-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/compiler-ecosystem-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connection-playbook`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/adapter-execution-plan`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/adapter-connection-kit`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/adapter-evidence-templates`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/adapter-connection-self-test`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/adapter-integration-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/external-connector-contract`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-implementation-guide`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-test-harness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-acceptance-report`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-backlog`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-delivery-plan`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/connector-risk-register`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/claim-readiness`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/evidence-audit`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/evidence-brief`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/interview-brief`),
-        fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(packageId)}/interview-drill`)
+      const [measurementResponse, hardwarePlacementResponse, residualAwarePlacementResponse, workloadResponse, boundaryResponse, physicalAiResponse, physicalAiRoadmapResponse, vlaResponse, weightUpdateResponse, calibrationDriftResponse, controlBoundaryResponse, sensorBoundaryResponse, researchResponse, glossaryResponse, sourceCheckResponse, toolchainResponse, compilerEcosystemResponse, connectionResponse, adapterExecutionResponse, adapterConnectionKitResponse, adapterTemplateResponse, adapterSelfTestResponse, adapterIntegrationResponse, externalConnectorResponse, connectorGuideResponse, connectorHarnessResponse, connectorAcceptanceResponse, connectorBacklogResponse, connectorDeliveryResponse, connectorRiskResponse, claimResponse, auditResponse, briefResponse, interviewResponse, drillResponse] = await Promise.all([
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/measurement-evidence`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/hardware-placement`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/residual-aware-placement`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/workload-fit`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/system-boundary`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/physical-ai-map`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/physical-ai-roadmap`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/vla-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/weight-update-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/calibration-drift-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/control-boundary`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/sensor-boundary-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/research-guide`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/concept-glossary`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/source-check-register`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/toolchain-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/compiler-ecosystem-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connection-playbook`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/adapter-execution-plan`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/adapter-connection-kit`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/adapter-evidence-templates`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/adapter-connection-self-test`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/adapter-integration-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/external-connector-contract`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-implementation-guide`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-test-harness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-acceptance-report`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-backlog`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-delivery-plan`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/connector-risk-register`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/claim-readiness`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/evidence-audit`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/evidence-brief`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/interview-brief`),
+        fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(packageId)}/interview-drill`)
       ]);
       const measurement = await measurementResponse.json();
+      const hardwarePlacement = await hardwarePlacementResponse.json();
+      const residualAwarePlacement = await residualAwarePlacementResponse.json();
       const workload = await workloadResponse.json();
       const boundary = await boundaryResponse.json();
       const physicalAi = await physicalAiResponse.json();
@@ -5403,6 +5813,8 @@
       const interview = await interviewResponse.json();
       const drill = await drillResponse.json();
       if (measurementResponse.ok) renderMeasurementEvidence(measurement);
+      if (hardwarePlacementResponse.ok) currentHardwarePlacement = hardwarePlacement;
+      if (residualAwarePlacementResponse.ok) currentResidualAwarePlacement = residualAwarePlacement;
       if (workloadResponse.ok) renderWorkloadFit(workload);
       if (boundaryResponse.ok) renderSystemBoundary(boundary);
       if (physicalAiResponse.ok) renderPhysicalAiMap(physicalAi);
@@ -5456,7 +5868,7 @@
         if (!response.ok) throw new Error(`Could not load ${path}`);
         return { source_id: sourceId, payload: await response.json() };
       }));
-      const response = await fetch(`http://127.0.0.1:8020/evidence/import-batch?package_id=${encodeURIComponent(currentPackageReport.package_id)}`, {
+      const response = await fetch(`http://127.0.0.1:8025/evidence/import-batch?package_id=${encodeURIComponent(currentPackageReport.package_id)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items })
@@ -5474,12 +5886,24 @@
         throw new Error("Build or select a saved package before importing custom evidence.");
       }
       const sourceId = $("customEvidenceSource").value;
+      const mode = $("customEvidenceMode").value;
       const payload = validateCustomEvidence(true);
       const validation = await validateCustomEvidenceWithBackend(true);
       if (!validation.valid) {
         throw new Error((validation.errors || []).join(" ") || "Custom evidence validation failed.");
       }
-      const response = await fetch(`http://127.0.0.1:8020/evidence/import?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(sourceId)}`, {
+      if (mode === "tool" && validation.tool_readiness?.tool_ready !== true) {
+        throw new Error((validation.tool_readiness?.issues || []).join(" ") || "Tool evidence is not ready for strict import.");
+      }
+      if (mode === "measured" && validation.measured_readiness?.measured_ready !== true) {
+        throw new Error((validation.measured_readiness?.issues || []).join(" ") || "Measured evidence is not ready for strict import.");
+      }
+      const endpoint = mode === "tool"
+        ? "import-tool"
+        : mode === "measured"
+          ? "import-measured"
+          : "import";
+      const response = await fetch(`http://127.0.0.1:8025/evidence/${endpoint}?package_id=${encodeURIComponent(currentPackageReport.package_id)}&source_id=${encodeURIComponent(sourceId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -5497,7 +5921,7 @@
       const profile = selectedTargetProfile();
       const calibration = $("calibrationSelect").value;
       $("backendStatus").textContent = `Loading model graph ${modelId}...`;
-      const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(modelId)}/graph?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}`);
+      const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(modelId)}/graph?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}`);
       const payload = await response.json();
       if (!response.ok) {
         throw new Error(payload.error || "Model graph load failed.");
@@ -5510,7 +5934,7 @@
 
     async function loadSavedRun(runId) {
       $("backendStatus").textContent = `Loading saved run ${runId}...`;
-      const runResponse = await fetch(`http://127.0.0.1:8020/project-runs/${encodeURIComponent(runId)}`);
+      const runResponse = await fetch(`http://127.0.0.1:8025/project-runs/${encodeURIComponent(runId)}`);
       const run = await runResponse.json();
       if (!runResponse.ok) {
         throw new Error(run.error || "Saved run load failed.");
@@ -5529,7 +5953,7 @@
       const packagePayload = await loadSavedPackage(run.package_id);
       let comparison = null;
       try {
-        const comparisonResponse = await fetch(`http://127.0.0.1:8020/projects/${encodeURIComponent(run.project_id)}/runs/compare`);
+        const comparisonResponse = await fetch(`http://127.0.0.1:8025/projects/${encodeURIComponent(run.project_id)}/runs/compare`);
         comparison = await comparisonResponse.json();
         if (!comparisonResponse.ok) comparison = null;
       } catch (_) {
@@ -5544,7 +5968,7 @@
       const suggestionParam = suggestionId ? `suggestion_ids=${encodeURIComponent(suggestionId)}` : "";
       let url = "";
       if (currentPackageReport?.package_id) {
-        url = `http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-what-if`;
+        url = `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-what-if`;
         if (suggestionParam) url += `?${suggestionParam}`;
       } else {
         if (!currentModelId) {
@@ -5562,7 +5986,7 @@
         ];
         if (currentProjectId) params.push(`project_id=${encodeURIComponent(currentProjectId)}`);
         if (suggestionParam) params.push(suggestionParam);
-        url = `http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/rewrite-what-if?${params.join("&")}`;
+        url = `http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/rewrite-what-if?${params.join("&")}`;
       }
       $("backendStatus").textContent = suggestionId ? `Running what-if for ${suggestionId}...` : "Running rewrite what-if for top suggestions...";
       const response = await fetch(url, { method: currentPackageReport?.package_id ? "GET" : "POST" });
@@ -5579,7 +6003,7 @@
       const suggestionParam = selectedIds.length ? `suggestion_ids=${encodeURIComponent(selectedIds.join(","))}` : "";
       let url = "";
       if (currentPackageReport?.package_id) {
-        url = `http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-plan`;
+        url = `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-plan`;
         if (suggestionParam) url += `?${suggestionParam}`;
       } else {
         if (!currentModelId) {
@@ -5597,7 +6021,7 @@
         ];
         if (currentProjectId) params.push(`project_id=${encodeURIComponent(currentProjectId)}`);
         if (suggestionParam) params.push(suggestionParam);
-        url = `http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/rewrite-plan?${params.join("&")}`;
+        url = `http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/rewrite-plan?${params.join("&")}`;
       }
       $("backendStatus").textContent = "Building rewrite plan...";
       const response = await fetch(url, { method: currentPackageReport?.package_id ? "GET" : "POST" });
@@ -5614,7 +6038,7 @@
       const suggestionParam = selectedIds.length ? `suggestion_ids=${encodeURIComponent(selectedIds.join(","))}` : "";
       let url = "";
       if (currentPackageReport?.package_id) {
-        url = `http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-work-order`;
+        url = `http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/rewrite-work-order`;
         if (suggestionParam) url += `?${suggestionParam}`;
       } else {
         if (!currentModelId) {
@@ -5632,7 +6056,7 @@
         ];
         if (currentProjectId) params.push(`project_id=${encodeURIComponent(currentProjectId)}`);
         if (suggestionParam) params.push(suggestionParam);
-        url = `http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/rewrite-work-order?${params.join("&")}`;
+        url = `http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/rewrite-work-order?${params.join("&")}`;
       }
       $("backendStatus").textContent = "Building rewrite work order...";
       const response = await fetch(url, { method: currentPackageReport?.package_id ? "GET" : "POST" });
@@ -5753,7 +6177,7 @@
       const name = $("projectNameInput").value || "Analog AI evaluation";
       $("backendStatus").textContent = "Creating backend project...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/projects?name=${encodeURIComponent(name)}&target_profile=${encodeURIComponent(profile)}&modality=${encodeURIComponent(modality)}&calibration_profile=${encodeURIComponent(calibration)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
+        const response = await fetch(`http://127.0.0.1:8025/projects?name=${encodeURIComponent(name)}&target_profile=${encodeURIComponent(profile)}&modality=${encodeURIComponent(modality)}&calibration_profile=${encodeURIComponent(calibration)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5779,7 +6203,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = `Importing ${file.name} into backend...`;
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/import?filename=${encodeURIComponent(file.name)}&target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/import?filename=${encodeURIComponent(file.name)}&target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}${projectParam}`, {
           method: "POST",
           body: file
         });
@@ -5808,7 +6232,7 @@
       const name = $("projectNameInput").value || "Analog AI evaluation";
       $("backendStatus").textContent = "Saving project settings...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/projects/${encodeURIComponent(currentProjectId)}?name=${encodeURIComponent(name)}&target_profile=${encodeURIComponent(profile)}&modality=${encodeURIComponent(modality)}&calibration_profile=${encodeURIComponent(calibration)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
+        const response = await fetch(`http://127.0.0.1:8025/projects/${encodeURIComponent(currentProjectId)}?name=${encodeURIComponent(name)}&target_profile=${encodeURIComponent(profile)}&modality=${encodeURIComponent(modality)}&calibration_profile=${encodeURIComponent(calibration)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
           method: "PATCH"
         });
         const payload = await response.json();
@@ -5830,7 +6254,7 @@
       const modelParam = currentModelId ? `?model_id=${encodeURIComponent(currentModelId)}` : "";
       $("backendStatus").textContent = "Running full project evaluation...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/projects/${encodeURIComponent(currentProjectId)}/runs${modelParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/projects/${encodeURIComponent(currentProjectId)}/runs${modelParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5855,7 +6279,7 @@
       const calibration = $("calibrationSelect").value;
       $("backendStatus").textContent = `Running estimated quantization for ${modality}...`;
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/quantize?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/quantize?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5880,7 +6304,7 @@
       const runtimeMode = $("runtimeModeSelect").value;
       $("backendStatus").textContent = `Running simulated runtime profile in ${runtimeMode} mode...`;
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/runtime-profile?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/runtime-profile?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5905,7 +6329,7 @@
       const runtimeMode = $("runtimeModeSelect").value;
       $("backendStatus").textContent = "Comparing simulated analog run with estimated digital baseline...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/baseline-comparison?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/baseline-comparison?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5931,7 +6355,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Building deployment package readiness report...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/deployment-package?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/deployment-package?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -5979,8 +6403,8 @@
       $("backendStatus").textContent = "Building measurement evidence contract...";
       try {
         const response = currentPackageReport?.package_id
-          ? await fetch(`http://127.0.0.1:8020/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/measurement-evidence`)
-          : await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/measurement-evidence?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+          ? await fetch(`http://127.0.0.1:8025/deployment-packages/${encodeURIComponent(currentPackageReport.package_id)}/measurement-evidence`)
+          : await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/measurement-evidence?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
             method: "POST"
           });
         const payload = await response.json();
@@ -6007,6 +6431,17 @@
       }
     });
 
+    $("importHardwareLabEvidence").addEventListener("click", async () => {
+      $("backendStatus").textContent = "Importing hardware-lab evidence from sibling repo...";
+      try {
+        const payload = await importHardwareLabEvidenceWorkflow();
+        const strictStatus = payload.strict_tool_evidence?.imported ? " Strict simulator/tool sidecar imported." : " Strict simulator/tool sidecar not imported.";
+        $("backendStatus").textContent = `Hardware-lab evidence imported. Imported ${payload.accepted_count}, skipped ${payload.skipped_count || 0}, rejected ${payload.rejected_count}.${strictStatus} Review claim readiness before using any claim.`;
+      } catch (error) {
+        $("backendStatus").textContent = `Hardware-lab evidence import failed: ${error.message}`;
+      }
+    });
+
     $("importSampleEvidence").addEventListener("click", async () => {
       $("backendStatus").textContent = "Importing sample evidence artifacts...";
       try {
@@ -6019,10 +6454,11 @@
 
     $("importCustomEvidence").addEventListener("click", async () => {
       const sourceId = $("customEvidenceSource").value;
-      $("backendStatus").textContent = `Importing custom ${sourceId} evidence...`;
+      const mode = $("customEvidenceMode").value;
+      $("backendStatus").textContent = `Importing custom ${sourceId} evidence through ${mode} mode...`;
       try {
         const imported = await importCustomEvidence();
-        $("backendStatus").textContent = `Custom evidence imported as ${imported.artifact_name}.`;
+        $("backendStatus").textContent = `Custom ${mode} evidence imported as ${imported.artifact_name}.`;
       } catch (error) {
         $("backendStatus").textContent = `Custom evidence import failed: ${error.message}`;
       }
@@ -6037,6 +6473,12 @@
     $("customEvidenceSource").addEventListener("change", () => {
       loadEvidenceTemplate();
       renderCustomEvidencePreview(null);
+    });
+
+    $("customEvidenceMode").addEventListener("change", () => {
+      loadEvidenceTemplate();
+      renderCustomEvidencePreview(null);
+      $("customEvidenceValidation").textContent = `Mode set to ${$("customEvidenceMode").value}. Validate before import.`;
     });
 
     $("customEvidenceJson").addEventListener("input", () => {
@@ -6083,7 +6525,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Running evidence gates across generated artifacts...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/evidence-gates?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/evidence-gates?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -6109,7 +6551,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Building plain-language review report...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/review-report?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/review-report?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -6135,7 +6577,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Building decision report...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/decision-report?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/decision-report?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -6161,7 +6603,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Building rewrite suggestions...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/rewrite-suggestions?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/rewrite-suggestions?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`, {
           method: "POST"
         });
         const payload = await response.json();
@@ -6211,7 +6653,7 @@
       const projectParam = currentProjectId ? `&project_id=${encodeURIComponent(currentProjectId)}` : "";
       $("backendStatus").textContent = "Preparing evaluation archive download...";
       try {
-        const response = await fetch(`http://127.0.0.1:8020/models/${encodeURIComponent(currentModelId)}/deployment-package/archive?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`);
+        const response = await fetch(`http://127.0.0.1:8025/models/${encodeURIComponent(currentModelId)}/deployment-package/archive?target_profile=${encodeURIComponent(profile)}&calibration_profile=${encodeURIComponent(calibration)}&modality=${encodeURIComponent(modality)}&runtime_mode=${encodeURIComponent(runtimeMode)}${projectParam}`);
         if (!response.ok) {
           const payload = await response.json();
           throw new Error(payload.error || "Archive download failed.");

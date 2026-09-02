@@ -1,5 +1,7 @@
 # Reuse And Modification Map
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This map uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file answers one practical question:
 
 ```text

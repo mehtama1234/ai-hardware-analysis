@@ -1,5 +1,7 @@
 # Platform Completion End-To-End Goal
 
+Start from the [Connected System Map](connected-system-map.html). This goal uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
 Related architecture roadmap:
 
 - [Platform Roadmap Architecture](platform-roadmap-architecture.md)

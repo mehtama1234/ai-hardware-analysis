@@ -1,5 +1,7 @@
 # Audience Export Map
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This file uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file explains how the same review package should be read by different audiences.
 
 The package should not change its facts for each audience. It should change the order and depth of the reading path. Every audience should see the same answer:

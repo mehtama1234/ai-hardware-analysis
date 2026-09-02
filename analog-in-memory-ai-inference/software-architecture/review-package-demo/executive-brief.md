@@ -4,6 +4,18 @@ Package: `demo-analog-roadmap-001`
 
 This brief explains the demo review package without requiring the reader to open raw JSON.
 
+Start from the main workbench [Connected System Map](../connected-system-map.html) when you need the full path from package object to constraint, evidence, allowed claim, refused claim, and next handoff.
+
+## Connected-System Contract
+
+Read this package through the same contract as the live workbench:
+
+```text
+object -> constraint -> design move -> evidence -> allowed claim -> refused claim -> next handoff
+```
+
+For the current live AIMC work, the object is package `pkg-e931662a01293df2`. The proven loop is local model placement into hardware-lab evidence and backend claim readiness. The refused claims are measured board latency, measured energy, calibrated silicon, analog macro integration, package reliability, and production readiness.
+
 ## Current Answer
 
 The current safe answer is **partial fit with missing proof**.
@@ -23,9 +35,9 @@ It is safe to say:
 
 It is not safe to say:
 
-- the chip is proven on hardware
-- the chip has measured power savings
-- the chip has measured task accuracy
+- hardware proof exists for the chip
+- measured power savings exist for the chip
+- measured task accuracy exists for the chip
 - the chip can run a full VLA model
 - the chip supports adaptive weight updates
 - the simulator proves production behavior

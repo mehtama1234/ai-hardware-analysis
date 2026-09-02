@@ -1,5 +1,7 @@
 # Completion Audit
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This audit uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This audit checks the current demo package against the end-to-end goal.
 
 The current state is a strong static proof workbench and demo review package. It is not measured silicon proof. It is not a finished product compiler. It is not a live board service.

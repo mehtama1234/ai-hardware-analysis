@@ -1,5 +1,7 @@
 # End-To-End Meaty Goal
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This goal uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This document states what the finished roadmap experience should become.
 
 The finished product should help a reader answer one question:

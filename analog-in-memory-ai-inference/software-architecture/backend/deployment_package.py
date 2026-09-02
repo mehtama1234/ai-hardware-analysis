@@ -241,6 +241,8 @@ def build_deployment_archive(
     quantization_report,
     runtime_profile,
     baseline_comparison=None,
+    hardware_placement=None,
+    residual_aware_placement=None,
     workload_fit=None,
     system_boundary=None,
     physical_ai_map=None,
@@ -303,6 +305,8 @@ Contents:
 - quantization-report.json: estimated precision policy and protected layers
 - runtime-profile.json: simulated runtime trace, latency, energy, and bottlenecks
 - baseline-comparison.json: estimated analog result compared with an estimated digital baseline
+- hardware-placement.json: model graph translated into analog candidates, digital-only regions, converter boundaries, sensitivity classes, fallback points, and governor fields
+- residual-aware-placement.json: structural placement filtered through calibrated simulator residual evidence when available
 - workload-fit.json: workload and modality fit matrix for edge use cases
 - system-boundary.json: analog, digital, conversion, memory, host, and fallback boundary report
 - physical-ai-map.json: Physical AI domain map, edge-compute fit, evidence gaps, and claim boundaries
@@ -375,6 +379,10 @@ Contents:
         _write_json(zip_file, "runtime-profile.json", runtime_profile)
         if baseline_comparison:
             _write_json(zip_file, "baseline-comparison.json", baseline_comparison)
+        if hardware_placement:
+            _write_json(zip_file, "hardware-placement.json", hardware_placement)
+        if residual_aware_placement:
+            _write_json(zip_file, "residual-aware-placement.json", residual_aware_placement)
         if workload_fit:
             _write_json(zip_file, "workload-fit.json", workload_fit)
         if system_boundary:

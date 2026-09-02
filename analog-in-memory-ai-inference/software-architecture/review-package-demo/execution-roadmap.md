@@ -1,5 +1,7 @@
 # Execution Roadmap
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This roadmap uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This file turns the review package into a staged build plan.
 
 The roadmap should not be read as a promise that the chip already works. It is a plan for moving from a readable demo package to measured evidence.
@@ -63,7 +65,7 @@ The company has a clear proof workflow for reviewing one workload against one an
 Claim that stays blocked:
 
 ```text
-The chip has measured performance on silicon.
+Measured silicon performance.
 ```
 
 ## Phase 2: Model-Level Evidence

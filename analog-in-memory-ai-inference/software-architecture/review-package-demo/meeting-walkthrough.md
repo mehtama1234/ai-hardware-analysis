@@ -1,5 +1,7 @@
 # Meeting Walkthrough
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This walkthrough uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This guide explains how to walk through the review package in a meeting.
 
 Use it for an executive review, investor review, customer technical review, or internal engineering review. It keeps the discussion tied to one question:
@@ -43,7 +45,7 @@ Decision supported:
 
 Do not say:
 
-- the chip is proven
+- full chip proof exists
 - the board ran
 - power savings are measured
 - full VLA execution is ready

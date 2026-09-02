@@ -172,6 +172,7 @@
 <body>
   <header>
     <nav>
+      <a href="connected-system-map.html">Connected System Map</a>
       <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
       <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
       <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
@@ -203,6 +204,59 @@
   </header>
 
   <main>
+    <section>
+      <h2>How This Page Fits The Connected System</h2>
+      <p>The <a href="connected-system-map.html">Connected System Map</a> puts AIHWKIT after placement and before claim readiness. AIHWKIT is useful because it asks whether analog-like error changes the model answer. It is not a compiler, board runtime, power meter, thermal setup, or signoff flow.</p>
+      <table>
+        <tr><th>Role</th><th>Concrete Meaning</th></tr>
+        <tr><td>Consumes</td><td>Candidate analog layers, weights, input samples, task metric, converter settings, noise model, drift model, device variation, write-error assumptions, and calibration profile when one exists.</td></tr>
+        <tr><td>Checks</td><td>Whether analog-like nonideal behavior changes the model output enough to fail the task boundary.</td></tr>
+        <tr><td>Produces</td><td>Analog error report, task-sensitivity report, simulator configuration, raw output, normalized evidence JSON, and a claim boundary.</td></tr>
+        <tr><td>Feeds</td><td>Evidence import, claim readiness, compiler retry decisions, governor thresholds, and later board-measurement comparison.</td></tr>
+        <tr><td>Refuses</td><td>Measured board latency, measured energy, physical layout signoff, calibrated silicon behavior, production reliability, or tapeout readiness.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Current Adapter Boundary</h2>
+      <p>The current connected prototype uses a local analog nonideality stack, transformer-sensitivity harness, RTL governor checks, Yosys synthesis, and OpenLane physical-flow context. AIHWKIT and CrossSim are still adapter targets, not live sources in the current backend package.</p>
+      <p>This matters because the current evidence should not pretend to be stronger than it is. The local stack supports a bounded analog-error and model-sensitivity claim. It does not prove AIHWKIT agreement, CrossSim layout agreement, measured board behavior, measured power, or calibrated silicon behavior.</p>
+      <pre>local analog residual
+-> toy transformer sensitivity
+-> governor rows
+-> RTL check
+-> backend evidence import
+-> claim readiness</pre>
+      <p>The adapter contract is described in <a href="http://127.0.0.1:8023/research/aihwkit-crosssim-adapter-boundary.html">AIHWKIT And CrossSim Adapter Boundary</a>. A future AIHWKIT adapter should emit evidence into the same package format rather than replacing the claim rules.</p>
+    </section>
+
+    <section>
+      <h2>Simulator Evidence In First Principles</h2>
+      <p>A simulator is a controlled way to ask, "What if the ideal math were replaced by a physical approximation?" That is useful only when the approximation is named. If the page says only that the model was simulated, the result is too vague to trust. The evidence must say what was changed, where it was changed, and what task boundary was checked.</p>
+      <table>
+        <tr><th>Object</th><th>Physical Constraint</th><th>Simulation Move</th><th>Evidence To Emit</th></tr>
+        <tr><td>Weight value</td><td>Limited conductance states, write error, drift, retention</td><td>Inject programming error, quantize, drift over time, or compare calibrated profile.</td><td>Weight-error distribution, drift assumption, calibration profile ID, and task impact.</td></tr>
+        <tr><td>Activation value</td><td>DAC range, input clipping, input precision</td><td>Round, clip, or add input-side noise before analog compute.</td><td>DAC bits, clipping rule, activation range, and output residual.</td></tr>
+        <tr><td>Array output</td><td>Read noise, ADC precision, IR drop, tile mismatch</td><td>Add output noise, quantize through ADC, model parasitic error, or compare CrossSim output.</td><td>ADC bits, noise parameters, residual distribution, and pass/fail threshold.</td></tr>
+        <tr><td>Model decision</td><td>Task sensitivity to small numeric changes</td><td>Run task samples with and without analog effects.</td><td>Baseline metric, analog metric, delta, tolerance, dataset or fixture ID.</td></tr>
+      </table>
+      <p>The useful simulator claim is: under these named analog assumptions, this model changed by this much on this task. The blocked claim is: the real chip will behave that way. That claim needs board or silicon measurements tied to the same model package.</p>
+    </section>
+
+    <section>
+      <h2>Adapter Handoff Contract</h2>
+      <p>An AIHWKIT or CrossSim adapter should return evidence in the same shape as the rest of the workbench. That lets the frontend compare simulator evidence, local lab evidence, board evidence, and power evidence without changing the claim rules.</p>
+      <table>
+        <tr><th>Adapter Field</th><th>Why It Is Required</th></tr>
+        <tr><td>Model/package/workload ID</td><td>Prevents simulator output from being detached from the package being reviewed.</td></tr>
+        <tr><td>Layer or placement reference</td><td>Shows whether the simulated effect was applied to the same layers the compiler wants to place in analog.</td></tr>
+        <tr><td>Analog settings</td><td>Names precision, noise, drift, write error, converter settings, and temperature or voltage assumptions.</td></tr>
+        <tr><td>Raw output path</td><td>Keeps the original tool result available for audit instead of trusting only a summary.</td></tr>
+        <tr><td>Normalized evidence JSON</td><td>Lets backend claim readiness read the result in the same format as other evidence sources.</td></tr>
+        <tr><td>Allowed and refused claims</td><td>Makes the simulator useful without allowing it to pretend to be board or silicon evidence.</td></tr>
+      </table>
+    </section>
+
     <section id="basic">
       <h2>The Basic Idea</h2>
       <p>AIHWKIT helps answer one important question:</p>

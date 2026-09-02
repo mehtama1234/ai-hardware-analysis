@@ -155,6 +155,7 @@
 <body>
   <header>
     <nav>
+      <a href="connected-system-map.html">Connected System Map</a>
       <a href="company-roadmap-end-to-end.html">Roadmap Page</a>
       <a href="strategy-synthesis-and-next-pages.html">Strategy Synthesis</a>
       <a href="proof-ladder-step-by-step.html">Proof Ladder</a>
@@ -185,6 +186,59 @@
   </header>
 
   <main>
+    <section>
+      <h2>How This Page Fits The Connected System</h2>
+      <p>The <a href="connected-system-map.html">Connected System Map</a> says the system starts with a model graph and ends with a bounded claim. This page covers the translation step in the middle: how a normal model becomes a concrete analog/digital execution plan. The compiler is not a style choice. It is the part that prevents the phrase "analog-friendly layer" from hiding converter cost, tile limits, fallback work, and unsupported operators.</p>
+      <table>
+        <tr><th>Role</th><th>Concrete Meaning</th></tr>
+        <tr><td>Consumes</td><td>Model graph, tensor shapes, operator types, chip tile size, analog precision, converter assumptions, memory limits, digital fallback rules, and calibration profile when one exists.</td></tr>
+        <tr><td>Checks</td><td>Whether each operation should run analog, stay digital, be split across tiles, be bit-sliced, be routed through converters, be retried, or be blocked.</td></tr>
+        <tr><td>Produces</td><td>Placement map, analog candidate list, digital-only list, converter boundaries, memory movement plan, fallback points, governor fields, and eventually a runtime package.</td></tr>
+        <tr><td>Feeds</td><td>The hardware lab governor rows, RTL checks, OpenLane evidence, backend evidence import, and final claim readiness.</td></tr>
+        <tr><td>Refuses</td><td>A compiler placement is not a board run, power result, silicon calibration, physical signoff, or production proof.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Current Compiler Handoff</h2>
+      <p>The current system does not yet have a full analog-MLIR backend. It does have a first compiler-like handoff: the restored backend derives a <code>hardware_placement</code> artifact from the analyzed model package, and the hardware lab imports that artifact into governor request rows.</p>
+      <pre>ONNX graph analysis
+-> backend hardware_placement
+-> analog candidates and digital-only operators
+-> converter boundaries and fallback points
+-> governor fields
+-> hardware-lab CSV rows
+-> RTL governor check</pre>
+      <p>The live package <code>pkg-e931662a01293df2</code> currently reports 5 operators, 2 analog candidates, 4 converter boundaries, and 3 fallback points. That is enough to prove the first model-graph-to-lab connection. It is not enough to claim a full compiler, arbitrary model coverage, board-loadable package generation, or silicon-safe placement.</p>
+      <p>Review the current handoff through <a href="http://127.0.0.1:8023/research/backend-hardware-placement-first-principles.html">Backend Hardware Placement From First Principles</a> and the live endpoint <a href="http://127.0.0.1:8025/deployment-packages/pkg-e931662a01293df2/hardware-placement">hardware placement API</a>.</p>
+    </section>
+
+    <section>
+      <h2>The Compiler Decision In First Principles</h2>
+      <p>An analog array is a physical shortcut for a specific kind of math: many stored weights are multiplied by changing inputs and summed. The shortcut is useful only if the surrounding system does not spend the saved energy and time on conversion, movement, calibration, and fallback. That makes compiler mapping a constraint problem.</p>
+      <table>
+        <tr><th>Object</th><th>Constraint</th><th>Allowed Design Move</th><th>Evidence To Emit</th></tr>
+        <tr><td>Large fixed-weight matrix</td><td>Tile size, precision, partial sums, converter bandwidth</td><td>Place on analog tiles if the split and conversion cost remain bounded.</td><td>Tile map, bit-slice plan, ADC/DAC schedule, and estimated residual boundary.</td></tr>
+        <tr><td>Softmax, LayerNorm, control, safety, custom op</td><td>Exactness, branching, unsupported semantics, safety authority</td><td>Keep digital or block until support exists.</td><td>Digital-only list, fallback reason, and unsupported-operation record.</td></tr>
+        <tr><td>Dynamic attention or cache movement</td><td>Runtime data changes, memory traffic, sequence length</td><td>Split: fixed projections may be analog, dynamic mixing often needs digital/system handling.</td><td>Hybrid placement report with memory movement and converter count.</td></tr>
+        <tr><td>Calibrated or weak tile</td><td>Measured tile behavior, drift, unavailable cells, temperature and voltage range</td><td>Use calibration-aware placement or avoid the tile.</td><td>Calibration profile ID and tile exclusion or compensation record.</td></tr>
+      </table>
+      <p>The safe compiler claim is narrow: the compiler has produced a reviewable placement under stated constraints. The unsafe claim is broad: the model is now proven to run well on the chip. That later claim needs board runtime, power, thermal, task, and calibration evidence.</p>
+    </section>
+
+    <section>
+      <h2>Handoff Contract</h2>
+      <p>For the connected system to feel seamless, compiler output must be shaped for the next tools. It should not be a paragraph saying the model maps well. It should be a record the lab can consume.</p>
+      <table>
+        <tr><th>Compiler Output</th><th>Next Consumer</th><th>Why It Exists</th></tr>
+        <tr><td><code>hardware-placement.json</code></td><td>Backend package, frontend workbench, hardware lab import</td><td>Gives one source of truth for analog candidates, digital-only regions, converter boundaries, and fallback points.</td></tr>
+        <tr><td>Governor fields</td><td>RTL scheduler/governor tests</td><td>Turns placement into concrete control decisions: allow analog, route digital, retry, or fall back.</td></tr>
+        <tr><td>Converter boundary list</td><td>Analog lab, power estimator, timing budget</td><td>Shows where analog value becomes digital value and where converter cost can erase the gain.</td></tr>
+        <tr><td>Unsupported-operation list</td><td>Rewrite planner and claim readiness</td><td>Prevents unsupported model pieces from being hidden behind a successful partial map.</td></tr>
+        <tr><td>Calibration profile reference</td><td>Simulator, board runtime, task accuracy</td><td>Connects placement to the physical behavior of the actual tile or board profile being tested.</td></tr>
+      </table>
+    </section>
+
     <section id="problem">
       <h2>The Basic Problem</h2>
       <p>A trained AI model is a file full of math instructions and learned numbers. A physical chip cannot run that file directly.</p>

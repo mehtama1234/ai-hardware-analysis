@@ -1,6 +1,8 @@
 # Current State Audit
 
-Last updated: 2026-08-25
+Start from the [Connected System Map](connected-system-map.html). This audit uses the same contract: object, constraint, design move, evidence, allowed claim, refused claim, and next handoff.
+
+Last updated: 2026-08-29
 
 This is the short answer for where the analog / in-memory AI inference workbench stands.
 
@@ -8,9 +10,11 @@ This is the short answer for where the analog / in-memory AI inference workbench
 
 The app is now a working prototype for explaining and packaging analog edge AI readiness.
 
-It can take an ONNX model, analyze the graph, estimate quantization and runtime behavior, compare against an estimated digital baseline, build a deployment-readiness package, show Physical AI fit, import normalized evidence, recalculate claim readiness, and export a self-describing archive.
+It can take an ONNX model, analyze the graph, estimate quantization and runtime behavior, compare against an estimated digital baseline, build a deployment-readiness package, show Physical AI fit, import normalized evidence, recalculate claim readiness, and export a self-describing archive. It now also connects to the newer `analog-digital-chip-design-eda` lab through package `pkg-e931662a01293df2`.
 
 It does not yet compile a model for real analog hardware. It does not run on a real board by default. It does not prove production readiness.
+
+The browser-readable version of this status is [Current Proof Ledger](current-proof-ledger.html).
 
 ## Implemented End To End
 
@@ -27,6 +31,11 @@ Backend, frontend, saved endpoints, archive files, and smoke coverage exist for:
 - `toolchain_readiness`: describes model import, quantization, compiler mapping, simulation, runtime, power, accuracy, profiling, and handoff.
 - `connection_playbook`, connector contracts, adapter execution, adapter templates, connector acceptance, backlog, delivery plan, and risk register.
 - evidence import, claim readiness, evidence audit, evidence brief, interview brief, interview drill, decision report, rewrite suggestions, what-if estimates, rewrite plan, and work order.
+- strict evidence API paths for ordinary evidence, strict simulator/tool evidence, and strict measured board/power evidence.
+- measured energy claim synchronization: valid measured runtime and valid measured power support `C3` only when they name the same runtime trace ID, package, workload, board, start time, and end time.
+- generated strict simulator/tool evidence from the newer lab at `evidence/aimc-hardware-lab/analog_error_simulation_strict_tool.json`.
+- current-lab bridge proof from backend placement to analog lab records, governor traces, RTL/Yosys checks, OpenLane package readiness, routed OpenLane summaries for selected digital controllers, source-matched residual-aware placement, exported evidence, backend import, and claim readiness.
+- residual-aware placement API and archive proof: the backend dense MatMul rows select `deep_transformer_mlp_stack` calibrated CrossSim evidence under the `fixed_weight_matmul_family_match` policy, and the downloaded archive preserves the same selected source and policy.
 
 ## What Is Simulated Or Local
 
@@ -36,6 +45,7 @@ These paths are useful workflow proof, but not hardware proof:
 - digital baseline comparison is estimated
 - local board-runtime and power/thermal evidence can be replay fixtures
 - analog error behavior is simulated unless a real simulator artifact is imported
+- the current local analog lab evidence is structurally useful but does not pass the strict simulator/tool gate
 - compiler mapping is not real hardware compiler output unless an imported compiler artifact is attached
 - source-checked examples are case-study context, not compatibility or benchmark evidence
 
@@ -65,6 +75,7 @@ Missing for stronger claims:
 - real analog behavior simulator output or measured analog error sweeps
 - real board runtime traces
 - synchronized power and thermal measurement
+- same-run linkage between runtime and power records
 - dataset-backed task accuracy for the selected workload
 - sensor-to-output latency and energy accounting
 - controller handoff traces for robotics or other physical systems
@@ -74,21 +85,31 @@ Missing for stronger claims:
 
 ## Current Verification
 
-Last full smoke status:
+Current verification status:
 
 ```text
-smoke-ok ... archive_files=63
+page contract audit: PASS, checked_html=31, checked_md=37
+strict evidence API: PASS
+tool evidence readiness: PASS
+measured evidence readiness: PASS
+residual-aware placement API: PASS
+residual-aware placement archive: PASS
+backend compile: PASS
+AIMC bridge: PASS, 50/50 checks
+claim summary: supported_lab_claims=3, needs_review_lab_claims=2, blocked_lab_claims=0, production_claim=blocked
 ```
 
-That smoke covers frontend markers, backend endpoints, saved package artifacts, archive contents, local evidence import, claim readiness, project run flow, and saved retrieval.
+The bridge covers backend hardware placement import, SPICE-style comparison fixtures, analog tile error evidence, converter sweeps, tile operating point records, nonideality stack records, transformer-impact records, governor request generation, RTL traces, Yosys synthesis, OpenLane package readiness, routed OpenLane summaries for selected digital controllers, AIHWKIT/CrossSim adapter availability status, optional simulator payload-run summary, workload-shaped simulator payloads for selected analog candidates, tensor-shaped simulator payloads for backend analog MatMul candidates, trained-weight simulator payloads for the uploaded tiny MLP analog MatMul weights, projection-stack simulator payloads for a larger four-MatMul ONNX fixture, transformer-MLP-block simulator payloads with nonlinear and residual operations kept digital, calibrated transformer-MLP-block simulator payloads with held-out affine correction, calibrated deep transformer-MLP-stack simulator payloads with held-out affine correction, attention-block simulator payloads for static projections with dynamic attention kept digital, calibrated attention-block simulator payloads with held-out affine correction, calibrated residual governor bridge decisions, source-matched residual-aware placement decisions, backend residual-aware placement API and archive checks, hardware-lab evidence export, strict simulator/tool payload export, static site build, dry-run simulator payload examples, project validation, analog simulator adapter contract validation, guarded simulator payload import checks, and backend import of the exported evidence.
+
+The strict API check proves the actual FastAPI endpoints used by the frontend can validate and import strict simulator/tool payloads and strict measured payloads, while rejecting current local analog lab evidence from the strict simulator import path. It also proves that local runtime/power cannot enter through measured import and that mismatched measured power can remain imported evidence while keeping `C3` in needs review.
 
 ## Next Real Step
 
-The next implementation step should not be another explanation panel.
+The next implementation step should deepen one real evidence path, starting with a larger source-matched simulator replay, compiler, OpenLane, board runtime, or power path:
 
-The next useful step is to connect one real external evidence path, starting with the compiler mapping adapter or board runtime adapter:
-
+- larger source-matched simulator replay first if the goal is stronger analog-error evidence for fixed-weight MatMul work beyond the current toy backend and block fixtures
 - compiler first if the goal is model-to-hardware feasibility
+- OpenLane first if the goal is to promote routed physical-flow results into a separate backend evidence source for the digital control blocks
 - board runtime first if the goal is latency and runtime proof
 - power/thermal first if the goal is energy claim proof
 - task accuracy first if the goal is accuracy-after-quantization proof

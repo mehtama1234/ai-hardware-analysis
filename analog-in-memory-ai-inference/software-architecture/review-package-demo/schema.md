@@ -1,5 +1,7 @@
 # Demo Review Package Schema
 
+Start from the main workbench [Connected System Map](../connected-system-map.html). This schema uses the same object, constraint, design move, evidence, allowed claim, refused claim, and next-handoff contract.
+
 This schema explains the demo review package in plain language.
 
 The package is not measured chip proof. It is the file shape the platform should produce when it reviews one workload against one analog chip target.
