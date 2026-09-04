@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIHWKIT Converter Cost Model</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>AIHWKIT Converter Cost Model</h1><p class="lead">Source: docs/research/aihwkit-converter-cost-model.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>AIHWKIT Converter Cost Model</h1>
+<p>This page reviews the cost of the AIHWKIT converter target.</p>
+<p>The target says what precision makes the local AIHWKIT rows pass. This page asks whether that precision still leaves a useful analog accelerator.</p>
+<h2>Object</h2>
+<p>The object is the converter boundary around the same four-column MatMul read used by the local converter sweep.</p>
+<p>The present tile uses a 4-bit DAC and 6-bit ADC. The AIHWKIT target asks for about a 10-bit input side and a 12-bit output side.</p>
+<h2>Reading Rule</h2>
+<p>More converter bits reduce quantization error, but they also add circuit work.</p>
+<p>The output side is especially important because a SAR ADC spends comparison steps to decide the output code. More output bits mean more decision time per column read unless the design pays for more parallelism.</p>
+<h2>Decision Boundary</h2>
+<p>If the target precision has affordable energy, latency, area, calibration, and noise evidence, it can become a candidate analog boundary.</p>
+<p>If the target precision costs more than the analog array saves, the correct system decision is digital fallback.</p>
+<p>The generated evidence below gives the local relative cost estimate.</p>
+<p>---</p>
+<h1>AIHWKIT Converter Cost Model</h1>
+<p>This file prices the AIHWKIT converter target with the same relative cost formula used by the local converter sweep.</p>
+<ul>
+<li>status: <code>fallback_preferred_until_cost_is_justified</code></li>
+<li>source target: <code>evidence/aimc-simulator-adapters/aihwkit-converter-upgrade-target.json</code></li>
+<li>formula source: <code>labs/analog/analog-in-memory-foundation-model-hardware/python/converter_boundary_sweep.py</code></li>
+</ul>
+<h2>Current Tile Cost</h2>
+<ul>
+<li>ADC bits: <code>6</code></li>
+<li>DAC bits: <code>4</code></li>
+<li>energy relative to 4x4 baseline: <code>3.222</code></li>
+<li>SAR comparisons per four-column read: <code>24</code></li>
+</ul>
+<h2>Target Cost</h2>
+<ul>
+<li>ADC bits: <code>12</code></li>
+<li>DAC bits: <code>10</code></li>
+<li>energy relative to 4x4 baseline: <code>206.222</code></li>
+<li>SAR comparisons per four-column read: <code>48</code></li>
+</ul>
+<h2>Delta</h2>
+<ul>
+<li>energy multiplier versus current tile: <code>64.000</code></li>
+<li>latency comparison multiplier versus current tile: <code>2.000</code></li>
+<li>extra ADC comparisons per four-column read: <code>24</code></li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>The target fixes the numerical problem by asking the converters to make much finer decisions. That changes the hardware problem. A converter is not a label on a diagram; it is a timed circuit that spends switching, comparison, reference, routing, and calibration cost to turn an analog value into a code.</p>
+<p>The current tile uses a small converter boundary because analog compute only helps when the array work saved is larger than the converter work added. The 10-bit input and 12-bit output target may make AIHWKIT residuals pass, but under this local formula it makes converter energy far larger than the current operating point and adds more output comparison work.</p>
+<p>So the honest architecture rule is simple: until that cost is justified by measured or circuit-level evidence, the high-precision target is a design candidate, not an analog placement permission. Rows that need this much precision should stay on the digital path unless a later proof shows the higher-precision analog path wins for the same workload.</p>
+<h2>Required Next Evidence</h2>
+<ul>
+<li>measured or circuit-level energy for the stronger ADC and DAC choice</li>
+<li>timing model showing whether the extra SAR comparisons fit prefill or decode latency</li>
+<li>macro area estimate for converter replication, sharing, or multiplexing</li>
+<li>AIHWKIT replay with a nonzero noise model that matches the proposed converter design</li>
+<li>scheduler policy showing when the high-precision analog path beats digital fallback</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>not measured silicon energy, board energy, layout area, or production power</p></article></main></body></html>

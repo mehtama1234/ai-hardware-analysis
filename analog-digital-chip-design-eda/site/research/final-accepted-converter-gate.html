@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Final Accepted Converter Gate</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Final Accepted Converter Gate</h1><p class="lead">Source: docs/research/final-accepted-converter-gate.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Final Accepted Converter Gate</h1>
+<p>This page defines what closes the current analog readout goal.</p>
+<p>The project is not done when a schematic simulates, when a layout file exists, or when a payload has the right shape. The project is done for the converter only when one real extracted or measured converter package passes strict intake and reruns the system decision it wants to change.</p>
+<p>The simple rule is:</p>
+<pre><code>
+one converter
+one run
+one physical evidence package
+one break-even rerun
+one claim boundary
+</code></pre>
+<h2>The Simple Question</h2>
+<p>The simple question is:</p>
+<p>What exact evidence lets us say the converter is accepted?</p>
+<p>The answer is a package that ties the converter result to the physical object that produced it. The package must let a reviewer inspect the extracted netlist or measured setup, the model files, the energy, the latency, the noise, the area, the sharing rule, and the rerun decision.</p>
+<h2>What Must Be In The Package</h2>
+<p>The accepted package must contain these things:</p>
+<table><tbody>
+<tr><th>object</th><th>why it is required</th></tr>
+<tr><td>converter id</td><td>names the converter being judged</td></tr>
+<tr><td>run id</td><td>ties all values to the same simulation or measurement</td></tr>
+<tr><td>target boundary</td><td>states the DAC bits, ADC bits, noise budget, rows, columns, and sharing target</td></tr>
+<tr><td>extracted netlist or measured setup</td><td>proves the values come from a physical object, not only a planning estimate</td></tr>
+<tr><td>model files or measurement setup files</td><td>states the electrical world used for the result</td></tr>
+<tr><td>simulation command or measurement procedure</td><td>lets the result be repeated or inspected</td></tr>
+<tr><td>energy values</td><td>tells the system what conversion costs</td></tr>
+<tr><td>latency values</td><td>tells the system how long conversion takes</td></tr>
+<tr><td>noise and offset values</td><td>tells the model how much uncertainty enters the value</td></tr>
+<tr><td>area values</td><td>tells the system what physical cost was paid</td></tr>
+<tr><td>sharing rule</td><td>tells the system how many rows, columns, outputs, and converter instances share the cost</td></tr>
+<tr><td>break-even rerun</td><td>proves the system decision was recomputed with these values</td></tr>
+<tr><td>claim boundary</td><td>states exactly what this package supports and refuses</td></tr>
+</tbody></table>
+<p>If any of these are missing, the correct state is not accepted.</p>
+<h2>Required Fixed Target</h2>
+<p>The current target boundary is:</p>
+<pre><code>
+10-bit DAC input
+12-bit ADC output
+output noise budget &lt;= 0.004
+64 rows served
+4 columns served
+16 outputs per conversion cost
+4 converter instances
+</code></pre>
+<p>If a candidate uses a different boundary, it must say so. It cannot silently replace the target while claiming to close the same proof.</p>
+<h2>Same-Run Requirement</h2>
+<p>These fields must carry the same run id:</p>
+<pre><code>
+provenance.run_id
+simulation.run_id
+energy.run_id
+latency.run_id
+noise.run_id
+area.run_id
+break_even_rerun.run_id
+</code></pre>
+<p>This protects the result.</p>
+<p>Energy from one run, noise from another run, and area from a placeholder do not describe one converter. The system cannot make a replacement decision from mixed evidence.</p>
+<h2>The Acceptance Path</h2>
+<p>The final accepted path is:</p>
+<pre><code>
+fill real payload
+  -&gt; validate required fields
+  -&gt; validate referenced files exist
+  -&gt; check same-run identity
+  -&gt; check numeric boundaries
+  -&gt; check noise budget
+  -&gt; rerun break-even with extracted or measured values
+  -&gt; write accepted break-even rerun
+  -&gt; write accepted submission report
+  -&gt; update placement and claim readiness
+</code></pre>
+<p>The command path already exists:</p>
+<pre><code>
+python3 scripts/submit_converter_post_layout_payload.py REAL_PAYLOAD.json
+</code></pre>
+<p>That command should write accepted evidence only after strict validation and rerun both pass.</p>
+<h2>What Happens After It Passes</h2>
+<p>Passing the converter gate does not mean the whole foundation model is proven.</p>
+<p>It means the project may replace old converter assumptions with measured or extracted converter values.</p>
+<p>After the gate passes, the system must do four follow-up actions:</p>
+<ol>
+<li>rerun converter break-even with the accepted energy, latency, noise, area, and sharing rule</li>
+<li>rerun placement or layout-risk decisions that depend on converter precision and cost</li>
+<li>rerun model residual checks if the accepted noise or quantization differs from the simulator assumptions</li>
+<li>update frontend/backend claim readiness so supported, needs-review, and blocked claims are visible</li>
+</ol>
+<p>That is the point of accepted evidence. It changes downstream decisions. If no downstream decision changes or gets rerun, the package is only an archive.</p>
+<h2>What The Current Repo Can Already Do</h2>
+<p>The current repo can already do several important things:</p>
+<ul>
+<li>define the post-layout payload schema</li>
+<li>reject placeholder payloads</li>
+<li>reject missing referenced files</li>
+<li>require same-run consistency</li>
+<li>run a temporary complete fixture through the acceptance path</li>
+<li>avoid writing temporary proof files into canonical accepted evidence</li>
+<li>show the current blocker ledger</li>
+</ul>
+<p>That means the gate is mechanically ready.</p>
+<h2>What Is Still Missing</h2>
+<p>The real evidence is still missing.</p>
+<p>The current blocker ledger reports:</p>
+<pre><code>
+status: blocked_on_real_post_layout_evidence
+preflight status: not_ready_for_strict_submission
+template only: True
+blocker count: 45
+</code></pre>
+<p>The missing pieces include:</p>
+<ul>
+<li>real converter id</li>
+<li>real shared run id</li>
+<li>extracted netlist file</li>
+<li>model or measurement setup files</li>
+<li>real simulation command or measurement procedure</li>
+<li>positive ADC and DAC energy numbers</li>
+<li>positive conversion and settling time</li>
+<li>output noise at or below budget</li>
+<li>input-referred noise</li>
+<li>positive ADC and DAC area</li>
+<li>real break-even rerun artifact</li>
+<li>claim boundary that does not overstate the evidence</li>
+</ul>
+<p>Until those exist, the project should keep refusing accepted converter claims.</p>
+<h2>How This Fits The Whole AIMC Flow</h2>
+<p>The full flow is:</p>
+<pre><code>
+model graph
+  -&gt; analog candidate placement
+  -&gt; simulator residual evidence
+  -&gt; Sky130 frontend and comparator evidence
+  -&gt; accepted converter package
+  -&gt; break-even rerun
+  -&gt; residual-aware placement update
+  -&gt; backend claim readiness update
+  -&gt; frontend review page
+</code></pre>
+<p>The final converter gate sits in the middle. It is the point where local circuit evidence becomes system evidence.</p>
+<p>Without this gate, the project can say:</p>
+<pre><code>
+we have simulator evidence, RTL evidence, OpenLane evidence, and partial Sky130 readout evidence
+</code></pre>
+<p>With this gate, the project can say:</p>
+<pre><code>
+this named converter package passed the strict post-layout or measured-silicon intake and its values were used to rerun the system decision
+</code></pre>
+<p>Those are different claims.</p>
+<h2>Done Means Done</h2>
+<p>For the converter, done means:</p>
+<pre><code>
+the payload is real
+the referenced files exist
+the values are numeric and inside required boundaries
+the run ids match
+the noise budget passes
+the break-even rerun uses the accepted values
+accepted evidence is written by the strict submitter
+the downstream placement and claim pages are updated
+</code></pre>
+<p>Anything less is progress, not completion.</p>
+<h2>Claim Boundary</h2>
+<p>This page supports one claim:</p>
+<p>The final accepted converter gate is now stated clearly enough that a reviewer can tell what remains and what proof would close the current converter goal.</p>
+<p>This page refuses stronger claims:</p>
+<p>It does not provide the real extracted converter payload, does not prove DRC/LVS, does not prove post-layout simulation, does not prove measured silicon, does not rerun break-even with real converter values, does not update placement with accepted converter values, and does not create accepted post-layout converter evidence.</p>
+<h2>Where This Fits In The Flow</h2>
+<p>Read this page after:</p>
+<ul>
+<li><code>Converter Evidence Ladder</code></li>
+<li><code>Analog-To-Digital-To-Model Error Flow</code></li>
+<li><code>Converter Post-Layout Evidence Contract</code></li>
+<li><code>Converter Post-Layout Submission Path</code></li>
+</ul>
+<p>This is the final written gate. The next work after this is not more wording unless the review path is unclear. The next proof work is to produce the real converter package or build the next frontend/preamp evidence needed to make that package pass.</p></article></main></body></html>

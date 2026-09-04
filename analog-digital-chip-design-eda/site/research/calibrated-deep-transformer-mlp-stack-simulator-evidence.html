@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calibrated Deep Transformer MLP Stack Simulator Evidence</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Calibrated Deep Transformer MLP Stack Simulator Evidence</h1><p class="lead">Source: docs/research/calibrated-deep-transformer-mlp-stack-simulator-evidence.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Calibrated Deep Transformer MLP Stack Simulator Evidence</h1>
+<p>This page explains the larger source-matched simulator replay.</p>
+<p>The earlier calibrated MLP fixture had one block and four fixed-weight MatMuls. This fixture has three repeated MLP-style blocks and twelve fixed-weight MatMuls. That matters because analog error is not only a property of one multiply. In a deeper chain, the output of one block becomes the input to the next block, so small differences can be carried forward, clipped by ReLU, multiplied by a gate, added through a residual path, and then multiplied again.</p>
+<h2>Object</h2>
+<p>The object is <code>deep-transformer-mlp-stack.onnx</code>.</p>
+<p>The calibrated analog candidates are twelve fixed-weight MatMul nodes:</p>
+<ul>
+<li><code>block0.gate.matmul</code></li>
+<li><code>block0.up.matmul</code></li>
+<li><code>block0.down.matmul</code></li>
+<li><code>block0.out.matmul</code></li>
+<li><code>block1.gate.matmul</code></li>
+<li><code>block1.up.matmul</code></li>
+<li><code>block1.down.matmul</code></li>
+<li><code>block1.out.matmul</code></li>
+<li><code>block2.gate.matmul</code></li>
+<li><code>block2.up.matmul</code></li>
+<li><code>block2.down.matmul</code></li>
+<li><code>block2.out.matmul</code></li>
+</ul>
+<p>The digital-only operations remain bias adds, ReLUs, elementwise gate mixing, and residual adds.</p>
+<h2>Constraint</h2>
+<p>A deeper replay is still not a foundation model.</p>
+<p>The useful claim is narrower: the system can run a repeated fixed-weight MatMul stack through simulator APIs, learn a correction from separate inputs, test on a held-out input, and decide which tool is allowed to support an analog claim. It still does not prove token accuracy, pretrained model behavior, silicon calibration, board runtime, measured power, analog activation, analog residual addition, or physical macro signoff.</p>
+<h2>Design Move</h2>
+<p>Run:</p>
+<pre><code>
+/home/mehtama1/eda-tools/aimc-simulators-venv/bin/python scripts/run_calibrated_deep_transformer_mlp_stack_aimc_simulator_payloads.py
+</code></pre>
+<p>The script reads:</p>
+<ul>
+<li><code>/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/deep-transformer-mlp-stack.onnx</code></li>
+</ul>
+<p>It writes:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-calibrated-deep-transformer-mlp-stack-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/crosssim-calibrated-deep-transformer-mlp-stack-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/calibrated-deep-transformer-mlp-stack-simulator-payload-run-summary.json</code></li>
+</ul>
+<h2>Evidence</h2>
+<p>The current local run uses seven calibration inputs and one held-out input.</p>
+<p>For each MatMul, the script records the digital input vector that reached that MatMul during normal graph execution. It asks the simulator for that MatMul output, fits a per-output affine correction from calibration cases, and then tests the corrected simulator output on the held-out case.</p>
+<p>CrossSim writes a passing payload for the twelve-MatMul stack. AIHWKIT writes a payload too, but its residual remains above the positive-claim threshold, so it is kept as run evidence and rejected as positive claim evidence.</p>
+<p>The important point is the control rule. The analog claim does not come from the words &quot;AIHWKIT&quot; or &quot;CrossSim.&quot; It comes from the measured residual inside the payload. The same fixture accepts one tool and refuses the other.</p>
+<h2>Allowed Claim</h2>
+<p>The system can say:</p>
+<p>CrossSim now runs a calibrated simulator payload for a three-block transformer-MLP-style ONNX fixture with twelve fixed-weight MatMul candidates. AIHWKIT runs the same deeper fixture but is not accepted as positive claim evidence because its held-out residual remains above the threshold.</p>
+<h2>Refused Claim</h2>
+<p>The system cannot say:</p>
+<ul>
+<li>a pretrained foundation model has been proven</li>
+<li>token accuracy has been measured</li>
+<li>analog activations, gate mixing, or residual adds have been proven</li>
+<li>calibration has been proven on silicon</li>
+<li>the correction is stable across voltage, temperature, drift, or aging</li>
+<li>board latency or power has been measured</li>
+<li>this is a physical macro placement</li>
+<li>the design is ready for signoff or tapeout</li>
+</ul>
+<h2>Next Handoff</h2>
+<p>The next proof is to feed this deeper calibrated MLP-stack result into the generalized residual governor as another source-matched fixed-weight MatMul source. That would let placement prefer the deepest available matching source for dense MLP-like rows, while still refusing to inherit that evidence for bias, activation, residual, softmax, or dynamic attention work.</p></article></main></body></html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Polarity-Named Isolated Latch Work Order</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Polarity-Named Isolated Latch Work Order</h1><p class="lead">Source: docs/research/sky130-polarity-named-isolated-latch-work-order.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Polarity-Named Isolated Latch Work Order</h1>
+<p>This page is generated from the polarity-contract latch/SAR risk join.</p>
+<p>It turns the current state into the next circuit work order: preserve the transistor polarity contract, keep enough pre-latch margin, and isolate the latch input so clock kickback no longer rewrites the sampled value.</p>
+<p>It is a work order, not a circuit proof, not SAR evidence, and not accepted post-layout converter evidence.</p>
+<p>---</p>
+<h1>Sky130 Polarity-Named Isolated Latch Work Order</h1>
+<ul>
+<li>status: <code>polarity_named_isolated_latch_work_order_ready_not_circuit_proof</code></li>
+<li>polarity contract: <code>converter_positive_input_is_negative_raw_preamp_output_diff</code></li>
+<li>best transistor setting: <code>medium_iso_pair_8ua</code></li>
+<li>best polarity-corrected output diff V: <code>7.932000000e-04</code></li>
+<li>output margin over target x: <code>1.586400</code></li>
+<li>best existing latch kickback V: <code>6.578530000e-04</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>recommended kickback target V: <code>1.098632813e-04</code></li>
+<li>additional reduction to half LSB x: <code>2.993962</code></li>
+<li>additional reduction to design target x: <code>5.987924</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The next latch cannot be judged only by whether it produces a digital one or zero. It must read the same signed analog quantity that the transistor handoff produced.</p>
+<p>That means two things have to be true at once. First, the sign convention must remain explicit: positive model value is the negative raw preamp output difference. Second, the latch clock must not push enough charge back into the sampled nodes to change the value being judged.</p>
+<p>The current transistor handoff has enough schematic margin. The current latch family resolves direction, but its best kickback is still above the half-LSB line. The next design is therefore an isolation problem: let the latch see the value without letting the latch clock rewrite the value.</p>
+<h2>Candidate Moves</h2>
+<table><tbody>
+<tr><th>move</th><th>what changes</th><th>why it might work</th><th>main risk</th></tr>
+<tr><td><code>source_follower_input_buffer</code></td><td>the transistor handoff drives a small buffer gate; the latch reads the buffer output</td><td>the held analog node sees less clocked latch capacitance</td><td>buffer offset and bias current can eat the 0.5 mV margin</td></tr>
+<tr><td><code>sampled_internal_decision_capacitor</code></td><td>copy the polarity-corrected preamp value onto a small internal capacitor, then disconnect the frontend before latch regeneration</td><td>kickback lands mostly on the internal decision node instead of the frontend sense node</td><td>the extra sampling action adds charge injection and timing error</td></tr>
+<tr><td><code>two_phase_preamp_then_latch</code></td><td>first amplify the polarity-named signal, then enable the latch after the preamp output is settled</td><td>the latch sees a larger internal difference and can use smaller input devices</td><td>preamp noise, offset, and energy become part of the converter budget</td></tr>
+<tr><td><code>delayed_or_bottom_plate_latch_clock</code></td><td>delay the regenerative clock edge until the sampled handoff nodes are isolated</td><td>clock feedthrough is separated from the moment when the analog value is being stored</td><td>timing can hide kickback in a later phase unless both before and after values are measured</td></tr>
+</tbody></table>
+<h2>Acceptance Tests</h2>
+<table><tbody>
+<tr><th>test</th><th>requirement</th></tr>
+<tr><td><code>polarity_contract_preserved</code></td><td>positive model value must still mean <code>converter_positive_input_is_negative_raw_preamp_output_diff</code> at the latch/SAR boundary</td></tr>
+<tr><td><code>both_signs_resolve</code></td><td>positive and negative target-edge cases must both resolve to full latch output with the contracted sign</td></tr>
+<tr><td><code>kickback_hard_line</code></td><td>worst sampled-node differential kickback must be &lt;= 2.197265625e-04 V</td></tr>
+<tr><td><code>kickback_design_target</code></td><td>preferred target is &lt;= 1.098632813e-04 V, giving half-LSB slack for offset and noise</td></tr>
+<tr><td><code>margin_survives_isolation</code></td><td>corrected pre-latch output must stay &gt;= 5.000000000e-04 V for both signs after isolation is added</td></tr>
+<tr><td><code>wrong_code_proxy</code></td><td>the measured sign at the SAR threshold must not flip after applying offset, noise, and kickback budgets</td></tr>
+<tr><td><code>no_strict_claim</code></td><td>candidate_post_layout_written=false and accepted_post_layout_written=false until extracted same-run evidence exists</td></tr>
+</tbody></table>
+<h2>Next Executable Step</h2>
+<p>build a small ngspice fixture that inserts one isolation move between the polarity-corrected transistor preamp output and the clocked latch input</p>
+<h2>Boundary</h2>
+<p>does not prove the isolated latch circuit, SAR bit cycling, noise, offset statistics, extracted layout, DRC/LVS, or accepted post-layout converter evidence</p></article></main></body></html>

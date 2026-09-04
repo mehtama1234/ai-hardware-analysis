@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Sample Switch Hold Mitigation Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Sample Switch Hold Mitigation Sweep</h1><p class="lead">Source: docs/research/sky130-sample-switch-hold-mitigation-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Sample Switch Hold Mitigation Sweep</h1>
+<p>This page tests simple circuit knobs against the Sky130 sample-switch hold error.</p>
+<p>The previous hold-mode run showed the real issue: the sampled node follows the input while the switch is on, but it moves after the switch turns off. This sweep changes sample capacitance and switch size, then measures whether the held-node movement shrinks.</p>
+<p>This is still a starter circuit study, not a converter proof. It does not contain a comparator, SAR loop, reference ladder, extracted transistor layout, DRC/LVS, or accepted post-layout economics.</p>
+<p>---</p>
+<h1>Sky130 Sample Switch Hold Mitigation Sweep</h1>
+<ul>
+<li>status: <code>sky130_hold_mitigation_sweep_complete_not_converter_proof</code></li>
+<li>PDK model library: <code>/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice</code></li>
+<li>generated deck: <code>labs/analog/analog-in-memory-foundation-model-hardware/spice/sky130_sample_switch_hold_mitigation_sweep.sp</code></li>
+<li>config count: <code>3</code></li>
+<li>case count: <code>9</code></li>
+<li>measured case count: <code>8</code></li>
+<li>timed out case count: <code>1</code></li>
+<li>ngspice timeout s: <code>60</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>baseline worst hold abs delta V: <code>5.557000000e-03</code></li>
+<li>plain hold-mode reference worst hold abs delta V: <code>5.557000000e-03</code></li>
+<li>best config: <code>larger_cap_smaller_switch_1p0p_1x2</code></li>
+<li>best worst hold abs delta V: <code>1.632500000e-03</code></li>
+<li>best hold improvement x: <code>3.404</code></li>
+<li>best improvement vs plain hold-mode x: <code>3.404</code></li>
+<li>best total error pass count: <code>0</code></li>
+<li>candidate post-layout written: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+<li>csv: <code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-sample-switch-hold-mitigation-sweep.csv</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The held-node error is charge divided by capacitance. If the switch injects roughly the same unwanted charge into a larger sample capacitor, the voltage movement gets smaller. But a larger capacitor also costs energy and takes longer to charge. A smaller switch can inject less charge, but it also has more resistance and may settle more slowly.</p>
+<p>This sweep tests that tradeoff directly with Sky130 MOS models. It does not solve the converter. It tells us whether the next design should spend capacitance, resize the switch, or move to a better sampling method.</p>
+<h2>Config Summary</h2>
+<table><tbody>
+<tr><th>config</th><th>Wn um</th><th>Wp um</th><th>Csample pF</th><th>measured cases</th><th>timed out cases</th><th>worst hold delta V</th><th>total error pass count</th></tr>
+<tr><td><code>baseline_0p2p_2x4</code></td><td><code>2.000</code></td><td><code>4.000</code></td><td><code>0.200</code></td><td><code>3</code></td><td><code>0</code></td><td><code>5.557000000e-03</code></td><td><code>0</code></td></tr>
+<tr><td><code>larger_cap_1p0p_2x4</code></td><td><code>2.000</code></td><td><code>4.000</code></td><td><code>1.000</code></td><td><code>3</code></td><td><code>0</code></td><td><code>2.107000000e-03</code></td><td><code>0</code></td></tr>
+<tr><td><code>larger_cap_smaller_switch_1p0p_1x2</code></td><td><code>1.000</code></td><td><code>2.000</code></td><td><code>1.000</code></td><td><code>2</code></td><td><code>1</code></td><td><code>1.632500000e-03</code></td><td><code>0</code></td></tr>
+</tbody></table>
+<h2>Reading</h2>
+<p>The best setting in this sweep is <code>larger_cap_smaller_switch_1p0p_1x2</code>. It changes worst hold movement by <code>3.404</code> times compared with the measured in-sweep baseline and by <code>3.404</code> times compared with the separate plain hold-mode reference. If it still misses the 12-bit half-LSB line, the next move is not just more capacitance. The circuit needs a sampling method that cancels or avoids switch charge movement.</p>
+<h2>Refused Claim</h2>
+<p>does not prove a complete sample-and-hold architecture, comparator behavior, SAR conversion, extracted transistor layout, DRC/LVS signoff, or accepted replacement economics</p></article></main></body></html>

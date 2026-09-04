@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Control Plane OpenLane Prep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Control Plane OpenLane Prep</h1><p class="lead">Source: labs/eda/aimc-control-plane-openlane-prep/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Control Plane OpenLane Prep</h1>
+<p>This lab packages the AIMC control-plane RTL for a future physical-design run. It does not claim that placement, routing, timing closure, DRC, or LVS have been completed. The local tool check found Yosys and Icarus Verilog on <code>PATH</code>, but not OpenLane, OpenROAD, OpenSTA, or a Liberty timing library.</p>
+<h2>Workflow Contract</h2>
+<p>Consumes: control-plane RTL, timing constraints, OpenLane package files, local tool availability, and Yosys lowering evidence.</p>
+<p>Produces: an OpenLane-ready design package, readiness result, exploratory physical-flow reports, and a compact metrics summary.</p>
+<p>Supports: the claim that the request-level controller has a named physical-flow package and can be reviewed as a layout candidate in the local open-source flow.</p>
+<p>Refuses: measured board latency, measured power, clean clock-tree signoff, analog macro integration, production tapeout, and silicon behavior.</p>
+<p>Handoff: this page is an early physical-flow boundary. It feeds the EDA evidence story, but stronger claim readiness should use the later scheduler/governor pages and the board/power measurement boundary.</p>
+<h2>Object</h2>
+<p>The object being prepared is the digital controller that chooses:</p>
+<pre><code>
+digital fallback
+analog projection
+analog batched decode
+</code></pre>
+<p>The physical-design question is whether this controller can become placed and routed geometry while preserving the clocked decision and meeting timing.</p>
+<h2>Constraint</h2>
+<p>OpenLane/OpenROAD needs more than Verilog. A physical flow also needs:</p>
+<ul>
+<li>top-module name</li>
+<li>design source files</li>
+<li>clock port and clock period</li>
+<li>reset assumptions</li>
+<li>floorplan utilization target</li>
+<li>placement and routing assumptions</li>
+<li>process design kit setup</li>
+<li>standard-cell Liberty timing files</li>
+<li>design-rule and layout-versus-schematic checks</li>
+</ul>
+<p>This lab supplies the design-side inputs we can define now. It leaves PDK-specific paths and real flow execution for the machine where OpenLane/OpenROAD is available.</p>
+<h2>Files</h2>
+<ul>
+<li><code>src/aimc_control_plane.v</code>: local copy of the controller RTL</li>
+<li><code>config.json</code>: OpenLane-style design configuration</li>
+<li><code>config.tcl</code>: compatibility configuration for older <code>flow.tcl</code> OpenLane runs</li>
+<li><code>constraint.sdc</code>: clock and simple input/output delay assumptions</li>
+<li><code>src/constraint.sdc</code>: SDC copy for older OpenLane design-folder conventions</li>
+<li><code>pin_order.cfg</code>: stable pin-order intent for review</li>
+</ul>
+<h2>Concrete Design Move</h2>
+<p>Check whether this machine can run the package:</p>
+<pre><code>
+./scripts/check_aimc_openlane_readiness.sh
+</code></pre>
+<p>Current readiness result:</p>
+<pre><code>
+OK      design file config.json
+OK      design file config.tcl
+OK      design file constraint.sdc
+OK      design file pin_order.cfg
+OK      design file src/aimc_control_plane.v
+OK      design file src/constraint.sdc
+OK      config.json parses
+OK      yosys -&gt; /usr/bin/yosys
+OK      packaged RTL lowers in Yosys
+WARN    openlane host command not on PATH
+WARN    openroad host command not on PATH
+OK      OpenLane source -&gt; /home/mehtama1/eda-tools/OpenLane
+OK      docker command -&gt; /usr/bin/docker
+OK      docker daemon responds
+OK      OpenLane Docker image present
+</code></pre>
+<p>So the design package is ready for an OpenLane run attempt. After pulling the architecture-specific OpenLane image and enabling Sky130 under <code>/home/mehtama1/eda-tools/pdks</code>, the CTS-enabled flow reached detailed placement and placement-stage STA. See <code>openlane-partial-run-report.md</code> for the exact run directory, area, slack, and remaining CTS boundary.</p>
+<p>A no-CTS exploratory flow completed through routing, extraction, GDS generation, LVS, DRC, antenna checking, and final report generation. See <code>openlane-no-cts-final-report.md</code> for final views, area, timing, DRC, LVS, and antenna evidence. See <code>openlane-no-cts-metrics-summary.md</code> for the generated compact metrics table. This is useful physical-flow evidence, but it does not replace CTS-enabled clock-tree signoff.</p>
+<p>Run these local checks first:</p>
+<pre><code>
+iverilog -o ../../digital/aimc-control-plane-rtl/aimc_control_plane_tb ../../digital/aimc-control-plane-rtl/aimc_control_plane.v ../../digital/aimc-control-plane-rtl/aimc_control_plane_tb.v
+vvp ../../digital/aimc-control-plane-rtl/aimc_control_plane_tb
+cd ../../digital/aimc-control-plane-synthesis
+yosys synth_aimc_control_plane.ys
+</code></pre>
+<p>When OpenLane is available, the intended next command shape is:</p>
+<pre><code>
+./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>The helper stages this design into <code>/home/mehtama1/eda-tools/OpenLane/designs/aimc_control_plane</code> and runs <code>flow.tcl -design aimc_control_plane</code>. It stops early if Docker is unavailable or the OpenLane image is missing.</p>
+<p>To run the no-CTS exploratory flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_control_plane_no_cts CONFIG_NAME=config_no_cts ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>To regenerate the compact metrics summary after a run:</p>
+<pre><code>
+python3 labs/eda/aimc-control-plane-openlane-prep/extract_openlane_metrics.py
+</code></pre>
+<h2>Measurement</h2>
+<p>The first physical-flow measurements should be:</p>
+<ul>
+<li>synthesis success under the selected standard-cell library</li>
+<li>floorplan utilization</li>
+<li>placement legality</li>
+<li>routed congestion</li>
+<li>worst negative slack and total negative slack</li>
+<li>DRC violation count</li>
+<li>LVS result if the flow reaches layout checking</li>
+<li>final area and cell count</li>
+</ul>
+<p>The most important timing question is simple:</p>
+<pre><code>
+Can path[1:0] and reason[2:0] be produced in time for the scheduler to use them?
+</code></pre>
+<h2>Failure Mode</h2>
+<p>The failure mode is confusing a prepared design package with a physical implementation. This folder is an input to a future flow. It proves that we have named the design, constraints, and expected evidence. It does not prove that the controller has been placed, routed, timed, or signed off.</p></article></main></body></html>

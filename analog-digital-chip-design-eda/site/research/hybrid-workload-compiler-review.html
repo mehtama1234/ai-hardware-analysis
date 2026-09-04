@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hybrid Workload Compiler Review</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Hybrid Workload Compiler Review</h1><p class="lead">Source: docs/research/hybrid-workload-compiler-review.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Hybrid Workload Compiler Review</h1>
+<p>This report audits one shared compiler/runtime handoff across transformer, serving, and edge-workload packages.</p>
+<h2>Requirements</h2>
+<ol>
+<li>Every package names its workload, model, metric, baseline, and claim boundary.</li>
+<li>Every operator has one analog-memory or digital-support placement.</li>
+<li>Every analog candidate names converter, calibration, tile, SRAM, and fallback information.</li>
+<li>Digital decisions preserve explicit reasons, including cost-driven fallback.</li>
+<li>The same packages feed a shared command and runtime schedule.</li>
+<li>Physical converter evidence remains separate from simulator and task rehearsal evidence.</li>
+</ol>
+<h2>Workload Results</h2>
+<table><tbody>
+<tr><th>workload</th><th>model</th><th>operators</th><th>analog selected</th><th>digital</th><th>metric/result</th><th>proof</th></tr>
+<tr><td><code>tiny_mlp_task_hybrid_vertical_slice_v1</code></td><td><code>tiny-mlp</code></td><td>6</td><td>0</td><td>6</td><td><code>classification_accuracy</code> / <code>n/a</code></td><td>model-backed synthetic task rehearsal</td></tr>
+<tr><td><code>projection-stack-v1</code></td><td><code>projection-stack</code></td><td>7</td><td>4</td><td>3</td><td><code>relative_l2_output_difference_on_projection_stack_trained_weight_replay</code> / <code>5.06456e-08</code></td><td>CrossSim trained-weight replay</td></tr>
+<tr><td><code>deep_transformer_mlp_stack_vertical_slice_v1</code></td><td><code>deep-transformer-mlp-stack</code></td><td>16</td><td>12</td><td>4</td><td><code>relative_l2_output_difference_on_calibrated_deep_transformer_mlp_stack_replay</code> / <code>6.71635e-08</code></td><td>calibrated simulator replay</td></tr>
+<tr><td><code>attention_block_hybrid_vertical_slice_v1</code></td><td><code>attention-block</code></td><td>8</td><td>4</td><td>4</td><td><code>relative_l2_output_difference_on_calibrated_attention_block_replay</code> / <code>4.17733e-08</code></td><td>calibrated simulator replay</td></tr>
+<tr><td><code>transformer_mlp_block_hybrid_vertical_slice_v1</code></td><td><code>transformer-mlp-block</code></td><td>8</td><td>4</td><td>4</td><td><code>relative_l2_output_difference_on_calibrated_transformer_mlp_block_replay</code> / <code>4.94498e-08</code></td><td>calibrated simulator replay</td></tr>
+<tr><td><code>wake-nonwake-audio-v1</code></td><td><code>wake-nonwake-mlp</code></td><td>6</td><td>0</td><td>6</td><td><code>wake_word_f1</code> / <code>n/a</code></td><td>model-backed generated-audio task rehearsal</td></tr>
+<tr><td><code>small-language-model-serving-v1</code></td><td><code>small-language-model-serving-shape-v1</code></td><td>14</td><td>6</td><td>8</td><td><code>next_token_accuracy</code> / <code>n/a</code></td><td>synthetic token-quality rehearsal plus normalized planning replay</td></tr>
+<tr><td><code>wearable-keyword-v1</code></td><td><code>keyword-detector-v3-intake</code></td><td>6</td><td>4</td><td>2</td><td><code>intake_placement_and_cost_policy_replay</code> / <code>n/a</code></td><td>imported intake estimate</td></tr>
+<tr><td><code>smart-camera-inspection-v1</code></td><td><code>camera-defect-classifier-intake</code></td><td>5</td><td>3</td><td>2</td><td><code>intake_placement_and_cost_policy_replay</code> / <code>n/a</code></td><td>imported intake estimate</td></tr>
+<tr><td><code>robot-sensor-policy-v1</code></td><td><code>fusion-transformer-small-intake</code></td><td>5</td><td>3</td><td>2</td><td><code>intake_placement_and_cost_policy_replay</code> / <code>n/a</code></td><td>imported intake estimate</td></tr>
+<tr><td><code>compact-vision-or-defect-v1</code></td><td><code>compact-defect-classifier-intake</code></td><td>5</td><td>3</td><td>2</td><td><code>intake_placement_and_cost_policy_replay</code> / <code>n/a</code></td><td>imported intake estimate</td></tr>
+<tr><td><code>vla-or-physical-ai-v1</code></td><td><code>vla-policy-intake</code></td><td>5</td><td>3</td><td>2</td><td><code>intake_placement_and_cost_policy_replay</code> / <code>n/a</code></td><td>imported intake estimate</td></tr>
+</tbody></table>
+<h2>Shared Handoff</h2>
+<ul>
+<li>workloads/models: <code>12</code></li>
+<li>operators: <code>91</code></li>
+<li>commands: <code>321</code></li>
+<li>register writes: <code>460</code></li>
+<li>planning cycles: <code>687</code></li>
+<li>target bytecode words: <code>321</code> deterministic <code>64</code>-bit review words</li>
+<li>SRAM allocation: <code>12/12</code> workload maps fit within the stated <code>64 KiB</code> arena</li>
+<li>schedule verified: <code>true</code></li>
+<li>physical converter gate: <code>blocked_sar_source_common_mode</code></li>
+<li>physically guarded fallback commands: <code>46</code></li>
+<li>digital-only planning comparison: <code>included per workload in hybrid_runtime_estimate.json</code></li>
+</ul>
+<p>The tiny MLP, deep MLP stack, single MLP block, attention projections, and fixed projections in the normalized serving package retain analog candidates. The tiny MLP and wake-word packages pass bounded task rehearsals but are selected digital under the current guarded path because the physical converter is blocked or converter overhead is not amortized. In the physically guarded runtime trace, analog candidate commands explicitly fall back to digital because the converter gate is blocked.</p>
+<p>The target compiler lowers the shared schedule into deterministic review bytecode and per-workload SRAM maps. These artifacts make the handoff inspectable and repeatable; they are not an ISA-validated firmware image and have not been observed running on a board.</p>
+<h2>Tests</h2>
+<pre><code>
+python3 scripts/generate_tiny_mlp_hybrid_execution_package.py
+python3 scripts/generate_transformer_mlp_block_execution_package.py
+python3 scripts/generate_audio_hybrid_execution_package.py
+python3 scripts/generate_language_model_serving_package.py
+python3 scripts/run_language_model_serving_task_rehearsal.py
+python3 scripts/generate_projection_stack_package.py
+python3 scripts/generate_edge_intake_packages.py
+python3 scripts/build_hybrid_compiler_runtime_package.py
+python3 scripts/compile_hybrid_transformer_execution_package.py
+python3 scripts/run_hybrid_runtime_estimator.py
+python3 scripts/validate_aimc_physical_evidence.py
+python3 scripts/run_aimc_end_to_end_regression.py
+python3 scripts/validate_project.py
+</code></pre>
+<h2>Claim Boundary</h2>
+<p>the compiler can apply workload-dependent mixed-memory placement and produce one deterministic target schedule plus bounded target-review artifacts. physical converter acceptance, measured board runtime, measured energy, calibrated silicon, field task accuracy, and production readiness.</p></article></main></body></html>

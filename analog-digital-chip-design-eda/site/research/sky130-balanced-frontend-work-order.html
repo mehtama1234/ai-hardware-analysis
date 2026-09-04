@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Balanced Frontend Work Order</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Balanced Frontend Work Order</h1><p class="lead">Source: docs/research/sky130-balanced-frontend-work-order.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Balanced Frontend Work Order</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/sky130-balanced-frontend-work-order.md</code>.</p>
+<p>---</p>
+<h1>Sky130 Balanced Frontend Work Order</h1>
+<ul>
+<li>status: <code>ready_to_build_balanced_extracted_frontend_candidate</code></li>
+<li>target cell: <code>sky130_balanced_capacitive_isolation_frontend</code></li>
+<li>required wrong-sign bias reduction: <code>144.33x</code></li>
+<li>maximum wrong-sign gate bias: <code>0.076485 mV</code></li>
+<li>missing post-layout objects: <code>offset_noise_record, drc_lvs_record</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The analog frontend has one job before the latch fires: keep the sign of the sampled voltage difference. It does not need to understand the model, the token, or the layer. It only needs to make <code>gp - gn</code> carry the same sign as <code>sample_p - sample_n</code> while keeping kickback below the ADC boundary.</p>
+<p>The failed extracted cell tells us what broke. The physical metal and node loading made a preferred latch-gate direction that was much larger than the signal. So the next cell must be built as a balance problem first and a latch problem second.</p>
+<h2>Build Object</h2>
+<p>Create <code>sky130_balanced_capacitive_isolation_frontend</code> beside the current starter cell. Keep the same external role, but add explicit balance and reset structure instead of relying on accidental symmetry.</p>
+<table><tbody>
+<tr><th>port</th><th>role</th><th>rule</th></tr>
+<tr><td><code>vss</code></td><td>quiet reference</td><td>route symmetrically near both latch-gate sides</td></tr>
+<tr><td><code>vdd</code></td><td>supply reference</td><td>do not let one latch-gate side see a different supply plate area</td></tr>
+<tr><td><code>sample_p</code></td><td>positive held sample</td><td>couple only to the positive measuring node before latch fire</td></tr>
+<tr><td><code>sense_p</code></td><td>positive balanced measuring node</td><td>reset to common-mode before sampling and isolate from regeneration</td></tr>
+<tr><td><code>clk_sample</code></td><td>sample handoff clock</td><td>must not share a large unbalanced plate with one sense node</td></tr>
+<tr><td><code>vcm_reset</code></td><td>common-mode reset</td><td>forces sense_p and sense_n to the same voltage before handoff</td></tr>
+<tr><td><code>clk_latch</code></td><td>regeneration clock</td><td>fires only after the sense nodes have formed the sign</td></tr>
+<tr><td><code>sense_n</code></td><td>negative balanced measuring node</td><td>match sense_p total extracted capacitance within the bias target</td></tr>
+<tr><td><code>sample_n</code></td><td>negative held sample</td><td>mirror the positive sample path in metal length, area, and neighbors</td></tr>
+</tbody></table>
+<h2>Required Design Moves</h2>
+<ul>
+<li>split the old latch_gate_p/latch_gate_n nodes into sense_p/sense_n and later latch inputs</li>
+<li>add matched reset devices from sense_p and sense_n to vcm_reset</li>
+<li>keep sample_p-to-sense_p and sample_n-to-sense_n plates mirrored in drawn area and neighboring conductors</li>
+<li>route clk_sample and clk_latch as separate controls so sampling disturbance is not mixed with regeneration disturbance</li>
+<li>shield sense_p and sense_n with symmetric vss or vcm neighbors before either node approaches vdd or substrate plates</li>
+<li>extract the new cell and compute total sense_p and sense_n capacitance before running the latch proof</li>
+</ul>
+<h2>Acceptance Checks</h2>
+<ul>
+<li>extracted netlist exists for the new balanced cell name</li>
+<li>normal port mapping preserves both signs for the target positive and negative input differences</li>
+<li>absolute wrong-sign gate bias is below the redesign target before latch fire</li>
+<li>sample-node kickback remains below the hard half-LSB limit from the comparator acceptance fixture</li>
+<li>offset/noise record exists and combines with the static target by root-sum-square</li>
+<li>DRC/LVS record exists for the same cell name used in the extracted rerun</li>
+<li>accepted evidence remains false until all checks come from the same extracted physical candidate</li>
+</ul>
+<h2>Rejected Shortcuts</h2>
+<ul>
+<li>do not accept an ideal capacitor overlay as physical evidence</li>
+<li>do not swap ports to hide a one-direction extracted bias</li>
+<li>do not use a schematic-only pass after layout parasitics have contradicted it</li>
+<li>do not write accepted post-layout evidence while offset/noise or DRC/LVS is missing</li>
+</ul>
+<h2>End-To-End Fit</h2>
+<p>This work order is the next physical object in the chain from analog tile output to digital code. The model and simulator path can only trust an analog readout if this frontend first preserves the sign of the tiny sampled voltage. Once the balanced frontend passes extraction, it can feed the comparator acceptance fixture, then the converter post-layout payload, then the digital governor that decides whether an analog result is safe to use.</p>
+<h2>Refused Claim</h2>
+<p>does not create the new layout, does not prove the comparator works, does not run DRC/LVS, and does not write accepted post-layout evidence</p></article></main></body></html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter Post-Layout Payload Template</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter Post-Layout Payload Template</h1><p class="lead">Source: docs/research/converter-post-layout-payload-template.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter Post-Layout Payload Template</h1>
+<p>This page shows the exact filled-payload shape a future extracted converter run must provide.</p>
+<p>It is a template, not evidence. The fields show what has to be measured, how the pieces connect, and why the break-even calculation must be rerun with the extracted values.</p>
+<p>---</p>
+<h1>Converter Post-Layout Payload Template</h1>
+<p>This is the field-by-field template for the real converter payload.</p>
+<ul>
+<li>status: <code>template_defined_not_evidence</code></li>
+<li>template: <code>sources/evidence/converter-post-layout-payload.template.json</code></li>
+<li>validator: <code>scripts/validate_converter_post_layout_payload.py</code></li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>The converter claim has to join four objects that are easy to confuse. The layout creates a physical circuit. Extraction turns that layout into a circuit with wire and device parasitics. Simulation or silicon measurement turns that extracted circuit into numbers. The break-even rerun decides whether those numbers are good enough to replace the old digital fallback.</p>
+<p>A useful payload cannot skip any of those objects. If it has energy but no extracted netlist, the number is floating. If it has an extracted netlist but no model files or command, the run cannot be repeated. If it has noise but no shared converter rule, the cost is not the same system. If it has all circuit numbers but no break-even rerun, it has not answered the system question.</p>
+<h2>How To Fill It</h2>
+<ul>
+<li>replace every <code>REPLACE_WITH...</code> value with a value from the extracted post-layout run or measured silicon run</li>
+<li>keep <code>adc_bits</code> at <code>12</code>, <code>dac_bits</code> at <code>10</code>, and <code>output_noise_budget</code> at or below <code>0.004</code></li>
+<li>keep the sharing rule at 64 rows, 4 columns, 4 converter instances, and 16 outputs per conversion cost unless the break-even model is changed too</li>
+<li>use one shared <code>run_id</code> across provenance, simulation, energy, latency, noise, area, and break-even rerun fields</li>
+<li>rerun the break-even calculation with extracted energy, latency, noise, area, and the same sharing rule</li>
+<li>run <code>python3 scripts/validate_converter_post_layout_payload.py FILLED_PAYLOAD.json</code> before using it as evidence</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not claim any extracted converter result exists and is intentionally not validator-ready</p></article></main></body></html>

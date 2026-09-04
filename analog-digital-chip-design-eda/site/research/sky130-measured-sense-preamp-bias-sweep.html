@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Measured Sense Preamp Bias Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Measured Sense Preamp Bias Sweep</h1><p class="lead">Source: docs/research/sky130-measured-sense-preamp-bias-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Measured Sense Preamp Bias Sweep</h1>
+<p>This page tunes the differential preamp before reconnecting it to the extracted frontend.</p>
+<p>The question is narrow: can any simple Sky130 differential-preamp bias point resolve the already measured frontend sense voltage in both directions?</p>
+<p>This is not converter acceptance. It is a preamp bias proof before extracted-frontend loading, latch, SAR, energy, DRC/LVS, and strict evidence.</p>
+<p>---</p>
+<h1>Sky130 Measured Sense Preamp Bias Sweep</h1>
+<ul>
+<li>status: <code>measured_sense_preamp_bias_sweep_found_passing_setting_not_extracted_frontend</code></li>
+<li>setting count: <code>4</code></li>
+<li>case count: <code>8</code></li>
+<li>measured case count: <code>8</code></li>
+<li>timed-out case count: <code>0</code></li>
+<li>passing setting count: <code>1</code></li>
+<li>uses measured frontend sense voltage: <code>True</code></li>
+<li>uses extracted frontend transient: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>Before a preamp can be blamed for loading the extracted frontend, it must first work when the tiny input voltage is supplied directly. This sweep changes current, load resistance, and transistor width while keeping the input voltage equal to the measured frontend sense voltage.</p>
+<p>A useful setting must do three things at once: run to completion, preserve the sign for both input directions, and create enough output difference for the next decision stage.</p>
+<h2>Setting Summary</h2>
+<table><tbody>
+<tr><th>setting</th><th>rd ohm</th><th>itail uA</th><th>width</th><th>measured</th><th>sign pass</th><th>margin pass</th><th>min output mV</th><th>min gain V/V</th></tr>
+<tr><td><code>low_current_wide_load</code></td><td><code>100000</code></td><td><code>5.000</code></td><td><code>2.000</code></td><td><code>2</code></td><td><code>2</code></td><td><code>0</code></td><td><code>0.294000</code></td><td><code>4.388060</code></td></tr>
+<tr><td><code>baseline_softened</code></td><td><code>100000</code></td><td><code>10.000</code></td><td><code>4.000</code></td><td><code>2</code></td><td><code>2</code></td><td><code>0</code></td><td><code>0.491000</code></td><td><code>7.328358</code></td></tr>
+<tr><td><code>known_input_stage_bias</code></td><td><code>100000</code></td><td><code>20.000</code></td><td><code>8.000</code></td><td><code>2</code></td><td><code>2</code></td><td><code>2</code></td><td><code>0.626400</code></td><td><code>9.349254</code></td></tr>
+<tr><td><code>higher_load_low_current</code></td><td><code>180000</code></td><td><code>5.000</code></td><td><code>4.000</code></td><td><code>2</code></td><td><code>2</code></td><td><code>0</code></td><td><code>0.462000</code></td><td><code>6.895522</code></td></tr>
+</tbody></table>
+<h2>Refused Claim</h2>
+<p>does not prove extracted frontend loading, latch behavior, SAR conversion, DRC/LVS, post-layout energy, or accepted converter evidence</p></article></main></body></html>

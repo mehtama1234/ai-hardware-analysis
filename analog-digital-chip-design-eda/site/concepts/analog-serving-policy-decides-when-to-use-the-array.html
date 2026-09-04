@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog Serving Policy Decides When To Use The Array</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Analog Serving Policy Decides When To Use The Array</h1><p class="lead">Source: docs/concepts/analog-serving-policy-decides-when-to-use-the-array.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog Serving Policy Decides When To Use The Array</h1>
+<p>The object is a request running through a shared accelerator. A chip can contain analog tiles and still choose not to use them for every token. Hardware is useful only when it matches the runtime shape of the work.</p>
+<p>Foundation-model serving has different regimes. A long prompt gives many tokens at once. One-token decode gives little work per step. Batched decode gives more work but may add scheduling delay. Long context grows the KV cache. Calibration and health probes spend measurement time. The constraint is that the serving policy must choose the cheapest correct path for each phase.</p>
+<p>The decision is not:</p>
+<pre><code>
+analog accelerator exists -&gt; use analog
+</code></pre>
+<p>The decision is:</p>
+<pre><code>
+if reuse and error budget are high enough, use analog
+if boundary cost or cache pressure dominates, stay digital
+</code></pre>
+<h2>Why Policy Matters</h2>
+<p>Analog in-memory compute has fixed costs around each use. Inputs must be converted by DACs. Column currents must be read by ADCs. Partial sums must be accumulated. Output correction must be applied. Tiles must be scheduled. Calibration may be due.</p>
+<p>These costs can be worth paying for prefill because many prompt tokens reuse the same projection weights. They may be too expensive for single-token decode with small batch. Batched decode can make analog attractive again, but only if batching delay is acceptable.</p>
+<p>So the analog array is not a universal engine. It is a resource that should be dispatched when the request has enough dense repeated work.</p>
+<h2>The Mathematical Boundary</h2>
+<p>For a phase, define:</p>
+<pre><code>
+analog_total = analog_projection + converter + accumulation + correction + calibration_due + cache_cost
+digital_total = digital_projection + cache_cost
+</code></pre>
+<p>Then the policy can compute:</p>
+<pre><code>
+speed_or_energy_ratio = analog_total / digital_total
+</code></pre>
+<p>Use analog only when:</p>
+<pre><code>
+speed_or_energy_ratio &lt; target_ratio
+and estimated_error &lt; error_budget
+and tile_health is acceptable
+</code></pre>
+<p>The RTL scheduler makes the last line more precise. A tile is not simply good or bad. It can be serving, waiting for recalibration, disabled, or waiting for probe. The serving policy therefore has two jobs. First, it should use a healthy requested tile when it can. Second, when the requested tile is not usable, it should decide whether a spare healthy tile is available or whether the cycle should be spent on maintenance instead of analog service.</p>
+<p>The same request can make different choices by phase:</p>
+<pre><code>
+prefill: analog
+decode: digital
+batched_decode: analog if batch is large enough
+long_context_decode: maybe digital because KV cache dominates
+</code></pre>
+<h2>Concrete Design Move</h2>
+<p>The concrete design move is to make serving decisions explicit:</p>
+<ul>
+<li>prompt length</li>
+<li>generated length</li>
+<li>batch size</li>
+<li>active attention window</li>
+<li>ADC and DAC precision</li>
+<li>calibration overhead due now</li>
+<li>tile health score</li>
+<li>expected state error</li>
+<li>analog versus digital cost</li>
+<li>chosen execution path</li>
+<li>selected tile</li>
+<li>service decision</li>
+<li>maintenance budget</li>
+</ul>
+<p>This turns a hardware claim into a runtime controller. The accelerator does not only contain arrays. It contains a policy that says when the arrays are worth using.</p>
+<h2>Measurement</h2>
+<p>The measurement is a decision table:</p>
+<pre><code>
+phase, prompt_tokens, generated_tokens, batch, context, analog_ratio, cache_ratio, decision
+</code></pre>
+<p>The table should reveal four cases:</p>
+<ul>
+<li>prefill is usually analog-friendly because reuse is high</li>
+<li>single-token decode can be digital-friendly because boundary cost is exposed</li>
+<li>batched decode can become analog-friendly if latency budget allows batching</li>
+<li>long-context decode can be cache-limited even if projections are cheap</li>
+</ul>
+<p>The policy should also show when it refuses analog because calibration is overdue or tile health is poor.</p>
+<p>The new <code>aimc_tile_service_scheduler</code> RTL is the smallest version of that policy. It looks at four visible tile-health actions, tile busy bits, the requested tile id, and the maintenance budget. It emits one decision: digital fallback, analog service, recalibration, or probe. It does not invent health. It only spends the health evidence produced by the lower tile controller.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is to report one accelerator speedup as if all requests have the same shape. A chat request with a short prompt and long decode is not the same as batch prompt processing. A retrieval-augmented request with long context is not the same as a short interactive completion.</p>
+<p>The first-principles claim is that hybrid analog/digital foundation-model hardware needs a serving policy. The array should be used when it saves more than it costs and when the model can tolerate the error. Otherwise the digital path is the correct path, even on a chip that contains analog compute.</p></article></main></body></html>

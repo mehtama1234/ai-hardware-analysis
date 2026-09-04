@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transconductance Is Control Gain</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Transconductance Is Control Gain</h1><p class="lead">Source: docs/concepts/transconductance-is-control-gain.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Transconductance Is Control Gain</h1>
+<p>Transconductance measures how much output current changes when input voltage changes. It is the local control gain of a transistor.</p>
+<p>The object being controlled is the slope between voltage and current:</p>
+<pre><code>
+gm = dIout / dVin
+</code></pre>
+<p>This slope matters because many analog circuits work by turning a small voltage change into a current change, then turning that current change back into a voltage across a load or impedance.</p>
+<p>The constraint is that the slope is not free. Higher transconductance usually costs bias current, device width, capacitance, or headroom. A designer cannot simply ask for more gain without paying somewhere else.</p>
+<p>The concrete design move is choosing device size and bias current. More bias current can increase <code>gm</code>, but it increases power. Larger devices can reduce some noise and mismatch, but they add capacitance. More capacitance slows the circuit and can make stability harder.</p>
+<p>In a simple common-source amplifier, the small-signal voltage gain is roughly:</p>
+<pre><code>
+Av ~= -gm Rout
+</code></pre>
+<p>That expression shows the two sides of the problem. The transistor must convert input voltage into current, and the output node must convert that current into voltage. If either <code>gm</code> or output resistance is weak, gain falls.</p>
+<p>The measurement is not only gain. You also check bandwidth, distortion, input-referred noise, output swing, and stability. A high <code>gm</code> design that cannot swing, settles too slowly, or oscillates is not a good amplifier.</p>
+<p>The failure mode is treating transconductance as an isolated device number. In a real circuit, <code>gm</code> is connected to capacitance, bias, noise, linearity, and poles. It is useful only inside the full constraint set.</p></article></main></body></html>

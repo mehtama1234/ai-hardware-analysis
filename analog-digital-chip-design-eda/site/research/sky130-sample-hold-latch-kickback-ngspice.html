@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Sample-Hold Latch Kickback Ngspice</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Sample-Hold Latch Kickback Ngspice</h1><p class="lead">Source: docs/research/sky130-sample-hold-latch-kickback-ngspice.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Sample-Hold Latch Kickback Ngspice</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/sky130-sample-hold-latch-kickback-ngspice.md</code>.</p>
+<p>---</p>
+<h1>Sky130 Sample-Hold Latch Kickback Ngspice</h1>
+<ul>
+<li>status: <code>sky130_sample_hold_latch_kickback_proxy_characterized_not_accepted</code></li>
+<li>topology: <code>differential_dummy_sample_hold_driving_clocked_sky130_latch_input_pair</code></li>
+<li>target combined offset/noise mV: <code>0.1530</code></li>
+<li>hard budget mV: <code>0.1567</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>resolved correct polarity count: <code>2</code> of <code>2</code></li>
+<li>kickback below half LSB count: <code>0</code> of <code>2</code></li>
+<li>worst sampled differential kickback V: <code>1.203400000e-02</code></li>
+<li>all cases pass coupled gate: <code>False</code></li>
+<li>candidate post-layout written: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+<li>csv: <code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-sample-hold-latch-kickback-ngspice.csv</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A latch is not only a reader. It is also a load. When its clock moves, transistor capacitances can push charge back into the sampled nodes. That movement changes the same small voltage difference the latch is supposed to decide.</p>
+<p>This fixture connects the differential dummy sample-and-hold candidate to the clocked Sky130 latch proxy. It measures the sampled differential voltage before latch evaluation, measures it again after the latch has switched, and checks whether the latch both resolves in the correct direction and keeps sampled-node kickback below the 12-bit half-LSB line.</p>
+<p>This is the first coupled sample-hold plus latch check. It is stronger than driving the latch from ideal voltage sources. It is still not a full comparator proof because it does not include noise, offset statistics, SAR bit cycling, extracted layout, or DRC/LVS.</p>
+<h2>Results</h2>
+<table><tbody>
+<tr><th>case</th><th>input diff mV</th><th>sampled diff before V</th><th>sampled diff after V</th><th>kickback V</th><th>output diff V</th><th>resolved</th><th>kickback pass</th></tr>
+<tr><td><code>negative_target_edge</code></td><td><code>-0.152971</code></td><td><code>-4.831680000e-05</code></td><td><code>1.198570000e-02</code></td><td><code>1.203400000e-02</code></td><td><code>-1.310520000e+00</code></td><td><code>True</code></td><td><code>False</code></td></tr>
+<tr><td><code>positive_target_edge</code></td><td><code>0.152971</code></td><td><code>4.831680000e-05</code></td><td><code>-1.198570000e-02</code></td><td><code>1.203400000e-02</code></td><td><code>1.310520000e+00</code></td><td><code>True</code></td><td><code>False</code></td></tr>
+</tbody></table>
+<h2>Refused Claim</h2>
+<p>does not prove comparator noise, input-referred offset statistics, SAR bit cycling, extracted layout, DRC/LVS signoff, or accepted replacement economics</p></article></main></body></html>

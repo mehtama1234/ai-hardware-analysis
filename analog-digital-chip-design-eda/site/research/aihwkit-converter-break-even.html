@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIHWKIT Converter Break-Even Boundary</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>AIHWKIT Converter Break-Even Boundary</h1><p class="lead">Source: docs/research/aihwkit-converter-break-even.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>AIHWKIT Converter Break-Even Boundary</h1>
+<p>This page is generated with the current converter-cost and target-noise artifacts.</p>
+<p>The question is simple: after the 10-bit input and 12-bit output target fixes the numerical replay, how much useful analog array work must be served before the converter cost is worth paying?</p>
+<p>Read this after the converter cost model and target noise sensitivity page.</p>
+<p>---</p>
+<h1>AIHWKIT Converter Break-Even Boundary</h1>
+<p>This file turns the converter target into a break-even question. The target can pass the replay only if the input and output codes are much finer. The hardware question is whether enough array work is being saved to pay for that finer conversion.</p>
+<ul>
+<li>target ADC bits: <code>12</code></li>
+<li>target DAC bits: <code>10</code></li>
+<li>target converter energy relative to 4x4 baseline: <code>206.222</code></li>
+<li>highest all-pass output noise: <code>0.004</code></li>
+<li>passing break-even scenarios: <code>2</code> of <code>4</code></li>
+<li>default decision: <code>digital_fallback_until_real_converter_and_array_savings_are_measured</code></li>
+</ul>
+<h2>Scenario Table</h2>
+<table><tbody>
+<tr><th>scenario</th><th>rows</th><th>sharing</th><th>target analog/output</th><th>digital/output</th><th>margin</th><th>beats digital</th><th>outputs needed to pay converter</th></tr>
+<tr><td>four-row_fixture_no_sharing</td><td>4</td><td>1</td><td>206.622</td><td>4.000</td><td>-202.622</td><td>False</td><td>57.28</td></tr>
+<tr><td>sixty_four_row_tile_no_sharing</td><td>64</td><td>1</td><td>212.622</td><td>64.000</td><td>-148.622</td><td>False</td><td>3.58</td></tr>
+<tr><td>sixty_four_row_tile_shared_over_16_outputs</td><td>64</td><td>16</td><td>19.289</td><td>64.000</td><td>44.711</td><td>True</td><td>3.58</td></tr>
+<tr><td>two_fifty_six_row_tile_shared_over_64_outputs</td><td>256</td><td>64</td><td>28.822</td><td>256.000</td><td>227.178</td><td>True</td><td>0.90</td></tr>
+</tbody></table>
+<h2>First-Principles Reading</h2>
+<p>An analog array saves work only on multiplication and accumulation. The converter sits at the edge of that array. If the converter spends more energy than the array saves, the analog result is not useful even when the numerical residual is small.</p>
+<p>The break-even object is therefore not a single MatMul. It is a served volume: rows, columns, outputs, tokens, and how many outputs share one converter cost. A tiny four-row fixture cannot pay for a high-precision converter. A larger tile can begin to pay for it only if the converter is reused across enough useful outputs and if the analog MAC energy is truly lower than the digital fallback for the same rows.</p>
+<p>The current local scenarios say the target is still a candidate, not permission. It can become interesting when the rows are larger and the converter cost is shared. It still needs real circuit energy, real timing, area, and a noise source that keeps the output disturbance inside the 0.004 budget.</p>
+<h2>Required Next Evidence</h2>
+<ul>
+<li>real ADC and DAC energy for the target precision</li>
+<li>number of rows and columns served per converter instance</li>
+<li>whether converters are per-column, shared, multiplexed, or reused across tokens</li>
+<li>analog array energy for the same matrix rows</li>
+<li>digital fallback energy and latency for the same rows</li>
+<li>noise source that explains why output noise stays at or below 0.004</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>not measured converter energy, measured latency, layout area, silicon noise, or board power</p></article></main></body></html>

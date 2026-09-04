@@ -1,0 +1,77 @@
+{
+  "schema_version": "aimc_workload_contract.v1",
+  "contract_status": "model_backed_synthetic_rehearsal",
+  "workload_id": "tiny-mlp-binary-v1",
+  "task": {
+    "modality": "audio",
+    "task_type": "binary_feature_classification",
+    "primary_metric": "classification_accuracy",
+    "secondary_metrics": [
+      "false_accept_rate",
+      "false_reject_rate",
+      "window_latency_ms"
+    ],
+    "failure_cost": "wrong_binary_decision",
+    "metric_tolerance": 0.1,
+    "target_profile": "wearable_rehearsal"
+  },
+  "model": {
+    "model_id": "tiny-mlp",
+    "model_format": "onnx",
+    "model_path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/tiny-mlp.onnx",
+    "model_role": "small_fixed_weight_model_backed_rehearsal",
+    "real_customer_model": false
+  },
+  "dataset": {
+    "dataset_id": "tiny-mlp-binary-v1",
+    "dataset_path": "/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hardware-lab/datasets/tiny-mlp-binary-v1.json",
+    "dataset_version": "v1",
+    "record_count": 16,
+    "labels": [0, 1],
+    "held_out": false,
+    "candidate_predictions_are_measured": true,
+    "candidate_prediction_source": "run_tiny_mlp_task_evaluation.py"
+  },
+  "placement_hypothesis": {
+    "analog_candidates": ["dense1.matmul"],
+    "digital_required": ["dense1.bias", "dense1.relu", "dense2.matmul", "dense2.bias", "classification_decision"],
+    "fallback": "digital_reference_path",
+    "reason": "first task experiment isolates one analog projection; downstream projection and decision remain exact"
+  },
+  "hardware_profile": {
+    "profile_id": "wearable-aimc-rehearsal-v0",
+    "tile_shape": [16, 16],
+    "effective_weight_precision_bits": 4,
+    "cell_precision_bits": 2,
+    "bit_slices": 2,
+    "adc_bits": 6,
+    "dac_bits": 4,
+    "temperature_range_c": [-10, 50],
+    "voltage_range_v": [0.9, 1.1]
+  },
+  "acceptance": {
+    "task_metric_max_drop": 0.1,
+    "false_accept_rate_max": null,
+    "false_reject_rate_max": null,
+    "window_latency_max_ms": null,
+    "energy_per_inference_max_mj": null,
+    "observed_baseline_metric": 1.0,
+    "observed_candidate_metric": 0.9375,
+    "observed_metric_drop": 0.0625,
+    "note": "The 10% tolerance is provisional for this synthetic rehearsal. Freeze task-specific latency, false-alarm, and energy thresholds before board testing."
+  },
+  "next_required_evidence": [
+    "Replace synthetic feature vectors with real audio features and a matching wake-word model, or choose a real sensor workload.",
+    "Run the actual candidate model through the analog error model and task metric adapter.",
+    "Freeze false-accept, false-reject, latency, and energy thresholds.",
+    "Replace this rehearsal with a held-out real workload before making customer claims."
+  ],
+  "provenance": {
+    "created_by": "end-to-end-aimc-implementation-goal",
+    "created_at": "2026-09-02",
+    "source_repositories": [
+      "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference",
+      "/home/mehtama1/git-repo/analog-digital-chip-design-eda"
+    ]
+  }
+}

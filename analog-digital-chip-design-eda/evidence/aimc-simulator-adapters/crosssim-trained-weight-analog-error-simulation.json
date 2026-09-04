@@ -1,0 +1,125 @@
+{
+  "accuracy_impact": {
+    "baseline_reference": "digital ONNX-weight matrix operations with digital bias and ReLU",
+    "boundary": "tiny MLP sample model only; not dataset accuracy, calibrated silicon, board runtime, measured power, or production readiness",
+    "estimated_drop": 7.50123133377775e-08,
+    "metric": "relative_l2_output_difference_on_tiny_mlp_trained_weight_replay",
+    "pass": true,
+    "simulated_reference": "crosssim for analog MatMul operators, digital arithmetic for bias and ReLU"
+  },
+  "calibration_profile": "crosssim-backend-trained-weight-v0",
+  "error_model": {
+    "adc_bits": 8,
+    "array_assumptions": {
+      "boundary": "uses real tiny-mlp ONNX weights for analog MatMul operators; digital bias and ReLU are local reference arithmetic",
+      "candidate_ids": [
+        "dense1.matmul",
+        "dense2.matmul"
+      ],
+      "candidate_shapes": [
+        "[4, 3]",
+        "[3, 2]"
+      ],
+      "source": "source-model.onnx initializers plus backend hardware placement"
+    },
+    "dac_bits": 8,
+    "device_assumptions": {
+      "boundary": "real ONNX weights through simulator APIs, not calibrated silicon",
+      "drift": "not swept in trained-weight replay",
+      "programming_error": "measured as simulator output residual against digital matmul",
+      "read_noise": "not independently swept in trained-weight replay",
+      "source": "external simulator replay using ONNX initializer weights"
+    },
+    "final_residual_q8": 0,
+    "final_residual_relative": 7.50123133377775e-08,
+    "ideal_output": [
+      -0.14800000441074376,
+      0.17400000369548801
+    ],
+    "name": "crosssim-backend-trained-weight-v0",
+    "per_candidate_results": [
+      {
+        "candidate_id": "dense1.matmul",
+        "ideal_output": [
+          -0.4550000034272671,
+          2.6077032061477823e-09,
+          0.3200000047683716
+        ],
+        "input": [
+          0.25,
+          -0.75,
+          0.5,
+          0.1
+        ],
+        "simulator_output": [
+          -0.45499997440311674,
+          -1.39077502021085e-08,
+          0.31999999517959266
+        ],
+        "simulator_residual_relative": 6.245900102511251e-08,
+        "weight_name": "w1",
+        "weight_shape_in_out": [
+          4,
+          3
+        ]
+      },
+      {
+        "candidate_id": "dense2.matmul",
+        "ideal_output": [
+          -0.14800000441074376,
+          0.07400000220537188
+        ],
+        "input": [
+          0.0,
+          0.0,
+          0.3699999959246507
+        ],
+        "simulator_output": [
+          -0.1479999919987861,
+          0.07400000212542593
+        ],
+        "simulator_residual_relative": 7.50123133377775e-08,
+        "weight_name": "w2",
+        "weight_shape_in_out": [
+          3,
+          2
+        ]
+      }
+    ],
+    "simulator_observed_output": [
+      -0.1479999919987861,
+      0.17400000361554205
+    ],
+    "simulator_residual_relative": 5.433719878822539e-08,
+    "target_object": "uploaded tiny-mlp.onnx analog MatMul weights: dense1.matmul, dense2.matmul",
+    "tool": "crosssim trained-weight optional adapter run"
+  },
+  "provenance": {
+    "artifacts": [
+      "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/tiny-mlp.onnx",
+      "labs/analog/analog-in-memory-foundation-model-hardware/measurements/backend-hardware-placement.json",
+      "evidence/aimc-simulator-adapters/crosssim-trained-weight-analog-error-simulation.json"
+    ],
+    "claim_boundary": "strict simulator payload for real ONNX weights in the current tiny MLP analog MatMul operators; not full foundation-model behavior, measured silicon, board runtime, measured power, physical signoff, or production readiness",
+    "generated_at": "2026-09-02T23:18:56.389986+00:00",
+    "measurement_level": "external_simulator_backend_trained_weight_replay",
+    "not_measured_silicon": true,
+    "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+    "tool": "crosssim trained-weight optional adapter run",
+    "tool_version": "unknown"
+  },
+  "result_type": "analog_simulator_adapter_output",
+  "temperature_range": {
+    "ambient_c": 25.0,
+    "boundary": "no temperature sweep in trained-weight replay",
+    "mode": "fixed-condition"
+  },
+  "trained_weight_run": true,
+  "voltage_range": {
+    "boundary": "no voltage sweep in trained-weight replay",
+    "mode": "fixture-cases",
+    "row_voltage_v": [
+      0.8
+    ]
+  }
+}

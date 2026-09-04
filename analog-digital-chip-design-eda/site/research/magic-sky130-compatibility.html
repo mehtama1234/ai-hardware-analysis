@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Magic Sky130 Compatibility</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Magic Sky130 Compatibility</h1><p class="lead">Source: docs/research/magic-sky130-compatibility.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Magic Sky130 Compatibility</h1>
+<p>This page separates two blockers.</p>
+<p>The first blocker is the missing converter layout: <code>row_dac_10b</code>, <code>sar_readout_12b</code>, <code>shared_converter_mux</code>, and <code>aimc_converter_macro</code> still do not exist.</p>
+<p>The second blocker is tool compatibility. The installed Ubuntu Magic binary can be present and still be the wrong binary for this Sky130 extraction setup. The smoke test decides that by asking Magic to load Sky130 and extract a tiny non-converter cell.</p>
+<p>If the smoke fails, the next tool action is to build a newer local Magic under <code>/home/mehtama1/eda-tools/magic</code> and rerun the smoke before attempting converter extraction.</p>
+<p>---</p>
+<h1>Magic Sky130 Compatibility</h1>
+<ul>
+<li>status: <code>magic_sky130_extraction_path_ready_not_converter_evidence</code></li>
+<li>system Magic: <code>/usr/bin/magic</code></li>
+<li>system Magic version: <code>8.3.105</code></li>
+<li>local Magic: <code>/home/mehtama1/eda-tools/magic/bin/magic</code></li>
+<li>local Magic present: <code>True</code></li>
+<li>local Magic version: <code>8.3.682</code></li>
+<li>smoke status: <code>magic_sky130_extraction_smoke_passed_not_converter_evidence</code></li>
+<li>smoke passed: <code>True</code></li>
+<li>smoke return code: <code>0</code></li>
+<li>smoke Magic binary: <code>/home/mehtama1/eda-tools/magic/bin/magic</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>Extraction is a contract between the layout tool and the process file. If the tool cannot read the process extraction rules, it cannot turn shapes into circuit equations.</p>
+<p>The converter cells are still missing, but this is a separate blocker: even a tiny non-converter extraction smoke currently fails with the installed Magic binary.</p>
+<h2>Upgrade Command</h2>
+<p><code>MAGIC_PREFIX=$HOME/eda-tools/magic MAGIC_SRC=$HOME/eda-tools/magic-src ./scripts/install_local_magic_from_source.sh</code></p>
+<h2>Observed Blocker</h2>
+<p>The local Magic binary is installed and the tiny Sky130 extraction smoke passes. The remaining blocker is the absence of real converter layout cells and extracted converter artifacts.</p>
+<h2>Refused Claim</h2>
+<p>does not install tools by itself, does not create converter layout, and does not write post-layout evidence</p></article></main></body></html>

@@ -1,0 +1,233 @@
+{
+  "artifact_checks": [
+    {
+      "name": "tiny_task_pass",
+      "pass": true
+    },
+    {
+      "name": "serving_task_rehearsal_pass",
+      "pass": true
+    },
+    {
+      "name": "serving_package_carries_task_metric",
+      "pass": true
+    },
+    {
+      "name": "crosssim_governor_accepts_12",
+      "pass": true
+    },
+    {
+      "name": "aihwkit_governor_falls_back_12",
+      "pass": true
+    },
+    {
+      "name": "guarded_runtime_has_12_models",
+      "pass": true
+    },
+    {
+      "name": "guarded_runtime_has_46_fallbacks",
+      "pass": true
+    },
+    {
+      "name": "compiler_has_12_models",
+      "pass": true
+    },
+    {
+      "name": "target_compiler_covers_12_models",
+      "pass": true
+    },
+    {
+      "name": "target_bytecode_is_reproducible_shape",
+      "pass": true
+    },
+    {
+      "name": "sram_allocations_fit_profile",
+      "pass": true
+    },
+    {
+      "name": "hardware_profile_is_bound",
+      "pass": true
+    },
+    {
+      "name": "charge_transfer_spec_is_bound",
+      "pass": true
+    },
+    {
+      "name": "continuous_sar_spec_is_bound",
+      "pass": true
+    },
+    {
+      "name": "physical_gate_is_consistent_blocked",
+      "pass": true
+    }
+  ],
+  "claim_boundary": "This regression proves reproducible software-side workload, compiler, simulator-replay, guarded-runtime, and report-validation steps. It does not prove physical converter acceptance, measured board latency, measured energy, calibrated silicon, or production readiness.",
+  "generated_at": "2026-09-04T20:28:44.626531+00:00",
+  "python": "/usr/bin/python3",
+  "results": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/run_hybrid_transformer_vertical_slice.py"
+      ],
+      "label": "transformer_vertical_slice",
+      "output_tail": "schedule,deep_transformer_mlp_stack_hybrid_schedule_v1\nevents,76\noperators,16\nanalog_operators,12\ndigital_support_operators,4\nsimulator_pass,True\nphysical_converter_gate,blocked_sar_source_common_mode",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/.venv/bin/python",
+        "scripts/run_deep_mlp_integrated_governor.py"
+      ],
+      "label": "deep_transformer_governor",
+      "output_tail": "crosssim: status=accepted residual=6.71635e-08 analog_service=12 fallback_or_maintenance=0\naihwkit: status=rejected residual=0.869884 analog_service=0 fallback_or_maintenance=12",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/.venv/bin/python",
+        "scripts/run_tiny_mlp_task_evaluation.py"
+      ],
+      "label": "tiny_task_evaluation",
+      "output_tail": "{\n  \"status\": \"model_backed_synthetic_rehearsal\",\n  \"baseline_metric\": 1.0,\n  \"candidate_metric\": 0.9375,\n  \"metric_drop\": 0.0625,\n  \"tolerance\": 0.1,\n  \"pass\": true,\n  \"changed_predictions\": 1\n}",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/run_language_model_serving_task_rehearsal.py"
+      ],
+      "label": "language_model_task_rehearsal",
+      "output_tail": "{\n  \"status\": \"synthetic_token_quality_rehearsal_pass\",\n  \"baseline_metric\": 1.0,\n  \"candidate_metric\": 0.9375,\n  \"metric_drop\": 0.0625,\n  \"pass\": true,\n  \"record_count\": 16\n}",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/generate_language_model_serving_package.py"
+      ],
+      "label": "language_model_serving_package",
+      "output_tail": "serving_package,/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hybrid-language-model-serving\noperators,14\nanalog_candidates,6\nscenarios,5\npolicy_replay,True\nphysical_converter_gate,blocked_sar_source_common_mode",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/build_hybrid_compiler_runtime_package.py"
+      ],
+      "label": "shared_compiler_package",
+      "output_tail": "package,hybrid_transformer_compiler_runtime_v1\nmodels,12\noperators,91\nevents,321\ntarget_bytecode,generated_by_target_compiler\nhardware_binary,not_generated\nphysical_converter_gate,blocked_sar_source_common_mode",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/compile_hybrid_transformer_execution_package.py"
+      ],
+      "label": "target_compiler",
+      "output_tail": "compiled_package,hybrid_transformer_target_execution_v1\nmodels,12\noperators,91\ncommands,321\nregister_writes,460\nestimated_cycles,687\nreview_bytecode_words,321\nhardware_binary,not_generated\nphysical_converter_gate,blocked_sar_source_common_mode",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/run_guarded_hybrid_workload_runtime.py"
+      ],
+      "label": "guarded_runtime",
+      "output_tail": "trace,guarded_hybrid_workload_runtime_v1\nmodels,12\ncommands,321\nsimulator_analog_candidate_commands,46\nphysical_guarded_fallback_commands,46\nphysical_converter_gate,blocked_sar_source_common_mode",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/generate_hybrid_workload_comparison_report.py"
+      ],
+      "label": "workload_comparison",
+      "output_tail": "workloads,12\noperators,91\ncommands,321\nplanning_cycles,687\nschedule_verified,True\nreview_markdown,/home/mehtama1/git-repo/analog-digital-chip-design-eda/docs/research/hybrid-workload-compiler-review.md\nreview_html,/home/mehtama1/git-repo/analog-digital-chip-design-eda/docs/research/hybrid-workload-compiler-review.html",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_aimc_physical_evidence.py"
+      ],
+      "label": "physical_evidence_gate",
+      "output_tail": "physical_evidence_status,blocked_physical_converter_evidence_is_consistent\nchecks,16/16",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_aimc_charge_transfer_spec.py"
+      ],
+      "label": "charge_transfer_spec",
+      "output_tail": "PASS\nspec_id sky130-charge-transfer-redesign-v1\nphases 6\npvt_corners 5\nmismatch_trials 100",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_aimc_continuous_physical_sar_spec.py"
+      ],
+      "label": "continuous_physical_sar_spec",
+      "output_tail": "PASS\nspec_id sky130-continuous-physical-sar-v1\ncycles 4\nconversions 5",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/generate_current_aimc_system_state.py"
+      ],
+      "label": "current_state",
+      "output_tail": "current_aimc_system_state\njson,/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hardware-lab/current-aimc-system-state.json\nmarkdown,/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hardware-lab/current-aimc-system-state.md\npackage,pkg-e931662a01293df2\nsupported,3\nneeds_review,2\nanalog_allowed,2",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_aimc_workload_portfolio.py"
+      ],
+      "label": "portfolio_validation",
+      "output_tail": "PASS\nportfolio_id mixed-memory-ai-inference-portfolio-v1\nworkloads 12\nstages 1:3, 2:3, 3:4, 4:2\nstatuses calibrated_crosssim_replay_pass:1, calibrated_crosssim_replay_pass_dynamic_path_digital:1, calibrated_crosssim_replay_pass_physical_sar_blocked:1, crosssim_positive_simulator_path:1, generated_audio_rehearsal_pass_digital_selected:1, imported_intake_package_generated:5, synthetic_task_rehearsal_pass:1, synthetic_token_quality_rehearsal_pass:1\nmanifest /home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hardware-lab/end-to-end-workload-portfolio.json\ncompiler /home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-hybrid-compiler-runtime/hybrid_compiler_runtime_package.json",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_project.py"
+      ],
+      "label": "project_validation",
+      "output_tail": "PASS\nconcept_articles 45\nconcept_pages 45\nanalog_labs 3\ndigital_labs 4\neda_labs 11\ntotal_labs 18\nlab_pages 18\nresearch_pages 253\npaper_entries 26\npaper_notes 26",
+      "pass": true,
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/build_site.py"
+      ],
+      "label": "site_build",
+      "output_tail": "PASS\nconcept_pages 45\nlab_pages 18\nresearch_pages 253\npaper_entries 26\nsite /home/mehtama1/git-repo/analog-digital-chip-design-eda/site",
+      "pass": true,
+      "returncode": 0
+    }
+  ],
+  "schema_version": "aimc_end_to_end_regression.v1",
+  "status": "pass_software_vertical_slice_physical_converter_blocked",
+  "task_environment_note": "The task runner uses the sibling backend virtualenv when the default interpreter lacks ONNX.",
+  "task_python": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/.venv/bin/python"
+}

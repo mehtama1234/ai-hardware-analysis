@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter Post-Layout Break-Even Rerun Path</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter Post-Layout Break-Even Rerun Path</h1><p class="lead">Source: docs/research/converter-post-layout-break-even-rerun-path.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter Post-Layout Break-Even Rerun Path</h1>
+<p>This page shows the executable step after a future converter post-layout payload passes validation.</p>
+<p>The rerun is separate from validation. Validation checks whether the payload is real enough to use. The rerun checks whether the real converter is worth using.</p>
+<p>---</p>
+<h1>Converter Post-Layout Break-Even Rerun Path</h1>
+<p>This report adds the executable step after post-layout payload validation.</p>
+<ul>
+<li>status: <code>rerun_path_ready_waiting_for_validator_passing_payload</code></li>
+<li>rerun script: <code>scripts/rerun_converter_break_even_from_post_layout_payload.py</code></li>
+<li>base break-even: <code>evidence/aimc-simulator-adapters/aihwkit-converter-break-even.json</code></li>
+<li>rejected placeholder/template: <code>True</code></li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>Validation answers whether the payload is real enough to use. Break-even answers whether the real converter is worth using. These are different questions. A validated payload can still tell the system to keep the digital fallback if the converter energy, latency, area, noise, or sharing rule makes the analog path too expensive.</p>
+<p>The rerun script takes the extracted ADC energy, DAC energy, conversion time, settling time, noise, area, and sharing rule from the payload. It then recomputes the analog-output cost against a digital MAC baseline for the same served rows. The default decision comes from the payload sharing rule, not from the earlier local estimate.</p>
+<h2>Guarded Dry Run</h2>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/dry-run/converter-post-layout-evidence.placeholder.json</code> rejected: <code>True</code></li>
+<li><code>sources/evidence/converter-post-layout-payload.template.json</code> rejected: <code>True</code></li>
+</ul>
+<h2>How To Use With A Real Payload</h2>
+<ol>
+<li>Fill <code>sources/evidence/converter-post-layout-payload.template.json</code> with extracted or measured values.</li>
+<li>Run <code>python3 scripts/validate_converter_post_layout_payload.py FILLED_PAYLOAD.json</code>.</li>
+<li>Run <code>python3 scripts/rerun_converter_break_even_from_post_layout_payload.py FILLED_PAYLOAD.json --output evidence/aimc-simulator-adapters/FILLED_BREAK_EVEN_RERUN.json</code>.</li>
+<li>Use the rerun decision, not the local planning estimate, as the converter replacement boundary.</li>
+</ol>
+<h2>Refused Claim</h2>
+<p>does not supply a real post-layout payload and does not replace the current digital fallback decision</p></article></main></body></html>

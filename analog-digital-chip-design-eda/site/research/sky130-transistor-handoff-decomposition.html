@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Transistor Handoff Decomposition</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Transistor Handoff Decomposition</h1><p class="lead">Source: docs/research/sky130-transistor-handoff-decomposition.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Transistor Handoff Decomposition</h1>
+<p>This page separates the current transistor handoff failure into smaller facts.</p>
+<p>The goal is simple: avoid guessing. If the frontend alone fails, fix the frontend. If the transistor input pair alone fails, fix the input pair. If both pass separately but fail together, debug the combined handoff.</p>
+<p>The current evidence points to the third case.</p>
+<p>---</p>
+<h1>Sky130 Transistor Handoff Decomposition</h1>
+<ul>
+<li>status: <code>combined_real_transistor_handoff_is_current_blocker</code></li>
+<li>strict payload ready: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>What The Split Shows</h2>
+<table><tbody>
+<tr><th>check</th><th>passed</th></tr>
+<tr><td><code>extracted_frontend_sign_and_transfer_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>standalone_sky130_input_stage_polarity_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>combined_active_macro_handoff_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>frontend_sense_to_transistor_op_measured_cases_have_margin</code></td><td><code>True</code></td></tr>
+<tr><td><code>frontend_sense_to_transistor_short_transient_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>frontend_sense_to_transistor_ramp_startup_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>extracted_frontend_to_transistor_assisted_gate_startup_runs</code></td><td><code>True</code></td></tr>
+<tr><td><code>extracted_frontend_to_transistor_assisted_gate_startup_passes</code></td><td><code>False</code></td></tr>
+<tr><td><code>extracted_frontend_gate_coupling_sweep_finds_passing_setting</code></td><td><code>False</code></td></tr>
+<tr><td><code>extracted_frontend_source_follower_handoff_passes</code></td><td><code>False</code></td></tr>
+<tr><td><code>extracted_frontend_differential_preamp_runs</code></td><td><code>True</code></td></tr>
+<tr><td><code>extracted_frontend_differential_preamp_passes</code></td><td><code>False</code></td></tr>
+<tr><td><code>measured_sense_differential_preamp_runs</code></td><td><code>True</code></td></tr>
+<tr><td><code>measured_sense_differential_preamp_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>measured_sense_preamp_bias_sweep_finds_passing_setting</code></td><td><code>True</code></td></tr>
+<tr><td><code>measured_sense_preamp_op_map_finds_valid_bias_point</code></td><td><code>True</code></td></tr>
+<tr><td><code>preamp_known_good_sanity_gap_resolved</code></td><td><code>True</code></td></tr>
+<tr><td><code>preamp_known_good_reproduction_passes</code></td><td><code>True</code></td></tr>
+<tr><td><code>extracted_frontend_preamp_gain_sweep_finds_passing_setting</code></td><td><code>False</code></td></tr>
+<tr><td><code>frontend_preamp_capacitance_budget_ready</code></td><td><code>True</code></td></tr>
+<tr><td><code>combined_real_transistor_handoff_runs_to_completion</code></td><td><code>False</code></td></tr>
+</tbody></table>
+<h2>Key Numbers</h2>
+<table><tbody>
+<tr><th>number</th><th>value</th></tr>
+<tr><td><code>frontend_minimum_transfer_ratio</code></td><td><code>0.43790849673094956</code></td></tr>
+<tr><td><code>frontend_remaining_transfer_improvement_x</code></td><td><code>2.283582089557853</code></td></tr>
+<tr><td><code>standalone_input_stage_gain_v_per_v</code></td><td><code>9.201769060684017</code></td></tr>
+<tr><td><code>active_macro_minimum_output_diff_v</code></td><td><code>0.0006205999999999712</code></td></tr>
+<tr><td><code>op_handoff_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>op_handoff_minimum_abs_output_diff_v</code></td><td><code>0.0006166000000000782</code></td></tr>
+<tr><td><code>op_handoff_minimum_gain_v_per_v</code></td><td><code>9.20298507465314</code></td></tr>
+<tr><td><code>short_transient_minimum_abs_output_diff_v</code></td><td><code>0.0006299999999999084</code></td></tr>
+<tr><td><code>short_transient_minimum_output_retention_ratio</code></td><td><code>1.021732079143413</code></td></tr>
+<tr><td><code>ramp_startup_minimum_abs_output_diff_v</code></td><td><code>0.0006264000000000269</code></td></tr>
+<tr><td><code>ramp_startup_minimum_gain_v_per_v</code></td><td><code>9.349253731369194</code></td></tr>
+<tr><td><code>assisted_gate_startup_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>assisted_gate_startup_sign_pass_count</code></td><td><code>1</code></td></tr>
+<tr><td><code>assisted_gate_startup_output_margin_pass_count</code></td><td><code>1</code></td></tr>
+<tr><td><code>assisted_gate_startup_minimum_abs_output_diff_v</code></td><td><code>0.00011700000000014477</code></td></tr>
+<tr><td><code>assisted_gate_startup_minimum_sense_to_gate_transfer_ratio</code></td><td><code>0.012257100149496825</code></td></tr>
+<tr><td><code>gate_coupling_sweep_setting_count</code></td><td><code>4</code></td></tr>
+<tr><td><code>gate_coupling_sweep_passing_setting_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>gate_coupling_sweep_timed_out_case_count</code></td><td><code>8</code></td></tr>
+<tr><td><code>source_follower_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>source_follower_sign_pass_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>source_follower_minimum_sample_to_sense_transfer_ratio</code></td><td><code>0.062091503267962</code></td></tr>
+<tr><td><code>source_follower_minimum_sense_to_buffer_transfer_ratio</code></td><td><code>4.000000000067677e-06</code></td></tr>
+<tr><td><code>differential_preamp_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>differential_preamp_timed_out_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>differential_preamp_sign_pass_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>differential_preamp_output_margin_pass_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>differential_preamp_minimum_abs_output_diff_v</code></td><td><code>5.650000000001487e-05</code></td></tr>
+<tr><td><code>measured_sense_preamp_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>measured_sense_preamp_timed_out_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>preamp_bias_sweep_setting_count</code></td><td><code>4</code></td></tr>
+<tr><td><code>preamp_bias_sweep_passing_setting_count</code></td><td><code>1</code></td></tr>
+<tr><td><code>preamp_bias_sweep_timed_out_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>preamp_op_map_setting_count</code></td><td><code>1</code></td></tr>
+<tr><td><code>preamp_op_map_passing_setting_count</code></td><td><code>1</code></td></tr>
+<tr><td><code>preamp_op_map_timed_out_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>known_good_input_stage_measured_case_count</code></td><td><code>6</code></td></tr>
+<tr><td><code>known_good_input_stage_polarity_pass_count</code></td><td><code>6</code></td></tr>
+<tr><td><code>sanity_gap_preamp_op_timed_out_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>known_good_reproduction_op_measured_case_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>known_good_reproduction_polarity_pass_count</code></td><td><code>2</code></td></tr>
+<tr><td><code>preamp_gain_sweep_setting_count</code></td><td><code>4</code></td></tr>
+<tr><td><code>preamp_gain_sweep_passing_setting_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>preamp_gain_sweep_best_minimum_abs_output_diff_v</code></td><td><code>5.650000000001487e-05</code></td></tr>
+<tr><td><code>cap_budget_total_cap_reduction_needed_x_if_useful_fixed</code></td><td><code>1.6430867963410842</code></td></tr>
+<tr><td><code>cap_budget_useful_coupling_increase_needed_x_if_total_fixed</code></td><td><code>1.6430867963410845</code></td></tr>
+<tr><td><code>real_transistor_measured_case_count</code></td><td><code>0</code></td></tr>
+<tr><td><code>real_transistor_timed_out_case_count</code></td><td><code>4</code></td></tr>
+</tbody></table>
+<h2>First Principle</h2>
+<p>A circuit proof should fail at the smallest named object we can isolate. Here the frontend alone preserves sign, the standalone Sky130 input pair resolves tiny inputs, the active-macro handoff carries the signal forward, and direct gate ramp startup works. The assisted gate-startup run completes, but one polarity fails sign and margin once the extracted frontend is loaded by the gate connection. A targeted passive coupling sweep finds no passing assisted setting. A bare source follower runs, but it destroys the tiny differential signal instead of preserving it. A direct extracted-frontend differential-preamp transient times out. The same preamp bias also times out when driven by measured sense-voltage sources. A small measured-source transient bias sweep still finds no passing setting. The first measured-source OP map also times out. The sanity-gap report shows that this conflicts with older known-good input-stage evidence, so the primitive must be reproduced exactly.</p>
+<p>That means the next work is not another broad AIMC page. It is a one-stage sanity deck for the preamp primitive itself. We need the smallest transistor pair to settle before adding measured inputs, transient startup, or extracted frontend loading.</p>
+<h2>Next Debug Probes</h2>
+<ul>
+<li>run measured-sense preamp transient startup from the now-passing OP bias</li>
+<li>measure whether both input signs preserve output sign, output margin, startup time, and rail headroom</li>
+<li>only after the one-stage OP deck settles, reintroduce measured sense-voltage polarity and transient startup</li>
+<li>then reconnect the passing preamp to the extracted frontend and check whether loading still collapses the sense signal</li>
+<li>only after both polarities preserve sign and margin, remove the gate startup assist and rerun the full free handoff</li>
+</ul>
+<h2>Blockers</h2>
+<ul>
+<li>The failed object is the combined extracted-frontend plus real-transistor transient handoff, not the frontend alone, not the standalone input pair, and not the active-macro signal path.</li>
+<li>The current handoff produces timeout evidence, so sign, margin, loading, and output-gain claims are unmeasured for the real transistor combined deck.</li>
+<li>The assisted gate-startup deck now runs to completion, but one polarity fails sign and output margin, so the loaded extracted frontend is not yet a reliable source for the real input pair.</li>
+<li>A targeted passive gate-coupling sweep found no setting that preserves both polarities, so the next design move should be a buffer or active preamp, not more passive resistance tuning.</li>
+<li>A simple Sky130 source follower also fails: it loads the sense node down to about 9.5 microvolts and passes almost no differential signal to the readout pair.</li>
+<li>A direct extracted-frontend differential-preamp transient now runs and preserves sign, but the output difference is below the decision margin, so extracted frontend loading or transfer loss is still the blocker.</li>
+<li>The corrected measured-source DC preamp OP map now finds a valid bias point, so the remaining preamp question is transient startup and then extracted-frontend loading.</li>
+<li>The known-good reproduction now passes at the old target input and the smaller measured frontend input, so the remaining preamp OP-map failure is not the basic Sky130 differential pair.</li>
+<li>The extracted-frontend preamp gain sweep finds no margin-passing simple gain setting, so the next physical change must preserve more frontend voltage before amplification or add a different isolation interface.</li>
+<li>The capacitance budget turns that into layout terms: reduce wasted sense-node capacitance or increase useful sample-to-sense coupling by about 1.64x before trying another latch handoff.</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove transistor handoff, latch behavior, SAR conversion, accepted post-layout evidence, or replacement economics</p></article></main></body></html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Sample-Hold Design Target</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Sample-Hold Design Target</h1><p class="lead">Source: docs/research/sky130-sample-hold-design-target.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Sample-Hold Design Target</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/sky130-sample-hold-design-target.md</code>.</p>
+<p>---</p>
+<h1>Sky130 Sample-Hold Design Target</h1>
+<ul>
+<li>status: <code>sky130_sample_hold_design_target_has_one_passing_decision_voltage_not_converter_proof</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>best measured source: <code>sky130-differential-dummy-candidate-input-sweep</code></li>
+<li>best measured hold error V: <code>6.300000000e-05</code></li>
+<li>best measured passes half LSB 12b: <code>True</code></li>
+<li>required reduction from best measured x: <code>0.287</code></li>
+<li>remaining margin from best measured x: <code>3.488</code></li>
+<li>required cancellation percent from best measured: <code>0.00</code></li>
+<li>required capacitance multiplier if charge is unchanged: <code>0.287</code></li>
+<li>estimated capacitance pF if starting from 1 pF: <code>0.287</code></li>
+<li>candidate post-layout written: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The hold error is voltage movement on a capacitor. If the unwanted charge stays the same, voltage movement falls only when capacitance rises. If capacitance stays the same, the only way to pass is to cancel or avoid most of the unwanted charge.</p>
+<p>That gives the next design a hard target. If the best measured result is still above the line, the circuit needs less injected charge, more capacitance, or both. If the input-sweep result is below the line, the next question changes: the circuit must prove the same behavior under mismatch, noise, energy accounting, and layout extraction.</p>
+<h2>Measured Inputs</h2>
+<table><tbody>
+<tr><th>measurement</th><th>source</th><th>hold error V</th><th>reduction needed to reach half LSB</th></tr>
+<tr><td><code>plain_hold_worst</code></td><td><code>sky130-sample-switch-hold-mode-ngspice</code></td><td><code>5.557000000e-03</code></td><td><code>25.291x</code></td></tr>
+<tr><td><code>larger_cap_best</code></td><td><code>sky130-sample-switch-hold-mitigation-sweep</code></td><td><code>2.107000000e-03</code></td><td><code>9.589x</code></td></tr>
+<tr><td><code>dummy_cancellation_best</code></td><td><code>sky130-sample-switch-dummy-cancellation-ngspice</code></td><td><code>1.481300000e-03</code></td><td><code>6.742x</code></td></tr>
+<tr><td><code>clock_edge_mid_input_baseline</code></td><td><code>sky130-sample-switch-clock-edge-sweep</code></td><td><code>1.049100000e-03</code></td><td><code>4.775x</code></td></tr>
+<tr><td><code>differential_dummy_decision_voltage</code></td><td><code>sky130-differential-dummy-cancellation-ngspice</code></td><td><code>4.060000000e-05</code></td><td><code>0.185x</code></td></tr>
+<tr><td><code>differential_dummy_input_sweep_worst</code></td><td><code>sky130-differential-dummy-candidate-input-sweep</code></td><td><code>6.300000000e-05</code></td><td><code>0.287x</code></td></tr>
+<tr><td><code>differential_dummy_mismatch_sweep_worst</code></td><td><code>sky130-differential-dummy-candidate-mismatch-sweep</code></td><td><code>5.090000000e-05</code></td><td><code>0.232x</code></td></tr>
+</tbody></table>
+<h2>What This Means</h2>
+<p>The best measured decision-voltage movement is <code>6.300000000e-05</code>. The 12-bit half-LSB line is <code>2.197265625e-04</code>.</p>
+<p>The best measured row has <code>3.49x</code> margin against the half-LSB line.</p>
+<p>That does not make it an accepted converter. It makes it the next candidate front end. It has cleared the nominal low, mid, and high input gate, but it still needs mismatch checks, comparator tolerance, noise, supply energy, and extracted layout before it can support a converter replacement claim. The controlled width-mismatch sweep also passes in its tested cases. That still does not model random mismatch statistics or post-layout parasitics. It moves the next proof to noise, comparator tolerance, supply energy, and extraction.</p>
+<h2>Refused Claim</h2>
+<p>does not prove comparator behavior, SAR conversion, mismatch tolerance, noise tolerance, extracted layout, DRC/LVS signoff, or accepted replacement economics</p></article></main></body></html>

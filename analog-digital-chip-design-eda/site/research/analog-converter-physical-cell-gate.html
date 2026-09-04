@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog Converter Physical Cell Gate</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Analog Converter Physical Cell Gate</h1><p class="lead">Source: docs/research/analog-converter-physical-cell-gate.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog Converter Physical Cell Gate</h1>
+<p>This page is the acceptance boundary between a ready layout workbench and real converter layout evidence.</p>
+<p>The workbench can have Magic, xschem, ngspice, Sky130 model files, helper scripts, and clear instructions. None of that is the converter. The converter begins to exist only when named physical cells are present and those cells can be extracted into files that affect the circuit equations.</p>
+<p>The gate checks four cells:</p>
+<ul>
+<li><code>row_dac_10b</code></li>
+<li><code>sar_readout_12b</code></li>
+<li><code>shared_converter_mux</code></li>
+<li><code>aimc_converter_macro</code></li>
+</ul>
+<p>It also checks the extracted netlist, model/area record, and same-run break-even rerun files that must follow those cells before the post-layout payload can be trusted.</p>
+<p>Until this gate says the physical cells and extracted artifacts are present, the project can claim setup readiness, simulator readiness, and behavioral SPICE readiness. It cannot claim post-layout converter evidence.</p>
+<p>---</p>
+<h1>Analog Converter Physical Cell Gate</h1>
+<ul>
+<li>status: <code>physical_cells_present_waiting_for_extracted_artifacts</code></li>
+<li>workbench: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench</code></li>
+<li>required cell count: <code>4</code></li>
+<li>present cell count: <code>4</code></li>
+<li>missing cell count: <code>0</code></li>
+<li>present extracted artifact count: <code>0</code></li>
+<li>ready for candidate post-layout payload: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A converter is not proven by having the right tools. It is proven when there are named physical cells that the layout tool can read, and when those cells produce extracted files that the simulator can use.</p>
+<p>The named cells matter because each one controls a different error source. The DAC sets the input voltage, the readout turns the result back into bits, the mux adds shared loading, and the macro fixes the pins and area that the system model must pay for.</p>
+<h2>Required Physical Cells</h2>
+<h3>row_dac_10b</h3>
+<ul>
+<li>purpose: turns activation bits into the row voltage driven onto the analog array</li>
+<li>present: <code>True</code></li>
+<li>accepted source names: <code>row_dac_10b.mag, row_dac_10b.gds, row_dac_10b.sch</code></li>
+<li>match: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/row_dac_10b.mag</code> (837 bytes)</li>
+</ul>
+<h3>sar_readout_12b</h3>
+<ul>
+<li>purpose: turns the sensed analog column value back into a bounded digital number</li>
+<li>present: <code>True</code></li>
+<li>accepted source names: <code>sar_readout_12b.mag, sar_readout_12b.gds, sar_readout_12b.sch</code></li>
+<li>match: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/sar_readout_12b.mag</code> (804 bytes)</li>
+</ul>
+<h3>shared_converter_mux</h3>
+<ul>
+<li>purpose: connects many rows or columns to a smaller converter bank without hiding load</li>
+<li>present: <code>True</code></li>
+<li>accepted source names: <code>shared_converter_mux.mag, shared_converter_mux.gds, shared_converter_mux.sch</code></li>
+<li>match: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/shared_converter_mux.mag</code> (949 bytes)</li>
+</ul>
+<h3>aimc_converter_macro</h3>
+<ul>
+<li>purpose: packages the DAC, readout, mux, supplies, and pins as the converter boundary used by the model</li>
+<li>present: <code>True</code></li>
+<li>accepted source names: <code>aimc_converter_macro.mag, aimc_converter_macro.gds, aimc_converter_macro.lef</code></li>
+<li>match: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/aimc_converter_macro.mag</code> (1050 bytes)</li>
+</ul>
+<h2>Required Extracted Artifacts</h2>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/candidate-post-layout/netlist/row_dac_extracted.sp</code> present <code>False</code> bytes <code>0</code></li>
+<li><code>evidence/aimc-simulator-adapters/candidate-post-layout/netlist/sar_readout_extracted.sp</code> present <code>False</code> bytes <code>0</code></li>
+<li><code>evidence/aimc-simulator-adapters/candidate-post-layout/netlist/shared_converter_mux_extracted.sp</code> present <code>False</code> bytes <code>0</code></li>
+<li><code>evidence/aimc-simulator-adapters/candidate-post-layout/models/converter_layout_area_record.json</code> present <code>False</code> bytes <code>0</code></li>
+<li><code>evidence/aimc-simulator-adapters/candidate-post-layout/rerun/converter-post-layout-break-even-rerun.json</code> present <code>False</code> bytes <code>0</code></li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not count environment files, skeleton scripts, or temporary positive-path fixtures as converter layout evidence</p></article></main></body></html>

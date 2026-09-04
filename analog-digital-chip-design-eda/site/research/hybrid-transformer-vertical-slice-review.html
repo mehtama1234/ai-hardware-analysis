@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hybrid Transformer Vertical Slice Review</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Hybrid Transformer Vertical Slice Review</h1><p class="lead">Source: docs/research/hybrid-transformer-vertical-slice-review.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Hybrid Transformer Vertical Slice Review</h1>
+<h2>Executive Result</h2>
+<p>The first hybrid execution package has been generated for <code>deep-transformer-mlp-stack.onnx</code>. It explicitly maps fixed-weight matrix multiplications to analog memory, keeps nonlinear and residual operations on a digital support path, and uses SRAM for activations, partial sums, calibration values, and fallback buffers.</p>
+<p>The calibrated CrossSim replay passes the named numerical fixture with a relative output difference of approximately <code>6.7e-8</code>. The nominal differential Sky130 DAC now passes its 16-code transfer gate with <code>83.5273 mV</code> minimum spacing and <code>1.7651 V</code> span. The physical converter remains blocked at the SAR source-interface gate: the isolated calibrated run passes its named representative cases, but the newer continuous five-conversion run returns <code>3/5</code> correctly (<code>0→0</code>, <code>2→0</code>, <code>4→3</code>, <code>6→6</code>, <code>7→7</code>) and has out-of-range bottom-plate nodes.</p>
+<p>This is a simulator-backed architecture result. It is not a board, silicon, or production result.</p>
+<h2>Requirements And Specification</h2>
+<p>The vertical slice must:</p>
+<ol>
+<li>Start from one versioned transformer-style model fixture.</li>
+<li>Name the workload, baseline, metric, and acceptance threshold.</li>
+<li>Assign every operator to analog memory, digital support, or SRAM-backed</li>
+<p>   movement.</p>
+<li>Give each analog operator a tile shape, tile count, precision rule,</li>
+<p>   converter boundary, calibration profile, residual budget, and fallback.</p>
+<li>Give each digital operator a reason for staying digital.</li>
+<li>Record logical-to-physical bit slicing and recombination assumptions.</li>
+<li>Compare the hybrid output with the digital baseline on held-out input.</li>
+<li>Preserve the physical converter limitation as a blocked gate.</li>
+<li>Keep simulator evidence separate from measured hardware evidence.</li>
+</ol>
+<p>The target fixture has three repeated transformer-style MLP blocks and twelve fixed-weight MatMul candidates. Bias, ReLU, elementwise gating, residual adds, control, calibration, and fallback stay digital. SRAM is the shared temporary storage boundary.</p>
+<h2>What Was Built</h2>
+<p>The generator is:</p>
+<pre><code>
+scripts/generate_hybrid_transformer_execution_package.py
+</code></pre>
+<p>It consumes the existing source-matched calibrated simulator summary and CrossSim payload, then writes:</p>
+<pre><code>
+evidence/aimc-hybrid-transformer-vertical-slice/workload_contract.json
+evidence/aimc-hybrid-transformer-vertical-slice/hybrid_execution_plan.json
+evidence/aimc-hybrid-transformer-vertical-slice/bit_slicing_plan.json
+evidence/aimc-hybrid-transformer-vertical-slice/analog_error_replay.json
+evidence/aimc-hybrid-transformer-vertical-slice/hybrid_output_comparison.json
+evidence/aimc-hybrid-transformer-vertical-slice/hybrid_execution_plan.md
+</code></pre>
+<p>The execution plan contains <code>16</code> placement rows: <code>12</code> analog-memory MatMuls and <code>4</code> digital-support operations. The analog rows use <code>16 x 16</code> tiles and calculate tile count from each matrix shape. The precision plan records 8 logical weight bits, 1-bit physical cells, 8 read slices, 8-bit per-slice ADC assumptions, and a 24-bit partial-sum width.</p>
+<p>The replay handoff is:</p>
+<pre><code>
+scripts/run_hybrid_transformer_vertical_slice.py
+</code></pre>
+<p>It consumes the plan and source replay, verifies that all 12 analog operator IDs match, and writes <code>execution_schedule.json</code> and <code>hybrid_runtime_trace.json</code>. The trace contains 76 ordered operator-level events for SRAM loading, DAC encoding, analog tile execution, ADC decoding, calibration, partial-sum storage, and digital support.</p>
+<h2>Source Evidence</h2>
+<p>The model-level evidence comes from:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/crosssim-calibrated-deep-transformer-mlp-stack-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/calibrated-deep-transformer-mlp-stack-simulator-payload-run-summary.json</code></li>
+</ul>
+<p>That replay uses seven calibration inputs and one held-out input with a per-output affine correction. The accepted CrossSim payload reports a held-out relative L2 output difference of approximately <code>6.716e-8</code>. The companion AIHWKIT payload is retained as evidence, but its residual exceeds the positive claim threshold and is not accepted as positive evidence.</p>
+<p>The physical converter evidence comes from:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/sky130-calibrated-physical-sar.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-bottom-plate-topology-sweep.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-full-array-cap-scale-diagnostic.json</code></li>
+</ul>
+<p>That run completes <code>16/16</code> calibration codes, <code>20/20</code> retained-bit comparisons, and <code>5/5</code> representative conversions using a PMOS-only topology and a <code>9.0 ns</code> pre-sample measurement. It still fails the high-code spacing requirement, so it cannot validate the simulator&#x27;s 8-bit converter assumption. An exploratory <code>8x</code> full-array capacitor scaling run restores monotonic upper-code spacing and reaches <code>96.855 mV</code> for code <code>14 -&gt; 15</code>, but drives the DAC top plate to <code>2.544 V</code> on a <code>1.8 V</code> supply. That result is retained as charge-transfer mechanism evidence and rejected as an implementation. The follow-up zero-common-mode all-code run measured <code>16/16</code> cases with correct polarity, but was rejected for non-monotonic transfer and supply-range violations. The focused high-code spacing result cannot be used as converter acceptance. The subsequent MSB timing diagnostic also rejects longer redistribution as a repair: code <code>7 -&gt; 8</code> remains non-monotonic at <code>-94.577 mV</code> with a 20 ns interval. The physical converter remains a blocked dependency of the hybrid execution package. MSB capacitor-ratio and redistribution-time diagnostics both reject simple cell sizing and timing repairs, so the physical converter remains a blocked dependency rather than an analog placement permission. The targeted selected-MSB switch-scale diagnostic also fails (<code>-224.255 mV</code> for code <code>7 -&gt; 8</code> at 4x, with a timeout at 2x), reinforcing that the physical converter requires a topology change rather than device sizing.</p>
+<h2>How It Was Tested</h2>
+<p>The package was generated with:</p>
+<pre><code>
+python3 scripts/generate_hybrid_transformer_execution_package.py
+</code></pre>
+<p>The generator checks that the source evidence exists and preserves its provenance in the new artifacts. The resulting JSON files were parsed with:</p>
+<pre><code>
+python3 -m json.tool evidence/aimc-hybrid-transformer-vertical-slice/hybrid_execution_plan.json
+python3 -m json.tool evidence/aimc-hybrid-transformer-vertical-slice/bit_slicing_plan.json
+python3 scripts/run_hybrid_transformer_vertical_slice.py
+python3 scripts/build_hybrid_compiler_runtime_package.py
+python3 scripts/compile_hybrid_transformer_execution_package.py
+python3 scripts/run_hybrid_runtime_estimator.py
+</code></pre>
+<p>The package structure was then checked programmatically:</p>
+<pre><code>
+placements: 16
+analog placements: 12
+digital placements: 4
+simulator relative L2: 6.71634969e-08
+simulator pass: True
+replay events: 76
+shared compiler/runtime package: 4 models/workloads, 38 operators, 138 events
+target lowering: 138 commands, 160 register writes, 294 planning cycles
+runtime schedule: verified, 20 analog tile, 40 converter, 40 SRAM actions
+physical converter gate: blocked_sar_source_common_mode
+</code></pre>
+<p>The complete project validator also passed:</p>
+<pre><code>
+python3 scripts/validate_project.py
+</code></pre>
+<p>The site was rebuilt successfully with:</p>
+<pre><code>
+python3 scripts/build_site.py
+</code></pre>
+<h2>Results By Gate</h2>
+<table><tbody>
+<tr><th>Gate</th><th>Result</th><th>Meaning</th></tr>
+<tr><td>Workload contract</td><td>pass</td><td>One named fixture, baseline, metric, and threshold are recorded.</td></tr>
+<tr><td>Analog/digital placement</td><td>pass</td><td>All 16 planned rows have an explicit placement and rationale.</td></tr>
+<tr><td>SRAM boundary</td><td>pass</td><td>Activation, partial-sum, calibration, and fallback storage are named.</td></tr>
+<tr><td>Bit slicing</td><td>pass as a mapping rule</td><td>Logical and physical precision assumptions are recorded.</td></tr>
+<tr><td>Calibrated simulator replay</td><td>pass for fixture</td><td>CrossSim held-out output residual is below the simulator threshold.</td></tr>
+<tr><td>Physical converter compatibility</td><td>blocked</td><td>The real PMOS-only converter has insufficient high-code spacing.</td></tr>
+<tr><td>Transformer task accuracy</td><td>not yet tested</td><td>This fixture has numerical output comparison, not a real task dataset or token metric.</td></tr>
+<tr><td>Board runtime and power</td><td>not tested</td><td>No synchronized board or meter trace exists.</td></tr>
+</tbody></table>
+<p>The capacitor-scale diagnostic is also a blocked physical gate: spacing passes in the exploratory run, but the supply-range constraint fails.</p>
+<h2>Safe Claim</h2>
+<p>The project can say:</p>
+<p>&gt; A three-block transformer-style MLP fixture has an explicit hybrid placement &gt; plan and a calibrated CrossSim replay in which the twelve fixed-weight MatMul &gt; candidates preserve the held-out numerical output under the stated simulator &gt; assumptions.</p>
+<p>The attention-shaped fixture now has a companion plan at <code>evidence/aimc-hybrid-transformer-attention-slice/</code>. Its four static Q/K/V/output projection MatMuls are analog candidates, while dynamic score selection, scaling, Softmax, and value selection remain digital with SRAM buffers. Its calibrated CrossSim replay reports approximately <code>4.177e-8</code> relative L2 output difference. This is still a projection replay, not full transformer token accuracy.</p>
+<p>The transformer plans and wake-word plan now feed the shared compiler/runtime handoff generated by <code>scripts/build_hybrid_compiler_runtime_package.py</code>. The package contains four model/workload plans, 38 operator rows, and 138 ordered operator-level schedule events. The wake-word package retains two dense MatMuls as analog candidates but selects digital execution because converter overhead is not amortized at its small workload size.</p>
+<p>The single-block transformer package adds four more fixed-weight MatMul analog candidates and four digital support operations. Its calibrated CrossSim replay reports relative L2 difference <code>4.944978e-8</code> and passes the simulator threshold. It is a deterministic review handoff; compiled binary, register file, cycle trace, and board runtime are still not generated.</p>
+<p>The target-lowering step is generated by <code>scripts/compile_hybrid_transformer_execution_package.py</code>. It produces <code>runtime_commands.json</code>, <code>register_writes.json</code>, and <code>target_execution_trace.json</code>: for the original four-workload slice it produced 138 commands, 160 register writes, and a 294-cycle planning schedule. The newer shared twelve-workload compiler extends this to 321 commands, 460 register writes, 687 planning cycles, 321 review bytecode words, and complete SRAM maps. These are deterministic target artifacts with symbolic SRAM addresses and planning cycle counts, not ISA-validated firmware or an observed board trace.</p>
+<p>The schedule verifier and runtime estimator is <code>scripts/run_hybrid_runtime_estimator.py</code>. It confirms no command overlaps or sequence gaps and writes <code>hybrid_runtime_estimate.json</code> and <code>hybrid_runtime_estimate.md</code>. The verified estimate contains 16 analog tile executions, 40 converter actions, 40 SRAM actions, and 294 serialized planning cycles across the four packages. Energy and measured latency remain intentionally unreported.</p>
+<p>The audio package is generated by <code>scripts/generate_audio_hybrid_execution_package.py</code>. Its 24-sample generated audio task rehearsal reports wake-word F1 <code>1.0</code> for both digital and analog candidate paths, but its cost record reports normalized latency <code>41</code> versus <code>28</code> and energy <code>154.2</code> versus <code>152.0</code>; the compiler therefore selects the digital path and preserves analog as a candidate/fallback option.</p>
+<h2>Claims Still Blocked</h2>
+<p>This package does not prove:</p>
+<ul>
+<li>pretrained foundation-model accuracy;</li>
+<li>full transformer attention execution;</li>
+<li>KV-cache, Softmax, LayerNorm, or token-decision behavior;</li>
+<li>physical 8-bit converter operation;</li>
+<li>calibrated silicon behavior;</li>
+<li>board latency, energy, or thermal performance;</li>
+<li>weight-update reliability;</li>
+<li>analog macro layout or tapeout readiness;</li>
+<li>production or customer readiness.</li>
+</ul>
+<h2>Next Engineering Gate</h2>
+<p>First redesign the charge-transfer network so high-code spacing and legal node range pass together, then rerun the same threshold-spacing and SAR tests. Then connect a converter profile that matches the physical result to this execution plan. After that, add the attention-shaped fixture while keeping dynamic attention selection, Softmax, normalization, KV-cache movement, and token decisions on the digital/SRAM path until those operations have their own evidence.</p></article></main></body></html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Softmax Turns Score Error Into Selection Error</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Softmax Turns Score Error Into Selection Error</h1><p class="lead">Source: docs/concepts/softmax-turns-score-error-into-selection-error.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Softmax Turns Score Error Into Selection Error</h1>
+<p>The object is the attention choice made from a set of scores. A score is not the final model state. It is a number used to decide how much the model reads from each earlier token. When hardware noise changes a score, the next question is not only how large the score error is. The next question is whether the read choice changed.</p>
+<p>Attention computes:</p>
+<pre><code>
+scores = Q K^T / sqrt(head_dim)
+weights = softmax(scores + mask)
+output = weights V
+</code></pre>
+<p>The constraint is competition. Softmax compares scores against each other. If one score is much larger than the rest, small noise may not matter. If two scores are close, small noise can move probability from one token to another. The same absolute score error can be harmless in one layer and harmful in another layer.</p>
+<p>This is why analog attention cannot be evaluated only by dot-product error. A current error becomes a score error. A score error becomes a probability change. A probability change becomes a different mixture of value vectors. That mixture becomes the next hidden state. The model sees the last object, not the current error by itself.</p>
+<h2>The First-Principles Chain</h2>
+<p>The chain is:</p>
+<pre><code>
+query/key dot product -&gt; score error -&gt; softmax weight movement -&gt; value mixture error -&gt; logit change
+</code></pre>
+<p>Each step can shrink or amplify the previous error.</p>
+<p>Softmax is shift-invariant: adding the same constant to every score changes nothing. But changing one score relative to another changes the distribution. This means common-mode analog error may be less damaging than rank-changing error. A per-column offset, a local retention error, or a read disturbance that affects only some keys can change the ordering of close scores.</p>
+<p>The mathematical form for a noisy score is:</p>
+<pre><code>
+s_noisy_i = s_i + delta_i
+p_i = exp(s_i) / sum_j exp(s_j)
+p_noisy_i = exp(s_noisy_i) / sum_j exp(s_noisy_j)
+</code></pre>
+<p>The output error is:</p>
+<pre><code>
+delta_output = sum_i p_noisy_i V_i - sum_i p_i V_i
+</code></pre>
+<p>The important value is not only <code>delta_i</code>. It is whether <code>p_noisy</code> moves mass onto a different value vector.</p>
+<h2>Why Close Scores Matter</h2>
+<p>Suppose two prior tokens have scores <code>4.01</code> and <code>4.00</code>. A score error of <code>0.03</code> can change which one is largest. If their value vectors are similar, the output may barely move. If their value vectors point in different directions, the output can change strongly.</p>
+<p>Now suppose the largest score is <code>8.00</code> and the next score is <code>3.00</code>. The same <code>0.03</code> error probably does not change the read choice. The softmax distribution is already concentrated.</p>
+<p>So the sensitivity of attention depends on margin:</p>
+<pre><code>
+margin = top_score - second_score
+</code></pre>
+<p>Small margin means the hardware must preserve ordering more carefully. Large margin gives more room for analog error.</p>
+<h2>Concrete Design Move</h2>
+<p>The concrete design move is to measure attention error after softmax, not before it. For every analog attention proposal, report:</p>
+<ul>
+<li>score RMS error</li>
+<li>top-attended-token flip rate</li>
+<li>softmax probability movement</li>
+<li>output-vector relative error</li>
+<li>final logit movement if a downstream readout is available</li>
+<li>results binned by score margin</li>
+</ul>
+<p>This makes the analog hardware claim test the model object that matters: the selected memory read.</p>
+<h2>Measurement</h2>
+<p>The measurement should vary score noise, context length, value-vector diversity, and attention margin. A good result should show when noise is tolerable and when it changes token selection.</p>
+<p>The minimum useful experiment is:</p>
+<pre><code>
+make Q and K with two close top scores
+compute clean attention
+add score noise
+compute noisy attention
+measure probability movement, top-index flip, and output error
+</code></pre>
+<p>If the top index flips often at the noise level expected from the circuit, the attention path is fragile. If probability moves but the output vector barely changes, the value memory may be redundant enough to tolerate it. If the final logits move little, the layer may be robust even though attention weights changed.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is to report an average score error and imply that attention is safe. Average error hides the hard cases. The hard cases are close competitions where the model is deciding between different memories.</p>
+<p>The first-principles claim is that attention noise matters when it changes selection. Analog hardware must preserve enough score ordering and value recall for the next hidden state to stay useful. A dot product can be approximately correct while the memory choice is wrong.</p></article></main></body></html>

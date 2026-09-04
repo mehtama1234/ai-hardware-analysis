@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog Placement Is Not Analog Acceptance</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Analog Placement Is Not Analog Acceptance</h1><p class="lead">Source: docs/concepts/analog-placement-is-not-analog-acceptance.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog Placement Is Not Analog Acceptance</h1>
+<p>The object is a two-step hardware decision. First the system decides whether an operation is allowed to try analog compute. Then, after the analog tile has been measured, the system decides whether the measured result is allowed to enter model state.</p>
+<p>Those are not the same decision.</p>
+<p>Analog placement answers:</p>
+<pre><code>
+Should this operation run on the analog path?
+</code></pre>
+<p>Analog acceptance answers:</p>
+<pre><code>
+Is this particular measured result trustworthy enough to use?
+</code></pre>
+<p>The distinction matters because analog compute is a physical measurement. A conductance array can be the right place for a dense projection and still produce a bad output on a particular request. The tile may be disabled. Calibration may be stale. A column may have drifted. The ADC code may saturate. A residual check may say the corrected value is outside the budget.</p>
+<h2>The Constraint</h2>
+<p>The constraint is that permission to use a resource is weaker than evidence that the resource worked.</p>
+<p>A scheduler can inspect stable facts before execution:</p>
+<pre><code>
+operation class
+resident weights
+tile health
+calibration age
+estimated state error
+attention selection risk
+token choice risk
+</code></pre>
+<p>From those facts it can say:</p>
+<pre><code>
+digital
+analog
+hybrid
+</code></pre>
+<p>But this still happens before the tile has produced the current, before the ADC has returned a code, and before correction has checked the result. The placement decision can only say that analog is worth attempting.</p>
+<p>The acceptance decision needs later evidence:</p>
+<pre><code>
+ADC code
+zero code
+gain correction
+bias correction
+residual magnitude
+residual budget
+saturation check
+calibration age at readout
+tile enable state
+</code></pre>
+<p>This is why a serious hybrid accelerator needs at least two control boundaries. One boundary chooses where the operation should execute. A later boundary checks whether the result can be used.</p>
+<h2>The Mathematical Shape</h2>
+<p>A placement rule is a predicate over the request and tile state:</p>
+<pre><code>
+place_analog = fixed_weight_operation
+             and resident_weights
+             and state_error &lt;= state_error_budget
+             and attention_flip_rate &lt;= attention_flip_budget
+             and token_flip_rate &lt;= token_flip_budget
+             and not stale_weak_tile_state
+</code></pre>
+<p>That predicate does not contain the actual measured output. It cannot, because the output does not exist yet.</p>
+<p>The acceptance rule is a predicate over the measured value:</p>
+<pre><code>
+centered = adc_code - zero_code
+scaled = centered * gain
+corrected = scaled + bias
+
+accept = tile_enabled
+      and residual_abs &lt;= residual_budget
+      and calibration_age &lt; max_calibration_age
+      and lower_bound &lt;= corrected &lt;= upper_bound
+</code></pre>
+<p>Only the second rule protects the model from this tile&#x27;s actual measured behavior. The first rule protects the model from choosing obviously wrong work. The second rule protects the model from using an analog result that failed after the work was attempted.</p>
+<h2>The Concrete Design Move</h2>
+<p>The concrete design move is to encode placement and acceptance as separate hardware events.</p>
+<p>In the current RTL, <code>aimc_operation_partition</code> chooses:</p>
+<pre><code>
+digital
+analog
+hybrid
+</code></pre>
+<p>It does this from operation class, resident weights, model-error budget, attention-risk budget, token-risk budget, calibration age, and weak-tile count.</p>
+<p>The <code>aimc_tile_readout</code> block then checks the measured tile output:</p>
+<pre><code>
+ADC code -&gt; zero removal -&gt; gain correction -&gt; bias correction -&gt; clamp -&gt; valid or fallback
+</code></pre>
+<p>The <code>aimc_micro_tile_controller</code> composes the two:</p>
+<pre><code>
+analog placement -&gt; start readout
+next cycle valid readout -&gt; accept corrected analog value
+next cycle failed readout -&gt; digital fallback
+</code></pre>
+<p>The one-cycle wait is the important hardware fact. The controller cannot honestly accept analog on the same conceptual step where it merely chose analog. It must wait for the measurement boundary.</p>
+<h2>Measurement</h2>
+<p>The measurement is a trace that includes both decisions:</p>
+<pre><code>
+operation, placement, readout_result, final_execution_path, reason
+</code></pre>
+<p>A useful test must include at least these cases:</p>
+<ul>
+<li>fixed Q/K/V projection is allowed to try analog and accepted after valid readout</li>
+<li>fixed projection is allowed to try analog but falls back when residual is too high</li>
+<li>fixed projection is allowed by operation class but falls back when the tile is disabled</li>
+<li>attention score work goes to hybrid review instead of direct analog acceptance</li>
+<li>softmax stays digital before any tile readout is attempted</li>
+<li>missing resident weights force digital before any analog work begins</li>
+</ul>
+<p>The current integrated RTL test has exactly that shape:</p>
+<pre><code>
+qkv_analog_readout_accepted,path=1,reason=1,value=32
+qkv_residual_forces_fallback,path=0,reason=10,value=32
+qkv_disabled_tile_fallback,path=0,reason=9,value=32
+attention_score_hybrid_review,path=2,reason=2,value=32
+softmax_partition_digital,path=0,reason=0,value=32
+missing_weights_partition_digital,path=0,reason=3,value=32
+</code></pre>
+<p>The physical-flow evidence also matters. The integrated controller has been synthesized and run through a no-CTS OpenLane flow. That does not prove clock-tree signoff, but it does show that this two-step decision can become placed and routed digital logic with GDS, LEF, Liberty, SDF, and SPICE outputs.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is saying &quot;the model uses analog for Q/K/V&quot; as if that single sentence is a hardware guarantee. It is only a routing intention. The measured tile output can still be unsafe.</p>
+<p>Another failure mode is hiding acceptance inside software prose. If a chip depends on fallback, then fallback must have an object: a residual threshold, calibration age, saturation check, tile enable bit, reason code, and clocked decision point.</p>
+<p>The first-principles claim is simple: analog placement is permission to try a physical resource. Analog acceptance is evidence that the measured result survived the physical boundary. A hybrid foundation-model accelerator needs both.</p></article></main></body></html>

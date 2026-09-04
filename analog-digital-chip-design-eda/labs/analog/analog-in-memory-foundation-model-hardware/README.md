@@ -1,0 +1,644 @@
+# Analog In-Memory Foundation-Model Hardware
+
+This lab studies the useful part of analog in-memory compute without hiding the hard parts. A conductance can store a weight. A crossbar can sum currents. That is enough to build an analog matrix-vector multiply. It is not enough to build a foundation-model accelerator. The full system also needs DACs, ADCs, digital accumulation, calibration, scheduling, memory movement, and exact digital operations.
+
+The system architecture reference is `docs/research/hybrid-aimc-system-architecture.md`. Use it as the map that connects the analog experiments, the Python serving models, and the digital control-plane RTL.
+
+## Workflow Contract
+
+Consumes: backend hardware-placement rows, local SPICE-style crossbar outputs, converter settings, tile error measurements, and transformer-path sensitivity assumptions.
+
+Produces: analog residuals, converter-boundary sweeps, tile operating points, model-impact rows, governor-request rows, and evidence records that the backend can import.
+
+Supports: the claim that selected local analog operating points can be measured, translated into model-facing risk, and compressed into hardware control fields.
+
+Refuses: calibrated silicon behavior, measured board latency, measured energy, full pretrained-model quality, and production readiness.
+
+Handoff: this lab feeds the digital RTL lab through `measurements/model-impact-governor-requests.csv` and feeds the restored workbench through `evidence/aimc-hardware-lab/import-batch.json`.
+
+## Where This Lands In The Combined Workbench
+
+This lab is the physical-error part of the larger AIMC workflow.
+
+```text
+backend hardware placement
+  -> analog operating point
+  -> nonideality stack
+  -> transformer sensitivity
+  -> governor request rows
+  -> RTL checker
+  -> backend evidence import
+  -> claim readiness
+```
+
+The important object is the residual that reaches the model. A crossbar current by itself is not the claim. The useful claim needs the whole path: signed-weight representation, row drop, DAC error, programmed conductance, drift, ADC readout, and the model location where the resulting value is used.
+
+The current backend claim effect is narrow. This lab helps support `C4` because analog error and task-sensitivity evidence exist for the local setup. It helps explain `C1` because backend placement rows are now appended to the governor request table. It does not support `C2` measured latency or `C3` measured energy. Those claims require the board and power measurement boundary described in `docs/research/board-and-power-measurement-boundary.md`.
+
+The object is a weighted sum. The crossbar computes it as current:
+
+```text
+I_column = G_1 V_1 + G_2 V_2 + ... + G_n V_n
+```
+
+The constraint is that every term is physical. `G` has programming error and drift. `V` is made by a DAC. The column current is read by an ADC. Row and column wires have parasitics. The digital model expects stable numbers, but the analog circuit provides measured signals.
+
+## What To Run
+
+Run the SPICE crossbar:
+
+```bash
+ngspice -b spice/four_by_four_crossbar.sp
+ngspice -b spice/differential_signed_crossbar.sp
+ngspice -b spice/row_wire_drop_crossbar.sp
+```
+
+Compare the SPICE current against the direct conductance sum:
+
+```bash
+python3 python/spice_crossbar_comparison.py
+```
+
+Compare signed-weight SPICE output against a differential conductance model:
+
+```bash
+python3 python/spice_signed_crossbar_comparison.py
+```
+
+Compare row-wire-drop SPICE output against ideal and distributed row models:
+
+```bash
+python3 python/spice_row_drop_comparison.py
+```
+
+Run the Python analog matrix multiply experiments:
+
+```bash
+python3 python/analog_matmul.py
+```
+
+Run calibration and boundary-cost experiments:
+
+```bash
+python3 python/calibration_and_energy.py
+```
+
+Run digital residual-correction experiments:
+
+```bash
+python3 python/residual_correction.py
+```
+
+Run transformer mapping and tile-scheduling estimates:
+
+```bash
+python3 python/transformer_mapping.py
+```
+
+Run row-wire resistance sweeps:
+
+```bash
+python3 python/wire_resistance_sweep.py
+```
+
+Run the SAR ADC boundary model:
+
+```bash
+python3 python/sar_adc_model.py
+```
+
+Run the DAC row-driver boundary model:
+
+```bash
+python3 python/dac_row_driver_model.py
+```
+
+Run the combined ADC/DAC converter boundary sweep:
+
+```bash
+python3 python/converter_boundary_sweep.py
+```
+
+Generate the tile operating point that joins signed SPICE, row-drop SPICE, converter cost, and governor-facing evidence:
+
+```bash
+python3 python/tile_operating_point.py
+```
+
+Run the analog nonideality stack that follows one projection from ideal dot product through signed conductance, row drop, DAC quantization, programmed conductance drift, ADC readout, and governor-facing residual:
+
+```bash
+python3 python/analog_nonideality_stack.py
+```
+
+Run the measured tile transformer-impact experiment:
+
+```bash
+python3 python/measured_tile_transformer_impact.py
+```
+
+Translate measured model impact into governor request fields:
+
+```bash
+python3 python/model_impact_governor_requests.py
+```
+
+Run the prefill/decode phase estimator:
+
+```bash
+python3 python/prefill_decode_estimator.py
+```
+
+Run the attention/KV-cache placement model:
+
+```bash
+python3 python/attention_kv_cache_model.py
+```
+
+Run the attention score-noise experiment:
+
+```bash
+python3 python/attention_score_noise.py
+```
+
+Run the tiny transformer block combined-noise experiment:
+
+```bash
+python3 python/tiny_transformer_block_noise.py
+```
+
+Run the multi-layer error drift experiment:
+
+```bash
+python3 python/multilayer_error_drift.py
+```
+
+Run the calibration schedule model:
+
+```bash
+python3 python/calibration_schedule.py
+```
+
+Run the tile-health monitor model:
+
+```bash
+python3 python/tile_health_monitor.py
+```
+
+Run the analog serving-policy model:
+
+```bash
+python3 python/serving_policy.py
+```
+
+Run the hybrid control-plane model:
+
+```bash
+python3 python/hybrid_control_plane.py
+```
+
+Run the transformer operation-partition simulator:
+
+```bash
+python3 python/transformer_partition_simulator.py
+```
+
+Run the tile-readout boundary model:
+
+```bash
+python3 python/tile_readout_boundary.py
+```
+
+Run the integrated micro-tile execution trace:
+
+```bash
+python3 python/micro_tile_execution_trace.py
+```
+
+Generate the RTL micro-tile controller vector include:
+
+```bash
+python3 python/generate_micro_tile_rtl_vectors.py
+```
+
+Run the transformer-layer trust trace:
+
+```bash
+python3 python/transformer_layer_trust_trace.py
+```
+
+Run the error-budget ledger:
+
+```bash
+python3 python/error_budget_ledger.py
+```
+
+Run the error-budget governor trace:
+
+```bash
+python3 python/error_budget_governor_trace.py
+```
+
+Run the tile telemetry policy model:
+
+```bash
+python3 python/tile_telemetry_policy.py
+```
+
+Run the multi-tile scheduler runtime trace:
+
+```bash
+python3 python/multi_tile_scheduler_runtime.py
+```
+
+Run the integrated scheduler/governor runtime trace:
+
+```bash
+python3 python/integrated_scheduler_governor_runtime.py
+```
+
+Run the analog tile error evidence model:
+
+```bash
+python3 python/analog_tile_error_evidence.py
+```
+
+Run the analog tile state trace:
+
+```bash
+python3 python/analog_tile_state_trace.py
+```
+
+The Python script prints:
+
+- ideal matrix-vector output
+- analog output with conductance noise and ADC/DAC quantization
+- error versus ADC bits
+- error versus drift
+- a tiny transformer-MLP projection mapped through the same analog boundary
+
+The SPICE comparison prints the base circuit proof that a virtual-ground column current equals the sum of row voltage divided by cell resistance. In the current four-by-four crossbar, ngspice and the direct conductance sum agree to print precision:
+
+```text
+worst_relative_error: 5.483e-08
+```
+
+That is the root operation underneath the later models. The signed-weight SPICE comparison adds the next physical fact: conductance is nonnegative. A negative foundation-model weight cannot be stored as negative resistance. It has to be represented as a difference between two ordinary conductance paths.
+
+```text
+column 1: positive current 35.00 uA, negative current 7.50 uA, signed current 27.50 uA
+column 2: positive current 57.50 uA, negative current 12.00 uA, signed current 45.50 uA
+signed_dot_worst_relative_error: 2.979e-16
+```
+
+The first-principles point is that sign is a representation rule, not a material property of a passive cell. The chip must sense the positive path, sense the negative path, and subtract them. Any mismatch between those two paths becomes model error. The Python tile evidence then asks how the same current-sum idea changes when conductance programming error, drift, row drop, ADC/DAC quantization, calibration, and model-path sensitivity are added.
+
+The row-drop SPICE comparison shows where the ideal current-sum stops being enough. With four 10 kOhm cells and a row segment resistance sweep, the distributed row model matches ngspice closely while the no-drop model overestimates current:
+
+```text
+rseg 25 ohm:  current loss 1.84%
+rseg 100 ohm: current loss 6.93%
+rseg 500 ohm: current loss 26.63%
+distributed_model_worst_relative_error: 1.978e-07
+```
+
+The first-principles point is that one logical activation becomes several physical voltages along the row. The farther cells multiply by a smaller value because current has already left the row through earlier cells.
+
+The analog tile error evidence model prints the analog measurements that become governor inputs. It computes an ideal dot product and an analog dot product under conductance programming error, drift, DAC quantization, ADC quantization, row-voltage drop, calibration age, and model-path sensitivity. The output is not another synthetic policy row. It is the physical evidence packet that explains where `residual_q8`, `drift_age`, `sensitivity_q8`, and `analog_candidate` come from.
+
+The converter boundary sweep turns ADC/DAC precision into a measured tile tradeoff. It uses the same dot-product object and the 100 ohm SPICE row-drop case, then sweeps ADC bits, DAC bits, comparator noise, and row settling:
+
+```text
+cases: 216
+useful boundary cases: 42
+SPICE row-drop current loss used: 6.93%
+lowest-energy case: ADC 3, DAC 3, error 0.3889, energy 1.00x
+lowest-error case: ADC 8, DAC 8, error 0.0312, energy 16.00x
+lowest-energy useful case: ADC 6, DAC 4, error 0.0900, energy 3.22x
+```
+
+The first-principles point is that converter bits are not a generic quality setting. DAC error enters before the array and pushes many columns together. ADC error enters after the sum and can collapse different currents into the same code. More bits help only until row drop, settling, comparator noise, drift, or model tolerance becomes the real limit. The useful boundary is therefore the cheapest setting that keeps model-facing error inside the governor budget.
+
+The tile operating-point file makes that claim explicit:
+
+```text
+name: lowest_energy_useful_converter_boundary
+ADC: 6
+DAC: 4
+row case: 100 ohm
+SPICE row loss: 6.93%
+converter error: 0.0900
+converter energy: 3.22x
+SAR comparisons: 24
+signed-crossbar error: 2.979e-16
+residual_q8: 12
+sensitivity_q8: 140
+drift_age: 4
+governor assumption: eligible for analog service while cumulative state budget remains available
+```
+
+This is the smallest honest tile claim. It does not say analog compute is good in general. It says this signed-weight representation, this row-wire case, this converter boundary, and this measured residual are the assumptions under the current governor examples.
+
+The analog nonideality stack turns that operating point into a step-by-step value trace:
+
+```text
+stage,relative residual,residual_q8
+ideal_digital_dot,0.00000,0
+differential_signed_conductance,0.00000,0
+spice_row_drop_applied,0.02450,3
+dac_quantized_rows,0.10584,14
+programmed_and_drifted_cells,0.09664,12
+adc_quantized_column_readout,0.09000,12
+```
+
+This is the most direct analog tile lesson in the lab. The ideal dot product is the mathematical object. The signed-conductance stage shows that negative weights are represented by two positive physical paths and subtraction. The row-drop stage shows that one logical activation becomes different physical voltages along the row. The DAC stage damages the activation before multiplication, so one rounded input affects every column. The programmed-and-drifted stage says the stored weight is a measured conductance that can move with time. The ADC stage is where current becomes a digital code. Only after that does the governor see `residual_q8`.
+
+The important boundary is not whether the crossbar multiplied. It did. The important boundary is whether the measured value is close enough, fresh enough, and low-risk enough to become transformer state.
+
+The concept article `Analog Tile Is A Measurement Chain` is the reading layer above this experiment. It explains why the tile should be described as a chain from activation code to accepted model update, not as a crossbar alone.
+
+The measured tile transformer-impact experiment uses the final `0.09000` residual from that stack as the tile error source inside a small transformer block:
+
+```text
+policy,state_error,attention_error,mlp_error,logit_error,attention_flip,token_flip,decision,reason
+all_digital_reference,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,digital_reference,reference_path
+measured_fixed_projection_tile,0.0450,0.0652,0.0637,0.0436,0.1250,0.1750,analog_path,measured_tile_within_budget
+measured_projection_stressed_tile,0.1125,0.1619,0.1594,0.1087,0.1750,0.2000,digital_fallback,attention_selection_too_sensitive
+measured_attention_scores_analog,0.0783,0.1166,0.1069,0.0762,0.1750,0.1250,digital_fallback,attention_selection_too_sensitive
+measured_logits_analog,0.0732,0.1057,0.1035,0.0948,0.1500,0.2000,digital_fallback,token_choice_too_sensitive
+```
+
+This result ties the tile measurement to model behavior. The same measured tile residual can be acceptable for fixed trained projections when attention scores and logits stay digital. It can become unacceptable when the tile is stressed, when attention scores are made analog, or when logits are made analog. The first-principles point is that an error budget is not only a circuit number. It is a promise about the next state the transformer will receive.
+
+The model-impact governor request table compresses those model-level outcomes into the fields the digital governor can actually see:
+
+```text
+policy,candidate,residual_q8,attention_flip_q8,token_flip_q8,sensitivity_q8,governor_decision,governor_reason
+all_digital_reference,0,0,0,0,96,0,not_analog_candidate
+measured_fixed_projection_tile,1,6,32,45,96,1,analog_within_budget
+measured_projection_stressed_tile,1,40,45,51,224,0,sensitive_path_needs_digital
+measured_attention_scores_analog,1,40,45,32,208,0,sensitive_path_needs_digital
+measured_logits_analog,1,40,38,51,224,0,sensitive_path_needs_digital
+```
+
+This is the hardware-facing bridge. The model can have a rich reason for failure, but the RTL does not receive prose. It receives small fields. The compression must keep the important distinction: a low-sensitivity fixed projection can spend a residual, while the same measured tile movement near attention selection or token ranking should be refused.
+
+The analog tile state trace follows one tile through repeated token service. Calibration changes gain and bias. Drift age grows after service. The governor sees the moving tile state as residual, drift age, sensitivity, and cumulative accepted error. The integrated scheduler/governor trace now loads both the state trace and the tile operating point, so the RTL-checked vectors are not floating policy examples. They are runtime decisions made above a stated physical boundary: differential signed weights, SPICE row loss, ADC/DAC precision, converter cost, measured residual, drift age, and model-path sensitivity.
+
+The calibration script prints:
+
+- analog error before and after per-column gain/bias correction
+- the fitted correction values
+- a relative energy table where ADC/DAC cost grows with precision
+- a transformer operation partition sketch
+
+The residual script prints how much error remains when the digital side corrects only the largest analog output errors.
+
+The mapping script prints:
+
+- tile counts for Q/K/V, attention output, MLP up, and MLP down projections
+- activation and output traffic estimates
+- ADC/DAC conversion counts
+- digital partial-sum counts
+- KV-cache growth with generated sequence length
+
+The wire-resistance script prints how much a row voltage falls as array size and segment resistance grow.
+
+The SAR ADC script prints conversion error versus bit count, comparator noise, and column count.
+
+The DAC row-driver script prints output error caused by input quantization, gain error, offset error, and incomplete settling.
+
+The prefill/decode estimator prints relative energy for projection work and KV-cache movement. It separates prompt processing from one-token generation, because the same analog tile can be useful in one phase and weak in the other.
+
+The attention/KV-cache model prints the cost of reading changing token memory for each generated token. It compares a digital cache, compute placed near the cache, and analog cache state. The point is to test whether attention is being treated as changing memory or only as another fixed matrix multiply.
+
+The attention score-noise experiment prints how often score noise changes the top-attended token, how far the softmax probabilities move, and how much the output vector changes. It turns analog score error into a model-behavior question.
+
+The tiny transformer block experiment prints attention error, MLP error, final block-state error, top-attended-token flip rate, and probability movement when projection noise and attention score noise happen in the same block.
+
+The multi-layer drift experiment prints state error over depth for random noise, stable bias, and mixed error. It shows why a one-layer RMS number is not enough for analog foundation-model hardware.
+
+The calibration schedule model prints residual error and calibration overhead for different numbers of calibration samples and different token intervals between recalibration events.
+
+The tile-health monitor model prints mean, p95, and worst-column error for no recalibration, full fixed recalibration, selective recalibration, and selective recalibration with occasional full sweeps.
+
+The serving-policy model prints whether analog tiles should handle prefill, decode, batched decode, or stay digital under specific prompt, context, calibration, and tile-health conditions.
+
+The hybrid control-plane model prints request-level routing decisions. It includes resident weights, healthy tile count, weak tile count, calibration age, cache share, converter-boundary share, state-error estimate, and the final analog or digital path.
+
+The transformer partition simulator prints policy-level routing decisions inside one toy transformer block. It compares an all-digital reference, an analog fixed-projection path, an analog-logit experiment, an analog-attention experiment, and a stale-tile case. It measures hidden-state error, logit error, attention top-token flips, final-token flips, top-3 overlap, and probability movement. The point is to separate the useful analog target from the risky one: fixed trained projections can be analog candidates, logits need rank-preservation evidence, and attention score selection, value mixing, stale calibration, and unhealthy tiles need stronger evidence or digital fallback.
+
+The tile-readout boundary model prints the same correction and fallback rule used by the digital RTL. It treats an ADC code as a measurement, not a model value. The digital side removes zero, applies gain and bias, clamps saturation, and refuses outputs from disabled, stale, or high-residual tiles.
+
+Current tile-readout boundary output:
+
+```text
+centered_adc_with_unit_gain,32,32,32,1,0,ok
+gain_and_bias_correction,32,48,43,1,0,ok
+disabled_tile_fallback,32,32,32,0,1,tile_disabled
+residual_fallback,32,32,32,0,1,residual_high
+stale_calibration_fallback,32,32,32,0,1,calibration_stale
+high_saturation_fallback,4095,4095,2047,0,1,saturated_high
+low_saturation_fallback,-255,-255,-2048,0,1,saturated_low
+```
+
+The micro-tile execution trace connects operation placement with readout acceptance:
+
+```text
+qkv_analog_accepted,qkv,analog,fixed_weight_analog,ok,32,analog_accepted,readout_valid
+qkv_residual_fallback,qkv,analog,fixed_weight_analog,residual_high,32,digital,readout_residual_high
+qkv_disabled_tile_fallback,qkv,analog,fixed_weight_analog,tile_disabled,32,digital,readout_tile_disabled
+attention_hybrid_review,attention_score,hybrid,hybrid_needs_evidence,not_sampled,0,hybrid_review,hybrid_review
+softmax_digital_rule,softmax,digital,digital_rule,not_sampled,0,digital,digital_rule
+missing_weight_fallback,qkv,digital,missing_weights,not_sampled,0,digital,missing_weights
+```
+
+The concept page `Analog Compute Needs A Trust Boundary` is the synthesis layer above this trace. The trace is small on purpose: it shows the rule that a foundation-model accelerator must obey at larger scale. A scheduler can permit analog compute, but the measured tile result must still cross a trust boundary before it becomes model state.
+
+The transformer-layer trust trace applies the same rule inside one toy transformer layer:
+
+```text
+op,placement,readout,final_path,relative_error
+q_projection,analog,ok,analog_accepted,0.0260
+k_projection_0,analog,ok,analog_accepted,0.0127
+v_projection_0,analog,ok,analog_accepted,0.0122
+k_projection_1,analog,ok,analog_accepted,0.0219
+v_projection_1,analog,ok,analog_accepted,0.0209
+k_projection_2,analog,ok,analog_accepted,0.0112
+v_projection_2,analog,residual_high,digital_fallback,0.0000
+k_projection_3,analog,ok,analog_accepted,0.0117
+v_projection_3,analog,ok,analog_accepted,0.0148
+k_projection_4,analog,ok,analog_accepted,0.0204
+v_projection_4,analog,ok,analog_accepted,0.0184
+output_projection,analog,ok,analog_accepted,0.0182
+mlp_up,analog,ok,analog_accepted,0.0246
+mlp_down,analog,calibration_stale,digital_fallback,0.0000
+```
+
+The multi-tile scheduler runtime trace connects that per-tile evidence to system service over a token stream:
+
+```text
+17,1,1,0,0013,0000,1,1,requested_tile_serves,2,residual_fallback_disable,0213
+18,2,1,1,0213,1100,2,2,recalibrate_before_probe,4,calibration_done,0203
+19,3,1,1,0203,1110,3,3,probe_disabled_tile,5,probe_failed,0202
+23,3,1,1,0202,1111,0,3,all_tiles_unusable_or_busy,7,digital_fallback,0202
+24,0,1,1,0202,0000,1,0,requested_tile_serves,2,stale_fallback_recalibrate,1202
+```
+
+Each row is:
+
+```text
+token,requested_tile,analog_candidate,maintenance_budget,tile_actions_before,tile_busy,decision,selected_tile,reason,reason_code,event,tile_actions_after
+```
+
+This is the first trace where the scheduler spends tile evidence over time. Tile 1 is disabled after repeated residual failure. Tile 2 is recalibrated before a probe because stale calibration is recoverable. Tile 3 is probed and remains disabled after the probe fails. When all tiles are busy or unusable, the system falls back to digital. The same script also emits `generated_tile_scheduler_cases.vh`, and the digital checker compares the Verilog scheduler output back to the generated CSV row by row. The important point is that analog service is no longer a static placement decision. It is a runtime decision made from tile health, spare capacity, and maintenance budget.
+
+The layer summary shows what this buys:
+
+```text
+attention_top_clean,2
+attention_top_traced,2
+attention_probability_movement,0.0035
+final_hidden_state_relative_error,0.0071
+```
+
+This is still a toy layer, but it is the right object. It does not ask whether the crossbar can multiply. It asks whether analog projection candidates can cross the trust boundary without damaging the value that the next transformer layer receives.
+
+The error-budget ledger separates local analog damage from model-facing damage:
+
+```text
+case,mean_projection_residual,max_projection_residual,mean_fallbacks_per_layer,attention_top_flip_rate,attention_probability_movement,attention_output_error,final_hidden_state_error
+clean_reference,0.0000,0.0000,0.00,0.0000,0.0000,0.0000,0.0000
+dac_quantization_only,0.0336,0.1242,0.00,0.0000,0.0096,0.1047,0.0409
+conductance_noise_only,0.0303,0.0490,0.00,0.1000,0.0134,0.0519,0.0226
+adc_readout_only,0.0407,0.1594,0.00,0.0000,0.0100,0.1492,0.0551
+stable_bias_only,0.0628,0.2388,0.00,0.0500,0.0121,0.2549,0.1175
+attention_score_noise_only,0.0000,0.0000,0.00,0.1000,0.0599,0.0846,0.0203
+combined_no_fallback,0.0897,0.3366,0.00,0.1000,0.0644,0.3347,0.1474
+combined_with_fallback,0.0888,0.3187,1.55,0.1000,0.0644,0.1838,0.0696
+```
+
+The ledger is useful because it prevents one-number thinking. Projection residual is local. Attention movement and final hidden-state error are model-facing. In this toy run, fallback does not remove the analog attempt, but it reduces final hidden-state error from `0.1474` to `0.0696` by refusing the worst measured projections.
+
+The error-budget governor trace turns that accounting into a hardware-facing decision:
+
+```text
+decision 0 = digital fallback
+decision 1 = analog service
+action 0 = keep serving
+action 1 = recalibrate before more analog service
+action 2 = disable until probe or repair
+```
+
+Each row combines four pieces of evidence:
+
+```text
+local residual
+calibration age
+model-path sensitivity
+cumulative model-state error
+```
+
+That split matters. A tile can be refused because its local residual is too high. It can be refused because calibration is stale. It can be refused because the current model path is sensitive enough that a moderate numeric error can move the decision. It can also be refused because previous accepted analog work has already spent the state-error budget. The script emits `error-budget-governor-trace.csv`, `error-budget-governor-trace.md`, and `generated_error_budget_governor_cases.vh`, so the digital RTL checker can compare the Verilog decision back to the same token trace.
+
+The tile telemetry policy model shows what the RTL counters are for:
+
+```text
+tile_id,attempts,accepted,fallback,accept_rate,residual_fallback,stale_fallback,action,reason
+11,64,59,5,0.922,5,0,serve,accepted_readouts_dominate
+12,64,46,18,0.719,18,0,disable,residual_fallbacks_are_repeated
+13,64,36,28,0.562,28,0,disable,residual_fallbacks_are_repeated
+14,64,50,14,0.781,4,10,recalibrate,calibration_evidence_is_stale
+15,64,45,19,0.703,19,0,disable,residual_fallbacks_are_repeated
+```
+
+The point is that accepted and fallback counts are not just debug signals. They become runtime evidence. A tile that is mostly accepted can keep serving. A tile with stale fallback reasons should be recalibrated. A tile with repeated residual failures should be removed from the primary analog path.
+
+The analog tile error evidence model now sits below the governor trace:
+
+```text
+scenario,adc_bits,dac_bits,program_sigma_pct,drift_pct,row_drop_case_ohm,spice_row_drop_loss_pct,far_row_voltage_scale,calibration_age,residual_q8,drift_age,sensitivity_q8,analog_candidate
+fresh_tile_low_sensitivity,7,7,1.00,0.00,25,1.84,0.982,1,6,1,89,1
+fresh_tile_high_sensitivity,7,7,1.00,0.00,25,1.84,0.982,1,6,1,209,1
+six_bit_normal_tile,6,6,2.00,1.00,100,6.93,0.931,4,12,4,140,1
+wire_drop_stressed_tile,6,6,2.00,1.00,500,26.63,0.734,5,12,5,140,1
+low_precision_tile,4,4,2.00,1.00,100,6.93,0.931,4,49,4,140,1
+```
+
+The first-principles point is simple. `analog_candidate` says the operation is allowed to ask for analog service. It does not mean the measured tile result is trusted. The row-drop part of the evidence is now taken from the SPICE row-wire experiment: each scenario names a row segment resistance, the script loads the measured current loss, and the far-row scale records how much smaller the effective activation becomes at the far end of the row. The analog tile then hands the control plane a measured number plus reasons to doubt it. The governor turns those doubts into a bounded decision: serve, recalibrate, disable, or fall back to digital.
+
+The integrated scheduler/governor runtime trace joins tile availability with model-state error budget. Its report starts with the tile operating point, then shows the token trace:
+
+```text
+scheduler asks which tile action is available
+governor asks whether another analog error should be spent
+final decision is analog only when both say yes
+```
+
+This is the next realistic control-plane object. A healthy tile is not enough if the model path is too sensitive or the cumulative state budget is spent. A conservative governor is not enough if no tile can serve or the system needs to spend the cycle on recalibration or probe. The generated trace emits `integrated-scheduler-governor-runtime.csv`, `integrated-scheduler-governor-runtime.md`, and `generated_integrated_scheduler_governor_cases.vh`.
+
+The current interpretation is in `measurements/transformer-partition-results.md`.
+
+## What The Lab Teaches
+
+The concrete design move is to split the problem into three parts.
+
+First, map signed digital weights into conductances. One passive conductance is nonnegative, so a signed weight is represented as a difference between two conductance paths. The lab models this by computing a positive array and a negative array and subtracting their column currents.
+
+Second, account for conversion. Inputs become voltages through a DAC. Column currents become digital partial sums through an ADC. If converter precision is low, the dot product is cheap but damaged. If converter precision is high, the dot product is cleaner but the boundary becomes expensive.
+
+Third, keep foundation-model control digital. Dense projections are plausible analog targets. Softmax, normalization, KV-cache indexing, token sampling, routing, and correction are better read as digital work. The lab does not claim that a transformer becomes analog. It asks which repeated linear maps can be moved into analog arrays while the digital machine keeps the computation coherent.
+
+Fourth, calibrate what the array actually does. The array does not need to be perfect, but the digital side must measure its gain and offset errors. A per-column correction is the simplest case: run known inputs, compare measured outputs to expected outputs, fit a gain and bias, then apply that correction when reading future outputs. This does not remove random noise, and it does not solve nonlinear drift, but it shows the role of digital evidence around analog compute.
+
+## Measurements
+
+The measurement is error under a stated physical cause:
+
+- conductance programming error
+- device drift
+- ADC bit count
+- DAC bit count
+- array tiling and partial-sum accumulation
+- model-layer output error
+- tile count and partial-sum accumulation
+- KV-cache memory growth
+- row-wire voltage drop and current loss
+- staged analog nonideality from ideal dot product to governor residual
+- ADC comparison count and comparator-noise limit
+- DAC row-voltage error and correlated output damage
+- prefill versus decode energy and KV-cache pressure
+- attention window size, KV-cache read bytes, and cache-placement cost
+- attention score noise, top-token flips, softmax movement, and output-vector error
+- combined attention, MLP, and final hidden-state error in a toy transformer block
+- random error versus stable bias across a stack of model blocks
+- calibration interval, sample count, stale-drift error, and calibration overhead
+- selective tile-health monitoring, worst-column error, and calibration work
+- serving policy decisions for prefill, decode, batched decode, cache pressure, and tile health
+- request-level control-plane decisions with tile availability, calibration age, cache pressure, boundary cost, and digital fallback
+- operation-level partition decisions for Q/K/V, attention scores, value mixing, output projection, MLP, logits, token choice, and fallback
+- tile-readout correction, saturation, calibration-age, residual, and fallback decisions
+- generated RTL micro-tile controller vectors from the analog-side trace assumptions
+- measured tile residual injected into transformer attention, MLP, logits, and final-state decisions
+- model-impact metrics compressed into governor-facing residual, sensitivity, and decision fields
+
+The failure mode is to report only the ideal current sum. That hides the cost of making voltages, reading currents, and correcting the result. A useful analog accelerator must win after the boundary is counted.
+
+## Next Extensions
+
+Add these after the first run:
+
+1. wire resistance and column voltage drop in SPICE
+2. a differential signed-weight SPICE array
+3. calibration from measured conductance to corrected output
+4. a digital residual path that corrects the largest analog error
+5. a memory-traffic model for transformer MLP and attention projections
+6. an attention-cache model that separates prefill from decode
+7. a measured accuracy experiment where attention score noise changes final logits
+8. a tiny transformer block where analog projection noise and attention score noise are measured together
+9. a multi-layer toy stack that distinguishes random error from stable bias
+10. a calibration schedule model that asks how often stable drift must be remeasured
+11. a tile-health monitor that decides which columns need recalibration first
+12. a serving-policy model that decides whether analog tiles should handle prefill, decode, or only batched decode
+13. a visual end-to-end hybrid accelerator diagram tying scheduler, tile monitor, SRAM, converters, and digital fallback into one page
+14. a transformer operation-partition simulator that compares fixed-projection analog, analog logits, analog attention experiments, and stale-tile fallback

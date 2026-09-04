@@ -1,0 +1,119 @@
+{
+  "accepted_post_layout_written": false,
+  "best_transistor_setting": "medium_iso_pair_8ua",
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "turns three failed isolated-latch candidate runs into a smaller debug sequence with measurable stop gates",
+    "not_allowed": "does not prove a new circuit, SAR bit cycling, noise, offset statistics, extracted layout, DRC/LVS, or accepted post-layout converter evidence"
+  },
+  "created_at": "2026-08-31T06:28:18.068970+00:00",
+  "debug_ladder": [
+    {
+      "must_measure": [
+        "input differential voltage",
+        "output differential voltage",
+        "settling time",
+        "common-mode range"
+      ],
+      "name": "preamp_alone_dc_and_transient",
+      "pass_gate": "both signs produce measurable settled output before latch clock time",
+      "question": "can the preamp or buffer stage settle from the target-edge input without any regenerative latch attached?",
+      "step": 1,
+      "stop_if_fails": "fix bias, load, common-mode, or initial condition before reconnecting the latch"
+    },
+    {
+      "must_measure": [
+        "output polarity",
+        "decision time",
+        "minimum input needed for full output"
+      ],
+      "name": "latch_alone_from_measured_preamp_voltages",
+      "pass_gate": "both signs resolve with the polarity contract and full output swing",
+      "question": "can the latch resolve when driven by ideal voltage sources equal to the preamp-alone outputs?",
+      "step": 2,
+      "stop_if_fails": "resize latch or change latch common-mode before adding sampled-node coupling"
+    },
+    {
+      "must_measure": [
+        "pre-latch internal differential voltage",
+        "post-latch sampled-node movement",
+        "ngspice convergence status"
+      ],
+      "name": "clock_timing_ladder",
+      "pass_gate": "same topology measures under at least three clock spacings without timeout",
+      "question": "which copy, preamp, and latch clock order avoids timeout and stale initial conditions?",
+      "step": 3,
+      "stop_if_fails": "separate clock phases further or add explicit precharge/reset nodes"
+    },
+    {
+      "must_measure": [
+        "sampled differential before latch",
+        "sampled differential after latch",
+        "kickback",
+        "final output polarity"
+      ],
+      "name": "coupled_kickback_rejoin",
+      "pass_gate": "kickback <= 2.197265625e-04 V hard line, preferably <= 1.098632813e-04 V",
+      "question": "after the pieces work alone, does the coupled circuit keep sampled-node kickback below the line?",
+      "step": 4,
+      "stop_if_fails": "return to isolation mechanism; do not proceed to SAR"
+    },
+    {
+      "must_measure": [
+        "input-referred offset",
+        "output noise RMS",
+        "wrong-code margin",
+        "decision-time spread"
+      ],
+      "name": "sar_threshold_wrong_code_proxy",
+      "pass_gate": "both signs stay correct under the same budget used by placement and converter acceptance",
+      "question": "does the measured decision stay correct at the SAR threshold after offset, noise, and kickback budgets are applied?",
+      "step": 5,
+      "stop_if_fails": "keep digital fallback; do not create accepted post-layout converter evidence"
+    }
+  ],
+  "failed_candidate_case_count": 10,
+  "failed_candidate_count": 3,
+  "failed_candidate_measured_case_count": 0,
+  "failed_candidate_timed_out_case_count": 9,
+  "failure_pattern": "combined isolated-latch topologies are timing out before useful kickback or resolution measurements",
+  "failures": [
+    {
+      "case_count": 4,
+      "failure_reading": "combined buffer plus latch fixture did not produce measured signal cases",
+      "measured_case_count": 0,
+      "name": "source_follower_input_buffer",
+      "status": "source_follower_isolated_latch_candidate_characterized_not_accepted",
+      "timed_out_case_count": 4
+    },
+    {
+      "case_count": 4,
+      "failure_reading": "copy-switch decision-cap fixture was timeout-heavy before kickback could be judged",
+      "measured_case_count": 0,
+      "name": "sampled_internal_decision_capacitor",
+      "status": "sampled_internal_decision_cap_latch_candidate_characterized_not_accepted",
+      "timed_out_case_count": 3
+    },
+    {
+      "case_count": 2,
+      "failure_reading": "preamp plus delayed latch did not produce measured target-edge cases",
+      "measured_case_count": 0,
+      "name": "two_phase_preamp_then_latch",
+      "status": "two_phase_preamp_latch_candidate_characterized_not_accepted",
+      "timed_out_case_count": 2
+    }
+  ],
+  "half_lsb_12b_v": 0.0002197265625,
+  "next_executable_step": "write preamp-alone dc/transient fixture before reconnecting the regenerative latch",
+  "polarity_contract": "converter_positive_input_is_negative_raw_preamp_output_diff",
+  "recommended_kickback_target_v": 0.00010986328125,
+  "result_type": "sky130_isolated_latch_debug_ladder",
+  "source_artifacts": {
+    "sampled_decision_cap": "evidence/aimc-simulator-adapters/sky130-sampled-internal-decision-cap-latch-candidate.json",
+    "source_follower": "evidence/aimc-simulator-adapters/sky130-source-follower-isolated-latch-candidate.json",
+    "two_phase": "evidence/aimc-simulator-adapters/sky130-two-phase-preamp-latch-candidate.json",
+    "work_order": "evidence/aimc-simulator-adapters/sky130-polarity-named-isolated-latch-work-order.json"
+  },
+  "status": "isolated_latch_debug_ladder_ready_after_timeout_failures",
+  "strict_payload_ready": false
+}

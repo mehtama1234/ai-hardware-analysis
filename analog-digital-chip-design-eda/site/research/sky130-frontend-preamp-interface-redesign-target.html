@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Frontend Preamp Interface Redesign Target</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Frontend Preamp Interface Redesign Target</h1><p class="lead">Source: docs/research/sky130-frontend-preamp-interface-redesign-target.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Frontend Preamp Interface Redesign Target</h1>
+<p>This page is generated from local evidence.</p>
+<p>The purpose is narrow: turn the failed extracted-frontend preamp gain sweep into a concrete interface target. It says how much more voltage must reach the preamp input before latch or SAR work is meaningful.</p>
+<p>---</p>
+<h1>Sky130 Frontend Preamp Interface Redesign Target</h1>
+<ul>
+<li>status: <code>frontend_to_preamp_interface_needs_more_voltage_before_latch_work</code></li>
+<li>attached best setting: <code>known_input_stage_bias</code></li>
+<li>output margin target V: <code>5.000000000e-04</code></li>
+<li>attached minimum sense diff V: <code>6.398769586e-06</code></li>
+<li>attached minimum output diff V: <code>5.650000000e-05</code></li>
+<li>standalone measured sense diff V: <code>6.700000000e-05</code></li>
+<li>required sense diff at current gain V: <code>6.106194690e-05</code></li>
+<li>current sample-to-sense transfer ratio: <code>0.041830</code></li>
+<li>required sample-to-sense transfer ratio at current gain: <code>0.399174</code></li>
+<li>required transfer improvement x: <code>9.543</code></li>
+<li>standalone-to-attached sense loss x: <code>10.471</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A preamp cannot amplify voltage that never reaches its input. The standalone preamp passes because the input source directly supplies about the needed sense voltage. When the extracted frontend is attached, the preamp input sees only a much smaller voltage.</p>
+<p>That means the next design target is not more output gain by itself. The interface must first preserve more of the sampled voltage at the preamp gate. After that, the same preamp gain can produce a useful output margin.</p>
+<h2>Design Target</h2>
+<p>The current attached interface gives a sample-to-sense transfer ratio of <code>0.041830</code>. At the measured attached preamp gain, the interface needs about <code>0.399174</code>. That is a <code>9.543x</code> transfer improvement.</p>
+<h2>Next Experiments</h2>
+<ul>
+<li>reduce preamp input loading seen by sense_p and sense_n</li>
+<li>increase sample-to-sense coupling while keeping both signs correct</li>
+<li>add an isolation interface whose input capacitance is smaller than the direct preamp gate load</li>
+<li>rerun the attached preamp margin check before any latch test</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove a redesigned frontend, latch resolution, SAR conversion, extracted-layout signoff, or accepted converter evidence</p></article></main></body></html>

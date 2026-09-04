@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Digital Control Logic Makes Analog Compute Checkable</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Digital Control Logic Makes Analog Compute Checkable</h1><p class="lead">Source: docs/concepts/digital-control-logic-makes-analog-compute-checkable.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Digital Control Logic Makes Analog Compute Checkable</h1>
+<p>The object is a hardware decision that must happen at a clock edge. An analog foundation-model accelerator can have useful arrays, but the chip still needs digital logic to decide which request enters those arrays and which request stays on the digital path.</p>
+<p>The constraint is that the decision cannot remain a paragraph in an architecture note. It must become a stable symbolic output. A scheduler, firmware loop, or RTL controller must encode the same facts the architecture depends on: request phase, batch size, context length, resident weights, tile health, calibration age, expected error, and fallback reason.</p>
+<h2>Why Digital Control Is Needed</h2>
+<p>Analog compute produces approximate values. Digital control chooses when those approximate values are allowed to affect model state.</p>
+<p>The important separation is:</p>
+<pre><code>
+analog array: produces current sums
+digital control: decides whether those sums are used
+</code></pre>
+<p>If the control decision is vague, the whole accelerator claim becomes vague. A paper can say analog helps prefill, but the chip must decide whether this request is prefill, whether the needed weights are resident, whether enough tiles are healthy, and whether the estimated error is below the allowed bound.</p>
+<h2>The Concrete State</h2>
+<p>The control logic does not need the whole model in hardware. It needs a compact state description:</p>
+<pre><code>
+phase_decode
+batch_size
+active_context
+resident_weights
+healthy_tiles
+weak_tiles
+calibration_age
+estimated_error
+error_budget
+</code></pre>
+<p>From that state it can produce:</p>
+<pre><code>
+path = digital | analog | analog_batched_decode
+reason = ok | missing_weights | too_few_tiles | error_high
+       | stale_calibration | cache_dominates | batch_reuse
+</code></pre>
+<p>This is a concrete design move because it converts a system argument into a testable interface. The output can be checked in a testbench. Later it can be synthesized, timed, and connected to firmware or a larger scheduler.</p>
+<h2>Priority Matters</h2>
+<p>The decision order is part of the design.</p>
+<p>The controller should first reject unsafe or impossible analog work:</p>
+<pre><code>
+missing resident weights
+too few healthy tiles
+estimated state error too high
+stale calibration with weak tiles
+</code></pre>
+<p>Only after those checks should it choose a performance path:</p>
+<pre><code>
+long-context single-request decode -&gt; digital
+batched decode -&gt; analog batched decode
+otherwise -&gt; analog
+</code></pre>
+<p>This ordering prevents a common mistake. A system can have a batch large enough to amortize converters, but still be wrong to use analog if the tile state is unhealthy. Correctness checks must come before speed checks.</p>
+<h2>Measurement</h2>
+<p>The measurement is a simulation trace:</p>
+<pre><code>
+case, path, reason, expected_path, expected_reason
+</code></pre>
+<p>A good testbench should include at least these cases:</p>
+<ul>
+<li>prompt batch with healthy resident tiles chooses analog</li>
+<li>batched decode chooses the batched analog path</li>
+<li>long-context single-request decode falls back because cache movement dominates</li>
+<li>stale calibration with weak tiles falls back</li>
+<li>estimated error above budget falls back</li>
+<li>missing resident weights falls back</li>
+</ul>
+<p>The measurement is small, but it changes the character of the project. The analog/digital boundary is no longer only a concept. It has a digital decision circuit that can be run and checked.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is claiming an adaptive hybrid accelerator without implementing the adaptation. If the chip should sometimes use analog and sometimes use digital, there must be a visible decision object somewhere. Otherwise the architecture hides the most important part of the method.</p>
+<p>Another failure mode is placing performance checks before safety checks. That can make the controller choose analog because batch reuse is high even when calibration is stale or error is above budget.</p>
+<p>The first-principles claim is that digital control logic is what makes analog compute checkable. It turns physical approximation into a bounded system decision.</p></article></main></body></html>

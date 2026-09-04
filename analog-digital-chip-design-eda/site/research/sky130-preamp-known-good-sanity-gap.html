@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Preamp Known-Good Sanity Gap</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Preamp Known-Good Sanity Gap</h1><p class="lead">Source: docs/research/sky130-preamp-known-good-sanity-gap.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Preamp Known-Good Sanity Gap</h1>
+<p>This page compares the passing Sky130 comparator input-stage evidence with the failing measured-sense preamp OP map.</p>
+<p>The question is narrow: if a known differential-pair primitive has passed before, why does the current preamp OP deck time out with the same nominal bias?</p>
+<p>This page does not create new circuit acceptance. It defines the next minimal reproduction test before more preamp or frontend handoff work.</p>
+<p>---</p>
+<h1>Sky130 Preamp Known-Good Sanity Gap</h1>
+<ul>
+<li>status: <code>known_good_input_stage_and_measured_sense_preamp_op_now_pass</code></li>
+<li>known-good measured cases: <code>6</code></li>
+<li>known-good polarity passes: <code>6</code></li>
+<li>known-good target-edge gain V/V: <code>9.201769</code></li>
+<li>measured-sense OP measured cases: <code>2</code></li>
+<li>measured-sense OP timed-out cases: <code>0</code></li>
+<li>same nominal bias as known-good: <code>True</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>When a larger circuit fails, the next useful test is the smallest circuit that should have worked. The known comparator input-stage evidence says the Sky130 differential pair can settle and preserve sign. The corrected preamp OP map now says the same bias also settles at the smaller measured frontend voltage.</p>
+<p>That means the failed evidence moved. The DC bias point is no longer the blocker. The next question is whether the same preamp reaches and holds the right decision during transient startup, and after that whether the extracted frontend can drive it without losing the signal.</p>
+<h2>Diagnosis</h2>
+<ul>
+<li>The existing comparator input-stage evidence proves that a simple Sky130 nfet differential pair can settle and preserve polarity at about 0.153 mV differential input.</li>
+<li>The measured-sense preamp OP map uses the same nominal load, tail current, input width, and common-mode idea, and now settles when it is allowed the same long solve window as the known-good deck.</li>
+<li>The earlier timeout was a runner limit, not evidence that the DC preamp bias point was invalid.</li>
+<li>Because the known primitive and measured-sense OP map both pass, the next step is transient startup and then extracted frontend loading.</li>
+</ul>
+<h2>Next Runner</h2>
+<ul>
+<li>name: <code>sky130_measured_sense_preamp_transient_startup</code></li>
+<li>start from the passing measured-sense OP bias</li>
+<li>drive both measured sense-voltage polarities in transient</li>
+<li>measure output sign, output margin, startup time, and rail headroom</li>
+<li>only after transient startup passes should the extracted frontend be reattached</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove a new circuit run, preamp acceptance, extracted frontend loading, latch behavior, SAR conversion, or accepted converter evidence</p></article></main></body></html>

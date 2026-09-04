@@ -1,0 +1,74 @@
+{
+  "acceptance_rule": {
+    "can_replace_break_even": false,
+    "can_update_behavioral_target": true,
+    "reason": "transistor-level SPICE can narrow the converter target, but the project schema still requires post-layout simulation or measured silicon before the break-even assumptions are replaced"
+  },
+  "claim_boundary": {
+    "allowed": "defines the exact SPICE work needed to replace the behavioral converter terms with circuit-derived terms",
+    "not_allowed": "does not claim a designed converter exists, does not claim extracted parasitics, does not claim measured silicon, and does not upgrade board energy"
+  },
+  "created_at": "2026-09-02T23:20:33.442485+00:00",
+  "required_output_fields": [
+    "measurement_level=circuit_simulation or post_layout_simulation",
+    "adc_energy_per_conversion with units and rail voltage",
+    "dac_energy_per_row_drive with units and row load",
+    "conversion_time_ns from the timed decision path",
+    "settling_time_ns from the row-drive and sample path",
+    "output_noise_rms from transition, comparator, settling, and driver terms",
+    "input_referred_noise for the row-drive boundary",
+    "adc_area_um2 and dac_area_um2 if layout exists, otherwise explicit area proxy",
+    "sharing rule that names rows, columns, instances, and outputs per conversion cost",
+    "netlist path, model corner, simulator command, seed if noise is randomized, and date"
+  ],
+  "required_testbenches": [
+    {
+      "acceptance": "absolute settled error stays below half of one 10-bit DAC step and the row-driver noise term stays within the evidence budget",
+      "id": "S1",
+      "measurement": "settled voltage error after the allowed settling window",
+      "name": "10-bit row DAC settling",
+      "object": "row-driver DAC output node before the crossbar row input",
+      "stimulus": "step through low, midscale, and near-full-scale codes with the selected row load attached"
+    },
+    {
+      "acceptance": "RMS readout error plus comparator noise stays below the budget carried by the behavioral estimate",
+      "id": "S2",
+      "measurement": "code transition error, comparator decision noise, conversion time, and failed-decision cases",
+      "name": "12-bit SAR readout decision",
+      "object": "ADC comparator, capacitor ladder or equivalent DAC, reference path, and sample node",
+      "stimulus": "sweep input around every critical transition used by the selected output range"
+    },
+    {
+      "acceptance": "sharing does not push total output noise above 0.004 and does not remove the break-even margin in the passing 64-row shared scenario",
+      "id": "S3",
+      "measurement": "extra settling error, added conversion latency, and loading-dependent noise",
+      "name": "shared converter loading",
+      "object": "four shared converter instances serving the 64-row, 4-column, 16-output sharing point",
+      "stimulus": "toggle the muxed source, output load, and sample timing across the sharing schedule"
+    },
+    {
+      "acceptance": "energy fields can replace the relative behavioral units with SPICE-derived numbers and a named voltage rail",
+      "id": "S4",
+      "measurement": "integrated supply energy per row drive and per output conversion",
+      "name": "energy accounting",
+      "object": "row DAC references, ADC references, comparator, switch ladder, sampling capacitors, and mux control",
+      "stimulus": "same conversion sequence used in the accuracy replay"
+    }
+  ],
+  "result_type": "converter_spice_handoff_spec",
+  "source_artifacts": {
+    "converter_circuit_evidence_contract": "evidence/aimc-simulator-adapters/converter-circuit-evidence-contract.json",
+    "converter_circuit_simulation_estimate": "evidence/aimc-simulator-adapters/converter-circuit-simulation-estimate.json"
+  },
+  "target": {
+    "adc_bits": 12,
+    "behavioral_output_noise_rms": 0.000851121,
+    "columns_served": 4,
+    "conversion_time_ns": 12.0,
+    "dac_bits": 10,
+    "output_noise_budget": 0.004,
+    "outputs_per_conversion_cost": 16,
+    "rows_served": 64,
+    "settling_time_ns": 4.0
+  }
+}

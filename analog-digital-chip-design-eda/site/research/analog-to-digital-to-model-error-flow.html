@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog-To-Digital-To-Model Error Flow</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Analog-To-Digital-To-Model Error Flow</h1><p class="lead">Source: docs/research/analog-to-digital-to-model-error-flow.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog-To-Digital-To-Model Error Flow</h1>
+<p>This page explains how a physical readout error becomes a model decision.</p>
+<p>The converter does not produce a model value directly. It produces a code. The digital system must turn that code into a corrected value, compare the remaining error against a budget, and decide whether the model is allowed to use it.</p>
+<p>The flow is:</p>
+<pre><code>
+analog voltage error
+  -&gt; ADC code error
+  -&gt; corrected digital value error
+  -&gt; residual
+  -&gt; layer or state error
+  -&gt; accept or fallback
+</code></pre>
+<h2>The Simple Question</h2>
+<p>The simple question is:</p>
+<p>When the converter is imperfect, does the error stay small enough for this model operation?</p>
+<p>That question cannot be answered by the converter alone. A converter can be electrically imperfect but still good enough for a tolerant layer. It can also look electrically reasonable and still be too risky near a fragile model decision.</p>
+<h2>An ADC Code Is Not A Model Value</h2>
+<p>The analog array produces a physical result: current, charge, or voltage. The ADC turns that result into a code.</p>
+<p>That raw code is not yet the number the model expects.</p>
+<p>The code still contains:</p>
+<ul>
+<li>zero offset</li>
+<li>gain error</li>
+<li>bias error</li>
+<li>quantization error</li>
+<li>noise</li>
+<li>saturation</li>
+<li>drift since calibration</li>
+</ul>
+<p>That is why the digital trust boundary does not simply forward <code>adc_code</code>.</p>
+<p>It first forms:</p>
+<pre><code>
+centered_adc = adc_code - zero_code
+scaled = centered_adc * gain
+corrected_value = scaled + bias
+</code></pre>
+<p>Then it checks whether the remaining error is small enough:</p>
+<pre><code>
+residual_abs &lt;= residual_budget
+</code></pre>
+<p>Only then can the value enter model state.</p>
+<h2>What Residual Means</h2>
+<p>Residual is the part of the error that remains after known correction.</p>
+<p>If a column is always shifted by the same amount, calibration can measure that shift and the digital side can subtract it. If a column has a stable gain error, calibration can measure the scale and the digital side can correct it.</p>
+<p>After that correction, some error remains. That remaining error is the residual.</p>
+<p>In simple terms:</p>
+<pre><code>
+raw error = the whole difference from ideal
+corrected error = what remains after zero, gain, and bias repair
+residual = the corrected error the model still has to tolerate
+</code></pre>
+<p>Residual matters more than raw error because the model receives the corrected value, not the raw ADC code.</p>
+<h2>Why The Same Circuit Error Can Matter Differently</h2>
+<p>The same voltage or code error does not have the same model meaning everywhere.</p>
+<p>A hidden projection may tolerate small residuals because later operations mix, normalize, or partially cancel the error.</p>
+<p>A close attention score may be fragile because a small score movement can change which token receives weight.</p>
+<p>A final logit can be fragile because a small change can alter the selected token.</p>
+<p>A residual stream can carry repeated bias forward across many layers.</p>
+<p>That is why the placement decision cannot say &quot;MatMul always goes analog.&quot; It must ask whether this operation, in this location, with this residual, is safe enough.</p>
+<h2>Where AIHWKIT And CrossSim Fit</h2>
+<p>AIHWKIT and CrossSim do not prove the Sky130 converter. They estimate how analog-array errors affect a model-shaped computation.</p>
+<p>Their useful role is:</p>
+<pre><code>
+given this analog error model
+and this model subgraph
+how large is the residual?
+</code></pre>
+<p>That residual can feed the governor only if the payload is accepted by the strict importer. A simulator run that finishes but exceeds the residual threshold is still useful evidence, but it cannot support positive analog placement.</p>
+<p>That is the current split:</p>
+<ul>
+<li>CrossSim calibrated payloads can support selected fixed-weight MatMul analog service in the current fixtures.</li>
+<li>AIHWKIT calibrated payloads ran, but the current residuals are too high for positive analog permission in those same larger fixtures.</li>
+</ul>
+<p>The reason is not brand preference. The reason is the residual boundary.</p>
+<h2>Where Sky130 Converter Evidence Fits</h2>
+<p>Sky130 converter evidence asks a different question:</p>
+<pre><code>
+can the physical readout produce a trustworthy code?
+</code></pre>
+<p>The frontend and comparator pages are working on the path from sampled voltage to digital decision. That path must eventually produce measured converter values:</p>
+<ul>
+<li>output noise</li>
+<li>input-referred noise</li>
+<li>offset</li>
+<li>settling time</li>
+<li>conversion time</li>
+<li>energy</li>
+<li>area</li>
+<li>sharing rule</li>
+</ul>
+<p>Once those values exist, they must feed back into the simulator and placement logic. Otherwise the model-side decision would still be based on old assumptions.</p>
+<h2>The Digital Governor&#x27;s Job</h2>
+<p>The digital governor is the point where model safety becomes hardware behavior.</p>
+<p>It receives a measurement packet:</p>
+<pre><code>
+adc_code
+zero_code
+gain
+bias
+residual_abs
+residual_budget
+calibration_age
+tile_enabled
+</code></pre>
+<p>It returns:</p>
+<pre><code>
+corrected_value
+output_valid
+fallback
+reason
+</code></pre>
+<p>That means analog placement and analog acceptance are separate.</p>
+<p>Placement says:</p>
+<pre><code>
+this operation is allowed to try analog
+</code></pre>
+<p>Acceptance says:</p>
+<pre><code>
+this measured analog result is safe to use now
+</code></pre>
+<p>If acceptance fails, the digital path must supply the value.</p>
+<h2>Why Fallback Is Part Of The Design</h2>
+<p>Fallback is not an apology. It is how the system protects model state.</p>
+<p>A tile can be structurally suitable and still be refused for this cycle because:</p>
+<ul>
+<li>residual is too high</li>
+<li>calibration is stale</li>
+<li>the tile is disabled</li>
+<li>the corrected value saturates</li>
+<li>the converter did not produce a valid code</li>
+<li>the operation is more sensitive than expected</li>
+</ul>
+<p>The model should not receive a value just because the analog path was attempted. It should receive the value only when the trust boundary says the measurement passed.</p>
+<h2>The Full Error Path</h2>
+<p>The full path is:</p>
+<pre><code>
+1. model graph names an operation
+2. placement marks it analog-candidate or digital-only
+3. analog simulator estimates residual for matching operation families
+4. physical converter evidence supplies real noise, offset, timing, energy, and area
+5. digital correction maps ADC code to corrected value
+6. governor compares residual against the operation budget
+7. accepted values enter model state
+8. refused values trigger digital fallback
+9. placement and break-even are updated with the measured evidence
+</code></pre>
+<p>This is the point of the combined repo. It is not only circuit design and not only model simulation. It is the chain between them.</p>
+<h2>What Must Be True Before The Claim Upgrades</h2>
+<p>The claim can upgrade only when all three layers agree:</p>
+<table><tbody>
+<tr><th>layer</th><th>required evidence</th><th>why</th></tr>
+<tr><td>circuit</td><td>extracted or measured converter values for noise, offset, timing, energy, area, and sharing</td><td>the readout must produce a trustworthy code</td></tr>
+<tr><td>model</td><td>residual stays inside the operation budget for the actual model object</td><td>the model must tolerate the remaining error</td></tr>
+<tr><td>system</td><td>break-even and placement rerun with the same measured converter values</td><td>the analog path must still be worth using</td></tr>
+</tbody></table>
+<p>If any layer is missing, the correct result is needs-review or fallback.</p>
+<h2>Claim Boundary</h2>
+<p>This page supports one claim:</p>
+<p>The project now has a clear explanation of how converter error becomes model residual and why the digital governor must accept or refuse each measured analog result.</p>
+<p>This page refuses stronger claims:</p>
+<p>It does not prove the Sky130 converter, does not prove full-model accuracy, does not prove measured silicon, does not prove board latency or power, does not rerun placement with accepted post-layout converter values, and does not create accepted post-layout converter evidence.</p>
+<h2>Where This Fits In The Flow</h2>
+<p>Read this page after:</p>
+<ul>
+<li><code>Converter Evidence Ladder</code></li>
+<li><code>Mixed-Signal Trust Boundary Spec</code></li>
+<li><code>Residual-Aware Placement Decisions</code></li>
+</ul>
+<p>Read it before:</p>
+<ul>
+<li><code>Final Accepted Converter Gate</code></li>
+</ul>
+<p>The converter ladder explains what evidence is strong enough. This page explains how that evidence changes the model decision.</p></article></main></body></html>

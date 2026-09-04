@@ -1,0 +1,536 @@
+{
+  "items": [
+    {
+      "payload": {
+        "memory_plan": {
+          "activations": "DAC-coded row inputs in local simulation",
+          "fallback": "digital path when sensitivity or cumulative error exceeds budget",
+          "outputs": "ADC-coded column readout with digital fallback for sensitive paths",
+          "weights": "local analog tile model for analog-approved projection only"
+        },
+        "operator_placements": [
+          {
+            "analog_candidate": false,
+            "fallback_required": true,
+            "governor_reason": "not_analog_candidate",
+            "layer_id": "all_digital_reference",
+            "operator": "reference_path",
+            "placement": "digital",
+            "reason": "reference_path",
+            "residual_q8": 0,
+            "sensitivity_q8": 96
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": false,
+            "governor_reason": "analog_within_budget",
+            "layer_id": "measured_fixed_projection_tile",
+            "operator": "projection",
+            "placement": "analog",
+            "reason": "measured_tile_within_budget",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": true,
+            "governor_reason": "sensitive_path_needs_digital",
+            "layer_id": "measured_projection_stressed_tile",
+            "operator": "projection",
+            "placement": "digital",
+            "reason": "attention_selection_too_sensitive",
+            "residual_q8": 40,
+            "sensitivity_q8": 224
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": true,
+            "governor_reason": "sensitive_path_needs_digital",
+            "layer_id": "measured_attention_scores_analog",
+            "operator": "attention_scores",
+            "placement": "digital",
+            "reason": "attention_selection_too_sensitive",
+            "residual_q8": 40,
+            "sensitivity_q8": 208
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": true,
+            "governor_reason": "sensitive_path_needs_digital",
+            "layer_id": "measured_logits_analog",
+            "operator": "logits",
+            "placement": "digital",
+            "reason": "token_choice_too_sensitive",
+            "residual_q8": 40,
+            "sensitivity_q8": 224
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": false,
+            "governor_reason": "analog_within_budget",
+            "layer_id": "backend_dense1.matmul",
+            "operator": "projection",
+            "placement": "analog",
+            "reason": "projection-tolerant",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "analog_candidate": false,
+            "fallback_required": true,
+            "governor_reason": "not_analog_candidate",
+            "layer_id": "backend_dense1.bias",
+            "operator": "projection",
+            "placement": "digital",
+            "reason": "digital-support",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          },
+          {
+            "analog_candidate": false,
+            "fallback_required": true,
+            "governor_reason": "not_analog_candidate",
+            "layer_id": "backend_dense1.relu",
+            "operator": "projection",
+            "placement": "digital",
+            "reason": "digital-support",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          },
+          {
+            "analog_candidate": true,
+            "fallback_required": false,
+            "governor_reason": "analog_within_budget",
+            "layer_id": "backend_dense2.matmul",
+            "operator": "projection",
+            "placement": "analog",
+            "reason": "projection-tolerant",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "analog_candidate": false,
+            "fallback_required": true,
+            "governor_reason": "not_analog_candidate",
+            "layer_id": "backend_dense2.bias",
+            "operator": "projection",
+            "placement": "digital",
+            "reason": "digital-support",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          }
+        ],
+        "provenance": {
+          "artifact": "measurements/model-impact-governor-requests.csv",
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.699669+00:00",
+          "not_measured_silicon": true,
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "tool": "analog-digital-chip-design-eda.hardware-lab-placement-exporter"
+        },
+        "tiling_plan": [
+          {
+            "adc_bits": 6,
+            "array": "local-aimc-educational-tile",
+            "dac_bits": 4,
+            "layer_id": "measured_fixed_projection_tile",
+            "tile_shape": [
+              4,
+              4
+            ]
+          },
+          {
+            "adc_bits": 6,
+            "array": "local-aimc-educational-tile",
+            "dac_bits": 4,
+            "layer_id": "backend_dense1.matmul",
+            "tile_shape": [
+              4,
+              4
+            ]
+          },
+          {
+            "adc_bits": 6,
+            "array": "local-aimc-educational-tile",
+            "dac_bits": 4,
+            "layer_id": "backend_dense2.matmul",
+            "tile_shape": [
+              4,
+              4
+            ]
+          }
+        ],
+        "unsupported_operators": [
+          {
+            "layer_id": "measured_projection_stressed_tile",
+            "operator": "projection",
+            "reason": "sensitive_path_needs_digital"
+          },
+          {
+            "layer_id": "measured_attention_scores_analog",
+            "operator": "attention_scores",
+            "reason": "sensitive_path_needs_digital"
+          },
+          {
+            "layer_id": "measured_logits_analog",
+            "operator": "logits",
+            "reason": "sensitive_path_needs_digital"
+          }
+        ]
+      },
+      "source_id": "compiler_mapping"
+    },
+    {
+      "payload": {
+        "accuracy_impact": {
+          "estimated_drop": 0.09000426441791687,
+          "interpretation": "final local analog residual is small enough for fixed projection, but not enough to approve sensitive attention or logits paths",
+          "pass": true
+        },
+        "calibration_profile": "local-aimc-uncalibrated-v0",
+        "error_model": {
+          "adc_bits": 6,
+          "dac_bits": 4,
+          "final_residual_q8": 12,
+          "final_residual_relative": 0.09000426441791687,
+          "name": "local-aimc-nonideality-stack",
+          "row_drop_case_ohm": 100.0,
+          "spice_row_drop_loss_pct": 6.932031250000015,
+          "stages": [
+            "ideal_digital_dot",
+            "differential_signed_conductance",
+            "spice_row_drop_applied",
+            "dac_quantized_rows",
+            "programmed_and_drifted_cells",
+            "adc_quantized_column_readout"
+          ]
+        },
+        "provenance": {
+          "artifact": "measurements/analog-nonideality-stack.csv",
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.699782+00:00",
+          "not_measured_silicon": true,
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "tool": "analog-digital-chip-design-eda.analog-nonideality-stack"
+        },
+        "temperature_range": "not swept; local room-temperature educational model",
+        "voltage_range": "not swept; row-voltage assumptions from local tile model"
+      },
+      "source_id": "analog_error_simulation"
+    },
+    {
+      "payload": {
+        "board_id": "local-rtl-simulation-not-board",
+        "board_revision": "local-rtl",
+        "end_timestamp": "2026-08-29T18:00:02Z",
+        "fallback_events": [
+          {
+            "layer_id": "measured_projection_stressed_tile",
+            "model_reason": "attention_selection_too_sensitive",
+            "reason": "sensitive_path_needs_digital"
+          },
+          {
+            "layer_id": "measured_attention_scores_analog",
+            "model_reason": "attention_selection_too_sensitive",
+            "reason": "sensitive_path_needs_digital"
+          },
+          {
+            "layer_id": "measured_logits_analog",
+            "model_reason": "token_choice_too_sensitive",
+            "reason": "sensitive_path_needs_digital"
+          },
+          {
+            "layer_id": "backend_dense1.bias",
+            "model_reason": "digital-support",
+            "reason": "not_analog_candidate"
+          },
+          {
+            "layer_id": "backend_dense1.relu",
+            "model_reason": "digital-support",
+            "reason": "not_analog_candidate"
+          },
+          {
+            "layer_id": "backend_dense2.bias",
+            "model_reason": "digital-support",
+            "reason": "not_analog_candidate"
+          }
+        ],
+        "host_overhead_boundary": "reported_separately",
+        "latency_ms": 1.675,
+        "p50_latency_ms": 0.1675,
+        "p95_latency_ms": 0.235,
+        "package_id": "pkg-e931662a01293df2",
+        "provenance": {
+          "artifact": "labs/digital/aimc-control-plane-rtl/check_generated_model_impact_governor_trace.py",
+          "cases": 10,
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.705913+00:00",
+          "not_measured_silicon": true,
+          "openlane": {
+            "artifact": "labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md",
+            "available": true,
+            "critical_path_ns": 4.99,
+            "flow_status": "flow completed",
+            "lvs_total_errors": 0.0,
+            "magic_violations": 0.0,
+            "suggested_clock_frequency_mhz": 200.0,
+            "tritonroute_violations": 0.0
+          },
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "rtl_checker": "PASS generated_model_impact_governor_trace",
+          "runtime_mode": "local RTL simulation",
+          "synthesis": {
+            "artifact": "labs/digital/aimc-control-plane-synthesis/reports/synthesis-interpretation.md",
+            "available": true,
+            "claim": "controller policies have synthesized digital-logic forms in the local Yosys flow"
+          },
+          "tool": "local-board-runtime-adapter"
+        },
+        "repetition_count": 10,
+        "runtime_trace_id": "local-rtl-governor-trace-v0",
+        "runtime_version": "aimc-generated-model-impact-governor-v0",
+        "start_timestamp": "2026-08-29T18:00:00Z",
+        "trace": [
+          {
+            "governor_action": 0,
+            "governor_reason": "not_analog_candidate",
+            "latency_ms": 0.1,
+            "layer_id": "all_digital_reference",
+            "operator": "all_digital_reference",
+            "placement": "digital",
+            "residual_q8": 0,
+            "sensitivity_q8": 96
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "analog_within_budget",
+            "latency_ms": 0.115,
+            "layer_id": "measured_fixed_projection_tile",
+            "operator": "fixed_projection_tile",
+            "placement": "analog",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "sensitive_path_needs_digital",
+            "latency_ms": 0.13,
+            "layer_id": "measured_projection_stressed_tile",
+            "operator": "projection_stressed_tile",
+            "placement": "digital",
+            "residual_q8": 40,
+            "sensitivity_q8": 224
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "sensitive_path_needs_digital",
+            "latency_ms": 0.145,
+            "layer_id": "measured_attention_scores_analog",
+            "operator": "attention_scores_analog",
+            "placement": "digital",
+            "residual_q8": 40,
+            "sensitivity_q8": 208
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "sensitive_path_needs_digital",
+            "latency_ms": 0.16,
+            "layer_id": "measured_logits_analog",
+            "operator": "logits_analog",
+            "placement": "digital",
+            "residual_q8": 40,
+            "sensitivity_q8": 224
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "analog_within_budget",
+            "latency_ms": 0.175,
+            "layer_id": "backend_dense1.matmul",
+            "operator": "backend_dense1.matmul",
+            "placement": "analog",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "not_analog_candidate",
+            "latency_ms": 0.19,
+            "layer_id": "backend_dense1.bias",
+            "operator": "backend_dense1.bias",
+            "placement": "digital",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "not_analog_candidate",
+            "latency_ms": 0.205,
+            "layer_id": "backend_dense1.relu",
+            "operator": "backend_dense1.relu",
+            "placement": "digital",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "analog_within_budget",
+            "latency_ms": 0.22,
+            "layer_id": "backend_dense2.matmul",
+            "operator": "backend_dense2.matmul",
+            "placement": "analog",
+            "residual_q8": 6,
+            "sensitivity_q8": 96
+          },
+          {
+            "governor_action": 0,
+            "governor_reason": "not_analog_candidate",
+            "latency_ms": 0.235,
+            "layer_id": "backend_dense2.bias",
+            "operator": "backend_dense2.bias",
+            "placement": "digital",
+            "residual_q8": 0,
+            "sensitivity_q8": 128
+          }
+        ],
+        "workload_id": "local-aimc-governor-replay"
+      },
+      "source_id": "board_runtime"
+    },
+    {
+      "payload": {
+        "average_power_mw": 0.202827,
+        "board_id": "local-rtl-simulation-not-board",
+        "energy_uj": 1.0121e-08,
+        "host_overhead_boundary": "reported_separately",
+        "integration_end_timestamp": "2026-08-29T18:00:02Z",
+        "integration_start_timestamp": "2026-08-29T18:00:00Z",
+        "measurement_setup": {
+          "core_area_um2": 11911.424,
+          "critical_path_ns": 4.99,
+          "includes_host_overhead": false,
+          "meter": "none",
+          "not_measured_hardware": true,
+          "openlane_artifact": "labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md",
+          "runtime_mode": "local OpenLane-derived estimate, not synchronized power measurement",
+          "supply_voltage": "not measured",
+          "total_cells": 1562.0
+        },
+        "package_id": "pkg-e931662a01293df2",
+        "peak_power_mw": 0.202827,
+        "power_trace": [
+          {
+            "component": "pipelined scheduler/governor digital control estimate",
+            "power_mw": 0.202827,
+            "time_ms": 0.0
+          },
+          {
+            "component": "pipelined scheduler/governor digital control estimate",
+            "power_mw": 0.202827,
+            "time_ms": 4.99e-05
+          }
+        ],
+        "provenance": {
+          "artifact": "labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md",
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.707677+00:00",
+          "not_measured_silicon": true,
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "tool": "local-power-thermal-adapter"
+        },
+        "runtime_trace_id": "local-rtl-governor-trace-v0",
+        "sampling_rate": "not sampled; derived local estimate from OpenLane cell/area summary",
+        "temperature_trace": [
+          {
+            "source": "assumed room-temperature boundary",
+            "temperature_c": 25.0,
+            "time_ms": 0.0
+          },
+          {
+            "source": "no thermal model attached",
+            "temperature_c": 25.0,
+            "time_ms": 4.99e-05
+          }
+        ],
+        "workload_id": "local-aimc-governor-replay"
+      },
+      "source_id": "power_thermal"
+    },
+    {
+      "payload": {
+        "allowed_analog_cases": 1,
+        "baseline_metric": 1.0,
+        "candidate_metric": 0.8125,
+        "dataset_id": "local-toy-transformer-sensitivity-cases",
+        "digital_fallback_cases": 3,
+        "metric_delta": 0.1875,
+        "metric_name": "decision_stability_proxy",
+        "pass": true,
+        "provenance": {
+          "artifact": "measurements/measured-tile-transformer-impact.csv",
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.707706+00:00",
+          "not_measured_silicon": true,
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "tool": "analog-digital-chip-design-eda.measured-tile-transformer-impact"
+        },
+        "record_count": 5,
+        "tolerance": 0.2
+      },
+      "source_id": "task_accuracy"
+    },
+    {
+      "payload": {
+        "artifacts": {
+          "gds": true,
+          "lef": true,
+          "lib": true,
+          "metrics_summary": "labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md",
+          "routed_def": true,
+          "routed_netlist": true,
+          "sdf": true,
+          "spice": true
+        },
+        "checks": {
+          "antenna_violations": 0,
+          "drc_violations": 0,
+          "linter_errors": 0,
+          "linter_warnings": 0,
+          "lvs_errors": 0,
+          "tritonroute_violations": 0
+        },
+        "claim_boundary": {
+          "allowed": "the selected digital scheduler/governor controller reached this local exploratory OpenLane routed-result boundary",
+          "not_allowed": "do not call this analog macro integration, full-chip signoff, measured power, package reliability, calibrated silicon, or production readiness"
+        },
+        "design_name": "aimc_scheduler_governor_pipelined",
+        "flow_name": "OpenLane CTS 5ns control-reset fanout20 exploratory flow",
+        "flow_status": "flow completed",
+        "physical_size": {
+          "core_area_um2": 11911.424,
+          "diearea_mm2": 0.0158750025,
+          "total_cells": 1562.0,
+          "vias": 2427.0,
+          "wire_length": 8222.0
+        },
+        "provenance": {
+          "artifact": "labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md",
+          "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+          "generated_at": "2026-09-02T23:01:29.709850+00:00",
+          "not_measured_silicon": true,
+          "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+          "tool": "analog-digital-chip-design-eda.openlane-physical-flow"
+        },
+        "timing": {
+          "critical_path_ns": 4.99,
+          "spef_tns": 0.0,
+          "spef_wns": 0.0,
+          "suggested_clock_frequency_mhz": 200.0,
+          "suggested_clock_period_ns": 5.0,
+          "tns": -2.04,
+          "wns": -0.33
+        }
+      },
+      "source_id": "physical_flow"
+    }
+  ]
+}

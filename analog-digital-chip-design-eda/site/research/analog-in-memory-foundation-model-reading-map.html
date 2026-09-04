@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog In-Memory Foundation-Model Reading Map</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Analog In-Memory Foundation-Model Reading Map</h1><p class="lead">Source: docs/research/analog-in-memory-foundation-model-reading-map.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog In-Memory Foundation-Model Reading Map</h1>
+<p>This reading map is for papers and tools that explain whether analog in-memory compute can run useful parts of foundation-model inference. The goal is not to collect optimistic accelerator claims. Each source must be read through the same boundary chain:</p>
+<pre><code>
+digital weight -&gt; programmed conductance or memory state -&gt; row input signal -&gt; analog accumulation -&gt; ADC/readout -&gt; digital correction -&gt; model output
+</code></pre>
+<p>The paper is valuable only if it makes at least one part of that chain clearer.</p>
+<h2>Source Targets</h2>
+<h3>Analog AI Chip For Neural Inference</h3>
+<p>Primary source: IBM/Nature 2023 analog-AI chip paper, &quot;An analog-AI chip for energy-efficient speech recognition and transcription.&quot;</p>
+<p>Read it for the physical machine. The controlled object is not an abstract model layer; it is many phase-change memory devices arranged across tiles. The important question is how the paper moves from cell conductance to tile communication to chip-level accuracy. The paper is useful because it forces the architecture question: software-equivalent behavior requires not only local analog multiply but also activation movement, peripheral circuits, and inter-tile communication.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>What is stored in the memory device?</li>
+<li>How are signed or multi-bit weights represented?</li>
+<li>What does the peripheral circuit measure?</li>
+<li>What has to be digital for the chip to preserve model behavior?</li>
+<li>Where does energy go after the array operation is counted?</li>
+</ul>
+<h3>Analog Foundation Models</h3>
+<p>Primary source: &quot;Analog Foundation Models.&quot;</p>
+<p>Read it for model adaptation. The controlled object is a pretrained language model under analog hardware noise and quantization constraints. The paper matters because it treats analog deployment as a training and robustness problem, not only a circuit mapping problem. The key question is why off-the-shelf LLMs fail under analog constraints and what training changes make the residual stream tolerate the hardware.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>Which errors come from weights, inputs, outputs, or accumulation?</li>
+<li>What does the adaptation method make invariant?</li>
+<li>Does the method correct the hardware, the model, or both?</li>
+<li>Which model sizes and layer types are tested?</li>
+<li>What failure remains compared with digital low-bit inference?</li>
+</ul>
+<h3>Efficient Transformer Adaptation For AIMC</h3>
+<p>Primary source: &quot;Efficient Deployment of Transformer Models in Analog In-Memory Computing Hardware.&quot;</p>
+<p>Read it for hybrid partitioning. The controlled object is a transformer deployed onto AIMC while lightweight digital adapters compensate for analog constraints. The paper matters because it does not pretend the whole model becomes analog. It puts adaptation capacity in digital cores and lets analog hardware carry dense projection work.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>Which tensors go through AIMC?</li>
+<li>Which corrections remain digital?</li>
+<li>Why are low-rank adapters enough or not enough?</li>
+<li>How is tile latency balanced against digital adapter latency?</li>
+<li>What would break during decode versus prefill?</li>
+</ul>
+<h3>AIMC Attention With Gain Cells</h3>
+<p>Primary source: &quot;Analog In-Memory Computing Attention Mechanism for Fast and Energy-Efficient Large Language Models.&quot;</p>
+<p>Read it for attention rather than static weights. The controlled object is not only a fixed trained matrix; it is token-dependent attention data that changes during generation. This is important because KV-cache behavior is one of the main reasons foundation models are not just repeated static projections.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>What memory state is written during generation?</li>
+<li>How does the design compute attention dot products?</li>
+<li>What attention window or approximation is assumed?</li>
+<li>Which analog nonidealities prevent direct mapping of pretrained models?</li>
+<li>What part of attention remains digital?</li>
+</ul>
+<h3>Compute-In-Memory For LLM Inference Survey</h3>
+<p>Primary source: &quot;Memory Is All You Need: An Overview of Compute-in-Memory Architectures for Accelerating Large Language Model Inference.&quot;</p>
+<p>Read it as the taxonomy page. The controlled object is the whole inference workload: weights, activations, KV cache, operators, and memory traffic. The survey matters because it separates different compute-in-memory approaches instead of treating all memory-side computation as the same thing.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>Which transformer operators are memory-bound?</li>
+<li>Which CIM types are analog and which are digital?</li>
+<li>Which claims target prefill, decode, or both?</li>
+<li>What assumptions are made about batch size and sequence length?</li>
+<li>Where do ADCs, DACs, and peripheral circuits enter the cost?</li>
+</ul>
+<h3>AIHWKit And Analog Hardware Simulation</h3>
+<p>Primary source: IBM AIHWKit documentation and code.</p>
+<p>Read it for simulation discipline. The controlled object is a software model of analog hardware behavior: device noise, update noise, drift, quantization, and inference-time nonidealities. This is useful because our lab should not jump from ideal SPICE toy arrays to architecture claims. It needs a middle layer where model behavior is tested under measured-like noise.</p>
+<p>First-principles questions:</p>
+<ul>
+<li>Which device errors are modeled?</li>
+<li>Which errors are static and which change over time?</li>
+<li>How does training or inference absorb those errors?</li>
+<li>What assumptions are made about ADC/DAC precision?</li>
+<li>Can the simulator reproduce our toy experiments before we scale?</li>
+</ul>
+<h2>What We Should Write From These Sources</h2>
+<p>The next paper notes should not be summaries. Each should answer:</p>
+<ol>
+<li>What physical or mathematical object is controlled?</li>
+<li>What boundary makes the object hard to control?</li>
+<li>What concrete method changes the object?</li>
+<li>What evidence shows the method worked?</li>
+<li>What remains digital?</li>
+<li>What failure boundary remains?</li>
+</ol>
+<h2>Theme Articles To Derive</h2>
+<p>Write these after the first paper-note batch:</p>
+<ul>
+<li>Analog compute is a boundary chain, not a matrix multiply claim.</li>
+<li>Foundation-model inference has two regimes: prefill reuse and decode memory pressure.</li>
+<li>Signed weights require physical representation, not just negative numbers.</li>
+<li>ADC/DAC precision is a model-layer decision.</li>
+<li>Calibration is evidence that the physical machine is still the intended machine.</li>
+<li>KV cache is the part of transformer inference that resists static analog mapping.</li>
+<li>Hybrid accelerators are schedules over unlike error sources.</li>
+</ul>
+<h2>Source Links</h2>
+<ul>
+<li>https://www.nature.com/articles/s41586-023-06337-5</li>
+<li>https://arxiv.org/abs/2505.09663</li>
+<li>https://arxiv.org/abs/2411.17367</li>
+<li>https://arxiv.org/abs/2409.19315</li>
+<li>https://arxiv.org/abs/2406.08413</li>
+<li>https://aihwkit.readthedocs.io/en/v0.3.0/analog_ai.html</li>
+</ul></article></main></body></html>

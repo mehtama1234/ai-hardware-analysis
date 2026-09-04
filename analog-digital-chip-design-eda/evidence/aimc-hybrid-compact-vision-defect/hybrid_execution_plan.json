@@ -1,0 +1,106 @@
+{
+  "converter_plan": {
+    "blocking_observation": "physical converter source common-mode qualification remains open",
+    "compatibility_status": "blocked_sar_source_common_mode",
+    "simulator_adc_bits": 8,
+    "simulator_dac_bits": 8
+  },
+  "memory_plan": {
+    "analog_memory": "fixed-weight candidate layers",
+    "digital_memory": "preprocessing, nonlinear, and fallback operations",
+    "sram": "sensor features, activations, and partial sums"
+  },
+  "operator_placements": [
+    {
+      "activations": "local_sram",
+      "calibration_profile": "edge-intake-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_reference",
+      "operator": "Conv2D",
+      "operator_id": "stem.conv",
+      "placement": "analog_memory",
+      "reason": "regular convolution dataflow",
+      "tile_count": 1,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "DepthwiseConv",
+      "operator_id": "block3.depthwise",
+      "placement": "digital_support",
+      "reason": "low reuse requires fallback",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "edge-intake-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_reference",
+      "operator": "Conv2D",
+      "operator_id": "block5.pointwise",
+      "placement": "analog_memory",
+      "reason": "high weight reuse",
+      "tile_count": 1,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "LayerNorm",
+      "operator_id": "classifier.norm",
+      "placement": "digital_support",
+      "reason": "normalization remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "edge-intake-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_reference",
+      "operator": "MatMul",
+      "operator_id": "classifier.fc",
+      "placement": "analog_memory",
+      "reason": "dense classifier candidate with sensitivity risk",
+      "tile_count": 1,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    }
+  ],
+  "plan_id": "compact_vision_or_defect_v1_intake_plan_v1",
+  "provenance": {
+    "generated_at": "2026-09-04T07:00:02.349547+00:00",
+    "not_measured_silicon": true,
+    "source_intake": "evidence/aimc-hybrid-compact-vision-defect/source_intake.json"
+  },
+  "schema_version": "aimc_hybrid_execution_plan.v1",
+  "status": "intake_plan_physical_converter_bridge_blocked"
+}

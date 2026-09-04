@@ -1,0 +1,126 @@
+{
+  "candidate_id": "aimc_readout_candidate_001",
+  "claim_boundary": {
+    "allowed": "turns the remaining rehearsal blockers into six concrete measurement/build work items for the first real converter candidate",
+    "not_allowed": "does not create the missing measurements, does not modify the canonical candidate payload, and does not write accepted post-layout evidence"
+  },
+  "created_at": "2026-08-31T00:18:49.648235+00:00",
+  "next_payload_check": "python3 scripts/preflight_converter_post_layout_payload.py evidence/aimc-simulator-adapters/candidate-post-layout/payload.json",
+  "rehearsal_strict_issue_count": 15,
+  "result_type": "first_real_converter_blocker_work_order",
+  "run_id": "aimc_readout_candidate_001_sky130_tt_1p8v_27c_run001",
+  "source_packet": "evidence/aimc-simulator-adapters/first-real-converter-candidate-packet.json",
+  "source_rehearsal": "evidence/aimc-simulator-adapters/first-real-converter-rehearsal-payload.json",
+  "status": "six_experiment_work_order_ready",
+  "strict_issue_categories": [
+    "area_missing",
+    "energy_missing",
+    "incomplete_converter_object",
+    "latency_missing",
+    "noise_missing",
+    "not_same_evidence_level"
+  ],
+  "work_item_count": 6,
+  "work_items": [
+    {
+      "acceptance_check": "strict payload no longer reports any extraction.includes_* failure and the netlist path exists",
+      "blocker": "converter_object",
+      "experiment": "Build or select one extracted netlist that includes row DAC, SAR/readout, shared mux, references, and sample path under one subckt or manifest.",
+      "id": "B1",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/netlist/aimc_readout_candidate_001_extracted.spice",
+      "payload_fields": [
+        "extraction.extracted_netlist",
+        "extraction.includes_row_dac",
+        "extraction.includes_sar_readout",
+        "extraction.includes_shared_mux",
+        "extraction.includes_references",
+        "extraction.includes_sample_path"
+      ],
+      "question": "What physical object is the converter/readout candidate?",
+      "simple_meaning": "The candidate must be one inspectable circuit object, not separate loose evidence fragments.",
+      "status": "open"
+    },
+    {
+      "acceptance_check": "ADC and DAC energy are positive joule values and energy.run_id equals provenance.run_id",
+      "blocker": "adc_energy",
+      "experiment": "Run a supply-current integration deck over the ADC/comparator decision window for the same run id.",
+      "id": "B2",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/measurements/readout-energy.json",
+      "payload_fields": [
+        "energy.adc_energy_per_conversion",
+        "energy.dac_energy_per_row_drive",
+        "energy.method",
+        "energy.run_id"
+      ],
+      "question": "How much supply energy does the readout decision spend?",
+      "simple_meaning": "The converter cost is voltage times supply current over the event, not a guessed label.",
+      "status": "open"
+    },
+    {
+      "acceptance_check": "conversion_time_ns and settling_time_ns are positive and measured from the same command/run id",
+      "blocker": "conversion_latency",
+      "experiment": "Measure row settling plus readout/comparator/SAR decision time in one transient run.",
+      "id": "B3",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/measurements/readout-latency.json",
+      "payload_fields": [
+        "latency.conversion_time_ns",
+        "latency.settling_time_ns",
+        "latency.method",
+        "latency.run_id"
+      ],
+      "question": "When is the digital value safe to read?",
+      "simple_meaning": "Latency is the wait between asking for a value and having a value the digital side can trust.",
+      "status": "open"
+    },
+    {
+      "acceptance_check": "output_noise_rms is numeric, input_referred_noise is numeric, and output_noise_rms <= 0.004",
+      "blocker": "noise",
+      "experiment": "Measure or simulate output noise and input-referred noise at the readout boundary for the same circuit and run id.",
+      "id": "B4",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/measurements/readout-noise.json",
+      "payload_fields": [
+        "noise.output_noise_rms",
+        "noise.input_referred_noise",
+        "noise.meets_output_noise_budget",
+        "noise.run_id"
+      ],
+      "question": "How uncertain is the produced digital value?",
+      "simple_meaning": "The model sees noise as a wrong or uncertain number, so the converter must keep that uncertainty inside the model budget.",
+      "status": "open"
+    },
+    {
+      "acceptance_check": "ADC and DAC area are positive square-micron values tied to the same candidate id",
+      "blocker": "area",
+      "experiment": "Compute area from the selected physical cells or extracted layout boundary for the same candidate object.",
+      "id": "B5",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/measurements/readout-area.json",
+      "payload_fields": [
+        "area.adc_area_um2",
+        "area.dac_area_um2",
+        "area.method",
+        "area.run_id"
+      ],
+      "question": "How much physical space does the ADC/readout and DAC/row-drive path consume?",
+      "simple_meaning": "Area is the chip space paid for the circuit; if it must be repeated too often, the system cost changes.",
+      "status": "open"
+    },
+    {
+      "acceptance_check": "rerun artifact exists, all uses_extracted_* fields are true, and break_even_rerun.run_id equals provenance.run_id",
+      "blocker": "break_even",
+      "experiment": "Rerun converter break-even using the measured energy, latency, noise, area, and same sharing rule.",
+      "id": "B6",
+      "output_artifact": "evidence/aimc-simulator-adapters/candidate-post-layout/rerun/aimc_readout_candidate_001_break_even_rerun.json",
+      "payload_fields": [
+        "break_even_rerun.rerun_artifact",
+        "break_even_rerun.uses_extracted_energy",
+        "break_even_rerun.uses_extracted_latency",
+        "break_even_rerun.uses_extracted_noise",
+        "break_even_rerun.uses_extracted_area",
+        "break_even_rerun.run_id"
+      ],
+      "question": "Do the measured converter numbers change the analog-versus-digital decision?",
+      "simple_meaning": "Accepted evidence must change or confirm the system decision, not just sit beside it.",
+      "status": "open"
+    }
+  ]
+}

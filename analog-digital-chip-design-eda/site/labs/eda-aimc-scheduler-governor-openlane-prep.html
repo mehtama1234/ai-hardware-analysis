@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Scheduler/Governor OpenLane Prep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Scheduler/Governor OpenLane Prep</h1><p class="lead">Source: labs/eda/aimc-scheduler-governor-openlane-prep/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Scheduler/Governor OpenLane Prep</h1>
+<p>This lab packages the integrated scheduler/governor for physical-flow review. The object is the combined control decision for analog service:</p>
+<pre><code>
+tile scheduler says a tile action is available
+error-budget governor says the next analog error can be spent
+final decision chooses analog, digital fallback, recalibration, or probe
+</code></pre>
+<h2>Workflow Contract</h2>
+<p>Consumes: scheduler RTL, error-budget governor RTL, integrated policy RTL, generated integrated trace, Yosys synthesis report, clocked wrapper, OpenLane constraints, and physical-flow reports.</p>
+<p>Produces: one-cycle integrated-control physical-flow evidence, measured 5 ns failure boundary, completed 8 ns boundary, CTS-enabled result, and reset/fanout cleanup lesson.</p>
+<p>Supports: the claim that the combined analog-service decision can be made into clean local physical-flow evidence at the relaxed 8 ns boundary.</p>
+<p>Refuses: proving the 5 ns target without pipelining, measured board latency, measured energy, analog macro integration, production timing closure, or signoff.</p>
+<p>Handoff: this page explains why the pipelined scheduler/governor exists. The one-cycle integrated block teaches the timing cost of combining tile availability and model-error spending in one decision.</p>
+<h2>Object</h2>
+<p>The pure integrated block is <code>src/aimc_scheduler_governor.v</code>. It instantiates:</p>
+<pre><code>
+aimc_tile_service_scheduler
+aimc_error_budget_governor
+</code></pre>
+<p>The scheduler decides which tile action is available. The governor decides whether analog error can be spent. The integrated block allows analog only when both decisions agree.</p>
+<h2>Constraint</h2>
+<p>The integrated block is combinational. A physical flow still needs a clocked boundary. The OpenLane package uses <code>aimc_scheduler_governor_physical</code>, which registers the inputs and outputs around the combined policy:</p>
+<pre><code>
+registered tile state and error evidence -&gt; scheduler/governor policy -&gt; registered final decision
+</code></pre>
+<p>That wrapper does not change the control rule. It gives timing analysis a concrete question:</p>
+<pre><code>
+Can the combined scheduler/governor decision settle between one set of registers and the next?
+</code></pre>
+<h2>Files</h2>
+<ul>
+<li><code>src/aimc_tile_service_scheduler.v</code>: local copy of the tile scheduler RTL</li>
+<li><code>src/aimc_error_budget_governor.v</code>: local copy of the governor RTL</li>
+<li><code>src/aimc_scheduler_governor.v</code>: local copy of the integrated combinational RTL</li>
+<li><code>src/aimc_scheduler_governor_physical.v</code>: clocked physical wrapper</li>
+<li><code>config.json</code>: OpenLane-style design configuration</li>
+<li><code>config.tcl</code>: compatibility configuration for older <code>flow.tcl</code> runs</li>
+<li><code>config_no_cts.tcl</code>: exploratory no-CTS configuration</li>
+<li><code>config_8ns.tcl</code>: relaxed CTS-enabled configuration for the measured integrated critical path</li>
+<li><code>config_8ns_fanout20.tcl</code>: CTS-enabled 8 ns configuration with a fanout-20 exploratory packaging limit</li>
+<li><code>config_no_cts_8ns.tcl</code>: relaxed no-CTS configuration for the measured integrated critical path</li>
+<li><code>constraint.sdc</code>: virtual-clock input/output timing assumptions</li>
+<li><code>constraint_8ns.sdc</code>: relaxed timing assumptions for exploratory closure</li>
+<li><code>src/constraint.sdc</code>: SDC copy for older OpenLane design-folder conventions</li>
+<li><code>pin_order.cfg</code>: stable pin-order intent for review</li>
+<li><code>openlane-no-cts-5ns-timing-boundary-report.md</code>: measured 5 ns failure boundary</li>
+<li><code>openlane-no-cts-8ns-final-report.md</code>: measured 8 ns completed-flow boundary</li>
+<li><code>openlane-no-cts-5ns-metrics-summary.md</code>: generated metrics summary for the failed 5 ns run</li>
+<li><code>openlane-no-cts-8ns-metrics-summary.md</code>: generated metrics summary for the completed 8 ns run</li>
+<li><code>openlane-cts-8ns-final-report.md</code>: measured 8 ns CTS-enabled completed-flow boundary</li>
+<li><code>openlane-cts-8ns-metrics-summary.md</code>: generated metrics summary for the CTS-enabled 8 ns run</li>
+<li><code>openlane-cts-8ns-control-reset-fanout20-final-report.md</code>: best measured CTS-enabled result after reset-boundary cleanup</li>
+<li><code>openlane-cts-8ns-control-reset-fanout20-metrics-summary.md</code>: generated metrics summary for the best CTS-enabled result</li>
+<li><code>analyze_no_cts_result.py</code>: local metrics summarizer for OpenLane run artifacts</li>
+</ul>
+<h2>Concrete Design Move</h2>
+<p>Run the generated integrated trace first:</p>
+<pre><code>
+cd labs/digital/aimc-control-plane-rtl
+python3 check_generated_integrated_scheduler_governor_trace.py
+</code></pre>
+<p>Run synthesis for the pure integrated block:</p>
+<pre><code>
+cd labs/digital/aimc-control-plane-synthesis
+yosys synth_aimc_scheduler_governor.ys
+</code></pre>
+<p>Check OpenLane readiness:</p>
+<pre><code>
+AIMC_OPENLANE_PREP=aimc-scheduler-governor-openlane-prep AIMC_OPENLANE_DESIGN=aimc_scheduler_governor_physical AIMC_OPENLANE_RTL=aimc_scheduler_governor.v ./scripts/check_aimc_openlane_readiness.sh
+</code></pre>
+<p>When OpenLane is available, run the exploratory no-CTS flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_scheduler_governor_no_cts CONFIG_NAME=config_no_cts AIMC_OPENLANE_PREP=aimc-scheduler-governor-openlane-prep AIMC_OPENLANE_DESIGN=aimc_scheduler_governor_physical AIMC_OPENLANE_RTL=aimc_scheduler_governor.v ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>If the one-cycle 5 ns target fails setup, run the relaxed 8 ns no-CTS flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_scheduler_governor_no_cts_8ns CONFIG_NAME=config_no_cts_8ns AIMC_OPENLANE_PREP=aimc-scheduler-governor-openlane-prep AIMC_OPENLANE_DESIGN=aimc_scheduler_governor_physical AIMC_OPENLANE_RTL=aimc_scheduler_governor.v ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>Then run the 8 ns CTS-enabled flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_scheduler_governor_cts_8ns CONFIG_NAME=config_8ns AIMC_OPENLANE_PREP=aimc-scheduler-governor-openlane-prep AIMC_OPENLANE_DESIGN=aimc_scheduler_governor_physical AIMC_OPENLANE_RTL=aimc_scheduler_governor.v ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<h2>Measurement</h2>
+<p>The pure integrated synthesis currently reports:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 601
+</code></pre>
+<p>The no-flip-flop result is intentional for the pure integrated policy. The physical wrapper adds registers only to define the timing boundary.</p>
+<p>The 5 ns no-CTS OpenLane run produced routed/signoff artifacts and passed physical legality checks, but failed setup:</p>
+<pre><code>
+flow_status: flow failed
+critical_path_ns: 6.41
+spef_wns: -1.08
+spef_tns: -11.02
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+</code></pre>
+<p>The failing path runs from registered calibration-age evidence into a registered final reason bit. That means the measured object is the depth of the combined trust decision, not just routing difficulty.</p>
+<p>The relaxed 8 ns no-CTS run completed:</p>
+<pre><code>
+flow_status: flow completed
+critical_path_ns: 6.5
+wns: 0.0
+tns: 0.0
+spef_wns: 0.0
+spef_tns: 0.0
+TotalCells: 1429
+CoreArea_um^2: 10935.488
+DIEAREA_mm^2: 0.014948134799999999
+wire_length: 8131
+vias: 2259
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+</code></pre>
+<p>That result proves a bounded claim: at an 8 ns exploratory timing boundary, the registered integrated scheduler/governor wrapper can be synthesized, placed, routed, extracted, streamed to GDS, and pass DRC, LVS, antenna, setup, and hold checks. It does not prove CTS signoff.</p>
+<p>The 8 ns CTS-enabled run also completed:</p>
+<pre><code>
+flow_status: flow completed
+critical_path_ns: 6.14
+wns: 0.0
+tns: 0.0
+spef_wns: 0.0
+spef_tns: 0.0
+TotalCells: 1441
+CoreArea_um^2: 10935.488
+DIEAREA_mm^2: 0.014948134799999999
+wire_length: 8607
+vias: 2372
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+</code></pre>
+<p>That stronger result proves the registered integrated policy can survive clock tree synthesis at the relaxed 8 ns boundary in this exploratory setup. It still showed max-fanout warnings because the reset net reached too many wrapper registers.</p>
+<p>The control-reset wrapper narrows reset to the externally meaningful control outputs. With <code>config_8ns_fanout20.tcl</code>, the improved CTS-enabled run completed with no setup, hold, max slew, max fanout, max capacitance, DRC, LVS, or antenna violations:</p>
+<pre><code>
+flow_status: flow completed
+critical_path_ns: 6.04
+wns: 0.0
+tns: 0.0
+spef_wns: 0.0
+spef_tns: 0.0
+TotalCells: 1333
+CoreArea_um^2: 10231.0624
+DIEAREA_mm^2: 0.013943692425
+wire_length: 7530
+vias: 2166
+max_slew_violations: 0
+max_fanout_violations: 0
+max_cap_violations: 0
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+</code></pre>
+<p>The lesson is that reset is a physical net, not only a simulation convenience. Safe control state needs reset. Internal evidence registers can be overwritten before use.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is letting either child block pretend to be the whole control plane. The scheduler can find a tile that the governor should still reject. The governor can approve an error spend when no tile is actually available. The integrated block makes the final decision depend on both.</p>
+<p>The physical failure mode is also clear. If the serving system demands a 5 ns policy cycle, the combined decision should be pipelined or partly precomputed. If an 8 ns policy cycle is acceptable, this block can remain a single-cycle digital referee around the analog datapath, with power-grid and IR-drop setup still left for the next physical-design pass.</p></article></main></body></html>

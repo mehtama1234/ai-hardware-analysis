@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calibration Is A Schedule, Not A Single Fix</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Calibration Is A Schedule, Not A Single Fix</h1><p class="lead">Source: docs/concepts/calibration-is-a-schedule-not-a-single-fix.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Calibration Is A Schedule, Not A Single Fix</h1>
+<p>The object is a hardware path whose error changes over time. Calibration measures that path and fits a correction. But the correction is only true for the state of the hardware when it was measured. If the device drifts, the calibration becomes stale.</p>
+<p>Analog in-memory compute often has stable error that can be corrected: column gain, column offset, DAC offset, ADC offset, and programmed-conductance mismatch. It also has time movement: device drift, temperature change, supply movement, aging, and repeated-read disturbance. The constraint is that the digital correction must be updated often enough to track the stable part of the error, but not so often that calibration work erases the compute advantage.</p>
+<p>The first calibration equation is simple:</p>
+<pre><code>
+measured = gain * ideal + offset + residual_noise
+corrected = (measured - offset) / gain
+</code></pre>
+<p>This is useful only while <code>gain</code> and <code>offset</code> remain close to the measured values. When they move, the correction begins to inject error.</p>
+<h2>Why One Calibration Is Not Enough</h2>
+<p>A one-time calibration assumes the analog path is stationary:</p>
+<pre><code>
+gain(t) ~= gain(0)
+offset(t) ~= offset(0)
+</code></pre>
+<p>Real hardware does not promise that. Conductance can drift. Temperature can move device behavior. Supply noise can shift readout. Converter offsets can change. If the model serves many tokens after calibration, later tokens may be computed under a different hardware state than the one correction was fitted for.</p>
+<p>So calibration has two costs:</p>
+<ul>
+<li>the direct cost of measuring known inputs</li>
+<li>the indirect cost of using stale correction between measurements</li>
+</ul>
+<p>Calibrating too rarely leaves drift uncorrected. Calibrating too often spends too much time and energy on measurement instead of inference.</p>
+<h2>The Mathematical Boundary</h2>
+<p>Let drift grow with token time:</p>
+<pre><code>
+drift_since_calibration = drift_rate * tokens_since_calibration
+</code></pre>
+<p>Let calibration cost grow with the number of samples:</p>
+<pre><code>
+calibration_cost = samples_per_calibration * calibrations
+</code></pre>
+<p>The design target is not minimum error alone:</p>
+<pre><code>
+total_cost = inference_cost + calibration_cost
+residual_error &lt;= model_tolerance
+</code></pre>
+<p>The useful question is: what calibration interval is long enough to keep overhead low and short enough to keep residual drift below tolerance?</p>
+<h2>Concrete Design Move</h2>
+<p>The concrete design move is to report calibration as a schedule:</p>
+<ul>
+<li>calibration samples per tile</li>
+<li>tokens between calibration events</li>
+<li>drift rate assumed</li>
+<li>residual error just before recalibration</li>
+<li>energy or latency spent on calibration</li>
+<li>throughput loss from taking calibration measurements</li>
+<li>model-quality loss when calibration is stale</li>
+</ul>
+<p>For a foundation-model accelerator, this should be phase-aware. Prefill may run many tokens through fixed weights quickly. Decode may run for a long time while the same arrays are used token by token. The best calibration interval may differ by phase, layer, tile, and temperature state.</p>
+<h2>Measurement</h2>
+<p>The measurement is residual error and overhead versus interval:</p>
+<pre><code>
+interval_tokens, calibration_overhead, mean_error, worst_error
+</code></pre>
+<p>The worst error matters because stale calibration is most dangerous just before the next calibration event. Mean error can make a long interval look acceptable while hiding the end-of-interval drift.</p>
+<p>A good lab should compare:</p>
+<ul>
+<li>no calibration</li>
+<li>calibrate every short interval</li>
+<li>calibrate every long interval</li>
+<li>higher sample count per calibration</li>
+<li>lower sample count with noisier correction</li>
+</ul>
+<p>The output should reveal the bargain: more frequent calibration reduces stale drift but raises overhead.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is to report calibrated accuracy without saying when calibration happened, how many samples it used, and how long the hardware ran before the next measurement. That makes the result look cleaner than the deployed system.</p>
+<p>The first-principles claim is that calibration is part of the runtime architecture. It is not a one-time cleanup step. If analog compute depends on digital correction, then the schedule for measuring, fitting, applying, and refreshing that correction is part of the accelerator design.</p></article></main></body></html>

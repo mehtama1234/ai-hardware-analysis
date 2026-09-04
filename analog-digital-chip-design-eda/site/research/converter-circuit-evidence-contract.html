@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter Circuit Evidence Contract</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter Circuit Evidence Contract</h1><p class="lead">Source: docs/research/converter-circuit-evidence-contract.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter Circuit Evidence Contract</h1>
+<p>This page is generated from the converter circuit evidence schema and the current AIHWKIT converter break-even artifact.</p>
+<p>Read this after <code>aihwkit-converter-break-even.md</code>. It defines the evidence fields needed before the local break-even assumptions can be replaced by circuit simulation, post-layout simulation, or measured silicon.</p>
+<p>---</p>
+<h1>Converter Circuit Evidence Contract</h1>
+<p>This page defines what must replace the local converter break-even assumptions.</p>
+<ul>
+<li>schema: <code>sources/evidence/converter-circuit-evidence-schema.json</code></li>
+<li>current status: <code>contract_defined_placeholder_not_claim_ready</code></li>
+<li>target ADC bits: <code>12</code></li>
+<li>target DAC bits: <code>10</code></li>
+<li>output noise budget: <code>0.004</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>The break-even page says the converter target can become useful only if real converter cost is low enough and shared across enough useful outputs. This contract says what real means.</p>
+<p>A converter proof has to measure five separate things. Energy says how much electrical work is spent per conversion. Latency says how long the signal must settle and how long the ADC decision takes. Noise says whether the converter output stays inside the 0.004 budget. Area says how much silicon is spent and whether converters are copied or shared. Sharing says how many rows, columns, and outputs pay for one converter cost.</p>
+<p>Without those fields, a converter number is only a planning estimate. With those fields, the system can rerun the break-even table using circuit or measured evidence instead of assumptions.</p>
+<h2>Required Fields</h2>
+<ul>
+<li><code>result_type</code></li>
+<li><code>converter_id</code></li>
+<li><code>measurement_level</code></li>
+<li><code>target_boundary</code></li>
+<li><code>energy</code></li>
+<li><code>latency</code></li>
+<li><code>noise</code></li>
+<li><code>area</code></li>
+<li><code>sharing</code></li>
+<li><code>provenance</code></li>
+<li><code>claim_boundary</code></li>
+</ul>
+<h2>Measurement Levels</h2>
+<ul>
+<li><code>local_estimate</code></li>
+<li><code>circuit_simulation</code></li>
+<li><code>post_layout_simulation</code></li>
+<li><code>measured_silicon</code></li>
+</ul>
+<h2>Current Placeholder</h2>
+<p>The current placeholder is intentionally not claim-ready. It carries the target bit and noise boundary forward, but leaves energy, latency, area, and sharing as missing measured facts.</p>
+<h2>Required Next Evidence</h2>
+<ul>
+<li>transistor-level or post-layout ADC energy for 12-bit output conversion</li>
+<li>DAC row-driver energy for 10-bit input drive</li>
+<li>settling and conversion time for the same converter setting</li>
+<li>output noise RMS below 0.004 in the same scale used by the replay</li>
+<li>area and converter-sharing rule for the tile</li>
+<li>rerun of the break-even table with measured or post-layout numbers</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove converter energy, converter latency, converter area, silicon noise, or board power</p></article></main></body></html>

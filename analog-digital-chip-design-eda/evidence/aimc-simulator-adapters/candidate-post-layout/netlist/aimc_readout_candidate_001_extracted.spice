@@ -1,0 +1,83 @@
+* First real converter candidate physical object.
+* Assembled from local Sky130 Magic ext2spice starter cells.
+* This is a B1 physical-object artifact, not accepted converter evidence.
+* Required parts named in this file: row_dac, sar_readout, shared_mux, references, sample_path.
+
+* begin source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/row_dac_10b_layout_smoke.spice
+* NGSPICE file created from row_dac_10b.ext - technology: sky130A
+
+.subckt row_dac_10b vss row_drive vdd
+C0 row_drive vdd 1.08417f
+C1 vdd vss 0.78467f
+C2 row_drive vss 1.07709f
+C3 vss VSUBS 1.40333f
+C4 row_drive VSUBS 0.95642f
+C5 vdd VSUBS 1.38963f
+.ends
+* end source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/row_dac_10b_layout_smoke.spice
+
+* begin source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sar_readout_12b_layout_smoke.spice
+* NGSPICE file created from sar_readout_12b.ext - technology: sky130A
+
+.subckt sar_readout_12b vss sample_in vdd
+C0 sample_in vss 1.05402f
+C1 sample_in vdd 1.3202f
+C2 vdd vss 0.53484f
+C3 vss VSUBS 1.38755f
+C4 sample_in VSUBS 1.67154f
+C5 vdd VSUBS 1.7846f
+.ends
+* end source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sar_readout_12b_layout_smoke.spice
+
+* begin source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/shared_converter_mux_layout_smoke.spice
+* NGSPICE file created from shared_converter_mux.ext - technology: sky130A
+
+.subckt shared_converter_mux vss mux_bus vdd
+C0 mux_bus vdd 1.55306f
+C1 mux_bus vss 1.56188f
+C2 vss VSUBS 1.39454f
+C3 mux_bus VSUBS 3.03532f
+C4 vdd VSUBS 1.41225f
+.ends
+* end source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/shared_converter_mux_layout_smoke.spice
+
+* begin source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/aimc_converter_macro_layout_smoke.spice
+* NGSPICE file created from aimc_converter_macro.ext - technology: sky130A
+
+.subckt aimc_converter_macro vss vdd row_drive column_sense digital_code_out sample_clock
+C0 vss vdd 0.4479f
+C1 vss row_drive 0.48996f
+C2 vss sample_clock 0.2174f
+C3 row_drive vdd 0.25431f
+C4 vss column_sense 0.25253f
+C5 digital_code_out vss 0.3288f
+C6 sample_clock vdd 0.37987f
+C7 column_sense vdd 0.29373f
+C8 digital_code_out vdd 0.70889f
+C9 row_drive column_sense 0.08871f
+C10 digital_code_out row_drive 0.00852f
+C11 sample_clock column_sense 0.00493f
+C12 digital_code_out sample_clock 0.02344f
+C13 digital_code_out column_sense 0.29672f
+C14 vss VSUBS 2.74134f
+C15 digital_code_out VSUBS 1.20105f
+C16 row_drive VSUBS 1.09469f
+C17 sample_clock VSUBS 0.74026f
+C18 column_sense VSUBS 1.15836f
+C19 vdd VSUBS 2.56389f
+.ends
+* end source: labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/aimc_converter_macro_layout_smoke.spice
+
+.subckt aimc_readout_candidate_001 vss vdd row_drive column_sense digital_code_out sample_clock vrefp vrefn
+* row_dac: extracted starter row DAC cell drives the row voltage.
+Xdac vss row_drive vdd row_dac_10b
+* shared_mux: extracted starter shared mux cell loads the column bus.
+Xmux vss column_sense vdd shared_converter_mux
+* sar_readout: extracted starter sampled readout cell observes the muxed sense node.
+Xsar vss column_sense vdd sar_readout_12b
+* sample_path: starter macro parasitic object ties row drive, column sense, output, and sample clock.
+Xmacro vss vdd row_drive column_sense digital_code_out sample_clock aimc_converter_macro
+* references: vrefp and vrefn are explicit candidate reference pins for later ADC/DAC decks.
+Crefp vrefp vss 1f
+Crefn vrefn vss 1f
+.ends aimc_readout_candidate_001

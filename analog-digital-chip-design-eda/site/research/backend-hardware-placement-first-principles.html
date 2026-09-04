@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Backend Hardware Placement From First Principles</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Backend Hardware Placement From First Principles</h1><p class="lead">Source: docs/research/backend-hardware-placement-first-principles.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Backend Hardware Placement From First Principles</h1>
+<p>This page explains the <code>hardware_placement</code> artifact that connects the restored backend to the hardware lab.</p>
+<p>The artifact answers one narrow question:</p>
+<p>Which parts of this model graph are allowed to try analog in-memory compute, and what fields must the hardware lab see before that decision can be checked?</p>
+<p>It does not answer whether the chip is fast, energy efficient, calibrated, or ready for production.</p>
+<h2>Workflow Contract</h2>
+<p>Consumes: the restored backend&#x27;s analyzed model graph and package context.</p>
+<p>Produces: analog candidates, digital-only regions, DAC boundaries, ADC boundaries, expected error sources, model sensitivity classes, fallback points, and governor fields.</p>
+<p>Supports: discussion of model-to-hardware placement for the current analyzed graph.</p>
+<p>Refuses: final compiler lowering, silicon placement, measured latency, measured energy, analog macro layout, and tapeout signoff.</p>
+<h2>Why Placement Is Not Just A Label</h2>
+<p>A model graph contains operations. A chip contains physical resources. Placement is the translation between those two objects.</p>
+<p>For analog in-memory compute, this translation is dangerous if it stops at &quot;MatMul goes analog.&quot; A matrix multiply can be a good analog candidate because it is a repeated weighted sum. But using analog changes the path:</p>
+<pre><code>
+digital activation
+  -&gt; DAC code
+  -&gt; row voltage
+  -&gt; conductance-weighted current
+  -&gt; column sum
+  -&gt; ADC code
+  -&gt; corrected digital value
+  -&gt; next model operation
+</code></pre>
+<p>Every arrow adds a question. Does the DAC have enough levels? Does row voltage drop matter? Does conductance drift change the result? Does the ADC saturate? Does the next model operation tolerate the residual? Where does the digital path resume if the answer is unsafe?</p>
+<p>That is why <code>hardware_placement</code> is not only a placement field. It is a small contract.</p>
+<h2>Current Live Artifact</h2>
+<p>Source endpoint:</p>
+<pre><code>
+http://127.0.0.1:8025/deployment-packages/pkg-e931662a01293df2/hardware-placement
+</code></pre>
+<p>Local imported copy:</p>
+<pre><code>
+labs/analog/analog-in-memory-foundation-model-hardware/measurements/backend-hardware-placement.json
+</code></pre>
+<p>Human-readable imported copy:</p>
+<pre><code>
+labs/analog/analog-in-memory-foundation-model-hardware/measurements/backend-hardware-placement-governor-input.md
+</code></pre>
+<p>Current summary:</p>
+<pre><code>
+operators: 5
+analog candidates: 2
+digital only: 3
+converter boundaries: 4
+fallback points: 3
+</code></pre>
+<p>The analog candidates are the two <code>MatMul</code> operators. The digital-only regions are bias and activation support operations.</p>
+<h2>What Each Row Means</h2>
+<p>Each row carries the fields the lab and governor need:</p>
+<ul>
+<li><code>operator_id</code>: the model graph location.</li>
+<li><code>operator_kind</code>: the operation type, such as <code>MatMul</code>, <code>Add</code>, or <code>Relu</code>.</li>
+<li><code>placement</code>: the backend&#x27;s current analog or digital decision.</li>
+<li><code>analog_candidate</code>: whether analog is allowed to be considered.</li>
+<li><code>dac_boundary</code>: whether a digital activation must become a row voltage before this operation.</li>
+<li><code>adc_boundary</code>: whether a column current must become a digital code after this operation.</li>
+<li><code>expected_error_source</code>: the physical or digital source of possible error.</li>
+<li><code>model_sensitivity_class</code>: how dangerous error is at this model location.</li>
+<li><code>fallback_point</code>: where the digital path can resume.</li>
+<li><code>governor_fields</code>: compact numeric fields for RTL-facing decisions.</li>
+</ul>
+<p>The important idea is simple: the row says what must be true before analog is allowed, not only where analog might be attractive.</p>
+<h2>Why The MatMuls Are Analog Candidates</h2>
+<p>A dense matrix multiply is a stored-weight weighted sum:</p>
+<pre><code>
+y_j = x_1 w_1j + x_2 w_2j + ... + x_n w_nj
+</code></pre>
+<p>An analog crossbar has the same physical shape:</p>
+<pre><code>
+I_j = V_1 G_1j + V_2 G_2j + ... + V_n G_nj
+</code></pre>
+<p>The match is not exact. <code>x</code> must become voltage. <code>w</code> must become conductance. Current must become a code. But the operation shape is close enough that analog is worth trying when the model location can tolerate the residual.</p>
+<p>That is why <code>dense1.matmul</code> and <code>dense2.matmul</code> are marked:</p>
+<pre><code>
+placement: analog
+sensitivity: projection-tolerant
+residual_q8: 6
+sensitivity_q8: 96
+fallback_action: analog_path
+</code></pre>
+<p>The row does not say the result is trusted forever. It says the hardware lab may test this operator under the current residual and sensitivity budget.</p>
+<h2>Why Bias And ReLU Stay Digital</h2>
+<p>Bias addition and ReLU are not large resident weighted sums. They are small support operations that are cheap and exact in digital logic.</p>
+<p>Moving them into analog would add boundary cost without the same reuse benefit. It would also make the correction story harder because the result would need more checking after very little saved work.</p>
+<p>That is why the current rows mark them:</p>
+<pre><code>
+placement: digital
+analog_candidate: false
+fallback_action: digital_fallback
+</code></pre>
+<p>This is not anti-analog. It is the main hybrid design rule: use analog where the physical operation matches the model operation, and keep digital where the object is control, support arithmetic, comparison, addressing, or fallback.</p>
+<h2>How The Lab Consumes It</h2>
+<p>The lab import command is:</p>
+<pre><code>
+python3 scripts/import_backend_hardware_placement.py
+</code></pre>
+<p>That writes:</p>
+<ul>
+<li><code>backend-hardware-placement.json</code></li>
+<li><code>backend-hardware-placement-governor-input.csv</code></li>
+<li><code>backend-hardware-placement-governor-input.md</code></li>
+</ul>
+<p>Then the analog lab appends these backend-derived rows to the model-impact governor requests:</p>
+<pre><code>
+python3 labs/analog/analog-in-memory-foundation-model-hardware/python/model_impact_governor_requests.py
+</code></pre>
+<p>The current generated governor table has 10 rows:</p>
+<ul>
+<li>5 local transformer-sensitivity rows</li>
+<li>5 backend-derived placement rows</li>
+</ul>
+<p>That matters because the hardware lab is no longer checking only a hand-written toy placement. It is checking rows that came from the restored backend package.</p>
+<h2>How RTL Consumes It</h2>
+<p>The generated governor rows become Verilog test cases:</p>
+<pre><code>
+residual_q8
+sensitivity_q8
+allow_analog
+fallback_action
+</code></pre>
+<p>The RTL checker verifies that the controller refuses paths whose residual, sensitivity, calibration age, or accumulated state error make analog unsafe.</p>
+<p>Current proof:</p>
+<pre><code>
+PASS generated_model_impact_governor_trace
+cases 10
+</code></pre>
+<p>This proves that the backend placement rows can enter the same hardware decision path as the local analog/model-sensitivity rows.</p>
+<h2>What Still Has To Improve</h2>
+<p>The current artifact is a first bridge, not a full compiler.</p>
+<p>Still missing:</p>
+<ul>
+<li>richer tensor shapes and tiling.</li>
+<li>explicit partial-sum boundaries.</li>
+<li>layer and tensor identifiers for full transformer blocks.</li>
+<li>attention/KV-cache placement from real model graphs.</li>
+<li>calibration profile selection per operator.</li>
+<li>cost model for DAC, ADC, memory movement, fallback, and batching.</li>
+<li>integrated scheduler/governor traces driven directly by backend placement rows.</li>
+<li>MLIR, TVM, IREE, or analog-MLIR lowering.</li>
+</ul>
+<p>The next good build is not to rename this as a compiler. The next good build is to make the small placement artifact more precise until it can honestly become compiler input.</p>
+<h2>Where This Page Fits</h2>
+<p>Previous page: <code>combined-aimc-workbench-end-to-end-goal.md</code></p>
+<p>Next pages:</p>
+<ul>
+<li><code>cross-repo-aimc-loop-proof.md</code></li>
+<li><code>aimc-evidence-ledger.md</code></li>
+<li><code>mixed-signal-trust-boundary-spec.md</code></li>
+</ul>
+<p>Old backend source:</p>
+<pre><code>
+ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/hardware_placement.py
+</code></pre>
+<p>Old frontend review:</p>
+<pre><code>
+http://127.0.0.1:8024/analog-in-memory-ai-inference/software-architecture/index.html
+</code></pre></article></main></body></html>

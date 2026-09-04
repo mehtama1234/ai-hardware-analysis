@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Micro-Tile Controller OpenLane Prep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Micro-Tile Controller OpenLane Prep</h1><p class="lead">Source: labs/eda/aimc-micro-tile-controller-openlane-prep/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Micro-Tile Controller OpenLane Prep</h1>
+<p>This lab packages the integrated AIMC micro-tile controller for physical-flow evidence.</p>
+<p>The object is the digital boundary that connects three decisions:</p>
+<pre><code>
+operation placement
+analog tile readout correction
+final accept or fallback
+</code></pre>
+<p>The analog array is still abstract. The physical object here is the controller that decides whether a corrected analog tile result is allowed to affect model state.</p>
+<h2>Object</h2>
+<p>The top module is <code>aimc_micro_tile_controller</code>.</p>
+<p>It instantiates:</p>
+<ul>
+<li><code>aimc_operation_partition</code></li>
+<li><code>aimc_tile_readout</code></li>
+</ul>
+<p>The controller does not trust analog output on the same cycle that it chooses analog placement. It starts a readout, waits one cycle, then accepts the corrected value or forces digital fallback.</p>
+<p>The top-level interface now includes a tile identifier plus accepted/fallback accounting. A readout failure records <code>last_fallback_tile_id</code> and increments <code>fallback_count</code>; a valid readout increments <code>accepted_count</code>; residual and stale-calibration failures increment their own counters. The physical controller can now expose whether the analog path is mostly accepted or mostly refused, and whether refusal is caused by bad correction or stale evidence.</p>
+<p>The matching first-principles article is <code>docs/concepts/analog-placement-is-not-analog-acceptance.md</code>.</p>
+<h2>Files</h2>
+<ul>
+<li><code>src/aimc_micro_tile_controller.v</code>: integrated controller top</li>
+<li><code>src/aimc_operation_partition.v</code>: operation placement rule</li>
+<li><code>src/aimc_tile_readout.v</code>: ADC-code correction and fallback rule</li>
+<li><code>config.json</code>: OpenLane-style design configuration</li>
+<li><code>config.tcl</code>: compatibility configuration for local OpenLane <code>flow.tcl</code></li>
+<li><code>config_no_cts.tcl</code>: no-CTS exploratory configuration</li>
+<li><code>constraint.sdc</code>: timing constraints</li>
+<li><code>src/constraint.sdc</code>: constraint copy for older OpenLane design-folder conventions</li>
+<li><code>pin_order.cfg</code>: stable pin-order intent</li>
+<li><code>openlane-no-cts-final-report.md</code>: measured no-CTS physical-flow result</li>
+<li><code>analyze_no_cts_result.py</code>: regenerates a compact metrics, artifact, manufacturability, and fanout summary</li>
+<li><code>openlane-no-cts-metrics-summary.md</code>: generated compact summary</li>
+</ul>
+<h2>Concrete Design Move</h2>
+<p>Check readiness:</p>
+<pre><code>
+AIMC_OPENLANE_PREP=aimc-micro-tile-controller-openlane-prep AIMC_OPENLANE_DESIGN=aimc_micro_tile_controller ./scripts/check_aimc_openlane_readiness.sh
+</code></pre>
+<p>Run the no-CTS exploratory flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_micro_tile_controller_recovery_probe_no_cts CONFIG_NAME=config_no_cts AIMC_OPENLANE_PREP=aimc-micro-tile-controller-openlane-prep AIMC_OPENLANE_DESIGN=aimc_micro_tile_controller ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>Regenerate the compact evidence summary:</p>
+<pre><code>
+cd labs/eda/aimc-micro-tile-controller-openlane-prep
+python3 analyze_no_cts_result.py
+</code></pre>
+<p>CTS is not the first target in this lab because the same local OpenLane/OpenROAD CTS characterization behavior already appeared on a tiny clocked toy design. The bounded goal here is placement, routing, extraction, manufacturability checks, and timing-report evidence without claiming clock-tree signoff.</p>
+<h2>Measurement</h2>
+<p>The first useful physical measurements are:</p>
+<ul>
+<li>synthesis cell count</li>
+<li>floorplan area</li>
+<li>placement legality</li>
+<li>route completion</li>
+<li>worst negative slack under the exploratory setup</li>
+<li>DRC violations</li>
+<li>LVS result if signoff reaches that stage</li>
+<li>antenna violations</li>
+</ul>
+<p>Current no-CTS run summary:</p>
+<pre><code>
+flow_status: flow completed
+synth_cell_count: 1338
+TotalCells: 7612
+CoreArea_um^2: 56168.8704
+DIEAREA_mm^2: 0.06449743079999999
+wire_length: 50119
+vias: 11936
+spef_wns: 0.0
+spef_tns: 0.0
+critical_path_ns: 8.57
+tritonRoute_violations: 0
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+max slew violation count: 111
+max fanout violation count: 34
+max capacitance violation count: 1
+</code></pre>
+<p>This run is physical evidence for the expanded controller interface with <code>tile_id</code>, <code>last_fallback_tile_id</code>, <code>fallback_count</code>, <code>accepted_count</code>, <code>residual_fallback_count</code>, <code>stale_fallback_count</code>, registered <code>tile_health_action</code>, and recovery controls for calibration and probe evidence. The useful result is bounded: the recovery/probe controller passes no-CTS placement, routing, extraction, GDS generation, DRC, LVS, and antenna checks. The remaining physical-design object is clock-tree signoff plus slew, fanout, and one max-capacitance violation.</p>
+<p>The linter reported zero warnings after explicit signed-width cleanup in the tile readout arithmetic and reason-code path.</p>
+<p>The final views include GDS, LEF, Liberty, SDF, and SPICE. This is useful physical evidence for the integrated digital controller shape, with the CTS boundary still open.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is claiming a finished chip block from a no-CTS flow. This lab can produce useful physical-flow evidence, but it does not prove clock-tree signoff. The local CTS issue must be resolved before the controller is treated as physically closed.</p></article></main></body></html>

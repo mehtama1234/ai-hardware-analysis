@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hybrid Foundation-Model Accelerators Are Partitioning Problems</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Hybrid Foundation-Model Accelerators Are Partitioning Problems</h1><p class="lead">Source: docs/concepts/hybrid-foundation-model-accelerators-are-partitioning-problems.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Hybrid Foundation-Model Accelerators Are Partitioning Problems</h1>
+<p>The object is a computation graph mapped onto unlike physical machines. A foundation model is not one operation. It has dense projections, attention score computation, masking, softmax, normalization, residual addition, activation functions, KV-cache reads and writes, sampling, and control decisions. Analog arrays are good candidates for repeated linear maps. Digital logic is better for exact control, indexing, comparison, sparse movement, nonlinear functions, and correction. The architecture problem is deciding which object goes where.</p>
+<p>The constraint is that moving across the boundary costs time, energy, and error. If a tensor leaves digital memory, passes through DACs, enters crossbars, returns through ADCs, and then immediately needs exact digital processing, the boundary crossing must be worth it. A partition is good only when the analog block receives enough reuse and tolerance to pay for conversion and calibration.</p>
+<p>A useful first-principles split is:</p>
+<pre><code>
+analog-friendly: dense matrix-vector or matrix-matrix products with bounded precision needs
+digital-needed: normalization, softmax, token sampling, cache addressing, control, correction
+shared: accumulation, scaling, activation buffering, scheduling
+</code></pre>
+<p>The concrete design move is tile scheduling. Keep weights stationary in conductance arrays when they are reused across many tokens or batches. Stream activations through DACs. Read partial sums through ADCs. Accumulate digitally. Apply normalization and attention control digitally. Send the next projection back through analog only when the data movement and conversion costs are justified. This turns the accelerator into a scheduling problem, not just a circuit problem.</p>
+<p>The mathematical form is error propagation through layers:</p>
+<pre><code>
+h_next = f((W + delta_W)(h + delta_h) + delta_adc + delta_dac)
+</code></pre>
+<p>Residual connections may carry clean information around a noisy analog block. Normalization may shrink some scale errors. But attention can amplify small differences if they change which tokens receive weight. The model-level question is whether the next-token distribution changes enough to matter.</p>
+<p>The measurement is not a single matrix multiply benchmark. Measure per-layer error, end-to-end output drift, token distribution change, latency per token, energy per token, and memory traffic. Compare three systems: digital quantized baseline, analog array without correction, and analog array with calibration plus digital residual correction. If the corrected analog path only wins for large batches, that must be stated.</p>
+<p>The failure mode is drawing an analog accelerator as if every transformer block were a dot product. Attention is not just a dot product. The KV cache is not just storage. Sampling is not linear algebra. Hybrid hardware works only when the partition respects the physical strengths of each side: analog for cheap approximate weighted sums, digital for control and evidence.</p></article></main></body></html>

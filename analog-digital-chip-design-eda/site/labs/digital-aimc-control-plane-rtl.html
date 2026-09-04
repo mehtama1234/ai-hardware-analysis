@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Control Plane RTL</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Control Plane RTL</h1><p class="lead">Source: labs/digital/aimc-control-plane-rtl/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Control Plane RTL</h1>
+<p>This lab turns the analog in-memory foundation-model scheduler into digital logic. The point is not to build a production chip controller. The point is to make the control decision explicit enough that it can be simulated, synthesized, and checked.</p>
+<h2>Workflow Contract</h2>
+<p>Consumes: analog/model-impact governor request rows, tile health fields, calibration age, residual budgets, operation placement, and scheduler pressure.</p>
+<p>Produces: Verilog decisions, reason codes, generated test cases, checked RTL traces, fallback counters, and synthesis-ready controller blocks.</p>
+<p>Supports: the claim that the analog-use rule is not only prose. It is encoded as clocked logic and checked against generated cases from the lab evidence.</p>
+<p>Refuses: physical timing, routed layout, power, board behavior, analog macro behavior, and production controller signoff.</p>
+<p>Handoff: this lab sends checked controller logic to the synthesis and EDA labs, and its trace results are summarized by the hardware-lab evidence exporter.</p>
+<h2>Where This Lands In The Combined Workbench</h2>
+<p>This lab is the decision-rule part of the larger AIMC workflow.</p>
+<pre><code>
+analog residual and model sensitivity
+  -&gt; governor request rows
+  -&gt; Verilog decision
+  -&gt; checked reason code
+  -&gt; synthesis candidate
+  -&gt; evidence export
+  -&gt; backend claim readiness
+</code></pre>
+<p>The important object is not an analog multiply. The important object is the permission to let an analog value affect model state. The RTL receives small fields, not prose: analog candidate bit, residual budget, attention flip risk, token flip risk, sensitivity class, tile health, calibration age, and scheduler pressure.</p>
+<p>The current backend claim effect is bounded. A passing RTL checker strengthens the local runtime/control-path evidence inside <code>board_runtime.json</code>, but it does not make <code>C2</code> a measured board-latency claim. It shows that the refusal rule can be encoded and checked. Measured latency still requires a board or instrumented runtime trace tied to the same package and workload.</p>
+<h2>Object</h2>
+<p>The object being controlled is the execution path for one model request phase.</p>
+<p>The controller receives a compact description of the request and tile pool:</p>
+<ul>
+<li>phase: prefill or decode</li>
+<li>batch size</li>
+<li>active context length</li>
+<li>resident weight status</li>
+<li>healthy tile count</li>
+<li>weak tile count</li>
+<li>calibration age</li>
+<li>estimated state error</li>
+</ul>
+<p>It returns one of three paths:</p>
+<ul>
+<li>analog projection path</li>
+<li>analog batched-decode path</li>
+<li>digital fallback path</li>
+</ul>
+<p>The companion <code>aimc_operation_partition</code> module controls a smaller object: the placement of one transformer operation. It separates fixed trained projections, changing attention memory, logits, cache movement, normalization, sampling, and fallback.</p>
+<p>The <code>aimc_tile_readout</code> module controls the next lower boundary. It receives one analog tile readout after ADC conversion, applies digital gain and bias correction, clamps unsafe values, and decides whether the corrected output can be used or must fall back.</p>
+<p>The <code>aimc_micro_tile_controller</code> module composes those two decisions. It asks whether the current transformer operation is allowed to use analog compute, starts a tile readout only for analog fixed-weight work, waits one cycle for the corrected result, and then accepts the analog value or falls back to digital.</p>
+<p>The <code>aimc_tile_service_scheduler</code> module adds the next runtime layer. The micro-tile controller says what one tile is allowed to do now: serve, recalibrate, disable, or probe. The scheduler looks across four tiles, a requested tile id, busy bits, and a maintenance budget. It then chooses the least risky useful action: serve the requested healthy tile, serve a spare healthy tile, spend maintenance budget on recalibration, spend maintenance budget on probe, or fall back to digital. This keeps analog service from becoming a local yes/no decision with no system budget.</p>
+<p>The <code>aimc_error_budget_governor</code> module adds a different runtime layer. It does not choose a tile. It decides whether another analog result is worth spending at all. It reads local residual, calibration age, model-path sensitivity, and cumulative state error. It permits analog service only when the next estimated error remains inside the model-state budget. A high residual disables the tile path, old calibration requests recalibration, a sensitive path can force digital even for moderate residual, and a nearly spent state budget can stop analog service before the next token makes the error worse.</p>
+<p>The <code>aimc_scheduler_governor</code> module composes the two runtime decisions. The scheduler says which tile action is available. The governor says whether analog error can be spent. The final path is analog only when both conditions are true. Scheduler maintenance decisions still pass through, because recalibration and probe are the mechanisms that make future analog service possible.</p>
+<p>The <code>aimc_scheduler_governor_pipelined</code> module keeps that same policy but adds a timing boundary. It registers the request, tile state, and governor evidence, computes the same integrated policy from that registered stage, and registers the final decision. The point is not a new policy. The point is to stop pretending that a large policy expression has no clock cost. A faster chip needs a stage boundary that timing tools can see.</p>
+<p>It also records the first accounting signals needed for runtime learning: which tile most recently failed readout, how many readout fallbacks have happened since reset, how many analog readouts have been accepted, and how many refusals came from residual error versus stale calibration.</p>
+<h2>Constraint</h2>
+<p>The analog path is allowed only when the chip has enough resident and healthy analog resources, the estimated model-state error is below the request budget, and the request shape is not dominated by cache movement or stale calibration.</p>
+<p>The constraint is not only logical correctness. The decision must be stable at a clock edge, encoded into a small number of bits, and easy to check in a testbench.</p>
+<h2>Concrete Design Move</h2>
+<p>The Verilog module implements a priority decision:</p>
+<pre><code>
+missing resident weights -&gt; digital fallback
+too few healthy tiles -&gt; digital fallback
+estimated state error too high -&gt; digital fallback
+stale calibration with weak tiles -&gt; digital fallback
+single-request long-context decode -&gt; digital fallback
+batched decode -&gt; analog batched decode
+otherwise -&gt; analog
+</code></pre>
+<p>The ordering matters. A chip should not claim batched analog decode if the tile state is already unsafe. Safety and availability checks come before performance choices.</p>
+<p>The operation-partition module implements the second decision:</p>
+<pre><code>
+embedding, mask, softmax, residual, norm, KV cache, sampling -&gt; digital
+Q/K/V, attention output, MLP -&gt; analog when resident and healthy
+attention scores, value mixing, logits, adapters -&gt; hybrid when measured evidence is inside budget
+state error, attention selection flips, token flips, stale weak tiles, or missing weights -&gt; digital fallback
+</code></pre>
+<p>This mirrors the transformer partition simulator in the analog lab. The simulator estimates the error. This RTL encodes the decision rule that would use that estimate.</p>
+<p>The tile-readout module implements the third decision:</p>
+<pre><code>
+ADC code - calibrated zero -&gt; centered analog result
+centered result * gain -&gt; scaled digital result
+scaled result + bias -&gt; corrected value
+residual too high, stale calibration, disabled tile, or saturation -&gt; fallback
+otherwise -&gt; valid corrected output
+</code></pre>
+<p>This is the boundary that makes analog compute checkable. The array is not trusted because it produced a current. It is trusted only when the digital side can show that the measured output is inside the correction and residual budget.</p>
+<p>The micro-tile controller implements the fourth decision:</p>
+<pre><code>
+operation partition says digital -&gt; use digital
+operation partition says hybrid -&gt; send to hybrid review
+operation partition says analog -&gt; sample tile readout
+tile readout valid next cycle -&gt; accept corrected analog value
+tile readout fallback next cycle -&gt; force digital fallback
+readout fallback -&gt; record tile id and increment fallback counter
+valid readout -&gt; increment accepted counter
+residual-high readout fallback -&gt; increment residual fallback counter
+stale-calibration readout fallback -&gt; increment stale fallback counter
+</code></pre>
+<p>The one-cycle wait is not incidental. It is the hardware form of the claim that analog output must be measured and checked before the scheduler lets it affect model state.</p>
+<p>The matching first-principles article is <code>docs/concepts/analog-placement-is-not-analog-acceptance.md</code>.</p>
+<p>The follow-on article is <code>docs/concepts/analog-foundation-models-need-a-digital-referee.md</code>. It explains why the controller should not only schedule analog work, but also judge whether the measured analog result is allowed to become model state.</p>
+<h2>Run</h2>
+<pre><code>
+iverilog -o aimc_control_plane_tb aimc_control_plane.v aimc_control_plane_tb.v
+vvp aimc_control_plane_tb
+</code></pre>
+<p>Run the operation partition testbench:</p>
+<pre><code>
+iverilog -o aimc_operation_partition_tb aimc_operation_partition.v aimc_operation_partition_tb.v
+vvp aimc_operation_partition_tb
+</code></pre>
+<p>Run the tile readout testbench:</p>
+<pre><code>
+iverilog -o aimc_tile_readout_tb aimc_tile_readout.v aimc_tile_readout_tb.v
+vvp aimc_tile_readout_tb
+</code></pre>
+<p>Run the integrated micro-tile controller testbench:</p>
+<pre><code>
+python3 check_generated_micro_tile_trace.py
+</code></pre>
+<p>Run the generated tile-service scheduler trace:</p>
+<pre><code>
+python3 check_generated_scheduler_trace.py
+</code></pre>
+<p>Run the generated error-budget governor trace:</p>
+<pre><code>
+python3 check_generated_error_budget_governor_trace.py
+</code></pre>
+<p>Run the generated model-impact governor trace:</p>
+<pre><code>
+python3 check_generated_model_impact_governor_trace.py
+</code></pre>
+<p>Run the generated integrated scheduler/governor trace:</p>
+<pre><code>
+python3 check_generated_integrated_scheduler_governor_trace.py
+</code></pre>
+<p>Run the generated pipelined scheduler/governor trace:</p>
+<pre><code>
+python3 check_generated_pipelined_scheduler_governor_trace.py
+</code></pre>
+<p>Optional waveform:</p>
+<pre><code>
+gtkwave aimc_control_plane.vcd
+</code></pre>
+<h2>Measurement</h2>
+<p>The measurement is the decision trace printed by the testbench. Each case states the request condition, expected path, actual path, and reason code.</p>
+<p>The generated-trace checker adds one more gate: the Verilog output must match the CSV emitted by the analog vector generator. The useful output is:</p>
+<pre><code>
+PASS generated_micro_tile_trace
+cases 8
+</code></pre>
+<p>The useful questions are:</p>
+<ul>
+<li>Does a prompt batch choose analog when tiles are healthy?</li>
+<li>Does batched decode choose the batched analog path?</li>
+<li>Does long-context single-request decode fall back to digital?</li>
+<li>Does stale calibration with weak tiles fall back before the model state is damaged?</li>
+<li>Does a missing resident weight block force digital fallback?</li>
+<li>Are fixed trained projections assigned to analog?</li>
+<li>Do attention-score and logits operations remain hybrid unless their selection metrics exceed budget?</li>
+<li>Do cache, normalization, softmax, and sampling remain digital?</li>
+<li>Does the tile readout correct gain and bias before exposing a value?</li>
+<li>Does it refuse disabled, stale, high-residual, and saturated outputs?</li>
+<li>Does the integrated controller wait for readout evidence before accepting analog output?</li>
+<li>Does the error-budget governor reject analog work when local residual, calibration age, sensitive model paths, or accumulated state error make the next analog use too expensive?</li>
+<li>Does the integrated scheduler/governor block analog service unless a tile can serve and the next analog error remains inside the model-state budget?</li>
+</ul>
+<p>Current tile-readout simulation result:</p>
+<pre><code>
+centered_adc_with_unit_gain,value=32,valid=1,fallback=0,reason=0
+gain_and_bias_correction,value=43,valid=1,fallback=0,reason=0
+disabled_tile_fallback,value=32,valid=0,fallback=1,reason=1
+residual_fallback,value=32,valid=0,fallback=1,reason=2
+stale_calibration_fallback,value=32,valid=0,fallback=1,reason=3
+high_saturation_fallback,value=2047,valid=0,fallback=1,reason=4
+low_saturation_fallback,value=-2048,valid=0,fallback=1,reason=5
+PASS aimc_tile_readout_tb
+</code></pre>
+<p>Current micro-tile controller simulation result:</p>
+<pre><code>
+qkv_analog_readout_accepted,path=1,reason=1,value=32,last_fallback_tile=0,fallback_count=0,accepted_count=1,residual_fallback_count=0,stale_fallback_count=0,tile_health_action=0
+qkv_residual_forces_fallback,path=0,reason=10,value=32,last_fallback_tile=12,fallback_count=1,accepted_count=1,residual_fallback_count=1,stale_fallback_count=0,tile_health_action=0
+qkv_stale_calibration_fallback,path=0,reason=11,value=32,last_fallback_tile=17,fallback_count=2,accepted_count=1,residual_fallback_count=1,stale_fallback_count=1,tile_health_action=1
+qkv_disabled_tile_fallback,path=0,reason=9,value=32,last_fallback_tile=13,fallback_count=3,accepted_count=1,residual_fallback_count=1,stale_fallback_count=1,tile_health_action=1
+attention_score_hybrid_review,path=2,reason=2,value=32,last_fallback_tile=13,fallback_count=3,accepted_count=1,residual_fallback_count=1,stale_fallback_count=1,tile_health_action=1
+softmax_partition_digital,path=0,reason=0,value=32,last_fallback_tile=13,fallback_count=3,accepted_count=1,residual_fallback_count=1,stale_fallback_count=1,tile_health_action=1
+missing_weights_partition_digital,path=0,reason=3,value=32,last_fallback_tile=13,fallback_count=3,accepted_count=1,residual_fallback_count=1,stale_fallback_count=1,tile_health_action=1
+second_residual_disables_tile,path=0,reason=10,value=32,last_fallback_tile=18,fallback_count=4,accepted_count=1,residual_fallback_count=2,stale_fallback_count=1,tile_health_action=2
+maintenance_disabled_enters_probe,path=0,reason=10,value=32,last_fallback_tile=18,fallback_count=4,accepted_count=1,residual_fallback_count=2,stale_fallback_count=1,tile_health_action=3
+maintenance_probe_failed_disables,path=0,reason=10,value=32,last_fallback_tile=18,fallback_count=4,accepted_count=1,residual_fallback_count=2,stale_fallback_count=1,tile_health_action=2
+maintenance_disabled_enters_probe_again,path=0,reason=10,value=32,last_fallback_tile=18,fallback_count=4,accepted_count=1,residual_fallback_count=2,stale_fallback_count=1,tile_health_action=3
+maintenance_probe_passed_serves,path=0,reason=10,value=32,last_fallback_tile=18,fallback_count=4,accepted_count=1,residual_fallback_count=2,stale_fallback_count=1,tile_health_action=0
+post_probe_stale_recalibrates,path=0,reason=11,value=32,last_fallback_tile=19,fallback_count=5,accepted_count=1,residual_fallback_count=2,stale_fallback_count=2,tile_health_action=1
+maintenance_calibration_done_serves,path=0,reason=11,value=32,last_fallback_tile=19,fallback_count=5,accepted_count=1,residual_fallback_count=2,stale_fallback_count=2,tile_health_action=0
+PASS aimc_micro_tile_controller_tb
+</code></pre>
+<p>Current generated tile-service scheduler simulation excerpt:</p>
+<pre><code>
+token_17_requested_tile_serves,tile_actions=0013,busy=0000,budget=0,decision=1,selected_tile=1,reason=2
+token_18_recalibrate_before_probe,tile_actions=0213,busy=1100,budget=1,decision=2,selected_tile=2,reason=4
+token_19_probe_disabled_tile,tile_actions=0203,busy=1110,budget=1,decision=3,selected_tile=3,reason=5
+token_23_all_tiles_unusable_or_busy,tile_actions=0202,busy=1111,budget=1,decision=0,selected_tile=3,reason=7
+token_24_requested_tile_serves,tile_actions=0202,busy=0000,budget=1,decision=1,selected_tile=0,reason=2
+PASS aimc_tile_service_scheduler_tb
+</code></pre>
+<p>Current generated error-budget governor simulation result:</p>
+<pre><code>
+PASS generated_error_budget_governor_trace
+cases 32
+</code></pre>
+<p>Current generated model-impact governor simulation result:</p>
+<pre><code>
+PASS generated_model_impact_governor_trace
+cases 5
+</code></pre>
+<p>These five cases are not synthetic threshold examples. They come from the measured tile transformer-impact report. The analog lab first measures how the selected tile residual affects fixed projections, stressed projections, attention scores, and logits. Then <code>model_impact_governor_requests.py</code> compresses that model behavior into <code>residual_q8</code>, <code>sensitivity_q8</code>, and <code>cumulative_error_q8</code>. This checker proves the Verilog governor makes the same accept/refuse decision from those compressed fields.</p>
+<p>Current integrated scheduler/governor simulation result:</p>
+<pre><code>
+PASS generated_integrated_scheduler_governor_trace
+cases 36
+</code></pre>
+<p>Current pipelined scheduler/governor simulation result:</p>
+<pre><code>
+PASS generated_pipelined_scheduler_governor_trace
+cases 36
+</code></pre>
+<p>The pipelined version is checked against the same generated CSV rows as the combinational integrated block. The expected decision is identical; only the hardware timing boundary changes. The testbench drives one case, waits for the registered input stage and registered output stage, and then compares the final decision, selected tile, reason code, and next cumulative error.</p>
+<p>Current pipelined scheduler/governor synthesis result:</p>
+<pre><code>
+aimc_scheduler_governor_pipelined: 184 cells, 92 flip-flops
+integrated hierarchy total: 689 cells, 92 flip-flops
+</code></pre>
+<p>The extra storage is the cost of making the policy a timed object. The earlier pure integrated policy synthesized as a combinational object. That was useful for checking meaning, but it did not create a clocked boundary. The corrected pipelined block adds a middle register between the child scheduler/governor outputs and final arbitration, so the physical flow can time the child policy and the final decision as separate stages.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is treating the scheduler as prose around the accelerator. If the chip needs a serving policy, that policy must eventually become logic, firmware, or both. A block diagram is not enough. The decision must be encoded, simulated, and checked against the same first-principles constraints used in the architecture article.</p>
+<p>The second failure mode is treating every transformer operation as the same kind of arithmetic. The operation partition prevents that. It does not allow the analog array to own masks, softmax, cache addressing, normalization, or token sampling simply because those operations sit near matrix multiplies in the model graph.</p>
+<p>The third failure mode is treating ADC output as model output. It is not. It is a measurement that must pass through offset removal, gain correction, bias correction, saturation checks, residual checks, and calibration-age checks before the digital system lets it affect the model state.</p>
+<p>The fourth failure mode is accepting analog output in the same conceptual step as choosing analog placement. Placement is permission to try the tile. It is not permission to use the tile result. The readout boundary must still accept or reject the measured value.</p>
+<p>The fifth failure mode is treating error budget as a single threshold. The governor separates four reasons to refuse analog service: the local projection residual is too high, calibration is too old, the model path is sensitive, or the cumulative model-state budget has already been spent. Those are different faults and should not be hidden behind one vague safe/unsafe bit.</p>
+<p>The sixth failure mode is letting either runtime block pretend to be the whole system. The scheduler can find an available tile that the governor should still reject. The governor can approve an error spend when no tile is actually serviceable. The integrated block is the first hardware object that makes both statements true at the same time.</p>
+<p>The seventh failure mode is treating pipelining as a performance label. A pipeline only means something when the same policy is checked after the added latency and the extra registers show up in synthesis. Otherwise it is only a diagram. The pipelined scheduler/governor test and synthesis report make the cost visible.</p>
+<p>The higher-level concept page <code>Analog Compute Needs A Trust Boundary</code> explains why this RTL split is the core system rule. The controller is not only routing work. It is protecting model state from measured analog outputs that fail correction, residual, saturation, calibration, or tile-health checks.</p>
+<p>The research page <code>Mixed-Signal Trust Boundary Spec</code> names the interface implemented by <code>aimc_tile_readout</code>: raw ADC code, zero correction, gain, bias, residual, calibration age, tile enable, corrected value, valid/fallback bits, and reason code. The RTL is intentionally small, but it now has a clear contract to grow against.</p>
+<p>The latest controller extension adds <code>tile_id</code>, <code>last_fallback_tile_id</code>, <code>fallback_count</code>, <code>accepted_count</code>, <code>residual_fallback_count</code>, <code>stale_fallback_count</code>, and registered <code>tile_health_action</code>. It also adds four recovery controls: <code>calibration_done</code>, <code>probe_request</code>, <code>probe_passed</code>, and <code>probe_failed</code>. This is not a full monitor yet. It is the first hardware-visible accounting and policy hook: when an analog readout fails, the controller remembers which tile failed and increments a fallback counter; when readout succeeds, it increments an accepted counter; when the failure reason is residual or stale calibration, it increments the matching reason counter. One stale-calibration fallback moves the tile to recalibrate. Repeated residual fallback moves it to disable, because correction is no longer making the tile trustworthy. A disabled tile can move only into probe, and it returns to service only after an explicit probe pass. A recalibrating tile returns to service only after an explicit calibration-done pulse.</p>
+<p>The micro-tile controller cases are generated by the analog lab script <code>generate_micro_tile_rtl_vectors.py</code> into <code>generated_micro_tile_cases.vh</code>. The <code>check_generated_micro_tile_trace.py</code> script regenerates those vectors, runs the Verilog simulation, and compares the simulation trace against the generated CSV row by row. That keeps the Python trace and the Verilog testbench tied to the same sequence: fixed-weight analog acceptance, residual fallback, stale-calibration fallback, disabled-tile fallback, hybrid attention review, digital softmax, missing weights, and repeated residual failure that disables analog service. The manually written maintenance cases then prove the other side of the lifecycle: disabled to probe, failed probe back to disabled, passed probe back to service, stale fallback to recalibrate, and calibration done back to service.</p>
+<p>The tile-service scheduler is intentionally combinational. It does not remember tile history; the tile controllers already own that evidence. Its job is to arbitrate the visible health states. That separation matters. If the scheduler also invented health, then recovery would become a second hidden policy. Here the scheduler only spends the evidence it is given.</p>
+<p>The analog lab script <code>multi_tile_scheduler_runtime.py</code> runs the same policy idea over a token stream and writes <code>multi-tile-scheduler-runtime.csv</code>, <code>multi-tile-scheduler-runtime.md</code>, and <code>generated_tile_scheduler_cases.vh</code>. The <code>check_generated_scheduler_trace.py</code> script regenerates those files, runs the Verilog scheduler testbench, parses the hardware trace, and compares every token row against the CSV. That trace shows why the scheduler exists: individual tile health actions become a sequence of service, recalibration, probe, and digital fallback decisions under a maintenance budget.</p></article></main></body></html>

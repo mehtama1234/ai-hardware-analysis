@@ -1,0 +1,90 @@
+{
+  "all_starting_spice_decks_exist": true,
+  "candidate_workspace": "evidence/aimc-simulator-adapters/candidate-post-layout",
+  "claim_boundary": {
+    "allowed": "turns existing converter SPICE evidence into a concrete analog layout and extraction work order",
+    "not_allowed": "does not create layout, does not create extracted netlists, does not fill measured values, and does not submit accepted post-layout evidence"
+  },
+  "deliverable_count": 5,
+  "deliverables": [
+    {
+      "acceptance": "extracted netlist exists, includes row DAC path, and reports positive DAC row-drive energy and settling time",
+      "candidate_file": "evidence/aimc-simulator-adapters/candidate-post-layout/netlist/row_dac_extracted.sp",
+      "name": "row_dac_layout",
+      "payload_fields": [
+        "extraction.extracted_netlist",
+        "energy.dac_energy_per_row_drive",
+        "latency.settling_time_ns"
+      ],
+      "target": "10-bit row-drive DAC path"
+    },
+    {
+      "acceptance": "extracted netlist exists, includes sample path and SAR readout, and output noise is at or below 0.004 RMS",
+      "candidate_file": "evidence/aimc-simulator-adapters/candidate-post-layout/netlist/sar_readout_extracted.sp",
+      "name": "sar_readout_layout",
+      "payload_fields": [
+        "energy.adc_energy_per_conversion",
+        "latency.conversion_time_ns",
+        "noise.output_noise_rms"
+      ],
+      "target": "12-bit sample/readout ADC path"
+    },
+    {
+      "acceptance": "extracted netlist includes shared mux loading and preserves the 16-output sharing rule used by break-even",
+      "candidate_file": "evidence/aimc-simulator-adapters/candidate-post-layout/netlist/shared_converter_mux_extracted.sp",
+      "name": "shared_mux_layout",
+      "payload_fields": [
+        "sharing.outputs_per_conversion_cost",
+        "area.replication_or_sharing_rule"
+      ],
+      "target": "shared converter mux and loading path"
+    },
+    {
+      "acceptance": "positive ADC and DAC area values come from the layout or extracted macro boundary",
+      "candidate_file": "evidence/aimc-simulator-adapters/candidate-post-layout/models/converter_layout_area_record.json",
+      "name": "converter_macro_area",
+      "payload_fields": [
+        "area.adc_area_um2",
+        "area.dac_area_um2"
+      ],
+      "target": "combined DAC, ADC, reference, mux, and sample layout boundary"
+    },
+    {
+      "acceptance": "rerun artifact uses extracted energy, latency, noise, area, and the same sharing rule as the payload",
+      "candidate_file": "evidence/aimc-simulator-adapters/candidate-post-layout/rerun/converter-post-layout-break-even-rerun.json",
+      "name": "same_run_break_even_rerun",
+      "payload_fields": [
+        "break_even_rerun.rerun_artifact",
+        "break_even_rerun.replacement_decision",
+        "break_even_rerun.run_id"
+      ],
+      "target": "break-even decision using extracted converter values"
+    }
+  ],
+  "repo_local_analog_layout_file_count": 9,
+  "result_type": "analog_converter_layout_work_order",
+  "starting_spice_decks": [
+    {
+      "exists": true,
+      "path": "labs/analog/analog-in-memory-foundation-model-hardware/spice/row_dac_settling_10bit.sp"
+    },
+    {
+      "exists": true,
+      "path": "labs/analog/analog-in-memory-foundation-model-hardware/spice/sar_readout_12bit.sp"
+    },
+    {
+      "exists": true,
+      "path": "labs/analog/analog-in-memory-foundation-model-hardware/spice/shared_converter_loading.sp"
+    },
+    {
+      "exists": true,
+      "path": "labs/analog/analog-in-memory-foundation-model-hardware/spice/converter_supply_energy.sp"
+    }
+  ],
+  "status": "layout_work_order_ready_waiting_for_converter_layout",
+  "strict_payload_after_work_order": [
+    "python3 scripts/build_converter_post_layout_candidate_from_real_run.py --workspace evidence/aimc-simulator-adapters/candidate-post-layout ...",
+    "python3 scripts/run_converter_post_layout_candidate_readiness.py",
+    "python3 scripts/submit_converter_post_layout_payload.py evidence/aimc-simulator-adapters/candidate-post-layout/payload.json"
+  ]
+}

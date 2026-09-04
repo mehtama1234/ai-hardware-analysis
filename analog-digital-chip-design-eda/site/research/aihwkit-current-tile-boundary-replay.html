@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIHWKIT Current Tile Boundary Replay</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>AIHWKIT Current Tile Boundary Replay</h1><p class="lead">Source: docs/research/aihwkit-current-tile-boundary-replay.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>AIHWKIT Current Tile Boundary Replay</h1>
+<p>This page is the review page for the AIHWKIT current-tile replay.</p>
+<p>The generated source report is:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-current-tile-boundary-replay.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-current-tile-boundary-replay.md</code></li>
+</ul>
+<h2>Object</h2>
+<p>The object is the same AIHWKIT MatMul row, but constrained to the current local tile converter boundary.</p>
+<p>The tile boundary is 4-bit DAC and 6-bit ADC. That means the input and output cannot carry arbitrary real values. They must pass through finite bins.</p>
+<h2>Boundary</h2>
+<p>This page is the countercheck to the stronger AIHWKIT forward-setting sweep.</p>
+<p>The sweep tells us what settings can pass. This replay tells us what the current local tile boundary does. If the residual is too high here, the honest next step is either a stronger converter design or digital fallback for those rows.</p>
+<h2>Refused Claim</h2>
+<p>This page does not prove measured silicon, measured runtime, measured power, macro layout, PCM device accuracy, or production readiness. It does not weaken the guarded residual threshold.</p>
+<h2>Next Handoff</h2>
+<p>Use this replay to decide whether the current tile is enough for the tested MatMul rows. If not, design the stronger converter/noise boundary explicitly instead of hiding it inside a simulator setting.</p>
+<p>---</p>
+<h1>AIHWKIT Current Tile Boundary Replay</h1>
+<p>This replay runs AIHWKIT with the current local tile converter boundary instead of a stronger sweep setting.</p>
+<ul>
+<li>tile DAC bits: <code>4</code></li>
+<li>tile ADC bits: <code>6</code></li>
+<li>rows checked: <code>16</code></li>
+<li>passing rows: <code>0</code></li>
+<li>failing rows: <code>16</code></li>
+<li>max residual: <code>1.000000</code></li>
+<li>worst row: <code>deep_transformer_mlp_stack/block0.down.matmul</code></li>
+</ul>
+<h2>Rows</h2>
+<table><tbody>
+<tr><th>fixture</th><th>candidate</th><th>shape</th><th>residual</th><th>pass</th></tr>
+<tr><td>attention_block</td><td>attn.q.matmul</td><td>[8, 8]</td><td>0.422950</td><td>False</td></tr>
+<tr><td>attention_block</td><td>attn.k.matmul</td><td>[8, 8]</td><td>0.375675</td><td>False</td></tr>
+<tr><td>attention_block</td><td>attn.v.matmul</td><td>[8, 8]</td><td>0.373555</td><td>False</td></tr>
+<tr><td>attention_block</td><td>attn.out.matmul</td><td>[8, 8]</td><td>0.975279</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block0.gate.matmul</td><td>[32, 64]</td><td>0.352811</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block0.up.matmul</td><td>[32, 64]</td><td>0.361450</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block0.down.matmul</td><td>[64, 32]</td><td>1.000000</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block0.out.matmul</td><td>[32, 32]</td><td>0.585126</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block1.gate.matmul</td><td>[32, 64]</td><td>1.000000</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block1.up.matmul</td><td>[32, 64]</td><td>1.000000</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block1.down.matmul</td><td>[64, 32]</td><td>1.000000</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block1.out.matmul</td><td>[32, 32]</td><td>1.000000</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block2.gate.matmul</td><td>[32, 64]</td><td>0.725273</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block2.up.matmul</td><td>[32, 64]</td><td>0.901072</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block2.down.matmul</td><td>[64, 32]</td><td>0.753919</td><td>False</td></tr>
+<tr><td>deep_transformer_mlp_stack</td><td>block2.out.matmul</td><td>[32, 32]</td><td>1.000000</td><td>False</td></tr>
+</tbody></table>
+<h2>First-Principles Reading</h2>
+<p>A tile boundary is a promise about finite decisions. A 4-bit DAC has only sixteen input levels. A 6-bit ADC has only sixty-four output levels. If the model row needs finer distinctions than those bins preserve, the analog result moves away from the digital reference.</p>
+<p>This replay keeps the strict residual threshold and asks what the current tile boundary does. It is the honest counterpart to the stronger forward-setting sweep.</p>
+<h2>Refused Claim</h2>
+<p>This replay does not prove measured silicon, measured board runtime, measured power, macro layout, PCM device accuracy, or production readiness. It does not turn failing rows into placement evidence.</p></article></main></body></html>

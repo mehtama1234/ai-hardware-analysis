@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conductance Stores A Weight</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Conductance Stores A Weight</h1><p class="lead">Source: docs/concepts/conductance-stores-a-weight.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Conductance Stores A Weight</h1>
+<p>The object is conductance: the ease with which a device lets current pass when a voltage is placed across it. In a digital memory cell the stored bit is read as a symbol. In analog in-memory compute the stored value is read as a physical slope. If the voltage is the input and the current is the output, the cell is acting like a multiplier because <code>I = G * V</code>. The weight is not a number sitting beside the compute unit. The weight is the device response itself.</p>
+<p>The constraint is that a device is not an ideal real number. It has a minimum conductance, maximum conductance, programming error, read noise, drift, temperature dependence, and finite endurance. A neural network weight can be positive or negative, but one passive conductance is usually nonnegative. A common concrete design move is therefore to represent one signed weight with two devices or two columns: one stores the positive part and one stores the negative part. The circuit subtracts the two currents after reading. That turns signed arithmetic into a difference of physical currents.</p>
+<p>The mathematical shape is simple before the nonidealities enter:</p>
+<pre><code>
+y = Gx
+</code></pre>
+<p>For one cell:</p>
+<pre><code>
+I = G * V
+</code></pre>
+<p>For a programmed device:</p>
+<pre><code>
+G_actual = G_target + programming_error + drift + noise
+</code></pre>
+<p>So the real operation is not <code>I = G_target V</code>. It is <code>I = G_actual V</code>, and the gap between target and actual becomes model error. This is why analog memory compute must be read as a controlled approximation, not as a free matrix multiply.</p>
+<p>The concrete design move is to choose a conductance range and mapping rule. A digital weight is scaled into a target conductance range. The programmer pulses the device until the measured conductance is close enough. The runtime circuit then applies voltages and reads currents. Calibration measures systematic column or device error and stores correction factors in digital memory. The analog part performs the cheap physical multiplication; the digital part remembers what the analog part actually became.</p>
+<p>The measurement is not only top-1 accuracy or tokens per second. The first measurement is conductance error: target versus measured conductance after programming. The second is read stability: repeated reads of the same input. The third is drift: how the conductance changes over time. The fourth is model-level damage: how much the layer output changes after the weight matrix is replaced by its physical approximation.</p>
+<p>The failure mode is pretending the programmed cell is the requested weight. If the conductance range is too narrow, weights collapse into too few distinguishable levels. If the range is too wide, small weights are hard to represent and large currents stress the array. If drift is not measured, yesterday&#x27;s weight is not today&#x27;s weight. If signed weights are mapped poorly, subtraction doubles noise. The device can store a weight only when the architecture also stores the evidence that the physical slope is close enough for the model computation using it.</p></article></main></body></html>

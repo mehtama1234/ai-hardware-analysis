@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Optional AIMC Simulator Install Path</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Optional AIMC Simulator Install Path</h1><p class="lead">Source: docs/research/optional-aimc-simulator-install-path.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Optional AIMC Simulator Install Path</h1>
+<p>This page explains how the optional AIHWKIT and CrossSim tools are installed and used.</p>
+<p>The point is not to make the environment look complete. The point is to make the next evidence step executable.</p>
+<h2>Object</h2>
+<p>The object is the optional simulator environment:</p>
+<ul>
+<li>AIHWKIT for model-level analog behavior</li>
+<li>CrossSim for crossbar-style matrix behavior</li>
+<li>the local adapter scripts that decide whether either tool actually ran</li>
+</ul>
+<p>These tools sit after the local ngspice and RTL bridge. They can add stronger simulator evidence, but only for the model, layer, or crossbar case they actually execute.</p>
+<h2>Constraint</h2>
+<p>Installation is not evidence.</p>
+<p>A Python module can be importable and still prove nothing about the selected analog workload. It becomes useful only when it runs on a concrete object, states its device and array assumptions, measures the difference from a digital reference, and writes the strict JSON payload required by <code>analog-simulator-adapter-output-contract.md</code>.</p>
+<h2>Design Move</h2>
+<p>Use the optional installer:</p>
+<pre><code>
+./scripts/install_optional_aimc_simulators.sh --all
+</code></pre>
+<p>It creates a local virtual environment under <code>$HOME/eda-tools/aimc-simulators-venv</code> by default.</p>
+<p>Current local install:</p>
+<ul>
+<li>AIHWKIT: installed in the optional simulator venv</li>
+<li>CrossSim: installed from the Sandia <code>cross-sim</code> checkout</li>
+<li>simulator venv: <code>$HOME/eda-tools/aimc-simulators-venv</code></li>
+<li>CrossSim checkout: <code>$HOME/eda-tools/cross-sim</code></li>
+</ul>
+<p>AIHWKIT follows the official IBM install path:</p>
+<pre><code>
+pip install aihwkit
+</code></pre>
+<p>CrossSim follows the Sandia GitHub install path:</p>
+<pre><code>
+git clone https://github.com/sandialabs/cross-sim.git
+pip install ./cross-sim
+</code></pre>
+<p>After install, activate the environment:</p>
+<pre><code>
+source &quot;$HOME/eda-tools/aimc-simulators-venv/bin/activate&quot;
+</code></pre>
+<p>Then run:</p>
+<pre><code>
+./scripts/check_tools.sh
+python3 scripts/check_aimc_simulator_adapters.py
+</code></pre>
+<p>If either module is importable, the adapter script tries a tiny smoke run. A smoke run proves that the tool can execute a small case. It does not prove the analog foundation-model design.</p>
+<h2>Evidence</h2>
+<p>The first evidence after installation is availability evidence:</p>
+<ul>
+<li><code>./scripts/check_tools.sh</code> should stop reporting <code>OPTIONAL-MISSING</code> for the installed module</li>
+<li><code>evidence/aimc-simulator-adapters/simulator-adapter-status.json</code> should record whether the adapter was skipped, ran, or failed</li>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-smoke-run.json</code> or <code>crosssim-smoke-run.json</code> should appear only if the tiny smoke run succeeds</li>
+</ul>
+<p>The stronger evidence is a strict simulator payload:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/crosssim-analog-error-simulation.json</code></li>
+</ul>
+<p>Those files must pass:</p>
+<pre><code>
+python3 scripts/import_analog_simulator_payload.py &lt;payload.json&gt;
+</code></pre>
+<p>Only after validate-only mode passes should <code>--import</code> be used.</p>
+<h2>Allowed Claim</h2>
+<p>The system can say:</p>
+<p>The lab has a reproducible install path for optional AIHWKIT and CrossSim adapters, and the bridge can check whether those tools are missing, importable, smoke-runnable, or ready to produce strict simulator evidence.</p>
+<h2>Refused Claim</h2>
+<p>The system cannot say:</p>
+<ul>
+<li>AIHWKIT evidence exists because <code>pip install aihwkit</code> completed</li>
+<li>CrossSim evidence exists because the repository was cloned</li>
+<li>a smoke run proves model accuracy</li>
+<li>a simulator payload proves board latency, board power, calibrated silicon, package reliability, or tapeout readiness</li>
+<li>optional simulator availability changes the production claim</li>
+</ul>
+<h2>Next Handoff</h2>
+<p>The next real work is a run adapter that maps one selected analog candidate into AIHWKIT or CrossSim, compares it with the digital baseline, and exports a strict payload.</p>
+<p>If the upstream tools do not expose the required fields, patch the adapter first. Patch AIHWKIT or CrossSim only when the missing field cannot be recovered outside the tool.</p></article></main></body></html>

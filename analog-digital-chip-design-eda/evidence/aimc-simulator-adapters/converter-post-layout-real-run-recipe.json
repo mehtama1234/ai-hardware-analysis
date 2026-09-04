@@ -1,0 +1,153 @@
+{
+  "claim_boundary": {
+    "allowed": "turns the current checklist and handoff manifest into an ordered real-run recipe",
+    "not_allowed": "does not provide extracted files, measured values, accepted evidence, or analog replacement proof"
+  },
+  "commands": {
+    "readiness": "python3 scripts/run_converter_post_layout_candidate_readiness.py",
+    "submit_if_ready": "python3 scripts/submit_converter_post_layout_payload.py evidence/aimc-simulator-adapters/candidate-post-layout/payload.json"
+  },
+  "current_candidate_status": "candidate_not_ready_for_strict_submission",
+  "fixed_target_boundary": {
+    "adc_bits": 12,
+    "columns_served": 4,
+    "converter_instances": 4,
+    "dac_bits": 10,
+    "output_noise_budget_max": 0.004,
+    "outputs_per_conversion_cost": 16,
+    "rows_served": 64
+  },
+  "manual_write_forbidden": "accepted-post-layout must be written only by scripts/submit_converter_post_layout_payload.py",
+  "ready_for_strict_submission": false,
+  "recipe_steps": [
+    {
+      "action": "Choose one converter layout for the 10-bit DAC input and 12-bit ADC readout target.",
+      "name": "choose_converter_layout",
+      "order": 1,
+      "payload_fields": [
+        "converter_id"
+      ],
+      "proof_object": "one named converter macro, extracted view, or silicon measurement object"
+    },
+    {
+      "action": "Produce an inspectable extracted circuit file and place it under the candidate netlist folder.",
+      "name": "extract_post_layout_circuit",
+      "order": 2,
+      "payload_fields": [
+        "extraction.extracted_netlist",
+        "extraction.parasitic_format",
+        "netlist"
+      ],
+      "proof_object": "extracted SPICE, DSPF, SPEF, or equivalent extracted circuit artifact"
+    },
+    {
+      "action": "Place process model files or measurement setup records under the candidate models folder.",
+      "name": "collect_run_models_or_measurement_setup",
+      "order": 3,
+      "payload_fields": [
+        "simulation.model_files[0]",
+        "model_file_0"
+      ],
+      "proof_object": "model deck, corner include, parasitic include, or measurement setup record"
+    },
+    {
+      "action": "Use one non-placeholder run id for the whole post-layout or measured-silicon run.",
+      "name": "run_one_named_experiment",
+      "order": 4,
+      "payload_fields": [
+        "provenance.created_at",
+        "provenance.generator_or_lab_notebook",
+        "provenance.operator",
+        "provenance.run_id",
+        "simulation.run_id",
+        "energy.run_id",
+        "latency.run_id",
+        "noise.run_id",
+        "area.run_id",
+        "break_even_rerun.run_id"
+      ],
+      "proof_object": "shared run identity"
+    },
+    {
+      "action": "Record energy, latency, noise, area, voltage, temperature, and process or measured condition from that same run.",
+      "name": "record_physical_values",
+      "order": 5,
+      "payload_fields": [
+        "energy.adc_energy_per_conversion",
+        "energy.dac_energy_per_row_drive",
+        "energy.run_id",
+        "latency.conversion_time_ns",
+        "latency.run_id",
+        "latency.settling_time_ns",
+        "noise.input_referred_noise",
+        "noise.output_noise_rms",
+        "noise.run_id",
+        "area.adc_area_um2",
+        "area.dac_area_um2",
+        "area.run_id",
+        "simulation.voltage_v",
+        "simulation.temperature_c",
+        "simulation.process_corner",
+        "simulation.command",
+        "simulation.simulator"
+      ],
+      "proof_object": "numbers tied to the extracted converter or measured silicon object"
+    },
+    {
+      "action": "Keep the fixed DAC, ADC, noise, and sharing boundary unless the break-even model changes too.",
+      "name": "check_fixed_boundary",
+      "order": 6,
+      "payload_fields": [
+        "target_boundary",
+        "sharing"
+      ],
+      "proof_object": "fixed target boundary"
+    },
+    {
+      "action": "Rerun the break-even calculation with extracted or measured values and place the source rerun JSON under the candidate rerun folder.",
+      "name": "rerun_break_even",
+      "order": 7,
+      "payload_fields": [
+        "break_even_rerun.replacement_decision",
+        "break_even_rerun.rerun_artifact",
+        "break_even_rerun.run_id",
+        "rerun_artifact"
+      ],
+      "proof_object": "source break-even rerun artifact"
+    },
+    {
+      "action": "Fill payload.json, remove template_only only after all placeholders and file paths are real, then run readiness.",
+      "name": "fill_candidate_payload",
+      "order": 8,
+      "payload_fields": [
+        "payload.json",
+        "template_only"
+      ],
+      "proof_object": "candidate payload ready for strict preflight"
+    },
+    {
+      "action": "Submit only after readiness reports ready for strict submission.",
+      "name": "strict_submit_only_if_ready",
+      "order": 9,
+      "payload_fields": [
+        "accepted-post-layout"
+      ],
+      "proof_object": "accepted post-layout rerun and submission report written by the strict command"
+    }
+  ],
+  "required_shared_run_id_fields": [
+    "provenance.run_id",
+    "simulation.run_id",
+    "energy.run_id",
+    "latency.run_id",
+    "noise.run_id",
+    "area.run_id",
+    "break_even_rerun.run_id"
+  ],
+  "result_type": "converter_post_layout_real_run_recipe",
+  "source_checklist": "evidence/aimc-simulator-adapters/converter-post-layout-candidate-fill-checklist.json",
+  "source_handoff_manifest": "evidence/aimc-simulator-adapters/converter-post-layout-handoff-manifest.json",
+  "source_readiness_run": "evidence/aimc-simulator-adapters/converter-post-layout-candidate-readiness-run.json",
+  "status": "real_run_recipe_ready_not_evidence",
+  "step_count": 9
+}

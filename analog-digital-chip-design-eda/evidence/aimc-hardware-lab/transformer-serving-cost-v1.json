@@ -1,0 +1,94 @@
+{
+  "schema_version": "aimc_transformer_serving_cost.v1",
+  "status": "normalized_serving_policy_estimate",
+  "model_shape": {
+    "hidden": 4096,
+    "layers": 32,
+    "mlp_ratio": 4,
+    "bytes_per_value": 2
+  },
+  "tile": {
+    "rows": 128,
+    "cols": 128,
+    "adc_bits": 6,
+    "dac_bits": 6
+  },
+  "cost_model": {
+    "analog_mac": 1.0,
+    "digital_mac": 12.0,
+    "adc_base": 18.0,
+    "dac_base": 5.0,
+    "digital_accum": 0.6,
+    "memory_byte": 0.08,
+    "calibration_unit": 50000000.0
+  },
+  "scenarios": [
+    {
+      "phase": "prefill",
+      "tokens": 2048,
+      "batch": 1,
+      "active_context": 2048,
+      "calibration_due": "no",
+      "tile_health": 0.02,
+      "analog_to_digital": 0.14361110101394262,
+      "cache_to_analog_projection": 3.777817130039549e-06,
+      "estimated_error": 0.0925,
+      "decision": "analog",
+      "reason": "projection reuse pays for boundary cost"
+    },
+    {
+      "phase": "decode",
+      "tokens": 128,
+      "batch": 1,
+      "active_context": 2048,
+      "calibration_due": "no",
+      "tile_health": 0.02,
+      "analog_to_digital": 0.1445611240331923,
+      "cache_to_analog_projection": 0.007736969482320996,
+      "estimated_error": 0.0925,
+      "decision": "analog",
+      "reason": "projection reuse pays for boundary cost"
+    },
+    {
+      "phase": "decode",
+      "tokens": 128,
+      "batch": 1,
+      "active_context": 8192,
+      "calibration_due": "no",
+      "tile_health": 0.02,
+      "analog_to_digital": 0.1473999698605158,
+      "cache_to_analog_projection": 0.030947877929283985,
+      "estimated_error": 0.0925,
+      "decision": "digital",
+      "reason": "single-request long-context decode is cache-limited"
+    },
+    {
+      "phase": "decode",
+      "tokens": 128,
+      "batch": 8,
+      "active_context": 2048,
+      "calibration_due": "no",
+      "tile_health": 0.02,
+      "analog_to_digital": 0.1445611240331923,
+      "cache_to_analog_projection": 0.007736969482320996,
+      "estimated_error": 0.0625,
+      "decision": "analog_batched_decode",
+      "reason": "batch reuse is enough to amortize converters"
+    },
+    {
+      "phase": "prefill",
+      "tokens": 2048,
+      "batch": 1,
+      "active_context": 2048,
+      "calibration_due": "yes",
+      "tile_health": 0.08,
+      "analog_to_digital": 0.14361144207427073,
+      "cache_to_analog_projection": 3.777817130039549e-06,
+      "estimated_error": 0.15250000000000002,
+      "decision": "digital",
+      "reason": "estimated state error is above budget"
+    }
+  ],
+  "interpretation": "Analog is a candidate for repeated fixed projections when boundary cost, cache traffic, and estimated state error remain within budget. Prefill and batched decode can qualify; long-context single-request decode or stale calibration can require digital service.",
+  "claim_boundary": "Relative planning estimate only; not measured latency, energy, board power, thermal behavior, or silicon evidence."
+}

@@ -1,0 +1,156 @@
+{
+  "schema_version": "aimc_end_to_end_workload_portfolio.v1",
+  "portfolio_id": "mixed-memory-ai-inference-portfolio-v1",
+  "purpose": "Track workload coverage, evidence level, and next proof for the common analog/digital/SRAM compiler and hardware path.",
+  "shared_acceptance_contract": {
+    "hardware_profile_id": "educational-hybrid-tile-v1",
+    "same_model_dataset_metric": true,
+    "required_execution_modes": ["digital_only", "hybrid_guarded", "hybrid_analog_enabled"],
+    "required_system_metrics": [
+      "task_metric",
+      "end_to_end_latency",
+      "energy_per_inference",
+      "power",
+      "thermal_behavior",
+      "sram_traffic",
+      "converter_crossings",
+      "fallback_rate"
+    ],
+    "analog_enablement_gate": "blocked_sar_source_common_mode"
+  },
+  "workloads": [
+    {
+      "stage": 1,
+      "workload_id": "tiny-mlp-task-v1",
+      "family": "edge_classifier",
+      "model_id": "tiny-mlp",
+      "dataset_id": "tiny-mlp-binary-v1",
+      "task_metric": "classification_accuracy",
+      "status": "synthetic_task_rehearsal_pass",
+      "evidence": ["evidence/aimc-hardware-lab/tiny-mlp-task-evaluation-v1.json", "evidence/aimc-hardware-lab/tiny-mlp-task-governor-bridge-v1.json", "evidence/aimc-hybrid-tiny-mlp-task/workload_contract.json", "evidence/aimc-hybrid-tiny-mlp-task/hybrid_execution_plan.json", "evidence/aimc-hybrid-tiny-mlp-task/hybrid_output_comparison.json"],
+      "next_proof": "real_held_out_task_data_and_shared_compiler_package"
+    },
+    {
+      "stage": 1,
+      "workload_id": "projection-stack-v1",
+      "family": "dense_projection_stack",
+      "model_id": "projection-stack",
+      "dataset_id": "deterministic-projection-replay-v1",
+      "task_metric": "relative_l2_output_difference",
+      "status": "crosssim_positive_simulator_path",
+      "evidence": ["docs/research/projection-stack-simulator-evidence.md", "evidence/aimc-simulator-adapters/crosssim-projection-stack-analog-error-simulation.json", "evidence/aimc-hybrid-projection-stack/workload_contract.json", "evidence/aimc-hybrid-projection-stack/hybrid_execution_plan.json", "evidence/aimc-hybrid-projection-stack/hybrid_output_comparison.json"],
+      "next_proof": "converter_cost_accounting_and_physical_compatibility_after_sar_gate"
+    },
+    {
+      "stage": 1,
+      "workload_id": "wake-nonwake-audio-v1",
+      "family": "edge_audio_classifier",
+      "model_id": "wake-nonwake-mlp",
+      "dataset_id": "wake-nonwake-audio-v1",
+      "task_metric": "wake_word_f1",
+      "status": "generated_audio_rehearsal_pass_digital_selected",
+      "evidence": ["evidence/aimc-hybrid-audio-workload/workload_contract.json", "evidence/aimc-hybrid-audio-workload/hybrid_output_comparison.json"],
+      "next_proof": "versioned_real_or_captured_audio_and_measured_latency_energy"
+    },
+    {
+      "stage": 2,
+      "workload_id": "transformer-mlp-block-v1",
+      "family": "transformer_mlp",
+      "model_id": "transformer-mlp-block",
+      "dataset_id": "deterministic-mlp-block-held-out-v1",
+      "task_metric": "relative_l2_output_difference",
+      "status": "calibrated_crosssim_replay_pass",
+      "evidence": ["evidence/aimc-hybrid-transformer-mlp-block/workload_contract.json", "evidence/aimc-hybrid-transformer-mlp-block/hybrid_output_comparison.json"],
+      "next_proof": "physically_guarded_runtime_then_analog_enablement_after_sar_closure"
+    },
+    {
+      "stage": 2,
+      "workload_id": "attention-block-v1",
+      "family": "transformer_attention",
+      "model_id": "attention-block",
+      "dataset_id": "deterministic-attention-replay-v1",
+      "task_metric": "relative_l2_output_difference",
+      "status": "calibrated_crosssim_replay_pass_dynamic_path_digital",
+      "evidence": ["evidence/aimc-hybrid-transformer-attention-slice/workload_contract.json", "evidence/aimc-hybrid-transformer-attention-slice/hybrid_output_comparison.json"],
+      "next_proof": "attention_boundary_traffic_latency_and_score_sensitivity"
+    },
+    {
+      "stage": 2,
+      "workload_id": "deep-transformer-mlp-stack-v1",
+      "family": "repeated_transformer_mlp",
+      "model_id": "deep-transformer-mlp-stack",
+      "dataset_id": "deterministic-held-out-replay-v1",
+      "task_metric": "relative_l2_output_difference",
+      "status": "calibrated_crosssim_replay_pass_physical_sar_blocked",
+      "evidence": ["evidence/aimc-hybrid-transformer-vertical-slice/workload_contract.json", "evidence/aimc-hybrid-transformer-vertical-slice/hybrid_output_comparison.json", "docs/research/hybrid-transformer-vertical-slice-review.md"],
+      "next_proof": "close_source_common_mode_sar_then_full_hybrid_comparison"
+    },
+    {
+      "stage": 3,
+      "workload_id": "compact-vision-or-defect-v1",
+      "family": "compact_vision_or_inspection",
+      "model_id": "compact-defect-classifier-intake",
+      "dataset_id": "compact-vision-intake-scenarios-v1",
+      "task_metric": "intake_placement_and_cost_policy_replay",
+      "status": "imported_intake_package_generated",
+      "evidence": ["evidence/aimc-hybrid-compact-vision-defect/source_intake.json", "evidence/aimc-hybrid-compact-vision-defect/workload_contract.json", "evidence/aimc-hybrid-compact-vision-defect/hybrid_execution_plan.json", "evidence/aimc-hybrid-compact-vision-defect/hybrid_output_comparison.json", "docs/research/aimc-end-to-end-implementation-goal.md"],
+      "next_proof": "freeze_real_model_dataset_metric_and_analog_reuse_case"
+    },
+    {
+      "stage": 3,
+      "workload_id": "small-language-model-serving-v1",
+      "family": "transformer_serving",
+      "model_id": "small-language-model-serving-shape-v1",
+      "dataset_id": "synthetic-token-serving-scenarios-v1",
+      "task_metric": "next_token_accuracy",
+      "status": "synthetic_token_quality_rehearsal_pass",
+      "evidence": ["evidence/aimc-hardware-lab/language-model-serving-task-rehearsal-v1.json", "evidence/aimc-hardware-lab/datasets/language-model-serving-token-rehearsal-v1.json", "evidence/aimc-hybrid-language-model-serving/workload_contract.json", "evidence/aimc-hybrid-language-model-serving/hybrid_execution_plan.json", "evidence/aimc-hybrid-language-model-serving/hybrid_output_comparison.json", "docs/research/transformer-operation-partition-for-hybrid-aimc.md", "evidence/aimc-hardware-lab/transformer-serving-cost-v1.json"],
+      "next_proof": "real_token_dataset_and_end_to_end_kv_cache_serving_trace"
+    },
+    {
+      "stage": 3,
+      "workload_id": "wearable-keyword-v1",
+      "family": "wearable_keyword_detection",
+      "model_id": "keyword-detector-v3-intake",
+      "dataset_id": "wearable-keyword-intake-scenarios-v1",
+      "task_metric": "false_accept_and_false_reject_rate",
+      "status": "imported_intake_package_generated",
+      "evidence": ["evidence/aimc-hybrid-wearable-keyword/source_intake.json", "evidence/aimc-hybrid-wearable-keyword/workload_contract.json", "evidence/aimc-hybrid-wearable-keyword/hybrid_execution_plan.json", "evidence/aimc-hybrid-wearable-keyword/hybrid_output_comparison.json", "docs/research/aimc-end-to-end-implementation-goal.md"],
+      "next_proof": "freeze_captured_keyword_data_sensor_boundary_and_task_metric"
+    },
+    {
+      "stage": 3,
+      "workload_id": "smart-camera-inspection-v1",
+      "family": "smart_camera_inspection",
+      "model_id": "camera-defect-classifier-intake",
+      "dataset_id": "smart-camera-inspection-intake-scenarios-v1",
+      "task_metric": "classification_or_detection_metric_plus_sensor_to_output_latency",
+      "status": "imported_intake_package_generated",
+      "evidence": ["evidence/aimc-hybrid-smart-camera-inspection/source_intake.json", "evidence/aimc-hybrid-smart-camera-inspection/workload_contract.json", "evidence/aimc-hybrid-smart-camera-inspection/hybrid_execution_plan.json", "evidence/aimc-hybrid-smart-camera-inspection/hybrid_output_comparison.json", "docs/research/aimc-end-to-end-implementation-goal.md"],
+      "next_proof": "freeze_image_dataset_preprocessing_graph_and_analog_reuse_case"
+    },
+    {
+      "stage": 4,
+      "workload_id": "robot-sensor-policy-v1",
+      "family": "robotics_sensor_policy",
+      "model_id": "fusion-transformer-small-intake",
+      "dataset_id": "robot-sensor-policy-intake-scenarios-v1",
+      "task_metric": "control_jitter_and_task_completion",
+      "status": "imported_intake_package_generated",
+      "evidence": ["evidence/aimc-hybrid-robot-sensor-policy/source_intake.json", "evidence/aimc-hybrid-robot-sensor-policy/workload_contract.json", "evidence/aimc-hybrid-robot-sensor-policy/hybrid_execution_plan.json", "evidence/aimc-hybrid-robot-sensor-policy/hybrid_output_comparison.json", "docs/research/aimc-end-to-end-implementation-goal.md"],
+      "next_proof": "freeze_sensor_logs_controller_boundary_and_safety_metric"
+    },
+    {
+      "stage": 4,
+      "workload_id": "vla-or-physical-ai-v1",
+      "family": "physical_ai_control",
+      "model_id": "vla-policy-intake",
+      "dataset_id": "vla-physical-ai-intake-scenarios-v1",
+      "task_metric": "intake_placement_and_cost_policy_replay",
+      "status": "imported_intake_package_generated",
+      "evidence": ["evidence/aimc-hybrid-vla-physical-ai/source_intake.json", "evidence/aimc-hybrid-vla-physical-ai/workload_contract.json", "evidence/aimc-hybrid-vla-physical-ai/hybrid_execution_plan.json", "evidence/aimc-hybrid-vla-physical-ai/hybrid_output_comparison.json", "docs/research/aimc-end-to-end-implementation-goal.md"],
+      "next_proof": "pass_physical_converter_runtime_economics_and_safety_gates_first"
+    }
+  ],
+  "program_exit_condition": "At least one real task workload and digital baseline pass the common compiler, physical converter, runtime, and measured system-cost gates; the remaining portfolio has explicit evidence or an explicit blocked status."
+}

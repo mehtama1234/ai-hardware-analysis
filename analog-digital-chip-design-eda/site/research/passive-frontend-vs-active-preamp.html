@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Passive Frontend Vs Active Preamp</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Passive Frontend Vs Active Preamp</h1><p class="lead">Source: docs/research/passive-frontend-vs-active-preamp.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Passive Frontend Vs Active Preamp</h1>
+<p>This page explains the next design choice for the Sky130 analog readout path.</p>
+<p>The project has a small differential signal that reaches the sense nodes with the correct sign. The signal is still not strong enough for accepted comparator evidence. The current best extracted transfer is <code>0.437908</code>; the target before latch proof is <code>1.0</code>.</p>
+<p>The design now has two honest paths:</p>
+<pre><code>
+make the passive frontend waste less signal
+or
+add active gain before the latch
+</code></pre>
+<p>Both can be right. They solve different physical problems and they create different evidence burdens.</p>
+<h2>The Simple Question</h2>
+<p>The simple question is:</p>
+<p>Should the circuit protect the tiny signal, or should it amplify the tiny signal?</p>
+<p>A passive frontend tries to protect the signal. It uses layout, capacitance, matching, and isolation. It does not add bias current. It tries to move charge from the sampled node to the sense node without letting the latch push too much charge back.</p>
+<p>An active preamp tries to amplify the signal. It uses transistors and bias current. It takes a small sense-node voltage and makes a larger voltage before the latch decides.</p>
+<p>The choice is not about which one sounds more advanced. The choice is about which one creates more decision margin after its own costs are counted.</p>
+<h2>What The Passive Path Means</h2>
+<p>The passive path says:</p>
+<pre><code>
+do not add an amplifier yet
+make the physical handoff cleaner
+</code></pre>
+<p>The useful object is charge. The sampled voltage difference stores a small charge difference. The frontend moves part of that charge onto the sense nodes. The comparator reads the sense-node voltage.</p>
+<p>The passive design wins when:</p>
+<pre><code>
+useful coupling goes up
+wasted sense capacitance goes down
+kickback path stays weak
+matching stays symmetric
+</code></pre>
+<p>The recent evidence shows why this is hard. The ultra frontend increased direct sample-to-sense capacitance to <code>0.8 fF</code>, but the average sense-node capacitance also rose to <code>3.292970 fF</code>. The measured transfer improved to <code>0.437908</code>, but it did not reach <code>1.0</code>.</p>
+<p>That means making everything larger is not enough. The next passive design must be more selective. It must keep the useful coupling while removing capacitance that does not carry signal.</p>
+<h2>What The Active Path Means</h2>
+<p>The active path says:</p>
+<pre><code>
+accept that the passive sense voltage is small
+use transistor gain before the latch
+</code></pre>
+<p>A preamp can make the latch&#x27;s job easier. If the sense node gives only part of the needed input voltage, a preamp can enlarge that difference before positive feedback starts.</p>
+<p>But active gain is not free. A preamp adds:</p>
+<ul>
+<li>input capacitance</li>
+<li>static or switched bias current</li>
+<li>input-referred offset</li>
+<li>input-referred noise</li>
+<li>finite settling time</li>
+<li>output swing limits</li>
+<li>possible stability problems</li>
+<li>more area</li>
+<li>more layout matching burden</li>
+</ul>
+<p>So the active path is useful only if the gained voltage is larger than the new errors it introduces.</p>
+<p>The right test is:</p>
+<pre><code>
+preamp output margin
+  &gt; preamp offset
+  + preamp noise
+  + added kickback
+  + settling error
+</code></pre>
+<p>If that inequality passes, active gain bought real margin. If it fails, the preamp only made the circuit look more complex.</p>
+<h2>Why This Choice Exists</h2>
+<p>The earlier direct-coupled latch showed one extreme. The latch resolved the sign, but it kicked the sampled nodes by about <code>12.034 mV</code>, far above the <code>0.2197 mV</code> half-LSB line.</p>
+<p>That taught one lesson:</p>
+<pre><code>
+the latch cannot be allowed to freely disturb the sampled value
+</code></pre>
+<p>The later isolated frontends showed the other extreme. They protected the sign path, but reduced the signal seen by the latch.</p>
+<p>That taught the second lesson:</p>
+<pre><code>
+isolation that protects too much can starve the comparator
+</code></pre>
+<p>The design is now between those two failures. Too much direct connection causes kickback. Too much isolation loses decision voltage.</p>
+<h2>Decision Table</h2>
+<table><tbody>
+<tr><th>path</th><th>what it improves</th><th>what it risks</th><th>proof needed</th></tr>
+<tr><td>better passive frontend</td><td>preserves sampled charge with less wasted capacitance</td><td>still may not reach latch input target</td><td>extracted transfer near <code>1.0</code>, sign preserved, kickback still bounded</td></tr>
+<tr><td>active preamp</td><td>enlarges sense voltage before latch decision</td><td>adds offset, noise, power, delay, and input capacitance</td><td>input-referred offset/noise below budget, output settles, latch resolves, energy recorded</td></tr>
+<tr><td>direct latch connection</td><td>gives latch a strong input path</td><td>can damage sampled nodes through kickback</td><td>already failed the kickback gate</td></tr>
+<tr><td>more passive plate area only</td><td>increases direct coupling</td><td>also increases total sense capacitance</td><td>current ultra result shows this is not enough</td></tr>
+</tbody></table>
+<h2>What We Should Do Next</h2>
+<p>The next measurable step should not be a full ADC. It should be a small fork test.</p>
+<p>Build two candidate tests:</p>
+<ol>
+<li>**Passive efficiency candidate**</li>
+</ol>
+<p>   Keep the isolated frontend idea, but reduce wasted sense capacitance. The acceptance question is whether transfer moves closer to <code>1.0</code> without losing sign preservation.</p>
+<ol>
+<li>**Active preamp candidate**</li>
+</ol>
+<p>   Add a simple measured gain stage between the extracted sense nodes and the latch. The acceptance question is whether input-referred offset, noise, added kickback, and settling still leave positive decision margin.</p>
+<p>The comparison should use the same input cases and the same target line. Otherwise the two paths cannot be compared honestly.</p>
+<h2>The First-Principles Rule</h2>
+<p>The right path is the one that increases usable decision voltage per cost.</p>
+<p>For the passive path, cost is mostly capacitance and kickback exposure:</p>
+<pre><code>
+usable margin = transferred sense voltage - kickback risk
+</code></pre>
+<p>For the active path, cost is offset, noise, power, delay, and loading:</p>
+<pre><code>
+usable margin = amplified voltage - offset - noise - kickback - settling error
+</code></pre>
+<p>The project should not prefer passive because it is simpler, and should not prefer active because it sounds stronger. It should prefer whichever path produces measured comparator margin from the extracted frontend.</p>
+<h2>Claim Boundary</h2>
+<p>This page supports one claim:</p>
+<p>The next design decision is now well-defined. The project must choose between a lower-capacitance passive frontend and an active preamp by measuring usable comparator margin, not by counting coupling capacitance alone.</p>
+<p>This page refuses stronger claims:</p>
+<p>It does not prove a passive frontend reaches the latch target, does not prove an active preamp works, does not prove comparator offset or noise, does not prove DRC/LVS, does not prove SAR conversion, and does not create accepted post-layout converter evidence.</p>
+<h2>Where This Fits In The Flow</h2>
+<p>Read this page after:</p>
+<ul>
+<li><code>Sky130 Frontend Sense Efficiency Audit</code></li>
+<li><code>Comparator Decision Margin From First Principles</code></li>
+</ul>
+<p>Read it before:</p>
+<ul>
+<li><code>From Active Macro To Real Transistor Handoff</code></li>
+<li><code>Sky130 Frontend Input-Stage Handoff Candidate</code></li>
+<li><code>Converter Evidence Ladder</code></li>
+<li><code>Final Accepted Converter Gate</code></li>
+</ul>
+<p>The previous pages explain why the signal is too small and what margin the comparator needs. This page explains the design fork that led to the active-macro handoff and the still-open real-transistor handoff.</p></article></main></body></html>

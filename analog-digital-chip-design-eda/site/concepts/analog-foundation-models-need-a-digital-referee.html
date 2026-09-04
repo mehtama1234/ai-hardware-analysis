@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog Foundation Models Need A Digital Referee</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Analog Foundation Models Need A Digital Referee</h1><p class="lead">Source: docs/concepts/analog-foundation-models-need-a-digital-referee.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog Foundation Models Need A Digital Referee</h1>
+<p>An analog foundation-model accelerator needs more than analog arrays and digital glue.</p>
+<p>It needs a digital referee.</p>
+<p>The referee is the part of the system that decides whether a measured analog result is allowed to change the model state. It does not decide this from hope, average accuracy, or the fact that the scheduler chose an analog tile. It decides from evidence that exists after the physical computation has happened.</p>
+<p>That evidence includes the corrected value, whether the tile was enabled, whether the ADC saturated, whether calibration is old, whether residual error is inside budget, and whether the same tile keeps failing for the same reason.</p>
+<h2>The Object</h2>
+<p>The object is a proposed model-state update.</p>
+<p>The analog array does not directly produce model state. It produces a physical measurement that may become model state:</p>
+<pre><code>
+conductance and voltage
+-&gt; column current
+-&gt; ADC code
+-&gt; corrected digital value
+-&gt; accepted model update
+</code></pre>
+<p>The referee controls the final arrow.</p>
+<p>That final arrow is the most important one. If the value is accepted, the next transformer operation depends on it. If the value is refused, a digital fallback must provide the result or the request must move to a safer path.</p>
+<p>This is why the controller should not expose only a numeric output. It should expose a decision:</p>
+<pre><code>
+corrected_value
+valid_or_fallback
+reason
+tile_id
+running counters
+health action
+</code></pre>
+<p>The number alone is incomplete. A number without a reason code cannot tell the runtime whether the tile should keep serving, be recalibrated, or be disabled.</p>
+<h2>The Constraint</h2>
+<p>The hard constraint is that the array can be a good choice before execution and still produce a bad result during execution.</p>
+<p>Before execution, the scheduler can know useful facts:</p>
+<pre><code>
+operation class
+resident weights
+tile availability
+calibration age
+estimated state error
+cache pressure
+</code></pre>
+<p>These facts can say that Q/K/V projection or an MLP projection is a reasonable analog candidate.</p>
+<p>But the scheduler has not yet seen the current. It has not yet seen the ADC code. It has not yet seen saturation. It does not know whether this request hit a damaged column, a stale correction value, or a residual larger than the model can tolerate.</p>
+<p>So the first decision is only permission to try:</p>
+<pre><code>
+try analog
+</code></pre>
+<p>The second decision is permission to use:</p>
+<pre><code>
+accept measured analog result
+</code></pre>
+<p>The digital referee exists because those are different decisions.</p>
+<h2>The Mathematical Shape</h2>
+<p>The clean mathematical target is:</p>
+<pre><code>
+y = W x
+</code></pre>
+<p>The analog tile produces a measured code:</p>
+<pre><code>
+adc_code = ADC(column_current)
+</code></pre>
+<p>The digital side turns that code into a candidate value:</p>
+<pre><code>
+centered = adc_code - zero_code
+scaled = centered * gain
+corrected = scaled + bias
+</code></pre>
+<p>Then the referee applies a predicate:</p>
+<pre><code>
+accept =
+    tile_enabled
+    and not saturated
+    and calibration_age &lt; max_age
+    and residual_abs &lt;= residual_budget
+</code></pre>
+<p>That predicate is the design. The array is only useful when this predicate lets enough work through to pay for the analog machinery.</p>
+<p>The next layer should never see:</p>
+<pre><code>
+adc_code
+</code></pre>
+<p>It should see either:</p>
+<pre><code>
+accepted corrected value
+</code></pre>
+<p>or:</p>
+<pre><code>
+digital fallback value
+</code></pre>
+<p>The important mathematical object is therefore not just a matrix multiply. It is a guarded state update:</p>
+<pre><code>
+state_next =
+    f(corrected_value) if accept
+    f(digital_fallback_value) otherwise
+</code></pre>
+<h2>Why Counters Matter</h2>
+<p>A single fallback protects one operation.</p>
+<p>Counters protect the future.</p>
+<p>If a tile falls back once because calibration is stale, the right action is not necessarily to disable it. Old calibration evidence can often be refreshed. The better action is:</p>
+<pre><code>
+recalibrate
+</code></pre>
+<p>If a tile repeatedly falls back because residual error remains too large after correction, the problem is different. The tile is not merely using old correction data. It is producing outputs that correction is not repairing well enough. The better action is:</p>
+<pre><code>
+disable analog service
+</code></pre>
+<p>This is why the controller tracks reason-specific counts:</p>
+<pre><code>
+fallback_count
+accepted_count
+residual_fallback_count
+stale_fallback_count
+</code></pre>
+<p>The counts are not debug decoration. They are runtime evidence. They let the system distinguish a tile that is useful but stale from a tile that is persistently untrustworthy.</p>
+<p>The health action is the first compressed policy:</p>
+<pre><code>
+0: serve
+1: recalibrate
+2: disable
+3: probe
+</code></pre>
+<p>That is still a small policy, but it changes the system type. The accelerator is no longer only running analog operations. It is learning whether the analog path should keep being offered.</p>
+<p>The fourth state matters because a real tile should not be restored by hope. A disabled tile enters service again only through a controlled probe. The digital side can request the probe, observe whether it passes or fails, and then update the serving action. A recalibrating tile also needs explicit evidence before it returns: <code>calibration_done</code> is the pulse that says the correction data has been refreshed. The rule is simple: analog failure can remove permission, but only digital evidence can restore it.</p>
+<h2>The Concrete Design Move</h2>
+<p>The concrete design move is to split the analog path into four visible decisions:</p>
+<pre><code>
+placement decision
+readout trust decision
+tile health action
+tile service scheduling
+</code></pre>
+<p>The placement decision answers:</p>
+<pre><code>
+Should this operation try analog compute?
+</code></pre>
+<p>The readout trust decision answers:</p>
+<pre><code>
+Did this measured value pass correction and safety checks?
+</code></pre>
+<p>The tile health action answers:</p>
+<pre><code>
+Should this tile keep serving future analog requests?
+</code></pre>
+<p>The tile service scheduler answers:</p>
+<pre><code>
+Given all visible tile states and the maintenance budget, should this cycle use analog, recalibrate, probe, or fall back to digital?
+</code></pre>
+<p>Keeping those decisions separate prevents one common mistake. A scheduler can be right that Q/K/V projection is a good analog candidate, while the readout referee is also right that this particular tile output must be refused. Those are not contradictory facts. They happen at different times and control different objects.</p>
+<p>The current RTL makes that split visible with path bits, reason bits, counters, <code>tile_health_action</code>, and a tile-service scheduler that arbitrates four tile states under a maintenance budget.</p>
+<h2>What The RTL Proves</h2>
+<p>The current micro-tile controller proves a narrow point.</p>
+<p>It does not prove a production chip. It does not prove the analog array is accurate. It does not prove clock-tree signoff.</p>
+<p>It proves that the referee rule can become hardware-visible behavior.</p>
+<p>The Verilog test sequence checks these cases:</p>
+<pre><code>
+fixed projection accepted by analog readout
+residual error forces fallback
+stale calibration forces fallback and requests recalibration
+disabled tile forces fallback
+attention score goes to hybrid review
+softmax stays digital
+missing resident weights stay digital
+repeated residual failure disables analog service
+disabled tile enters probe only by request
+failed probe returns to disabled
+passed probe restores service
+calibration done restores service after stale-calibration repair
+requested healthy tile serves
+unhealthy requested tile can be replaced by a healthy spare
+recalibration is chosen before probe when no tile can serve
+zero maintenance budget forces digital fallback
+</code></pre>
+<p>The generated vector flow matters because the cases are not only handwritten Verilog. A Python model emits the expected cases as:</p>
+<pre><code>
+generated_micro_tile_cases.vh
+generated-micro-tile-rtl-vectors.csv
+generated-micro-tile-rtl-vectors.md
+</code></pre>
+<p>Then the checker runs the Verilog simulation and compares the printed hardware trace against the generated CSV row by row.</p>
+<p>This is the right shape of evidence. The analog-side assumption, the human-readable table, the RTL test vector, and the simulation output all have to agree.</p>
+<h2>What The Physical Flow Proves</h2>
+<p>The no-CTS OpenLane run adds a different kind of evidence.</p>
+<p>Synthesis says the referee is not only prose. It lowers to gates. The latest synthesized micro-tile controller has:</p>
+<pre><code>
+Number of cells: 2990
+flip-flop bits: 110
+</code></pre>
+<p>The no-CTS physical run says the health-action controller can pass this exploratory physical path:</p>
+<pre><code>
+synthesis
+floorplan
+placement
+routing
+extraction
+GDS generation
+DRC
+LVS
+antenna checks
+</code></pre>
+<p>It also states what is not done:</p>
+<pre><code>
+clock-tree signoff
+slew cleanup
+fanout cleanup
+one max-capacitance violation
+</code></pre>
+<p>That boundary is part of the learning. A chip-design claim becomes more useful when it says exactly where the evidence stops.</p>
+<h2>The Failure Mode</h2>
+<p>The failure mode is to call the digital side overhead.</p>
+<p>For an analog foundation-model accelerator, the digital side is not just overhead. It is the part that turns a physical measurement into a safe model update.</p>
+<p>Without the referee, the system has no disciplined way to answer basic questions:</p>
+<ul>
+<li>Was this analog value accepted or refused?</li>
+<li>Which tile produced the refused value?</li>
+<li>Was the problem residual error, stale calibration, saturation, or tile disablement?</li>
+<li>Should the tile keep serving?</li>
+<li>Should it be recalibrated?</li>
+<li>Should it be removed from analog service?</li>
+<li>Did the hardware trace match the analog model&#x27;s expected trace?</li>
+<li>Did the controller survive synthesis and physical-flow checks?</li>
+</ul>
+<p>The first-principles rule is simple:</p>
+<pre><code>
+An analog accelerator becomes useful only when the digital system can refuse it.
+</code></pre>
+<p>Refusal is not pessimism. Refusal is control. It is what lets the chip use analog work where the measurement is good enough, repair the path when calibration is stale, and fall back when the physical result should not be trusted by the model.</p></article></main></body></html>

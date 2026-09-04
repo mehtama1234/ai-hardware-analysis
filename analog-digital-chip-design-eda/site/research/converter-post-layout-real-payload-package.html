@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter Post-Layout Real Payload Package</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter Post-Layout Real Payload Package</h1><p class="lead">Source: docs/research/converter-post-layout-real-payload-package.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter Post-Layout Real Payload Package</h1>
+<p>This page defines what must arrive from layout extraction, post-layout simulation, or measured silicon before the converter claim can change.</p>
+<p>The package is deliberately stricter than a normal result table. A table can say that one ADC conversion costs some energy. The project needs to know what object produced that number, which files can be inspected, what boundary was simulated, and whether the same sharing rule was used when break-even was rerun.</p>
+<p>---</p>
+<h1>Converter Post-Layout Real Payload Package</h1>
+<ul>
+<li>status: <code>real_payload_package_contract_ready</code></li>
+<li>command: <code>python3 scripts/submit_converter_post_layout_payload.py REAL_PAYLOAD.json</code></li>
+</ul>
+<p>This page names the actual handoff packet. A converter result is not enough as a sentence. It must arrive as a payload plus the files that let the result be inspected.</p>
+<h2>First Principle</h2>
+<p>A converter claim is a claim about a boundary. On one side is the analog array, where current and voltage carry the multiply. On the other side is digital logic, where numbers are stored, routed, compared, and scheduled. The converter is the point where a physical voltage becomes a digital value. If that boundary is wrong, the analog array may look cheap only because the cost, delay, or noise of translation was hidden.</p>
+<p>So the package must expose the translation cost directly. The project needs the extracted netlist or measured setup, the model files, the energy terms, the latency terms, the noise terms, the area terms, and the sharing rule. Then it can rerun the break-even calculation instead of trusting an old planning number.</p>
+<h2>Required Files</h2>
+<ul>
+<li><code>REAL_PAYLOAD.json</code>: The structured record that names the converter, target boundary, extraction, simulation, energy, latency, noise, area, sharing, provenance, and claim boundary.</li>
+<li><code>extracted netlist</code> <code>extraction.extracted_netlist</code>: The circuit equations must come from extracted layout or measured setup, not from the earlier local behavioral estimate.</li>
+<li><code>process or measurement model files</code> <code>simulation.model_files[]</code>: The run must name the device models, corner files, or measurement setup files that set the electrical world being tested.</li>
+<li><code>prior rerun artifact</code> <code>break_even_rerun.rerun_artifact</code>: The payload must show the break-even decision it is asking the project to trust before the project writes its own accepted rerun.</li>
+</ul>
+<h2>Required Numbers</h2>
+<ul>
+<li><code>adc_energy_per_conversion</code>: energy cost of one readout decision</li>
+<li><code>dac_energy_per_row_drive</code>: energy cost of driving one selected row</li>
+<li><code>conversion_time_ns</code>: time cost of the ADC decision</li>
+<li><code>settling_time_ns</code>: time cost before the sampled value is trustworthy</li>
+<li><code>output_noise_rms</code>: readout uncertainty after the analog chain</li>
+<li><code>input_referred_noise</code>: same uncertainty expressed at the array input boundary</li>
+<li><code>adc_area_um2</code>: physical area cost of readout</li>
+<li><code>dac_area_um2</code>: physical area cost of row drive</li>
+</ul>
+<h2>Fixed Boundary</h2>
+<ul>
+<li><code>dac_bits</code>: <code>10</code></li>
+<li><code>adc_bits</code>: <code>12</code></li>
+<li><code>output_noise_budget_max</code>: <code>0.004</code></li>
+<li><code>rows_served</code>: <code>64</code></li>
+<li><code>columns_served</code>: <code>4</code></li>
+<li><code>outputs_per_conversion_cost</code>: <code>16</code></li>
+<li><code>converter_instances</code>: <code>4</code></li>
+</ul>
+<h2>Acceptance Path</h2>
+<ul>
+<li>ordinary payload shape validation passes</li>
+<li>strict referenced-file validation passes</li>
+<li>break-even rerun uses extracted energy, latency, noise, area, and the same sharing rule</li>
+<li>submission report is written only after the validator and rerun both pass</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>This package contract does not claim post-layout evidence exists, does not claim measured silicon exists, and does not upgrade analog energy or latency by itself. It only defines the packet a real result must provide.</p></article></main></body></html>

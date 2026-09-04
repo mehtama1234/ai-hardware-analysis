@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Simulator To Post-Layout Gap Audit</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Simulator To Post-Layout Gap Audit</h1><p class="lead">Source: docs/research/simulator-to-post-layout-gap-audit.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Simulator To Post-Layout Gap Audit</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/simulator-to-post-layout-gap-audit.md</code>.</p>
+<p>The audit explains what AIHWKIT and CrossSim evidence can support, what it cannot support, and which post-layout converter fields still require extracted physical evidence.</p>
+<p>---</p>
+<h1>Simulator To Post-Layout Gap Audit</h1>
+<ul>
+<li>status: <code>simulator_evidence_present_post_layout_converter_evidence_missing</code></li>
+<li>simulator payload count: <code>20</code></li>
+<li>supporting simulator payload count: <code>13</code></li>
+<li>post-layout converter ready payload count: <code>0</code></li>
+<li>blocked post-layout payload count: <code>20</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A simulator run and a post-layout converter run answer different questions. The simulator run asks how much an analog matrix operation changes the output. The post-layout converter run asks what the physical converter costs after layout, extraction, and corner setup. A low residual can justify trying analog placement. It cannot by itself justify the converter energy, latency, noise, or area claim.</p>
+<h2>Missing Physical Fields</h2>
+<ul>
+<li><code>extracted_netlist</code></li>
+<li><code>parasitic_format</code></li>
+<li><code>process_corner</code></li>
+<li><code>model_files</code></li>
+<li><code>adc_energy_per_conversion</code></li>
+<li><code>dac_energy_per_row_drive</code></li>
+<li><code>conversion_time_ns</code></li>
+<li><code>settling_time_ns</code></li>
+<li><code>output_noise_rms</code></li>
+<li><code>input_referred_noise</code></li>
+<li><code>adc_area_um2</code></li>
+<li><code>dac_area_um2</code></li>
+<li><code>replication_or_sharing_rule</code></li>
+<li><code>rerun_artifact</code></li>
+<li><code>same_run_id</code></li>
+</ul>
+<h2>Payload Boundary</h2>
+<h3>evidence/aimc-simulator-adapters/aihwkit-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_small_fixture</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.05224148920879446</code> q8 <code>7</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-attention-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit attention-block trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_attention_block_trained_weight_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.9167446415863351</code> q8 <code>117</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-calibrated-attention-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit calibrated attention-block adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_attention_block_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.6099825005621208</code> q8 <code>78</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-calibrated-deep-transformer-mlp-stack-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit calibrated deep transformer MLP stack adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_deep_transformer_mlp_stack_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.8698838129192049</code> q8 <code>111</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-calibrated-transformer-mlp-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit calibrated transformer MLP block adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_transformer_mlp_block_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.6246638170974814</code> q8 <code>80</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-projection-stack-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit projection-stack trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_projection_stack_trained_weight_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.5551039438677029</code> q8 <code>71</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-tensor-shape-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit tensor-shaped optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_tensor_shape_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.0756692475974969</code> q8 <code>10</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-trained-weight-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit trained-weight optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_trained_weight_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.2845561545201431</code> q8 <code>36</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-transformer-mlp-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit transformer MLP block trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_transformer_mlp_block_trained_weight_replay</code></li>
+<li>simulator claim support: <code>False</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.6190536739521524</code> q8 <code>79</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/aihwkit-workload-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>aihwkit workload-shaped optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_candidate_workload</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.09000426441791687</code> q8 <code>12</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_small_fixture</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>7.464046673886023e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-attention-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim attention-block trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_attention_block_trained_weight_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>5.846699905128645e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-calibrated-attention-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim calibrated attention-block adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_attention_block_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>4.177331466464009e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-calibrated-deep-transformer-mlp-stack-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim calibrated deep transformer MLP stack adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_deep_transformer_mlp_stack_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>6.716349688914575e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-calibrated-transformer-mlp-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim calibrated transformer MLP block adapter run</code></li>
+<li>measurement level: <code>external_simulator_calibrated_transformer_mlp_block_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>4.94497815376823e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-projection-stack-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim projection-stack trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_projection_stack_trained_weight_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>5.0645552995255704e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-tensor-shape-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim tensor-shaped optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_tensor_shape_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>4.3503356403413546e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-trained-weight-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim trained-weight optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_trained_weight_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>7.50123133377775e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-transformer-mlp-block-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim transformer MLP block trained-weight adapter run</code></li>
+<li>measurement level: <code>external_simulator_transformer_mlp_block_trained_weight_replay</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>5.8187885598288214e-08</code> q8 <code>0</code></li>
+</ul>
+<h3>evidence/aimc-simulator-adapters/crosssim-workload-analog-error-simulation.json</h3>
+<ul>
+<li>tool: <code>crosssim workload-shaped optional adapter run</code></li>
+<li>measurement level: <code>external_simulator_backend_candidate_workload</code></li>
+<li>simulator claim support: <code>True</code></li>
+<li>post-layout converter claim support: <code>False</code></li>
+<li>residual: <code>0.09000426441791687</code> q8 <code>12</code></li>
+</ul>
+<h2>Handoff Rule</h2>
+<p>use simulator residual evidence to choose which operators deserve layout work, then use the post-layout builder only after extracted converter artifacts and same-run numeric values exist</p>
+<h2>Refused Claim</h2>
+<p>does not treat AIHWKIT or CrossSim output residuals as extracted layout, measured converter energy, measured latency, measured area, or accepted post-layout evidence</p></article></main></body></html>

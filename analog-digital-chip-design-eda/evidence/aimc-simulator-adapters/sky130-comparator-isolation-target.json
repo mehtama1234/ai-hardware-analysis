@@ -1,0 +1,73 @@
+{
+  "accepted_post_layout_written": false,
+  "candidate_options": [
+    {
+      "name": "source_follower_or_preamp_buffer",
+      "purpose": "make the sampled capacitor drive a small gate instead of the latch input pair directly",
+      "risk": "adds offset, gain error, bias current, bandwidth limits, and its own input capacitance"
+    },
+    {
+      "name": "sampled_comparator_input_capacitor",
+      "purpose": "copy the held voltage onto a small internal decision capacitor before the latch clock moves",
+      "risk": "adds a second sampling error and needs careful clock order"
+    },
+    {
+      "name": "bottom_plate_or_delayed_latch_clock",
+      "purpose": "separate sampling switch turn-off from the latch regenerative edge",
+      "risk": "can reduce one kickback path while increasing another if timing is wrong"
+    },
+    {
+      "name": "tiny_input_pair_plus_preamplification",
+      "purpose": "keep latch input capacitance low while restoring enough signal before regeneration",
+      "risk": "the preamp may spend more energy and introduce input-referred offset"
+    }
+  ],
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "converts measured latch kickback failures into the isolation reduction target for the next Sky130 comparator circuit",
+    "not_allowed": "does not prove an isolated comparator, comparator noise, mismatch, SAR conversion, extracted layout, DRC/LVS signoff, or accepted replacement economics"
+  },
+  "created_at": "2026-08-30T19:27:20.360872+00:00",
+  "measured_boundary": {
+    "additional_reduction_needed_to_reach_half_lsb_half_margin_x": 5.987924195555555,
+    "additional_reduction_needed_to_reach_half_lsb_x": 2.9939620977777777,
+    "baseline_coupled_kickback_v": 0.012034,
+    "baseline_coupled_status": "sky130_sample_hold_latch_kickback_proxy_characterized_not_accepted",
+    "best_kickback_v": 0.000657853,
+    "best_width_um": 0.5,
+    "half_lsb_12b_v": 0.0002197265625,
+    "observed_width_reduction_x": 18.29284049780118,
+    "total_reduction_needed_from_original_baseline_x": 54.768071111111105
+  },
+  "next_acceptance_tests": [
+    {
+      "name": "kickback_margin",
+      "requirement": "worst sampled differential kickback <= 1.098632813e-04 V target and must be below 2.197265625e-04 V hard line"
+    },
+    {
+      "name": "resolution_preserved",
+      "requirement": "both positive and negative target-edge cases still resolve with correct polarity"
+    },
+    {
+      "name": "budget_connection",
+      "requirement": "target-edge input difference remains tied to 0.1530 mV, with 0.1567 mV as the hard comparator budget"
+    },
+    {
+      "name": "no_post_layout_claim",
+      "requirement": "candidate_post_layout_written=false and accepted_post_layout_written=false"
+    }
+  ],
+  "result_type": "sky130_comparator_isolation_target",
+  "source_artifacts": {
+    "comparator_acceptance_spec": "sky130-comparator-acceptance-fixture-spec.json",
+    "coupled_latch_kickback": "sky130-sample-hold-latch-kickback-ngspice.json",
+    "latch_input_size_sweep": "sky130-latch-input-size-kickback-sweep.json"
+  },
+  "status": "sky130_comparator_isolation_target_defined_not_circuit_proof",
+  "target": {
+    "hard_comparator_budget_mv": 0.15672656249985373,
+    "hard_kickback_limit_v": 0.0002197265625,
+    "recommended_kickback_target_v": 0.00010986328125,
+    "target_combined_offset_noise_mv": 0.15297058540778352
+  }
+}

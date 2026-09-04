@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Physical Flow Turns Control Logic Into Geometry</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Physical Flow Turns Control Logic Into Geometry</h1><p class="lead">Source: docs/concepts/physical-flow-turns-control-logic-into-geometry.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Physical Flow Turns Control Logic Into Geometry</h1>
+<p>The object is a clocked digital decision becoming placed and routed silicon geometry. In the AIMC control-plane case, the decision is small: choose digital fallback, analog projection, or batched analog decode, then emit a reason code. But even a small controller is not a chip until the decision survives physical implementation.</p>
+<p>The constraint is that synthesis only changes RTL into logic. Physical design must place that logic somewhere, connect it with wires, deliver power, distribute the clock, and prove that signals arrive before the next register samples them.</p>
+<h2>Why Geometry Changes The Claim</h2>
+<p>RTL says what should happen at a clock edge:</p>
+<pre><code>
+inputs at this edge -&gt; path and reason at next edge
+</code></pre>
+<p>Synthesis lowers that into registers, gates, muxes, and comparisons. But physical design changes the cost of the logic. A comparator far from its input pins has longer wires. A mux chain placed poorly can add delay. Reset and clock routing can create skew. Power drop can slow cells.</p>
+<p>The same Boolean decision can be easy or hard to time depending on where it sits.</p>
+<h2>The Concrete Design Move</h2>
+<p>The design move is to package the controller for a physical flow:</p>
+<ul>
+<li>Verilog source</li>
+<li>top-module name</li>
+<li>clock port</li>
+<li>clock period</li>
+<li>input delay</li>
+<li>output delay</li>
+<li>pin-order intent</li>
+<li>floorplan utilization target</li>
+<li>process and cell-library assumptions</li>
+</ul>
+<p>Those files do not prove timing. They make the timing question runnable.</p>
+<p>For the control plane, the design package asks:</p>
+<pre><code>
+Can path[1:0] and reason[2:0] be produced within one scheduler clock period?
+</code></pre>
+<p>The answer requires a real timing report, not a successful Verilog simulation.</p>
+<h2>Measurement</h2>
+<p>The measurement is a physical-flow artifact set:</p>
+<ul>
+<li>synthesized standard-cell netlist</li>
+<li>floorplan utilization</li>
+<li>placed cell locations</li>
+<li>routed wires</li>
+<li>static timing report</li>
+<li>worst negative slack</li>
+<li>total negative slack</li>
+<li>design-rule check count</li>
+<li>layout-versus-schematic status</li>
+</ul>
+<p>The most important single number is slack:</p>
+<pre><code>
+slack = required arrival time - actual arrival time
+</code></pre>
+<p>Positive slack means the timed decision is proven under the stated assumptions. Negative slack means the decision may be logically correct but too late.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is stopping at RTL or generic synthesis and calling the controller implemented. RTL simulation checks behavior. Yosys lowering checks that the design can become logic. Physical implementation checks whether the logic can exist as timed geometry.</p>
+<p>Another failure mode is using weak constraints. A design can pass an easy clock period and fail the real scheduler deadline. Constraints are part of the claim.</p>
+<p>The first-principles claim is that digital control becomes chip evidence only when behavior, logic, geometry, and timing all describe the same object.</p>
+<p>In the current AIMC controller lab, that chain now has two levels of evidence. The CTS-enabled OpenLane run reaches detailed placement and placement-stage timing, then stalls during CTS characterization. A separate no-CTS exploratory run completes routing, extraction, GDS generation, DRC, LVS, antenna checking, and final report generation. That is real physical-flow evidence, but the missing clock tree means full timing closure remains open.</p></article></main></body></html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Measured Transistor DAC SAR Replay</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Measured Transistor DAC SAR Replay</h1><p class="lead">Source: docs/research/measured-transistor-dac-sar-replay.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Measured Transistor DAC SAR Replay</h1>
+<p>This page puts the measured 16-code transistor DAC transfer into the SAR decision algorithm. The comparator is an exact voltage comparison, so this is a transparent transfer-function replay rather than a same-deck transistor comparator proof.</p>
+<p>The generated evidence report is appended below.</p>
+<p>---</p>
+<h1>Measured Transistor DAC SAR Replay</h1>
+<ul>
+<li>status: <code>measured_dac_transfer_replay_characterized_not_closed_loop_spice_proof</code></li>
+<li>measured thresholds: <code>16</code> of <code>16</code></li>
+<li>correct quantization regions: <code>10</code> of <code>16</code></li>
+<li>wrong quantization regions: <code>6</code></li>
+</ul>
+<h2>What This Means</h2>
+<p>This replay takes the measured 16-code top-plate transfer and puts it inside the digital SAR decision rule. It is deliberately separate from a transistor transient: the measured transfer is real, but the comparator is represented by an exact voltage comparison. That makes the source of any wrong code visible instead of hiding it behind a new idealized circuit.</p>
+<p>The input tests use the center of each ideal quantization region. A correct converter should return the region&#x27;s expected code. A wrong result means the measured DAC threshold has moved far enough that the current transfer curve changes the digital answer even before comparator noise and mismatch are added.</p>
+<h2>Results</h2>
+<table><tbody>
+<tr><th>expected code</th><th>input V</th><th>replayed code</th><th>correct</th></tr>
+<tr><td>0</td><td>0.956250</td><td>0</td><td>True</td></tr>
+<tr><td>1</td><td>1.068750</td><td>1</td><td>True</td></tr>
+<tr><td>2</td><td>1.181250</td><td>2</td><td>True</td></tr>
+<tr><td>3</td><td>1.293750</td><td>3</td><td>True</td></tr>
+<tr><td>4</td><td>1.406250</td><td>4</td><td>True</td></tr>
+<tr><td>5</td><td>1.518750</td><td>5</td><td>True</td></tr>
+<tr><td>6</td><td>1.631250</td><td>6</td><td>True</td></tr>
+<tr><td>7</td><td>1.743750</td><td>7</td><td>True</td></tr>
+<tr><td>8</td><td>1.856250</td><td>7</td><td>False</td></tr>
+<tr><td>9</td><td>1.968750</td><td>8</td><td>False</td></tr>
+<tr><td>10</td><td>2.081250</td><td>9</td><td>False</td></tr>
+<tr><td>11</td><td>2.193750</td><td>10</td><td>False</td></tr>
+<tr><td>12</td><td>2.306250</td><td>12</td><td>True</td></tr>
+<tr><td>13</td><td>2.418750</td><td>15</td><td>False</td></tr>
+<tr><td>14</td><td>2.531250</td><td>15</td><td>False</td></tr>
+<tr><td>15</td><td>2.587500</td><td>15</td><td>True</td></tr>
+</tbody></table>
+<h2>Refused Claim</h2>
+<p>does not prove a same-deck comparator-DAC transient, comparator noise, mismatch yield, PVT SAR accuracy, extracted layout, board behavior, or silicon</p></article></main></body></html>

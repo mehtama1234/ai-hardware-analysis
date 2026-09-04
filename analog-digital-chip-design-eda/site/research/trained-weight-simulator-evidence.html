@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trained-Weight Simulator Evidence</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Trained-Weight Simulator Evidence</h1><p class="lead">Source: docs/research/trained-weight-simulator-evidence.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Trained-Weight Simulator Evidence</h1>
+<p>This page explains the strongest simulator proof currently available in the local workbench.</p>
+<p>The earlier tensor-shaped replay used the right operator shapes but generated fixture weights. This replay uses the actual initializer weights from the uploaded <code>tiny-mlp.onnx</code> model.</p>
+<h2>Object</h2>
+<p>The object is the analog part of the current backend package model:</p>
+<ul>
+<li>source model: <code>ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/tiny-mlp.onnx</code></li>
+<li>backend package: <code>pkg-e931662a01293df2</code></li>
+<li>analog operators: <code>dense1.matmul</code> and <code>dense2.matmul</code></li>
+<li>digital support operators: <code>dense1.bias</code>, <code>dense1.relu</code>, and <code>dense2.bias</code></li>
+</ul>
+<p>The ONNX initializers are:</p>
+<ul>
+<li><code>w1</code>: 4 inputs by 3 outputs</li>
+<li><code>b1</code>: 3 outputs</li>
+<li><code>w2</code>: 3 inputs by 2 outputs</li>
+<li><code>b2</code>: 2 outputs</li>
+</ul>
+<p>The replay runs the MatMul weights through AIHWKIT and CrossSim. Bias and ReLU stay in ordinary digital arithmetic because the backend placement marks them as digital support operators.</p>
+<p>The current result is intentionally split:</p>
+<ul>
+<li>CrossSim stays inside the positive-claim residual threshold.</li>
+<li>AIHWKIT runs the same weights, but its current output residual is above the positive-claim threshold, so the guarded importer rejects it as supporting evidence.</li>
+</ul>
+<h2>Constraint</h2>
+<p>This is a real-weight simulator replay, not a hardware measurement.</p>
+<p>It proves that the uploaded tiny MLP weights can pass through the analog simulator adapter path for the backend-selected analog operators. It does not prove a foundation model, token accuracy, calibrated device drift, board latency, board power, analog macro layout, or signoff.</p>
+<h2>Design Move</h2>
+<p>Run:</p>
+<pre><code>
+python3 scripts/run_trained_weight_aimc_simulator_payloads.py
+</code></pre>
+<p>The script uses two Python environments for a narrow reason:</p>
+<ul>
+<li>the old backend <code>.venv</code> reads ONNX initializers</li>
+<li>the AIMC simulator venv runs AIHWKIT and CrossSim</li>
+</ul>
+<p>The script extracts <code>w1</code>, <code>b1</code>, <code>w2</code>, and <code>b2</code>; computes a digital reference; runs only the analog MatMul operators through AIHWKIT and CrossSim; applies bias and ReLU digitally; and writes strict payloads.</p>
+<p>The output files are:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/aihwkit-trained-weight-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/crosssim-trained-weight-analog-error-simulation.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/trained-weight-simulator-payload-run-summary.json</code></li>
+</ul>
+<p>Each positive-claim payload must pass:</p>
+<pre><code>
+python3 scripts/import_analog_simulator_payload.py &lt;payload.json&gt;
+</code></pre>
+<p>For the current AIHWKIT trained-weight payload, the expected guard behavior is rejection:</p>
+<pre><code>
+python3 scripts/import_analog_simulator_payload.py --expect-reject evidence/aimc-simulator-adapters/aihwkit-trained-weight-analog-error-simulation.json
+</code></pre>
+<h2>Evidence</h2>
+<p>This proof is stronger than shape-only replay because the numbers in the MatMul arrays are the model weights, not generated placeholders.</p>
+<p>The evidence chain is:</p>
+<ul>
+<li>ONNX model stores the trained weights</li>
+<li>backend placement chooses the MatMul operators for analog execution</li>
+<li>simulator script maps those weights into AIHWKIT and CrossSim</li>
+<li>digital reference computes the same graph with normal arithmetic</li>
+<li>guarded importer checks the payload schema and backend tool-readiness rules</li>
+</ul>
+<p>The residual is the relative L2 difference between the digital ONNX-weight path and the simulator path.</p>
+<h2>Allowed Claim</h2>
+<p>The system can say:</p>
+<p>CrossSim now runs a strict simulator payload using the uploaded tiny MLP ONNX weights for the backend-selected analog MatMul operators, and that payload passes the guarded evidence importer. AIHWKIT also runs the same trained-weight replay, but the current payload is rejected for a positive simulator claim because its residual is above the local threshold.</p>
+<h2>Refused Claim</h2>
+<p>The system cannot say:</p>
+<ul>
+<li>a foundation model has been simulated</li>
+<li>token accuracy has been measured</li>
+<li>device drift has been calibrated</li>
+<li>board latency has been measured</li>
+<li>board power has been measured</li>
+<li>analog macro layout has been verified</li>
+<li>the design is ready for tapeout</li>
+</ul>
+<h2>Next Handoff</h2>
+<p>The next proof is larger-model replay.</p>
+<p>That means importing a more realistic transformer or projection-heavy ONNX model, preserving its real weights, identifying which static-weight MatMul operators are good analog candidates, and running those exact weights through AIHWKIT and CrossSim with the same guarded payload path.</p></article></main></body></html>

@@ -1,0 +1,81 @@
+{
+  "acceptance_tests": [
+    {
+      "name": "polarity_contract_preserved",
+      "requirement": "positive model value must still mean `converter_positive_input_is_negative_raw_preamp_output_diff` at the latch/SAR boundary"
+    },
+    {
+      "name": "both_signs_resolve",
+      "requirement": "positive and negative target-edge cases must both resolve to full latch output with the contracted sign"
+    },
+    {
+      "name": "kickback_hard_line",
+      "requirement": "worst sampled-node differential kickback must be <= 2.197265625e-04 V"
+    },
+    {
+      "name": "kickback_design_target",
+      "requirement": "preferred target is <= 1.098632813e-04 V, giving half-LSB slack for offset and noise"
+    },
+    {
+      "name": "margin_survives_isolation",
+      "requirement": "corrected pre-latch output must stay >= 5.000000000e-04 V for both signs after isolation is added"
+    },
+    {
+      "name": "wrong_code_proxy",
+      "requirement": "the measured sign at the SAR threshold must not flip after applying offset, noise, and kickback budgets"
+    },
+    {
+      "name": "no_strict_claim",
+      "requirement": "candidate_post_layout_written=false and accepted_post_layout_written=false until extracted same-run evidence exists"
+    }
+  ],
+  "accepted_post_layout_written": false,
+  "additional_kickback_reduction_needed_to_design_target_x": 5.987924195555555,
+  "additional_kickback_reduction_needed_to_half_lsb_x": 2.9939620977777777,
+  "best_existing_latch_kickback_v": 0.000657853,
+  "best_polarity_corrected_output_diff_v": 0.0007932000000000494,
+  "best_transistor_setting": "medium_iso_pair_8ua",
+  "candidate_moves": [
+    {
+      "main_risk": "buffer offset and bias current can eat the 0.5 mV margin",
+      "name": "source_follower_input_buffer",
+      "what_changes": "the transistor handoff drives a small buffer gate; the latch reads the buffer output",
+      "why_it_might_work": "the held analog node sees less clocked latch capacitance"
+    },
+    {
+      "main_risk": "the extra sampling action adds charge injection and timing error",
+      "name": "sampled_internal_decision_capacitor",
+      "what_changes": "copy the polarity-corrected preamp value onto a small internal capacitor, then disconnect the frontend before latch regeneration",
+      "why_it_might_work": "kickback lands mostly on the internal decision node instead of the frontend sense node"
+    },
+    {
+      "main_risk": "preamp noise, offset, and energy become part of the converter budget",
+      "name": "two_phase_preamp_then_latch",
+      "what_changes": "first amplify the polarity-named signal, then enable the latch after the preamp output is settled",
+      "why_it_might_work": "the latch sees a larger internal difference and can use smaller input devices"
+    },
+    {
+      "main_risk": "timing can hide kickback in a later phase unless both before and after values are measured",
+      "name": "delayed_or_bottom_plate_latch_clock",
+      "what_changes": "delay the regenerative clock edge until the sampled handoff nodes are isolated",
+      "why_it_might_work": "clock feedthrough is separated from the moment when the analog value is being stored"
+    }
+  ],
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "turns the polarity contract and measured latch kickback failure into the next isolated-latch circuit work order",
+    "not_allowed": "does not prove the isolated latch circuit, SAR bit cycling, noise, offset statistics, extracted layout, DRC/LVS, or accepted post-layout converter evidence"
+  },
+  "created_at": "2026-08-31T06:05:47.100860+00:00",
+  "half_lsb_12b_v": 0.0002197265625,
+  "next_executable_step": "build a small ngspice fixture that inserts one isolation move between the polarity-corrected transistor preamp output and the clocked latch input",
+  "output_margin_over_target_x": 1.5864000000000988,
+  "output_margin_target_v": 0.0005,
+  "polarity_contract": "converter_positive_input_is_negative_raw_preamp_output_diff",
+  "recommended_kickback_target_v": 0.00010986328125,
+  "result_type": "sky130_polarity_named_isolated_latch_work_order",
+  "source_polarity_contract": "evidence/aimc-simulator-adapters/sky130-polarity-corrected-transistor-handoff.json",
+  "source_risk_join": "evidence/aimc-simulator-adapters/sky130-polarity-contract-latch-sar-risk.json",
+  "status": "polarity_named_isolated_latch_work_order_ready_not_circuit_proof",
+  "strict_payload_ready": false
+}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Extracted Frontend Gate Coupling Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Extracted Frontend Gate Coupling Sweep</h1><p class="lead">Source: docs/research/sky130-extracted-frontend-gate-coupling-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Extracted Frontend Gate Coupling Sweep</h1>
+<p>This page sweeps the weak gate-startup handoff that failed in one polarity.</p>
+<p>The question is not whether the full converter works. It does not. The question is narrower: can any assisted sense-to-gate loading and prebias setting let the extracted frontend drive real Sky130 transistor gates in both directions with enough output margin?</p>
+<p>If the answer is yes, the next step is to remove the assist. If the answer is no, the frontend needs a real circuit change before latch and SAR work can produce trustworthy evidence.</p>
+<p>---</p>
+<h1>Sky130 Extracted Frontend Gate Coupling Sweep</h1>
+<ul>
+<li>status: <code>gate_coupling_sweep_found_no_passing_assisted_setting</code></li>
+<li>setting count: <code>4</code></li>
+<li>case count: <code>8</code></li>
+<li>measured case count: <code>0</code></li>
+<li>timed-out case count: <code>8</code></li>
+<li>passing setting count: <code>0</code></li>
+<li>uses extracted frontend netlist: <code>True</code></li>
+<li>uses Sky130 transistor input stage: <code>True</code></li>
+<li>uses assisted gate startup: <code>True</code></li>
+<li>uses full free gate handoff: <code>False</code></li>
+<li>same-run strict payload ready: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+<li>csv: <code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-extracted-frontend-gate-coupling-sweep.csv</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A tiny sampled voltage is not only a number. It is charge sitting on small capacitances. When a transistor gate is attached, the same charge sees a new electrical object. The voltage can shrink, move, or flip because the gate path and bias path now share the node.</p>
+<p>This sweep changes two resistances. The sense-to-gate resistance controls how hard the frontend is loaded by the transistor input. The prebias resistance controls how hard the startup guide pulls the gate toward the previously measured sense voltage. If one setting passed both polarities, the next move would be to remove the guide gradually. If no setting passes, the frontend needs a buffer, a stronger differential sense node, or a cleaner port topology before latch work is meaningful.</p>
+<h2>Setting Summary</h2>
+<table><tbody>
+<tr><th>sense-to-gate ohm</th><th>prebias ohm</th><th>measured</th><th>sign pass</th><th>margin pass</th><th>min output mV</th><th>min sense-to-gate</th></tr>
+<tr><td><code>300000</code></td><td><code>50000</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0.000000</code></td><td><code>0.000000</code></td></tr>
+<tr><td><code>1000000</code></td><td><code>50000</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0.000000</code></td><td><code>0.000000</code></td></tr>
+<tr><td><code>1000000</code></td><td><code>100000</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0.000000</code></td><td><code>0.000000</code></td></tr>
+<tr><td><code>3000000</code></td><td><code>100000</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0</code></td><td><code>0.000000</code></td><td><code>0.000000</code></td></tr>
+</tbody></table>
+<h2>Best Observed Setting</h2>
+<ul>
+<li>by margin: sense-to-gate <code>300000</code> ohm, prebias <code>50000</code> ohm, sign passes <code>0</code>, margin passes <code>0</code></li>
+<li>by sign: sense-to-gate <code>300000</code> ohm, prebias <code>50000</code> ohm, sign passes <code>0</code>, margin passes <code>0</code></li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove full free gate handoff, latch behavior, SAR conversion, post-layout energy, DRC/LVS, or accepted converter evidence</p></article></main></body></html>

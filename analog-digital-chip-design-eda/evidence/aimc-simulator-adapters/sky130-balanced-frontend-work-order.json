@@ -1,0 +1,94 @@
+{
+  "acceptance_checks": [
+    "extracted netlist exists for the new balanced cell name",
+    "normal port mapping preserves both signs for the target positive and negative input differences",
+    "absolute wrong-sign gate bias is below the redesign target before latch fire",
+    "sample-node kickback remains below the hard half-LSB limit from the comparator acceptance fixture",
+    "offset/noise record exists and combines with the static target by root-sum-square",
+    "DRC/LVS record exists for the same cell name used in the extracted rerun",
+    "accepted evidence remains false until all checks come from the same extracted physical candidate"
+  ],
+  "accepted_post_layout_written": false,
+  "accepted_ready_now": false,
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "defines the next buildable Sky130 frontend candidate and its acceptance checks",
+    "not_allowed": "does not create the new layout, does not prove the comparator works, does not run DRC/LVS, and does not write accepted post-layout evidence"
+  },
+  "end_to_end_fit": "This work order is the next physical object in the chain from analog tile output to digital code. The model and simulator path can only trust an analog readout if this frontend first preserves the sign of the tiny sampled voltage. Once the balanced frontend passes extraction, it can feed the comparator acceptance fixture, then the converter post-layout payload, then the digital governor that decides whether an analog result is safe to use.",
+  "max_allowed_wrong_sign_bias_mv": 0.07648529270389176,
+  "missing_post_layout_objects": [
+    "offset_noise_record",
+    "drc_lvs_record"
+  ],
+  "ports": [
+    {
+      "name": "vss",
+      "role": "quiet reference",
+      "rule": "route symmetrically near both latch-gate sides"
+    },
+    {
+      "name": "vdd",
+      "role": "supply reference",
+      "rule": "do not let one latch-gate side see a different supply plate area"
+    },
+    {
+      "name": "sample_p",
+      "role": "positive held sample",
+      "rule": "couple only to the positive measuring node before latch fire"
+    },
+    {
+      "name": "sense_p",
+      "role": "positive balanced measuring node",
+      "rule": "reset to common-mode before sampling and isolate from regeneration"
+    },
+    {
+      "name": "clk_sample",
+      "role": "sample handoff clock",
+      "rule": "must not share a large unbalanced plate with one sense node"
+    },
+    {
+      "name": "vcm_reset",
+      "role": "common-mode reset",
+      "rule": "forces sense_p and sense_n to the same voltage before handoff"
+    },
+    {
+      "name": "clk_latch",
+      "role": "regeneration clock",
+      "rule": "fires only after the sense nodes have formed the sign"
+    },
+    {
+      "name": "sense_n",
+      "role": "negative balanced measuring node",
+      "rule": "match sense_p total extracted capacitance within the bias target"
+    },
+    {
+      "name": "sample_n",
+      "role": "negative held sample",
+      "rule": "mirror the positive sample path in metal length, area, and neighbors"
+    }
+  ],
+  "rejected_shortcuts": [
+    "do not accept an ideal capacitor overlay as physical evidence",
+    "do not swap ports to hide a one-direction extracted bias",
+    "do not use a schematic-only pass after layout parasitics have contradicted it",
+    "do not write accepted post-layout evidence while offset/noise or DRC/LVS is missing"
+  ],
+  "required_bias_reduction_factor": 144.32840105269455,
+  "required_design_moves": [
+    "split the old latch_gate_p/latch_gate_n nodes into sense_p/sense_n and later latch inputs",
+    "add matched reset devices from sense_p and sense_n to vcm_reset",
+    "keep sample_p-to-sense_p and sample_n-to-sense_n plates mirrored in drawn area and neighboring conductors",
+    "route clk_sample and clk_latch as separate controls so sampling disturbance is not mixed with regeneration disturbance",
+    "shield sense_p and sense_n with symmetric vss or vcm neighbors before either node approaches vdd or substrate plates",
+    "extract the new cell and compute total sense_p and sense_n capacitance before running the latch proof"
+  ],
+  "result_type": "sky130_balanced_frontend_work_order",
+  "source_physical_gap": "evidence/aimc-simulator-adapters/sky130-capacitive-isolation-physical-cell-gap.json",
+  "source_redesign_target": "evidence/aimc-simulator-adapters/sky130-extracted-frontend-redesign-target.json",
+  "status": "ready_to_build_balanced_extracted_frontend_candidate",
+  "target_cell_name": "sky130_balanced_capacitive_isolation_frontend",
+  "target_differential_signal_mv": 0.15297058540778352,
+  "target_extracted_netlist_path": "labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_balanced_capacitive_isolation_frontend_extracted.spice",
+  "target_layout_path": "labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/sky130_balanced_capacitive_isolation_frontend.mag"
+}

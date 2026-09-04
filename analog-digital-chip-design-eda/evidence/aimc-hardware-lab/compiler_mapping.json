@@ -1,0 +1,177 @@
+{
+  "memory_plan": {
+    "activations": "DAC-coded row inputs in local simulation",
+    "fallback": "digital path when sensitivity or cumulative error exceeds budget",
+    "outputs": "ADC-coded column readout with digital fallback for sensitive paths",
+    "weights": "local analog tile model for analog-approved projection only"
+  },
+  "operator_placements": [
+    {
+      "analog_candidate": false,
+      "fallback_required": true,
+      "governor_reason": "not_analog_candidate",
+      "layer_id": "all_digital_reference",
+      "operator": "reference_path",
+      "placement": "digital",
+      "reason": "reference_path",
+      "residual_q8": 0,
+      "sensitivity_q8": 96
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": false,
+      "governor_reason": "analog_within_budget",
+      "layer_id": "measured_fixed_projection_tile",
+      "operator": "projection",
+      "placement": "analog",
+      "reason": "measured_tile_within_budget",
+      "residual_q8": 6,
+      "sensitivity_q8": 96
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": true,
+      "governor_reason": "sensitive_path_needs_digital",
+      "layer_id": "measured_projection_stressed_tile",
+      "operator": "projection",
+      "placement": "digital",
+      "reason": "attention_selection_too_sensitive",
+      "residual_q8": 40,
+      "sensitivity_q8": 224
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": true,
+      "governor_reason": "sensitive_path_needs_digital",
+      "layer_id": "measured_attention_scores_analog",
+      "operator": "attention_scores",
+      "placement": "digital",
+      "reason": "attention_selection_too_sensitive",
+      "residual_q8": 40,
+      "sensitivity_q8": 208
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": true,
+      "governor_reason": "sensitive_path_needs_digital",
+      "layer_id": "measured_logits_analog",
+      "operator": "logits",
+      "placement": "digital",
+      "reason": "token_choice_too_sensitive",
+      "residual_q8": 40,
+      "sensitivity_q8": 224
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": false,
+      "governor_reason": "analog_within_budget",
+      "layer_id": "backend_dense1.matmul",
+      "operator": "projection",
+      "placement": "analog",
+      "reason": "projection-tolerant",
+      "residual_q8": 6,
+      "sensitivity_q8": 96
+    },
+    {
+      "analog_candidate": false,
+      "fallback_required": true,
+      "governor_reason": "not_analog_candidate",
+      "layer_id": "backend_dense1.bias",
+      "operator": "projection",
+      "placement": "digital",
+      "reason": "digital-support",
+      "residual_q8": 0,
+      "sensitivity_q8": 128
+    },
+    {
+      "analog_candidate": false,
+      "fallback_required": true,
+      "governor_reason": "not_analog_candidate",
+      "layer_id": "backend_dense1.relu",
+      "operator": "projection",
+      "placement": "digital",
+      "reason": "digital-support",
+      "residual_q8": 0,
+      "sensitivity_q8": 128
+    },
+    {
+      "analog_candidate": true,
+      "fallback_required": false,
+      "governor_reason": "analog_within_budget",
+      "layer_id": "backend_dense2.matmul",
+      "operator": "projection",
+      "placement": "analog",
+      "reason": "projection-tolerant",
+      "residual_q8": 6,
+      "sensitivity_q8": 96
+    },
+    {
+      "analog_candidate": false,
+      "fallback_required": true,
+      "governor_reason": "not_analog_candidate",
+      "layer_id": "backend_dense2.bias",
+      "operator": "projection",
+      "placement": "digital",
+      "reason": "digital-support",
+      "residual_q8": 0,
+      "sensitivity_q8": 128
+    }
+  ],
+  "provenance": {
+    "artifact": "measurements/model-impact-governor-requests.csv",
+    "claim_boundary": "local educational hardware-lab evidence; not calibrated silicon or production signoff",
+    "generated_at": "2026-09-02T23:01:29.699669+00:00",
+    "not_measured_silicon": true,
+    "repo": "/home/mehtama1/git-repo/analog-digital-chip-design-eda",
+    "tool": "analog-digital-chip-design-eda.hardware-lab-placement-exporter"
+  },
+  "tiling_plan": [
+    {
+      "adc_bits": 6,
+      "array": "local-aimc-educational-tile",
+      "dac_bits": 4,
+      "layer_id": "measured_fixed_projection_tile",
+      "tile_shape": [
+        4,
+        4
+      ]
+    },
+    {
+      "adc_bits": 6,
+      "array": "local-aimc-educational-tile",
+      "dac_bits": 4,
+      "layer_id": "backend_dense1.matmul",
+      "tile_shape": [
+        4,
+        4
+      ]
+    },
+    {
+      "adc_bits": 6,
+      "array": "local-aimc-educational-tile",
+      "dac_bits": 4,
+      "layer_id": "backend_dense2.matmul",
+      "tile_shape": [
+        4,
+        4
+      ]
+    }
+  ],
+  "unsupported_operators": [
+    {
+      "layer_id": "measured_projection_stressed_tile",
+      "operator": "projection",
+      "reason": "sensitive_path_needs_digital"
+    },
+    {
+      "layer_id": "measured_attention_scores_analog",
+      "operator": "attention_scores",
+      "reason": "sensitive_path_needs_digital"
+    },
+    {
+      "layer_id": "measured_logits_analog",
+      "operator": "logits",
+      "reason": "sensitive_path_needs_digital"
+    }
+  ]
+}

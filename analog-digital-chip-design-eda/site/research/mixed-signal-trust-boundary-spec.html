@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mixed-Signal Trust Boundary Spec</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Mixed-Signal Trust Boundary Spec</h1><p class="lead">Source: docs/research/mixed-signal-trust-boundary-spec.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Mixed-Signal Trust Boundary Spec</h1>
+<p>This spec defines the interface between an analog in-memory compute tile and the digital controller that decides whether a foundation-model value can be used.</p>
+<p>The object is the readout boundary. Before the boundary, the result is physical: row voltage, conductance, column current, and ADC code. After the boundary, the result is digital model state or a digital fallback request.</p>
+<p>The constraint is that a transformer layer cannot trust a value only because the scheduler chose an analog tile. It can trust the value only after the measured readout has been corrected and checked.</p>
+<h2>Boundary Contract</h2>
+<p>The analog side does not hand the model a value. It hands the digital controller a measurement packet:</p>
+<pre><code>
+sample_valid
+tile_id
+tile_enabled
+adc_code
+zero_code
+gain_q6
+bias
+residual_abs
+residual_budget
+calibration_age
+</code></pre>
+<p>The digital side returns a trust decision:</p>
+<pre><code>
+corrected_value
+output_valid
+fallback
+reason
+last_fallback_tile_id
+fallback_count
+accepted_count
+residual_fallback_count
+stale_fallback_count
+tile_health_action
+</code></pre>
+<p>That is the minimum contract for the current project. It is not a production mixed-signal interface yet. It is the smallest interface that makes the trust boundary explicit enough to simulate, synthesize, and place.</p>
+<p>The concept article <code>Analog Foundation Models Need A Digital Referee</code> explains the system role of this packet: the analog tile proposes a measured value, and the digital side accepts it, refuses it, asks for recalibration, or removes the tile from analog service.</p>
+<h2>Input Fields</h2>
+<p><code>sample_valid</code> says a measured ADC sample is present for this cycle. Without it, the controller should not update the trust decision.</p>
+<p><code>tile_id</code> says which physical tile produced the measurement. It must be latched when the analog read starts, because the request bus may move on before the next-cycle accept-or-fallback decision is made.</p>
+<p><code>tile_enabled</code> says the tile is allowed to serve model traffic. A disabled tile must not produce accepted model state even if its ADC code looks reasonable.</p>
+<p><code>adc_code</code> is the raw output code from the converter. It is not a model value. It is the measurement that starts the digital trust decision.</p>
+<p><code>zero_code</code> is the converter or tile code corresponding to zero input or zero current. Removing it turns a raw code into a centered code.</p>
+<p><code>gain_q6</code> is the measured scale correction. In the current RTL it is a signed fixed-point gain with six fractional bits.</p>
+<p><code>bias</code> is the measured offset correction. It repairs stable output shift after centering and gain correction.</p>
+<p><code>residual_abs</code> is the remaining error estimate after correction. It represents the part of the analog output that calibration did not explain.</p>
+<p><code>residual_budget</code> is the maximum residual this layer or operation is willing to accept.</p>
+<p><code>calibration_age</code> says how long the tile has run since the correction values were refreshed. Old correction data is treated as weaker evidence.</p>
+<h2>Output Fields</h2>
+<p><code>corrected_value</code> is the centered, scaled, biased, and clamped digital value. This value is allowed to enter model state only when <code>output_valid</code> is true.</p>
+<p><code>output_valid</code> means the measured analog result passed the trust boundary.</p>
+<p><code>fallback</code> means the measured analog result should be refused and the digital path should provide the projection.</p>
+<p><code>reason</code> records why the decision was made. A reason code is not decoration. It is how debugging, runtime policy, calibration, and later EDA tests know which boundary failed.</p>
+<p><code>last_fallback_tile_id</code> records the most recent tile whose measured readout was refused by the integrated controller.</p>
+<p><code>fallback_count</code> records how many analog readout attempts have fallen back since reset. In the current RTL it is a saturating counter, not a full histogram.</p>
+<p><code>accepted_count</code> records how many analog readout attempts have been accepted since reset. It is the matching numerator for understanding whether the analog path is mostly useful or mostly being refused.</p>
+<p><code>residual_fallback_count</code> records readout refusals caused by residual error after correction. This counter points to tiles whose analog behavior is not being repaired well enough by the current correction values.</p>
+<p><code>stale_fallback_count</code> records readout refusals caused by old calibration evidence. This counter points to tiles that may become useful again after recalibration.</p>
+<p><code>tile_health_action</code> is the first hardware-visible runtime policy bitfield. In the current controller, <code>0</code> means keep serving the tile, <code>1</code> means recalibrate before trusting it again, <code>2</code> means disable the tile from analog service, and <code>3</code> means run a controlled probe. This is a registered action, not a live combinational summary. Readout evidence can move a serving tile toward recalibration or disablement. Recovery evidence can move it back: <code>calibration_done</code> returns a recalibrating tile to service, while <code>probe_request</code>, <code>probe_passed</code>, and <code>probe_failed</code> let a disabled tile enter a narrow probe path and return to service only after the probe passes. A stale-calibration fallback asks for recalibration. Repeated residual fallbacks ask for disablement, because the tile is failing after correction rather than merely running on old correction data.</p>
+<h2>Current RTL Mapping</h2>
+<p>The current Verilog module <code>aimc_tile_readout</code> implements this contract directly.</p>
+<p>Implemented input fields:</p>
+<ul>
+<li><code>sample_valid</code></li>
+<li><code>tile_enabled</code></li>
+<li><code>adc_code</code></li>
+<li><code>zero_code</code></li>
+<li><code>gain_q6</code></li>
+<li><code>bias</code></li>
+<li><code>residual_abs</code></li>
+<li><code>residual_budget</code></li>
+<li><code>calibration_age</code></li>
+<li><code>calibration_done</code></li>
+<li><code>probe_request</code></li>
+<li><code>probe_passed</code></li>
+<li><code>probe_failed</code></li>
+</ul>
+<p>Implemented output fields:</p>
+<ul>
+<li><code>corrected_value</code></li>
+<li><code>output_valid</code></li>
+<li><code>fallback</code></li>
+<li><code>reason</code></li>
+</ul>
+<p>The integrated controller also implements the first accounting fields around the readout block:</p>
+<ul>
+<li><code>tile_id</code></li>
+<li><code>last_fallback_tile_id</code></li>
+<li><code>fallback_count</code></li>
+<li><code>accepted_count</code></li>
+<li><code>residual_fallback_count</code></li>
+<li><code>stale_fallback_count</code></li>
+<li><code>tile_health_action</code></li>
+</ul>
+<p>Implemented reason cases:</p>
+<pre><code>
+0: ok
+1: tile_disabled
+2: residual_high
+3: calibration_stale
+4: saturated_high
+5: saturated_low
+</code></pre>
+<p>Integrated controller health actions:</p>
+<pre><code>
+0: serve
+1: recalibrate
+2: disable
+</code></pre>
+<p>The concrete design move is that correction and refusal are in clocked hardware, not only in prose. The readout block first forms:</p>
+<pre><code>
+centered_adc = adc_code - zero_code
+scaled = centered_adc * gain_q6
+corrected = scaled &gt;&gt; 6 + bias
+</code></pre>
+<p>Then it checks:</p>
+<pre><code>
+tile_enabled
+residual_abs &lt;= residual_budget
+calibration_age &lt; max_calibration_age
+corrected inside signed output range
+</code></pre>
+<p>If those checks pass, <code>output_valid</code> is asserted. If any check fails, <code>fallback</code> is asserted and <code>reason</code> names the failed boundary.</p>
+<h2>Controller Mapping</h2>
+<p>The current <code>aimc_micro_tile_controller</code> composes operation placement with readout trust.</p>
+<p>The operation partition block decides whether the operation should be:</p>
+<pre><code>
+digital
+analog
+hybrid
+</code></pre>
+<p>The readout block decides whether an analog result should be:</p>
+<pre><code>
+accepted
+refused
+</code></pre>
+<p>The controller waits one cycle after analog placement before accepting the readout result. That wait matters. It prevents a false design where analog placement and analog acceptance are treated as one decision.</p>
+<p>Current execution paths:</p>
+<pre><code>
+0: digital
+1: analog accepted
+2: hybrid review
+</code></pre>
+<p>The current <code>aimc_tile_service_scheduler</code> sits one level above that controller. It does not inspect ADC codes. It inspects already-visible tile actions:</p>
+<pre><code>
+0: serve
+1: recalibrate
+2: disable
+3: probe
+</code></pre>
+<p>It chooses one system action for the cycle:</p>
+<pre><code>
+0: digital fallback
+1: analog service
+2: recalibration
+3: probe
+</code></pre>
+<p>The priority is intentionally plain. Serve the requested healthy tile. If that tile cannot serve, use a healthy spare. If no tile can serve and maintenance budget exists, recalibrate before probing. If there is no budget or every useful tile is disabled or busy, fall back to digital. The scheduler is not a hidden second health model. It is a budgeted dispatcher over health states produced elsewhere.</p>
+<p>The current fallback reason is formed by combining the controller-level fallback marker with the readout reason. That makes the final path explain both levels:</p>
+<pre><code>
+operation was allowed to try analog
+readout boundary refused the measured result
+</code></pre>
+<h2>What Is Still Missing</h2>
+<p>The current interface is enough for the learning project, but several production-facing fields are still missing.</p>
+<p>Missing analog-quality fields:</p>
+<ul>
+<li>ADC overflow before correction</li>
+<li>ADC underflow before correction</li>
+<li>converter ready or timeout</li>
+<li>row-driver settled flag</li>
+<li>temperature or voltage-domain warning</li>
+<li>per-column health rank</li>
+<li>tile or bank identifier</li>
+</ul>
+<p>Missing model-facing fields:</p>
+<ul>
+<li>operation identifier</li>
+<li>layer identifier</li>
+<li>tensor block identifier</li>
+<li>state-error budget selected by the runtime</li>
+<li>attention-rank risk selected by the runtime</li>
+<li>token-rank risk selected by the runtime</li>
+</ul>
+<p>Missing accounting fields:</p>
+<ul>
+<li>calibration samples consumed</li>
+<li>time since last full calibration sweep</li>
+<li>full reason histogram for runtime policy</li>
+</ul>
+<p>These are not optional if the design becomes a larger accelerator. Without identifiers and counters, the system cannot learn which tiles are weak, which layers are fragile, or which request phases should stop using analog.</p>
+<h2>Why This Interface Is The Right First Object</h2>
+<p>This boundary is narrow enough to build and rich enough to teach the real issue.</p>
+<p>It avoids a fake analog claim. The array is not treated as a magic matrix unit. Its output has to pass through ADC, correction, residual checking, age checking, saturation checking, and fallback.</p>
+<p>It avoids a fake digital claim. The digital controller does not pretend to know the result before the analog measurement exists. It waits for the readout boundary and then decides.</p>
+<p>It gives EDA something real to lower. The trust decision is Boolean and arithmetic logic with registers, comparators, adders, multipliers, muxes, and reason bits. That is why the project can synthesize it and run it through OpenLane as a digital control object.</p>
+<h2>Evidence Required</h2>
+<p>The boundary is correct only if several tests keep passing.</p>
+<p>Simulation evidence:</p>
+<ul>
+<li>accepted readout produces <code>output_valid</code></li>
+<li>disabled tile produces fallback</li>
+<li>high residual produces fallback</li>
+<li>stale calibration produces fallback</li>
+<li>high and low saturation clamp the value and produce fallback</li>
+<li>analog placement waits for readout before reporting analog accepted</li>
+</ul>
+<p>Synthesis evidence:</p>
+<ul>
+<li>the readout block lowers to gates</li>
+<li>the integrated controller lowers to gates</li>
+<li>no unintended memories or unsynthesizable processes remain</li>
+<li>signed correction arithmetic has stable width handling</li>
+</ul>
+<p>Physical-flow evidence:</p>
+<ul>
+<li>the integrated controller can be placed and routed</li>
+<li>generated GDS, LEF, Liberty, SDF, and SPICE artifacts exist</li>
+<li>DRC and LVS are clean for the completed no-CTS flow</li>
+<li>CTS remains tracked as a separate unresolved toolchain boundary</li>
+</ul>
+<p>Model evidence:</p>
+<ul>
+<li>the transformer-layer trust trace records per-operation accept/fallback</li>
+<li>the error-budget ledger shows which error source moves hidden state</li>
+<li>fallback reduces final hidden-state error when the worst projections are refused</li>
+</ul>
+<p>Runtime telemetry evidence:</p>
+<ul>
+<li>accepted and fallback counters are tracked by tile</li>
+<li>residual fallback and stale-calibration fallback are separated</li>
+<li>mostly accepted tiles remain in service</li>
+<li>stale tiles are recalibrated before being trusted again</li>
+<li>repeated residual-failure tiles are removed from the primary analog path</li>
+</ul>
+<p>The first-principles claim is that this interface is where analog compute becomes a system. Before it, there is a physical measurement. After it, there is either a bounded model value or a digital fallback.</p></article></main></body></html>

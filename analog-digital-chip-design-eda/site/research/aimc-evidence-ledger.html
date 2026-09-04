@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIMC Evidence Ledger</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>AIMC Evidence Ledger</h1><p class="lead">Source: docs/research/aimc-evidence-ledger.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>AIMC Evidence Ledger</h1>
+<p>This ledger lists the current hardware-lab evidence for the analog in-memory compute workbench.</p>
+<p>It is the bridge between the hardware repo and the old frontend/backend workbench. The current exporter turns the main rows into JSON evidence that the old backend can import into a deployment package.</p>
+<p>The first export now exists at:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/manifest.json</code></li>
+<li><code>evidence/aimc-hardware-lab/import-batch.json</code></li>
+<li><code>evidence/aimc-hardware-lab/compiler_mapping.json</code></li>
+<li><code>evidence/aimc-hardware-lab/analog_error_simulation.json</code></li>
+<li><code>evidence/aimc-hardware-lab/board_runtime.json</code></li>
+<li><code>evidence/aimc-hardware-lab/power_thermal.json</code></li>
+<li><code>evidence/aimc-hardware-lab/task_accuracy.json</code></li>
+</ul>
+<h2>Evidence To Claim Map</h2>
+<p>The backend claim IDs are:</p>
+<ul>
+<li><code>C1</code>: compiler placement is evidence-backed.</li>
+<li><code>C2</code>: latency is evidence-backed.</li>
+<li><code>C3</code>: energy is evidence-backed.</li>
+<li><code>C4</code>: accuracy is evidence-backed.</li>
+<li><code>P1</code>: production readiness.</li>
+</ul>
+<p>The current hardware-lab evidence affects them this way:</p>
+<ul>
+<li><code>compiler_mapping.json</code> feeds <code>C1</code>. It contains operator placement rows, analog candidates, digital fallback rows, tile shape, DAC/ADC assumptions, and backend-derived placement rows. It supports a placement discussion. It refuses to prove that placement is safe on silicon.</li>
+<li><code>analog_error_simulation.json</code> feeds <code>C4</code>. It contains the local nonideality chain: signed conductance, row drop, DAC quantization, programmed and drifted cells, ADC readout, and final residual. It supports a local analog-error statement. It refuses calibrated silicon behavior.</li>
+<li><code>task_accuracy.json</code> feeds <code>C4</code>. It contains the toy transformer-sensitivity proxy: allowed fixed-projection cases, fallback cases, candidate metric, tolerance, and pass/fail. It supports a local model-sensitivity statement. It refuses full pretrained-model quality.</li>
+<li><code>board_runtime.json</code> feeds <code>C2</code> and helps <code>C3</code>. It contains the local RTL/runtime trace, generated model-impact governor cases, fallback events, synthesis context, and OpenLane context. It supports a local runtime/control-path discussion. It refuses measured board latency.</li>
+<li><code>power_thermal.json</code> feeds <code>C3</code>. It contains an OpenLane-derived control-block estimate, area, critical path, cell count, assumed room-temperature boundary, and a clear <code>not_measured_hardware</code> marker. It supports a needs-review energy discussion. It refuses measured power or thermal behavior.</li>
+<li><code>physical_flow.json</code> feeds <code>C5</code>. It contains the selected OpenLane routed-result summary for the pipelined scheduler/governor: flow status, final artifact presence, timing numbers, DRC/LVS/antenna checks, and the signoff boundary. It supports a bounded digital physical-flow claim. It refuses analog macro integration, full-chip signoff, measured power, package reliability, calibrated silicon, or production readiness.</li>
+<li><code>cross-repo-loop-proof.json</code> and <code>cross-repo-loop-proof.md</code> do not directly feed one claim ID. They prove the loop around the claims: backend placement, lab import, governor generation, RTL check, AIHWKIT/CrossSim adapter status, evidence export, backend import, and claim-readiness refresh all run together.</li>
+</ul>
+<p>The current backend result is deliberately mixed: <code>C1</code>, <code>C4</code>, and <code>C5</code> are supported; <code>C2</code> and <code>C3</code> need review; <code>P1</code> remains blocked.</p>
+<p>The backend import and claim-status rules are explained in <code>evidence-import-and-claim-readiness-first-principles.md</code>.</p>
+<p>The measurement boundary for upgrading <code>C2</code> and <code>C3</code> is explained in <code>board-and-power-measurement-boundary.md</code>. That page defines what must be present before local runtime and OpenLane-derived power estimates become measured board latency and measured energy evidence.</p>
+<p>Run:</p>
+<pre><code>
+python3 scripts/export_aimc_hardware_lab_evidence.py
+</code></pre>
+<p>Before exporting evidence, the lab can import the restored backend&#x27;s model-to-placement artifact:</p>
+<pre><code>
+python3 scripts/import_backend_hardware_placement.py
+</code></pre>
+<p>That step writes <code>backend-hardware-placement-governor-input.csv</code>, which is appended to the model-impact governor request table and then checked by the Verilog governor trace.</p>
+<p>The cross-repo loop proof is:</p>
+<pre><code>
+python3 scripts/prove_cross_repo_aimc_loop.py
+</code></pre>
+<p>It writes the reviewable proof artifacts here:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.json</code></li>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.md</code></li>
+</ul>
+<p>Expected summary:</p>
+<pre><code>
+PASS cross_repo_aimc_loop
+backend_operators,5
+backend_analog_candidates,2
+governor_rows,10
+backend_governor_rows,5
+rtl,pass
+export_items,6
+backend_import_accepted,6
+strict_tool_evidence_imported,True
+</code></pre>
+<p>The exporter validates the generated payloads against the restored old backend&#x27;s evidence schema when that backend source is available locally.</p>
+<p>The first live backend import was also tested against the restored FastAPI app on port <code>8025</code>. The old backend now exposes a direct package endpoint for the sibling repo batch:</p>
+<pre><code>
+POST /deployment-packages/{package_id}/hardware-lab-evidence
+</code></pre>
+<p>The old frontend calls this endpoint through the <code>Import Hardware Lab</code> button.</p>
+<p>Sample package:</p>
+<pre><code>
+pkg-e931662a01293df2
+</code></pre>
+<p>Live evidence brief:</p>
+<pre><code>
+http://127.0.0.1:8025/deployment-packages/pkg-e931662a01293df2/evidence-brief.md
+</code></pre>
+<p>Live import result:</p>
+<pre><code>
+accepted 6 ordinary records plus strict simulator/tool sidecar imported separately
+rejected 0
+strict_tool_evidence_imported true
+</code></pre>
+<p>Live claim-readiness result:</p>
+<pre><code>
+Compiler placement is evidence-backed: supported
+Latency is evidence-backed: needs review
+Energy is evidence-backed: needs review
+Accuracy is evidence-backed: supported
+Digital physical flow is evidence-backed: supported
+Production readiness: blocked
+</code></pre>
+<p>This is the intended behavior. Local lab evidence can support narrow placement and accuracy claims. Local runtime and local OpenLane-derived power estimates move latency and energy into needs-review territory, while measured-latency, measured-energy, and production-readiness claims remain refused until stronger evidence exists.</p>
+<p>The next evidence upgrade is not another estimate. It is a synchronized board and power run where the runtime trace, voltage/current samples, thermal setup, workload, and host-overhead rule all describe the same window. That upgrade path is specified in <code>board-and-power-measurement-boundary.md</code>.</p>
+<h2>How The Pages Should Connect</h2>
+<p>Every page in this system should be judged by the same chain:</p>
+<pre><code>
+model graph
+  -&gt; placement boundary
+  -&gt; analog error source
+  -&gt; model sensitivity
+  -&gt; digital governor decision
+  -&gt; RTL and EDA proof
+  -&gt; backend evidence import
+  -&gt; claim readiness
+</code></pre>
+<p>If a page explains a concept but does not name its input artifact, output artifact, supported claim, and blocked claim, it is still too loose. The page may be readable, but it is not yet part of the workflow.</p>
+<p>Current graph-driven evidence status:</p>
+<pre><code>
+backend hardware-placement rows: 5
+model-impact governor request rows: 10
+RTL governor checked cases: 10
+backend imported evidence records: 5
+</code></pre>
+<p>The 10 governor cases combine the original local transformer sensitivity cases with backend-derived ONNX placement rows from package <code>pkg-e931662a01293df2</code>.</p>
+<h2>Claim Boundary</h2>
+<p>Allowed:</p>
+<p>This repo contains a local educational proof slice for analog in-memory foundation-model hardware. It measures analog tile error, tests where that error matters in a transformer-style path, converts model impact into hardware-sized governor fields, checks those fields against Verilog RTL, synthesizes the control logic, and records OpenLane physical-design evidence for the pipelined scheduler/governor.</p>
+<p>Not allowed:</p>
+<p>This does not prove a production analog foundation-model chip. It does not include calibrated silicon, full AIHWKIT or CrossSim agreement, analog macro layout, board traces, measured power, measured thermal behavior, package reliability, test insertion, or signoff tapeout evidence.</p>
+<h2>Evidence Rows</h2>
+<h3>Analog Crossbar Comparison</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/spice-crossbar-comparison.csv</code></li>
+<li><code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/spice-crossbar-comparison.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/spice_crossbar_comparison.py
+</code></pre>
+<p>What this proves:</p>
+<p>The local analog calculation can be compared against a SPICE-style crossbar model for selected cases.</p>
+<p>What it does not prove:</p>
+<p>It does not prove full array layout, full parasitics, process variation, or measured silicon.</p>
+<p>Next proof:</p>
+<p>Add a CrossSim-style layout-risk adapter and later compare to a stronger external crossbar simulator.</p>
+<h3>Signed-Weight Analog Mapping</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/spice-signed-crossbar-comparison.csv</code></li>
+<li><code>measurements/spice-signed-crossbar-comparison.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/spice_signed_crossbar_comparison.py
+</code></pre>
+<p>What this proves:</p>
+<p>Signed model weights need a differential or equivalent mapping. A negative weight is not simply a negative resistor; the circuit must represent positive and negative contribution through a concrete physical scheme.</p>
+<p>What it does not prove:</p>
+<p>It does not prove the best signed-memory cell or final analog macro design.</p>
+<p>Next proof:</p>
+<p>Tie the signed-weight mapping to placement output from the ONNX/compiler path.</p>
+<h3>Row-Wire Drop</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/spice-row-drop-comparison.csv</code></li>
+<li><code>measurements/spice-row-drop-comparison.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/spice_row_drop_comparison.py
+</code></pre>
+<p>What this proves:</p>
+<p>Row wires are part of the computation. If voltage falls along the row, cells do not all see the same input.</p>
+<p>What it does not prove:</p>
+<p>It does not prove final extracted layout behavior.</p>
+<p>Next proof:</p>
+<p>Feed row length, wire resistance, tile size, and bit slicing into a layout-risk record.</p>
+<h3>Converter Boundary Sweep</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/converter-boundary-sweep.csv</code></li>
+<li><code>measurements/converter-boundary-sweep.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/converter_boundary_sweep.py
+</code></pre>
+<p>What this proves:</p>
+<p>ADC and DAC precision are not peripheral details. They set how much continuous analog behavior becomes a bounded digital decision.</p>
+<p>What it does not prove:</p>
+<p>It does not prove final converter area, energy, bandwidth, or layout.</p>
+<p>Next proof:</p>
+<p>Connect converter settings to the old backend&#x27;s timing, energy, and hardware-cost reports.</p>
+<h3>Tile Operating Point</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/tile-operating-point.csv</code></li>
+<li><code>measurements/tile-operating-point.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/tile_operating_point.py
+</code></pre>
+<p>What this proves:</p>
+<p>The tile needs a selected operating point: activation range, DAC bits, ADC bits, residual budget, and current range.</p>
+<p>What it does not prove:</p>
+<p>It does not prove that this operating point is optimal or safe for a fabricated chip.</p>
+<p>Next proof:</p>
+<p>Compare this operating point with AIHWKIT-style simulation and layout-risk estimates.</p>
+<h3>Analog Nonideality Stack</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/analog-nonideality-stack.csv</code></li>
+<li><code>measurements/analog-nonideality-stack.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/analog_nonideality_stack.py
+</code></pre>
+<p>What this proves:</p>
+<p>The analog tile is a measurement chain, not a perfect matrix multiply. The current final residual is represented as <code>final_residual_q8 = 12</code>.</p>
+<p>What it does not prove:</p>
+<p>It is not calibrated silicon evidence.</p>
+<p>Next proof:</p>
+<p>Export this residual into the old backend as analog simulation evidence and compare it with AIHWKIT when available.</p>
+<h3>Model Sensitivity</h3>
+<p>Status: simulated.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/measured-tile-transformer-impact.csv</code></li>
+<li><code>measurements/measured-tile-transformer-impact.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/measured_tile_transformer_impact.py
+</code></pre>
+<p>What this proves:</p>
+<p>The same analog residual has different meaning in different model locations. Fixed projection can remain within budget, while attention and logits can be too sensitive.</p>
+<p>What it does not prove:</p>
+<p>It is not a full pretrained-model benchmark.</p>
+<p>Next proof:</p>
+<p>Drive the sensitivity cases from a graph placement pass instead of only local test policies.</p>
+<h3>Model-Impact Governor Requests</h3>
+<p>Status: generated hardware input.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/model-impact-governor-requests.csv</code></li>
+<li><code>measurements/model-impact-governor-requests.md</code></li>
+<li><code>labs/digital/aimc-control-plane-rtl/generated_model_impact_governor_cases.vh</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/analog/analog-in-memory-foundation-model-hardware
+python3 python/model_impact_governor_requests.py
+</code></pre>
+<p>What this proves:</p>
+<p>Model behavior and backend graph placement can be compressed into hardware-sized fields such as residual, sensitivity, cumulative error, and expected governor action. The current request table contains both local transformer sensitivity rows and backend-derived ONNX placement rows.</p>
+<p>What it does not prove:</p>
+<p>It does not prove full runtime scheduling until the integrated controller consumes the same rows.</p>
+<p>Next proof:</p>
+<p>Generate integrated scheduler/governor cases from these model-impact rows.</p>
+<h3>RTL Governor Check</h3>
+<p>Status: RTL-verified.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>labs/digital/aimc-control-plane-rtl/aimc_model_impact_governor_tb.v</code></li>
+<li><code>labs/digital/aimc-control-plane-rtl/check_generated_model_impact_governor_trace.py</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+cd labs/digital/aimc-control-plane-rtl
+python3 check_generated_model_impact_governor_trace.py
+</code></pre>
+<p>What this proves:</p>
+<p>The Verilog governor makes the expected accept/refuse decision for model-impact cases generated from the analog/model CSV and the backend-derived placement rows.</p>
+<p>What it does not prove:</p>
+<p>It does not prove every possible state, physical timing, or production verification coverage.</p>
+<p>Next proof:</p>
+<p>Add a combined scheduler/governor model-impact checker.</p>
+<h3>Integrated Runtime RTL Checks</h3>
+<p>Status: RTL-verified.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>measurements/integrated-scheduler-governor-runtime.csv</code></li>
+<li><code>labs/digital/aimc-control-plane-rtl/check_generated_integrated_scheduler_governor_trace.py</code></li>
+<li><code>labs/digital/aimc-control-plane-rtl/check_generated_pipelined_scheduler_governor_trace.py</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+./scripts/check_aimc_bridge.sh
+</code></pre>
+<p>What this proves:</p>
+<p>Generated scheduler/governor traces match RTL behavior for current local runtime cases.</p>
+<p>What it does not prove:</p>
+<p>The current integrated traces are not yet driven directly by the model-impact placement rows.</p>
+<p>Next proof:</p>
+<p>Unify model-impact rows and integrated scheduler/governor rows.</p>
+<h3>Synthesis Evidence</h3>
+<p>Status: synthesized.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>labs/digital/aimc-control-plane-synthesis/reports/</code></li>
+<li><code>labs/digital/aimc-control-plane-synthesis/reports/synthesis-interpretation.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+./scripts/check_aimc_bridge.sh
+</code></pre>
+<p>What this proves:</p>
+<p>The RTL control blocks can be lowered by Yosys into logic for the selected educational flow.</p>
+<p>What it does not prove:</p>
+<p>It does not prove final timing, routing, physical legality, power, or manufacturability.</p>
+<p>Next proof:</p>
+<p>Summarize synthesis cell counts into importable backend evidence.</p>
+<h3>OpenLane Physical-Design Evidence</h3>
+<p>Status: routed educational-flow evidence.</p>
+<p>Source artifacts:</p>
+<ul>
+<li><code>labs/eda/aimc-scheduler-governor-pipelined-openlane-prep/openlane-5ns-control-reset-fanout20-metrics-summary.md</code></li>
+</ul>
+<p>Command:</p>
+<pre><code>
+./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>What this proves:</p>
+<p>The pipelined scheduler/governor has a successful OpenLane result under the recorded 5 ns and fanout-20 setup. The report records clean timing, DRC, LVS, antenna, slew, fanout, and capacitance checks for that flow.</p>
+<p>What it does not prove:</p>
+<p>It is not signoff-quality tapeout evidence.</p>
+<p>Next proof:</p>
+<p>Export OpenLane metrics into the old backend&#x27;s hardware evidence panel and connect it to tapeout-risk wording.</p>
+<h2>Whole-Bridge Check</h2>
+<p>Status: project-verified.</p>
+<p>Command:</p>
+<pre><code>
+./scripts/check_aimc_bridge.sh
+</code></pre>
+<p>Current expected result:</p>
+<pre><code>
+PASS aimc_bridge_check
+50/50 gates
+</code></pre>
+<p>What this proves:</p>
+<p>The current local hardware-lab proof chain regenerates analog reports, generated RTL cases, RTL simulations, synthesis checks, OpenLane readiness checks, AIHWKIT/CrossSim adapter availability and smoke-run status, optional simulator payload-run summary, workload-shaped simulator payloads for backend-selected analog candidates, tensor-shaped simulator payloads for backend analog MatMul candidates, trained-weight simulator payloads for the uploaded tiny MLP analog MatMul weights, projection-stack simulator payloads for a larger four-MatMul ONNX fixture, transformer-MLP-block simulator payloads with nonlinear and residual operations kept digital, calibrated transformer-MLP-block simulator payloads with held-out affine correction, calibrated deep transformer-MLP-stack simulator payloads with held-out affine correction, attention-block simulator payloads for static projections with dynamic attention kept digital, calibrated attention-block simulator payloads with held-out affine correction, calibrated residual governor bridge decisions, source-matched residual-aware placement decisions, hardware-lab evidence export, strict analog simulator/tool evidence export, site build, dry-run simulator payload examples, project validation, analog simulator adapter contract validation, guarded simulator payload import checks, old-backend evidence import, backend residual-aware placement API and archive checks, and claim-readiness refresh.</p>
+<p>What it does not prove:</p>
+<p>It does not prove measured board latency, measured power, calibrated silicon, analog macro integration, production signoff, or tapeout readiness.</p>
+<p>Next proof:</p>
+<p>Add measured board runtime, synchronized power, or physical macro evidence under the existing source-matched placement rule.</p>
+<p>The exporter, backend import endpoint, frontend hardware-lab panel, power/thermal estimate record, physical-flow record, simulator availability and smoke-run status report, optional small-fixture simulator payloads, workload-shaped simulator payloads for selected analog candidates, tensor-shaped simulator payloads for backend MatMul candidates, trained-weight simulator payloads for the tiny MLP ONNX model, projection-stack simulator payloads for a larger four-MatMul ONNX fixture, raw and calibrated transformer-MLP-block simulator payloads, calibrated deep transformer-MLP-stack simulator payloads, raw and calibrated attention-block simulator payloads, dry-run simulator payload examples, analog simulator adapter output contract, guarded simulator payload import path, source-matched residual-aware placement, and cross-repo proof now exist. The next proof is stronger evidence, not broader wording: real board runtime, synchronized power measurement, and analog macro/layout evidence.</p></article></main></body></html>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AIMC Page Flow Audit</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>AIMC Page Flow Audit</h1><p class="lead">Source: docs/research/aimc-page-flow-audit.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>AIMC Page Flow Audit</h1>
+<p>This audit defines the rewrite target for the combined analog in-memory compute workbench.</p>
+<p>The problem is not that the project lacks pages. It has many pages. The problem is that the reader can still feel jumps between architecture, frontend, backend, analog simulation, RTL, EDA, evidence import, and claim readiness.</p>
+<p>The fix is to make every important page behave like one link in the same chain.</p>
+<h2>The Chain</h2>
+<pre><code>
+model graph
+  -&gt; placement boundary
+  -&gt; analog measurement chain
+  -&gt; model sensitivity
+  -&gt; digital governor rule
+  -&gt; RTL trace
+  -&gt; synthesis and physical-flow evidence
+  -&gt; backend evidence import
+  -&gt; frontend claim readiness
+</code></pre>
+<p>Each page should make one part of that chain clearer. If a page does not say what enters it and what leaves it, it is not yet seamless.</p>
+<h2>Page Contract</h2>
+<p>Every page that belongs to the combined workflow should state four things near the top or near the first concrete example.</p>
+<pre><code>
+Consumes: the artifact, decision, or measurement this page starts from.
+Produces: the artifact, decision, or measurement this page emits.
+Supports: the strongest claim the page can honestly support.
+Refuses: the stronger claim the page must not make yet.
+</code></pre>
+<p>This is not formatting decoration. It is the way to keep the writing first-principles. A page becomes vague when it names a topic instead of naming the object that changes.</p>
+<h2>Current Strong Pages</h2>
+<h3>Combined AIMC Workbench End-To-End Goal</h3>
+<p>Status: strong system spine.</p>
+<p>Consumes: the old workbench, the new lab, and the live backend package.</p>
+<p>Produces: the shared end-to-end goal and the standard for future pages.</p>
+<p>Supports: the repos are connected by a real prototype loop.</p>
+<p>Refuses: production chip readiness, measured board performance, measured energy, analog macro layout, package reliability, and tapeout readiness.</p>
+<p>Needed improvement: keep it as the main written goal, but add a small page-by-page tracker after the next rewrite pass so the reader can see which pages were upgraded.</p>
+<h3>AIMC Evidence Ledger</h3>
+<p>Status: strong proof ledger.</p>
+<p>Consumes: generated analog, model-impact, RTL, synthesis, OpenLane, export, and backend-import artifacts.</p>
+<p>Produces: the human-readable evidence map and the backend-compatible evidence batch.</p>
+<p>Supports: local lab evidence can support narrow placement and accuracy claims.</p>
+<p>Refuses: measured latency, measured energy, silicon behavior, and production readiness.</p>
+<p>Needed improvement: add a compact table that lists every evidence JSON file, its claim level, and the backend claim it affects. The board and power upgrade path is now covered by <code>board-and-power-measurement-boundary.md</code>.</p>
+<h3>Cross-Repo AIMC Loop Proof</h3>
+<p>Status: strong executable proof endpoint.</p>
+<p>Consumes: backend health, backend hardware placement, lab import script, governor generator, RTL checker, evidence exporter, backend import endpoint, and claim-readiness endpoint.</p>
+<p>Produces: <code>cross-repo-loop-proof.json</code> and <code>cross-repo-loop-proof.md</code>.</p>
+<p>Supports: the old backend and new lab are wired into one runnable loop.</p>
+<p>Refuses: any claim that requires measured board traces, measured power, calibrated silicon, physical analog macro integration, or signoff.</p>
+<p>Needed improvement: surface this report more visibly from the old frontend and the current-lab site index.</p>
+<h3>AI Hardware Architecture To Working Lab Bridge</h3>
+<p>Status: strong bridge, but some now-stale &quot;missing build&quot; lines should be tightened.</p>
+<p>Consumes: old architecture pages and current hardware-lab artifacts.</p>
+<p>Produces: the mapping from architecture requirements to implemented lab proofs.</p>
+<p>Supports: the new lab is the proof extension of the old workbench.</p>
+<p>Refuses: full AIHWKIT/CrossSim agreement, production tapeout, full model compiler, and board-level proof.</p>
+<p>Needed improvement: update the &quot;Missing build&quot; items that have since become partially done: backend ONNX/operator output now reaches lab placement rows; evidence export/import now exists; the cross-repo proof now exists.</p>
+<h3>Board And Power Measurement Boundary</h3>
+<p>Status: new measurement contract.</p>
+<p>Consumes: package ID, board/runtime setup, governor trace, voltage/current samples, thermal setup, workload ID, and host-overhead boundary.</p>
+<p>Produces: the required fields for measured board runtime and measured power/thermal evidence.</p>
+<p>Supports: a clear upgrade path for <code>C2</code> latency and <code>C3</code> energy claims.</p>
+<p>Refuses: treating local RTL runtime, OpenLane-derived estimates, or unsynchronized traces as measured hardware evidence.</p>
+<p>Needed improvement: when real board or instrumented runtime data exists, add an importer that enforces this page&#x27;s required fields.</p>
+<h3>Mixed-Signal Trust Boundary Spec</h3>
+<p>Status: conceptually deep and close to the desired first-principles style.</p>
+<p>Consumes: analog readout fields and tile health state.</p>
+<p>Produces: corrected value, valid/fallback decision, reason code, counters, and tile-health action.</p>
+<p>Supports: analog placement and analog acceptance are separate hardware decisions.</p>
+<p>Refuses: trust before measurement, trust from average accuracy alone, and any claim that a scheduler choice proves the analog value was usable.</p>
+<p>Needed improvement: add a small handoff note to the backend hardware-placement artifact and the generated model-impact governor rows.</p>
+<h3>Hybrid AIMC System Architecture</h3>
+<p>Status: strong architecture page.</p>
+<p>Consumes: request metadata, model phase, tile health, calibration state, and error budget.</p>
+<p>Produces: a system block model that separates analog arrays, converters, SRAM/cache, correction, scheduler, and digital control.</p>
+<p>Supports: AIMC is a mixed system where analog arrays are only one resource.</p>
+<p>Refuses: the idea that analog matrix multiply alone proves foundation-model acceleration.</p>
+<p>Needed improvement: connect each block in the diagram to an existing lab artifact or mark it as missing.</p>
+<h2>Pages That Need A Richer Handoff</h2>
+<h3>Old Frontend Workbench</h3>
+<p>Page: <code>ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/index.html</code></p>
+<p>Current strength: it already shows packages, evidence, claim readiness, hardware-lab import, and hardware placement.</p>
+<p>Flow gap: the page should more directly tell the reviewer: &quot;This is where the answer lands.&quot; It should show the current proof chain in one compact panel and link to the new proof report.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>show backend hardware placement as the model-to-chip handoff</li>
+<li>show hardware-lab evidence import as the chip-to-claim handoff</li>
+<li>show claim readiness as the final answer</li>
+<li>show blocked production readiness as a correct refusal, not a failure</li>
+</ul>
+<h3>Old Master Review Path</h3>
+<p>Page: <code>ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/master-review-path.html</code></p>
+<p>Current strength: it gives the reading order and claim ladder.</p>
+<p>Flow gap: each card mostly says &quot;Produces&quot;, but not &quot;Consumes&quot;, &quot;Supports&quot;, and &quot;Refuses&quot;.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>add the full page contract to each major review step</li>
+<li>point step 10 through 12 to the generated cross-repo proof report</li>
+<li>make the review path start at the frontend and end at claim readiness</li>
+</ul>
+<h3>Old Combined Workflow</h3>
+<p>Page: <code>ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/combined-system-end-to-end-workflow.html</code></p>
+<p>Current strength: it explains why the two repos are one system.</p>
+<p>Flow gap: it needs a more concrete artifact table, not only a conceptual chain.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>table of old artifact, new artifact, and claim affected</li>
+<li>explicit link to backend <code>hardware_placement</code></li>
+<li>explicit link to evidence import endpoint</li>
+<li>explicit link to <code>cross-repo-loop-proof.md</code></li>
+</ul>
+<h3>Hardware Lab Bridge</h3>
+<p>Page: <code>docs/research/ai-hardware-architecture-to-working-lab-bridge.md</code></p>
+<p>Current strength: it maps old architecture needs to new lab artifacts.</p>
+<p>Flow gap: several &quot;missing build&quot; items are no longer fully missing, because the backend placement import, evidence exporter, backend import, and cross-repo proof now exist.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>change missing items into <code>done</code>, <code>partial</code>, and <code>still missing</code></li>
+<li>name exact files and commands for each done item</li>
+<li>avoid claiming full compiler or measured silicon</li>
+</ul>
+<h3>Toolchain Map</h3>
+<p>Page: <code>docs/research/toolchain-map.md</code></p>
+<p>Current strength: it names tools.</p>
+<p>Flow gap: tool pages can become shopping lists. The richer version should say what each tool proves and what it cannot prove.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>AIHWKIT: model-level analog noise and drift simulation, not silicon proof</li>
+<li>CrossSim-style work: array/interconnect risk, not full macro signoff</li>
+<li>Yosys: RTL-to-gates proof, not routing</li>
+<li>OpenLane/OpenROAD: educational physical-flow evidence, not production signoff</li>
+<li>backend package: claim bookkeeping, not physics</li>
+</ul>
+<h3>Lab README Pages</h3>
+<p>Pages:</p>
+<ul>
+<li><code>labs/analog/analog-in-memory-foundation-model-hardware/README.md</code></li>
+<li><code>labs/digital/aimc-control-plane-rtl/README.md</code></li>
+<li><code>labs/digital/aimc-control-plane-synthesis/README.md</code></li>
+<li><code>labs/eda/README.md</code></li>
+<li>OpenLane prep READMEs</li>
+</ul>
+<p>Current strength: they explain local commands and outputs.</p>
+<p>Flow gap: they should each say how their local output enters the global proof chain.</p>
+<p>Rewrite target:</p>
+<ul>
+<li>analog lab produces physical-error and model-impact rows</li>
+<li>digital RTL lab consumes those rows and produces checked reason bits</li>
+<li>synthesis lab proves the controller lowers to gates</li>
+<li>EDA lab proves selected blocks can enter physical flow under recorded constraints</li>
+<li>evidence exporter turns those artifacts into backend package evidence</li>
+</ul>
+<h2>First Rewrite Batch</h2>
+<p>The first batch should update pages that carry the main review experience:</p>
+<ol>
+<li>Current-lab <code>aimc-evidence-ledger.md</code></li>
+<li>Current-lab <code>ai-hardware-architecture-to-working-lab-bridge.md</code></li>
+<li>Current-lab <code>toolchain-map.md</code></li>
+<li>Current-lab analog AIMC lab README</li>
+<li>Current-lab digital RTL README</li>
+<li>Current-lab EDA README</li>
+<li>Old <code>master-review-path.html</code></li>
+<li>Old <code>combined-system-end-to-end-workflow.html</code></li>
+<li>Old frontend hardware-lab panel in <code>index.html</code></li>
+</ol>
+<p>Done means each page has the contract, links to the next page or artifact, and refuses unsupported claims in plain words.</p>
+<h2>Second Rewrite Batch</h2>
+<p>The second batch should deepen pages that explain why the workflow is shaped this way:</p>
+<ol>
+<li><code>hybrid-aimc-system-architecture.md</code></li>
+<li><code>transformer-operation-partition-for-hybrid-aimc.md</code></li>
+<li><code>mixed-signal-trust-boundary-spec.md</code></li>
+<li><code>analog-compute-needs-a-trust-boundary.md</code></li>
+<li><code>analog-foundation-models-need-a-digital-referee.md</code></li>
+<li><code>analog-placement-is-not-analog-acceptance.md</code></li>
+<li><code>where-analog-compute-actually-helps.md</code></li>
+<li><code>analog-serving-policy-decides-when-to-use-the-array.md</code></li>
+<li><code>eda-is-constraint-solving.md</code></li>
+</ol>
+<p>Done means these pages do not merely explain principles. They point to the exact artifact in this repo that embodies the principle.</p>
+<h2>Third Rewrite Batch</h2>
+<p>The third batch should add missing pages only if the first two batches reveal true gaps.</p>
+<p>Likely missing pages:</p>
+<ul>
+<li>Board and power measurement plan that separates local estimates from measured traces.</li>
+</ul>
+<p>The backend hardware placement page now exists as <code>backend-hardware-placement-first-principles.md</code>. The evidence import and claim-readiness page now exists as <code>evidence-import-and-claim-readiness-first-principles.md</code>. The AIHWKIT and CrossSim adapter boundary page now exists as <code>aihwkit-crosssim-adapter-boundary.md</code>.</p>
+<p>No new page should be added unless it has a clear place in the chain.</p>
+<h2>Acceptance Criteria</h2>
+<p>The seamless version is done when:</p>
+<ul>
+<li>the old review path and the new research pages point to the same cross-repo proof</li>
+<li>the frontend, backend, lab, evidence, and EDA pages share the same vocabulary</li>
+<li>every important page states consumes, produces, supports, and refuses</li>
+<li>each claim is tied to a file, command, endpoint, or generated report</li>
+<li>the site build passes</li>
+<li>the project validator passes</li>
+<li>the 31-step AIMC bridge check passes</li>
+</ul>
+<p>Until then, the project is connected technically, but not fully connected as a reviewable body of writing.</p></article></main></body></html>

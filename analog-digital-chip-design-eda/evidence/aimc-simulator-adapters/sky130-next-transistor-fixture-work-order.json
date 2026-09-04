@@ -1,0 +1,69 @@
+{
+  "acceptance_tests": [
+    {
+      "name": "runtime",
+      "requirement": "each ngspice case finishes inside 180 seconds",
+      "why": "a proof fixture has to be repeatable in the bridge, not only possible by hand"
+    },
+    {
+      "name": "low_mid_high_inputs",
+      "requirement": "keep the input-range and controlled width-mismatch cases passing while adding noise and comparator tolerance",
+      "why": "the nominal and simple mismatch gates now pass, so the next risk is whether the margin survives decision noise"
+    },
+    {
+      "name": "comparator_offset_noise_budget",
+      "requirement": "input-referred comparator offset plus noise should target <= 0.1530 mV in the tested grid and must stay below 0.1567 mV unless the sample-hold error is reduced further",
+      "why": "sample-hold error and comparator uncertainty spend the same decision-voltage budget"
+    },
+    {
+      "name": "acquisition_error",
+      "requirement": "sampled value before turn-off is within half LSB, 2.197265625e-04 V",
+      "why": "a hold result is not useful if the capacitor was never charged correctly"
+    },
+    {
+      "name": "hold_error",
+      "requirement": "decision-voltage movement after turn-off is below 2.197265625e-04 V for every accepted case",
+      "why": "this is the direct 12-bit sample-hold target"
+    },
+    {
+      "name": "differential_mismatch",
+      "requirement": "if differential, unmatched movement stays below 0.2197 mV",
+      "why": "common movement can cancel, but mismatch becomes decision error"
+    },
+    {
+      "name": "claim_boundary",
+      "requirement": "candidate_post_layout_written=false and accepted_post_layout_written=false",
+      "why": "transistor schematic evidence is not extracted post-layout converter evidence"
+    }
+  ],
+  "accepted_post_layout_written": false,
+  "best_measured_hold_error_v": 6.300000000014627e-05,
+  "best_measured_source": "sky130-differential-dummy-candidate-input-sweep",
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "defines the next Sky130 transistor fixture contract from measured sample-hold and matching targets",
+    "not_allowed": "does not prove a new circuit, comparator, SAR conversion, extracted layout, DRC/LVS signoff, or accepted replacement economics"
+  },
+  "half_lsb_12b_v": 0.0002197265625,
+  "known_working_mid_hold_error_v": 0.005557000000000034,
+  "known_working_source": "sky130-sample-switch-hold-mode-ngspice",
+  "max_allowed_differential_mismatch_mv": 0.2197265625,
+  "max_passing_tested_decision_uncertainty_mv": 0.15297058540778352,
+  "recommended_next_topology": "broaden_differential_dummy_cancellation_candidate",
+  "recommended_order": [
+    "copy the known-running transmission-gate hold-mode deck exactly",
+    "keep the passing 0.50x differential dummy case as the candidate baseline",
+    "keep the low/mid/high input sweep as the regression gate",
+    "keep the controlled width-mismatch sweep as a regression gate",
+    "add noise and comparator threshold offset before adding SAR behavior",
+    "add supply-energy measurement after the decision-voltage/noise behavior is bounded",
+    "record timeouts as failed fixtures, not as circuit conclusions",
+    "only update break-even or post-layout pages after a strict accepted payload exists"
+  ],
+  "remaining_comparator_offset_or_noise_budget_mv": 0.15672656249985373,
+  "remaining_margin_x": 3.4877232142776164,
+  "required_cancellation_percent": 0.0,
+  "required_reduction_x": 0.2867200000006657,
+  "result_type": "sky130_next_transistor_fixture_work_order",
+  "status": "sky130_next_transistor_fixture_work_order_ready_not_converter_proof"
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Next Transistor Fixture Work Order</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Next Transistor Fixture Work Order</h1><p class="lead">Source: docs/research/sky130-next-transistor-fixture-work-order.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Next Transistor Fixture Work Order</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/sky130-next-transistor-fixture-work-order.md</code>.</p>
+<p>---</p>
+<h1>Sky130 Next Transistor Fixture Work Order</h1>
+<ul>
+<li>status: <code>sky130_next_transistor_fixture_work_order_ready_not_converter_proof</code></li>
+<li>recommended next topology: <code>broaden_differential_dummy_cancellation_candidate</code></li>
+<li>known working source: <code>sky130-sample-switch-hold-mode-ngspice</code></li>
+<li>best measured source: <code>sky130-differential-dummy-candidate-input-sweep</code></li>
+<li>best measured hold error V: <code>6.300000000e-05</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>required reduction x: <code>0.287</code></li>
+<li>remaining margin x: <code>3.488</code></li>
+<li>required cancellation percent: <code>0.00</code></li>
+<li>max allowed differential mismatch mV: <code>0.2197</code></li>
+<li>remaining comparator offset or noise budget mV: <code>0.1567</code></li>
+<li>max passing tested decision uncertainty mV: <code>0.1530</code></li>
+<li>candidate post-layout written: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A useful next SPICE run must answer one physical question. Does a concrete transistor circuit keep the decision voltage still enough after the sampling switch turns off?</p>
+<p>The target is no longer vague. The differential dummy-cancellation candidate now passes nominal input range and a controlled width-mismatch sweep. The remaining budget for comparator offset or noise is about 0.1567 mV, and the tested offset/noise grid passes up to about 0.1530 mV of combined decision uncertainty. A useful next proof must show that a concrete decision circuit stays inside that budget.</p>
+<h2>Acceptance Tests</h2>
+<table><tbody>
+<tr><th>test</th><th>requirement</th><th>why it matters</th></tr>
+<tr><td><code>runtime</code></td><td>each ngspice case finishes inside 180 seconds</td><td>a proof fixture has to be repeatable in the bridge, not only possible by hand</td></tr>
+<tr><td><code>low_mid_high_inputs</code></td><td>keep the input-range and controlled width-mismatch cases passing while adding noise and comparator tolerance</td><td>the nominal and simple mismatch gates now pass, so the next risk is whether the margin survives decision noise</td></tr>
+<tr><td><code>comparator_offset_noise_budget</code></td><td>input-referred comparator offset plus noise should target &lt;= 0.1530 mV in the tested grid and must stay below 0.1567 mV unless the sample-hold error is reduced further</td><td>sample-hold error and comparator uncertainty spend the same decision-voltage budget</td></tr>
+<tr><td><code>acquisition_error</code></td><td>sampled value before turn-off is within half LSB, 2.197265625e-04 V</td><td>a hold result is not useful if the capacitor was never charged correctly</td></tr>
+<tr><td><code>hold_error</code></td><td>decision-voltage movement after turn-off is below 2.197265625e-04 V for every accepted case</td><td>this is the direct 12-bit sample-hold target</td></tr>
+<tr><td><code>differential_mismatch</code></td><td>if differential, unmatched movement stays below 0.2197 mV</td><td>common movement can cancel, but mismatch becomes decision error</td></tr>
+<tr><td><code>claim_boundary</code></td><td>candidate_post_layout_written=false and accepted_post_layout_written=false</td><td>transistor schematic evidence is not extracted post-layout converter evidence</td></tr>
+</tbody></table>
+<h2>Build Order</h2>
+<ul>
+<li>copy the known-running transmission-gate hold-mode deck exactly</li>
+<li>keep the passing 0.50x differential dummy case as the candidate baseline</li>
+<li>keep the low/mid/high input sweep as the regression gate</li>
+<li>keep the controlled width-mismatch sweep as a regression gate</li>
+<li>add noise and comparator threshold offset before adding SAR behavior</li>
+<li>add supply-energy measurement after the decision-voltage/noise behavior is bounded</li>
+<li>record timeouts as failed fixtures, not as circuit conclusions</li>
+<li>only update break-even or post-layout pages after a strict accepted payload exists</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove a new circuit, comparator, SAR conversion, extracted layout, DRC/LVS signoff, or accepted replacement economics</p></article></main></body></html>

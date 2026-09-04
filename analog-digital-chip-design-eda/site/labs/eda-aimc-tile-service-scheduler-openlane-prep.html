@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Tile-Service Scheduler OpenLane Prep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Tile-Service Scheduler OpenLane Prep</h1><p class="lead">Source: labs/eda/aimc-tile-service-scheduler-openlane-prep/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Tile-Service Scheduler OpenLane Prep</h1>
+<p>This lab packages the tile-service scheduler for physical-flow review. The object is not the analog array and not the per-tile readout controller. The object is the small system-level dispatcher that chooses analog service, recalibration, probe, or digital fallback from already-visible tile health states.</p>
+<h2>Workflow Contract</h2>
+<p>Consumes: generated scheduler runtime trace, pure scheduler RTL, clocked physical wrapper, Yosys synthesis report, OpenLane package files, no-CTS result, and CTS-enabled result.</p>
+<p>Produces: scheduler physical-flow evidence, area/timing/routing metrics, DRC/LVS/antenna status, and remaining fanout or packaging boundaries.</p>
+<p>Supports: the claim that the tile-service dispatcher can be represented as a small physical-flow object in this local setup.</p>
+<p>Refuses: proving tile trust, analog correctness, measured board latency, measured energy, package reliability, or production macro signoff.</p>
+<p>Handoff: this page feeds the local runtime/control evidence that appears in <code>board_runtime.json</code>. It explains how the scheduler can be physically packaged, while the backend claim engine still keeps measured latency in needs-review state.</p>
+<h2>Object</h2>
+<p>The pure scheduler is <code>src/aimc_tile_service_scheduler.v</code>. It is combinational. It reads:</p>
+<pre><code>
+sample_valid
+analog_candidate
+requested_tile_id
+tile0_health_action through tile3_health_action
+tile_busy
+maintenance_budget
+</code></pre>
+<p>It emits:</p>
+<pre><code>
+service_decision
+selected_tile
+reason
+</code></pre>
+<p>The first-principles rule is that a scheduler should not create trust. It should spend trust that another block has already made visible. A tile controller records readout evidence and exposes a health action. The scheduler uses those health actions under a maintenance budget.</p>
+<h2>Constraint</h2>
+<p>The scheduler itself has no registers. A physical flow still needs a clocked boundary. The OpenLane package uses <code>aimc_tile_service_scheduler_physical</code>, which registers the inputs and outputs around the combinational scheduler:</p>
+<pre><code>
+registered tile state -&gt; scheduler policy -&gt; registered service decision
+</code></pre>
+<p>That wrapper does not change the scheduler rule. It gives timing analysis a concrete question:</p>
+<pre><code>
+Can the service decision settle between one set of registers and the next?
+</code></pre>
+<h2>Files</h2>
+<ul>
+<li><code>src/aimc_tile_service_scheduler.v</code>: local copy of the pure scheduler RTL</li>
+<li><code>src/aimc_tile_service_scheduler_physical.v</code>: clocked physical wrapper</li>
+<li><code>config.json</code>: OpenLane-style design configuration</li>
+<li><code>config.tcl</code>: compatibility configuration for older <code>flow.tcl</code> runs</li>
+<li><code>config_no_cts.tcl</code>: exploratory no-CTS configuration</li>
+<li><code>openlane-no-cts-final-report.md</code>: bounded physical-flow result</li>
+<li><code>openlane-no-cts-metrics-summary.md</code>: generated compact metric summary</li>
+<li><code>openlane-cts-final-report.md</code>: CTS-enabled physical-flow result</li>
+<li><code>openlane-cts-metrics-summary.md</code>: generated CTS metric summary</li>
+<li><code>analyze_no_cts_result.py</code>: extracts metrics from local OpenLane artifacts</li>
+<li><code>constraint.sdc</code>: virtual-clock input/output timing assumptions</li>
+<li><code>src/constraint.sdc</code>: SDC copy for older OpenLane design-folder conventions</li>
+<li><code>pin_order.cfg</code>: stable pin-order intent for review</li>
+</ul>
+<h2>Concrete Design Move</h2>
+<p>Run the generated scheduler trace first:</p>
+<pre><code>
+cd labs/digital/aimc-control-plane-rtl
+python3 check_generated_scheduler_trace.py
+</code></pre>
+<p>Run synthesis for the pure scheduler:</p>
+<pre><code>
+cd labs/digital/aimc-control-plane-synthesis
+yosys synth_aimc_tile_service_scheduler.ys
+</code></pre>
+<p>Check OpenLane readiness:</p>
+<pre><code>
+AIMC_OPENLANE_PREP=aimc-tile-service-scheduler-openlane-prep AIMC_OPENLANE_DESIGN=aimc_tile_service_scheduler_physical AIMC_OPENLANE_RTL=aimc_tile_service_scheduler.v ./scripts/check_aimc_openlane_readiness.sh
+</code></pre>
+<p>When OpenLane is available, run the exploratory no-CTS flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_tile_service_scheduler_clean_no_cts CONFIG_NAME=config_no_cts AIMC_OPENLANE_PREP=aimc-tile-service-scheduler-openlane-prep AIMC_OPENLANE_DESIGN=aimc_tile_service_scheduler_physical AIMC_OPENLANE_RTL=aimc_tile_service_scheduler.v ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>Regenerate the compact evidence summary:</p>
+<pre><code>
+cd labs/eda/aimc-tile-service-scheduler-openlane-prep
+python3 analyze_no_cts_result.py
+</code></pre>
+<p>Run the CTS-enabled flow:</p>
+<pre><code>
+PDK_ROOT=/home/mehtama1/eda-tools/pdks TAG=aimc_tile_service_scheduler_cts CONFIG_NAME=config AIMC_OPENLANE_PREP=aimc-tile-service-scheduler-openlane-prep AIMC_OPENLANE_DESIGN=aimc_tile_service_scheduler_physical AIMC_OPENLANE_RTL=aimc_tile_service_scheduler.v ./scripts/run_aimc_openlane_flow.sh
+</code></pre>
+<p>Regenerate the CTS summary:</p>
+<pre><code>
+cd labs/eda/aimc-tile-service-scheduler-openlane-prep
+python3 analyze_no_cts_result.py /home/mehtama1/eda-tools/OpenLane/designs/aimc_tile_service_scheduler_physical/runs/aimc_tile_service_scheduler_cts openlane-cts-metrics-summary.md
+</code></pre>
+<h2>Measurement</h2>
+<p>The readiness check should prove:</p>
+<ul>
+<li>all package files exist</li>
+<li><code>config.json</code> parses</li>
+<li>the packaged RTL lowers through Yosys</li>
+<li>the OpenLane source tree and Docker image are present</li>
+</ul>
+<p>The pure scheduler synthesis currently reports:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 154
+$_AND_: 22
+$_MUX_: 58
+$_NOT_: 30
+$_OR_: 34
+$_XOR_: 10
+</code></pre>
+<p>The no-flip-flop result is intentional for the pure scheduler. The physical wrapper adds registers only to define the timing boundary.</p>
+<p>Current no-CTS physical run summary:</p>
+<pre><code>
+flow_status: flow completed
+synth_cell_count: 78
+TotalCells: 450
+CoreArea_um^2: 3578.432
+DIEAREA_mm^2: 0.005844193625000001
+wire_length: 2237
+vias: 686
+spef_wns: 0.0
+spef_tns: 0.0
+critical_path_ns: 2.51
+tritonRoute_violations: 0
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+linter_errors: 0
+linter_warnings: 0
+max slew violation count: 0
+max fanout violation count: 1
+max capacitance violation count: 0
+</code></pre>
+<p>This run is physical evidence that the registered-boundary scheduler wrapper can pass no-CTS synthesis, placement, routing, extraction, GDS generation, DRC, LVS, antenna, setup, and hold checks. The remaining physical-design object is clock-tree signoff and the no-CTS clock fanout violation. OpenLane also scaled the power grid down because this wrapper is small; that is a packaging boundary to revisit before treating the scheduler as a production macro.</p>
+<p>Current CTS-enabled physical run summary:</p>
+<pre><code>
+flow_status: flow completed
+synth_cell_count: 78
+TotalCells: 447
+CoreArea_um^2: 3578.432
+DIEAREA_mm^2: 0.005844193625000001
+wire_length: 2406
+vias: 722
+spef_wns: 0.0
+spef_tns: 0.0
+critical_path_ns: 2.52
+tritonRoute_violations: 0
+Magic_violations: 0
+pin_antenna_violations: 0
+net_antenna_violations: 0
+lvs_total_errors: 0
+linter_errors: 0
+linter_warnings: 0
+max slew violation count: 0
+max fanout violation count: 2
+max capacitance violation count: 0
+</code></pre>
+<p>The CTS-enabled run proves more than the no-CTS run: clock tree synthesis completed, and the block still routed, extracted, generated final views, and passed DRC, LVS, antenna, setup, and hold checks. It is still not a production closure claim. Two max-fanout violations remain on generated clock buffers, the checks report lists one unconstrained endpoint on <code>reason[3]</code>, and the small-core power-grid scaling warning remains a packaging boundary.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is claiming that a scheduler is correct because the physical package exists. The package only says the dispatcher can be made into a physical-flow object. Correctness still comes from the generated runtime trace, the Verilog scheduler checker, and the Yosys synthesis result.</p>
+<p>The second failure mode is hiding policy inside the wrapper. The wrapper should only register inputs and outputs. The policy must remain in the pure scheduler so it can be tested directly against the generated runtime trace.</p></article></main></body></html>

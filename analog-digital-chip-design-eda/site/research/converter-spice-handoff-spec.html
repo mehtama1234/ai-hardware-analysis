@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter SPICE Handoff Spec</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter SPICE Handoff Spec</h1><p class="lead">Source: docs/research/converter-spice-handoff-spec.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter SPICE Handoff Spec</h1>
+<p>This page is generated from the converter evidence artifacts.</p>
+<p>It defines the next circuit proof after the behavioral converter simulation estimate. The purpose is to turn each clean model term into a SPICE measurement: row-driver settling, ADC decision error, converter sharing load, and supply energy.</p>
+<p>---</p>
+<h1>Converter SPICE Handoff Spec</h1>
+<p>This file says what the next converter proof must simulate. The current behavioral estimate is useful because it makes the math visible. It is still too clean. A SPICE handoff must turn each clean term into a circuit measurement.</p>
+<ul>
+<li>ADC target: <code>12</code> bits</li>
+<li>DAC target: <code>10</code> bits</li>
+<li>output noise budget: <code>0.004</code></li>
+<li>behavioral output noise RMS to beat or explain: <code>0.000851121</code></li>
+<li>settling window: <code>4.0</code> ns</li>
+<li>conversion window: <code>12.0</code> ns</li>
+<li>sharing point: <code>64</code> rows, <code>4</code> columns, <code>16</code> outputs per conversion cost</li>
+</ul>
+<h2>First-Principles Handoff</h2>
+<p>The behavioral model says the converter target can fit under the noise budget if the row voltage settles, the quantization steps are fine enough, and comparator and driver noise stay small. SPICE must test those same nouns as circuit nodes and currents. A row DAC is no longer just <code>10 bits</code>; it is a reference ladder, switches, output resistance, capacitance, load, and settling time. A SAR ADC is no longer just <code>12 bits</code>; it is a sample node, comparator, reference movement, switching sequence, and timed decision chain.</p>
+<p>The important question is not whether the SPICE run produces a pretty waveform. The question is whether each waveform can replace one field in the converter evidence contract: energy, latency, output noise, input-referred noise, area or area proxy, and sharing rule.</p>
+<h2>Required Testbenches</h2>
+<h3>S1. 10-bit row DAC settling</h3>
+<ul>
+<li>object: row-driver DAC output node before the crossbar row input</li>
+<li>stimulus: step through low, midscale, and near-full-scale codes with the selected row load attached</li>
+<li>measurement: settled voltage error after the allowed settling window</li>
+<li>acceptance: absolute settled error stays below half of one 10-bit DAC step and the row-driver noise term stays within the evidence budget</li>
+</ul>
+<h3>S2. 12-bit SAR readout decision</h3>
+<ul>
+<li>object: ADC comparator, capacitor ladder or equivalent DAC, reference path, and sample node</li>
+<li>stimulus: sweep input around every critical transition used by the selected output range</li>
+<li>measurement: code transition error, comparator decision noise, conversion time, and failed-decision cases</li>
+<li>acceptance: RMS readout error plus comparator noise stays below the budget carried by the behavioral estimate</li>
+</ul>
+<h3>S3. shared converter loading</h3>
+<ul>
+<li>object: four shared converter instances serving the 64-row, 4-column, 16-output sharing point</li>
+<li>stimulus: toggle the muxed source, output load, and sample timing across the sharing schedule</li>
+<li>measurement: extra settling error, added conversion latency, and loading-dependent noise</li>
+<li>acceptance: sharing does not push total output noise above 0.004 and does not remove the break-even margin in the passing 64-row shared scenario</li>
+</ul>
+<h3>S4. energy accounting</h3>
+<ul>
+<li>object: row DAC references, ADC references, comparator, switch ladder, sampling capacitors, and mux control</li>
+<li>stimulus: same conversion sequence used in the accuracy replay</li>
+<li>measurement: integrated supply energy per row drive and per output conversion</li>
+<li>acceptance: energy fields can replace the relative behavioral units with SPICE-derived numbers and a named voltage rail</li>
+</ul>
+<h2>Required Output Fields</h2>
+<ul>
+<li>measurement_level=circuit_simulation or post_layout_simulation</li>
+<li>adc_energy_per_conversion with units and rail voltage</li>
+<li>dac_energy_per_row_drive with units and row load</li>
+<li>conversion_time_ns from the timed decision path</li>
+<li>settling_time_ns from the row-drive and sample path</li>
+<li>output_noise_rms from transition, comparator, settling, and driver terms</li>
+<li>input_referred_noise for the row-drive boundary</li>
+<li>adc_area_um2 and dac_area_um2 if layout exists, otherwise explicit area proxy</li>
+<li>sharing rule that names rows, columns, instances, and outputs per conversion cost</li>
+<li>netlist path, model corner, simulator command, seed if noise is randomized, and date</li>
+</ul>
+<h2>Claim Boundary</h2>
+<p>Transistor-level SPICE can improve the behavioral converter model. It still cannot replace the break-even assumptions unless the evidence level becomes <code>post_layout_simulation</code> or <code>measured_silicon</code>.</p>
+<p>Refused claim: does not claim a designed converter exists, does not claim extracted parasitics, does not claim measured silicon, and does not upgrade board energy</p></article></main></body></html>

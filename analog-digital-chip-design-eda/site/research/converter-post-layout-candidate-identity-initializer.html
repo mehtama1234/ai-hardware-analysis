@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Converter Post-Layout Candidate Identity Initializer</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Converter Post-Layout Candidate Identity Initializer</h1><p class="lead">Source: docs/research/converter-post-layout-candidate-identity-initializer.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Converter Post-Layout Candidate Identity Initializer</h1>
+<p>This page describes the helper for the first safe edit to the candidate post-layout payload.</p>
+<p>The helper fills identity and file-name fields with one shared run id. It does not fill energy, latency, noise, area, or other measured values.</p>
+<h2>First Principle</h2>
+<p>Before a converter can be judged, the project has to know which converter is being judged.</p>
+<p>That means the payload should name one converter, one run, one extracted netlist path, one model or setup file path, one source rerun path, and one provenance record. Those names do not prove the converter is good. They only prevent a worse mistake: mixing values from different runs and calling them one result.</p>
+<h2>Safe Use</h2>
+<p>Run the self-test first:</p>
+<p><code>python3 scripts/initialize_converter_post_layout_candidate_identity.py --self-test</code></p>
+<p>When a real run exists, use the helper with real names and either write to a draft payload or apply it to the candidate payload.</p>
+<p>The helper keeps <code>template_only</code> unchanged. The payload must stay blocked until all measured values and referenced files are real.</p>
+<h2>Refused Claim</h2>
+<p>This helper does not create post-layout evidence, does not create netlist/model/rerun files, does not fill measured values, and does not write accepted evidence.</p>
+<p>---</p>
+<h1>Converter Post-Layout Candidate Identity Initializer</h1>
+<ul>
+<li>status: <code>identity_initializer_ready</code></li>
+<li>source payload: <code>evidence/aimc-simulator-adapters/candidate-post-layout/payload.json</code></li>
+<li>applied to source payload: <code>False</code></li>
+<li>same-run identity validation passed after identity fill: <code>True</code></li>
+<li>strict same-run validation passed after identity fill: <code>False</code></li>
+</ul>
+<p>This helper exists to reduce one specific manual error: using different names for the same run in different payload sections.</p>
+<h2>First Principle</h2>
+<p>The first safe edit to a candidate package is identity, not performance. Identity says which converter was run, which files belong to that run, who or what produced it, and what single run id ties the sections together.</p>
+<p>This still does not make the payload evidence. Energy, latency, noise, area, extracted files, model files, and the source rerun artifact must still be real before strict submission can pass.</p>
+<h2>Fields Initialized</h2>
+<ul>
+<li><code>converter_id</code></li>
+<li><code>extraction.extracted_netlist</code></li>
+<li><code>simulation.model_files[0]</code></li>
+<li><code>break_even_rerun.rerun_artifact</code></li>
+<li><code>provenance.created_at</code></li>
+<li><code>provenance.generator_or_lab_notebook</code></li>
+<li><code>provenance.operator</code></li>
+<li><code>provenance.run_id</code></li>
+<li><code>simulation.run_id</code></li>
+<li><code>energy.run_id</code></li>
+<li><code>latency.run_id</code></li>
+<li><code>noise.run_id</code></li>
+<li><code>area.run_id</code></li>
+<li><code>break_even_rerun.run_id</code></li>
+</ul>
+<h2>Remaining Boundary</h2>
+<p>numeric evidence values and referenced files still have to be real before strict submission can pass</p>
+<h2>Refused Claim</h2>
+<p>does not invent numeric post-layout values, does not create referenced files, does not remove template_only, and does not write accepted evidence</p></article></main></body></html>

@@ -1,0 +1,148 @@
+{
+  "converter_plan": {
+    "compatibility_status": "blocked_sar_source_common_mode",
+    "physical_diagnostic_bits": 4,
+    "selection_status": "digital_fallback_until_physical_converter_passes",
+    "simulator_adc_bits": 6,
+    "simulator_dac_bits": 4
+  },
+  "governor_result": {
+    "action": 0,
+    "decision": 1,
+    "reason": "analog_within_budget",
+    "residual_q8": 16,
+    "sensitivity_q8": 224
+  },
+  "memory_plan": {
+    "analog_memory": "dense1.matmul candidate only",
+    "digital_memory": "all selected execution and task decision",
+    "sram": "features, hidden activations, partial sums, calibration metadata, and fallback buffers"
+  },
+  "operator_placements": [
+    {
+      "activations": "local_sram",
+      "analog_candidate": true,
+      "bit_slices": 2,
+      "calibration_profile": "tiny-mlp-task-analog-error-v1",
+      "candidate_placement": "analog_memory",
+      "converter_boundaries": [],
+      "fallback": "digital_matmul_reference",
+      "governor_decision": 1,
+      "operator": "MatMul",
+      "operator_id": "dense1.matmul",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "task rehearsal permits bounded analog service, but the physical converter gate is blocked and the current workload must use digital fallback",
+      "tile_count": 1,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        4,
+        4
+      ],
+      "weights": "digital_sram"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Add",
+      "operator_id": "dense1.bias",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "bias correction remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_sram"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Relu",
+      "operator_id": "dense1.relu",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "nonlinear activation remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "candidate_placement": "digital_support",
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "MatMul",
+      "operator_id": "dense2.matmul",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "downstream projection remains exact digital support in this isolated task experiment",
+      "tile_count": 1,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        2,
+        2
+      ],
+      "weights": "digital_sram"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Add",
+      "operator_id": "dense2.bias",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "bias correction remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_sram"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "ArgMax",
+      "operator_id": "classification_decision",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "task decision remains independent digital control",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none"
+    }
+  ],
+  "plan_id": "tiny_mlp_task_hybrid_plan_v1",
+  "provenance": {
+    "generated_at": "2026-09-04T06:52:57.550739+00:00",
+    "governor_bridge": "evidence/aimc-hardware-lab/tiny-mlp-task-governor-bridge-v1.json",
+    "not_measured_silicon": true,
+    "task_evaluation": "evidence/aimc-hardware-lab/tiny-mlp-task-evaluation-v1.json"
+  },
+  "schema_version": "aimc_hybrid_execution_plan.v1",
+  "status": "task_rehearsal_pass_digital_fallback_physical_converter_blocked",
+  "task_result": {
+    "baseline": 1.0,
+    "candidate": 0.9375,
+    "drop": 0.0625,
+    "metric": "classification_accuracy",
+    "pass": true,
+    "sample_count": 16
+  }
+}

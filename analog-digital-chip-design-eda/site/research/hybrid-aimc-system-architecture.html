@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hybrid AIMC System Architecture</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Hybrid AIMC System Architecture</h1><p class="lead">Source: docs/research/hybrid-aimc-system-architecture.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Hybrid AIMC System Architecture</h1>
+<p>This page is the system view for the analog in-memory foundation-model work. It shows what the chip must contain if analog arrays are used as one part of a larger serving machine.</p>
+<p>The object is a request phase: prefill, decode, or batched decode. The request carries tokens, active context, latency budget, error budget, and model state. The chip must decide whether this phase should use analog projection tiles or stay on the digital path.</p>
+<h2>System Diagram</h2>
+<pre><code>
+                         request metadata
+             phase, batch, context, latency, error budget
+                                      |
+                                      v
+       +----------------------+  path/reason  +----------------------+
+       | digital control      |-------------&gt; | execution scheduler  |
+       | plane                |               |                      |
+       | - resident weights   |               | - issue tile work    |
+       | - tile health        |               | - issue SRAM reads   |
+       | - calibration age    |               | - issue fallback     |
+       | - state-error limit  |               +----------+-----------+
+       +----------+-----------+                          |
+                  ^                                      |
+                  | health/error                         |
+                  |                                      v
+       +----------+-----------+              +-----------+-----------+
+       | calibration and      |              | activation SRAM       |
+       | tile monitor         |              | and KV cache          |
+       | - probe columns      |              | - prompt activations  |
+       | - rank weak tiles    |              | - decode state        |
+       | - update correction  |              | - token memory        |
+       +----------+-----------+              +-----------+-----------+
+                  |                                      |
+                  | correction tables                    | activation codes
+                  v                                      v
+       +----------+-----------+              +-----------+-----------+
+       | digital correction   |&lt;-------------| DAC row drivers       |
+       | and accumulation     | partial sums | - code to voltage     |
+       | - scale              |              | - settle row input    |
+       | - bias               |              +-----------+-----------+
+       | - sparse residual    |                          |
+       +----------+-----------+                          | row voltages
+                  ^                                      v
+                  | column codes             +-----------+-----------+
+       +----------+-----------+              | conductance tiles     |
+       | SAR ADC banks        |&lt;-------------| - resident weights    |
+       | - current to code    | column       | - current summation   |
+       | - bit decisions      | currents     | - wire/drop/noise     |
+       +----------------------+              +-----------------------+
+
+       digital fallback path:
+
+       activation SRAM and KV cache -&gt; digital projection core
+                                    -&gt; normalization/softmax/sampling
+                                    -&gt; next model state
+</code></pre>
+<h2>What Each Block Owns</h2>
+<p>The control plane owns the decision. It does not compute the projection. It decides whether the analog path is allowed for this request phase.</p>
+<p>The scheduler owns ordering. It sends activation blocks to DACs, chooses resident tiles, collects ADC reads, and reserves the fallback path when the control plane refuses analog.</p>
+<p>The activation SRAM and KV cache own changing state. This is why decode can become digital-heavy even when projection math is cheap. The cache is not a fixed trained weight matrix.</p>
+<p>The DAC row drivers own the input boundary. A digital activation code becomes a row voltage. Input error fans out through every programmed conductance on that row.</p>
+<p>The conductance tiles own approximate dense weighted sums. They are good for resident fixed projections when reuse is high and tolerated error is known.</p>
+<p>The SAR ADC banks own the output boundary. A current becomes a digital code through timed comparisons. More bits cost more decisions and only help if noise and settling allow them.</p>
+<p>The digital accumulator and correction block owns partial sums, scale, bias, and residual repair. It turns measured analog behavior into a corrected model value.</p>
+<p>The mixed-signal trust boundary owns the final accept-or-fallback decision for a measured tile result. The detailed interface is in <code>Mixed-Signal Trust Boundary Spec</code>: raw ADC code, zero code, gain, bias, residual, calibration age, tile enable, corrected value, valid bit, fallback bit, and reason code.</p>
+<p>The calibration and tile monitor owns evidence about the physical array. It decides which columns, rows, converters, or tiles need measurement before they are trusted again.</p>
+<h2>Request Flow</h2>
+<p>For prefill, the request has many prompt tokens. Projection weights are reused heavily. If weights are resident and tiles are healthy, the control plane can choose analog because the fixed boundary cost is amortized.</p>
+<p>For single-token decode, the request has little dense work per step. If the active context is long, KV-cache movement can dominate. The control plane may choose digital even though the analog projection itself is cheap.</p>
+<p>For batched decode, several requests share a decode step. Batch reuse can pay for DAC, ADC, scheduling, and correction overhead. The control plane can choose the batched analog path if tile health and error budget allow it.</p>
+<p>For stale calibration or weak tiles, the request should fall back to digital. That is not a failure of the design. It is the design protecting the model state.</p>
+<h2>Evidence Chain</h2>
+<p>The architecture is credible only if each block has a measurement:</p>
+<ul>
+<li>DAC: row-voltage error, gain error, offset error, settling time</li>
+<li>tile: conductance drift, wire drop, current-sum error, tile yield</li>
+<li>ADC: code error, comparator noise, conversion steps, energy per read</li>
+<li>accumulator: partial-sum correctness and overflow margin</li>
+<li>correction: residual state error after gain, bias, or sparse repair</li>
+<li>tile monitor: worst-column error and calibration work</li>
+<li>control plane: path decision and fallback reason</li>
+<li>scheduler: latency, queue delay, and utilization</li>
+<li>full request: energy per token, p95 latency, state error, output change</li>
+</ul>
+<p>The important measurement is not only whether a tile computes a dot product. The important measurement is whether the request leaves the chip with the right next state at lower cost than the digital baseline.</p>
+<h2>Operation Partition</h2>
+<p>The detailed operation-level split is in <code>Transformer Operation Partition For Hybrid AIMC</code>. That page turns the architecture into a checkable list: embedding lookup, projections, attention scores, masks, softmax, value mixing, normalization, residual addition, KV-cache movement, logits, sampling, adapters, calibration, and serving policy.</p>
+<p>The main rule is simple. Analog is strongest when the object is a fixed trained dense matrix with enough reuse to pay for conversion and calibration. Digital is strongest when the object is an address, a rule, a comparison, a scale measurement, changing token memory, or a request decision. Hybrid work is useful only when it states exactly where the changing state lives and how the resulting error is measured after the next model boundary.</p>
+<h2>What This Adds To The Project</h2>
+<p>The earlier pages explain the pieces: conductance stores a weight, crossbars sum current, DACs and ADCs set boundaries, attention is changing memory, calibration is a schedule, tile health decides where to spend measurement, and serving policy decides when to use the array.</p>
+<p>This architecture page puts those pieces in one machine. It is the reference drawing for the next labs: RTL scheduler, mixed-signal boundary checks, SRAM/cache traffic model, and eventually an OpenLane/OpenROAD pass for the digital control block.</p></article></main></body></html>

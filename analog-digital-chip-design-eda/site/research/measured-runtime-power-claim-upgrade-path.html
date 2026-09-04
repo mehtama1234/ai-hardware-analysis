@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Measured Runtime And Power Claim Upgrade Path</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Measured Runtime And Power Claim Upgrade Path</h1><p class="lead">Source: docs/research/measured-runtime-power-claim-upgrade-path.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Measured Runtime And Power Claim Upgrade Path</h1>
+<p>This page explains how the workbench should move from local estimates to measured latency and energy claims.</p>
+<p>The simple rule is this: a local trace can show control behavior, and a local power estimate can show a planning number, but neither one is measured hardware evidence. A measured claim starts only when the payload records what ran, where it ran, when it ran, and how the electrical samples were tied to that same run.</p>
+<h2>Object</h2>
+<p>The objects are claim <code>C2</code> and claim <code>C3</code>.</p>
+<p><code>C2</code> is the latency claim. It depends on <code>board_runtime</code>.</p>
+<p><code>C3</code> is the energy claim. It depends on both <code>board_runtime</code> and <code>power_thermal</code>.</p>
+<p>These are not the same claim. A runtime trace can support a latency claim without proving energy. A power trace can be a valid measured artifact by itself and still fail to support energy if it describes a different run.</p>
+<h2>Constraint</h2>
+<p>Latency is measured from one run window.</p>
+<p>Energy is measured by integrating voltage and current over that same window.</p>
+<pre><code>
+runtime window = start timestamp to end timestamp
+instant power = voltage * current
+energy = sum or integral of power over the runtime window
+</code></pre>
+<p>That means the backend must reject three common shortcuts.</p>
+<p>First, it must reject local RTL runtime as measured board latency.</p>
+<p>Second, it must reject OpenLane-derived power as measured energy.</p>
+<p>Third, it must reject a runtime record and power record that are both measured but come from different runs.</p>
+<h2>Design Move</h2>
+<p>The backend separates import readiness from claim readiness.</p>
+<p>Import readiness asks:</p>
+<pre><code>
+Is this payload a valid measured artifact of its own type?
+</code></pre>
+<p>Claim readiness asks:</p>
+<pre><code>
+Do the imported artifacts together prove this exact claim?
+</code></pre>
+<p>For <code>C2</code>, measured runtime needs:</p>
+<ul>
+<li>package ID</li>
+<li>workload ID</li>
+<li>board ID</li>
+<li>board revision</li>
+<li>runtime version</li>
+<li>runtime trace ID</li>
+<li>latency values</li>
+<li>repeated-run count</li>
+<li>start timestamp</li>
+<li>end timestamp</li>
+<li>host-overhead boundary</li>
+<li>trace events</li>
+<li>fallback events</li>
+<li>measured-board or instrumented-runtime provenance</li>
+</ul>
+<p>For <code>C3</code>, measured power also needs:</p>
+<ul>
+<li>the same package ID</li>
+<li>the same workload ID</li>
+<li>the same board ID</li>
+<li>the same runtime trace ID</li>
+<li>matching integration start and end timestamps</li>
+<li>meter or instrument source</li>
+<li>measured rail</li>
+<li>voltage samples</li>
+<li>current samples</li>
+<li>sampling rate</li>
+<li>average power</li>
+<li>peak power</li>
+<li>energy</li>
+<li>thermal samples or thermal boundary</li>
+<li>measured-power or instrumented-power provenance</li>
+</ul>
+<p>If the power artifact is real but its runtime trace ID differs from the runtime artifact, the power artifact can be imported, but <code>C3</code> stays <code>needs review</code>.</p>
+<h2>Current Local Evidence</h2>
+<p>The current local hardware-lab files are useful but intentionally weak:</p>
+<ul>
+<li><code>board_runtime.json</code> records a local RTL/runtime trace, not a board run.</li>
+<li><code>power_thermal.json</code> records an OpenLane-derived estimate, not meter-backed power.</li>
+</ul>
+<p>So the correct current claim state is:</p>
+<ul>
+<li><code>C2</code>: needs review</li>
+<li><code>C3</code>: needs review</li>
+</ul>
+<p>That is a good result. It means the workbench is refusing to convert local development evidence into measured hardware evidence.</p>
+<h2>Positive Example</h2>
+<p>A valid measured runtime record says:</p>
+<pre><code>
+this package ran this workload on this board,
+under this runtime version,
+with this runtime trace ID,
+from this start time to this end time,
+and these latency samples were recorded.
+</code></pre>
+<p>A valid measured power record says:</p>
+<pre><code>
+this meter measured this rail on the same board,
+for the same package and workload,
+with the same runtime trace ID,
+over the same window,
+and these voltage/current samples produced this energy.
+</code></pre>
+<p>Only together do those records support measured energy.</p>
+<h2>Refused Claim</h2>
+<p>The system cannot say:</p>
+<ul>
+<li>local RTL latency is measured board latency</li>
+<li>OpenLane power is measured hardware power</li>
+<li>a meter trace from one run proves energy for another run</li>
+<li>matching package ID alone is enough</li>
+<li>matching board ID alone is enough</li>
+<li>measured power proves accuracy</li>
+<li>measured latency proves energy</li>
+<li>measured board evidence proves calibrated silicon</li>
+<li>measured board evidence proves production readiness</li>
+</ul>
+<h2>Executable Proof</h2>
+<p>The backend checks this boundary with:</p>
+<pre><code>
+backend/scripts/check_measured_evidence_readiness.py
+backend/scripts/check_strict_evidence_api.py
+</code></pre>
+<p>Those checks prove the current guard behavior:</p>
+<ul>
+<li>local runtime evidence is structurally valid but not measured-ready</li>
+<li>local power evidence is structurally valid but not measured-ready</li>
+<li>strict measured runtime templates pass</li>
+<li>strict measured power templates pass</li>
+<li>matched measured runtime and power can support <code>C3</code></li>
+<li>mismatched measured power keeps <code>C3</code> in <code>needs review</code></li>
+</ul>
+<h2>Next Handoff</h2>
+<p>The next real evidence upgrade is a measured pair:</p>
+<ol>
+<li>A runtime trace from a real board or instrumented runtime source.</li>
+<li>A power trace from a meter or instrumented power source.</li>
+<li>The same package ID, workload ID, board ID, runtime trace ID, start time, and end time in both records.</li>
+<li>Enough repeated runs to report p50 and p95 latency.</li>
+<li>Voltage and current samples over the integration window.</li>
+<li>A clear statement of whether host overhead is included.</li>
+</ol>
+<p>After that exists, the frontend should show the narrow upgrade: measured latency and measured energy for that exact board, package, workload, and run window only. Production readiness should still remain blocked until silicon calibration, analog macro layout, reliability, thermal envelope, packaging, and signoff evidence exist.</p></article></main></body></html>

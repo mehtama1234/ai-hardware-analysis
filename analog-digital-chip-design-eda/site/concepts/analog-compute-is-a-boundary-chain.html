@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analog Compute Is A Boundary Chain</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Analog Compute Is A Boundary Chain</h1><p class="lead">Source: docs/concepts/analog-compute-is-a-boundary-chain.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Analog Compute Is A Boundary Chain</h1>
+<p>The object is not a multiply. The object is a value that must survive a chain of physical translations. A digital model begins with stored numbers. An analog in-memory machine begins by turning some of those numbers into device states and voltages. It then lets physics produce a current, turns that current back into a number, corrects it, and passes it to the next model operation.</p>
+<p>The chain is:</p>
+<pre><code>
+weight code -&gt; programmed device -&gt; row voltage -&gt; current sum -&gt; sensed value -&gt; ADC code -&gt; corrected digital value
+</code></pre>
+<p>Every paper in the analog in-memory foundation-model set is really about one part of this chain.</p>
+<p>The IBM analog-AI chip paper makes the device-to-chip chain visible. A phase-change memory cell can hold conductance, but a useful chip must coordinate many such cells across tiles. The evidence is not the equation <code>I = GV</code>. The evidence is that the measured chip still runs a neural task with useful accuracy and throughput after programming, readout, peripheral circuits, and communication are counted.</p>
+<p>The Analog Foundation Models paper moves the boundary into training. It starts from the fact that pretrained language models were not trained to survive analog noise and low-precision input/output constraints. Its concrete move is to adapt the model so the hidden states tolerate the analog path. That means the model itself becomes part of the control loop around the hardware.</p>
+<p>The transformer-adaptation paper makes the digital correction path explicit. Dense projections can be assigned to AIMC, while compact digital adapters repair some of the mismatch. The key idea is not that analog replaces digital. The key idea is that analog performs the large approximate operation and digital logic handles a smaller correction, provided the error has a shape the adapter can cover.</p>
+<p>The analog-attention paper changes the object again. Attention is not only a fixed matrix. It uses token-dependent memory that is written during generation. That means the boundary is not just programming a weight once. The machine must write, retain, read, and compare changing state. This is why KV-cache behavior resists a simple static-crossbar story.</p>
+<p>The compute-in-memory LLM survey provides the workload boundary. It reminds us that LLM inference has prefill, decode, projections, attention, cache movement, normalization, and sampling. These parts stress different machines. A design can win on dense projection and still lose when cache traffic or conversion dominates.</p>
+<p>AIHWKit gives the simulation boundary. It lets us test model behavior under device-like noise before silicon is available. But simulation is not proof unless its errors are traceable to device and circuit assumptions. Otherwise it becomes an idealized model with analog vocabulary.</p>
+<p>The constraint tying all of these papers together is preservation. The analog machine is useful only if the value that leaves the boundary is still close enough to the value the model needed. This is not one scalar error. It includes conductance error, row-voltage error, wire drop, ADC error, digital scaling error, and layer-level sensitivity.</p>
+<p>The mathematical form is a perturbed layer:</p>
+<pre><code>
+h_next = f(readout((G_target + delta_G) * DAC(h + delta_h)) + delta_adc + correction)
+</code></pre>
+<p>This expression is useful because it names where error enters. <code>delta_G</code> comes from programming, drift, and device variation. <code>delta_h</code> comes from input quantization and DAC behavior. <code>delta_adc</code> comes after summation. <code>correction</code> is digital evidence applied after measurement. The layer is not wrong merely because these errors exist. It is wrong when the errors move the model state outside the tolerance of the next operation.</p>
+<p>The concrete design move is to assign each boundary a measurement. Conductance gets target-versus-measured programming error. Row inputs get DAC-bit and settling sweeps. Wires get voltage-drop sweeps. ADCs get bit-count and comparator-noise sweeps. Calibration gets before/after output error. Architecture gets tile count, partial-sum count, and memory traffic. Model adaptation gets benchmark loss or accuracy under the measured-like error.</p>
+<p>The failure mode is a claim that begins and ends with &quot;matrix multiplication in memory.&quot; That phrase hides almost everything that matters. It hides signed-weight representation. It hides DACs and ADCs. It hides tile scheduling. It hides cache movement. It hides the digital correction path. It hides whether the final logits changed.</p>
+<p>The first-principles claim is narrower and more useful: analog compute can help when the chain has a measured advantage after every boundary is counted. The array must save enough weight movement and multiply energy to pay for conversion, correction, communication, and calibration. The model must tolerate the remaining error. The system must say which operations stay digital. Only then is the analog current sum part of a working foundation-model machine.</p></article></main></body></html>

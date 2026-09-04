@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Two-Phase Offset And Noise Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Two-Phase Offset And Noise Sweep</h1><p class="lead">Source: docs/research/sky130-two-phase-offset-noise-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Two-Phase Offset And Noise Sweep</h1>
+<p>This page summarizes the bounded wrong-code proxy around the passing two-phase preamp-then-latch schematic. The machine-readable source is <code>evidence/aimc-simulator-adapters/sky130-two-phase-offset-noise-sweep.json</code>.</p>
+<h2>Result</h2>
+<ul>
+<li>80 offset, noise, and kickback combinations were evaluated.</li>
+<li>All 80 passed the wrong-code proxy.</li>
+<li>The measured pre-latch signal was <code>0.7469 mV</code>.</li>
+<li>The measured kickback was <code>19.9 uV</code>.</li>
+<li>The worst tested case used <code>200 uV</code> offset, <code>100 uV RMS</code> noise at three sigma, and <code>5x</code> measured kickback.</li>
+<li>The worst remaining margin was <code>147.4 uV</code>.</li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>The latch only sees the remaining distance to its decision boundary. The proxy therefore subtracts absolute offset, three standard deviations of the supplied noise assumption, and the tested kickback from the measured pre-latch signal. This is the right shape of the budget, because each error can move the decision toward the wrong code.</p>
+<p>The result says the measured schematic has useful margin under this bounded assumption. It does not say that the transistor circuit has <code>100 uV RMS</code> noise, <code>200 uV</code> offset, or stable mismatch. Those values must be measured or simulated from a defined transistor population and process/temperature/voltage corners.</p>
+<h2>Next Gate</h2>
+<p>Run a real offset and noise experiment on the same two-phase circuit, then add SAR threshold cycling. The accepted record must retain the same polarity contract, both input signs, conversion timing, and the extracted physical boundary.</p>
+<h2>Refused Claim</h2>
+<p>This proxy does not prove transistor noise, offset distributions, mismatch, SAR bit cycling, extracted parasitics, or accepted converter evidence.</p></article></main></body></html>

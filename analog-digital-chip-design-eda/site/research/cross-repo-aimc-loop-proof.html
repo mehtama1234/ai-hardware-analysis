@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cross-Repo AIMC Loop Proof</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Cross-Repo AIMC Loop Proof</h1><p class="lead">Source: docs/research/cross-repo-aimc-loop-proof.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Cross-Repo AIMC Loop Proof</h1>
+<p>This page is the browser-reviewable version of the generated proof report.</p>
+<p>The generated proof files are:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.md</code></li>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.json</code></li>
+</ul>
+<p>Run the proof from this repo:</p>
+<pre><code>
+python3 scripts/prove_cross_repo_aimc_loop.py
+</code></pre>
+<h2>What It Checks</h2>
+<pre><code>
+backend health
+  -&gt; backend hardware placement
+  -&gt; hardware-lab placement import
+  -&gt; governor request generation
+  -&gt; generated Verilog governor cases
+  -&gt; RTL trace check
+  -&gt; AIHWKIT/CrossSim adapter availability check
+  -&gt; optional AIHWKIT/CrossSim payload run path
+  -&gt; tensor-shaped backend MatMul simulator payload run path
+  -&gt; trained-weight uploaded-model simulator payload run path
+  -&gt; projection-stack simulator payload run path
+  -&gt; transformer-MLP-block simulator payload run path
+  -&gt; calibrated transformer-MLP-block simulator payload run path
+  -&gt; calibrated deep transformer-MLP-stack simulator payload run path
+  -&gt; attention-block simulator payload run path
+  -&gt; calibrated attention-block simulator payload run path
+  -&gt; calibrated residual governor bridge
+  -&gt; residual-aware placement decisions
+  -&gt; hardware-lab evidence export
+  -&gt; physical-flow evidence export
+  -&gt; backend hardware-lab evidence import
+  -&gt; backend residual-aware placement API check
+  -&gt; backend archive check for residual placement and C2/C3 claim boundaries
+  -&gt; package claim-readiness refresh
+</code></pre>
+<p>This is the shortest concrete test that the old workbench and the newer hardware lab are connected.</p>
+<h2>Current Passing Result</h2>
+<pre><code>
+PASS cross_repo_aimc_loop
+package,pkg-e931662a01293df2
+backend_operators,5
+backend_analog_candidates,2
+governor_rows,10
+backend_governor_rows,5
+rtl,pass
+export_items,6
+backend_import_accepted,6
+strict_tool_evidence_imported,True
+aihwkit_adapter,available
+crosssim_adapter,available
+optional_simulator_payloads,{&quot;aihwkit&quot;: &quot;wrote_payload&quot;, &quot;crosssim&quot;: &quot;wrote_payload&quot;}
+calibrated_deep_transformer_mlp_stack_simulator_payloads,{&quot;aihwkit&quot;: &quot;wrote_payload_threshold_fail&quot;, &quot;crosssim&quot;: &quot;wrote_payload&quot;}
+calibrated_residual_governor_rows,6
+residual_aware_placement_allowed,2
+claim_summary,{&quot;blocked_lab_claims&quot;: 0, &quot;needs_review_lab_claims&quot;: 2, &quot;overall&quot;: &quot;claim evidence needs review&quot;, &quot;production_claim&quot;: &quot;blocked&quot;, &quot;supported_lab_claims&quot;: 3}
+</code></pre>
+<h2>Workflow Contract</h2>
+<p>Consumes: backend health, backend <code>hardware_placement</code>, hardware-lab placement import, governor generation, RTL checker output, routed OpenLane summary, AIHWKIT/CrossSim adapter status, simulator payload summaries, calibrated residual bridge output, residual-aware placement output, evidence export, strict analog simulator/tool sidecar export, backend evidence import, backend archive, and claim readiness.</p>
+<p>Produces: a JSON proof report, a Markdown proof report, and a repeatable command result.</p>
+<p>Supports: the old backend and the newer hardware lab are wired into one prototype loop for model graph to hardware-lab evidence to backend claim readiness. The saved deployment archive preserves the same residual-aware placement and C2/C3 claim-readiness boundaries exposed by the API.</p>
+<p>Refuses: measured board performance, measured power, measured energy without same-runtime-trace runtime and power evidence, calibrated silicon, analog macro layout, package reliability, signoff, or tapeout readiness.</p>
+<h2>What This Proves</h2>
+<p>The restored backend can turn a model graph into a hardware-placement artifact. The hardware lab can import that artifact, convert it into governor-sized rows, generate Verilog cases, pass the RTL checker, check AIHWKIT/CrossSim availability, run simulator payloads from small fixtures through calibrated deep transformer-MLP and attention-shaped fixtures, convert calibrated residuals into governor decisions, filter backend analog candidates through source-matched residual-aware placement, export normalized evidence including <code>physical_flow.json</code>, and re-import that evidence into the backend package.</p>
+<p>The important point is not that every hardware question is solved. The important point is that the system now has a closed evidence path. A model-side decision becomes a lab input. A lab result becomes backend evidence. Backend evidence becomes a claim-readiness answer.</p>
+<p>The archive is part of that path. The archive check now verifies that <code>claim-readiness.json</code> keeps the same C2 and C3 status as the live endpoint: local runtime remains a needs-review latency claim, local power remains a needs-review energy claim, and measured energy requires runtime and power from the same runtime trace ID, package, workload, board, start time, and end time.</p>
+<h2>What This Does Not Prove</h2>
+<p>This proof does not make the analog chip real.</p>
+<p>It does not prove:</p>
+<ul>
+<li>measured board latency</li>
+<li>measured energy</li>
+<li>calibrated silicon behavior</li>
+<li>physical analog macro integration</li>
+<li>foundation-model-scale AIHWKIT/CrossSim agreement</li>
+<li>final timing signoff</li>
+<li>package reliability</li>
+<li>manufacturability</li>
+<li>tapeout readiness</li>
+</ul>
+<p>The correct current answer is narrower: placement and local accuracy evidence are supported, latency and energy need review, and production readiness remains blocked.</p>
+<p>Even if a measured power payload is valid by itself, it does not support <code>C3</code> unless it matches the runtime window. Importing evidence and supporting a claim are separate decisions.</p>
+<h2>Where It Fits</h2>
+<p>Previous page: <code>combined-aimc-workbench-end-to-end-goal.md</code></p>
+<p>Next pages:</p>
+<ul>
+<li><code>aimc-evidence-ledger.md</code></li>
+<li><code>evidence-import-and-claim-readiness-first-principles.md</code></li>
+<li><code>ai-hardware-architecture-to-working-lab-bridge.md</code></li>
+<li><code>aimc-page-flow-audit.md</code></li>
+</ul>
+<p>Old workbench page:</p>
+<pre><code>
+http://127.0.0.1:8024/analog-in-memory-ai-inference/software-architecture/index.html
+</code></pre>
+<p>The old frontend should use this page as the readable proof anchor for its Hardware Lab Evidence panel.</p></article></main></body></html>

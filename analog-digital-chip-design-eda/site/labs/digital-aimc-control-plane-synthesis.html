@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lab: AIMC Control Plane Synthesis With Yosys</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">chip design lab</div><h1>Lab: AIMC Control Plane Synthesis With Yosys</h1><p class="lead">Source: labs/digital/aimc-control-plane-synthesis/README.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Lab: AIMC Control Plane Synthesis With Yosys</h1>
+<p>This lab asks what changes when the AIMC control-plane RTL is lowered by a synthesis tool. The object is not the analog array. The object is the digital decision circuit that chooses analog, batched analog decode, hybrid operation placement, or digital fallback.</p>
+<h2>Workflow Contract</h2>
+<p>Consumes: checked AIMC control-plane RTL, generated controller cases, Yosys scripts, and the policy boundaries defined by the analog and RTL labs.</p>
+<p>Produces: synthesized Verilog netlists, Yosys statistics, cell counts, register counts, hierarchy summaries, and synthesis interpretation.</p>
+<p>Supports: the claim that selected digital control rules can be lowered into gate-like logic in the local Yosys flow.</p>
+<p>Refuses: routed layout, timing closure, power measurement, board behavior, analog macro behavior, and production signoff.</p>
+<p>Handoff: this lab feeds the EDA/OpenLane labs and the hardware-lab evidence exporter. Its role in the backend package is context for local runtime/control evidence, not measured board proof.</p>
+<h2>Where This Lands In The Combined Workbench</h2>
+<p>This lab is the translation-evidence part of the larger AIMC workflow.</p>
+<pre><code>
+RTL decision rule
+  -&gt; Yosys lowering
+  -&gt; cells, registers, and mux/comparator structure
+  -&gt; OpenLane-ready block
+  -&gt; local evidence context
+  -&gt; backend claim readiness
+</code></pre>
+<p>The first-principles point is simple: synthesis changes the form of the rule without changing the rule. If the RTL says a sensitive path must fall back to digital, the synthesized logic must still contain the comparison and selection structure that enforces that refusal.</p>
+<p>The current backend claim effect is limited. Synthesis evidence helps explain that the local controller is more than a Python rule, but it does not prove physical timing, routed geometry, measured latency, or measured energy. Those stronger claims need OpenLane evidence, then board and meter evidence.</p>
+<h2>Object</h2>
+<p>The first object being preserved is the priority decision from <code>../aimc-control-plane-rtl/aimc_control_plane.v</code>.</p>
+<p>The RTL says:</p>
+<pre><code>
+unsafe or unavailable analog work -&gt; digital fallback
+long-context single decode -&gt; digital fallback
+batched decode -&gt; batched analog path
+otherwise -&gt; analog path
+</code></pre>
+<p>Synthesis may rewrite the structure, but it must preserve that decision.</p>
+<p>The second object is the operation partition from <code>../aimc-control-plane-rtl/aimc_operation_partition.v</code>.</p>
+<p>That RTL says:</p>
+<pre><code>
+digital-only transformer operations -&gt; digital
+fixed trained projections -&gt; analog when evidence is inside budget
+attention, value mixing, logits, adapters -&gt; hybrid unless selection metrics force fallback
+missing weights, stale weak tiles, high state error, high attention flips, or high token flips -&gt; digital fallback
+</code></pre>
+<p>Synthesis may rewrite this structure too, but it must preserve the partition rule.</p>
+<p>The third object is the tile readout from <code>../aimc-control-plane-rtl/aimc_tile_readout.v</code>.</p>
+<p>That RTL says:</p>
+<pre><code>
+ADC code becomes a centered digital measurement
+gain and bias correction produce a bounded value
+disabled tiles, stale calibration, high residual, and saturation force fallback
+</code></pre>
+<p>Synthesis may rewrite the arithmetic and comparison structure, but it must preserve the rule that analog output is not trusted until digital correction and validity checks accept it.</p>
+<p>The fourth object is the integrated micro-tile controller from <code>../aimc-control-plane-rtl/aimc_micro_tile_controller.v</code>. It composes the operation partition and tile readout. The important rule is that an analog placement decision starts a readout, but the corrected value is accepted only on the next cycle if the readout reports valid.</p>
+<p>The fifth object is the tile-service scheduler from <code>../aimc-control-plane-rtl/aimc_tile_service_scheduler.v</code>. It sits above the per-tile health action. It does not correct analog values and it does not store new history. It chooses whether this cycle should use analog service, recalibration, probe, or digital fallback after looking at four tile health actions, busy bits, the requested tile id, and the maintenance budget.</p>
+<p>The sixth object is the error-budget governor from <code>../aimc-control-plane-rtl/aimc_error_budget_governor.v</code>. It sits beside the scheduler. The scheduler asks which tile action is available. The governor asks whether the next analog error is worth spending at all. It combines local residual, calibration age, model-path sensitivity, and cumulative state error into a bounded next-error estimate.</p>
+<p>The seventh object is the integrated scheduler/governor from <code>../aimc-control-plane-rtl/aimc_scheduler_governor.v</code>. It instantiates the tile scheduler and error-budget governor together. The final decision is analog only when a serviceable tile exists and the governor permits the next error spend.</p>
+<h2>Constraint</h2>
+<p>Yosys can convert the always block into registers, comparators, logic, and muxes. That proves the RTL can be lowered into a gate-like representation. It does not prove physical timing, clock-tree behavior, routing, power, or area in a real process.</p>
+<p>The useful question is narrower:</p>
+<pre><code>
+Does the RTL become a small sequential decision circuit with explicit registers and comparison logic?
+</code></pre>
+<h2>Concrete Design Move</h2>
+<p>Run:</p>
+<pre><code>
+yosys synth_aimc_control_plane.ys
+yosys synth_aimc_operation_partition.ys
+yosys synth_aimc_tile_readout.ys
+yosys synth_aimc_micro_tile_controller.ys
+yosys synth_aimc_tile_service_scheduler.ys
+yosys synth_aimc_error_budget_governor.ys
+yosys synth_aimc_scheduler_governor.ys
+</code></pre>
+<p>This writes:</p>
+<ul>
+<li><code>reports/aimc_control_plane_synth.log</code></li>
+<li><code>reports/aimc_control_plane_synth.v</code></li>
+<li><code>reports/aimc_operation_partition_synth.log</code></li>
+<li><code>reports/aimc_operation_partition_synth.v</code></li>
+<li><code>reports/aimc_tile_readout_synth.log</code></li>
+<li><code>reports/aimc_tile_readout_synth.v</code></li>
+<li><code>reports/aimc_micro_tile_controller_synth.log</code></li>
+<li><code>reports/aimc_micro_tile_controller_synth.v</code></li>
+<li><code>reports/aimc_tile_service_scheduler_synth.log</code></li>
+<li><code>reports/aimc_tile_service_scheduler_synth.v</code></li>
+<li><code>reports/aimc_error_budget_governor_synth.log</code></li>
+<li><code>reports/aimc_error_budget_governor_synth.v</code></li>
+<li><code>reports/aimc_scheduler_governor_synth.log</code></li>
+<li><code>reports/aimc_scheduler_governor_synth.v</code></li>
+</ul>
+<p>Before technology mapping, the report should show two state registers:</p>
+<ul>
+<li><code>path</code></li>
+<li><code>reason</code></li>
+</ul>
+<p>After technology mapping, those two registers appear as five flip-flop bits: two bits for <code>path</code> and three bits for <code>reason</code>. The report should also show comparison, Boolean, and mux logic for resident weights, tile count, estimated error, calibration age, context length, and batch size.</p>
+<h2>Measurement</h2>
+<p>The measurement is the Yosys statistics section. For the current RTL, the important evidence is:</p>
+<ul>
+<li>five async-reset flip-flop bits for <code>path[1:0]</code> and <code>reason[2:0]</code></li>
+<li>comparison cells for batch, context, tile count, error, and calibration age</li>
+<li>mux cells implementing the priority decision</li>
+<li>no inferred memories</li>
+<li>no remaining Verilog process after lowering</li>
+</ul>
+<p>This is not a performance number. It is translation evidence: the control policy can move from readable RTL into a lower hardware representation.</p>
+<p>For the operation-partition RTL, the important evidence is different. The module is combinational, so the report should show no flip-flop bits. It should show comparisons and Boolean logic for operation class, resident weights, state error, attention selection flips, token-choice flips, calibration age, and weak tiles. That proves the operation map can become hardware control logic rather than remaining only a prose rule.</p>
+<p>For the tile-readout RTL, the important evidence is the presence of registered corrected output, valid/fallback bits, reason bits, arithmetic for gain/bias correction, and comparison logic for residual, calibration age, and saturation. That proves the analog tile boundary can become explicit digital hardware rather than a hidden assumption after the ADC.</p>
+<p>Current tile-readout synthesis result:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 1556
+$_DFF_PN0_: 21
+$_AND_: 718
+$_MUX_: 62
+$_NOT_: 41
+$_OR_: 276
+$_XOR_: 438
+</code></pre>
+<p>The 21 flip-flop bits are the registered corrected value, valid bit, fallback bit, and reason code after optimization. The larger Boolean count comes from fixed-point multiply, signed add, saturation checks, residual comparison, calibration-age comparison, and reason selection.</p>
+<p>Current integrated micro-tile controller synthesis result:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 2990
+$_DFF_PN0_: 110
+$_AND_: 954
+$_MUX_: 757
+$_NOT_: 100
+$_OR_: 451
+$_XOR_: 618
+</code></pre>
+<p>The 110 flip-flop bits include the tile readout registers plus the controller&#x27;s execution path, reason code, one-bit pending state, pending tile id, last fallback tile id, fallback counter, accepted counter, residual-fallback counter, stale-calibration fallback counter, and registered <code>tile_health_action</code>. The recovery extension does not add storage. It uses the spare two-bit health action value as <code>probe</code> and adds combinational steering from <code>calibration_done</code>, <code>probe_request</code>, <code>probe_passed</code>, and <code>probe_failed</code>. The health action is now a small lifecycle: serve, recalibrate, disable, probe. Stale calibration moves the tile to recalibrate unless it is already disabled; repeated residual failure moves it to disable; a disabled tile must pass a probe before it can serve again.</p>
+<p>Current tile-service scheduler synthesis result:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 154
+$_AND_: 22
+$_MUX_: 58
+$_NOT_: 30
+$_OR_: 34
+$_XOR_: 10
+</code></pre>
+<p>There are no flip-flop cells in the scheduler result. That is the intended boundary. The per-tile controller owns memory: counters, last failing tile, pending readout, and health action. The scheduler is a combinational policy selector over those already-visible states. It answers a narrower question: given the state now visible, which tile action is worth spending this cycle?</p>
+<p>Current error-budget governor synthesis result:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 353
+$_AND_: 126
+$_MUX_: 88
+$_NOT_: 13
+$_OR_: 68
+$_XOR_: 58
+</code></pre>
+<p>There are no flip-flop cells in the governor result. That is intentional for this first version. It is a combinational decision over evidence that another runtime block would register: residual, drift age, sensitivity, and cumulative state error. The cell count is higher than the tile scheduler because the governor does arithmetic, not only selection. It estimates the next state-error spend, clamps it, and then chooses analog, digital fallback, recalibration, or disablement.</p>
+<p>Current integrated scheduler/governor synthesis result:</p>
+<pre><code>
+Number of memories: 0
+Number of processes: 0
+Number of cells: 601
+</code></pre>
+<p>The hierarchy reports 154 cells for the scheduler, 353 cells for the governor, and 601 cells for the integrated top after optimization. There are no flip-flop cells because this is still a combinational policy object. The physical wrappers for scheduler and governor add registers when the object is sent into OpenLane.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is treating a successful Yosys run as a finished chip. Synthesis does not prove the clock is fast enough, that reset is integrated correctly, that the control signal reaches the scheduler in time, or that the chip has enough physical area and power margin.</p>
+<p>The next evidence step would be timing and physical implementation. The control policy is now a circuit candidate; it is not yet placed, routed, timed, or signed off.</p></article></main></body></html>

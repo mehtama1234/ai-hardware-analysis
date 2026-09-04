@@ -1,0 +1,67 @@
+{
+  "schema_version": "aimc_end_to_end_cost.v1",
+  "status": "normalized_planning_estimate",
+  "workload_id": "wake-nonwake-audio-v1",
+  "profile": {
+    "adc_bits": 6,
+    "dac_bits": 4,
+    "converter_energy_relative": 3.222,
+    "latency_comparisons": 24
+  },
+  "digital_baseline": {
+    "parts": {
+      "feature_extraction": {
+        "latency": 4.0,
+        "energy": 8.0
+      },
+      "dense1_matmul": {
+        "latency": 16.0,
+        "energy": 96.0
+      },
+      "digital_remainder": {
+        "latency": 8.0,
+        "energy": 48.0
+      }
+    },
+    "total": {
+      "latency": 28.0,
+      "energy": 152.0
+    }
+  },
+  "hybrid_analog_dense1": {
+    "parts": {
+      "feature_extraction": {
+        "latency": 4.0,
+        "energy": 8.0
+      },
+      "dac": {
+        "latency": 4.0,
+        "energy": 12.9
+      },
+      "analog_dense1_matmul": {
+        "latency": 1.0,
+        "energy": 8.0
+      },
+      "adc_and_partial_sum": {
+        "latency": 24.0,
+        "energy": 77.3
+      },
+      "digital_remainder": {
+        "latency": 8.0,
+        "energy": 48.0
+      }
+    },
+    "total": {
+      "latency": 41.0,
+      "energy": 154.2
+    }
+  },
+  "comparison": {
+    "latency_ratio_hybrid_to_digital": 1.4642857142857142,
+    "energy_ratio_hybrid_to_digital": 1.0144736842105262,
+    "decision": "digital_for_this_small_workload",
+    "reason": "ADC comparisons and boundary overhead exceed the saved dense1 arithmetic at this workload size."
+  },
+  "fallback_rule": "If the governor rejects analog, use the digital baseline path without changing the task contract.",
+  "claim_boundary": "Normalized planning estimate only; values are not measured latency, energy, board power, or silicon evidence."
+}

@@ -1,0 +1,94 @@
+{
+  "accepted_post_layout_written": false,
+  "candidate_post_layout_written": false,
+  "claim_boundary": {
+    "allowed": "turns the measured sample-hold and decision-budget results into a concrete comparator fixture contract",
+    "not_allowed": "does not simulate comparator transistors, prove comparator noise, prove SAR conversion, prove extracted layout, or replace converter economics"
+  },
+  "created_at": "2026-08-30T18:56:23.100236+00:00",
+  "derived_budget": {
+    "first_known_failing_combined_offset_noise_mv": 0.15811388300841894,
+    "half_lsb_12b_v": 0.0002197265625,
+    "remaining_comparator_offset_or_noise_budget_mv": 0.15672656249985373,
+    "target_combined_offset_noise_mv": 0.15297058540778352,
+    "worst_sample_hold_error_v": 6.300000000014627e-05
+  },
+  "input_regression": {
+    "input_sweep_cases": 3,
+    "input_sweep_passes": true,
+    "mismatch_sweep_cases": 5,
+    "mismatch_sweep_passes": true,
+    "work_order_topology": "broaden_differential_dummy_cancellation_candidate"
+  },
+  "next_implementation_steps": [
+    "start with a clocked differential latch or preamp-latch deck in Sky130 ngspice",
+    "drive it from the existing differential dummy sample-and-hold candidate instead of an ideal voltage source only",
+    "measure offset first, because a noisy comparator with unknown static offset cannot be interpreted",
+    "measure kickback before SAR integration, because kickback spends the same voltage budget as hold error",
+    "add repeated-noise or corner-style sweeps only after the nominal transient deck is numerically stable",
+    "keep the output as candidate schematic evidence; do not write accepted post-layout evidence"
+  ],
+  "required_measurements": [
+    {
+      "acceptance": "absolute offset <= 0.1530 mV target and below 0.1567 mV hard budget",
+      "method": "sweep a small differential input around zero and find the sign-change point",
+      "name": "input_referred_static_offset_mv"
+    },
+    {
+      "acceptance": "combine with static offset by root-sum-square before comparing with the budget",
+      "method": "run repeated transient decisions with the same input and measure output-code spread as input-referred voltage",
+      "name": "decision_noise_rms_mv"
+    },
+    {
+      "acceptance": "sample-hold movement plus input-referred decision uncertainty remains below 2.197265625e-04 V",
+      "method": "measure differential held-node movement when the comparator input is connected and clocked",
+      "name": "kickback_on_held_decision_node_v"
+    },
+    {
+      "acceptance": "resolves inside the SAR comparison time used by the converter estimate",
+      "method": "measure how long the latch output takes to reach a valid logic level near the smallest accepted input",
+      "name": "metastability_resolution_ns"
+    },
+    {
+      "acceptance": "record the value, but do not use it for break-even until the full extracted converter payload exists",
+      "method": "integrate supply current during one comparison event",
+      "name": "supply_energy_per_decision_j"
+    }
+  ],
+  "result_type": "sky130_comparator_acceptance_fixture_spec",
+  "source_artifacts": {
+    "decision_margin": "sky130-differential-dummy-candidate-decision-margin.json",
+    "fixture_work_order": "sky130-next-transistor-fixture-work-order.json",
+    "input_sweep": "sky130-differential-dummy-candidate-input-sweep.json",
+    "mismatch_sweep": "sky130-differential-dummy-candidate-mismatch-sweep.json",
+    "offset_noise_stress": "sky130-differential-dummy-candidate-offset-noise-stress.json"
+  },
+  "status": "sky130_comparator_acceptance_fixture_spec_ready_not_comparator_proof",
+  "stimulus_cases": [
+    {
+      "input": "small signed differential inputs around zero",
+      "name": "zero_crossing_offset_sweep",
+      "purpose": "find whether the comparator decision boundary is shifted away from zero"
+    },
+    {
+      "input": "differential input at 0.1530 mV plus the measured sample-hold error",
+      "name": "budget_edge_pass_case",
+      "purpose": "check the strongest already-passing budget point"
+    },
+    {
+      "input": "differential input at 0.1581 mV plus the measured sample-hold error",
+      "name": "budget_edge_fail_guard",
+      "purpose": "prove the fixture can detect when the known budget is exceeded"
+    },
+    {
+      "input": "reuse the low, mid, and high common-mode cases from the candidate input sweep",
+      "name": "low_mid_high_sampled_inputs",
+      "purpose": "make sure comparator loading does not destroy the sample-and-hold result that already passed"
+    },
+    {
+      "input": "reuse the matched and +/-1% and +/-2% sample-switch width cases",
+      "name": "controlled_width_mismatch_cases",
+      "purpose": "keep the current mismatch regression gate alive after the comparator is attached"
+    }
+  ]
+}

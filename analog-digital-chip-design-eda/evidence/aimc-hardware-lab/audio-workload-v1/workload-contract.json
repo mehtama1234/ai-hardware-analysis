@@ -1,0 +1,50 @@
+{
+  "schema_version": "aimc_workload_contract.v1",
+  "contract_status": "generated_audio_feature_rehearsal",
+  "workload_id": "wake-nonwake-audio-v1",
+  "task": {
+    "modality": "audio",
+    "task_type": "wake_word_binary_classification",
+    "primary_metric": "wake_word_f1",
+    "secondary_metrics": ["false_accept_rate", "false_reject_rate", "feature_window_latency_ms"],
+    "failure_cost": "false_activation_or_missed_wake_word",
+    "metric_tolerance": 0.05,
+    "target_profile": "wearable_rehearsal"
+  },
+  "model": {
+    "model_id": "wake-nonwake-mlp",
+    "model_path": "wake-nonwake-mlp.onnx",
+    "input_features": ["rms_energy", "zero_crossing_rate", "peak_amplitude", "variance"],
+    "real_field_model": false
+  },
+  "dataset": {
+    "dataset_id": "wake-nonwake-audio-v1",
+    "dataset_path": "wake-nonwake-features-v1.json",
+    "sample_count": 24,
+    "sample_rate_hz": 16000,
+    "window_samples": 1600,
+    "classes": ["wake", "nonwake"],
+    "source": "deterministic generated WAV signals",
+    "held_out": false
+  },
+  "placement": {
+    "analog_candidates": ["dense1.matmul"],
+    "digital_required": ["feature_extraction", "bias", "relu", "dense2.matmul", "decision_threshold"],
+    "fallback": "digital_reference_path"
+  },
+  "observed_result": {
+    "baseline_f1": 1.0,
+    "candidate_f1": 1.0,
+    "false_accepts": 0,
+    "false_rejects": 0,
+    "governor_decision": "analog_within_budget"
+  },
+  "next_required_evidence": [
+    "Replace generated WAV signals with recorded or public field audio.",
+    "Measure feature extraction and inference latency on the target runtime.",
+    "Run nonideal analog residual simulation on this model and feed its residual to the governor.",
+    "Freeze false-accept, false-reject, latency, energy, and duty-cycle limits.",
+    "Collect synchronized board runtime, power, and thermal traces."
+  ],
+  "claim_boundary": "This proves a reproducible generated-audio signal-to-feature-to-ONNX evaluation path only. It does not prove field audio robustness, analog silicon, board runtime, power, or thermal behavior."
+}

@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Combined AIMC Workbench End-To-End Goal</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Combined AIMC Workbench End-To-End Goal</h1><p class="lead">Source: docs/research/combined-aimc-workbench-end-to-end-goal.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Combined AIMC Workbench End-To-End Goal</h1>
+<p>Build one connected system from the restored product workbench and the newer hardware lab.</p>
+<p>The system should answer:</p>
+<p>Can this model safely run part of inference on analog in-memory hardware, and what evidence supports that answer?</p>
+<h2>Existing Pieces</h2>
+<p>The old repo already has a real software workbench:</p>
+<ul>
+<li>frontend workbench page</li>
+<li>FastAPI backend</li>
+<li>ONNX model import</li>
+<li>graph analysis</li>
+<li>quantization and runtime estimates</li>
+<li>model, project, run, and package store</li>
+<li>evidence validation and import</li>
+<li>evidence gates</li>
+<li>claim readiness</li>
+<li>adapter registry</li>
+<li>deployment package archives</li>
+<li>strategy, proof, compiler, simulator, benchmark, memory, tapeout, partner, and investor pages</li>
+</ul>
+<p>The newer repo has the hardware proof slice:</p>
+<ul>
+<li>analog nonideality measurement stack</li>
+<li>transformer-impact experiment</li>
+<li>model-impact governor request generator</li>
+<li>Verilog governor and scheduler logic</li>
+<li>generated RTL test cases</li>
+<li>RTL simulation checks</li>
+<li>Yosys synthesis reports</li>
+<li>OpenLane prep and successful physical-design result for the pipelined scheduler/governor</li>
+<li>static concept, lab, paper, and research pages</li>
+</ul>
+<p>The goal is to stop treating these as two related folders. They should become one workflow.</p>
+<h2>Core Principle</h2>
+<p>Analog in-memory compute is not a faster version of normal digital inference. It changes where the work happens.</p>
+<p>In a digital accelerator, the system repeatedly moves numbers from memory into arithmetic units, multiplies them, adds them, rounds the result, and moves the result again. In an analog in-memory tile, the stored weight and the multiply-add operation are partly the same physical object. The weight sits in a device. The input becomes a voltage. The output is a current or charge that must be converted back into a digital number.</p>
+<p>That trade is useful only if the saved movement and arithmetic are larger than the new costs:</p>
+<ul>
+<li>converter cost</li>
+<li>noise</li>
+<li>drift</li>
+<li>wire drop</li>
+<li>limited precision</li>
+<li>calibration</li>
+<li>fallback control</li>
+<li>verification burden</li>
+</ul>
+<p>So the real question is not &quot;can a transformer run on analog?&quot; The real question is:</p>
+<p>Which parts of this model can tolerate this physical error, under this timing and power budget, with this digital controller watching the failure modes?</p>
+<p>The whole system should be organized around that question.</p>
+<h2>End-To-End Flow</h2>
+<pre><code>
+model enters old workbench
+  -&gt; backend imports ONNX
+  -&gt; backend analyzes operators
+  -&gt; placement pass marks analog candidates and digital-only regions
+  -&gt; hardware lab estimates analog error for candidate regions
+  -&gt; model-impact lab checks whether that error changes important choices
+  -&gt; request generator compresses the result into hardware control fields
+  -&gt; RTL governor and scheduler decide allow, throttle, reroute, or fallback
+  -&gt; synthesis and OpenLane evidence show the controller can become physical logic
+  -&gt; evidence exporter emits normalized hardware-lab evidence
+  -&gt; old backend imports that evidence into the package
+  -&gt; frontend shows the supported claim, blocked claim, and next missing proof
+</code></pre>
+<h2>The Argument Each Page Must Help Prove</h2>
+<h3>1. The model is the first object</h3>
+<p>The first object is not a chip. It is the model graph. A model graph tells us where repeated weighted sums happen, where values are normalized, where attention choices are made, where logits are produced, and where control decisions become fragile.</p>
+<p>The old backend already imports ONNX and describes operators. The next improvement is to turn that graph summary into placement input. Each operator should receive a simple decision:</p>
+<ul>
+<li>analog candidate</li>
+<li>digital only</li>
+<li>unknown until sensitivity is measured</li>
+</ul>
+<p>This decision should not be based on operator names alone. It should be based on what the operator does to the answer. A projection with stable downstream behavior may be a good analog candidate. A small operation near a hard choice may be a bad one.</p>
+<p>Current status: the restored backend now builds a package artifact called <code>hardware_placement</code>. It derives analog candidates, digital-only regions, converter boundaries, model sensitivity classes, fallback points, and governor fields from the analyzed model graph. The first live package reports 5 operators, 2 analog candidates, 4 converter boundaries, and 3 fallback points.</p>
+<p>The hardware lab now imports this artifact through <code>scripts/import_backend_hardware_placement.py</code>. That script writes:</p>
+<ul>
+<li><code>measurements/backend-hardware-placement.json</code></li>
+<li><code>measurements/backend-hardware-placement-governor-input.csv</code></li>
+<li><code>measurements/backend-hardware-placement-governor-input.md</code></li>
+</ul>
+<p>The model-impact governor generator appends those backend-derived rows to the generated governor requests. The RTL checker now sees both the local transformer sensitivity cases and the backend graph placement cases.</p>
+<p>The full cross-repo loop can now be checked with:</p>
+<pre><code>
+python3 scripts/prove_cross_repo_aimc_loop.py
+</code></pre>
+<p>That proof checks backend health, backend placement, lab import, governor generation, RTL trace, evidence export, backend evidence import, and claim readiness in one command.</p>
+<p>It also writes the persistent review record:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.json</code></li>
+<li><code>evidence/aimc-hardware-lab/cross-repo-loop-proof.md</code></li>
+</ul>
+<p>That report is the shared anchor for the old pages and the new pages. Any page that says the repos are connected should point back to this proof or to one of the artifacts it names.</p>
+<p>The placement handoff itself is explained in <code>backend-hardware-placement-first-principles.md</code>.</p>
+<h3>2. Placement is a boundary, not a preference</h3>
+<p>The placement pass draws the line between analog work and digital work. That line creates obligations.</p>
+<p>If a layer moves to analog, the system must say where the DAC sits, where the ADC sits, what numeric range is expected, how much residual error is allowed, and where the digital fallback can resume. If those objects are not named, the placement is only a drawing.</p>
+<p>The compiler pages should therefore stop at concrete records:</p>
+<ul>
+<li>operator id</li>
+<li>tensor shape</li>
+<li>analog tile candidate</li>
+<li>digital-only reason</li>
+<li>converter boundary</li>
+<li>expected error source</li>
+<li>sensitivity class</li>
+<li>fallback point</li>
+<li>scheduler/governor fields</li>
+</ul>
+<h3>3. The analog tile is a physical measurement chain</h3>
+<p>An analog matrix multiply is not a clean mathematical multiply. The chain is:</p>
+<pre><code>
+digital input
+  -&gt; DAC level
+  -&gt; row voltage
+  -&gt; device conductance
+  -&gt; column current
+  -&gt; wire and device error
+  -&gt; ADC code
+  -&gt; digital correction
+</code></pre>
+<p>Every step can change the result. The analog lab therefore should not report only &quot;accuracy.&quot; It should report the physical cause of the error: converter quantization, row drop, saturation, drift, programming error, current-range limits, or calibration mismatch.</p>
+<p>The evidence is useful when it says: for this operating point, the final residual is this large, and this is why.</p>
+<h3>4. Model sensitivity decides whether the error matters</h3>
+<p>The same residual can be harmless in one part of the model and harmful in another.</p>
+<p>A hidden projection may absorb small noise because later operations smooth it. Attention scores may not absorb it because a small shift can change which token receives weight. Logits may not absorb it because the final choice can flip.</p>
+<p>So the model-impact lab is the bridge between physics and model behavior. It should translate analog residual into a model-level statement:</p>
+<ul>
+<li>this location tolerates the current residual</li>
+<li>this location needs lower residual</li>
+<li>this location should stay digital</li>
+<li>this location can use analog only with fallback</li>
+</ul>
+<h3>5. Digital control makes analog usable</h3>
+<p>The digital controller is not a wrapper around the analog tile. It is the part that makes the analog tile safe to use.</p>
+<p>It receives the facts that analog alone does not know: residual budget, sensitivity class, cumulative error, queue pressure, tile health, fallback target, and service deadline. Then it chooses whether to allow analog execution, delay, reroute, throttle, or fall back to digital.</p>
+<p>This is why the RTL matters. The controller is the place where the conceptual rule becomes a hardware rule.</p>
+<h3>6. EDA evidence changes the type of claim</h3>
+<p>A Python result says the idea was simulated. An RTL check says the control rule can be represented as logic. Synthesis says the logic can be lowered into gates in a selected flow. OpenLane says the selected digital block can be placed and routed under the recorded setup.</p>
+<p>Those are different kinds of evidence. They should not be collapsed into one word like &quot;validated.&quot;</p>
+<p>The frontend should show the exact evidence level:</p>
+<ul>
+<li>local simulation</li>
+<li>RTL checked</li>
+<li>synthesized</li>
+<li>OpenLane routed in educational flow</li>
+<li>measured board trace</li>
+<li>measured silicon</li>
+<li>blocked</li>
+</ul>
+<h3>7. The product answer must refuse unsupported claims</h3>
+<p>The final workbench answer should be useful because it is strict.</p>
+<p>It can say: this model slice has a supported local-lab placement and accuracy claim. It can also say: latency needs review because the runtime trace is local, energy needs review because the current power/thermal record is an OpenLane-derived estimate rather than synchronized measured hardware power, and production readiness is blocked because there is no calibrated silicon or signoff evidence.</p>
+<p>That refusal is not a weakness. It is the product boundary.</p>
+<p>The next proof boundary is measured board and power evidence. <code>board-and-power-measurement-boundary.md</code> defines the exact fields needed to upgrade the current local <code>board_runtime</code> and <code>power_thermal</code> records into synchronized measured evidence. Until those fields exist, the system should keep <code>C2</code> and <code>C3</code> in needs-review state.</p>
+<h2>Development Work</h2>
+<h3>0. Seamless Review Spine</h3>
+<p>Make the pages read in a clear order before adding more machinery.</p>
+<p>Done means:</p>
+<ul>
+<li>the old repo has a master review path</li>
+<li>the old repo has a combined workflow page</li>
+<li>the new repo has a bridge page</li>
+<li>the new repo has a combined build goal</li>
+<li>the new repo has an evidence ledger</li>
+<li>the new repo has a cross-repo proof report</li>
+<li>each page states what it consumes and what it produces</li>
+</ul>
+<h2>One Meaty End-To-End Goal</h2>
+<p>Make the old workbench and the new hardware lab read as one system, not two linked notebooks.</p>
+<p>The work is done when a reviewer can start from the old frontend, ask whether a model should use analog in-memory compute, follow the answer into the hardware lab, inspect the analog, digital, RTL, synthesis, OpenLane, and evidence records, return to the backend claim-readiness page, and see exactly which claims are supported, which need review, and which are blocked.</p>
+<p>The pages should be rewritten around five plain objects:</p>
+<ul>
+<li>model graph: what computation is being moved</li>
+<li>placement boundary: where analog starts and digital resumes</li>
+<li>error source: what physical effect can change the number</li>
+<li>governor rule: what the digital controller does when the error matters</li>
+<li>evidence record: what proof exists and what it does not prove</li>
+</ul>
+<p>For each page, add the same four fields:</p>
+<ul>
+<li>consumes: the artifact or decision the page starts from</li>
+<li>produces: the artifact or decision the page emits</li>
+<li>supports: the narrow claim the page can justify</li>
+<li>refuses: the stronger claim the page must not make yet</li>
+</ul>
+<p>The first pass should connect existing pages without inventing new results. The second pass should enrich pages that are still shallow: placement, analog error, model sensitivity, governor control, RTL proof, OpenLane evidence, and backend claim readiness. The third pass should add missing pages only where the chain has a real gap.</p>
+<h3>1. Hardware-Lab Evidence Exporter</h3>
+<p>Create a script in this repo that reads the current generated artifacts and exports normalized evidence records.</p>
+<p>Current status: first version exists at <code>scripts/export_aimc_hardware_lab_evidence.py</code>. It currently exports six backend-compatible evidence records: compiler mapping, analog error, local RTL/runtime, local OpenLane-derived power/thermal estimate, task accuracy, and physical flow. Because the governor-request CSV now includes backend-derived placement rows, the exported compiler/runtime evidence carries the first model-graph-to-lab connection.</p>
+<p>Inputs:</p>
+<ul>
+<li>analog measurement CSV files</li>
+<li>transformer-impact CSV and Markdown</li>
+<li>model-impact governor request CSV</li>
+<li>RTL checker output</li>
+<li>synthesis summaries</li>
+<li>OpenLane metrics summaries</li>
+<li>project validator and bridge-check result</li>
+</ul>
+<p>Outputs:</p>
+<ul>
+<li>JSON evidence records compatible with the old backend import path</li>
+<li>one Markdown evidence ledger for human review</li>
+</ul>
+<p>Current exported files:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/manifest.json</code></li>
+<li><code>evidence/aimc-hardware-lab/import-batch.json</code></li>
+<li><code>evidence/aimc-hardware-lab/compiler_mapping.json</code></li>
+<li><code>evidence/aimc-hardware-lab/analog_error_simulation.json</code></li>
+<li><code>evidence/aimc-hardware-lab/board_runtime.json</code></li>
+<li><code>evidence/aimc-hardware-lab/power_thermal.json</code></li>
+<li><code>evidence/aimc-hardware-lab/task_accuracy.json</code></li>
+<li><code>evidence/aimc-hardware-lab/physical_flow.json</code></li>
+</ul>
+<p>Each record should include:</p>
+<ul>
+<li>claim</li>
+<li>status</li>
+<li>source artifact</li>
+<li>command to reproduce</li>
+<li>result summary</li>
+<li>allowed wording</li>
+<li>not allowed wording</li>
+<li>next action</li>
+</ul>
+<h3>2. Old Backend Import Connection</h3>
+<p>Add a hardware-lab evidence adapter to the old backend.</p>
+<p>Current status: live import has been proven through the old FastAPI backend. The backend now exposes <code>POST /deployment-packages/{package_id}/hardware-lab-evidence</code>, which reads this repo&#x27;s exported batch and attaches it to the selected package. The ordinary exported batch has 6 records: compiler mapping, analog error, local runtime, local power/thermal estimate, task accuracy, and physical flow. The backend also imports the strict analog simulator/tool sidecar separately. Package <code>pkg-e931662a01293df2</code> now imports with <code>accepted 6</code>, <code>rejected 0</code>, and <code>strict_tool_evidence_imported true</code>.</p>
+<p>It should:</p>
+<ul>
+<li>find the evidence export from this sibling repo</li>
+<li>validate every record</li>
+<li>attach records to a deployment package</li>
+<li>recalculate claim readiness</li>
+<li>expose the imported hardware-lab evidence through existing package endpoints</li>
+<li>refresh prior local hardware-lab imports without overwriting stronger non-local evidence</li>
+</ul>
+<p>The backend should not treat these records as measured silicon. It should label them as local simulation, RTL verification, synthesis, OpenLane educational-flow evidence, or blocked external evidence.</p>
+<p>Current backend behavior after import:</p>
+<ul>
+<li>compiler placement claim: supported</li>
+<li>analog/task accuracy lab claim: supported</li>
+<li>latency claim: needs review because the runtime trace is local RTL simulation, not a board trace</li>
+<li>energy claim: needs review because local power/thermal evidence is attached, but it is an OpenLane-derived estimate rather than synchronized measured hardware power</li>
+<li>production readiness: blocked</li>
+</ul>
+<h3>3. Frontend Hardware Evidence Panel</h3>
+<p>Add one panel to the old frontend workbench.</p>
+<p>Current status: first version exists in <code>ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/index.html</code> as <code>Hardware lab evidence</code>.</p>
+<p>The frontend also has an <code>Import Hardware Lab</code> button. It builds or selects a package, calls the backend hardware-lab import endpoint, reloads the package, and then shows the updated evidence audit, claim readiness, evidence brief, and hardware-lab panel.</p>
+<p>It should show:</p>
+<ul>
+<li>analog error evidence</li>
+<li>model-sensitivity evidence</li>
+<li>governor request evidence</li>
+<li>RTL verification evidence</li>
+<li>synthesis evidence</li>
+<li>OpenLane evidence</li>
+<li>allowed claim</li>
+<li>blocked claim</li>
+<li>next missing proof</li>
+</ul>
+<p>The panel should be readable without knowing ADC, DAC, RTL, OpenLane, or AIHWKIT in advance. Each term should be tied to the object, constraint, design move, and failure mode.</p>
+<p>Current behavior on package <code>pkg-e931662a01293df2</code>:</p>
+<ul>
+<li>compiler mapping: local lab / supported</li>
+<li>analog accuracy: local lab / supported</li>
+<li>runtime trace: local lab / needs review</li>
+<li>energy proof: local estimate / needs review</li>
+<li>production: blocked</li>
+</ul>
+<h3>4. Model Graph To Placement Mini-Pass</h3>
+<p>Connect the old ONNX analyzer to a placement pass.</p>
+<p>For each operator, emit:</p>
+<ul>
+<li>operator name</li>
+<li>operator kind</li>
+<li>analog candidate or digital-only</li>
+<li>reason</li>
+<li>required DAC boundary</li>
+<li>required ADC boundary</li>
+<li>expected error source</li>
+<li>model sensitivity class</li>
+<li>fallback point</li>
+<li>scheduler/governor input fields</li>
+</ul>
+<p>The pass should begin with a tiny transformer-style graph before broad model support.</p>
+<h3>5. AIHWKIT Adapter</h3>
+<p>Use IBM AIHWKIT as an external tool first.</p>
+<p>Do not fork it first.</p>
+<p>The adapter should:</p>
+<ul>
+<li>check whether AIHWKIT is installed</li>
+<li>run a tiny model through AIHWKIT when available</li>
+<li>compare AIHWKIT-style analog residuals against the local analog nonideality stack</li>
+<li>export evidence</li>
+<li>skip cleanly with a useful message when AIHWKIT is missing</li>
+</ul>
+<p>Current status: AIHWKIT is installed in the optional simulator environment and is part of the executable bridge. The wrapper at <code>scripts/check_aimc_simulator_adapters.py</code> imports AIHWKIT, runs a smoke fixture, and writes availability evidence. The bridge also runs small, workload-shaped, tensor-shaped, trained-weight, projection-stack, transformer-MLP, deep transformer-MLP-stack, and attention-shaped payloads. The guarded importer accepts AIHWKIT payloads only when their residual is inside the local positive-claim threshold; the larger current AIHWKIT replays run but are correctly rejected from positive claims when their residual is too high.</p>
+<p>Fork or patch AIHWKIT only if the adapter cannot expose the needed per-layer or per-device evidence.</p>
+<h3>6. Crossbar Layout-Risk Adapter</h3>
+<p>Build a local CrossSim-style layout-risk adapter before depending on a full external CrossSim flow.</p>
+<p>It should estimate:</p>
+<ul>
+<li>tile size</li>
+<li>row wire drop</li>
+<li>column current range</li>
+<li>ADC range</li>
+<li>DAC precision</li>
+<li>bit slicing</li>
+<li>saturation risk</li>
+<li>programming and drift risk</li>
+<li>residual risk</li>
+</ul>
+<p>The output should feed both the hardware lab and the old backend evidence package.</p>
+<p>Current status: CrossSim is installed in the same optional simulator environment and is part of the executable bridge. The wrapper records CrossSim as available in <code>evidence/aimc-simulator-adapters/simulator-adapter-status.json</code>. The bridge runs CrossSim across the same fixture family and sends its strict payloads through the guarded importer. Passing CrossSim payloads can support bounded simulator evidence, but they still do not prove board latency, measured energy, analog macro layout, calibrated silicon, or tapeout readiness.</p>
+<h3>7. Integrated Runtime Controller</h3>
+<p>Generate one trace that combines:</p>
+<ul>
+<li>model placement</li>
+<li>analog residual</li>
+<li>model sensitivity</li>
+<li>tile health</li>
+<li>queue pressure</li>
+<li>cumulative error</li>
+</ul>
+<p>The generated Verilog cases should prove:</p>
+<ul>
+<li>fixed projection can use analog</li>
+<li>stressed projection falls back</li>
+<li>attention-score paths fall back</li>
+<li>logits paths fall back</li>
+<li>unhealthy tiles fall back</li>
+<li>overloaded tiles delay or reroute</li>
+<li>accumulated error blocks analog</li>
+</ul>
+<h3>8. Unified Site Review Path</h3>
+<p>Create an obvious review path across both sites:</p>
+<ol>
+<li>old workbench combined workflow page</li>
+<li>old frontend prototype</li>
+<li>old proof ladder</li>
+<li>old evidence matrix</li>
+<li>old compiler and AIHWKIT pages</li>
+<li>new architecture-to-lab bridge</li>
+<li>new analog lab page</li>
+<li>new digital RTL page</li>
+<li>new EDA/OpenLane page</li>
+<li>new evidence ledger</li>
+</ol>
+<h2>Acceptance Criteria</h2>
+<p>The combined goal is complete when:</p>
+<ul>
+<li>one sample model enters the old backend</li>
+<li>ONNX graph analysis produces the <code>hardware_placement</code> artifact</li>
+<li>placement output drives analog/digital scheduling and generated governor cases</li>
+<li>local analog error and layout risk are generated</li>
+<li>model sensitivity is checked</li>
+<li>governor requests are generated</li>
+<li>RTL simulation checks the generated decisions</li>
+<li>synthesis and OpenLane evidence are linked</li>
+<li>hardware-lab evidence exports as JSON</li>
+<li>old backend imports the evidence</li>
+<li>old frontend shows the imported hardware evidence</li>
+<li>both sites show the same end-to-end story</li>
+<li>one command can rerun the connected proof slice with <code>scripts/prove_cross_repo_aimc_loop.py</code></li>
+<li>the bridge records whether AIHWKIT and CrossSim actually ran or were skipped, without upgrading claims when they were skipped</li>
+</ul>
+<h2>Writing Standard For Every Page</h2>
+<p>Each page should use the same plain structure:</p>
+<ul>
+<li>the concrete object being discussed</li>
+<li>the constraint that makes the object hard</li>
+<li>the design move used to handle the constraint</li>
+<li>the evidence that currently supports the move</li>
+<li>the failure mode that remains</li>
+<li>the next artifact needed to make the claim stronger</li>
+</ul>
+<p>Avoid broad words that hide the mechanism. Do not say &quot;optimized,&quot; &quot;robust,&quot; &quot;efficient,&quot; or &quot;validated&quot; unless the page immediately says what was optimized, what failure was resisted, what quantity improved, and what evidence proves it.</p>
+<p>Use the shortest accurate term. For example:</p>
+<ul>
+<li>say &quot;ADC bits&quot; instead of &quot;conversion capability&quot;</li>
+<li>say &quot;row voltage drop&quot; instead of &quot;analog degradation&quot;</li>
+<li>say &quot;fallback to digital&quot; instead of &quot;resilience&quot;</li>
+<li>say &quot;OpenLane routed under this setup&quot; instead of &quot;physical design complete&quot;</li>
+<li>say &quot;blocked because measured power is missing&quot; instead of &quot;needs more validation&quot;</li>
+</ul>
+<h2>First Claim Boundary</h2>
+<p>Allowed claim:</p>
+<p>This combined system is a working prototype for model-to-evidence analog in-memory AI hardware review. It connects model analysis, analog error simulation, model sensitivity, digital runtime control, RTL verification, synthesis, OpenLane evidence, and claim-readiness reporting.</p>
+<p>Not allowed claim:</p>
+<p>This is not a production analog foundation-model chip. It does not yet prove calibrated silicon, real board runtime, measured power, real thermal behavior, full CrossSim or AIHWKIT agreement, signoff-grade physical verification, or tapeout readiness.</p>
+<h2>Meaty End-To-End Program Goal</h2>
+<p>The next program goal is to take a portfolio of representative AI workloads through one common model-to-chip workflow and produce an evidence-backed answer for each one:</p>
+<pre><code>
+model and dataset
+  -&gt; digital reference and task metric
+  -&gt; graph analysis and operator sensitivity
+  -&gt; analog/digital/SRAM placement
+  -&gt; tile, bit-slice, converter, and calibration plan
+  -&gt; workload-shaped analog error replay
+  -&gt; compiled execution schedule
+  -&gt; physical converter and source-interface validation
+  -&gt; guarded runtime with digital fallback
+  -&gt; PVT, mismatch, noise, settling, and thermal analysis
+  -&gt; extracted/layout or board evidence
+  -&gt; end-to-end accuracy, latency, energy, and reliability comparison
+</code></pre>
+<p>The program is complete only when the same compiler, runtime contract, evidence schema, and claim gates are used across the workload portfolio. A workload may pass the software and simulator gates while remaining physically blocked. That must be visible in the report; a simulator pass must never silently become a chip claim.</p>
+<p>The machine-readable tracking record is <code>evidence/aimc-hardware-lab/end-to-end-workload-portfolio.json</code>. It is the authoritative index for workload IDs, current proof level, source evidence, and the next required proof.</p>
+<h3>Workload Portfolio</h3>
+<p>The following portfolio is the scope to implement and test. It deliberately starts with controlled fixtures, then moves toward task workloads and more difficult transformer behavior.</p>
+<table><tbody>
+<tr><th>stage</th><th>workload</th><th>computation exercised</th><th>current state</th><th>next proof</th></tr>
+<tr><td>1</td><td><code>tiny-mlp-task-v1</code></td><td>small fixed-weight MLP and classification path</td><td>task/governor evidence, shared compiler package, and guarded fallback trace exist</td><td>replace the fixture task with a versioned external or captured dataset and rerun task-level digital-versus-hybrid accounting after SAR closure</td></tr>
+<tr><td>1</td><td><code>projection-stack-v1</code></td><td>repeated dense fixed-weight projections</td><td>CrossSim and AIHWKIT adapter evidence exists; CrossSim is connected to the shared target schedule and guarded runtime</td><td>add measured converter cost and physical compatibility after the SAR gate</td></tr>
+<tr><td>1</td><td><code>wake-nonwake-audio-v1</code></td><td>edge audio classifier with repeated inference and a real task metric</td><td>generated-audio rehearsal reaches F1 <code>1.0</code>; compiler selects digital because converter overhead is not amortized</td><td>use versioned external or captured audio, then compare digital and hybrid latency/energy</td></tr>
+<tr><td>2</td><td><code>transformer-mlp-block-v1</code></td><td>gate/up/down/output projections, nonlinear mix, and residual add</td><td>calibrated CrossSim replay passes with relative L2 about <code>4.94e-8</code>; shared compiler and guarded fallback trace exist</td><td>enable analog only after SAR closure, then measure task metric and system cost against the digital baseline</td></tr>
+<tr><td>2</td><td><code>attention-block-v1</code></td><td>static Q/K/V/output projections plus dynamic scores, Softmax, and value mixing</td><td>calibrated CrossSim replay passes with relative L2 about <code>4.18e-8</code>; dynamic attention remains digital/SRAM and the shared schedule is generated</td><td>quantify projection-to-digital attention traffic, then test analog projection enablement after SAR closure</td></tr>
+<tr><td>2</td><td><code>deep-transformer-mlp-stack-v1</code></td><td>three repeated transformer-style MLP blocks and 12 fixed-weight MatMuls</td><td>calibrated CrossSim replay passes with relative L2 about <code>6.7e-8</code>; shared compiler, runtime estimate, and fallback trace exist</td><td>close physical converter compatibility and full hybrid execution comparison</td></tr>
+<tr><td>3</td><td><code>compact-vision-or-defect-v1</code></td><td>convolution or im2col-like repeated matrix work with task-level classification/detection</td><td>imported intake placement package exists; no real image dataset or task result yet</td><td>select a versioned model/dataset and prove whether analog reuse offsets converter cost</td></tr>
+<tr><td>3</td><td><code>wearable-keyword-v1</code></td><td>always-on wearable keyword detection with feature extraction and a compact classifier</td><td>imported intake placement package exists; no real audio dataset or task result yet</td><td>freeze captured keyword data, false-accept/false-reject metric, and sensor-to-model accounting</td></tr>
+<tr><td>3</td><td><code>smart-camera-inspection-v1</code></td><td>camera preprocessing plus compact vision/defect classification</td><td>imported intake placement package exists; no real image dataset or task result yet</td><td>freeze an image dataset and compare preprocessing, SRAM traffic, and analog reuse</td></tr>
+<tr><td>3</td><td><code>small-language-model-serving-v1</code></td><td>token projections, MLP, attention, normalization, KV-cache movement, and logits</td><td>synthetic next-token rehearsal passes at <code>0.9375</code> versus <code>1.0</code> baseline; normalized policy replay and shared compiler trace exist</td><td>replace the synthetic rehearsal with a real token dataset and end-to-end KV-cache serving trace with digital attention boundaries</td></tr>
+<tr><td>4</td><td><code>robot-sensor-policy-v1</code></td><td>sensor preprocessing, transformer policy inference, and deterministic control handoff</td><td>imported intake placement package exists; control readiness is not accepted</td><td>freeze sensor logs, control/jitter safety metric, and the model-to-controller boundary</td></tr>
+<tr><td>4</td><td><code>vla-or-physical-ai-v1</code></td><td>perception, transformer policy, and action/control path</td><td>imported intake placement package exists; no task or control-safety result yet</td><td>attempt only after the preceding workload classes pass physical, runtime, and safety gates</td></tr>
+</tbody></table>
+<p>The fixture workloads are not substitutes for real task validation. They isolate mapping, calibration, and error propagation so the hardware contract can be debugged. The audio, vision, and language workloads establish whether the same architecture has useful end-to-end behavior under realistic data and metrics.</p>
+<h3>Remaining Work Packages</h3>
+<ol>
+<li>**Close the physical converter path.** The selected low-source PMOS-only</li>
+<p>   candidate now passes nominal <code>16/16</code> threshold calibration, legal range,    spacing, injective mapping, and <code>5/5</code> representative calibrated SAR    conversions. The remaining work is same-topology PVT, mismatch/noise,    settling, continuous multicycle SAR, extraction, and post-layout evidence;    the analog path remains guarded until those gates pass.</p>
+</ol>
+<ol>
+<li>**Freeze the hardware contract.** Record tile dimensions, cell and slice</li>
+<p>   precision, DAC/ADC ranges, accumulation width, SRAM capacity and bandwidth,    calibration interval, voltage/temperature range, and fallback capacity in a    versioned hardware profile. The current contract is    <code>educational-hybrid-tile-v1</code>; every workload result and the shared portfolio    acceptance contract must name that profile.</p>
+</ol>
+<ol>
+<li>**Make one compiler output authoritative.** Every operator must have exactly</li>
+<p>   one placement, tile mapping, bit-slice rule, converter crossing, SRAM move,    calibration profile, sensitivity budget, and fallback destination. Include    negative tests where the compiler refuses analog placement.</p>
+</ol>
+<ol>
+<li>**Run the portfolio through common evidence gates.** For each workload,</li>
+<p>   generate the digital baseline, model-level hybrid comparison, runtime trace,    converter assumptions, analog residual report, and claim boundary. Keep    simulator, RTL, synthesis, extracted/layout, board, and silicon evidence as    separate levels. Validate the portfolio manifest with    <code>python3 scripts/validate_aimc_workload_portfolio.py</code> before accepting a    new workload or changing its proof status.    The reproducible software-side vertical-slice regression is available as    <code>python3 scripts/run_aimc_end_to_end_regression.py</code>; it runs the transformer    schedule, model-backed task check, governor, guarded runtime, report build,    and both validators in one recorded run.</p>
+</ol>
+<ol>
+<li>**Close physical robustness.** For the selected converter and analog tile,</li>
+<p>   measure settling, PVT, mismatch, noise, drift, supply variation, legal    common-mode range, and calibration age. The analog path is enabled only when    the governor can prove the current workload and tile remain inside their    task-sensitive error budgets.</p>
+</ol>
+<ol>
+<li>**Measure system economics.** Compare the same workload and dataset on the</li>
+<p>   same target using digital-only and hybrid execution. Report end-to-end    latency, energy per inference, power, thermal behavior, SRAM traffic,    converter crossings, analog utilization, fallback rate, and task metric.    Array-only TOPS/W is not an acceptance result.</p>
+</ol>
+<ol>
+<li>**Upgrade to board and silicon evidence.** Tie measurements to a board,</li>
+<p>   firmware, package, workload, model, dataset, and synchronized runtime/power    trace. Keep production readiness blocked until calibrated silicon, reliability,    thermal, packaging, and signoff evidence exist.</p>
+</ol>
+<h3>Program-Level Acceptance Criteria</h3>
+<p>The program earns an end-to-end pass only when:</p>
+<ul>
+<li>at least one real task workload and its digital baseline are reproducible;</li>
+<li>all staged fixture workloads use the same compiler/runtime/evidence schema;</li>
+<li>the compiler can select analog, digital, mixed, or fallback execution per</li>
+<p>  operator for defensible reasons;</p>
+<li>the physical converter passes full-code, full-range, calibrated SAR tests;</li>
+<li>analog error is evaluated at the model output and task metric, not only at a</li>
+<p>  circuit node;</p>
+<li>PVT, mismatch, noise, settling, calibration-age, and thermal gates are</li>
+<p>  recorded for the enabled analog path;</p>
+<li>digital-only and hybrid runs use the same model, data, metric, and target</li>
+<p>  accounting rules;</p>
+<li>a measured board result exists before making latency, energy, or thermal</li>
+<p>  claims about hardware; and</p>
+<li>every report states the strongest supported claim and the next blocked claim.</li>
+</ul>
+<p>The immediate target is therefore not &quot;run a large language model on analog.&quot; It is: **close one physically valid converter, compile the transformer and edge workload portfolio through the same mixed-memory runtime, and demonstrate one fair task-level digital-versus-hybrid comparison with measured system costs.**</p></article></main></body></html>

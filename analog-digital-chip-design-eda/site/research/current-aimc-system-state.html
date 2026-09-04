@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Current AIMC System State</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Current AIMC System State</h1><p class="lead">Source: docs/research/current-aimc-system-state.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Current AIMC System State</h1>
+<p>This page is the short review page for the current analog in-memory compute workbench.</p>
+<p>It answers three questions:</p>
+<ol>
+<li>What works now?</li>
+<li>What is still only needs-review?</li>
+<li>What is still blocked?</li>
+</ol>
+<p>The generated source summary is:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/current-aimc-system-state.json</code></li>
+<li><code>evidence/aimc-hardware-lab/current-aimc-system-state.md</code></li>
+</ul>
+<h2>Object</h2>
+<p>The object is package <code>pkg-e931662a01293df2</code> moving through the combined old workbench and new hardware lab.</p>
+<p>The current proof starts with a backend model graph, turns that graph into hardware placement, runs lab checks, exports evidence, imports the evidence back into the backend, and refreshes claim readiness.</p>
+<p>The browser entry points are:</p>
+<ul>
+<li>lab hub: <code>http://127.0.0.1:8023/</code></li>
+<li>old workbench: <code>http://127.0.0.1:8024/analog-in-memory-ai-inference/software-architecture/master-review-path.html</code></li>
+<li>backend claim readiness: <code>http://127.0.0.1:8025/deployment-packages/pkg-e931662a01293df2/claim-readiness</code></li>
+</ul>
+<h2>Current Supported Claims</h2>
+<p>The current proof supports three narrow lab claims.</p>
+<p><code>C1</code> is supported because the backend emits model-to-hardware placement evidence. The package has five backend operators, two structural analog candidates, converter boundaries, and fallback points.</p>
+<p><code>C4</code> is supported because analog error evidence and task-sensitivity evidence are attached. This is a local simulator-backed accuracy and sensitivity claim, not a full pretrained-model claim.</p>
+<p><code>C5</code> is supported because the digital control path has RTL, synthesis, and exploratory OpenLane physical-flow evidence. This is a bounded digital-control implementation claim, not full-chip signoff.</p>
+<h2>Current Needs-Review Claims</h2>
+<p><code>C2</code> latency is still needs-review.</p>
+<p>The current runtime record is useful because it carries local RTL/runtime behavior, generated governor cases, fallback events, synthesis context, and OpenLane context. It is still not a measured board trace.</p>
+<p><code>C3</code> energy is still needs-review.</p>
+<p>The current power record is useful because it carries local OpenLane-derived power and thermal context. It is still not meter-backed measured power, and measured energy requires runtime and power evidence tied to the same runtime trace ID, package, workload, board, start time, and end time.</p>
+<h2>Current Blocked Claim</h2>
+<p>Production readiness is blocked.</p>
+<p>That is correct. The current system does not yet prove calibrated silicon, analog macro layout, package reliability, thermal envelope, repeated-board behavior, manufacturing yield, test insertion, customer operating limits, or tapeout signoff.</p>
+<h2>Simulator State</h2>
+<p>AIHWKIT and CrossSim are installed and exercised through the bridge.</p>
+<p>The current executable result is:</p>
+<ul>
+<li>AIHWKIT adapter: available</li>
+<li>CrossSim adapter: available</li>
+<li>small fixture payloads: both wrote payloads</li>
+<li>tensor-shaped backend MatMul payloads: both wrote payloads</li>
+<li>trained-weight and larger model-shaped AIHWKIT payloads: ran but exceeded the positive-claim residual threshold</li>
+<li>trained-weight and larger model-shaped CrossSim payloads: wrote passing payloads</li>
+</ul>
+<p>This does not mean the whole model is proven. It means the simulator path works and the guarded importer separates passing evidence from threshold-fail evidence.</p>
+<h2>Placement State</h2>
+<p>Structural placement and residual-aware placement are separate.</p>
+<p>The backend has five operators:</p>
+<ul>
+<li><code>dense1.matmul</code></li>
+<li><code>dense1.bias</code></li>
+<li><code>dense1.relu</code></li>
+<li><code>dense2.matmul</code></li>
+<li><code>dense2.bias</code></li>
+</ul>
+<p>Only the two MatMul rows are structural analog candidates.</p>
+<p>After residual-aware filtering, the two MatMul rows remain analog-allowed. The selected evidence source is <code>deep_transformer_mlp_stack</code>, using the <code>fixed_weight_matmul_family_match</code> policy. The accepted tool is CrossSim. Bias and ReLU stay digital because simulator evidence for fixed-weight MatMul does not prove non-MatMul operations.</p>
+<h2>What The 50-Gate Proof Checks</h2>
+<p>The broad proof command is:</p>
+<pre><code>
+./scripts/check_aimc_bridge.sh
+</code></pre>
+<p>The latest passing run checks:</p>
+<ul>
+<li>backend hardware placement import</li>
+<li>SPICE and analog-tile evidence</li>
+<li>model-impact governor requests</li>
+<li>generated RTL traces</li>
+<li>Yosys synthesis</li>
+<li>OpenLane readiness</li>
+<li>AIHWKIT and CrossSim status</li>
+<li>simulator payload generation</li>
+<li>guarded simulator payload import</li>
+<li>calibrated residual governor bridge</li>
+<li>residual-aware placement</li>
+<li>hardware-lab evidence export</li>
+<li>strict analog simulator/tool evidence export</li>
+<li>site build</li>
+<li>project validation</li>
+<li>cross-repo backend proof</li>
+<li>residual-aware placement API</li>
+<li>residual-aware placement archive</li>
+</ul>
+<h2>Allowed Claim</h2>
+<p>The system can say:</p>
+<p>The combined AIMC workbench has a passing local evidence loop from backend model graph to analog/digital placement, simulator payloads, RTL checks, evidence import, residual-aware placement, archive, and claim readiness. Selected fixed-weight MatMul rows can request analog service under the current local CrossSim-backed residual policy.</p>
+<h2>Refused Claim</h2>
+<p>The system cannot say:</p>
+<ul>
+<li>the whole foundation model runs correctly on analog hardware</li>
+<li>AIHWKIT and CrossSim agree on the whole model</li>
+<li>threshold-fail AIHWKIT payloads support positive analog placement</li>
+<li>local RTL timing is measured board latency</li>
+<li>OpenLane power is measured energy</li>
+<li>measured runtime and measured power can be mixed across different runtime trace IDs</li>
+<li>analog macro layout is complete</li>
+<li>silicon is calibrated</li>
+<li>production readiness is achieved</li>
+<li>tapeout is ready</li>
+</ul>
+<h2>Next Handoff</h2>
+<p>The next meaningful work is stronger evidence, not broader wording.</p>
+<p>The clearest next upgrade is now the converter handoff, not more prose.</p>
+<p>For the short end-to-end map of how the current circuit evidence ties back to model placement and the strict accepted converter gate, read <code>aimc-remaining-proof-spine.html</code>.</p>
+<ol>
+<li>Keep the passing active-macro handoff as a bounded result: the extracted frontend can hand a signed signal to a gain block in one deck.</li>
+<li>Fix the Sky130 transistor input-stage handoff. The direct gate-ramp check passes, and the assisted extracted-frontend gate-startup deck now runs, but only one polarity preserves sign and output margin. A targeted passive coupling sweep found no passing passive setting. A bare source follower runs but collapses the tiny differential signal. After fixing the too-short runner timeout, the same preamp bias passes with measured sense-voltage sources, the bias sweep finds one passing setting, and the OP map finds one valid DC point. The exact known-good input-stage deck also reproduces at both the old target input and the smaller measured frontend input. The extracted-frontend preamp now runs and preserves sign, but the output margin is too small; a gain sweep finds no simple setting that reaches the margin. The capacitance budget says the physical target is about <code>1.64x</code> better useful coupling or about <code>1.64x</code> less wasted sense capacitance. A lower-waste-only scaled-RC candidate preserves both signs but still misses margin. A combined useful-coupling plus lower-waste scaled-RC candidate also preserves both signs but still reaches only about <code>69.5 uV</code>, below the <code>500 uV</code> output target. An ideal low-input-capacitance active-isolation macro shows enough raw output margin, but raw output keeps a one-sided sign bias. With zero-input offset subtraction, the unity low-cap active-isolation macro passes both signs with at least about <code>610 uV</code> corrected margin. The first Sky130 transistor isolation-pair replacement now measures every case and reaches enough corrected magnitude in the small and medium settings, but its corrected sign is inverted. A direct output swap of the prior best setting does not solve the handoff; both signal cases time out. Re-reading the stable transistor measurements with an explicit converter polarity contract gives two schematic-level passing settings, because the sign error is deterministic inversion rather than random ambiguity.</li>
+<li>Carry the polarity contract into the latch/SAR input definition. The joined latch-risk page says the best transistor handoff has about <code>1.59x</code> the required output margin, but the best existing latch sizing still has about <code>2.99x</code> too much kickback relative to the 12-bit half-LSB line. The isolated-latch work order now names the next circuit target: preserve the polarity contract, keep both signs resolving, reduce kickback by about <code>3.0x</code> to reach the hard half-LSB line or about <code>6.0x</code> for a cleaner design target, and then measure offset, noise, decision time, and wrong-code risk. The first source-follower isolated-latch candidate did not produce usable measurements; all four targeted signal cases timed out. The sampled internal decision-capacitor candidate also did not produce a usable branch; it measured zero cases and timed out on most cases. The two-phase preamp-then-latch candidate also timed out on both target-edge cases. The isolated-latch debug ladder now records the pattern: three candidate branches, zero measured candidate cases, and nine timed-out cases. The first preamp-alone transient debug also timed out on both signs with the latch removed. The first OP-only preamp debug used too short a timeout. The old known-good OP reproduction still passes, and the current known-good-shape OP rerun now passes both signs after matching that timeout. The known-good-shape transient from the measured OP initial point also passes both signs with margin and settling. The first latch-alone run from those measured preamp voltages measured both cases without timeout but resolved with inverted polarity. Swapping the measured preamp voltages into the latch input fixes latch-alone polarity: both cases measure and both resolve. The clock-timing sweep with that swapped mapping measures all six delayed-clock cases without timeout, but every case fails under the old <code>outn - outp</code> signed-output definition. Reinterpreting those same measured rails shows the real convention: the source contract is matched by <code>outp - outn</code>, with six of six cases correct. Carrying that convention into the direct coupled sample-hold/latch fixture still does not pass: both signs measure without timeout, but the sampled differential is only about <code>49 uV</code> before latch fire, the latch kickback moves it by about <code>12.0 mV</code>, no case stays below the 12-bit half-LSB line, and no case resolves with the required source polarity. Tiny capacitive latch-input isolation is the first coupled schematic branch that does pass this narrow gate: <code>0.1 fF</code> and <code>0.2 fF</code> coupling capacitors both resolve both signs, all four cases measure without timeout, worst sampled differential kickback is about <code>202 uV</code>, and the 12-bit half-LSB line is about <code>220 uV</code>. The input-range stress keeps that branch alive: both caps pass both signs at one, two, and five times the target-edge differential, for <code>12/12</code> measured and passing schematic cases, with worst kickback still about <code>202 uV</code>. This is still only schematic-level converter-readout evidence. The next executable move is to stress clock timing and then offset/noise before extracted layout, SAR logic, or accepted post-layout economics can be claimed.</li>
+<li>Only then fill the strict post-layout payload with same-run energy, latency, noise, area, sharing, netlist, model, and rerun evidence.</li>
+<li>Feed that accepted converter package back into break-even and residual-aware placement.</li>
+</ol>
+<p>Until those upgrades exist, the correct current state is: local placement and local accuracy evidence are supported; the active-macro handoff is supported; the transistor readout can amplify measured sense voltages in controlled tests; the extracted frontend still does not reliably drive the real transistor gates; latency and energy need review; production remains blocked.</p>
+<p>---</p>
+<h1>Current AIMC System State Summary</h1>
+<p>This file is generated from the latest proof artifacts.</p>
+<h2>Source Artifacts</h2>
+<ul>
+<li>cross-repo proof: <code>evidence/aimc-hardware-lab/cross-repo-loop-proof.json</code></li>
+<li>end-to-end workload portfolio: <code>evidence/aimc-hardware-lab/end-to-end-workload-portfolio.json</code></li>
+<li>hybrid compiler package: <code>evidence/aimc-hybrid-compiler-runtime/hybrid_compiler_runtime_package.json</code></li>
+<li>hardware profile: <code>evidence/aimc-hardware-lab/hardware-profile-educational-hybrid-tile-v1.json</code></li>
+<li>charge-transfer redesign spec: <code>evidence/aimc-simulator-adapters/sky130-charge-transfer-redesign-spec.json</code></li>
+<li>PMOS high-code range probe: <code>evidence/aimc-simulator-adapters/sky130-pmos-only-high-code-range-probe.json</code></li>
+<li>coupled physical SAR PVT: <code>evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-pvt.json</code></li>
+<li>hybrid compiled package: <code>evidence/aimc-hybrid-compiler-runtime/compiled_target_execution_package.json</code></li>
+<li>hybrid runtime estimate: <code>evidence/aimc-hybrid-compiler-runtime/hybrid_runtime_estimate.json</code></li>
+<li>differential input sweep: <code>evidence/aimc-simulator-adapters/sky130-differential-dummy-candidate-input-sweep.json</code></li>
+<li>differential mismatch sweep: <code>evidence/aimc-simulator-adapters/sky130-differential-dummy-candidate-mismatch-sweep.json</code></li>
+<li>differential decision margin: <code>evidence/aimc-simulator-adapters/sky130-differential-dummy-candidate-decision-margin.json</code></li>
+<li>differential offset/noise stress: <code>evidence/aimc-simulator-adapters/sky130-differential-dummy-candidate-offset-noise-stress.json</code></li>
+<li>preamp/latch candidate: <code>evidence/aimc-simulator-adapters/sky130-two-phase-preamp-latch-candidate.json</code></li>
+<li>ONNX fixture inventory: <code>evidence/aimc-hardware-lab/onnx-fixture-inventory.json</code></li>
+<li>digital physical boundary: <code>evidence/aimc-hardware-lab/digital-physical-artifact-boundary.json</code></li>
+<li>residual-aware placement: <code>evidence/aimc-simulator-adapters/residual-aware-placement-decisions.json</code></li>
+<li>simulator status: <code>evidence/aimc-simulator-adapters/simulator-adapter-status.json</code></li>
+<li>layout risk: <code>evidence/aimc-simulator-adapters/crosssim-layout-risk-adapter.json</code></li>
+<li>simulator to post-layout gap: <code>evidence/aimc-simulator-adapters/simulator-to-post-layout-gap-audit.json</code></li>
+<li>AIHWKIT residual diagnostic: <code>evidence/aimc-simulator-adapters/aihwkit-residual-diagnostic.json</code></li>
+<li>AIHWKIT ideal-forward mapping: <code>evidence/aimc-simulator-adapters/aihwkit-ideal-forward-mapping-proof.json</code></li>
+<li>AIHWKIT forward-setting sweep: <code>evidence/aimc-simulator-adapters/aihwkit-forward-setting-sweep.json</code></li>
+<li>AIHWKIT physical-setting review: <code>evidence/aimc-simulator-adapters/aihwkit-physical-setting-review.json</code></li>
+<li>AIHWKIT current-tile replay: <code>evidence/aimc-simulator-adapters/aihwkit-current-tile-boundary-replay.json</code></li>
+<li>AIHWKIT converter upgrade target: <code>evidence/aimc-simulator-adapters/aihwkit-converter-upgrade-target.json</code></li>
+<li>AIHWKIT converter cost model: <code>evidence/aimc-simulator-adapters/aihwkit-converter-cost-model.json</code></li>
+<li>AIHWKIT target noise sensitivity: <code>evidence/aimc-simulator-adapters/aihwkit-target-noise-sensitivity.json</code></li>
+<li>AIHWKIT converter break-even: <code>evidence/aimc-simulator-adapters/aihwkit-converter-break-even.json</code></li>
+<li>converter circuit evidence contract: <code>evidence/aimc-simulator-adapters/converter-circuit-evidence-contract.json</code></li>
+<li>local converter circuit estimate: <code>evidence/aimc-simulator-adapters/local-converter-circuit-estimate.json</code></li>
+<li>converter circuit-simulation estimate: <code>evidence/aimc-simulator-adapters/converter-circuit-simulation-estimate.json</code></li>
+<li>converter SPICE handoff spec: <code>evidence/aimc-simulator-adapters/converter-spice-handoff-spec.json</code></li>
+<li>row-DAC settling SPICE evidence: <code>evidence/aimc-simulator-adapters/row-dac-settling-spice-evidence.json</code></li>
+<li>SAR readout SPICE evidence: <code>evidence/aimc-simulator-adapters/sar-readout-spice-evidence.json</code></li>
+<li>shared converter loading SPICE evidence: <code>evidence/aimc-simulator-adapters/shared-converter-loading-spice-evidence.json</code></li>
+<li>converter supply-energy SPICE evidence: <code>evidence/aimc-simulator-adapters/converter-supply-energy-spice-evidence.json</code></li>
+<li>analog converter layout work order: <code>evidence/aimc-simulator-adapters/analog-converter-layout-work-order.json</code></li>
+<li>analog converter layout starter: <code>evidence/aimc-simulator-adapters/analog-converter-layout-starter-package.json</code></li>
+<li>analog converter layout tool readiness: <code>evidence/aimc-simulator-adapters/analog-converter-layout-tool-readiness.json</code></li>
+<li>analog converter PDK readiness: <code>evidence/aimc-simulator-adapters/analog-converter-pdk-readiness.json</code></li>
+<li>analog converter Sky130 workbench environment: <code>evidence/aimc-simulator-adapters/analog-converter-sky130-workbench-env.json</code></li>
+<li>analog converter physical cell gate: <code>evidence/aimc-simulator-adapters/analog-converter-physical-cell-gate.json</code></li>
+<li>converter post-layout readiness: <code>evidence/aimc-simulator-adapters/converter-post-layout-readiness.json</code></li>
+<li>converter post-layout evidence contract: <code>evidence/aimc-simulator-adapters/converter-post-layout-evidence-contract.json</code></li>
+<li>converter post-layout payload template: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-template.json</code></li>
+<li>converter post-layout payload validator: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-validator.json</code></li>
+<li>converter post-layout break-even rerun path: <code>evidence/aimc-simulator-adapters/converter-post-layout-break-even-rerun-path.json</code></li>
+<li>converter post-layout strict intake: <code>evidence/aimc-simulator-adapters/converter-post-layout-strict-intake-report.json</code></li>
+<li>converter post-layout positive path: <code>evidence/aimc-simulator-adapters/converter-post-layout-positive-path-report.json</code></li>
+<li>converter post-layout submission path: <code>evidence/aimc-simulator-adapters/converter-post-layout-submission-path-report.json</code></li>
+<li>converter post-layout real payload package: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-payload-package.json</code></li>
+<li>converter post-layout payload preflight: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-preflight-report.json</code></li>
+<li>converter post-layout candidate workspace: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-workspace.json</code></li>
+<li>converter post-layout candidate workspace audit: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-workspace-audit.json</code></li>
+<li>converter post-layout candidate fill checklist: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-fill-checklist.json</code></li>
+<li>converter post-layout candidate progress: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-progress-report.json</code></li>
+<li>converter post-layout candidate progress gate: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-progress-gate.json</code></li>
+<li>converter post-layout candidate preflight gate: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-preflight-gate.json</code></li>
+<li>converter post-layout candidate submission gate: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-submission-gate.json</code></li>
+<li>converter post-layout candidate readiness run: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-readiness-run.json</code></li>
+<li>converter post-layout candidate identity initializer: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-identity-initializer.json</code></li>
+<li>converter post-layout real candidate builder: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-candidate-builder.json</code></li>
+<li>converter post-layout submission preview: <code>evidence/aimc-simulator-adapters/converter-post-layout-submission-preview.json</code></li>
+<li>converter post-layout evidence leakage audit: <code>evidence/aimc-simulator-adapters/converter-post-layout-evidence-leakage-audit.json</code></li>
+<li>converter post-layout temporary submission proof: <code>evidence/aimc-simulator-adapters/converter-post-layout-temporary-submission-proof.json</code></li>
+<li>converter post-layout real artifact discovery: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-artifact-discovery.json</code></li>
+</ul>
+<h2>Current State</h2>
+<ul>
+<li>package: <code>pkg-e931662a01293df2</code></li>
+<li>proof status: <code>PASS</code></li>
+<li>supported lab claims: <code>3</code></li>
+<li>needs-review lab claims: <code>2</code></li>
+<li>production claim: <code>blocked</code></li>
+</ul>
+<h2>Simulator State</h2>
+<ul>
+<li>AIHWKIT: <code>available</code> version <code>1.1.0</code></li>
+<li>CrossSim: <code>available</code> smoke max error <code>2.252e-07</code></li>
+</ul>
+<ul>
+<li>optional_simulator_payloads: AIHWKIT <code>wrote_payload</code>, CrossSim <code>wrote_payload</code></li>
+<li>tensor_shape_simulator_payloads: AIHWKIT <code>wrote_payload</code>, CrossSim <code>wrote_payload</code></li>
+<li>trained_weight_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>projection_stack_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>transformer_mlp_block_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>calibrated_transformer_mlp_block_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>calibrated_deep_transformer_mlp_stack_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>attention_block_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+<li>calibrated_attention_block_simulator_payloads: AIHWKIT <code>wrote_payload_threshold_fail</code>, CrossSim <code>wrote_payload</code></li>
+</ul>
+<h2>Simulator To Post-Layout Gap State</h2>
+<ul>
+<li>status: <code>simulator_evidence_present_post_layout_converter_evidence_missing</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/simulator-to-post-layout-gap-audit.json</code></li>
+<li>simulator payloads: <code>20</code></li>
+<li>supporting simulator payloads: <code>13</code></li>
+<li>post-layout converter-ready payloads: <code>0</code></li>
+<li>blocked post-layout payloads: <code>20</code></li>
+</ul>
+<h2>ONNX Fixture State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-hardware-lab/onnx-fixture-inventory.json</code></li>
+<li>models: <code>5</code></li>
+<li>selected fixture: <code>deep-transformer-mlp-stack.onnx</code></li>
+<li>max fixed-weight MatMuls: <code>12</code></li>
+<li>usable larger fixtures: <code>4</code></li>
+</ul>
+<h2>End-To-End Workload Portfolio State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-hardware-lab/end-to-end-workload-portfolio.json</code></li>
+<li>portfolio: <code>mixed-memory-ai-inference-portfolio-v1</code></li>
+<li>workloads: <code>12</code></li>
+<li>stages: <code>{&#x27;1&#x27;: 3, &#x27;2&#x27;: 3, &#x27;3&#x27;: 4, &#x27;4&#x27;: 2}</code></li>
+<li>status counts: <code>{&#x27;synthetic_task_rehearsal_pass&#x27;: 1, &#x27;crosssim_positive_simulator_path&#x27;: 1, &#x27;generated_audio_rehearsal_pass_digital_selected&#x27;: 1, &#x27;calibrated_crosssim_replay_pass&#x27;: 1, &#x27;calibrated_crosssim_replay_pass_dynamic_path_digital&#x27;: 1, &#x27;calibrated_crosssim_replay_pass_physical_sar_blocked&#x27;: 1, &#x27;imported_intake_package_generated&#x27;: 5, &#x27;synthetic_token_quality_rehearsal_pass&#x27;: 1}</code></li>
+<li>exit condition: At least one real task workload and digital baseline pass the common compiler, physical converter, runtime, and measured system-cost gates; the remaining portfolio has explicit evidence or an explicit blocked status.</li>
+</ul>
+<h2>Charge-Transfer Redesign State</h2>
+<ul>
+<li>status: <code>nominal_candidate_measured_ready_for_robustness</code></li>
+<li>spec: <code>sky130-charge-transfer-redesign-v1</code></li>
+<li>required phases: <code>6</code></li>
+<li>all-code target: <code>16</code></li>
+<li>PVT corners: <code>5</code></li>
+<li>mismatch trials: <code>100</code></li>
+</ul>
+<h2>PMOS-Only High-Code Range State</h2>
+<ul>
+<li>status: <code>pmos_only_high_code_converges_but_violates_range_and_spacing</code></li>
+<li>nominal range pass: <code>False</code></li>
+<li>nominal code 14 to 15 spacing V: <code>0.006908</code></li>
+<li>lower-common-mode code 15 top plate V: <code>2.315697</code></li>
+</ul>
+<h2>Coupled Physical SAR PVT State</h2>
+<ul>
+<li>status: <code>same_topology_representative_pvt_characterized_not_full_pvt_sar_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-pvt.json</code></li>
+<li>corners: <code>5</code></li>
+<li>measured cases: <code>25</code> of <code>25</code></li>
+<li>timed out cases: <code>0</code></li>
+<li>correct comparator polarities: <code>24</code> of <code>25</code></li>
+</ul>
+<h2>Coupled PVT Margin State</h2>
+<ul>
+<li>status: <code>slow_cold_low_supply_margin_boundary_characterized</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-coupled-pvt-margin-probe.json</code></li>
+<li>corner: <code>{&#x27;model_section&#x27;: &#x27;ss&#x27;, &#x27;supply_v&#x27;: 1.62, &#x27;temperature_c&#x27;: -20.0}</code></li>
+<li>physical code: <code>6</code></li>
+<li>measured cases: <code>7</code> of <code>7</code></li>
+<li>correct comparator polarities: <code>3</code> of <code>7</code></li>
+<li>governor conclusion: The low-supply corner requires a measured comparator-margin guard; nominal sign evidence cannot be extrapolated through the approximately 35 mV transition region.</li>
+</ul>
+<h2>Coupled Physical SAR Mismatch State</h2>
+<ul>
+<li>status: <code>same_topology_controlled_mismatch_characterized_not_statistical_yield_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-mismatch.json</code></li>
+<li>mismatch cases: <code>4</code></li>
+<li>measured cases: <code>20</code> of <code>20</code></li>
+<li>timed out cases: <code>0</code></li>
+<li>correct comparator polarities: <code>20</code> of <code>20</code></li>
+</ul>
+<h2>Continuous Physical SAR Specification</h2>
+<ul>
+<li>status: <code>ready_for_continuous_physical_deck</code></li>
+<li>spec: <code>sky130-continuous-physical-sar-v1</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-spec.json</code></li>
+<li>cycles per conversion: <code>4</code></li>
+<li>representative conversions: <code>5</code></li>
+</ul>
+<h2>Continuous Physical SAR Candidate State</h2>
+<ul>
+<li>status: <code>continuous_physical_sar_candidate_measured_not_accepted</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-continuous-physical-sar.json</code></li>
+<li>measured: <code>True</code></li>
+<li>expected/final code: <code>2</code> / <code>0</code></li>
+<li>comparator clear flags / retained bits: <code>[1, 1, 1, 1]</code> / <code>[0, 0, 0, 0]</code></li>
+<li>representative conversions measured/required: <code>5</code> / <code>5</code></li>
+<li>cycle DAC values V: <code>[1.097282, 0.6858213, 0.6819284, 0.5712572]</code></li>
+<li>cycle DAC legal range: <code>True</code></li>
+<li>gate/bottom-plate legal ranges: <code>True</code> / <code>False</code></li>
+<li>PMOS/NMOS gate debug V: <code>[]</code> / <code>[]</code></li>
+<li>bottom-plate debug V: <code>[[1.217105, 0.04836157, 0.02259391, 0.01091988], [0.08422263, 0.7294462, 0.01780655, 0.008748549], [0.0139341, 0.005331971, 1.703262, 0.0006544322], [0.0002740644, -5.887261e-05, -3.202519e-05, 1.799194]]</code></li>
+<li>comparator differences V: <code>[-0.8763386, -0.8735509, -0.8718344, -0.8696796, -0.8725137, -0.8695123, -0.8679292, -0.8660906, -0.868233, -0.8654265, 0.8655002, 0.8650612, -0.8654951, 0.8674389, 0.8650542, -0.8658965, -0.8650905, 0.8691525, 0.8659188, 0.8650624]</code></li>
+</ul>
+<h2>Hybrid Compiler State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>package: <code>hybrid_transformer_compiler_runtime_v1</code></li>
+<li>workloads: <code>12</code></li>
+<li>operators: <code>91</code></li>
+<li>runtime events: <code>321</code></li>
+<li>commands: <code>321</code></li>
+<li>register writes: <code>460</code></li>
+<li>estimated cycles: <code>687</code></li>
+<li>schedule verified: <code>True</code></li>
+<li>analog tile commands: <code>46</code></li>
+<li>converter commands: <code>92</code></li>
+<li>SRAM commands: <code>92</code></li>
+<li>physical converter gate: <code>blocked_sar_source_common_mode</code></li>
+<li>hardware profile: <code>educational-hybrid-tile-v1</code></li>
+<li>target bytecode artifact/words: <code>evidence/aimc-hybrid-compiler-runtime/target_bytecode.json</code> / <code>321</code></li>
+<li>SRAM allocation fits profile: <code>True</code></li>
+</ul>
+<h2>Differential Frontend State</h2>
+<ul>
+<li>status: <code>sample_hold_characterized_comparator_budget_defined</code></li>
+<li>common-mode input sweep: <code>3/3</code>, all pass <code>True</code></li>
+<li>controlled mismatch sweep: <code>5/5</code>, all pass <code>True</code></li>
+<li>worst measured sample/hold error: <code>6.300000000014627e-05</code> V</li>
+<li>remaining comparator offset/noise budget: <code>0.15672656249985373</code> mV</li>
+<li>modeled offset/noise stress: <code>17/20</code> pass</li>
+<li>stress boundary: <code>0.15297058540778352</code> mV pass, <code>0.15811388300841894</code> mV fail</li>
+</ul>
+<h2>Comparator Candidate State</h2>
+<ul>
+<li>status: <code>two_phase_preamp_latch_candidate_passed_schematic_not_noise_layout_or_strict</code></li>
+<li>measured edge cases: <code>2/2</code></li>
+<li>correct polarity: <code>2/2</code></li>
+<li>kickback below half LSB: <code>2/2</code></li>
+<li>worst sampled differential kickback: <code>1.9699999999955864e-05</code> V</li>
+<li>minimum preamp differential before latch: <code>0.0007466000000000417</code> V</li>
+<li>schematic candidate all cases pass: <code>True</code></li>
+</ul>
+<h2>Digital Physical Boundary State</h2>
+<ul>
+<li>status: <code>digital_physical_artifacts_present_analog_converter_post_layout_missing</code></li>
+<li>artifact: <code>evidence/aimc-hardware-lab/digital-physical-artifact-boundary.json</code></li>
+<li>metrics files checked: <code>6</code></li>
+<li>digital physical flow supported count: <code>6</code></li>
+<li>CTS-enabled supported count: <code>4</code></li>
+<li>analog converter post-layout supported: <code>False</code></li>
+</ul>
+<h2>Analog Converter Layout Work Order State</h2>
+<ul>
+<li>status: <code>layout_work_order_ready_waiting_for_converter_layout</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-layout-work-order.json</code></li>
+<li>all starting SPICE decks exist: <code>True</code></li>
+<li>repo-local analog layout file count: <code>9</code></li>
+<li>deliverable count: <code>5</code></li>
+</ul>
+<h2>Analog Converter Layout Starter State</h2>
+<ul>
+<li>status: <code>starter_package_written_not_extracted_evidence</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-layout-starter-package.json</code></li>
+<li>workbench: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench</code></li>
+<li>starter file count: <code>5</code></li>
+<li>strict payload still waiting for real files: <code>False</code></li>
+</ul>
+<h2>Analog Converter Layout Tool Readiness State</h2>
+<ul>
+<li>status: <code>starter_layout_present_candidate_rehearsal_artifacts_not_accepted</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-layout-tool-readiness.json</code></li>
+<li>all required tools available: <code>True</code></li>
+<li>starter files ready: <code>True</code></li>
+<li>real layout file count: <code>8</code></li>
+<li>candidate post-layout still empty: <code>False</code></li>
+</ul>
+<h2>Analog Converter PDK Readiness State</h2>
+<ul>
+<li>status: <code>sky130_pdk_ready_first_converter_starter_cell_present</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-pdk-readiness.json</code></li>
+<li>PDK root: <code>/home/mehtama1/eda-tools/pdks</code></li>
+<li>PDK: <code>sky130A</code></li>
+<li>all required PDK files present: <code>True</code></li>
+<li>selected process corner: <code>tt</code></li>
+<li>workbench has converter physical cells: <code>True</code></li>
+</ul>
+<h2>Analog Converter Sky130 Workbench Environment State</h2>
+<ul>
+<li>status: <code>sky130_workbench_environment_ready_not_layout</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-sky130-workbench-env.json</code></li>
+<li>workbench: <code>labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench</code></li>
+<li>environment file count: <code>4</code></li>
+<li>physical converter cell count: <code>4</code></li>
+<li>candidate evidence written: <code>False</code></li>
+</ul>
+<h2>Analog Converter Physical Cell Gate State</h2>
+<ul>
+<li>status: <code>physical_cells_present_waiting_for_extracted_artifacts</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/analog-converter-physical-cell-gate.json</code></li>
+<li>required cell count: <code>4</code></li>
+<li>present cell count: <code>4</code></li>
+<li>missing cell count: <code>0</code></li>
+<li>present extracted artifact count: <code>0</code></li>
+<li>ready for candidate post-layout payload: <code>False</code></li>
+</ul>
+<h2>Transistor Corner State</h2>
+<ul>
+<li>status: <code>transistor_corner_sweep_measured_not_noise_or_mismatch_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-two-phase-transistor-corner-sweep.json</code></li>
+<li>measured cases: <code>9</code> of <code>9</code></li>
+<li>nonzero polarity passes: <code>6</code></li>
+<li>nonzero preamp margin passes: <code>4</code></li>
+<li>preamp margin target V: <code>0.0005</code></li>
+<li>minimum nonzero preamp magnitude V: <code>1.5499999999946112e-05</code></li>
+</ul>
+<h2>Transistor Full PVT State</h2>
+<ul>
+<li>status: <code>full_pvt_matrix_measured_not_noise_or_mismatch_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-two-phase-transistor-full-pvt.json</code></li>
+<li>measured cases: <code>53</code> of <code>54</code></li>
+<li>timed-out cases: <code>1</code></li>
+<li>sign passes: <code>53</code></li>
+<li>preamp-margin passes: <code>39</code></li>
+<li>margin target V: <code>0.0005</code></li>
+</ul>
+<h2>Transistor Corner Governor Bridge State</h2>
+<ul>
+<li>status: <code>measured_corner_margin_connected_to_governor</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-two-phase-transistor-corner-governor-bridge.json</code></li>
+<li>nonzero policy cases: <code>54</code></li>
+<li>analog-service decisions: <code>39</code></li>
+<li>digital-fallback decisions: <code>15</code></li>
+</ul>
+<h2>Full PVT Task Policy Bridge State</h2>
+<ul>
+<li>status: <code>physical_and_model_gates_joined_with_fallback</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-full-pvt-task-policy-bridge.json</code></li>
+<li>policy cases: <code>54</code></li>
+<li>analog allowed: <code>39</code></li>
+<li>digital fallback: <code>15</code></li>
+<li>fallback reasons: <code>{&#x27;physical_preamp_margin_too_low&#x27;: 14, &#x27;physical_simulation_did_not_converge&#x27;: 1}</code></li>
+</ul>
+<h2>Transistor Comparator SAR Cycle State</h2>
+<ul>
+<li>status: <code>transistor_comparator_sar_cycle_failed_or_incomplete</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-comparator-sar-cycle.json</code></li>
+<li>measured decisions: <code>6</code> of <code>8</code></li>
+<li>correct conversions: <code>1</code> of <code>3</code></li>
+<li>accepted for converter: <code>False</code></li>
+</ul>
+<h2>Switched-Capacitor DAC State</h2>
+<ul>
+<li>status: <code>switched_capacitor_dac_measured_but_half_lsb_failed</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-switched-capacitor-dac.json</code></li>
+<li>measured codes: <code>6</code> of <code>6</code></li>
+<li>maximum settling error V: <code>0.08788499999999999</code></li>
+<li>all codes within half-LSB: <code>False</code></li>
+</ul>
+<h2>Transistor-Switched Capacitor DAC State</h2>
+<ul>
+<li>status: <code>transistor_switched_capacitor_dac_incomplete_or_half_lsb_failed</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-switched-capacitor-dac.json</code></li>
+<li>measured codes: <code>4</code> of <code>16</code></li>
+<li>maximum settling error V: <code>0.052524000000000015</code></li>
+<li>all codes within half-LSB: <code>False</code></li>
+</ul>
+<h2>Transistor DAC Representative PVT Codes State</h2>
+<ul>
+<li>status: <code>representative_dac_pvt_measured_not_full_calibration_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-dac-pvt-codes.json</code></li>
+<li>measured cases: <code>8</code> of <code>9</code></li>
+<li>timed-out cases: <code>1</code></li>
+<li>half-LSB passes: <code>2</code></li>
+</ul>
+<h2>Transistor DAC PVT Calibration Policy State</h2>
+<ul>
+<li>status: <code>pvt_calibration_rejected_digital_fallback_required</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-dac-pvt-calibration-policy.json</code></li>
+<li>corners judged: <code>3</code></li>
+<li>analog service allowed: <code>0</code></li>
+<li>digital fallback required: <code>3</code></li>
+</ul>
+<h2>Transistor DAC Mismatch Sweep State</h2>
+<ul>
+<li>status: <code>dac_mismatch_characterized_not_yield_or_sar_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-dac-mismatch-sweep.json</code></li>
+<li>measured cases: <code>12</code> of <code>12</code></li>
+<li>half-LSB passes: <code>4</code></li>
+<li>monotonic mismatch patterns: <code>4</code></li>
+</ul>
+<h2>Transistor DAC Settling Sweep State</h2>
+<ul>
+<li>status: <code>dac_settling_timed_characterization</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-transistor-dac-settling-sweep.json</code></li>
+<li>measured codes: <code>2</code> of <code>2</code></li>
+<li>timed samples: <code>12</code></li>
+<li>first half-LSB pass by code: <code>{&#x27;15&#x27;: 3, &#x27;8&#x27;: 5}</code></li>
+</ul>
+<h2>Measured Transistor DAC SAR Replay State</h2>
+<ul>
+<li>status: <code>measured_dac_transfer_replay_characterized_not_closed_loop_spice_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/measured-transistor-dac-sar-replay.json</code></li>
+<li>tested regions: <code>16</code></li>
+<li>correct regions: <code>10</code></li>
+<li>wrong regions: <code>6</code></li>
+</ul>
+<h2>Coupled DAC Comparator Bit State</h2>
+<ul>
+<li>status: <code>coupled_dac_comparator_all_code_bit_sweep_characterized_not_full_sar_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-coupled-dac-comparator-bit.json</code></li>
+<li>measured trials: <code>16</code> of <code>16</code></li>
+<li>correct comparator polarities: <code>16</code></li>
+<li>failing codes: <code>[]</code></li>
+</ul>
+<h2>Physical DAC SAR Sequence State</h2>
+<ul>
+<li>status: <code>physical_dac_sar_sequence_characterized_not_continuous_multicycle_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-physical-dac-sar-sequence.json</code></li>
+<li>conversions: <code>5</code></li>
+<li>physical comparator trials: <code>20</code> of <code>20</code></li>
+<li>correct conversions: <code>0</code></li>
+</ul>
+<h2>Calibrated Physical SAR State</h2>
+<ul>
+<li>status: <code>calibrated_physical_sar_characterized_not_continuous_multicycle_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-calibrated-physical-sar.json</code></li>
+<li>calibration measurements: <code>16</code> of <code>16</code></li>
+<li>physical comparisons: <code>20</code> of <code>20</code></li>
+<li>correct calibrated conversions: <code>5</code> of <code>5</code></li>
+</ul>
+<h2>Latest SAR Diagnostic Probe</h2>
+<ul>
+<li>status: <code>calibration_subset_incomplete_not_full_sar_proof</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-calibrated-physical-sar-partial.json</code></li>
+<li>requested calibration codes: <code>[14, 15]</code></li>
+<li>measured calibration codes: <code>[]</code></li>
+<li>missing or timed-out codes: <code>[14, 15]</code></li>
+<li>claim boundary: partial calibration diagnostics only; not a complete code map, SAR conversion, converter acceptance, board, or silicon evidence</li>
+</ul>
+<h2>Differential Dummy Endpoint Diagnostic</h2>
+<ul>
+<li>status: <code>thermometer_candidate_rejected</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-differential-dummy-endpoint-diagnostic.json</code></li>
+<li>codes: <code>[0, 1, 14, 15]</code></li>
+<li>measured: <code>0</code> of <code>4</code></li>
+<li>timed out: <code>4</code></li>
+<li>minimum spacing (mV): <code>None</code></li>
+<li>claim boundary: does not prove SAR accuracy, PVT/mismatch/noise yield, extracted layout, area, energy, board behavior, silicon, or model replacement readiness</li>
+</ul>
+<h2>Physical Evidence Gate</h2>
+<ul>
+<li>status: <code>blocked_physical_converter_evidence_is_consistent</code></li>
+<li>artifact: <code>evidence/aimc-hardware-lab/physical-evidence-gate-latest.json</code></li>
+<li>consistency checks: <code>16</code> of <code>16</code></li>
+<li>physical converter gate: <code>blocked_sar_source_common_mode</code></li>
+<li>claim boundary: The measured evidence is internally consistent and preserves the distinction between bounded characterization and converter acceptance. It does not prove full-range physical SAR acceptance, PVT/mismatch/noise yield, extracted layout, board behavior, or silicon.</li>
+</ul>
+<h2>Coupled Sample-Capacitance Sweep State</h2>
+<ul>
+<li>status: <code>coupled_sample_capacitance_sweep_characterized_not_final_sizing</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sky130-coupled-sample-cap-sweep.json</code></li>
+<li>diagnostic rows: <code>6</code></li>
+<li>tested sample capacitances: <code>[&#x27;0.2p&#x27;, &#x27;0.02p&#x27;, &#x27;0.002p&#x27;]</code></li>
+</ul>
+<h2>Placement State</h2>
+<ul>
+<li>operators: <code>5</code></li>
+<li>structural analog candidates: <code>2</code></li>
+<li>residual-aware analog allowed: <code>2</code></li>
+<li>digital fallback: <code>3</code></li>
+<li>accepted tool: <code>crosssim</code></li>
+<li>accepted source: <code>deep_transformer_mlp_stack</code></li>
+<li>source policy: <code>fixed_weight_matmul_family_match</code></li>
+<li>analog allowed rows: <code>dense1.matmul, dense2.matmul</code></li>
+<li>digital fallback rows: <code>dense1.bias, dense1.relu, dense2.bias</code></li>
+</ul>
+<h2>Layout-Risk State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/crosssim-layout-risk-adapter.json</code></li>
+<li>operators: <code>2</code></li>
+<li>review rows: <code>2</code></li>
+<li>blocked rows: <code>0</code></li>
+<li>accepted tool: <code>crosssim</code></li>
+<li>source policy: <code>fixed_weight_matmul_family_match</code></li>
+</ul>
+<h2>AIHWKIT Diagnostic State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-residual-diagnostic.json</code></li>
+<li>payloads: <code>10</code></li>
+<li>passing payloads: <code>3</code></li>
+<li>threshold-fail payloads: <code>7</code></li>
+<li>worst fixture: <code>attention_block</code></li>
+<li>worst candidate: <code>attn.out.matmul</code></li>
+<li>worst residual: <code>0.9167446415863351</code></li>
+</ul>
+<h2>AIHWKIT Ideal Mapping State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-ideal-forward-mapping-proof.json</code></li>
+<li>rows: <code>16</code></li>
+<li>passing rows: <code>16</code></li>
+<li>max residual: <code>9.12459886955823e-08</code></li>
+</ul>
+<h2>AIHWKIT Forward Sweep State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-forward-setting-sweep.json</code></li>
+<li>settings: <code>5</code></li>
+<li>rows per setting: <code>16</code></li>
+<li>passing settings: <code>3</code></li>
+<li>best passing setting: <code>ideal_resolution_no_output_noise</code></li>
+<li>best max residual: <code>1.1907477314392062e-07</code></li>
+</ul>
+<h2>AIHWKIT Physical Review State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-physical-setting-review.json</code></li>
+<li>review status: <code>needs_physical_justification</code></li>
+<li>candidate setting: <code>fine_resolution_no_output_noise</code></li>
+<li>candidate effective input bits: <code>10</code></li>
+<li>candidate effective output bits: <code>12</code></li>
+<li>current tile DAC bits: <code>4</code></li>
+<li>current tile ADC bits: <code>6</code></li>
+</ul>
+<h2>AIHWKIT Current Tile Replay State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-current-tile-boundary-replay.json</code></li>
+<li>DAC bits: <code>4</code></li>
+<li>ADC bits: <code>6</code></li>
+<li>rows: <code>16</code></li>
+<li>passing rows: <code>0</code></li>
+<li>failing rows: <code>16</code></li>
+<li>max residual: <code>1.0</code></li>
+</ul>
+<h2>AIHWKIT Converter Target State</h2>
+<ul>
+<li>status: <code>target_defined_not_justified</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-converter-upgrade-target.json</code></li>
+<li>current DAC bits: <code>4</code></li>
+<li>current ADC bits: <code>6</code></li>
+<li>target input bits: <code>10</code></li>
+<li>target output bits: <code>12</code></li>
+<li>input bit gap: <code>6</code></li>
+<li>output bit gap: <code>6</code></li>
+<li>input step ratio: <code>68.26666666666667</code></li>
+<li>output step ratio: <code>65.01587301587301</code></li>
+</ul>
+<h2>AIHWKIT Converter Cost State</h2>
+<ul>
+<li>status: <code>fallback_preferred_until_cost_is_justified</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-converter-cost-model.json</code></li>
+<li>current energy relative: <code>3.222222222222222</code></li>
+<li>target energy relative: <code>206.2222222222222</code></li>
+<li>energy multiplier versus current: <code>64.0</code></li>
+<li>latency multiplier versus current: <code>2.0</code></li>
+</ul>
+<h2>AIHWKIT Target Noise State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-target-noise-sensitivity.json</code></li>
+<li>target input bits: <code>10</code></li>
+<li>target output bits: <code>12</code></li>
+<li>noise settings: <code>4</code></li>
+<li>all-pass noise settings: <code>3</code></li>
+<li>highest all-pass output noise: <code>0.004</code></li>
+<li>passes any nonzero noise: <code>True</code></li>
+</ul>
+<h2>AIHWKIT Converter Break-Even State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/aihwkit-converter-break-even.json</code></li>
+<li>scenarios: <code>4</code></li>
+<li>passing scenarios: <code>2</code></li>
+<li>first passing scenario: <code>sixty_four_row_tile_shared_over_16_outputs</code></li>
+<li>default decision: <code>digital_fallback_until_real_converter_and_array_savings_are_measured</code></li>
+</ul>
+<h2>Converter Circuit Contract State</h2>
+<ul>
+<li>status: <code>contract_defined_placeholder_not_claim_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-circuit-evidence-contract.json</code></li>
+<li>schema complete: <code>True</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+</ul>
+<h2>Local Converter Estimate State</h2>
+<ul>
+<li>status: <code>local_estimate_complete_not_claim_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/local-converter-circuit-estimate.json</code></li>
+<li>schema complete: <code>True</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+</ul>
+<h2>Converter Circuit-Simulation Estimate State</h2>
+<ul>
+<li>status: <code>circuit_simulation_complete_not_replacement_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-circuit-simulation-estimate.json</code></li>
+<li>schema complete: <code>True</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+<li>meets output noise budget: <code>True</code></li>
+<li>output noise RMS: <code>0.000851121</code></li>
+</ul>
+<h2>Converter SPICE Handoff Spec State</h2>
+<ul>
+<li>status: <code>available</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-spice-handoff-spec.json</code></li>
+<li>testbenches: <code>4</code></li>
+<li>can replace break-even: <code>False</code></li>
+</ul>
+<h2>Row-DAC Settling SPICE State</h2>
+<ul>
+<li>status: <code>row_dac_settling_spice_passes_simple_load</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/row-dac-settling-spice-evidence.json</code></li>
+<li>cases: <code>3</code></li>
+<li>all cases pass half-LSB settling: <code>True</code></li>
+<li>worst absolute error V: <code>0.0001767000000000296</code></li>
+<li>half-LSB V: <code>0.00048828125</code></li>
+</ul>
+<h2>SAR Readout SPICE State</h2>
+<ul>
+<li>status: <code>sar_readout_spice_passes_simple_sample_load</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/sar-readout-spice-evidence.json</code></li>
+<li>cases: <code>3</code></li>
+<li>all cases pass half-LSB readout: <code>True</code></li>
+<li>worst absolute error V: <code>0.0</code></li>
+<li>half-LSB V: <code>0.0001220703125</code></li>
+<li>comparisons: <code>12</code></li>
+</ul>
+<h2>Shared Converter Loading SPICE State</h2>
+<ul>
+<li>status: <code>shared_converter_loading_spice_passes_simple_mux_load</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/shared-converter-loading-spice-evidence.json</code></li>
+<li>cases: <code>4</code></li>
+<li>all cases pass half-LSB shared loading: <code>True</code></li>
+<li>worst absolute error V: <code>0.0</code></li>
+<li>half-LSB V: <code>0.0001220703125</code></li>
+<li>max active loads: <code>32</code></li>
+</ul>
+<h2>Converter Supply Energy SPICE State</h2>
+<ul>
+<li>status: <code>converter_supply_energy_spice_complete_simple_load</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-supply-energy-spice-evidence.json</code></li>
+<li>cases: <code>3</code></li>
+<li>all cases have positive integrated energy: <code>True</code></li>
+<li>worst total energy J: <code>4.273039299999999e-12</code></li>
+<li>worst DAC energy J: <code>1.88637e-13</code></li>
+<li>worst ADC energy J: <code>3.9881e-12</code></li>
+<li>worst mux energy J: <code>9.63023e-14</code></li>
+</ul>
+<h2>Converter Post-Layout Readiness State</h2>
+<ul>
+<li>status: <code>local_converter_handoff_complete_post_layout_not_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-readiness.json</code></li>
+<li>local handoff complete: <code>True</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+<li>missing replacement items: <code>10</code></li>
+</ul>
+<h2>Converter Post-Layout Evidence Contract State</h2>
+<ul>
+<li>status: <code>post_layout_contract_defined_placeholder_not_claim_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-evidence-contract.json</code></li>
+<li>schema complete: <code>True</code></li>
+<li>claim-ready to replace break-even: <code>False</code></li>
+<li>placeholder refuses replacement: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Payload Template State</h2>
+<ul>
+<li>status: <code>template_defined_not_evidence</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-template.json</code></li>
+<li>template: <code>sources/evidence/converter-post-layout-payload.template.json</code></li>
+</ul>
+<h2>Converter Post-Layout Payload Validator State</h2>
+<ul>
+<li>status: <code>post_layout_payload_validator_ready_waiting_for_extracted_payload</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-validator.json</code></li>
+<li>rejected placeholder: <code>True</code></li>
+<li>requires break-even rerun with extracted values: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Break-Even Rerun Path State</h2>
+<ul>
+<li>status: <code>rerun_path_ready_waiting_for_validator_passing_payload</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-break-even-rerun-path.json</code></li>
+<li>rerun script: <code>scripts/rerun_converter_break_even_from_post_layout_payload.py</code></li>
+</ul>
+<h2>Converter Post-Layout Strict Intake State</h2>
+<ul>
+<li>status: <code>strict_file_intake_ready_waiting_for_real_artifacts</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-strict-intake-report.json</code></li>
+<li>shape validation passed: <code>True</code></li>
+<li>strict validation rejected missing files: <code>True</code></li>
+<li>strict rerun rejected missing files: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Positive Path State</h2>
+<ul>
+<li>status: <code>strict_positive_path_proven_with_temporary_synthetic_files</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-positive-path-report.json</code></li>
+<li>temporary fixture persisted: <code>False</code></li>
+<li>strict validation passed: <code>True</code></li>
+<li>strict rerun passed: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Submission Path State</h2>
+<ul>
+<li>status: <code>submission_path_ready_waiting_for_real_payload</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-submission-path-report.json</code></li>
+<li>placeholder rejected: <code>True</code></li>
+<li>missing-file payload rejected: <code>True</code></li>
+<li>temporary positive payload accepted: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Real Payload Package State</h2>
+<ul>
+<li>status: <code>real_payload_package_contract_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-payload-package.json</code></li>
+<li>required files: <code>4</code></li>
+<li>submission command: <code>python3 scripts/submit_converter_post_layout_payload.py REAL_PAYLOAD.json</code></li>
+</ul>
+<h2>Converter Post-Layout Payload Preflight State</h2>
+<ul>
+<li>status: <code>preflight_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-payload-preflight-report.json</code></li>
+<li>missing-file payload reported not ready: <code>True</code></li>
+<li>temporary complete payload reported ready: <code>True</code></li>
+<li>synthetic accepted evidence persisted: <code>False</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Workspace State</h2>
+<ul>
+<li>status: <code>candidate_workspace_ready_not_evidence</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-workspace.json</code></li>
+<li>workspace: <code>evidence/aimc-simulator-adapters/candidate-post-layout</code></li>
+<li>payload: <code>evidence/aimc-simulator-adapters/candidate-post-layout/payload.json</code></li>
+<li>preflight rejects default payload: <code>True</code></li>
+<li>submission rejects default payload: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Workspace Audit State</h2>
+<ul>
+<li>status: <code>candidate_workspace_still_scaffold</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-workspace-audit.json</code></li>
+<li>template only: <code>True</code></li>
+<li>placeholder count: <code>29</code></li>
+<li>missing or unresolved file count: <code>3</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Fill Checklist State</h2>
+<ul>
+<li>status: <code>fill_checklist_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-fill-checklist.json</code></li>
+<li>item count: <code>32</code></li>
+<li>groups: <code>area, break_even, energy, extraction, files, identity, latency, noise, provenance, simulation</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Progress State</h2>
+<ul>
+<li>status: <code>candidate_waiting_for_real_values</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-progress-report.json</code></li>
+<li>open checklist items: <code>32</code></li>
+<li>ready for preflight: <code>False</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Gate Chain State</h2>
+<ul>
+<li>status: <code>candidate_gate_chain_passed</code></li>
+<li>progress gate: <code>progress_gate_passed</code></li>
+<li>preflight gate: <code>preflight_gate_passed</code></li>
+<li>submission gate: <code>submission_gate_passed</code></li>
+<li>canonical accepted evidence persisted: <code>False</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Readiness Run State</h2>
+<ul>
+<li>status: <code>candidate_not_ready_for_strict_submission</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-readiness-run.json</code></li>
+<li>ready for strict submission: <code>False</code></li>
+<li>preflight issue count: <code>22</code></li>
+<li>readiness command: <code>python3 scripts/run_converter_post_layout_candidate_readiness.py</code></li>
+</ul>
+<h2>Converter Post-Layout Real Run Recipe State</h2>
+<ul>
+<li>status: <code>real_run_recipe_ready_not_evidence</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-run-recipe.json</code></li>
+<li>step count: <code>9</code></li>
+<li>ready for strict submission: <code>False</code></li>
+<li>manual write forbidden: <code>accepted-post-layout must be written only by scripts/submit_converter_post_layout_payload.py</code></li>
+</ul>
+<h2>Converter Post-Layout Candidate Identity Initializer State</h2>
+<ul>
+<li>status: <code>identity_initializer_ready</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-candidate-identity-initializer.json</code></li>
+<li>applied to source payload: <code>False</code></li>
+<li>identity validation passed: <code>True</code></li>
+<li>strict same-run validation passed: <code>False</code></li>
+<li>initialized fields: <code>14</code></li>
+</ul>
+<h2>Converter Post-Layout Real Candidate Builder State</h2>
+<ul>
+<li>status: <code>candidate_payload_built</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-candidate-builder.json</code></li>
+<li>self-test: <code>True</code></li>
+<li>strict validation passed: <code>True</code></li>
+<li>strict issue count: <code>0</code></li>
+<li>temporary fixture persisted: <code>False</code></li>
+<li>preview status before removal: <code>ready_to_submit_without_writing</code></li>
+<li>preview would write accepted evidence before removal: <code>True</code></li>
+<li>preview strict issue count before removal: <code>0</code></li>
+</ul>
+<h2>Converter Post-Layout Submission Preview State</h2>
+<ul>
+<li>status: <code>blocked_before_submission</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-submission-preview.json</code></li>
+<li>would write accepted evidence: <code>False</code></li>
+<li>strict issue count: <code>22</code></li>
+<li>converter id ready: <code>False</code></li>
+</ul>
+<h2>Converter Post-Layout Evidence Leakage Audit State</h2>
+<ul>
+<li>status: <code>no_evidence_leakage_detected</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-evidence-leakage-audit.json</code></li>
+<li>accepted post-layout exists: <code>False</code></li>
+<li>candidate non-scaffold files: <code>0</code></li>
+<li>candidate temp marker hits: <code>0</code></li>
+<li>builder preview ready before removal: <code>True</code></li>
+</ul>
+<h2>Converter Post-Layout Temporary Submission Proof State</h2>
+<ul>
+<li>status: <code>temporary_submission_path_proven</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-temporary-submission-proof.json</code></li>
+<li>temporary submit passed: <code>True</code></li>
+<li>temporary accepted files: <code>2</code></li>
+<li>temporary fixture persisted: <code>False</code></li>
+<li>canonical accepted evidence exists after proof: <code>False</code></li>
+</ul>
+<h2>Converter Post-Layout Real Artifact Discovery State</h2>
+<ul>
+<li>status: <code>no_complete_real_artifact_package_found</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-artifact-discovery.json</code></li>
+<li>accepted post-layout exists: <code>False</code></li>
+<li>candidate non-scaffold files: <code>2</code></li>
+<li>current candidate would write accepted evidence: <code>False</code></li>
+<li>current candidate strict issues: <code>22</code></li>
+</ul>
+<h2>Converter Post-Layout Real Run Recipe Coverage State</h2>
+<ul>
+<li>status: <code>real_run_recipe_covers_current_checklist</code></li>
+<li>artifact: <code>evidence/aimc-simulator-adapters/converter-post-layout-real-run-recipe-coverage.json</code></li>
+<li>covered checklist fields: <code>32</code></li>
+<li>checklist fields: <code>32</code></li>
+<li>payload blocker fields: <code>32</code></li>
+<li>uncovered payload blocker fields: <code>0</code></li>
+<li>non-field boundary blockers: <code>2</code></li>
+</ul>
+<h2>Boundary</h2>
+<ul>
+<li>allowed: cross-repo prototype loop proof for model graph to hardware-lab evidence to backend claim readiness, with simulator adapter availability, small optional payload runs, tensor-shaped backend MatMul payload runs, trained-weight tiny-MLP payload runs, projection-stack payload runs, transformer-MLP-block payload runs, calibrated transformer-MLP-block payload runs, calibrated deep transformer-MLP-stack payload runs, attention-block payload runs, calibrated attention-block payload runs, calibrated residual governor bridge decisions, and residual-aware placement decisions recorded</li>
+<li>refused: measured board performance, measured power, measured energy without same-runtime-trace runtime and power evidence, calibrated silicon, pretrained foundation-model AIHWKIT/CrossSim agreement, analog macro layout, package reliability, or tapeout readiness</li>
+</ul>
+<h2>Next Handoff</h2>
+<ul>
+<li>replace current local ONNX fixture with a real uploaded model slice through the guarded simulator path</li>
+<li>AIHWKIT mapping that passes the positive residual boundary</li>
+<li>measured or circuit-level replacement for the local converter cost estimate, break-even assumptions, and 0.004 output-noise budget</li>
+<li>extracted macro parasitics or a stronger crossbar layout-risk flow</li>
+<li>measured board runtime trace</li>
+<li>synchronized measured power trace for the same runtime trace ID</li>
+</ul></article></main></body></html>

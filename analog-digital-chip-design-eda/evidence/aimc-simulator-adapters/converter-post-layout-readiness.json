@@ -1,0 +1,70 @@
+{
+  "claim_boundary": {
+    "allowed": "defines the exact post-layout evidence needed after local converter SPICE handoff completion",
+    "not_allowed": "does not claim post-layout extraction exists, does not claim DRC/LVS signoff, does not claim measured silicon, and does not upgrade board energy"
+  },
+  "created_at": "2026-08-30T16:48:00.427943+00:00",
+  "current_local_state": {
+    "circuit_simulation_claim_ready_to_replace_break_even": false,
+    "circuit_simulation_meets_output_noise_budget": true,
+    "circuit_simulation_schema_complete": true,
+    "completed_statuses": [
+      "row_dac_settling_spice_passes_simple_load",
+      "sar_readout_spice_passes_simple_sample_load",
+      "shared_converter_loading_spice_passes_simple_mux_load",
+      "converter_supply_energy_spice_complete_simple_load"
+    ],
+    "completed_testbenches": [
+      "10-bit row DAC settling",
+      "12-bit SAR readout decision",
+      "shared converter loading",
+      "energy accounting"
+    ],
+    "local_handoff_complete": true
+  },
+  "missing_for_replacement": [
+    "extracted parasitic netlist for row DAC, SAR readout, shared mux, references, and sample path",
+    "post-layout simulation command, process corner, voltage, temperature, and model files",
+    "post-layout ADC energy per conversion on a named rail",
+    "post-layout DAC energy per row drive on a named rail",
+    "post-layout mux and reference energy tied to the same conversion window",
+    "post-layout settling time and conversion time for the same 10-bit input and 12-bit output target",
+    "post-layout output noise RMS and input-referred noise under the 0.004 output-noise budget",
+    "extracted ADC and DAC area in square micrometers",
+    "explicit sharing rule for 64 rows, 4 columns, 4 converter instances, and 16 outputs per conversion cost",
+    "rerun break-even table using the extracted energy, latency, area, sharing, and noise values"
+  ],
+  "replacement_rule": {
+    "allowed_measurement_levels": [
+      "local_estimate",
+      "circuit_simulation",
+      "post_layout_simulation",
+      "measured_silicon"
+    ],
+    "break_even_replacement_levels": [
+      "measured_silicon",
+      "post_layout_simulation"
+    ],
+    "claim_ready_now": false,
+    "current_measurement_level": "circuit_simulation",
+    "reason": "local SPICE evidence is useful circuit simulation, but the schema only allows post-layout simulation or measured silicon to replace break-even assumptions",
+    "replacement_levels_available_in_schema": true
+  },
+  "result_type": "converter_post_layout_readiness",
+  "source_artifacts": {
+    "contract": "evidence/aimc-simulator-adapters/converter-circuit-evidence-contract.json",
+    "converter_circuit_simulation_estimate": "evidence/aimc-simulator-adapters/converter-circuit-simulation-estimate.json",
+    "converter_spice_handoff_spec": "evidence/aimc-simulator-adapters/converter-spice-handoff-spec.json",
+    "converter_supply_energy_spice": "evidence/aimc-simulator-adapters/converter-supply-energy-spice-evidence.json",
+    "row_dac_settling_spice": "evidence/aimc-simulator-adapters/row-dac-settling-spice-evidence.json",
+    "sar_readout_spice": "evidence/aimc-simulator-adapters/sar-readout-spice-evidence.json",
+    "schema": "sources/evidence/converter-circuit-evidence-schema.json",
+    "shared_converter_loading_spice": "evidence/aimc-simulator-adapters/shared-converter-loading-spice-evidence.json"
+  },
+  "validation": {
+    "claim_ready_to_replace_break_even": false,
+    "local_handoff_complete": true,
+    "missing_replacement_items": 10,
+    "status": "local_converter_handoff_complete_post_layout_not_ready"
+  }
+}

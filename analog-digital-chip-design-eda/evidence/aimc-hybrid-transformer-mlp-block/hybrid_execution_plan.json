@@ -1,0 +1,181 @@
+{
+  "converter_plan": {
+    "blocking_observation": "nominal DAC transfer passes, but coupled SAR source common-mode and endpoint headroom remain unresolved",
+    "compatibility_status": "blocked_sar_source_common_mode",
+    "physical_diagnostic_bits": 4,
+    "simulator_adc_bits": 8,
+    "simulator_dac_bits": 8
+  },
+  "memory_plan": {
+    "analog_memory": "four fixed-weight MatMuls",
+    "digital_memory": "bias, nonlinear, residual, calibration, and fallback",
+    "sram": "inter-operator activations and partial sums"
+  },
+  "operator_placements": [
+    {
+      "activations": "local_sram",
+      "bit_slices": 8,
+      "calibration_profile": "crosssim-held-out-affine-transformer-mlp-block-v0",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_matmul_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.gate.matmul",
+      "partial_sums": "local_sram_then_digital_accumulator",
+      "placement": "analog_memory",
+      "tile_count": 2,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        16,
+        32
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 8,
+      "calibration_profile": "crosssim-held-out-affine-transformer-mlp-block-v0",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_matmul_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.up.matmul",
+      "partial_sums": "local_sram_then_digital_accumulator",
+      "placement": "analog_memory",
+      "tile_count": 2,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        16,
+        32
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 8,
+      "calibration_profile": "crosssim-held-out-affine-transformer-mlp-block-v0",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_matmul_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.down.matmul",
+      "partial_sums": "local_sram_then_digital_accumulator",
+      "placement": "analog_memory",
+      "tile_count": 2,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        32,
+        16
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 8,
+      "calibration_profile": "crosssim-held-out-affine-transformer-mlp-block-v0",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_matmul_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.out.matmul",
+      "partial_sums": "local_sram_then_digital_accumulator",
+      "placement": "analog_memory",
+      "tile_count": 1,
+      "tile_shape": [
+        16,
+        16
+      ],
+      "weight_shape_in_out": [
+        16,
+        16
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Add",
+      "operator_id": "bias.add",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "bias correction remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none_or_digital_buffer"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Relu",
+      "operator_id": "activation.relu",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "nonlinear activation remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none_or_digital_buffer"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Mul",
+      "operator_id": "gated.elementwise_mul",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "elementwise gating remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none_or_digital_buffer"
+    },
+    {
+      "activations": "local_sram",
+      "bit_slices": 0,
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Add",
+      "operator_id": "residual.add",
+      "partial_sums": "digital_accumulator",
+      "placement": "digital_support",
+      "reason": "residual routing remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "none_or_digital_buffer"
+    }
+  ],
+  "plan_id": "transformer_mlp_block_hybrid_plan_v1",
+  "provenance": {
+    "calibrated_summary": "evidence/aimc-simulator-adapters/calibrated-transformer-mlp-block-simulator-payload-run-summary.json",
+    "generated_at": "2026-09-04T06:52:58.114537+00:00",
+    "not_measured_silicon": true,
+    "source_model": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/transformer-mlp-block.onnx"
+  },
+  "schema_version": "aimc_hybrid_execution_plan.v1",
+  "status": "simulator_plan_physical_converter_bridge_blocked"
+}

@@ -1,0 +1,309 @@
+{
+  "converter_plan": {
+    "blocking_observation": "source common-mode and full-range SAR qualification remain open",
+    "compatibility_status": "blocked_sar_source_common_mode",
+    "scenario_count": 5,
+    "simulator_adc_bits": 6,
+    "simulator_dac_bits": 6
+  },
+  "memory_plan": {
+    "analog_memory": "fixed Q/K/V/output and MLP projection weights",
+    "digital_memory": "token addressing, attention control, nonlinearities, residual and normalization",
+    "sram": "hidden states, partial sums, score buffers, and KV-cache"
+  },
+  "operator_placements": [
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "EmbeddingLookup",
+      "operator_id": "token.lookup",
+      "placement": "digital_support",
+      "reason": "exact token addressing remains digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "proj.q",
+      "placement": "analog_memory",
+      "reason": "fixed Q weights are reused across serving tokens",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "proj.k",
+      "placement": "analog_memory",
+      "reason": "fixed K weights are reused across serving tokens",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "proj.v",
+      "placement": "analog_memory",
+      "reason": "fixed V weights are reused across serving tokens",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "MatMul",
+      "operator_id": "attention.score",
+      "placement": "digital_support",
+      "reason": "QK score compares changing token state and cache contents",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "CausalMask",
+      "operator_id": "attention.mask",
+      "placement": "digital_support",
+      "reason": "causal legality is exact control",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "Softmax",
+      "operator_id": "attention.softmax",
+      "placement": "digital_support",
+      "reason": "normalization and exponentials remain digital",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "MatMul",
+      "operator_id": "attention.value_mix",
+      "placement": "digital_support",
+      "reason": "value mixing reads changing KV-cache state",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "proj.out",
+      "placement": "analog_memory",
+      "reason": "fixed output-projection weights are reused",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.up",
+      "placement": "analog_memory",
+      "reason": "fixed expansion weights are dense and repeatedly reused",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "GatedActivation",
+      "operator_id": "mlp.activation",
+      "placement": "digital_support",
+      "reason": "nonlinear activation operates on changing values",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": "serving-normalized-affine-v1",
+      "converter_boundaries": [
+        "DAC_input",
+        "ADC_output"
+      ],
+      "fallback": "digital_projection_reference",
+      "operator": "MatMul",
+      "operator_id": "mlp.down",
+      "placement": "analog_memory",
+      "reason": "fixed compression weights are dense and repeatedly reused",
+      "tile_count": 32,
+      "tile_shape": [
+        128,
+        128
+      ],
+      "weights": "analog_array"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "ResidualAndNorm",
+      "operator_id": "residual.norm",
+      "placement": "digital_support",
+      "reason": "state preservation and normalization are digital control points",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    },
+    {
+      "activations": "local_sram",
+      "calibration_profile": null,
+      "converter_boundaries": [],
+      "fallback": null,
+      "operator": "KVCacheWrite",
+      "operator_id": "kv.write",
+      "placement": "digital_support",
+      "reason": "cache address and lifetime require exact SRAM behavior",
+      "tile_count": 0,
+      "tile_shape": null,
+      "weights": "digital_or_runtime_state"
+    }
+  ],
+  "plan_id": "small_language_model_serving_hybrid_plan_v1",
+  "provenance": {
+    "generated_at": "2026-09-04T20:28:34.338814+00:00",
+    "not_measured_silicon": true,
+    "serving_cost_model": "evidence/aimc-hardware-lab/transformer-serving-cost-v1.json"
+  },
+  "schema_version": "aimc_hybrid_execution_plan.v1",
+  "serving_scenarios": [
+    {
+      "active_context": 2048,
+      "analog_to_digital": 0.14361110101394262,
+      "batch": 1,
+      "cache_to_analog_projection": 3.777817130039549e-06,
+      "calibration_due": "no",
+      "decision": "analog",
+      "estimated_error": 0.0925,
+      "phase": "prefill",
+      "reason": "projection reuse pays for boundary cost",
+      "tile_health": 0.02,
+      "tokens": 2048
+    },
+    {
+      "active_context": 2048,
+      "analog_to_digital": 0.1445611240331923,
+      "batch": 1,
+      "cache_to_analog_projection": 0.007736969482320996,
+      "calibration_due": "no",
+      "decision": "analog",
+      "estimated_error": 0.0925,
+      "phase": "decode",
+      "reason": "projection reuse pays for boundary cost",
+      "tile_health": 0.02,
+      "tokens": 128
+    },
+    {
+      "active_context": 8192,
+      "analog_to_digital": 0.1473999698605158,
+      "batch": 1,
+      "cache_to_analog_projection": 0.030947877929283985,
+      "calibration_due": "no",
+      "decision": "digital",
+      "estimated_error": 0.0925,
+      "phase": "decode",
+      "reason": "single-request long-context decode is cache-limited",
+      "tile_health": 0.02,
+      "tokens": 128
+    },
+    {
+      "active_context": 2048,
+      "analog_to_digital": 0.1445611240331923,
+      "batch": 8,
+      "cache_to_analog_projection": 0.007736969482320996,
+      "calibration_due": "no",
+      "decision": "analog_batched_decode",
+      "estimated_error": 0.0625,
+      "phase": "decode",
+      "reason": "batch reuse is enough to amortize converters",
+      "tile_health": 0.02,
+      "tokens": 128
+    },
+    {
+      "active_context": 2048,
+      "analog_to_digital": 0.14361144207427073,
+      "batch": 1,
+      "cache_to_analog_projection": 3.777817130039549e-06,
+      "calibration_due": "yes",
+      "decision": "digital",
+      "estimated_error": 0.15250000000000002,
+      "phase": "prefill",
+      "reason": "estimated state error is above budget",
+      "tile_health": 0.08,
+      "tokens": 2048
+    }
+  ],
+  "status": "normalized_serving_plan_physical_converter_bridge_blocked"
+}

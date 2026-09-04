@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tile Health Monitoring Spends Calibration Where Error Grows</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">first-principles concept</div><h1>Tile Health Monitoring Spends Calibration Where Error Grows</h1><p class="lead">Source: docs/concepts/tile-health-monitoring-spends-calibration-where-error-grows.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Tile Health Monitoring Spends Calibration Where Error Grows</h1>
+<p>The object is not the whole analog array. The object is a set of columns, rows, converters, and local wires whose errors move at different rates. A fixed calibration schedule treats every part of the tile as equally unhealthy. Real hardware will not behave that way. Some columns drift faster. Some converters have larger offset. Some rows suffer more from driver error or wire drop.</p>
+<p>The constraint is measurement budget. A foundation-model accelerator cannot stop often and fully remeasure every tile, every column, and every row. Calibration costs tokens, time, energy, and scheduling space. If only a small part of the tile is unhealthy, full recalibration wastes work. If the wrong part is ignored, stale error keeps entering the model.</p>
+<p>So the useful question changes:</p>
+<pre><code>
+not: when do we recalibrate the whole tile?
+but: which tile parts need measurement first?
+</code></pre>
+<h2>Health Is Evidence About Future Error</h2>
+<p>A health monitor is a small measurement loop. It sends known probes through the hardware, compares measured output against expected output, and estimates which parts are becoming unreliable.</p>
+<p>For a column, the simplest health signal is:</p>
+<pre><code>
+column_error = abs(measured_probe_output - expected_probe_output)
+</code></pre>
+<p>But raw error is not enough. A column with high random noise may look unhealthy even if its average behavior is still centered. A column with a slowly growing bias may look acceptable now but become dangerous later. The monitor needs to distinguish noise, bias, and drift.</p>
+<p>The useful health score is closer to:</p>
+<pre><code>
+health_score = estimated_drift + estimated_bias + recent_error_growth
+</code></pre>
+<p>A high score means the column should be remeasured sooner.</p>
+<h2>Why Selective Calibration Helps</h2>
+<p>Full calibration spends samples everywhere:</p>
+<pre><code>
+calibration_work = columns * samples_per_column
+</code></pre>
+<p>Selective calibration spends samples on the worst columns:</p>
+<pre><code>
+calibration_work = selected_columns * samples_per_column
+</code></pre>
+<p>If error is uneven, selective calibration can reduce most of the damaging drift with much lower overhead. This is the same idea as residual correction: spend digital work where analog error is largest.</p>
+<p>The risk is missing a hidden failure. A monitor that only checks a few columns can miss a quiet but growing error elsewhere. That means the monitor itself needs a schedule: cheap probes often, full sweeps less often, and emergency recalibration when a health score jumps.</p>
+<h2>The Mathematical Boundary</h2>
+<p>For each column <code>j</code>, track an estimated error:</p>
+<pre><code>
+e_j(t) = bias_j + drift_rate_j * age_j + random_noise_j
+</code></pre>
+<p>After recalibration, the measured bias and drift estimate are reset:</p>
+<pre><code>
+age_j = 0
+estimated_bias_j = measured_bias_j
+</code></pre>
+<p>Between recalibrations, age grows:</p>
+<pre><code>
+age_j = tokens_since_column_j_was_calibrated
+</code></pre>
+<p>The selection rule is:</p>
+<pre><code>
+recalibrate top_k columns by health_score_j
+</code></pre>
+<p>The design target is:</p>
+<pre><code>
+mean_error and worst_column_error stay below tolerance
+while calibration_work stays below budget
+</code></pre>
+<h2>Concrete Design Move</h2>
+<p>The concrete design move is to replace one global interval with a two-level policy:</p>
+<ul>
+<li>cheap health probes every small interval</li>
+<li>selective recalibration of the worst columns</li>
+<li>occasional full calibration to catch missed slow failures</li>
+<li>emergency calibration if a column error jumps</li>
+</ul>
+<p>This changes calibration from a clock into a controller. The digital side is no longer only correcting analog outputs. It is deciding where the next measurement should be spent.</p>
+<h2>Measurement</h2>
+<p>The measurement should compare:</p>
+<ul>
+<li>no recalibration</li>
+<li>full recalibration on a fixed interval</li>
+<li>selective recalibration on a fixed interval</li>
+<li>selective recalibration with occasional full sweep</li>
+</ul>
+<p>Report:</p>
+<pre><code>
+policy, calibration_work, mean_error, worst_error, missed_bad_columns
+</code></pre>
+<p>Mean error measures average model damage. Worst error catches one bad column that can dominate an output channel. Missed bad columns reveal whether the health monitor is too narrow.</p>
+<h2>Failure Mode</h2>
+<p>The failure mode is to assume one calibration interval is enough for the whole array. That hides uneven physical behavior. A tile can be mostly healthy while a few columns drift badly, or it can look fine on average while one output channel becomes unreliable.</p>
+<p>The first-principles claim is that calibration must become selective when arrays get large. The digital system should spend measurement where error grows. A hybrid analog/digital accelerator is therefore not only an analog compute array with correction. It is an analog array watched by a digital measurement policy.</p></article></main></body></html>

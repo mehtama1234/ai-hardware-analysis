@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>First Real Converter Combined Active Handoff Work Order</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>First Real Converter Combined Active Handoff Work Order</h1><p class="lead">Source: docs/research/first-real-converter-combined-active-handoff-work-order.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>First Real Converter Combined Active Handoff Work Order</h1>
+<p>This page turns the current frontend-to-active-stage gap into one concrete next build.</p>
+<p>The extracted frontend preserves sign but gives only a tiny sense voltage. The separate Sky130 input-stage run shows gain. The direct handoff proxy timed out. So the next work is one bounded same-deck handoff candidate, not another disconnected estimate.</p>
+<p>The goal is simple: connect the passive frontend and active input stage in one measurable circuit path, prove the sign is still correct, prove the active output is large enough to hand to a latch, and keep the strict converter claim closed until latch, SAR, energy, noise, area, DRC/LVS, and same-run payload evidence exist.</p>
+<p>---</p>
+<h1>First Real Converter Combined Active Handoff Work Order</h1>
+<ul>
+<li>status: <code>combined_active_handoff_work_order_ready</code></li>
+<li>candidate id: <code>aimc_readout_candidate_001</code></li>
+<li>frontend transfer ratio: <code>0.437908</code></li>
+<li>frontend minimum sense diff V: <code>6.700000000e-05</code></li>
+<li>separate input-stage gain V/V: <code>9.201769</code></li>
+<li>estimated active output diff V: <code>6.165185271e-04</code></li>
+<li>direct proxy status: <code>frontend_to_input_stage_proxy_timed_out_not_strict_evidence</code></li>
+<li>same-run strict payload ready: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The signal chain has two jobs. The passive frontend must not lose the sign of the sampled voltage. The active input stage must spend current to make that signed difference larger. The present evidence says the first job works weakly, and the second job works separately. The missing proof is whether the two jobs work when they are connected in one bounded circuit run.</p>
+<p>A small-signal estimate is not enough because the active stage is not an invisible calculator. Its input capacitance, bias path, common-mode point, and operating-point solve can change the very voltage it is supposed to amplify. The next object must therefore connect the frontend and input stage directly and measure the handoff.</p>
+<h2>New Physical Object</h2>
+<p><code>sky130_frontend_input_stage_handoff_candidate</code></p>
+<p>one deck that connects the extracted ultra frontend output boundary to a Sky130 active input stage and measures whether the active output keeps sign and becomes large enough for a latch</p>
+<p>Minimum contents:</p>
+<ul>
+<li>the extracted ultra frontend capacitance or an equivalent explicit RC network with named sense_p and sense_n nodes</li>
+<li>a Sky130 transistor differential input stage with bounded bias current and load</li>
+<li>explicit common-mode reset or bias path for sense_p and sense_n</li>
+<li>bounded operating-point and transient commands that finish under the local runtime gate</li>
+<li>positive and negative input cases at the comparator-budget edge</li>
+</ul>
+<h2>Acceptance Tests</h2>
+<h3>A1. bounded simulator run</h3>
+<p>Must show: ngspice returns for every positive and negative case within the timeout bound.</p>
+<p>Why: a proof path cannot depend on an unbounded interactive simulator stall.</p>
+<h3>A2. sign handoff</h3>
+<p>Must show: the active output sign matches the original sampled input sign for quiet reset and reset-pulse cases.</p>
+<p>Why: gain is useless if the circuit flips the decision.</p>
+<h3>A3. active output margin</h3>
+<p>Must show: minimum active output difference is at least 0.5 mV before the latch.</p>
+<p>Why: the latch needs a larger state than the passive frontend&#x27;s tens of microvolts.</p>
+<h3>A4. loading check</h3>
+<p>Must show: the added input stage does not reduce frontend sense transfer below the current 0.437908 ratio by more than 10 percent.</p>
+<p>Why: an amplifier that steals the stored charge can erase the signal it is supposed to enlarge.</p>
+<h3>A5. claim boundary</h3>
+<p>Must show: the result explicitly keeps accepted_post_layout_written false and same_run_strict_payload_ready false.</p>
+<p>Why: this is still a handoff block, not the full converter payload.</p>
+<h2>Expected Outputs</h2>
+<ul>
+<li><code>labs/analog/analog-in-memory-foundation-model-hardware/spice/sky130_frontend_input_stage_handoff_candidate.sp</code></li>
+<li><code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-frontend-input-stage-handoff-candidate.csv</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-frontend-input-stage-handoff-candidate.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-frontend-input-stage-handoff-candidate.md</code></li>
+<li><code>docs/research/sky130-frontend-input-stage-handoff-candidate.md</code></li>
+</ul>
+<h2>Done After This Only If</h2>
+<ul>
+<li>bounded ngspice run finishes for all cases</li>
+<li>both polarities preserve sign</li>
+<li>active output difference is large enough for the latch target</li>
+<li>the result names remaining latch, SAR, energy, noise, area, DRC/LVS, and same-run payload blockers</li>
+</ul>
+<h2>Still Not Done After This</h2>
+<ul>
+<li>clocked latch resolution</li>
+<li>comparator offset and noise</li>
+<li>kickback back into the sample nodes</li>
+<li>SAR bit cycling</li>
+<li>full supply-current energy</li>
+<li>DRC/LVS-clean extracted area</li>
+<li>strict accepted post-layout converter evidence</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not prove the combined active handoff, full comparator, full converter, accepted post-layout evidence, or replacement economics</p></article></main></body></html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Transistor Sample Switch Ngspice</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Transistor Sample Switch Ngspice</h1><p class="lead">Source: docs/research/sky130-transistor-sample-switch-ngspice.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Transistor Sample Switch Ngspice</h1>
+<p>This page records the first converter-adjacent ngspice run that uses Sky130 MOS transistor models.</p>
+<p>The generated evidence below tests a small transmission-gate sample path. The question is narrow: when the sample switch is turned on, can a MOS switch charge the sample node close to the input before the readout window ends?</p>
+<p>This is stronger than an ideal resistor fixture because the switch is now a transistor device from the process model. It is still not a full converter. It does not prove a DAC ladder, SAR capacitor array, comparator decision, mismatch, noise, extracted transistor layout, DRC/LVS, or accepted post-layout replacement evidence.</p>
+<p>---</p>
+<h1>Sky130 Transistor Sample Switch Ngspice</h1>
+<ul>
+<li>status: <code>sky130_transistor_sample_switch_passed_not_converter_proof</code></li>
+<li>PDK model library: <code>/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice</code></li>
+<li>generated deck: <code>labs/analog/analog-in-memory-foundation-model-hardware/spice/sky130_transistor_sample_switch.sp</code></li>
+<li>device models: <code>sky130_fd_pr__nfet_01v8, sky130_fd_pr__pfet_01v8</code></li>
+<li>case count: <code>3</code></li>
+<li>worst sample error V: <code>1.369000000e-04</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>candidate post-layout written: <code>False</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+<li>csv: <code>labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-transistor-sample-switch-ngspice.csv</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A sample switch is a controlled path for charge. When the gate turns on, the input node and sample capacitor are connected through real transistor channel behavior. The sampled value is correct only if enough charge moves before the switch turns off.</p>
+<p>This fixture asks that question directly. It drives low, middle, and high input voltages through a Sky130 transmission gate into a sample capacitor. Then it checks whether the sample node is within half of one 12-bit output step while the switch is still on. That is one small part of an ADC boundary: the voltage must arrive before the digital decision can mean anything.</p>
+<p>This is not a full converter. It has no hold-mode feedthrough test, no capacitor DAC, no comparator, no SAR loop, no reference ladder, no mismatch run, and no extracted transistor layout. It proves only that this starter MOS sample path can be simulated with the installed Sky130 models and can settle under this fixture.</p>
+<h2>Results</h2>
+<table><tbody>
+<tr><th>case</th><th>input V</th><th>sampled V</th><th>error V</th><th>half LSB 12b V</th><th>pass</th></tr>
+<tr><td>low_sample</td><td><code>0.300000000</code></td><td><code>0.300000000</code></td><td><code>0.000000000e+00</code></td><td><code>2.197265625e-04</code></td><td><code>True</code></td></tr>
+<tr><td>mid_sample</td><td><code>0.900000000</code></td><td><code>0.900136900</code></td><td><code>1.369000000e-04</code></td><td><code>2.197265625e-04</code></td><td><code>True</code></td></tr>
+<tr><td>high_sample</td><td><code>1.500000000</code></td><td><code>1.500000000</code></td><td><code>0.000000000e+00</code></td><td><code>2.197265625e-04</code></td><td><code>True</code></td></tr>
+</tbody></table>
+<h2>Refused Claim</h2>
+<p>does not prove hold-mode feedthrough, DAC ladder behavior, SAR capacitor array behavior, comparator decision, mismatch, noise, extracted transistor layout, DRC/LVS signoff, or accepted replacement economics</p></article></main></body></html>

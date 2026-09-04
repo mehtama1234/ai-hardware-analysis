@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Balanced Frontend Sense-Gain Target</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Balanced Frontend Sense-Gain Target</h1><p class="lead">Source: docs/research/sky130-balanced-frontend-sense-gain-target.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Balanced Frontend Sense-Gain Target</h1>
+<p>This page is generated from <code>evidence/aimc-simulator-adapters/sky130-balanced-frontend-sense-gain-target.md</code>.</p>
+<p>---</p>
+<h1>Sky130 Balanced Frontend Sense-Gain Target</h1>
+<ul>
+<li>status: <code>sense_gain_target_ready_before_latch_rerun</code></li>
+<li>minimum sense-to-latch-input ratio: <code>0.098058</code></li>
+<li>required sense gain improvement: <code>10.20x</code></li>
+<li>target sample-to-sense transfer ratio: <code>1.000000</code></li>
+<li>current minimum sample-to-sense transfer ratio: <code>0.098058</code></li>
+<li>accepted ready now: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>The balanced frontend fixed the direction problem. It did not yet fix the size problem. A latch cannot make a reliable digital decision from a sign that is present but too small.</p>
+<p>The sample voltage difference is the thing we want to preserve. The sense-node voltage difference is what the latch actually receives. The useful design number is therefore simple: how much of the sample difference reaches the sense nodes before the latch is asked to decide.</p>
+<p>The current extracted starter sends only about one tenth of the needed latch input. The next physical frontend must increase sample-to-sense transfer while keeping the two sides matched. That means larger intentional coupling, smaller wasted sense-node capacitance, or a preamp/buffer. Each choice has a cost: more kickback, more offset, more power, or more area.</p>
+<h2>Design Target</h2>
+<table><tbody>
+<tr><th>quantity</th><th>value</th><th>meaning</th></tr>
+<tr><td>current minimum sense signal</td><td><code>1.500000000e-05 V</code></td><td>smallest extracted sense difference across the four passing sign cases</td></tr>
+<tr><td>latch proxy input target</td><td><code>1.529705854e-04 V</code></td><td>input size used by the earlier passing latch proxy</td></tr>
+<tr><td>required gain improvement</td><td><code>10.20x</code></td><td>multiplier needed before rerunning latch from extracted sense nodes</td></tr>
+<tr><td>sense capacitance delta</td><td><code>0.000000 fF</code></td><td>balance is good; the problem is transfer size, not first-order mismatch</td></tr>
+</tbody></table>
+<h2>Allowed Next Designs</h2>
+<ul>
+<li>increase mirrored sample_p-to-sense_p and sample_n-to-sense_n coupling while keeping extracted sense_p and sense_n totals matched</li>
+<li>reduce non-signal capacitance on sense_p and sense_n so less sampled charge is wasted on clock, supply, ground, and substrate paths</li>
+<li>add a small differential preamp or source-follower buffer only if its offset, noise, and input capacitance are measured separately</li>
+<li>rerun extracted sign preservation after every physical edit before trying the latch again</li>
+</ul>
+<h2>Acceptance Checks</h2>
+<ul>
+<li>minimum sample-to-sense transfer ratio reaches the latch proxy target or a new bounded latch proof resolves from the smaller input</li>
+<li>both input signs preserve sign after extraction</li>
+<li>sense_p and sense_n total capacitance remain matched within the starter extraction balance rule</li>
+<li>sample-node kickback remains below the hard half-LSB comparator boundary</li>
+<li>accepted evidence remains false until latch resolution, offset/noise, DRC, and LVS are all available for the same physical candidate</li>
+</ul>
+<h2>Refused Claim</h2>
+<p>does not modify layout, does not prove latch resolution, does not prove offset or noise, does not run DRC/LVS, and does not write accepted post-layout evidence</p></article></main></body></html>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 DAC Bottom-Plate Switch Redesign Work Order</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 DAC Bottom-Plate Switch Redesign Work Order</h1><p class="lead">Source: docs/research/sky130-dac-bottom-plate-switch-redesign-work-order.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 DAC Bottom-Plate Switch Redesign Work Order</h1>
+<h2>Purpose</h2>
+<p>Repair the physical bottom-plate switch cell used by the transistor capacitor DAC so that every code can be simulated reliably at the comparator decision time. This is the next circuit gate before recalibration or a closed-loop SAR claim.</p>
+<h2>What The Evidence Says</h2>
+<p>The present DAC result is not a clean transfer-function failure only. The latest bounded standalone run measured <code>4/16</code> codes before timeout, so reproducibility is itself failing. The earlier completed measurements showed monotonic code ordering but large high-code error. The attached comparator also changes the observed threshold through charge sharing and timing.</p>
+<p>The local sample-switch experiment gives a useful reference: a conventional Sky130 NMOS/PMOS transmission gate can acquire low, middle, and high input voltages in its small fixture. The separate idealized bootstrap experiment timed out for all three cases, so it cannot currently be selected as the repair. The bottom-plate redesign should therefore begin with the simpler transmission-gate control and add complexity only when a measured failure requires it.</p>
+<p>The first isolated bottom-plate attempt was then reduced further to one fixed top-plate source, one <code>8 pF</code> capacitor, and separate Sky130 low-side/high-side devices with a <code>0.18 ns</code> non-overlap interval. It timed out in all <code>4/4</code> cases, including the ground-only control case. Repeating the ground-only case with named <code>vss</code> wiring copied from the known-good sample-switch fixture also timed out. This makes the switch-cell netlist or its transient initialization the immediate debugging target; the result is not evidence that the four-bit DAC alone is responsible.</p>
+<h2>First-Principles Failure Questions</h2>
+<p>For each bottom plate, answer these questions separately:</p>
+<ol>
+<li>Is the plate held at the intended pre-redistribution voltage before the edge?</li>
+<li>Is the old rail disconnected before the new rail is connected?</li>
+<li>Does the selected switch reach the rail within the allowed settling time?</li>
+<li>Does the unselected switch remain isolated from the opposite rail?</li>
+<li>Does the control edge inject enough charge to move the top plate by more than half an allowed code step?</li>
+<li>Does the node remain numerically well-posed when the switch is off?</li>
+</ol>
+<p>The current deck combines these questions in a 16-code transient, which makes a timeout difficult to diagnose. The redesign must first prove one isolated one-bit bottom-plate cell, then prove two complementary cells, then reconnect the binary array.</p>
+<h2>Required Cell Experiments</h2>
+<h3>A. One-bit charge-transfer fixture</h3>
+<p>Use one physical capacitor, one bottom-plate switch cell, and the installed Sky130 models. Measure the bottom plate and top plate before the edge, during break-before-make, and after the new rail is selected.</p>
+<p>Required cases:</p>
+<ul>
+<li>plate held at ground, then moved to <code>VDD</code></li>
+<li>plate held at <code>VDD</code>, then moved to ground</li>
+<li>low, middle, and high top-plate common modes</li>
+<li>nominal, slow/cold/low-supply, and fast/hot/high-supply corners</li>
+</ul>
+<p>Required measurements:</p>
+<ul>
+<li>old-rail disconnect time</li>
+<li>new-rail arrival time</li>
+<li>top-plate kick from the control edge</li>
+<li>final rail error</li>
+<li>convergence status and runtime</li>
+</ul>
+<h3>B. Complementary control check</h3>
+<p>The control generator must expose two non-overlap intervals: <code>break_before_make_ns</code> and <code>make_after_break_ns</code>. The generated deck must show the exact gate waveform used by each device. A control waveform that turns both rail paths on together is rejected even if its final voltage looks reasonable.</p>
+<h3>C. Four-bit reconstruction</h3>
+<p>After the one-bit cell passes, reconnect the <code>8:4:2:1</code> capacitors and measure all 16 codes at the same fixed decision time. The acceptance record must include every code, every bottom-plate final voltage, the top-plate voltage, the expected voltage, and the error in LSB.</p>
+<h2>Acceptance Gates</h2>
+<p>The cell is accepted only when:</p>
+<ul>
+<li>all requested codes converge without timeout;</li>
+<li>the selected bottom plate reaches its intended rail without simultaneous rail contention;</li>
+<li>the four-bit transfer is monotonic;</li>
+<li>the top-plate error at the comparator decision time is within the declared budget, or the budget is explicitly changed and propagated to the SAR task metric;</li>
+<li>both comparator polarities remain correct in the same-deck coupled run;</li>
+<li>the exact deck and control schedule are stored with the evidence;</li>
+<li>the result is repeated at the required PVT corners before analog service is enabled.</li>
+</ul>
+<p>Passing only the final comparator sign is insufficient. A comparator can resolve the wrong physical threshold consistently, which is exactly why the earlier retained-bit sequence produced <code>0/5</code> correct conversions despite <code>20/20</code> sign-correct trials.</p>
+<h2>Implementation Order</h2>
+<ol>
+<li>Factor the bottom-plate switch into a generated one-bit cell.</li>
+<li>Add explicit break-before-make control and waveform measurements.</li>
+<li>Run the one-bit low/mid/high common-mode fixture.</li>
+<li>Run the one-bit PVT fixture and record convergence.</li>
+<li>Rebuild the four-bit array from four identical cells.</li>
+<li>Run all 16 codes at the comparator decision time.</li>
+<li>Reconnect the physical comparator and repeat both polarities.</li>
+<li>Re-run calibration and retained-bit SAR decisions.</li>
+<li>Only then add random mismatch/noise trials and model-level task evaluation.</li>
+</ol>
+<h2>Refused Claim</h2>
+<p>This work order does not claim that the current DAC is repaired, calibrated, SAR-correct, layout-extracted, board-measured, or silicon-proven. It defines the evidence needed to make those claims defensible.</p></article></main></body></html>

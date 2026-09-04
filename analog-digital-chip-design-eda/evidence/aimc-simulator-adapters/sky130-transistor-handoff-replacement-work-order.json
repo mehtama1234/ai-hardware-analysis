@@ -1,0 +1,81 @@
+{
+  "acceptance_tests": [
+    "T1. every case returns from ngspice inside the runtime bound",
+    "T2. measured sign matches the original sampled input sign in all four cases",
+    "T3. minimum active output difference is at least 0.5 mV",
+    "T4. sample-to-sense transfer after transistor loading stays within 10 percent of the macro handoff run",
+    "T5. report states uses_sky130_transistor_input_stage=true, uses_active_gain_macro=false, same_run_strict_payload_ready=false, accepted_post_layout_written=false"
+  ],
+  "accepted_post_layout_written": false,
+  "candidate_id": "aimc_readout_candidate_001",
+  "claim_boundary": {
+    "allowed": "defines the exact next replacement for the active gain macro using current passing and failing evidence",
+    "not_allowed": "does not prove the transistor handoff, latch, SAR, full converter, accepted post-layout evidence, or replacement economics"
+  },
+  "current_failed_boundary": {
+    "case_count": 4,
+    "object": "frontend_to_sky130_transistor_input_stage_proxy",
+    "status": "frontend_to_input_stage_proxy_timed_out_not_strict_evidence",
+    "timed_out_case_count": 4
+  },
+  "current_passed_boundary": {
+    "case_count": 4,
+    "minimum_output_diff_v": 0.0006205999999999712,
+    "object": "sky130_frontend_input_stage_handoff_candidate",
+    "sign_pass_count": 4,
+    "status": "active_macro_handoff_passed_not_sky130_transistor_or_strict_evidence",
+    "uses_active_gain_macro": true,
+    "uses_sky130_transistor_input_stage": false
+  },
+  "expected_outputs": [
+    "labs/analog/analog-in-memory-foundation-model-hardware/spice/sky130_frontend_transistor_input_stage_handoff_candidate.sp",
+    "labs/analog/analog-in-memory-foundation-model-hardware/measurements/sky130-frontend-transistor-input-stage-handoff-candidate.csv",
+    "evidence/aimc-simulator-adapters/sky130-frontend-transistor-input-stage-handoff-candidate.json",
+    "evidence/aimc-simulator-adapters/sky130-frontend-transistor-input-stage-handoff-candidate.md",
+    "docs/research/sky130-frontend-transistor-input-stage-handoff-candidate.md"
+  ],
+  "first_principle": "The macro proof says the signal chain is mathematically possible. The transistor replacement must show the same thing physically: the real input devices must sense the frontend voltage without stealing too much charge, must bias into a solvable operating point, and must create enough output difference for the latch.",
+  "reference_input_stage_gain_v_per_v": 9.202013857742882,
+  "replacement_object": {
+    "must_add": [
+      "Sky130 nfet or complementary input devices connected directly to sense_p and sense_n",
+      "finite input capacitance that loads the extracted frontend",
+      "explicit bias current or reset path that lets ngspice solve without unbounded model startup",
+      "measured output polarity and gain from the same deck",
+      "runtime-bound failure reporting for each case"
+    ],
+    "must_keep_from_macro_run": [
+      "same extracted ultra frontend netlist",
+      "same positive and negative comparator-budget input cases",
+      "same quiet-reset and reset-pulse cases",
+      "same sign-handoff check",
+      "same 0.5 mV minimum active-output margin",
+      "same explicit false accepted_post_layout_written flag"
+    ],
+    "must_replace": [
+      "bounded gain macro",
+      "ideal output without input capacitance",
+      "macro gain imported from separate evidence"
+    ],
+    "name": "sky130_frontend_transistor_input_stage_handoff_candidate",
+    "purpose": "replace the active gain macro with a Sky130 transistor differential input stage while preserving the same frontend input cases and acceptance tests"
+  },
+  "result_type": "sky130_transistor_handoff_replacement_work_order",
+  "same_run_strict_payload_ready": false,
+  "source_evidence": [
+    "evidence/aimc-simulator-adapters/sky130-frontend-input-stage-handoff-candidate.json",
+    "evidence/aimc-simulator-adapters/first-real-converter-frontend-to-input-stage-proxy.json",
+    "evidence/aimc-simulator-adapters/sky130-comparator-input-stage-ngspice.json"
+  ],
+  "status": "transistor_handoff_replacement_work_order_ready",
+  "still_not_done_after_replacement": [
+    "clocked latch resolution",
+    "kickback into the sampled frontend",
+    "comparator offset and noise",
+    "SAR bit cycling",
+    "DAC switching",
+    "full converter energy",
+    "DRC/LVS-clean extracted area",
+    "same-run strict converter payload"
+  ]
+}

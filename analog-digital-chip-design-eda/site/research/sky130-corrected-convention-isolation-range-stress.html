@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Corrected-Convention Isolation Range Stress</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Corrected-Convention Isolation Range Stress</h1><p class="lead">Source: docs/research/sky130-corrected-convention-isolation-range-stress.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Corrected-Convention Isolation Range Stress</h1>
+<p>The isolated latch-input branch passed at the target edge. The next question is whether it remains stable when the input difference moves above that edge.</p>
+<p>This page appends the range-stress evidence. It keeps the same tiny capacitive isolation, the same sampled nodes, and the corrected <code>outp - outn</code> latch output convention, then tests both signs at one, two, and five times the target differential.</p>
+<p>---</p>
+<h1>Sky130 Corrected-Convention Isolation Range Stress</h1>
+<ul>
+<li>status: <code>corrected_convention_isolation_range_stress_passed_not_noise_or_layout_proof</code></li>
+<li>output definition: <code>outp_minus_outn</code></li>
+<li>case count: <code>12</code></li>
+<li>measured case count: <code>12</code></li>
+<li>timed-out case count: <code>0</code></li>
+<li>passing case count: <code>12</code></li>
+<li>tested coupling caps fF: <code>0.1, 0.2</code></li>
+<li>tested input diff mV: <code>0.152971, 0.305941, 0.764853</code></li>
+<li>worst sampled differential kickback V: <code>2.023000000e-04</code></li>
+<li>half LSB 12b V: <code>2.197265625e-04</code></li>
+<li>minimum abs output diff V: <code>1.373291900e+00</code></li>
+<li>accepted post-layout written: <code>False</code></li>
+</ul>
+<h2>First Principle</h2>
+<p>A comparator candidate that only works at one tiny input is fragile. The next question is whether the same isolated latch input still resolves when the sampled difference is moved above the target edge.</p>
+<p>This run keeps the same tiny capacitive isolation and corrected <code>outp - outn</code> convention. It sweeps both signs at one, two, and five times the target-edge differential. The gate is still narrow: no noise, no layout, no SAR loop. It only asks whether nominal schematic behavior stays stable over a small useful range.</p>
+<h2>Results</h2>
+<table><tbody>
+<tr><th>cap fF</th><th>input diff mV</th><th>kickback V</th><th>output diff V</th><th>resolved</th><th>kickback pass</th></tr>
+<tr><td><code>0.100</code></td><td><code>-0.152971</code></td><td><code>1.191000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.100</code></td><td><code>0.152971</code></td><td><code>1.191000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.100</code></td><td><code>-0.305941</code></td><td><code>1.191000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.100</code></td><td><code>0.305941</code></td><td><code>1.191000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.100</code></td><td><code>-0.764853</code></td><td><code>1.191000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.100</code></td><td><code>0.764853</code></td><td><code>1.191000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>-0.152971</code></td><td><code>2.022000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>0.152971</code></td><td><code>2.022000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>-0.305941</code></td><td><code>2.022000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>0.305941</code></td><td><code>2.022000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>-0.764853</code></td><td><code>2.023000000e-04</code></td><td><code>-1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+<tr><td><code>0.200</code></td><td><code>0.764853</code></td><td><code>2.023000000e-04</code></td><td><code>1.373291900e+00</code></td><td><code>True</code></td><td><code>True</code></td></tr>
+</tbody></table>
+<h2>Boundary</h2>
+<p>does not prove comparator noise, offset statistics, clock timing margin, SAR bit cycling, extracted layout, DRC/LVS, or accepted post-layout converter evidence</p></article></main></body></html>

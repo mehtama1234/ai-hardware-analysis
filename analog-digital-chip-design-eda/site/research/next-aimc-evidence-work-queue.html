@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Next AIMC Evidence Work Queue</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Next AIMC Evidence Work Queue</h1><p class="lead">Source: docs/research/next-aimc-evidence-work-queue.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Next AIMC Evidence Work Queue</h1>
+<p>This page is the review page for the next proof work.</p>
+<p>It does not add new claims. It names the missing evidence that would make stronger claims possible.</p>
+<p>The generated source queue is:</p>
+<ul>
+<li><code>evidence/aimc-hardware-lab/next-evidence-work-queue.json</code></li>
+<li><code>evidence/aimc-hardware-lab/next-evidence-work-queue.md</code></li>
+</ul>
+<h2>Object</h2>
+<p>The object is the same package and model slice used by the current AIMC system state.</p>
+<p>The queue starts from what is already proven: backend placement, simulator payload generation, guarded import, residual-aware placement, archive refresh, and claim readiness.</p>
+<p>The queue then asks what evidence is still missing before the workbench can say more.</p>
+<h2>Reading Rule</h2>
+<p>Each item must name five things:</p>
+<ul>
+<li>the claim it would strengthen</li>
+<li>the object being measured or simulated</li>
+<li>the method used to produce the evidence</li>
+<li>the artifact that would prove the result</li>
+<li>the claim that still remains refused</li>
+</ul>
+<p>This matters because analog compute can look better than it is when simulator output, board output, and physical-layout assumptions are mixed together.</p>
+<h2>Current Boundary</h2>
+<p>The current system can support local placement, bounded simulator evidence, and digital-control evidence.</p>
+<p>The current system cannot yet support measured latency, measured energy, calibrated silicon, full analog macro layout, package reliability, or production readiness.</p>
+<p>The converter boundary adds a nearer gate before those system claims: the transistor DAC is monotonic, but its nominal transfer misses half-LSB at upper codes; all three representative PVT calibration decisions require digital fallback; and the controlled mismatch run passes only <code>4/12</code> low/mid/high code checks. The <code>175-250 mV</code> early-to-late movement at midscale and full scale also means the SAR comparator time cannot be chosen independently of DAC settling.</p>
+<h2>Next Handoff</h2>
+<p>Do the queue in evidence order.</p>
+<p>First strengthen the model object. Then repair or bound the AIHWKIT mapping. Then expose layout risk. Then add measured runtime. Then add synchronized measured power.</p>
+<p>For the analog converter specifically, the next evidence order is: sweep all 16 DAC codes over time, add random capacitor and switch mismatch, measure comparator noise and offset on the coupled nodes, then run the same cases through a closed-loop SAR. The analog governor must remain disabled for a corner until that chain passes its code-error and wrong-decision limits.</p>
+<p>The first time sweep now shows why the order matters: code 8 passes briefly at 5 ns and code 15 passes through 10 ns, but both fail at later reads. The SAR test therefore needs a declared per-bit wait budget and a timestamped top-plate/comparator measurement; “the DAC settled by 70 ns” is not a sufficient acceptance rule.</p>
+<p>The measured-transfer SAR replay is the current causal baseline: with an exact comparator, only <code>10/16</code> ideal input regions convert correctly. The same-deck SAR must now replace this replay with physical DAC thresholds at each bit decision, then repeat across PVT, mismatch, and noise. Until that happens, the analog path is a research fixture and the governor must select digital fallback.</p>
+<p>The first same-deck DAC/comparator bit test initially failed one polarity because the comparator sampled before redistribution. A source-follower variant then exposed a midrange transfer defect. The current direct-late-sampling variant measures <code>16/16</code> correct polarities across all nominal codes. The immediate next gate is now a retained-bit 4-bit SAR sequence, followed by PVT, random mismatch, and noise cases using the same measured decision window.</p>
+<p>The retained-bit sequence is now measured: <code>20/20</code> physical comparator trials complete, but <code>0/5</code> conversions return the expected ideal code. This confirms that comparator sign correctness is not converter accuracy. The next repair is a calibrated physical DAC transfer or a redesigned charge-redistribution network, followed by the same sequence at PVT and mismatch/noise corners.</p>
+<p>The first source-matched calibration run now measures all 16 thresholds and improves the sequence to <code>4/5</code> correct conversions. It still fails the highest region because the code-15 threshold is about <code>2.082 V</code> and the logical-to-physical map collapses several high codes onto repeated physical codes. The next converter task is therefore to repair full-scale charge redistribution and prove a strictly usable calibrated map before enabling analog service.</p>
+<p>The sample-capacitance diagnostic shows that interface loading is a coupled timing problem, not a one-parameter fix. The tested <code>200 fF</code>, <code>20 fF</code>, and <code>2 fF</code> values are all polarity-correct but produce non-monotonic full-scale thresholds. The next design iteration must specify the comparator storage, switch sizing, charge-injection cancellation, and decision deadline together.</p>
+<p>The first same-deck DAC/comparator bit test is now the immediate blocker: <code>2/2</code> trials measured but only <code>1/2</code> comparator polarities matched the DAC-reference sign. The next repair must make the sign contract pass for both a below-reference and above-reference trial before adding SAR sequencing.</p>
+<p>That order keeps the work from jumping to board-level claims before the simulator and placement boundary is clean.</p>
+<p>---</p>
+<h1>Next AIMC Evidence Work Queue</h1>
+<p>This file is generated from the current AIMC system state.</p>
+<ul>
+<li>package: <code>pkg-e931662a01293df2</code></li>
+<li>proof status: <code>PASS</code></li>
+<li>supported lab claims: <code>3</code></li>
+<li>needs-review lab claims: <code>2</code></li>
+<li>production claim: <code>blocked</code></li>
+</ul>
+<h2>E1. Larger real-model ONNX simulator slice</h2>
+<ul>
+<li>claim target: strengthen C4 and residual-aware placement</li>
+<li>status: local_fixture_selected</li>
+<li>why next: The current best local fixture is deep-transformer-mlp-stack.onnx with 12 fixed-weight MatMul rows. The next stronger step is replacing that fixture with a real uploaded or imported model slice.</li>
+<li>object: one uploaded ONNX slice with fixed-weight MatMul rows, digital support ops, real initializer weights, and a digital reference output</li>
+<li>method: use the selected local ONNX fixture as the current rehearsal path, then rerun the same extractor, simulator exporters, and guarded importer on a real uploaded model slice</li>
+</ul>
+<p>Acceptance evidence:</p>
+<ul>
+<li>ONNX fixture inventory names the selected current local fixture and fixed-weight MatMul count</li>
+<li>strict AIHWKIT or CrossSim payload exists for the larger ONNX slice</li>
+<li>payload names target object, device assumptions, array assumptions, ADC bits, DAC bits, temperature boundary, and voltage boundary</li>
+<li>guarded importer accepts the payload or records a threshold-fail rejection</li>
+<li>residual-aware placement records source policy fixed_weight_matmul_family_match against package pkg-e931662a01293df2</li>
+</ul>
+<p>Blocked until: not blocked locally; stronger proof waits for a real uploaded or imported model slice</p>
+<p>Refused claim: does not prove full foundation-model accuracy, measured board latency, measured energy, calibrated silicon, or production readiness</p>
+<h2>E2. AIHWKIT positive residual mapping</h2>
+<ul>
+<li>claim target: turn AIHWKIT from run evidence into positive simulator evidence where justified</li>
+<li>status: post_layout_candidate_gate_chain_passed_waiting_for_real_values</li>
+<li>why next: The local converter handoff is complete, the one-command submission path exists, preflight can separate shape mistakes from missing files, and a concrete candidate workspace now exists. The candidate transition chain is now proven: the progress gate distinguishes scaffold from complete package, the preflight gate rejects the scaffold and accepts a complete temporary package, and the submission gate rejects the scaffold while writing complete temporary output only outside canonical accepted evidence. The one-command readiness runner currently reports candidate_not_ready_for_strict_submission with 22 preflight issues, so it is the command to rerun after real files and values are filled. The workspace audit still reports 29 placeholder fields and 3 missing or unresolved files. The fill checklist turns those gaps into 32 exact edit items across area, break_even, energy, extraction, files, identity, latency, noise, provenance, simulation. The candidate identity initializer is identity_initializer_ready: it can stamp one shared run id and file names, passes identity validation, does not touch the source scaffold, and leaves strict validation blocked until template status and real values are replaced. The real-candidate builder command now gives the handoff a direct path from existing extracted files plus numeric converter terms into the candidate payload before preview or submission. The submission preview is blocked_before_submission with 22 strict issues and would_write_accepted_evidence=False, so accepted evidence is still protected before the real package is filled. The generated real-run recipe has 9 ordered steps, and the coverage audit reports 32/32 checklist fields covered with 0 uncovered payload blocker fields. The next proof is to work through that checklist: replace the scaffold with a real extracted netlist, real model files, a source break-even rerun artifact, and numeric post-layout simulation or measured silicon values. Only after that should <code>python3 scripts/run_converter_post_layout_candidate_readiness.py</code> run cleanly and allow the strict submission command to write accepted evidence.</li>
+<li>object: the same fixed-weight MatMul family currently represented by the analog-allowed rows</li>
+<li>method: adjust mapping, scaling, calibration, converter circuit assumptions, sharing policy, or device assumptions outside the guarded claim path, then rerun held-out payloads without relaxing the importer threshold</li>
+</ul>
+<p>Acceptance evidence:</p>
+<ul>
+<li>AIHWKIT residual diagnostic ranks worst rows before any threshold or mapping change</li>
+<li>AIHWKIT ideal-forward mapping proof shows shape and transpose correctness before noisy forward tuning</li>
+<li>AIHWKIT forward-setting sweep names the passing settings and their max residuals</li>
+<li>AIHWKIT physical-setting review compares the passing setting to the current tile ADC/DAC boundary</li>
+<li>AIHWKIT current-tile replay measures the same rows under the existing 4-bit DAC and 6-bit ADC boundary</li>
+<li>AIHWKIT converter upgrade target records the 10-bit input, 12-bit output, six-bit input gap, and six-bit output gap</li>
+<li>AIHWKIT converter cost model estimates energy and comparison cost for the stronger converter boundary</li>
+<li>AIHWKIT target noise sensitivity records the highest all-pass nonzero output-noise setting</li>
+<li>AIHWKIT converter break-even records the rows, sharing, array-saving, and digital-fallback assumptions needed before the target can beat digital</li>
+<li>converter circuit evidence contract records the ADC/DAC energy, latency, noise, area, and sharing fields needed to replace the break-even assumptions</li>
+<li>local converter circuit estimate fills that contract with planning numbers while staying not claim-ready</li>
+<li>converter circuit-simulation estimate narrows the target with explicit settling, quantization, noise, latency, energy, area-proxy, and sharing terms while staying not replacement-ready</li>
+<li>converter SPICE handoff spec defines row-DAC settling, SAR readout, shared-converter loading, and energy-accounting testbenches</li>
+<li>row-DAC settling SPICE evidence passes the simple 10-bit row-driver load against the half-LSB settling rule</li>
+<li>SAR readout SPICE evidence passes the simple 12-bit sampled-readout load against the half-LSB decision rule</li>
+<li>shared converter loading SPICE evidence passes the simple muxed readout load against the half-LSB decision rule</li>
+<li>converter supply-energy SPICE evidence records positive integrated row-drive, ADC-reference, and mux energy on a named rail</li>
+<li>converter post-layout readiness names the extracted parasitic, energy, latency, noise, area, sharing, and break-even rerun fields required before replacement</li>
+<li>converter post-layout evidence contract defines the importable payload shape and keeps the placeholder not claim-ready</li>
+<li>converter post-layout payload validator rejects the placeholder and waits for a real extracted payload</li>
+<li>converter post-layout break-even rerun path rejects non-evidence inputs and waits for a validator-passing payload</li>
+<li>converter post-layout strict intake rejects shape-correct payloads whose referenced files are missing</li>
+<li>converter post-layout positive path proves strict validation and rerun can pass with temporary synthetic files</li>
+<li>converter post-layout submission path provides one command for strict validation, break-even rerun, and submission report writing</li>
+<li>converter real payload package names the required payload, netlist, model files, and rerun artifact</li>
+<li>converter payload preflight reports missing-file payloads as not ready and complete temporary payloads as ready without accepted evidence</li>
+<li>converter candidate workspace provides payload, netlist, models, and rerun staging folders while rejecting the default scaffold</li>
+<li>converter candidate workspace audit reports the scaffold placeholder count and missing file count before preflight</li>
+<li>converter candidate fill checklist turns the audit into exact field and file edits before preflight</li>
+<li>converter candidate gate chain proves progress, preflight, and strict submission transitions without persisting canonical accepted evidence</li>
+<li>converter candidate readiness runner gives one command for audit, checklist, progress, and preflight before strict submission</li>
+<li>AIHWKIT larger or calibrated payload reports accuracy_impact.pass true</li>
+<li>guarded importer accepts the AIHWKIT payload without --expect-reject</li>
+<li>current-state summary records at least one larger AIHWKIT outcome as wrote_payload without threshold_fail</li>
+<li>allowed rows remain explicit: dense1.matmul, dense2.matmul</li>
+</ul>
+<p>Blocked until: not blocked locally; run_converter_post_layout_candidate_readiness.py is ready and now needs real netlist/model/rerun files and numeric post-layout simulation or measured silicon values</p>
+<p>Refused claim: does not allow threshold-fail AIHWKIT output to support positive analog placement</p>
+<h2>E3. CrossSim layout-risk adapter</h2>
+<ul>
+<li>claim target: separate array-layout risk from model-level simulator residual</li>
+<li>status: supported</li>
+<li>why next: The first local layout-risk adapter exists and covers 2 CrossSim-backed analog rows. The next upgrade is stronger physical evidence: extracted parasitics or a fuller crossbar simulation flow.</li>
+<li>object: one analog tile candidate with row count, column count, conductance range, bit slicing, DAC precision, ADC range, wire assumptions, and column-current range</li>
+<li>method: keep the current generated layout-risk record as the local review boundary, then replace local estimates with extracted macro parasitics or a stronger crossbar flow</li>
+</ul>
+<p>Acceptance evidence:</p>
+<ul>
+<li>layout-risk JSON names array size, wire assumptions, ADC range, DAC precision, bit slicing, and column-current range</li>
+<li>record links back to residual-aware placement source</li>
+<li>record preserves accepted source deep_transformer_mlp_stack</li>
+<li>frontend and current-state summary refuse to treat it as analog macro signoff</li>
+</ul>
+<p>Blocked until: not blocked locally; stronger proof waits for extracted macro parasitics or fuller crossbar simulation</p>
+<p>Refused claim: does not prove full analog macro layout, extraction, DRC/LVS signoff, or silicon behavior</p>
+<h2>E4. Measured board runtime trace</h2>
+<ul>
+<li>claim target: upgrade C2 from needs review to supported</li>
+<li>status: open</li>
+<li>why next: The current runtime evidence is local RTL/runtime behavior. Measured latency needs a real board or instrumented runtime trace.</li>
+<li>object: one board or instrumented runtime execution of the same package and workload</li>
+<li>method: record package ID, workload ID, board ID, board revision, runtime version, runtime trace ID, start/end timestamps, fallback events, repeated runs, p50, p95, and host-overhead boundary</li>
+</ul>
+<p>Acceptance evidence:</p>
+<ul>
+<li>measured board runtime payload passes /evidence/validate-measured</li>
+<li>local board ID and local/not-measured provenance are absent</li>
+<li>claim readiness moves C2 to supported for the exact setup</li>
+<li>C3 remains needs review unless matching measured power is attached</li>
+</ul>
+<p>Blocked until: real board or stronger instrumented runtime source is available</p>
+<p>Refused claim: does not prove measured energy, measured power, calibrated silicon, production readiness, or another board</p>
+<h2>E5. Synchronized measured power trace</h2>
+<ul>
+<li>claim target: upgrade C3 from needs review to supported</li>
+<li>status: open</li>
+<li>why next: Energy is voltage times current over the same runtime window. A measured power artifact is not enough if it describes a different run.</li>
+<li>object: meter-backed voltage/current samples for the same package, workload, board, runtime trace ID, and run window as the runtime trace</li>
+<li>method: record meter, measured rail, sampling rate, voltage/current samples, integration timestamps, energy, average power, peak power, thermal samples, repeated-run count, and host-overhead boundary</li>
+</ul>
+<p>Acceptance evidence:</p>
+<ul>
+<li>measured power payload passes /evidence/validate-measured</li>
+<li>runtime and power records share runtime trace ID, package ID, workload ID, board ID, start time, and end time</li>
+<li>claim readiness moves C3 to supported</li>
+<li>mismatched runtime_trace_id still keeps C3 needs review in regression tests</li>
+</ul>
+<p>Blocked until: meter or instrumented power source is available for the same runtime trace</p>
+<p>Refused claim: does not prove production power, another workload, another temperature, or signoff energy</p></article></main></body></html>
