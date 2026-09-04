@@ -43,6 +43,7 @@ workload
 <tr><td>SRAM maps</td><td><code>12/12</code> fit</td><td>every workload has a bounded map inside the stated <code>64 KiB</code> arena</td></tr>
 </tbody></table>
 <p>The compiler handles workload-dependent placement. It records why an operation is analog-capable, why another remains digital, how data moves through SRAM, and where digital fallback is required. This is a meaningful compiler and runtime handoff, but the 64-bit words are review artifacts. They are not yet an ISA-validated firmware image, and none of these commands has been observed on a physical board.</p>
+<p>The reference interpreter at <code>scripts/run_target_bytecode_reference.py</code> now decodes all <code>321</code> words, checks their command identity and SRAM offsets, and verifies the <code>687</code>-cycle schedule. That proves the review encoding is internally consistent in software. It still does not prove that a hardware instruction set, firmware image, or board exists.</p>
 <h2>What workloads are covered</h2>
 <p>The portfolio spans transformer-style MLPs, attention projections, language model serving, audio, vision, robotics, and vision-language or physical-AI intake cases. The portfolio contains <code>12</code> workload packages with <code>91</code> total operator rows.</p>
 <p>Some named numerical fixtures have positive bounded simulator results. For example, calibrated CrossSim replay reports approximately:</p>
@@ -93,6 +94,7 @@ board result = evidence about integrated hardware
 <pre><code>
 python3 scripts/validate_aimc_workload_portfolio.py
 python3 scripts/compile_hybrid_transformer_execution_package.py
+python3 scripts/run_target_bytecode_reference.py
 python3 scripts/run_aimc_end_to_end_regression.py
 python3 scripts/validate_aimc_physical_evidence.py
 python3 scripts/validate_project.py

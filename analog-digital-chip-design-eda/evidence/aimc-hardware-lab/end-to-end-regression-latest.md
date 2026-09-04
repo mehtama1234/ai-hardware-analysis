@@ -1,7 +1,7 @@
 # AIMC End-To-End Regression
 
 - status: `pass_software_vertical_slice_physical_converter_blocked`
-- generated: `2026-09-04T20:28:44.626531+00:00`
+- generated: `2026-09-04T20:48:39.194335+00:00`
 - task Python: `/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/.venv/bin/python`
 
 | check | pass |
@@ -13,6 +13,7 @@
 | `language_model_serving_package` | `True` |
 | `shared_compiler_package` | `True` |
 | `target_compiler` | `True` |
+| `target_bytecode_reference` | `True` |
 | `guarded_runtime` | `True` |
 | `workload_comparison` | `True` |
 | `physical_evidence_gate` | `True` |
@@ -37,6 +38,7 @@
 | `compiler_has_12_models` | `True` |
 | `target_compiler_covers_12_models` | `True` |
 | `target_bytecode_is_reproducible_shape` | `True` |
+| `target_bytecode_reference_interpreter_passes` | `True` |
 | `sram_allocations_fit_profile` | `True` |
 | `hardware_profile_is_bound` | `True` |
 | `charge_transfer_spec_is_bound` | `True` |

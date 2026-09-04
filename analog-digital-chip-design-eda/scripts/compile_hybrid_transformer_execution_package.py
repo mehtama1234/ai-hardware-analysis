@@ -113,6 +113,8 @@ def main() -> int:
             for command, unit, duration in steps:
                 command_record = {
                         "sequence": len(commands) + 1,
+                        "model_index": model_index,
+                        "operator_index": op_index,
                         "model_id": model_id,
                         "operator_id": operator_id,
                         "command": command,

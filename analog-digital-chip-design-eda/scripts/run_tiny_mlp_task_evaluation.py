@@ -12,7 +12,7 @@ from onnx import numpy_helper
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL = ROOT.parent / "ai-hardware-analysis" / "analog-in-memory-ai-inference" / "software-architecture" / "samples" / "tiny-mlp.onnx"
+MODEL = ROOT.parent / "analog-in-memory-ai-inference" / "software-architecture" / "samples" / "tiny-mlp.onnx"
 DATASET = ROOT / "evidence" / "aimc-hardware-lab" / "datasets" / "tiny-mlp-binary-v1.json"
 OUT = ROOT / "evidence" / "aimc-hardware-lab" / "tiny-mlp-task-evaluation-v1.json"
 

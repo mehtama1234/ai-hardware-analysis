@@ -48,6 +48,12 @@ runtime handoff, but the 64-bit words are review artifacts. They are not yet an
 ISA-validated firmware image, and none of these commands has been observed on a
 physical board.
 
+The reference interpreter at
+`scripts/run_target_bytecode_reference.py` now decodes all `321` words, checks
+their command identity and SRAM offsets, and verifies the `687`-cycle schedule.
+That proves the review encoding is internally consistent in software. It still
+does not prove that a hardware instruction set, firmware image, or board exists.
+
 ## What workloads are covered
 
 The portfolio spans transformer-style MLPs, attention projections, language
@@ -140,6 +146,7 @@ cycle-to-cycle control and charge-transfer behavior is different.
 ```bash
 python3 scripts/validate_aimc_workload_portfolio.py
 python3 scripts/compile_hybrid_transformer_execution_package.py
+python3 scripts/run_target_bytecode_reference.py
 python3 scripts/run_aimc_end_to_end_regression.py
 python3 scripts/validate_aimc_physical_evidence.py
 python3 scripts/validate_project.py

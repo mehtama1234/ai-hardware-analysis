@@ -32,7 +32,6 @@ def python_with(module: str) -> str:
         return sys.executable
     sibling = (
         ROOT.parent
-        / "ai-hardware-analysis"
         / "analog-in-memory-ai-inference"
         / "software-architecture"
         / "backend"
@@ -68,6 +67,7 @@ def artifact_checks() -> list[dict[str, object]]:
     compiler = load("evidence/aimc-hybrid-compiler-runtime/hybrid_compiler_runtime_package.json")
     compiled = load("evidence/aimc-hybrid-compiler-runtime/compiled_target_execution_package.json")
     bytecode = load("evidence/aimc-hybrid-compiler-runtime/target_bytecode.json")
+    bytecode_reference = load("evidence/aimc-hybrid-compiler-runtime/target_bytecode_reference_execution.json")
     physical = load("evidence/aimc-hardware-lab/physical-evidence-gate-latest.json")
     profile = load("evidence/aimc-hardware-lab/hardware-profile-educational-hybrid-tile-v1.json")
     charge_spec = load("evidence/aimc-simulator-adapters/sky130-charge-transfer-redesign-spec.json")
@@ -89,6 +89,7 @@ def artifact_checks() -> list[dict[str, object]]:
         {"name": "compiler_has_12_models", "pass": len(compiler.get("models", [])) == 12},
         {"name": "target_compiler_covers_12_models", "pass": len(compiled.get("models", [])) == 12 and compiled.get("command_count") == 321 and compiled.get("register_write_count") == 460},
         {"name": "target_bytecode_is_reproducible_shape", "pass": bytecode.get("schema_version") == "aimc_target_bytecode.v1" and bytecode.get("word_width_bits") == 64 and bytecode.get("word_count") == compiled.get("command_count") and len(bytecode.get("words", [])) == bytecode.get("word_count") and all(isinstance(item.get("word"), str) and item.get("word", "").startswith("0x") for item in bytecode.get("words", []))},
+        {"name": "target_bytecode_reference_interpreter_passes", "pass": bytecode_reference.get("status") == "reference_interpreter_pass" and bytecode_reference.get("word_count") == compiled.get("command_count") and bytecode_reference.get("decoded_command_count") == compiled.get("command_count") and bytecode_reference.get("total_planning_cycles") == compiled.get("estimated_cycles") and bytecode_reference.get("errors") == []},
         {"name": "sram_allocations_fit_profile", "pass": all(item.get("sram_bytes_used", SRAM_CAPACITY_BYTES + 1) <= SRAM_CAPACITY_BYTES for item in compiled.get("sram_memory_maps", []))},
         {"name": "hardware_profile_is_bound", "pass": profile.get("profile_id") == "educational-hybrid-tile-v1" and compiler.get("shared_hardware", {}).get("profile_id") == profile.get("profile_id") and all(model.get("hardware_profile_id") == profile.get("profile_id") for model in compiler.get("models", []))},
         {"name": "charge_transfer_spec_is_bound", "pass": charge_spec.get("target_profile_id") == profile.get("profile_id") and charge_spec.get("simulation_requirements", {}).get("all_code_count") == 16 and charge_spec.get("simulation_requirements", {}).get("mismatch_trials_required") >= 100},
@@ -108,6 +109,7 @@ def main() -> int:
         ("language_model_serving_package", [python, "scripts/generate_language_model_serving_package.py"]),
         ("shared_compiler_package", [python, "scripts/build_hybrid_compiler_runtime_package.py"]),
         ("target_compiler", [python, "scripts/compile_hybrid_transformer_execution_package.py"]),
+        ("target_bytecode_reference", [python, "scripts/run_target_bytecode_reference.py"]),
         ("guarded_runtime", [python, "scripts/run_guarded_hybrid_workload_runtime.py"]),
         ("workload_comparison", [python, "scripts/generate_hybrid_workload_comparison_report.py"]),
         ("physical_evidence_gate", [python, "scripts/validate_aimc_physical_evidence.py"]),

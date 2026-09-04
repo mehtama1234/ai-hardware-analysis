@@ -122,7 +122,7 @@ def main() -> int:
     contract = {
         "schema_version": "aimc_hybrid_workload_contract.v1",
         "workload_id": "tiny_mlp_task_hybrid_vertical_slice_v1",
-        "model": {"id": "tiny-mlp", "version": "synthetic-rehearsal-v1", "path": "ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/samples/tiny-mlp.onnx", "family": "small fixed-weight MLP task rehearsal", "pretrained_foundation_model": False},
+        "model": {"id": "tiny-mlp", "version": "synthetic-rehearsal-v1", "path": "analog-in-memory-ai-inference/software-architecture/samples/tiny-mlp.onnx", "family": "small fixed-weight MLP task rehearsal", "pretrained_foundation_model": False},
         "dataset": {"id": task["dataset_id"], "version": task["dataset_version"], "role": "synthetic binary feature task rehearsal", "sample_count": task["sample_count"]},
         "task": {"type": "binary feature classification", "metric": task["metric_name"], "acceptance_threshold": task["tolerance"], "digital_baseline": "digital tiny MLP reference"},
         "hardware_target": {"analog_memory": "dense1 fixed-weight MatMul candidate", "digital_memory": "bias, activation, downstream projection, decision, calibration, and fallback", "sram": "features, activations, partial sums, and fallback buffers", "profile_id": "educational-hybrid-tile-v1"},
