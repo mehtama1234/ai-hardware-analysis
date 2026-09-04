@@ -1200,21 +1200,21 @@ echo "[161/164] Project validator after current-state summary"
 echo
 echo "[162/164] Backend residual-aware placement API"
 (
-  cd "$ROOT/../ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture"
+  cd "$ROOT/../analog-in-memory-ai-inference/software-architecture"
   backend/.venv/bin/python backend/scripts/check_residual_aware_placement_api.py
 )
 
 echo
 echo "[163/164] Backend residual-aware placement archive"
 (
-  cd "$ROOT/../ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture"
+  cd "$ROOT/../analog-in-memory-ai-inference/software-architecture"
   backend/.venv/bin/python backend/scripts/check_residual_aware_placement_archive.py
 )
 
 echo
 echo "[164/164] Backend measured evidence boundary"
 (
-  cd "$ROOT/../ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture"
+  cd "$ROOT/../analog-in-memory-ai-inference/software-architecture"
   backend/.venv/bin/python backend/scripts/check_measured_evidence_readiness.py
 )
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OLD_ROOT = ROOT.parent / "ai-hardware-analysis" / "analog-in-memory-ai-inference" / "software-architecture"
+OLD_ROOT = ROOT.parent / "analog-in-memory-ai-inference" / "software-architecture"
 ONNX_PYTHON = OLD_ROOT / "backend" / ".venv" / "bin" / "python"
 SAMPLES = OLD_ROOT / "samples"
 OUT_DIR = ROOT / "evidence" / "aimc-hardware-lab"

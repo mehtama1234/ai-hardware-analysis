@@ -13,7 +13,6 @@ MEASURE = ROOT / "labs" / "analog" / "analog-in-memory-foundation-model-hardware
 OUT_DIR = ROOT / "evidence" / "aimc-hardware-lab"
 OLD_BACKEND = (
     ROOT.parent
-    / "ai-hardware-analysis"
     / "analog-in-memory-ai-inference"
     / "software-architecture"
     / "backend"

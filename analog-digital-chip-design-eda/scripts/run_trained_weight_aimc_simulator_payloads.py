@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OLD_ROOT = ROOT.parent / "ai-hardware-analysis" / "analog-in-memory-ai-inference" / "software-architecture"
+OLD_ROOT = ROOT.parent / "analog-in-memory-ai-inference" / "software-architecture"
 ONNX_PYTHON = OLD_ROOT / "backend" / ".venv" / "bin" / "python"
 MODEL = OLD_ROOT / "samples" / "tiny-mlp.onnx"
 PLACEMENT = ROOT / "labs" / "analog" / "analog-in-memory-foundation-model-hardware" / "measurements" / "backend-hardware-placement.json"

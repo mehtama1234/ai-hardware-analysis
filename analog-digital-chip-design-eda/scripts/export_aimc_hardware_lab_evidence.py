@@ -12,7 +12,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OLD_BACKEND = (
     ROOT.parent
-    / "ai-hardware-analysis"
     / "analog-in-memory-ai-inference"
     / "software-architecture"
     / "backend"

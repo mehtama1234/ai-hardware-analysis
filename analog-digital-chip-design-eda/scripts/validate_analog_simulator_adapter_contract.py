@@ -13,7 +13,6 @@ SKIPPED_STATUS = ROOT / "evidence" / "aimc-simulator-adapters" / "simulator-adap
 DRY_RUN_DIR = ROOT / "evidence" / "aimc-simulator-adapters" / "dry-run"
 OLD_BACKEND = (
     ROOT.parent
-    / "ai-hardware-analysis"
     / "analog-in-memory-ai-inference"
     / "software-architecture"
     / "backend"
