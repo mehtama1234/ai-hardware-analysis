@@ -32,7 +32,7 @@ if REQUESTED_CONVERSION_COUNT == 1:
     # Keep the fast diagnostic aligned with the historical canonical nominal
     # point while the full mode retains the specified five-code sequence.
     CONVERSION_CODES = (2,)
-    CONVERSION_REFERENCES = (0.30215625,)
+    CONVERSION_REFERENCES = (float(os.environ.get("AIMC_CONTINUOUS_SINGLE_REFERENCE_V", "0.30215625")),)
 else:
     CONVERSION_CODES = (0, 2, 4, 6, 7)[:REQUESTED_CONVERSION_COUNT]
     # These are continuous-loop representative reference levels, not the
