@@ -25,9 +25,10 @@ workload
   -> firmware and board measurement
 ```
 
-The first four parts are substantially built. The physical converter gate is
-measured but blocked. Firmware, board execution, and silicon measurement are
-not yet complete.
+The first four parts are substantially built. The nominal continuous physical
+SAR map is now measured and passes its five-code/20-decision gate with legal
+bottom plates. PVT, mismatch/noise, extracted-layout, firmware, board
+execution, and silicon measurement are not yet complete.
 
 ## What the compiler now does
 
@@ -136,7 +137,7 @@ cycle-to-cycle control and charge-transfer behavior is different.
 | target lowering | complete as a review artifact | 321 commands, 460 writes, 321 64-bit words; not firmware |
 | simulator adapters | bounded evidence complete | named fixtures ran; claims remain fixture-specific |
 | guarded runtime | complete | blocked analog candidates fall back to digital |
-| continuous physical SAR | measured candidate, rejected | 5 conversions measured; 3/5 correct; internal rail violation remains |
+| continuous physical SAR | measured candidate, rejected | 5 conversions measured; 4/5 correct; internal rail violation remains |
 | ISA firmware | open | target bytecode still needs a real instruction-set mapping and validation |
 | board execution | open | no synchronized board trace, latency, energy, or thermal result |
 | silicon and production readiness | open | no fabricated-device evidence exists |

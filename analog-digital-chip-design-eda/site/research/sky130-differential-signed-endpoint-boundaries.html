@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Differential Signed Endpoint Boundaries</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Differential Signed Endpoint Boundaries</h1><p class="lead">Source: docs/research/sky130-differential-signed-endpoint-boundaries.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Differential Signed Endpoint Boundaries</h1>
+<p>Using the complete 1× calibration artifact and the injective reverse-rank map, the endpoint source offset was swept with one physical SAR conversion at a time.</p>
+<table><tbody>
+<tr><th>Expected endpoint</th><th>Offset</th><th>Result</th><th>Final LSB differential</th></tr>
+<tr><td>0</td><td>−100 mV</td><td><code>0→1</code></td><td><code>+121.7 mV</code></td></tr>
+<tr><td>7</td><td>+20 mV</td><td><code>7→6</code></td><td><code>−34.5 mV</code></td></tr>
+<tr><td>7</td><td>+50 mV</td><td><code>7→6</code></td><td><code>−5.1 mV</code></td></tr>
+<tr><td>7</td><td>+60 mV</td><td><code>7→7</code></td><td>positive; pass</td></tr>
+</tbody></table>
+<p>The high endpoint has a narrow calibrated window: +60 mV flips only the LSB boundary while preserving the first three decisions. The low endpoint still fails after three correct clears because its final physical trial remains positive even at −100 mV. Direct physical-code probing at the low endpoint also found positive differential output across codes 0–15, showing that the current differential transfer is not a single monotonic threshold ladder over the required input range.</p>
+<p>This is diagnostic evidence, not acceptance. It establishes that the next repair must change the low-end common-mode/LSB transfer or add a signed boundary calibration mechanism; a single global offset cannot close both endpoints.</p>
+<p>Named evidence:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/sky130-differential-endpoint-code0-offset-minus100.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-differential-endpoint-code7-offset-plus60.json</code></li>
+</ul></article></main></body></html>

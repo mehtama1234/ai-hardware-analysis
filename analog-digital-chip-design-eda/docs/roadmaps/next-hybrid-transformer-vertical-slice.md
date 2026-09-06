@@ -99,6 +99,34 @@ low-end convergence and returns `1/5`. The hybrid execution package must
 continue to record analog candidates as physically gated with digital fallback
 until the source common-mode/input-range contract and SAR loop are closed.
 
+The physical path has since advanced one bounded step: the flat ultra-sense
+frontend is routed to two extracted Sky130 isolation devices with zero DRC
+errors, and a separate four-device latch-input starter now extracts with zero
+DRC errors and named sense/output/tail nets. These are sub-block artifacts, not
+converter acceptance. Cross-coupled latch feedback and extracted transient
+feedback are now extracted and DRC-clean; the first structural transient
+regenerates but resolves only 2/4 input polarities, so startup symmetry,
+Sky130-model convergence, and latch error-budget closure remain open.
+A matched two-device Sky130 PMOS precharge pair now separately passes
+extraction and zero-error DRC; integrating it with the latch and proving the
+clocked reset/evaluation sequence remain open.
+The flat parent now integrates and extracts the four-NMOS latch with the two
+PMOS precharge devices; its structural transient converges for 4/4 cases but
+resolves only 2/4 polarities, leaving post-reset matching and decision margin
+open.
+An extracted-topology strength sweep identifies a provisional target near 6x
+input strength and 0.75--1x feedback strength (3/4 cases), but the +0.5 mV
+boundary still fails; those ratios must be implemented and rechecked in real
+Sky130 geometry.
+The 5x-sense/2x-feedback and 5x-sense/1.33x-feedback physical variants were
+both extracted and DRC-clean, but their transient results were only 1/4 and
+2/4 respectively. Simple ratio tuning is therefore insufficient; the next
+hardware revision needs a clocked tail/evaluation path or offset cancellation.
+The real clocked-tail NMOS is now integrated and extracted in a seven-device
+parent with zero DRC errors, but the widened-tail 10 ns transient remains
+below 0.1 V differential and is rejected. Evaluation topology and biasing
+still require redesign before converter-level use.
+
 ## Current Follow-On
 
 The attention-shaped companion package is now generated under

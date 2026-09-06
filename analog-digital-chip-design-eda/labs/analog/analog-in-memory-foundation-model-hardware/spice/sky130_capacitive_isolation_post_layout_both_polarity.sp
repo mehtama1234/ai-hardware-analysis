@@ -1,8 +1,8 @@
 * Sky130 extracted-RC capacitive isolation frontend both-polarity rerun.
 * Uses Magic-extracted parasitic frontend subcircuit, then the same schematic latch.
 
-.include "/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/models/sky130-capacitive-isolation-ngspice.includes"
-.include "/home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_capacitive_isolation_frontend_extracted.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/models/sky130-capacitive-isolation-ngspice.includes"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_capacitive_isolation_frontend_extracted.spice"
 .param vdd=1.8
 .param lmin=0.15
 .param wn=2.0

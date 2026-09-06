@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Direct-Preamp Top-Dummy Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Direct-Preamp Top-Dummy Sweep</h1><p class="lead">Source: docs/research/sky130-direct-preamp-top-dummy-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Direct-Preamp Top-Dummy Sweep</h1>
+<p>The direct high-impedance preamp still drove the physical DAC top plate above the 1.8 V supply at high codes. This diagnostic adds a top-plate dummy capacitor and measures the critical adjacent code boundary.</p>
+<table><tbody>
+<tr><th>Top dummy</th><th>Code 7 top V</th><th>Code 7 polarity</th><th>Code 8 top V</th><th>Code 8 polarity</th></tr>
+<tr><td>4 pF</td><td>2.308</td><td>pass</td><td>not run</td><td>—</td></tr>
+<tr><td>20 pF</td><td>2.010</td><td>pass</td><td>not run</td><td>—</td></tr>
+<tr><td>40 pF</td><td>1.745</td><td>pass</td><td>1.367</td><td>fail</td></tr>
+</tbody></table>
+<p>The 40 pF value brings code 7 into the legal range, but reverses the code-8 comparator polarity. It changes the DAC transfer rather than merely absorbing overshoot, so it is rejected as a converter repair. Evidence is stored in:</p>
+<ul>
+<li><code>sky130-direct-preamp-topdummy-4p-code7.json</code></li>
+<li><code>sky130-direct-preamp-topdummy-20p-code7.json</code></li>
+<li><code>sky130-direct-preamp-topdummy-40p-code7.json</code></li>
+<li><code>sky130-direct-preamp-topdummy-40p-code8.json</code></li>
+</ul>
+<p>The next design should control the split-DAC common mode locally, instead of adding a large capacitor directly to the shared top plate.</p></article></main></body></html>

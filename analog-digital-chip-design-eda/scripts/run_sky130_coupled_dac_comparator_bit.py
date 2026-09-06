@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import signal
 import subprocess
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -16,8 +17,9 @@ from run_sky130_two_phase_preamp_latch_candidate import Case, build_deck, read_m
 from run_sky130_switched_capacitor_dac import CAPS_F, ROOT, VDD
 
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
-OUT_JSON = EVIDENCE / "sky130-coupled-dac-comparator-bit.json"
-OUT_MD = EVIDENCE / "sky130-coupled-dac-comparator-bit.md"
+_OUTPUT_STEM = os.environ.get("AIMC_COUPLED_OUTPUT_STEM", "sky130-coupled-dac-comparator-bit")
+OUT_JSON = EVIDENCE / f"{_OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{_OUTPUT_STEM}.md"
 TIMEOUT_S = float(os.environ.get("AIMC_COUPLED_TIMEOUT_S", "180"))
 
 # The DAC input is 1.2 V and the comparator reference is 1.5 V. The selected
@@ -30,18 +32,24 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
     cstore_override = os.environ.get("AIMC_COUPLED_CSTORE", "0.2p")
     dummy_override = os.environ.get("AIMC_COUPLED_DUMMY_CAP", "0.01p")
     top_dummy_override = os.environ.get("AIMC_COUPLED_TOP_DUMMY_CAP", "")
+    sense_isolation_cap = os.environ.get("AIMC_COUPLED_SENSE_ISOLATION_CAP", "")
     bottom_scale = float(os.environ.get("AIMC_COUPLED_BOTTOM_SCALE", "1.0"))
     msb_switch_scale = float(os.environ.get("AIMC_COUPLED_MSB_SWITCH_SCALE", "1.0"))
     pfet_boost_v = float(os.environ.get("AIMC_COUPLED_PFET_BOOST_V", "0.0"))
     lsb_scale = float(os.environ.get("AIMC_COUPLED_LSB_SCALE", "1.0"))
     cap_scale = float(os.environ.get("AIMC_COUPLED_CAP_SCALE", "1.0"))
     msb_scale = float(os.environ.get("AIMC_COUPLED_MSB_CAP_SCALE", "1.0"))
+    bit_cap_scales = {
+        bit: float(os.environ.get(f"AIMC_COUPLED_BIT{bit}_CAP_SCALE", "1.0"))
+        for bit in range(4)
+    }
     redist_ns = float(os.environ.get("AIMC_COUPLED_REDIST_NS", "5.0"))
     isolate_bottom = os.environ.get("AIMC_COUPLED_BOTTOM_PRECHARGE_ISOLATE") == "1"
     keeper_v = float(os.environ.get("AIMC_COUPLED_BOTTOM_KEEPER_V", "0.0"))
     top_reset = os.environ.get("AIMC_COUPLED_TOP_RESET") == "1"
     bottom_leak = os.environ.get("AIMC_COUPLED_BOTTOM_LEAK", "")
     top_rail_clamp = os.environ.get("AIMC_COUPLED_TOP_RAIL_CLAMP") == "1"
+    rail_clamp_area = float(os.environ.get("AIMC_COUPLED_RAIL_CLAMP_AREA", "1.0"))
     top_rail_resistor = os.environ.get("AIMC_COUPLED_TOP_RAIL_RESISTOR", "")
     supply_v = float(os.environ.get("AIMC_COUPLED_SUPPLY_V", "1.8"))
     caps = []
@@ -51,6 +59,7 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
         cap *= cap_scale
         if bit == 0:
             cap *= msb_scale
+        cap *= bit_cap_scales[bit]
         if bit == 3:
             cap *= lsb_scale
         selected = (code >> (3 - bit)) & 1
@@ -83,6 +92,9 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
             switches.append(f"XBN_DAC{bit} db{bit} gn_dac{bit} 0 0 sky130_fd_pr__nfet_01v8 W={8.0 * bottom_scale:.6g} L=0.15")
     if top_dummy_override:
         caps.append(f"CDAC_TOP_DUMMY top 0 {top_dummy_override}")
+    if sense_isolation_cap:
+        caps.append(f"CSENSE_ISOLATION top sense {sense_isolation_cap}")
+        caps.append("RSENSE_ISOLATION sense 0 100G")
     block = f'''* Physical Sky130 transistor DAC feeding the comparator input.
 VREF inn 0 {reference_v:.9f}
 VSRC_DAC srcin 0 {input_v:.9f}
@@ -102,17 +114,35 @@ XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=4.0 L=0.15
         block += f"VTOP_RESET top_reset 0 PULSE(0 {{vdd}} {reset_delay:g}n 10p 10p 0.5n 20n)\n"
         block += "XTOP_RESET top top_reset 0 0 sky130_fd_pr__nfet_01v8 W=16.0 L=0.15\n"
     if top_rail_clamp:
-        block += ".model DTOPRAIL D(Is=1e-12 N=1 Rs=1)\nD_TOP_LOW 0 top DTOPRAIL\nD_TOP_HIGH top vdd DTOPRAIL\n"
+        block += f".model DTOPRAIL D(Is=1e-12 N=1 Rs=1 area={rail_clamp_area:g})\nD_TOP_LOW 0 top DTOPRAIL\nD_TOP_HIGH top vdd DTOPRAIL\n"
+        if sense_isolation_cap:
+            block += "D_SENSE_LOW 0 sense DTOPRAIL\nD_SENSE_HIGH sense vdd DTOPRAIL\n"
     if top_rail_resistor:
         block += f"R_TOP_VDD top vdd {top_rail_resistor}\n"
     source = source.replace("VINP inp 0 PULSE(0 {vinp} 0.05n 20p 20p 20n 40n)", "")
     source = source.replace("VINN inn 0 PULSE(0 {vinn} 0.05n 20p 20p 20n 40n)", "")
     source = source.replace("VSS vss 0 0\n", f"VSS vss 0 0\n{block}", 1)
-    source = source.replace("XSWNP inp ctrl", "XSWNP top ctrl")
-    source = source.replace("XSWPP inp ctrlb", "XSWPP top ctrlb")
+    comparator_sense = "sense" if sense_isolation_cap else "top"
+    source = source.replace("XSWNP inp ctrl", f"XSWNP {comparator_sense} ctrl")
+    source = source.replace("XSWPP inp ctrlb", f"XSWPP {comparator_sense} ctrlb")
     source = source.replace("XSWNN inn ctrl", "XSWNN inn ctrl")
+    if os.environ.get("AIMC_COUPLED_DIRECT_PREAMP") == "1":
+        # Route the physical DAC/reference nodes into the high-impedance
+        # transistor preamp gates. Remove the sampled storage-switch path so
+        # comparator kickback cannot load the DAC node directly.
+        source = re.sub(r"^XSWNP .*\nXSWPP .*\nXSWNN .*\nXSWPN .*\n", "", source, flags=re.MULTILINE)
+        # The existing preamp/latch contract is inverted at the raw output;
+        # cross the gate mapping so a positive DAC-minus-reference input
+        # remains represented by the contracted outn-outp polarity.
+        source = source.replace("XPREP pre_p sp pre_tail_node 0", "XPREP pre_p inn pre_tail_node 0")
+        source = source.replace("XPREN pre_n sn pre_tail_node 0", "XPREN pre_n top pre_tail_node 0")
+        source = source.replace(".ic v(top)=", ".ic v(top)=")
     source = source.replace("XSWPN inn ctrlb", "XSWPN inn ctrlb")
     source = source.replace(".param cstore=0.2p", f".param cstore={cstore_override}")
+    if os.environ.get("AIMC_COUPLED_DIFFERENTIAL_DUMMY") == "1":
+        dummy_scale = float(os.environ.get("AIMC_COUPLED_DIFFERENTIAL_DUMMY_SCALE", "1.0"))
+        source = source.replace(".param dummy_wn=1.0", f".param dummy_wn={dummy_scale:.9f}")
+        source = source.replace(".param dummy_wp=2.0", f".param dummy_wp={2.0 * dummy_scale:.9f}")
     source = source.replace(".lib \"" + str(Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice") + "\" tt", ".lib \"" + str(Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice") + "\" " + os.environ.get("AIMC_COUPLED_MODEL_SECTION", "tt"))
     source = source.replace(".param vdd=1.8", f".param vdd={supply_v:.9f}")
     temperature_c = os.environ.get("AIMC_COUPLED_TEMPERATURE_C")
@@ -137,7 +167,9 @@ XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=4.0 L=0.15
     source = source.replace(".tran 5p 3n", ".tran 5p 9n")
     source = source.replace("AT=1.45n", "AT=7.55n")
     source = source.replace("AT=2.70n", "AT=8.80n")
-    source = source.replace(".measure tran sampled_p_before_v FIND v(sp) AT=0.90n", ".measure tran dac_top_before_v FIND v(top) AT=0.90n\n.measure tran dac_top_after_v FIND v(top) AT=7.55n\n.measure tran dac_b0_after_v FIND v(db0) AT=7.55n\n.measure tran dac_b1_after_v FIND v(db1) AT=7.55n\n.measure tran dac_b2_after_v FIND v(db2) AT=7.55n\n.measure tran dac_b3_after_v FIND v(db3) AT=7.55n\n.measure tran comparator_sp_after_v FIND v(sp) AT=7.55n\n.measure tran comparator_sn_after_v FIND v(sn) AT=7.55n\n.measure tran sampled_p_before_v FIND v(sp) AT=0.90n")
+    source = source.replace(".measure tran sampled_p_before_v FIND v(sp) AT=0.90n", ".measure tran dac_top_before_v FIND v(top) AT=0.90n\n.measure tran dac_top_after_v FIND v(top) AT=7.55n\n.measure tran dac_sense_after_v FIND v(sense) AT=7.55n\n.measure tran dac_b0_after_v FIND v(db0) AT=7.55n\n.measure tran dac_b1_after_v FIND v(db1) AT=7.55n\n.measure tran dac_b2_after_v FIND v(db2) AT=7.55n\n.measure tran dac_b3_after_v FIND v(db3) AT=7.55n\n.measure tran comparator_sp_after_v FIND v(sp) AT=7.55n\n.measure tran comparator_sn_after_v FIND v(sn) AT=7.55n\n.measure tran sampled_p_before_v FIND v(sp) AT=0.90n")
+    if not sense_isolation_cap:
+        source = source.replace(".measure tran dac_sense_after_v FIND v(sense) AT=7.55n", ".measure tran dac_sense_after_v FIND v(top) AT=7.55n")
     if os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long":
         comparator_ns = redist_ns + 4.10
         preamp_ns = redist_ns + 4.70
@@ -162,23 +194,41 @@ def run_trial(code: int, input_v: float, reference_v: float) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="aimc-coupled-dac-comparator-") as tmp:
         path = Path(tmp) / "coupled.sp"
         path.write_text(source, encoding="utf-8")
+        # Keep repeated PVT/SAR sweeps bounded even when ngspice leaves a
+        # child transient process behind during convergence trouble.
+        process = subprocess.Popen(
+            ["ngspice", "-b", str(path)],
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
         try:
-            result = subprocess.run(["ngspice", "-b", str(path)], cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT_S)
+            stdout, stderr = process.communicate(timeout=TIMEOUT_S)
         except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+            process.communicate()
             return {"code": code, "measured": False, "timed_out": True, "input_v": input_v, "reference_v": reference_v}
+        result = subprocess.CompletedProcess(process.args, process.returncode, stdout, stderr)
     row: dict[str, Any] = {"code": code, "measured": result.returncode == 0, "timed_out": False, "returncode": result.returncode, "input_v": input_v, "reference_v": reference_v}
     if result.returncode != 0:
         row["error_excerpt"] = (result.stdout + result.stderr)[-1600:]
         return row
     output_diff = read_measure(result.stdout, "output_n_final_v") - read_measure(result.stdout, "output_p_final_v")
     dac_top = read_measure(result.stdout, "dac_top_after_v")
-    input_sign = 1 if dac_top - reference_v > 0 else -1 if dac_top - reference_v < 0 else 0
+    sense_value = read_measure(result.stdout, "dac_sense_after_v") if os.environ.get("AIMC_COUPLED_SENSE_ISOLATION_CAP") else dac_top
+    input_sign = 1 if sense_value - reference_v > 0 else -1 if sense_value - reference_v < 0 else 0
     output_sign = 1 if output_diff > 0 else -1 if output_diff < 0 else 0
     # This comparator fixture has the raw inverted convention outn-outp.
     row.update({
         "dac_top_before_v": read_measure(result.stdout, "dac_top_before_v"),
         "dac_top_after_v": dac_top,
-        "dac_to_reference_diff_v": dac_top - reference_v,
+        "dac_sense_after_v": sense_value,
+        "dac_to_reference_diff_v": sense_value - reference_v,
         "dac_bottom_plate_v": [read_measure(result.stdout, f"dac_b{bit}_after_v") for bit in range(4)],
         "comparator_sp_after_v": read_measure(result.stdout, "comparator_sp_after_v"),
         "comparator_sn_after_v": read_measure(result.stdout, "comparator_sn_after_v"),
@@ -213,6 +263,12 @@ def main() -> int:
         },
         "worker_count": workers,
         "isolation_topology": "direct late sampling of the physical DAC top plate and matched reference by the comparator input switches with preamp disabled during sampling",
+        "differential_dummy_cancellation_enabled": os.environ.get("AIMC_COUPLED_DIFFERENTIAL_DUMMY") == "1",
+        "differential_dummy_scale": float(os.environ.get("AIMC_COUPLED_DIFFERENTIAL_DUMMY_SCALE", "1.0")),
+        "direct_preamp_enabled": os.environ.get("AIMC_COUPLED_DIRECT_PREAMP") == "1",
+        "top_dummy_capacitance": os.environ.get("AIMC_COUPLED_TOP_DUMMY_CAP", ""),
+        "top_rail_resistor": os.environ.get("AIMC_COUPLED_TOP_RAIL_RESISTOR", ""),
+        "rail_clamp_area": float(os.environ.get("AIMC_COUPLED_RAIL_CLAMP_AREA", "1.0")),
         "rows": rows,
         "claim_boundary": {
             "allowed": "runs a physical Sky130 transistor DAC and physical Sky130 preamp/latch comparator in one transient for representative trial codes",
@@ -228,6 +284,7 @@ def main() -> int:
         f"- failing codes: `{report['failing_codes']}`", "",
         "## What This Closes", "",
         "The DAC and comparator are in one SPICE transient. The physical capacitor array produces the top-plate voltage, the comparator's transistor input switches sample that node, and the same preamp/latch resolves the decision. This removes the biggest abstraction in the earlier replay: the comparator no longer receives a numerically injected threshold.", "",
+        f"Configuration: direct preamp `{report['direct_preamp_enabled']}`, top dummy `{report['top_dummy_capacitance'] or 'none'}`, top-to-VDD resistor `{report['top_rail_resistor'] or 'none' }`.", "",
         ("The working repair removes the source-follower stage that introduced a midrange sign offset and instead samples the physical DAC top plate directly after redistribution. The current long schedule uses a 32/64 um source switch, 4.0 ns acquisition, a 5.0 ns bottom-plate transition, comparator sampling at 9.1-9.6 ns, preamp enable at 9.7 ns, and latch fire at 11.7 ns. This gives the 8 pF MSB time to settle before the decision while preventing the active preamp from loading the DAC during sampling. The all-code sweep is a complete nominal code-level handoff, but it still does not sequence retained bits into a full SAR conversion." if os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long" else "The working repair removes the source-follower stage that introduced a midrange sign offset and instead samples the physical DAC top plate directly after redistribution. The short schedule samples at 5.1-5.6 ns, enables the preamp at 5.7 ns, and fires the latch at 7.7 ns. This gives the 8 pF MSB time to settle before the decision while preventing the active preamp from loading the DAC during sampling. The all-code sweep is a complete nominal code-level handoff, but it still does not sequence retained bits into a full SAR conversion."), "",
         "It is still only one bit-cycle boundary. The controller does not yet sequence four physical redistributions, retain bits, or repeat the experiment over PVT and mismatch.", "",
         "## Results", "",

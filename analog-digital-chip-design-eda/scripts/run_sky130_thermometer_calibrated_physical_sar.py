@@ -14,8 +14,9 @@ from run_sky130_thermometer_dac_comparator import run_trial
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
-OUT_JSON = EVIDENCE / "sky130-thermometer-calibrated-physical-sar.json"
-OUT_MD = EVIDENCE / "sky130-thermometer-calibrated-physical-sar.md"
+OUTPUT_STEM = os.environ.get("AIMC_THERMOMETER_SAR_OUTPUT_STEM", "sky130-thermometer-calibrated-physical-sar")
+OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
 BITS = 4
 VDD = 1.8
 SOURCE_V = float(os.environ.get("AIMC_THERMOMETER_SAR_SOURCE_V", "0.0"))
@@ -91,6 +92,19 @@ def calibrate() -> list[dict[str, Any]]:
         return list(pool.map(lambda code: run_trial_with_retries(code, DIFFERENTIAL_COMMON_V if DIFFERENTIAL else SOURCE_V, CALIBRATION_REFERENCE_V, "calibration"), range(1 << BITS)))
 
 
+def load_calibration_artifact() -> list[dict[str, Any]] | None:
+    """Reuse a complete, explicitly named calibration artifact for diagnostics."""
+    raw_path = os.environ.get("AIMC_THERMOMETER_SAR_CALIBRATION_JSON", "")
+    if not raw_path:
+        return None
+    path = Path(raw_path)
+    report = json.loads(path.read_text(encoding="utf-8"))
+    thresholds = report.get("calibration_thresholds_v", {})
+    if len(thresholds) != (1 << BITS):
+        raise SystemExit("AIMC_THERMOMETER_SAR_CALIBRATION_JSON must contain all 16 calibration thresholds")
+    return [{"code": int(code), "dac_top_after_v": float(value), "measured": True, "calibration_artifact": str(path)} for code, value in thresholds.items()]
+
+
 def mapped_sequence(expected_code: int, code_map: dict[int, int]) -> dict[str, Any]:
     target_v = SOURCE_V + STEP_V * (expected_code + 0.5)
     logical_code = 0
@@ -110,7 +124,7 @@ def mapped_sequence(expected_code: int, code_map: dict[int, int]) -> dict[str, A
 
 
 def main() -> int:
-    calibration_rows = calibrate()
+    calibration_rows = load_calibration_artifact() or calibrate()
     measured = [row for row in calibration_rows if row.get("measured")]
     missing = sorted(set(range(1 << BITS)) - {int(row["code"]) for row in measured})
     if missing:
@@ -121,7 +135,11 @@ def main() -> int:
         high_threshold = max(thresholds.values())
         input_scale = float(os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_INPUT_SCALE", "1.0"))
         input_offset = float(os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_INPUT_OFFSET", str(DIFFERENTIAL_COMMON_V * (1.0 - input_scale))))
-        code_map = {logical: min(thresholds, key=lambda physical: abs(thresholds[physical] - (DIFFERENTIAL_COMMON_V - input_offset - input_scale * STEP_V * logical))) for logical in range(1 << BITS)}
+        ordered_physical_codes = sorted(thresholds, key=thresholds.get)
+        if os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_RANK_MAP") == "reverse":
+            code_map = {logical: ordered_physical_codes[(1 << BITS) - 1 - logical] for logical in range(1 << BITS)}
+        else:
+            code_map = {logical: min(thresholds, key=lambda physical: abs(thresholds[physical] - (DIFFERENTIAL_COMMON_V - input_offset - input_scale * STEP_V * logical))) for logical in range(1 << BITS)}
     else:
         code_map = {logical: min(thresholds, key=lambda physical: abs(thresholds[physical] - (SOURCE_V + STEP_V * logical))) for logical in range(1 << BITS)}
     workers = max(1, int(os.environ.get("AIMC_THERMOMETER_SAR_CONVERSION_WORKERS", "1")))
@@ -129,7 +147,12 @@ def main() -> int:
         conversions = list(pool.map(lambda code: mapped_sequence(code, code_map), INPUT_CODES))
     comparisons = [step["comparison"] for conversion in conversions for step in conversion["trace"]]
     correct_conversion_count = sum(bool(row["correct_code"]) for row in conversions)
-    sar_status = ("differential_break_before_make_sar_candidate_nominal_only" if correct_conversion_count == len(conversions) else "differential_break_before_make_sar_rejected_source_common_mode") if DIFFERENTIAL else "thermometer_calibrated_sar_characterized_not_continuous_multicycle_proof"
+    if not INPUT_CODES:
+        sar_status = "differential_calibration_only_no_sar_conversions" if DIFFERENTIAL else "thermometer_calibration_only_no_sar_conversions"
+    else:
+        sar_status = ("differential_break_before_make_sar_candidate_nominal_only" if correct_conversion_count == len(conversions) else "differential_break_before_make_sar_rejected_source_common_mode") if DIFFERENTIAL else "thermometer_calibrated_sar_characterized_not_continuous_multicycle_proof"
+    differential_input_scale = float(os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_INPUT_SCALE", "1.0"))
+    differential_input_offset = float(os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_INPUT_OFFSET", str(DIFFERENTIAL_COMMON_V * (1.0 - differential_input_scale))))
     report = {
         "result_type": "sky130_thermometer_calibrated_physical_sar",
         "status": sar_status,
@@ -142,6 +165,10 @@ def main() -> int:
         "differential_encoding": DIFFERENTIAL,
         "differential_dummy_scale": float(os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_DUMMY_SCALE", "1.0")),
         "differential_common_v": DIFFERENTIAL_COMMON_V,
+        "differential_input_scale": differential_input_scale,
+        "differential_input_offset": differential_input_offset,
+        "differential_rank_map": os.environ.get("AIMC_THERMOMETER_DIFFERENTIAL_RANK_MAP", "affine_nearest") if DIFFERENTIAL else "not_applicable",
+        "calibration_artifact_source": os.environ.get("AIMC_THERMOMETER_SAR_CALIBRATION_JSON", "fresh_ngspice_calibration"),
         "calibration_case_count": len(calibration_rows),
         "calibration_measured_count": len(measured),
         "calibration_thresholds_v": thresholds,

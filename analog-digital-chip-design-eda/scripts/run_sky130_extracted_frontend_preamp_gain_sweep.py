@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -32,6 +33,40 @@ SETTINGS = [
     {"name": "higher_load_lower_current", "rd_ohm": 220_000.0, "itail_a": 10e-6, "win": 8.0},
     {"name": "wider_pair_same_load", "rd_ohm": 100_000.0, "itail_a": 20e-6, "win": 16.0},
 ]
+
+if os.environ.get("AIMC_PREAMP_SWEEP_PROFILE") == "low_cin":
+    SETTINGS = [
+        {"name": "low_cin_1m_5ua", "rd_ohm": 1_000_000.0, "itail_a": 5e-6, "win": 0.5},
+        {"name": "low_cin_2m_5ua", "rd_ohm": 2_000_000.0, "itail_a": 5e-6, "win": 0.5},
+        {"name": "low_cin_1m_10ua", "rd_ohm": 1_000_000.0, "itail_a": 10e-6, "win": 0.5},
+        {"name": "low_cin_500k_5ua", "rd_ohm": 500_000.0, "itail_a": 5e-6, "win": 1.0},
+    ]
+elif os.environ.get("AIMC_PREAMP_SWEEP_PROFILE") == "low_cin_margin":
+    SETTINGS = [
+        {"name": "margin_300k_5ua_w1", "rd_ohm": 300_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "margin_400k_5ua_w1", "rd_ohm": 400_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "margin_500k_5ua_w1", "rd_ohm": 500_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "margin_600k_5ua_w1", "rd_ohm": 600_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "margin_500k_4ua_w1", "rd_ohm": 500_000.0, "itail_a": 4e-6, "win": 1.0},
+        {"name": "margin_500k_6ua_w1", "rd_ohm": 500_000.0, "itail_a": 6e-6, "win": 1.0},
+    ]
+elif os.environ.get("AIMC_PREAMP_SWEEP_PROFILE") == "low_cin_offset":
+    SETTINGS = [
+        {"name": "offset_probe_300k_5ua_w1", "rd_ohm": 300_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "offset_probe_400k_5ua_w1", "rd_ohm": 400_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "offset_probe_500k_5ua_w1", "rd_ohm": 500_000.0, "itail_a": 5e-6, "win": 1.0},
+        {"name": "offset_probe_500k_4ua_w1", "rd_ohm": 500_000.0, "itail_a": 4e-6, "win": 1.0},
+    ]
+elif os.environ.get("AIMC_PREAMP_SWEEP_PROFILE") == "low_cin_offset_best":
+    SETTINGS = [
+        {"name": "offset_probe_500k_4ua_w1", "rd_ohm": 500_000.0, "itail_a": 4e-6, "win": 1.0},
+    ]
+
+OUTPUT_STEM = os.environ.get("AIMC_PREAMP_SWEEP_OUTPUT_STEM", "sky130-extracted-frontend-preamp-gain-sweep")
+DECK_OUT = SPICE_DIR / f"{OUTPUT_STEM}.sp"
+CSV_OUT = MEASUREMENTS / f"{OUTPUT_STEM}.csv"
+OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
 
 
 def rel(path: Path) -> str:
@@ -172,6 +207,8 @@ def build_report() -> dict[str, Any]:
     frontend = json.loads(SOURCE_FRONTEND.read_text(encoding="utf-8"))
     combined_preamp = json.loads(SOURCE_COMBINED_PREAMP.read_text(encoding="utf-8"))
     source_rows = [row for row in frontend["rows"] if row["reset_mode"] == "reset_pulse"]
+    if os.environ.get("AIMC_PREAMP_SWEEP_INCLUDE_ZERO") == "1":
+        source_rows.append({**source_rows[0], "reset_mode": "zero_differential_probe", "input_diff_mv": 0.0})
     rows: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []
     DECK_OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -179,6 +216,19 @@ def build_report() -> dict[str, Any]:
         setting_rows = [run_case(row, setting) for row in source_rows]
         rows.extend(setting_rows)
         summaries.append(summarize_setting(setting_rows))
+    zero_offsets = {
+        row["name"]: float(row["preamp_output_diff_v"])
+        for row in rows
+        if row.get("measured") and row.get("input_diff_mv") == 0.0
+    }
+    for row in rows:
+        if row.get("measured") and row.get("input_diff_mv") != 0.0 and row["name"] in zero_offsets:
+            corrected = float(row["preamp_output_diff_v"]) - zero_offsets[row["name"]]
+            row["zero_input_offset_output_diff_v"] = zero_offsets[row["name"]]
+            row["offset_corrected_output_diff_v"] = corrected
+            row["offset_corrected_sign_preserved"] = (corrected > 0) == (float(row["input_diff_mv"]) > 0)
+            row["offset_corrected_margin_pass"] = abs(corrected) >= OUTPUT_MARGIN_TARGET_V
+    calibrated_rows = [row for row in rows if row.get("offset_corrected_output_diff_v") is not None]
     passing = [
         item for item in summaries
         if item["measured_case_count"] == item["case_count"]
@@ -206,6 +256,11 @@ def build_report() -> dict[str, Any]:
         "best_setting": best,
         "setting_summaries": summaries,
         "rows": rows,
+        "zero_input_offset_by_setting_v": zero_offsets,
+        "offset_corrected_case_count": len(calibrated_rows),
+        "offset_corrected_sign_pass_count": sum(1 for row in calibrated_rows if row["offset_corrected_sign_preserved"]),
+        "offset_corrected_margin_pass_count": sum(1 for row in calibrated_rows if row["offset_corrected_margin_pass"]),
+        "minimum_abs_offset_corrected_output_diff_v": min((abs(row["offset_corrected_output_diff_v"]) for row in calibrated_rows), default=None),
         "prior_minimum_abs_preamp_output_diff_v": combined_preamp["minimum_abs_preamp_output_diff_v"],
         "same_run_strict_payload_ready": False,
         "accepted_post_layout_written": False,

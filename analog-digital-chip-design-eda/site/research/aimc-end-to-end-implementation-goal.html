@@ -41,6 +41,148 @@ table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{bo
 same workload + same dataset + same task metric
 digital baseline versus hybrid analog/digital implementation
 </code></pre>
+<h2>Expanded Physical-To-Product Goal</h2>
+<p>The next phase expands the current nominal prototype into one technically credible, workload-connected mixed-signal implementation. The sequence below is intentionally ordered: each stage produces evidence required by the next stage, and no later result may erase an earlier failure.</p>
+<h3>1. Close The Continuous SAR Converter</h3>
+<p>Make the current continuous physical SAR candidate correct and electrically legal before expanding its scope.</p>
+<p>Required work:</p>
+<ul>
+<li>resolve the code-2 decision-boundary failure;</li>
+<li>remove bottom-plate undershoot and any rail violation;</li>
+<li>verify monotonic DAC movement and comparator polarity;</li>
+<li>complete full-code conversion and code-density sweeps;</li>
+<li>record acquisition, settling, decision, reset, and latch timing;</li>
+<li>preserve a digital fallback whenever the converter gate is not satisfied.</li>
+</ul>
+<p>Required evidence:</p>
+<ul>
+<li>complete conversion transcript;</li>
+<li>per-cycle DAC and bottom-plate measurements;</li>
+<li>comparator, preamplifier, and latch observables;</li>
+<li>legal-voltage and monotonicity reports;</li>
+<li>explicit pass, fail, or blocked result.</li>
+</ul>
+<h3>2. Demonstrate Physical Robustness</h3>
+<p>Show that the converter works beyond one nominal simulation point.</p>
+<p>Required work:</p>
+<ul>
+<li>process, voltage, and temperature corners;</li>
+<li>capacitor, switch, and transistor mismatch;</li>
+<li>comparator offset, kickback, leakage, and metastability probes;</li>
+<li>clock jitter, supply noise, and transient settling variation;</li>
+<li>conversion accuracy, missing-code, INL, DNL, ENOB, and throughput estimates;</li>
+<li>calibration interval, correction precision, and drift behavior.</li>
+</ul>
+<p>Required evidence:</p>
+<ul>
+<li>reproducible PVT and mismatch configuration;</li>
+<li>seed-indexed result distributions, not only best cases;</li>
+<li>worst-case voltage, timing, accuracy, and power readback;</li>
+<li>defined limits and fallback behavior for failed conditions.</li>
+</ul>
+<h3>3. Complete The ADC Architecture</h3>
+<p>Turn the current transistor-level candidate into a defined converter subsystem with an explicit interface and control contract.</p>
+<p>The subsystem must specify:</p>
+<ul>
+<li>sample-and-hold topology and acquisition window;</li>
+<li>differential capacitor DAC and bit-slice significance;</li>
+<li>physical comparator and dynamic latch sequencing;</li>
+<li>SAR register, reset, clock, and decision control;</li>
+<li>calibration storage and correction path;</li>
+<li>saturation, out-of-range, timeout, and missing-code behavior;</li>
+<li>analog-to-digital interface timing and valid/error flags;</li>
+<li>area, energy, latency, bandwidth, and supply assumptions.</li>
+</ul>
+<p>The RTL/control model, transistor-level model, and evidence schema must agree on bit order, polarity, timing, and failure semantics.</p>
+<h3>4. Complete Physical Design And Extraction</h3>
+<p>Prove that the converter survives the transition from schematic intent to physical geometry.</p>
+<p>Required work:</p>
+<ul>
+<li>schematic and hierarchical netlist freeze;</li>
+<li>Sky130 layout with supply, clock, matching, shielding, and guard-ring rules;</li>
+<li>DRC and LVS;</li>
+<li>parasitic extraction;</li>
+<li>post-layout transient, PVT, mismatch, noise, and settling simulation;</li>
+<li>comparison of pre-layout and post-layout converter metrics;</li>
+<li>documented parasitic and layout-induced failure changes.</li>
+</ul>
+<p>The current workbench now measures the loaded starter-cell bounding boxes with Magic (<code>4/4</code> cells): row DAC <code>62.4 um2</code>, SAR/readout <code>89.6 um2</code>, shared mux <code>112.0 um2</code>, and macro boundary <code>237.6 um2</code>. These are reproducible geometry measurements, not transistor-converter signoff area; the integrated candidate still needs its own extracted boundary and a same-run post-layout record. See <code>evidence/aimc-simulator-adapters/converter-starter-layout-area-measurement.md</code>.</p>
+<p>The active device boundary has also been exercised physically: a hierarchical wrapper around <code>sky130_transistor_active_isolation_pair</code> loads in Magic, reports zero DRC errors, produces extracted SPICE, and its independently extracted two-device child matches in Netgen. This is a real physical sub-block check, not full converter LVS. See <code>evidence/aimc-simulator-adapters/active-isolation-pair-wrapper-physical-check.md</code>.</p>
+<p>The next composite handoff now places the extracted ultra-sense frontend and the transistor pair in one flat parent layout. Magic reports zero DRC errors and the extracted device records show the two transistor gates directly on the distinct sense-P and sense-N nets, without a sense-P/N short. This remains a frontend handoff sub-block, not a latch, SAR, or full-converter result. See <code>evidence/aimc-simulator-adapters/sky130-ultra-frontend-active-pair-physical-handoff.md</code>.</p>
+<p>Post-layout evidence is a separate gate. A passing schematic simulation may not be promoted to a post-layout claim.</p>
+<h3>5. Connect The Converter To The AIMC Workload</h3>
+<p>Demonstrate the complete hybrid analog/digital data path for one real task.</p>
+<p>The integrated path must include:</p>
+<pre><code>
+model and dataset
+-&gt; graph analysis and placement
+-&gt; DAC input encoding
+-&gt; analog memory-array operation
+-&gt; physical ADC conversion
+-&gt; digital accumulation and calibration
+-&gt; task-sensitive error check
+-&gt; analog acceptance or digital fallback
+-&gt; final task result
+</code></pre>
+<p>Required measurements include converter overhead, SRAM and buffer movement, digital correction, calibration cost, thermal budget, end-to-end latency, energy or power proxy, task accuracy, and fallback frequency. The comparison must use the same model, dataset, task metric, and failure threshold for the digital baseline and hybrid implementation.</p>
+<h3>6. Make The Software And Runtime Path Real</h3>
+<p>Exercise the hardware boundary through production-shaped software rather than only isolated circuit demonstrations.</p>
+<p>Required work:</p>
+<ul>
+<li>larger inspected models and longer execution sequences;</li>
+<li>deterministic compiler mapping and executable package generation;</li>
+<li>model, workload, hardware-profile, and converter-condition identities;</li>
+<li>real backend execution where available;</li>
+<li>replayable stateful tasks and independent verifiers;</li>
+<li>locked holdout and regression suites;</li>
+<li>measured memory, token, latency, energy, thermal, and cost budgets;</li>
+<li>runtime health monitoring and automatic digital fallback;</li>
+<li>reproducible artifacts connecting model output, compiler trace, hardware</li>
+<p>  measurements, and final task outcome.</p>
+</ul>
+<p>The software path may report a successful hybrid execution only when the physical converter gate, workload metric, and runtime safety gates all pass. Otherwise it must report the reason for fallback or blockage.</p>
+<h3>Definition Of End-To-End Completion</h3>
+<p>This expanded goal is complete only when one workload has:</p>
+<ol>
+<li>a reproducible digital baseline;</li>
+<li>a legal and correct continuous converter;</li>
+<li>robustness evidence across declared variations;</li>
+<li>a verified extracted physical implementation;</li>
+<li>a measured AIMC-integrated task result; and</li>
+<li>a real compiler/runtime path with replay, cost, safety, and fallback</li>
+<p>   evidence.</p>
+</ol>
+<p>Until then, the project may claim a prototype, diagnostic, or bounded simulation result, but not a production-ready analog accelerator or accepted silicon result.</p>
+<h2>Existing Toolchain And Execution Order</h2>
+<p>The goal is executable with the installed local toolchain. The tools are evidence producers, not decorations: each one owns a specific boundary and its output must be imported into the next gate.</p>
+<table><tbody>
+<tr><th>Boundary</th><th>Tool or existing command</th><th>Evidence it may provide</th></tr>
+<tr><td>transistor-level electrical behavior</td><td><code>ngspice</code>, <code>scripts/run_sky130_*.py</code></td><td>node voltages, timing, settling, comparator and SAR observables</td></tr>
+<tr><td>schematic/layout intent</td><td><code>xschem</code>, <code>magic</code>, <code>klayout</code></td><td>source schematics, layout, DRC/LVS and extracted views</td></tr>
+<tr><td>digital control</td><td><code>iverilog</code>, <code>verilator</code>, <code>yosys</code></td><td>RTL behavior, synthesis, equivalence-oriented checks and reports</td></tr>
+<tr><td>physical digital flow</td><td>OpenLane/OpenROAD</td><td>placed/routed controller artifacts and bounded physical-flow evidence</td></tr>
+<tr><td>array-level analog model</td><td>CrossSim and AIHWKIT in <code>$AIMC_SIM_PYTHON</code></td><td>calibrated analog error replay against the same digital reference</td></tr>
+<tr><td>compiler/runtime</td><td>the hybrid compiler, bytecode reference interpreter, and guarded runtime scripts</td><td>deterministic mapping, execution trace, acceptance and fallback decisions</td></tr>
+<tr><td>end-to-end governance</td><td><code>scripts/run_aimc_end_to_end_regression.py</code></td><td>one joined status across software, simulator, physical and claim gates</td></tr>
+</tbody></table>
+<p>The practical loop is:</p>
+<pre><code>
+check_tools.sh
+-&gt; repair and measure the converter with ngspice
+-&gt; run PVT/mismatch/noise and extracted-layout checks
+-&gt; replay the same workload through CrossSim and AIHWKIT
+-&gt; generate compiler package and decode its bytecode
+-&gt; execute the guarded runtime with physical-policy inputs
+-&gt; run the full regression and publish the evidence bundle
+</code></pre>
+<p>For simulator runs, use the configured simulator environment explicitly:</p>
+<pre><code>
+${AIMC_SIM_PYTHON:-$HOME/eda-tools/aimc-simulators-venv/bin/python} scripts/run_calibrated_deep_transformer_mlp_stack_aimc_simulator_payloads.py
+python3 scripts/generate_transformer_mlp_block_execution_package.py
+python3 scripts/run_full_pvt_task_policy_bridge.py
+python3 scripts/run_aimc_end_to_end_regression.py
+</code></pre>
+<p>The current run demonstrates the intended governance behavior: CrossSim&#x27;s calibrated transformer-MLP replay is accepted, AIHWKIT&#x27;s replay is recorded but rejected by the residual guard, and the runtime retains digital fallback. That is useful progress, but it does not waive the blocked physical SAR gate.</p>
 <h2>Initial Scope</h2>
 <p>Start with one workload that has:</p>
 <ul>
@@ -573,7 +715,8 @@ two-phase schematic pass
 <p>The latest source-matched calibration run measures all <code>16/16</code> physical thresholds at the low-source SAR interface using the PMOS-only bottom-plate topology and the corrected <code>9.0 ns</code> pre-sample DAC threshold point. It completes <code>20/20</code> retained-bit comparisons and recovers <code>5/5</code> representative conversions. The measured threshold range is <code>0.002633..1.799311 V</code>, minimum adjacent spacing is <code>103.412 mV</code>, and the rank-preserving logical-to-physical map is injective. This is the authoritative current nominal calibration result; it does not yet create PVT, mismatch/noise, continuous-SAR, extracted-layout, board, or silicon acceptance.</p>
 <p>A topology audit qualifies the historical result. The selected cell used in the old <code>5/5</code> run turned on both a PMOS to <code>VDD</code> and an NMOS to ground. A PMOS-only rerun removes that rail contention and preserves all <code>4/4</code> tested high-code comparator signs, but code <code>14</code> and code <code>15</code> remain only <code>16.361 mV</code> apart when measured at the corrected pre-sample point; the NMOS-only branch collapses toward the source. The corrected PMOS-only SAR run consequently passes the current five representative conversions, but only over the tested low/mid-code set. The old rail-contention <code>5/5</code> result is calibration evidence for a rejected research fixture, not acceptance of the physical cell. The topology comparison is published in <code>docs/research/sky130-bottom-plate-topology-sweep.md</code>.</p>
 <p>The coupled sample-capacitance sweep then tests the suspected interface load directly. At code 15, <code>200 fF</code> and <code>20 fF</code> comparator storage produce about <code>2.082 V</code> and <code>2.096 V</code> respectively, while <code>2 fF</code> falls to about <code>1.776 V</code>. All tested points preserve comparator polarity, but the response is non-monotonic. The practical conclusion is that comparator storage, switch charge injection, and available settling time must be co-designed; selecting a tiny capacitor by full-scale voltage alone is not a valid fix. The sweep is published in <code>docs/research/sky130-coupled-sample-cap-sweep.md</code>.</p>
-<p>The combined interpretation is now more specific than “the DAC needs calibration.” Three questions are separated. First, can the decision circuit tell which side of a threshold it is on? Nominally yes: the physical DAC and comparator preserve polarity for all <code>16/16</code> trial codes. Second, does the selected low-source PMOS-only capacitor network create legal, spaced, bijective thresholds? Nominally yes: all three gates pass after source-matched rank-preserving calibration. Third, does that result survive real disturbance and repeated operation? Not yet: the existing mismatch and settling evidence is from earlier non-equivalent fixtures, while transistor-level PVT/noise and continuous-SAR evidence remain open. The current design implication is to keep the analog path behind a measurable governor and run the selected candidate through those robustness gates before enabling it for model-level claims. The bottom-switch sizing experiment sharpens the next design move. Halving the current <code>16/8 um</code> bottom-plate switch widths preserves all four high-code comparator signs, but lowers code <code>15</code> from <code>2.413 V</code> to <code>2.371 V</code> and leaves codes <code>14</code> and <code>15</code> separated by only about <code>11 mV</code>. Therefore the upper collapse is not fixed by shrinking that switch alone. The next candidate must change the charge-transfer topology or gate-headroom/control waveform, and it must be judged by threshold spacing, settling, energy, and decision margin together. The negative result is published in <code>docs/research/sky130-bottom-switch-scale-sweep.md</code>.</p>
+<p>The combined interpretation is now more specific than “the DAC needs calibration.” Three questions are separated. First, can the decision circuit tell which side of a threshold it is on? Nominally yes: the physical DAC and comparator preserve polarity for all <code>16/16</code> trial codes. Second, does the selected low-source PMOS-only capacitor network create legal, spaced, bijective thresholds? Nominally yes: all three gates pass after source-matched rank-preserving calibration. Third, does that result survive real disturbance and repeated operation? Not yet: the existing mismatch and settling evidence is from earlier non-equivalent fixtures, while transistor-level PVT/noise and continuous-SAR evidence remain open. The current design implication is to keep the analog path behind a measurable governor and run the selected candidate through those robustness gates before enabling it for model-level claims.</p>
+<p>The same-topology representative PVT run measures all <code>25/25</code> cases across five Sky130 process/temperature/supply corners. Four corners preserve comparator polarity for all five representative codes; the slow/cold/low-supply corner preserves <code>4/5</code> with the fixed <code>0.604 V</code> reference because code <code>6</code> has only <code>34.9 mV</code> DAC-to-reference margin. A targeted corner calibration at <code>0.580 V</code> measures that same corner at <code>5/5</code> correct polarities, including code <code>6</code> with <code>58.9 mV</code> margin. The complete calibrated reference profile then measures <code>25/25</code> cases and <code>25/25</code> correct polarities across all five corners, using <code>0.580 V</code> only at <code>ss/-20 C/1.62 V</code> and <code>0.604 V</code> elsewhere. This is evidence for a corner-specific reference/calibration profile and a measurable margin governor, not full PVT acceptance: all-code per-corner calibration, mismatch/noise yield, continuous multicycle SAR, extraction, and post-layout gates remain open. The fixed-reference artifact is <code>evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-pvt.json</code>; the calibrated-profile artifact is <code>evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-pvt-calibrated.json</code>. The bottom-switch sizing experiment sharpens the next design move. Halving the current <code>16/8 um</code> bottom-plate switch widths preserves all four high-code comparator signs, but lowers code <code>15</code> from <code>2.413 V</code> to <code>2.371 V</code> and leaves codes <code>14</code> and <code>15</code> separated by only about <code>11 mV</code>. Therefore the upper collapse is not fixed by shrinking that switch alone. The next candidate must change the charge-transfer topology or gate-headroom/control waveform, and it must be judged by threshold spacing, settling, energy, and decision margin together. The negative result is published in <code>docs/research/sky130-bottom-switch-scale-sweep.md</code>.</p>
 <p>The PMOS gate-headroom diagnostic then tests a controlled overdrive directly. With the PMOS-only bottom-plate cell driven to <code>-0.6 V</code> during redistribution, both codes <code>14</code> and <code>15</code> complete and preserve comparator polarity, but their corrected pre-sample thresholds are separated by only <code>17.118 mV</code>, still below the <code>56.25 mV</code> half-LSB target. Gate overdrive alone is therefore rejected as the repair. The result is published in <code>docs/research/sky130-pmos-gate-overdrive-diagnostic.md</code>; the next candidate must change the charge-transfer path or waveform rather than only the gate bias.</p>
 <p>The subsequent PMOS strength sweep tests <code>2x</code> and <code>4x</code> bottom-plate devices under the same long-acquisition timing. Both high-code pairs complete and preserve polarity, but spacing remains <code>17.265 mV</code> and <code>17.250 mV</code>, respectively. Stronger devices alone are therefore rejected as well. The evidence is published in <code>docs/research/sky130-bottom-switch-strength-diagnostic.md</code>; the next candidate must change the charge-transfer topology or waveform.</p>
 <p>The isolated LSB-ratio diagnostic then tests a <code>4x</code> LSB capacitor across codes <code>12-15</code>. All four cases complete and preserve comparator polarity, but adjacent DAC spacings are <code>293.782 mV</code>, <code>-104.561 mV</code>, and <code>144.058 mV</code>; the transfer is non-monotonic. Increasing only the LSB capacitor is therefore rejected. The result is published in <code>docs/research/sky130-lsb-ratio-diagnostic.md</code>; the next candidate must rebalance the complete charge-transfer network.</p>

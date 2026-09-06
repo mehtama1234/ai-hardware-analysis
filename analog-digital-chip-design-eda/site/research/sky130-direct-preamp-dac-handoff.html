@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Direct Preamp DAC Handoff</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Direct Preamp DAC Handoff</h1><p class="lead">Source: docs/research/sky130-direct-preamp-dac-handoff.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Direct Preamp DAC Handoff</h1>
+<p>This experiment connects the physical DAC top plate and reference directly to the gates of the existing transistor preamplifier. The comparator input storage-switch path is removed, so the DAC is not directly loaded by latch storage capacitors.</p>
+<p>The two-code handoff first passed after correcting the physical input mapping: both critical code-7/code-8 polarities converged, with preamp differences of approximately <code>0.447 V</code> and <code>0.281 V</code>. The required all-code run is weaker:</p>
+<ul>
+<li><code>15/16</code> codes measured;</li>
+<li><code>12/15</code> measured polarities correct;</li>
+<li>top-plate voltage reaches about <code>2.68 V</code> at high codes;</li>
+<li>code 0 was incomplete.</li>
+</ul>
+<p>The direct preamp removes comparator kickback loading, but it does not repair the DAC transfer or its legal voltage range. It is rejected as a converter interface and remains a diagnostic candidate for a future actively regulated split-DAC design.</p>
+<p>Evidence: <code>evidence/aimc-simulator-adapters/sky130-direct-preamp-all-codes.json</code>.</p>
+<p>The coupled runner exposes this experiment through <code>AIMC_COUPLED_DIRECT_PREAMP=1</code>; the default path remains unchanged and was rerun successfully after the hook was added.</p></article></main></body></html>

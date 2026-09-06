@@ -15,7 +15,7 @@ EXTRACT_DIR = WORKBENCH / "extracted"
 CELL = CELL_DIR / "row_dac_10b.mag"
 PDK_MAGIC_RC = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "magic" / "sky130A.magicrc"
 PDK_ROOT = Path.home() / "eda-tools" / "pdks"
-LOCAL_MAGIC = Path.home() / "eda-tools" / "magic" / "bin" / "magic"
+LOCAL_MAGIC = Path.home() / "eda-tools" / "magic-8.3.682" / "bin" / "magic"
 OUT_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / "row-dac-10b-layout-smoke.json"
 OUT_MD = ROOT / "evidence" / "aimc-simulator-adapters" / "row-dac-10b-layout-smoke.md"
 

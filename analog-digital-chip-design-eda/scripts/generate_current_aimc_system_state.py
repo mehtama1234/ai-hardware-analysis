@@ -88,6 +88,9 @@ COUPLED_PVT_MARGIN_PROBE = ROOT / "evidence" / "aimc-simulator-adapters" / "sky1
 COUPLED_PHYSICAL_SAR_MISMATCH = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-coupled-physical-sar-mismatch.json"
 CONTINUOUS_PHYSICAL_SAR_SPEC = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-continuous-physical-sar-spec.json"
 CONTINUOUS_PHYSICAL_SAR = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-continuous-physical-sar.json"
+CONTINUOUS_PHYSICAL_SAR_MISMATCH = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-continuous-physical-sar-mismatch-100.json"
+CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-continuous-physical-sar-mismatch-reset-100.json"
+CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET5 = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-continuous-physical-sar-mismatch-reset5ns-100.json"
 COUPLED_SAMPLE_CAP_SWEEP = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-coupled-sample-cap-sweep.json"
 TRANSISTOR_CORNER_GOVERNOR_BRIDGE = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-two-phase-transistor-corner-governor-bridge.json"
 OUT_JSON = ROOT / "evidence" / "aimc-hardware-lab" / "current-aimc-system-state.json"
@@ -223,6 +226,9 @@ def main() -> None:
     coupled_physical_sar_mismatch = load_json(COUPLED_PHYSICAL_SAR_MISMATCH) if COUPLED_PHYSICAL_SAR_MISMATCH.exists() else {}
     continuous_physical_sar_spec = load_json(CONTINUOUS_PHYSICAL_SAR_SPEC) if CONTINUOUS_PHYSICAL_SAR_SPEC.exists() else {}
     continuous_physical_sar = load_json(CONTINUOUS_PHYSICAL_SAR) if CONTINUOUS_PHYSICAL_SAR.exists() else {}
+    continuous_physical_sar_mismatch = load_json(CONTINUOUS_PHYSICAL_SAR_MISMATCH) if CONTINUOUS_PHYSICAL_SAR_MISMATCH.exists() else {}
+    continuous_physical_sar_mismatch_reset = load_json(CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET) if CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET.exists() else {}
+    continuous_physical_sar_mismatch_reset5 = load_json(CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET5) if CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET5.exists() else {}
     coupled_sample_cap_sweep = load_json(COUPLED_SAMPLE_CAP_SWEEP) if COUPLED_SAMPLE_CAP_SWEEP.exists() else {}
     transistor_corner_governor_bridge = load_json(TRANSISTOR_CORNER_GOVERNOR_BRIDGE) if TRANSISTOR_CORNER_GOVERNOR_BRIDGE.exists() else {}
     summary = proof.get("summary") if isinstance(proof.get("summary"), dict) else {}
@@ -500,6 +506,24 @@ def main() -> None:
             "nmos_gate_debug_v": continuous_physical_sar.get("n_gate_debug_v", []) if continuous_physical_sar else [],
             "bottom_plate_debug_v": continuous_physical_sar.get("bottom_plate_debug_v", []) if continuous_physical_sar else [],
             "decision_comparator_diff_v": continuous_physical_sar.get("decision_comparator_diff_v", []) if continuous_physical_sar else [],
+        },
+        "continuous_physical_sar_mismatch_state": {
+            "status": continuous_physical_sar_mismatch.get("status", "missing") if continuous_physical_sar_mismatch else "missing",
+            "artifact": str(CONTINUOUS_PHYSICAL_SAR_MISMATCH.relative_to(ROOT)) if continuous_physical_sar_mismatch else "missing",
+            "seed": continuous_physical_sar_mismatch.get("seed") if continuous_physical_sar_mismatch else None,
+            "sigma_percent": continuous_physical_sar_mismatch.get("sigma_percent") if continuous_physical_sar_mismatch else None,
+            "trial_count": continuous_physical_sar_mismatch.get("trial_count", 0) if continuous_physical_sar_mismatch else 0,
+            "measured_trial_count": continuous_physical_sar_mismatch.get("measured_trial_count", 0) if continuous_physical_sar_mismatch else 0,
+            "full_map_pass_count": continuous_physical_sar_mismatch.get("full_map_pass_count", 0) if continuous_physical_sar_mismatch else 0,
+            "legal_bottom_pass_count": continuous_physical_sar_mismatch.get("legal_bottom_pass_count", 0) if continuous_physical_sar_mismatch else 0,
+            "base_cap_scales": continuous_physical_sar_mismatch.get("base_cap_scales", []) if continuous_physical_sar_mismatch else [],
+            "reset_promoted_artifact": str(CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET.relative_to(ROOT)) if continuous_physical_sar_mismatch_reset else "missing",
+            "reset_promoted_full_map_pass_count": continuous_physical_sar_mismatch_reset.get("full_map_pass_count", 0) if continuous_physical_sar_mismatch_reset else 0,
+            "reset_promoted_legal_bottom_pass_count": continuous_physical_sar_mismatch_reset.get("legal_bottom_pass_count", 0) if continuous_physical_sar_mismatch_reset else 0,
+            "reset_promoted_measured_trial_count": continuous_physical_sar_mismatch_reset.get("measured_trial_count", 0) if continuous_physical_sar_mismatch_reset else 0,
+            "reset5ns_negative_control_artifact": str(CONTINUOUS_PHYSICAL_SAR_MISMATCH_RESET5.relative_to(ROOT)) if continuous_physical_sar_mismatch_reset5 else "missing",
+            "reset5ns_negative_control_full_map_pass_count": continuous_physical_sar_mismatch_reset5.get("full_map_pass_count", 0) if continuous_physical_sar_mismatch_reset5 else 0,
+            "reset5ns_negative_control_legal_bottom_pass_count": continuous_physical_sar_mismatch_reset5.get("legal_bottom_pass_count", 0) if continuous_physical_sar_mismatch_reset5 else 0,
         },
         "differential_frontend_state": {
             "status": "sample_hold_characterized_comparator_budget_defined" if diff_input_sweep and diff_mismatch_sweep and diff_offset_noise else "missing",
@@ -1285,6 +1309,22 @@ def main() -> None:
         f"- PMOS/NMOS gate debug V: `{state['continuous_physical_sar_state']['pmos_gate_debug_v']}` / `{state['continuous_physical_sar_state']['nmos_gate_debug_v']}`",
         f"- bottom-plate debug V: `{state['continuous_physical_sar_state']['bottom_plate_debug_v']}`",
         f"- comparator differences V: `{state['continuous_physical_sar_state']['decision_comparator_diff_v']}`",
+        "",
+        "## Continuous Physical SAR Mismatch Qualification",
+        "",
+        f"- status: `{state['continuous_physical_sar_mismatch_state']['status']}`",
+        f"- artifact: `{state['continuous_physical_sar_mismatch_state']['artifact']}`",
+        f"- seed / sigma: `{state['continuous_physical_sar_mismatch_state']['seed']}` / `{state['continuous_physical_sar_mismatch_state']['sigma_percent']}%`",
+        f"- trials: `{state['continuous_physical_sar_mismatch_state']['trial_count']}`",
+        f"- measured trials: `{state['continuous_physical_sar_mismatch_state']['measured_trial_count']}`",
+        f"- full-map/legal passes: `{state['continuous_physical_sar_mismatch_state']['full_map_pass_count']}` / `{state['continuous_physical_sar_mismatch_state']['trial_count']}`",
+        f"- legal bottom-plate passes: `{state['continuous_physical_sar_mismatch_state']['legal_bottom_pass_count']}` / `{state['continuous_physical_sar_mismatch_state']['trial_count']}`",
+        f"- base capacitor scales: `{state['continuous_physical_sar_mismatch_state']['base_cap_scales']}`",
+        f"- reset-promoted rerun artifact: `{state['continuous_physical_sar_mismatch_state']['reset_promoted_artifact']}`",
+        f"- reset-promoted full-map/legal passes: `{state['continuous_physical_sar_mismatch_state']['reset_promoted_full_map_pass_count']}` / `{state['continuous_physical_sar_mismatch_state']['reset_promoted_legal_bottom_pass_count']}`",
+        f"- reset-promoted measured trials: `{state['continuous_physical_sar_mismatch_state']['reset_promoted_measured_trial_count']}`",
+        f"- reset5 ns negative-control artifact: `{state['continuous_physical_sar_mismatch_state']['reset5ns_negative_control_artifact']}`",
+        f"- reset5 ns negative-control full-map/legal passes: `{state['continuous_physical_sar_mismatch_state']['reset5ns_negative_control_full_map_pass_count']}` / `{state['continuous_physical_sar_mismatch_state']['reset5ns_negative_control_legal_bottom_pass_count']}`",
         "",
         "## Hybrid Compiler State",
         "",

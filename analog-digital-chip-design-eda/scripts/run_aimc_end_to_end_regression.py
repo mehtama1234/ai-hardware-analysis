@@ -72,6 +72,7 @@ def artifact_checks() -> list[dict[str, object]]:
     profile = load("evidence/aimc-hardware-lab/hardware-profile-educational-hybrid-tile-v1.json")
     charge_spec = load("evidence/aimc-simulator-adapters/sky130-charge-transfer-redesign-spec.json")
     continuous_sar_spec = load("evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-spec.json")
+    starter_drc = load("evidence/aimc-simulator-adapters/converter-starter-drc-audit.json")
     serving_task = load("evidence/aimc-hardware-lab/language-model-serving-task-rehearsal-v1.json")
     serving_comparison = load("evidence/aimc-hybrid-language-model-serving/hybrid_output_comparison.json")
     traces = governor.get("traces", [])
@@ -94,7 +95,8 @@ def artifact_checks() -> list[dict[str, object]]:
         {"name": "hardware_profile_is_bound", "pass": profile.get("profile_id") == "educational-hybrid-tile-v1" and compiler.get("shared_hardware", {}).get("profile_id") == profile.get("profile_id") and all(model.get("hardware_profile_id") == profile.get("profile_id") for model in compiler.get("models", []))},
         {"name": "charge_transfer_spec_is_bound", "pass": charge_spec.get("target_profile_id") == profile.get("profile_id") and charge_spec.get("simulation_requirements", {}).get("all_code_count") == 16 and charge_spec.get("simulation_requirements", {}).get("mismatch_trials_required") >= 100},
         {"name": "continuous_sar_spec_is_bound", "pass": continuous_sar_spec.get("hardware_profile_id") == profile.get("profile_id") and continuous_sar_spec.get("topology") == "pmos_only_to_vdd" and continuous_sar_spec.get("required_cycles_per_conversion") == 4 and continuous_sar_spec.get("required_representative_conversions") == 5},
-        {"name": "physical_gate_is_consistent_blocked", "pass": physical.get("status") == "blocked_physical_converter_evidence_is_consistent"},
+        {"name": "starter_layout_drc_is_clean_and_bounded", "pass": starter_drc.get("status") == "starter_drc_audit_complete_not_converter_signoff" and starter_drc.get("cell_count") == 4 and starter_drc.get("drc_clean_count") == 4 and starter_drc.get("all_drc_clean") is True},
+        {"name": "physical_gate_is_consistent_nominal_sar", "pass": physical.get("status") == "nominal_continuous_sar_map_passed_remaining_qualification_open"},
     ]
 
 
@@ -115,6 +117,7 @@ def main() -> int:
         ("physical_evidence_gate", [python, "scripts/validate_aimc_physical_evidence.py"]),
         ("charge_transfer_spec", [python, "scripts/validate_aimc_charge_transfer_spec.py"]),
         ("continuous_physical_sar_spec", [python, "scripts/validate_aimc_continuous_physical_sar_spec.py"]),
+        ("starter_layout_drc_audit", [python, "scripts/run_converter_starter_drc_audit.py"]),
         ("current_state", [python, "scripts/generate_current_aimc_system_state.py"]),
         ("portfolio_validation", [python, "scripts/validate_aimc_workload_portfolio.py"]),
         ("project_validation", [python, "scripts/validate_project.py"]),
@@ -123,7 +126,7 @@ def main() -> int:
     checks = artifact_checks()
     report = {
         "schema_version": "aimc_end_to_end_regression.v1",
-        "status": "pass_software_vertical_slice_physical_converter_blocked" if all(item["pass"] for item in results) and all(item["pass"] for item in checks) else "failed",
+        "status": "pass_software_vertical_slice_nominal_sar_remaining_qualification" if all(item["pass"] for item in results) and all(item["pass"] for item in checks) else "failed",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "python": python,
         "task_python": task_python,
@@ -153,7 +156,7 @@ def main() -> int:
     site_result = run("site_build", [python, "scripts/build_site.py"])
     results.append(site_result)
     report["results"] = results
-    report["status"] = "pass_software_vertical_slice_physical_converter_blocked" if all(item["pass"] for item in results) and all(item["pass"] for item in checks) else "failed"
+    report["status"] = "pass_software_vertical_slice_nominal_sar_remaining_qualification" if all(item["pass"] for item in results) and all(item["pass"] for item in checks) else "failed"
     OUT_JSON.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     lines = [
         "# AIMC End-To-End Regression",

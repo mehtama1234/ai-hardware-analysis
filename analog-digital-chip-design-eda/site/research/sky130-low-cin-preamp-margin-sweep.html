@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Low-Capacitance Preamp Margin Sweep</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Low-Capacitance Preamp Margin Sweep</h1><p class="lead">Source: docs/research/sky130-low-cin-preamp-margin-sweep.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Low-Capacitance Preamp Margin Sweep</h1>
+<p>The extracted ultra-sense frontend was attached to a Sky130 transistor differential preamp and swept around the first low-input-capacitance operating point.</p>
+<p>The sweep covered six settings and twelve transient cases in total. Every case completed without timeout. Several settings produced more than the required <code>0.5 mV</code> output magnitude, but none passed both polarity and margin together.</p>
+<table><tbody>
+<tr><th>setting</th><th>load</th><th>tail current</th><th>input width</th><th>minimum output magnitude</th><th>polarity cases</th><th>margin cases</th></tr>
+<tr><td><code>margin_300k_5ua_w1</code></td><td><code>300 kΩ</code></td><td><code>5 µA</code></td><td><code>1 µm</code></td><td><code>0.804 mV</code></td><td><code>1/2</code></td><td><code>2/2</code></td></tr>
+<tr><td><code>margin_400k_5ua_w1</code></td><td><code>400 kΩ</code></td><td><code>5 µA</code></td><td><code>1 µm</code></td><td><code>0.922 mV</code></td><td><code>1/2</code></td><td><code>2/2</code></td></tr>
+<tr><td><code>margin_500k_5ua_w1</code></td><td><code>500 kΩ</code></td><td><code>5 µA</code></td><td><code>1 µm</code></td><td><code>0.828 mV</code></td><td><code>1/2</code></td><td><code>2/2</code></td></tr>
+<tr><td><code>margin_600k_5ua_w1</code></td><td><code>600 kΩ</code></td><td><code>5 µA</code></td><td><code>1 µm</code></td><td><code>0.202 mV</code></td><td><code>1/2</code></td><td><code>0/2</code></td></tr>
+<tr><td><code>margin_500k_4ua_w1</code></td><td><code>500 kΩ</code></td><td><code>4 µA</code></td><td><code>1 µm</code></td><td><code>1.447 mV</code></td><td><code>1/2</code></td><td><code>2/2</code></td></tr>
+<tr><td><code>margin_500k_6ua_w1</code></td><td><code>500 kΩ</code></td><td><code>6 µA</code></td><td><code>1 µm</code></td><td><code>0.035 mV</code></td><td><code>2/2</code></td><td><code>0/2</code></td></tr>
+</tbody></table>
+<p>The complete evidence is <a href="../../evidence/aimc-simulator-adapters/sky130-low-cin-margin-sweep.json">sky130-low-cin-margin-sweep.json</a>. The runner now supports the reproducible <code>AIMC_PREAMP_SWEEP_PROFILE=low_cin_margin</code> profile and a separate output stem.</p>
+<h2>Interpretation</h2>
+<p>This is the first measured transistor path with enough raw output magnitude to be worth calibration work. The failure is not lack of gain alone: the high-margin settings resolve only one polarity because the preamp has a deterministic input-referred offset or common-mode imbalance. The next design/test must measure the zero-differential output, subtract or trim that offset, and then rerun both target edges with the same <code>0.5 mV</code> margin requirement.</p>
+<h2>Boundary</h2>
+<p>This remains an extracted-frontend plus schematic transistor-preamp result. It does not prove a drawn preamp layout, offset statistics, noise, latch kickback, DRC/LVS, SAR conversion, or accepted post-layout converter evidence.</p></article></main></body></html>

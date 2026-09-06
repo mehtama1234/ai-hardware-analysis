@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
+import signal
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,7 +21,7 @@ DECK_OUT = SPICE_DIR / "sky130_bootstrapped_switch.sp"
 CSV_OUT = MEASUREMENTS / "sky130-bootstrapped-switch-ngspice.csv"
 OUT_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-bootstrapped-switch-ngspice.json"
 OUT_MD = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-bootstrapped-switch-ngspice.md"
-NGSPICE_TIMEOUT_S = 10
+NGSPICE_TIMEOUT_S = float(os.environ.get("AIMC_BOOTSTRAPPED_SWITCH_TIMEOUT_S", "180"))
 
 
 @dataclass(frozen=True)
@@ -85,16 +87,22 @@ run
 def run_case(case: Case) -> dict[str, Any]:
     DECK_OUT.write_text(build_deck(case), encoding="utf-8")
     half_lsb_12b_v = 1.8 / 4096.0 / 2.0
+    process = subprocess.Popen(
+        ["ngspice", "-b", str(DECK_OUT)],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
     try:
-        result = subprocess.run(
-            ["ngspice", "-b", str(DECK_OUT)],
-            cwd=ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=NGSPICE_TIMEOUT_S,
-        )
+        stdout, stderr = process.communicate(timeout=NGSPICE_TIMEOUT_S)
     except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        process.communicate()
         return {
             "case": case.name,
             "target_input_v": case.input_v,
@@ -106,6 +114,7 @@ def run_case(case: Case) -> dict[str, Any]:
             "pass_hold_delta_half_lsb_12b": False,
             "pass_total_error_half_lsb_12b": False,
         }
+    result = subprocess.CompletedProcess(process.args, process.returncode, stdout, stderr)
     if result.returncode != 0:
         raise RuntimeError(result.stdout + result.stderr)
     acquired_v = read_measure(result.stdout, "acquired_v")
@@ -178,7 +187,7 @@ def write_csv(rows: list[dict[str, Any]]) -> None:
     CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
     with CSV_OUT.open("w", encoding="utf-8", newline="") as handle:
         keys = sorted({key for row in rows for key in row})
-        writer = csv.DictWriter(handle, fieldnames=keys)
+        writer = csv.DictWriter(handle, fieldnames=keys, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 

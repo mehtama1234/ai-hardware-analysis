@@ -95,12 +95,15 @@ def main() -> None:
             }
         )
     if bootstrap:
+        bootstrap_measured = bootstrap.get("measured_case_count", 0) > 0
         rows.append(
             {
                 "evidence": "idealized_bootstrapped_switch_candidate",
                 "best_or_worst_case_v": bootstrap["worst_hold_abs_delta_v"],
                 "passes_half_lsb_12b": False,
-                "meaning": "the idealized bootstrapped Sky130 switch produced no measured cases, so the fixture is not a proof path yet",
+                "meaning": "the idealized bootstrapped Sky130 switch converged and acquired correctly, but hold movement remains above the 12-bit target"
+                if bootstrap_measured
+                else "the idealized bootstrapped Sky130 switch produced no measured cases, so the fixture is not a proof path yet",
             }
         )
     if differential:

@@ -13,10 +13,12 @@ from run_sky130_coupled_dac_comparator_bit import run_trial
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
-OUT_JSON = EVIDENCE / "sky130-coupled-physical-sar-pvt.json"
-OUT_MD = EVIDENCE / "sky130-coupled-physical-sar-pvt.md"
+_OUTPUT_STEM = os.environ.get("AIMC_PVT_OUTPUT_STEM", "sky130-coupled-physical-sar-pvt")
+OUT_JSON = EVIDENCE / f"{_OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{_OUTPUT_STEM}.md"
 SOURCE_V = 0.004
-REFERENCE_V = 0.604
+REFERENCE_V = float(os.environ.get("AIMC_PVT_REFERENCE_V", "0.604"))
+REFERENCE_PROFILE = json.loads(os.environ.get("AIMC_PVT_REFERENCE_PROFILE", "{}"))
 CODES = (0, 2, 4, 6, 7)
 CORNERS = (
     {"name": "tt_25c_1p80v", "section": "tt", "temperature_c": 25.0, "supply_v": 1.8},
@@ -36,7 +38,8 @@ def run_case(corner: dict[str, Any], code: int) -> dict[str, Any]:
         "AIMC_COUPLED_SUPPLY_V": str(corner["supply_v"]),
     })
     try:
-        row = run_trial(code, SOURCE_V, REFERENCE_V)
+        reference_v = float(REFERENCE_PROFILE.get(corner["name"], REFERENCE_V))
+        row = run_trial(code, SOURCE_V, reference_v)
     finally:
         for name, value in previous.items():
             if value is None:
@@ -50,15 +53,17 @@ def run_case(corner: dict[str, Any], code: int) -> dict[str, Any]:
 def main() -> int:
     os.environ.setdefault("AIMC_COUPLED_DAC_ACQ", "long")
     os.environ.setdefault("AIMC_COUPLED_BOTTOM_PMOS_ONLY", "1")
+    selected_names = {name.strip() for name in os.environ.get("AIMC_PVT_CORNERS", "").split(",") if name.strip()}
+    selected_corners = [corner for corner in CORNERS if not selected_names or corner["name"] in selected_names]
     rows = []
-    for corner in CORNERS:
+    for corner in selected_corners:
         for code in CODES:
             print(f"corner {corner['name']} code {code}", flush=True)
             rows.append(run_case(corner, code))
     measured = [row for row in rows if row.get("measured")]
-    by_corner = {corner["name"]: [row for row in measured if row["corner"] == corner["name"]] for corner in CORNERS}
+    by_corner = {corner["name"]: [row for row in measured if row["corner"] == corner["name"]] for corner in selected_corners}
     corner_summaries = {}
-    for corner in CORNERS:
+    for corner in selected_corners:
         corner_rows = by_corner[corner["name"]]
         values = [row["dac_top_after_v"] for row in corner_rows]
         corner_summaries[corner["name"]] = {
@@ -74,9 +79,10 @@ def main() -> int:
         "status": "same_topology_representative_pvt_characterized_not_full_pvt_sar_proof",
         "topology": "pmos_only_to_vdd",
         "source_v": SOURCE_V,
-        "reference_v": REFERENCE_V,
+        "reference_v": REFERENCE_V if not REFERENCE_PROFILE else None,
+        "reference_profile_v": {corner["name"]: float(REFERENCE_PROFILE.get(corner["name"], REFERENCE_V)) for corner in selected_corners},
         "codes": list(CODES),
-        "corner_count": len(CORNERS),
+        "corner_count": len(selected_corners),
         "case_count": len(rows),
         "measured_case_count": len(measured),
         "timed_out_case_count": sum(row.get("timed_out", False) for row in rows),
@@ -84,7 +90,7 @@ def main() -> int:
         "corner_summaries": corner_summaries,
         "rows": rows,
         "claim_boundary": {
-            "allowed": "same PMOS-only coupled DAC/comparator fixture is characterized at the five required Sky130 model and temperature/supply corners for five representative codes",
+        "allowed": "same PMOS-only coupled DAC/comparator fixture is characterized at the selected Sky130 model and temperature/supply corners for five representative codes",
             "not_allowed": "does not prove all-code calibration at every corner, mismatch/noise yield, continuous multicycle SAR, extracted layout, board behavior, or silicon",
         },
     }
@@ -96,10 +102,11 @@ def main() -> int:
         f"- representative codes: `{CODES}`",
         f"- measured cases: `{report['measured_case_count']}` of `{report['case_count']}`",
         f"- timed out cases: `{report['timed_out_case_count']}`",
-        f"- correct comparator polarities: `{report['correct_polarity_count']}` of `{report['measured_case_count']}`", "",
+        f"- correct comparator polarities: `{report['correct_polarity_count']}` of `{report['measured_case_count']}`",
+        f"- reference profile: `{report['reference_profile_v']}`", "",
         "| corner | measured | polarity | top-plate range V | minimum sampled spacing V |", "| --- | ---: | ---: | ---: | ---: |",
     ]
-    for corner in CORNERS:
+    for corner in selected_corners:
         summary = corner_summaries[corner["name"]]
         value_range = "n/a" if summary["top_plate_min_v"] is None else f"{summary['top_plate_min_v']:.6f}..{summary['top_plate_max_v']:.6f}"
         spacing = "n/a" if summary["minimum_sampled_spacing_v"] is None else f"{summary['minimum_sampled_spacing_v']:.6f}"

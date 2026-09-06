@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Continuous SAR Sequenced Bottom Precharge</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Continuous SAR Sequenced Bottom Precharge</h1><p class="lead">Source: docs/research/sky130-continuous-sequenced-bottom-precharge.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Continuous SAR Sequenced Bottom Precharge</h1>
+<p>The earlier continuous candidate left all bottom plates floating during the source-acquisition interval. A parallel ground-precharge device was rejected because it injected charge into the retained state. This experiment instead uses the existing low-side switch itself: it is turned on to ground during the first 4 ns of each acquisition, opened for a 1 ns non-overlap interval, and only then driven by the decision-dependent redistribution waveform.</p>
+<p>This is the first test of a real phase-separated bottom-plate architecture. The one-conversion diagnostic decodes <code>2→2</code> with legal DAC thresholds, but its strict bottom-plate range is narrowly missed (<code>−140 µV</code> to <code>1.80051 V</code>). In a five-conversion run with the historical reference profile, the state is better controlled but the old calibration is no longer valid: <code>0→3, 2→6, 4→6, 6→8, 7→8</code>.</p>
+<p>With an experimentally tuned profile (<code>0.6, 0.3, 0.3, 0.7, 0.7</code>), the same physical sequence reaches <code>2→2, 4→4, 6→6</code>, but the endpoints remain wrong (<code>0→4, 7→6</code>). A second endpoint probe gives <code>0→1</code> and <code>7→6</code>; therefore reference tuning alone has not established endpoint windows.</p>
+<p>The change is retained as the leading architecture candidate, but it is not accepted. It still needs endpoint-separable transfer, strict 0–1.8 V range, all five correct conversions, and then PVT, mismatch/noise, extraction, and layout evidence.</p>
+<p>The 2 pF top-dummy follow-up is also rejected: it still reaches about <code>1.99 V</code> and returns <code>0→4, 2→4, 4→5, 6→8, 7→8</code> under the tuned profile.</p>
+<p>Evidence:</p>
+<ul>
+<li><code>evidence/aimc-simulator-adapters/sky130-continuous-sequenced-precharge-single.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-continuous-sequenced-precharge-full.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-continuous-sequenced-precharge-ref06303707-full.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-continuous-sequenced-precharge-ref015030307072-full.json</code></li>
+<li><code>evidence/aimc-simulator-adapters/sky130-continuous-sequenced-precharge-topdummy2-full.json</code></li>
+</ul></article></main></body></html>

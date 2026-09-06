@@ -2,6 +2,11 @@
 
 This folder designs the software layer around an analog in-memory AI inference chip.
 
+The active goal shared with the EDA workbench is the
+[rigorous hybrid inference execution plan](../../analog-digital-chip-design-eda/docs/roadmaps/rigorous-hybrid-inference-execution-plan.md).
+Its [restart ledger](../../analog-digital-chip-design-eda/docs/roadmaps/rigorous-hybrid-inference-restart-ledger.md)
+records recovered evidence and the next implementation steps.
+
 The first thing to do is not build a dashboard. The first thing is define the path from a trained model to a measured inference result on the target device.
 
 ```text

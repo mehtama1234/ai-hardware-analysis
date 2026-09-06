@@ -1,0 +1,23 @@
+* Extracted frontend plus physical isolation pair and matched transistor preamp.
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_ultra_sense_capacitive_frontend_extracted.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_transistor_active_isolation_pair_extracted.spice"
+
+.subckt sky130_extracted_isolation_preamp_frontend vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn
+XFRONT vss vdd sp raw_p clk_sample vcm_reset clk_latch raw_n sn sky130_ultra_sense_capacitive_frontend
+RBIAS_P raw_p vcm_reset 100G
+RBIAS_N raw_n vcm_reset 100G
+RISO_P vdd iso_p 560k
+RISO_N vdd iso_n 560k
+XISO iso_tail iso_p iso_n raw_p raw_n sky130_transistor_active_isolation_pair
+IISO_TAIL iso_tail 0 4u
+* Swapped isolation outputs implement the measured positive model-output convention.
+RPRE_P vdd pre_p 100k
+RPRE_N vdd pre_n 100k
+XPRE_P pre_p iso_n pre_tail 0 sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XPRE_N pre_n iso_p pre_tail 0 sky130_fd_pr__nfet_01v8 W=4 L=0.15
+IPRE_TAIL pre_tail 0 20u
+CPRE_P pre_p 0 2f
+CPRE_N pre_n 0 2f
+CCOUP_P pre_n sense_p 5f
+CCOUP_N pre_p sense_n 5f
+.ends sky130_extracted_isolation_preamp_frontend

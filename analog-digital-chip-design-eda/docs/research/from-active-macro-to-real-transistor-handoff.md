@@ -13,7 +13,9 @@ extracted frontend sense voltage
   -> latch decision
 ```
 
-The current transistor handoff candidate does not pass yet. That is not a writing problem. It is the current circuit problem.
+The transistor handoff now passes a bounded schematic-level test after correcting
+the extracted cell's sense-pin convention in the runner. That is meaningful
+progress, but it is not yet a physical converter result.
 
 ## The Simple Question
 
@@ -105,7 +107,13 @@ So even before offset and noise, the transistor stage can shrink the useful inpu
 
 If the frontend gives a small voltage difference and the input pair adds too much capacitance, the stage may see the correct sign but too little magnitude. If the bias point is poor, one side may not amplify cleanly. If the transient deck is stiff or unstable, the run can time out before producing trustworthy measurements.
 
-The newest assisted gate-startup run sharpens this. It no longer dies only as a timeout. It measures both reset-pulse polarities in a deck that contains the extracted frontend and real Sky130 input devices, but only one polarity keeps sign and output margin. A targeted passive gate-coupling sweep then finds no passing resistance setting. A bare source follower also fails because it collapses the tiny differential signal before the readout pair can use it. A direct extracted-frontend differential preamp times out. The same preamp bias also times out with measured sense-voltage sources, a small measured-source transient bias sweep finds no passing setting, and the first measured-source OP map also times out. Older input-stage evidence still shows the same primitive can pass, so the next circuit problem is now clearer: reproduce that primitive exactly before changing the preamp.
+The extracted handoff runner now reproduces the active isolation pair with the
+corrected sense-pin convention. At the `extracted_560k_4ua` setting, both signed
+cases complete, preserve corrected sign, and exceed the 0.500 mV corrected
+output target; the minimum measured margin is 0.5091 mV. Without the pin
+convention correction, the same physical subcell reverses polarity. This makes
+the earlier failure actionable: the immediate issue was netlist pin mapping,
+not evidence that the transistor primitive could never work.
 
 That is why a real transistor handoff must prove more than sign.
 
@@ -149,11 +157,13 @@ The correct treatment is:
 timed out run = failed handoff evidence
 ```
 
-That is why the current page is useful even though it reports failure. It prevents the project from quietly replacing a hard circuit result with a softer estimate.
+That is why the current page remains useful even though the passing result is
+narrow. It prevents the project from replacing a hard physical result with a
+broader claim than the run supports.
 
 ## What Comes After A Passing Transistor Handoff
 
-A passing transistor handoff would not finish the converter.
+A passing schematic-level transistor handoff does not finish the converter.
 
 It would unlock the next rung:
 
@@ -186,19 +196,29 @@ digital trust boundary checks residual risk
 model state updates only if the check passes
 ```
 
-The transistor handoff sits in the middle of that chain. If it fails, the backend may still have simulator evidence, and the frontend may still preserve sign, but the system cannot claim a trusted converter.
+The transistor handoff sits in the middle of that chain. The backend may still
+have simulator evidence and the frontend may still preserve sign, but the
+system cannot claim a trusted converter until the latch and SAR path also pass.
 
-That is the current state.
+That is the current state: the extracted active isolation subcell and transistor
+handoff runner are now checkable, while the latch, full SAR, integrated
+converter layout, full-converter LVS, noise/mismatch robustness, and strict
+post-layout payload remain open.
 
 ## Claim Boundary
 
 This page supports one claim:
 
-The next physical gap is now well-defined. The project has a passing active-macro handoff, but the real Sky130 transistor input-stage handoff is still open and must pass before latch, SAR, strict payload, break-even, or placement claims can be upgraded.
+The next physical gap is now narrower. The project has a passing active-macro
+handoff and a passing extracted transistor handoff at schematic level, but the
+latch, SAR, full-converter physical implementation, and strict payload are
+still open.
 
 This page refuses stronger claims:
 
-It does not prove the transistor handoff, does not prove latch resolution, does not prove SAR conversion, does not prove converter energy or latency, does not prove DRC/LVS, and does not create accepted post-layout converter evidence.
+It does not prove full-converter layout, latch resolution, SAR conversion,
+converter energy or latency, full-converter DRC/LVS, mismatch/noise robustness,
+or accepted post-layout converter evidence.
 
 ## Where This Fits In The Flow
 

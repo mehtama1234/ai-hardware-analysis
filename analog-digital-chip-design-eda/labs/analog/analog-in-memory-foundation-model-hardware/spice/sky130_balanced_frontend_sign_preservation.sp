@@ -1,6 +1,6 @@
 * Balanced extracted frontend sign-preservation diagnostic.
 
-.include "/home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_balanced_capacitive_isolation_frontend_extracted.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sky130_balanced_capacitive_isolation_frontend_extracted.spice"
 .param vdd=1.8
 .param vinp=0.900076485293
 .param vinn=0.899923514707

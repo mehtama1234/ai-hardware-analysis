@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 from dataclasses import dataclass
@@ -15,10 +16,11 @@ LAB = ROOT / "labs" / "analog" / "analog-in-memory-foundation-model-hardware"
 SPICE_DIR = LAB / "spice"
 MEASUREMENTS = LAB / "measurements"
 PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
-DECK_OUT = SPICE_DIR / "sky130_clocked_comparator_latch.sp"
-CSV_OUT = MEASUREMENTS / "sky130-clocked-comparator-latch-ngspice.csv"
-OUT_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-clocked-comparator-latch-ngspice.json"
-OUT_MD = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-clocked-comparator-latch-ngspice.md"
+OUTPUT_STEM = os.environ.get("AIMC_LATCH_OUTPUT_STEM", "sky130-clocked-comparator-latch-ngspice")
+DECK_OUT = SPICE_DIR / f"{OUTPUT_STEM}.sp"
+CSV_OUT = MEASUREMENTS / f"{OUTPUT_STEM}.csv"
+OUT_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / f"{OUTPUT_STEM}.json"
+OUT_MD = ROOT / "evidence" / "aimc-simulator-adapters" / f"{OUTPUT_STEM}.md"
 SPEC_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-comparator-acceptance-fixture-spec.json"
 NGSPICE_TIMEOUT_S = 120
 
@@ -156,7 +158,7 @@ def build_report() -> dict[str, Any]:
         raise FileNotFoundError(PDK_LIB)
     spec = json.loads(SPEC_JSON.read_text(encoding="utf-8"))
     budget = spec["derived_budget"]
-    target_mv = float(budget["target_combined_offset_noise_mv"])
+    target_mv = float(os.environ.get("AIMC_LATCH_INPUT_DIFF_MV", budget["target_combined_offset_noise_mv"]))
     hard_budget_mv = float(budget["remaining_comparator_offset_or_noise_budget_mv"])
     cases = [
         Case("negative_target_edge", -target_mv),

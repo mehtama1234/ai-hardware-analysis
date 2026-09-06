@@ -2,6 +2,10 @@
 
 This folder is a first-principles working lab for analog design, digital design, and electronic design automation.
 
+The active cross-project implementation goal is the
+[rigorous hybrid inference execution plan](docs/roadmaps/rigorous-hybrid-inference-execution-plan.md),
+with current progress in the [restart ledger](docs/roadmaps/rigorous-hybrid-inference-restart-ledger.md).
+
 The goal is not to collect loose notes. The goal is to explain chip design from the physical and mathematical objects that must be controlled:
 
 - voltage, current, charge, noise, gain, bandwidth, and stability in analog circuits

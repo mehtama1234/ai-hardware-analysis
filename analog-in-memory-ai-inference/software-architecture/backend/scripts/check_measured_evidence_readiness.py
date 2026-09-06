@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CURRENT_LAB_EVIDENCE = (
-    ROOT.parents[3] / "analog-digital-chip-design-eda" / "evidence" / "aimc-hardware-lab"
+    ROOT.parents[2] / "analog-digital-chip-design-eda" / "evidence" / "aimc-hardware-lab"
 )
 IMPORT_TEMPLATES = ROOT.parent / "review-package-demo" / "import-templates"
 sys.path.insert(0, str(ROOT))

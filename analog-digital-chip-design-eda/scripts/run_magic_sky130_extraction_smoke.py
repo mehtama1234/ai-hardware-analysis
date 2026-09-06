@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SMOKE_DIR = ROOT / "labs" / "analog" / "analog-in-memory-foundation-model-hardware" / "tool-smoke" / "magic-sky130-extraction"
 PDK_MAGIC_RC = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "magic" / "sky130A.magicrc"
 PDK_ROOT = Path.home() / "eda-tools" / "pdks"
-LOCAL_MAGIC = Path.home() / "eda-tools" / "magic" / "bin" / "magic"
+LOCAL_MAGIC = Path.home() / "eda-tools" / "magic-8.3.682" / "bin" / "magic"
 OUT_JSON = ROOT / "evidence" / "aimc-simulator-adapters" / "magic-sky130-extraction-smoke.json"
 OUT_MD = ROOT / "evidence" / "aimc-simulator-adapters" / "magic-sky130-extraction-smoke.md"
 

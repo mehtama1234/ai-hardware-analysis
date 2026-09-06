@@ -48,7 +48,10 @@ def decode(word: str) -> dict[str, int | str | None]:
     }
 
 
-def main() -> int:
+def main(package: Path = PACKAGE) -> int:
+    PACKAGE = package
+    OUT_JSON = package / "target_bytecode_reference_execution.json"
+    OUT_MD = package / "target_bytecode_reference_execution.md"
     bytecode = json.loads((PACKAGE / "target_bytecode.json").read_text(encoding="utf-8"))
     commands = json.loads((PACKAGE / "runtime_commands.json").read_text(encoding="utf-8"))["commands"]
     words = bytecode["words"]

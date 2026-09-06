@@ -3,7 +3,7 @@
 * It is not a transistor converter proof.
 
 .global VSUBS
-.include "/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/netlist/aimc_readout_candidate_001_extracted.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/netlist/aimc_readout_candidate_001_extracted.spice"
 
 VDD vdd 0 1.8
 VSS vss 0 0

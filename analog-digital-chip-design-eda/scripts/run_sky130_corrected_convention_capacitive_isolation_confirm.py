@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 from dataclasses import dataclass
@@ -18,11 +19,14 @@ EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
 SPEC_JSON = EVIDENCE / "sky130-comparator-acceptance-fixture-spec.json"
 CONVENTION_JSON = EVIDENCE / "sky130-clocked-latch-output-convention-diagnostic.json"
-DECK_OUT = SPICE_DIR / "sky130_corrected_convention_capacitive_isolation_confirm.sp"
-CSV_OUT = MEASUREMENTS / "sky130-corrected-convention-capacitive-isolation-confirm.csv"
-OUT_JSON = EVIDENCE / "sky130-corrected-convention-capacitive-isolation-confirm.json"
-OUT_MD = EVIDENCE / "sky130-corrected-convention-capacitive-isolation-confirm.md"
-NGSPICE_TIMEOUT_S = 160
+OUTPUT_STEM = os.environ.get("AIMC_CISO_OUTPUT_STEM", "sky130-corrected-convention-capacitive-isolation-confirm")
+DECK_OUT = SPICE_DIR / f"{OUTPUT_STEM.replace('-', '_')}.sp"
+CSV_OUT = MEASUREMENTS / f"{OUTPUT_STEM}.csv"
+OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
+NGSPICE_TIMEOUT_S = int(os.environ.get("AIMC_CISO_TIMEOUT_S", "160"))
+EXPLICIT_GATE_RESET = os.environ.get("AIMC_CISO_EXPLICIT_GATE_RESET") == "1"
+TRANSIENT_STEP = os.environ.get("AIMC_CISO_TRANSIENT_STEP", "2p")
 
 
 @dataclass(frozen=True)
@@ -60,6 +64,11 @@ def build_deck(case: Case) -> str:
     diff_v = case.diff_mv / 1000.0
     vinp = 0.9 + diff_v / 2.0
     vinn = 0.9 - diff_v / 2.0
+    reset_block = """VGEQ geq 0 PULSE(0 {vdd} 0.10n 20p 20p 0.75n 20n)
+XEQ gp gn geq 0 sky130_fd_pr__nfet_01v8 W={wn_in} L={lmin}
+XRESET_P gp geq vcm 0 sky130_fd_pr__nfet_01v8 W={wn_in} L={lmin}
+XRESET_N gn geq vcm 0 sky130_fd_pr__nfet_01v8 W={wn_in} L={lmin}
+""" if EXPLICIT_GATE_RESET else ""
     return f"""* Sky130 corrected-convention capacitive isolation confirm.
 * Sample nodes drive latch input gates through tiny capacitors.
 * Latch output is interpreted as outp-outn in Python.
@@ -110,6 +119,7 @@ CISO_P sp gp {{ciso}}
 CISO_N sn gn {{ciso}}
 RBIASP gp vcm 100G
 RBIASN gn vcm 100G
+{reset_block}
 
 XPREP vdd clkb outp vdd sky130_fd_pr__pfet_01v8 W={{wp_latch}} L={{lmin}}
 XPREN vdd clkb outn vdd sky130_fd_pr__pfet_01v8 W={{wp_latch}} L={{lmin}}
@@ -124,7 +134,7 @@ XEVAL eval clk 0 0 sky130_fd_pr__nfet_01v8 W={{wn_tail}} L={{lmin}}
 COUTP outp 0 5f
 COUTN outn 0 5f
 
-.tran 2p 3n
+.tran {TRANSIENT_STEP} 3n
 .measure tran sampled_p_before_v FIND v(sp) AT=0.90n
 .measure tran sampled_n_before_v FIND v(sn) AT=0.90n
 .measure tran sampled_p_after_v FIND v(sp) AT=2.60n
@@ -226,6 +236,8 @@ def build_report() -> dict[str, Any]:
         "candidate_post_layout_written": False,
         "accepted_post_layout_written": False,
         "strict_payload_ready": False,
+        "explicit_gate_reset": EXPLICIT_GATE_RESET,
+        "transient_step": TRANSIENT_STEP,
         "rows": rows,
         "claim_boundary": {
             "allowed": "confirms the tiny-capacitor latch input isolation candidate in both polarities using the corrected outp-minus-outn output convention",

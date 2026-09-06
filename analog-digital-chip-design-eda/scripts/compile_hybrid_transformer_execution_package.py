@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -31,6 +32,11 @@ def align(value: int, boundary: int = SRAM_ALIGNMENT_BYTES) -> int:
 
 
 def buffer_bytes(row: dict[str, object]) -> int:
+    tensor_shapes = [row.get("activation_shape"), row.get("output_shape")]
+    sizes = [math.prod(shape) * 4 for shape in tensor_shapes
+             if isinstance(shape, list) and shape and all(isinstance(n, int) and n > 0 for n in shape)]
+    if sizes:
+        return max(sizes)
     shape = row.get("weight_shape_in_out")
     if isinstance(shape, list) and len(shape) == 2 and all(isinstance(item, int) for item in shape):
         # Four bytes per element is an explicit planning representation for
@@ -52,8 +58,11 @@ def encode_command(opcode: int, model_index: int, op_index: int, tile_id: int | 
     return f"0x{word:016x}"
 
 
-def main() -> int:
+def main(source_path: Path = SOURCE, output_dir: Path = OUT) -> int:
+    SOURCE, OUT = source_path, output_dir
+    OUT.mkdir(parents=True, exist_ok=True)
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    physical_gate = source.get("physical_gate_status", PHYSICAL_GATE)
     commands: list[dict[str, object]] = []
     registers: list[dict[str, object]] = []
     bytecode: list[dict[str, object]] = []
@@ -137,7 +146,7 @@ def main() -> int:
         model_memory_maps.append({"model_id": model_id, "sram_bytes_used": sram_cursor, "allocations": allocations})
     compiled = {
         "schema_version": "aimc_target_execution_package.v1",
-        "package_id": "hybrid_transformer_target_execution_v1",
+        "package_id": source.get("target_package_id", "hybrid_transformer_target_execution_v1"),
         "source_package": str(SOURCE.relative_to(ROOT)),
         "target_profile": "educational-hybrid-tile-v1",
         "status": "target_bytecode_generated_firmware_not_generated",
@@ -155,7 +164,7 @@ def main() -> int:
             "cycle_counts": "planning values for command ordering, not measured timing",
             "sram_addresses": "deterministic aligned offsets within the educational 64 KiB SRAM contract",
             "bytecode_encoding": "64-bit review encoding with opcode, model, operator, tile, duration, and activation-buffer fields",
-            "converter": f"uses simulator DAC/ADC widths; physical converter compatibility remains {PHYSICAL_GATE}",
+            "converter": f"uses simulator DAC/ADC widths; physical converter compatibility remains {physical_gate}",
         },
         "claim_boundary": {
             "allowed": "deterministic target command and register ordering was generated from the shared hybrid plans",
@@ -170,7 +179,7 @@ def main() -> int:
         "commands": commands,
         "estimated_cycles": cycle,
         "status": "static_target_bytecode_schedule_only",
-        "physical_converter_gate": PHYSICAL_GATE,
+        "physical_converter_gate": physical_gate,
         "claim_boundary": "estimated target schedule, not an observed runtime trace",
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -198,7 +207,7 @@ def main() -> int:
             f"- estimated schedule: `{compiled['estimated_cycles']}` cycles",
             "- review bytecode words: `{}`".format(len(bytecode)),
             "- hardware instruction-set binary: `not generated`",
-            f"- physical converter: `{PHYSICAL_GATE}`",
+            f"- physical converter: `{physical_gate}`",
             "",
             "Analog rows receive tile IDs, DAC/ADC settings, calibration profiles, fallback IDs, and SRAM buffers. Digital rows receive explicit digital-support commands. Each command also has a deterministic review encoding and aligned SRAM offsets. Cycle values remain planning assumptions, not measurements.",
             "",
@@ -220,7 +229,7 @@ def main() -> int:
     print(f"estimated_cycles,{compiled['estimated_cycles']}")
     print(f"review_bytecode_words,{len(bytecode)}")
     print("hardware_binary,not_generated")
-    print(f"physical_converter_gate,{PHYSICAL_GATE}")
+    print(f"physical_converter_gate,{physical_gate}")
     return 0
 
 

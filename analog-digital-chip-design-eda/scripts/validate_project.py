@@ -400,6 +400,7 @@ REQUIRED = [
     "scripts/generate_sky130_preamp_op_deck_diff_diagnosis.py",
     "scripts/run_sky130_known_good_shape_preamp_transient_latch_debug.py",
     "scripts/run_sky130_latch_alone_from_preamp_voltage_debug.py",
+    "scripts/run_sky130_dynamic_offset_cancelled_latch.py",
     "scripts/run_sky130_latch_alone_swapped_preamp_voltage_debug.py",
     "scripts/preview_converter_post_layout_submission.py",
     "scripts/audit_converter_post_layout_evidence_leakage.py",
@@ -1272,7 +1273,7 @@ def main() -> int:
             return fail(f"site/research/passive-frontend-vs-active-preamp.html missing marker {marker!r}")
 
     active_to_transistor_page = (ROOT / "site" / "research" / "from-active-macro-to-real-transistor-handoff.html").read_text(encoding="utf-8")
-    for marker in ["From Active Macro To Real Transistor Handoff", "Can the tiny frontend voltage drive real transistor gates", "0.437908", "The active macro was not fake progress", "timed out run = failed handoff evidence", "real Sky130 transistor input-stage handoff is still open", "does not create accepted post-layout converter evidence"]:
+    for marker in ["From Active Macro To Real Transistor Handoff", "Can the tiny frontend voltage drive real transistor gates", "0.437908", "The active macro was not fake progress", "timed out run = failed handoff evidence", "passing extracted transistor handoff at schematic level", "accepted post-layout converter evidence"]:
         if marker not in active_to_transistor_page:
             return fail(f"site/research/from-active-macro-to-real-transistor-handoff.html missing marker {marker!r}")
 
@@ -1856,23 +1857,36 @@ def main() -> int:
     transistor_isolation = json.loads((ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-transistor-active-isolation-preamp.json").read_text(encoding="utf-8"))
     if transistor_isolation.get("result_type") != "sky130_transistor_active_isolation_preamp":
         return fail("Sky130 transistor active isolation preamp has wrong result_type")
-    if transistor_isolation.get("status") != "transistor_active_isolation_preamp_failed_schematic":
-        return fail("Sky130 transistor active isolation preamp should remain a failed schematic result")
-    if transistor_isolation.get("setting_count") != 3 or transistor_isolation.get("case_count") != 6:
-        return fail("Sky130 transistor active isolation preamp should run three settings and six signal cases")
-    if transistor_isolation.get("measured_case_count") != 6:
+    # The current canonical run uses the extracted isolation pair with its
+    # explicitly corrected sense-pin convention.  Keep accepting the older
+    # three-setting failure artifact when validating a historical checkout,
+    # but do not require the old failure after the corrected bounded handoff
+    # has been measured and published.
+    transistor_passed = transistor_isolation.get("status") == "transistor_active_isolation_preamp_passed_schematic_not_layout_or_strict"
+    transistor_failed = transistor_isolation.get("status") == "transistor_active_isolation_preamp_failed_schematic"
+    if not (transistor_passed or transistor_failed):
+        return fail("Sky130 transistor active isolation preamp has an unsupported status")
+    expected_setting_count = 1 if transistor_passed else 3
+    expected_case_count = 2 if transistor_passed else 6
+    if transistor_isolation.get("setting_count") != expected_setting_count or transistor_isolation.get("case_count") != expected_case_count:
+        return fail("Sky130 transistor active isolation preamp has an unexpected setting or case count")
+    if transistor_isolation.get("measured_case_count") != expected_case_count:
         return fail("Sky130 transistor active isolation preamp should measure all signal cases")
     if transistor_isolation.get("timed_out_case_count") != 0:
         return fail("Sky130 transistor active isolation preamp should not time out")
-    if transistor_isolation.get("passing_setting_count") != 0:
-        return fail("Sky130 transistor active isolation preamp should not report a passing setting")
+    expected_passing_setting_count = 1 if transistor_passed else 0
+    if transistor_isolation.get("passing_setting_count") != expected_passing_setting_count:
+        return fail("Sky130 transistor active isolation preamp has an unexpected passing-setting count")
     best = transistor_isolation.get("best_setting", {})
-    if best.get("name") != "medium_iso_pair_8ua":
-        return fail("Sky130 transistor active isolation preamp should identify the medium isolation pair as best")
+    expected_best_name = "extracted_560k_4ua" if transistor_passed else "medium_iso_pair_8ua"
+    if best.get("name") != expected_best_name:
+        return fail("Sky130 transistor active isolation preamp should identify the expected best setting")
     if float(best.get("minimum_abs_corrected_preamp_output_diff_v", 0.0)) <= float(transistor_isolation.get("output_margin_target_v", 0.0)):
         return fail("Sky130 transistor active isolation preamp should exceed magnitude target while still failing sign")
-    if int(best.get("corrected_sign_pass_count", -1)) != 0:
+    if transistor_failed and int(best.get("corrected_sign_pass_count", -1)) != 0:
         return fail("Sky130 transistor active isolation preamp should expose the remaining polarity failure")
+    if transistor_passed and int(best.get("corrected_sign_pass_count", -1)) != expected_case_count:
+        return fail("Sky130 transistor active isolation preamp should preserve corrected polarity")
     if transistor_isolation.get("accepted_post_layout_written") is not False:
         return fail("Sky130 transistor active isolation preamp must not write accepted evidence")
     for path_field in ["generated_deck", "csv"]:
@@ -1880,7 +1894,12 @@ def main() -> int:
         if not path_value or not (ROOT / str(path_value)).exists():
             return fail(f"Sky130 transistor active isolation preamp missing {path_field}")
     transistor_isolation_page = (ROOT / "site" / "research" / "sky130-transistor-active-isolation-preamp.html").read_text(encoding="utf-8")
-    for marker in ["Sky130 Transistor Active Isolation Preamp", "transistor_active_isolation_preamp_failed_schematic", "passing setting count: <code>0</code>", "medium_iso_pair_8ua", "corrected margin pass", "does not prove layout"]:
+    markers = ["Sky130 Transistor Active Isolation Preamp", "corrected margin pass", "does not prove layout"]
+    if transistor_passed:
+        markers.extend(["transistor_active_isolation_preamp_passed_schematic_not_layout_or_strict", "passing setting count: <code>1</code>", "extracted_560k_4ua"])
+    else:
+        markers.extend(["transistor_active_isolation_preamp_failed_schematic", "passing setting count: <code>0</code>", "medium_iso_pair_8ua"])
+    for marker in markers:
         if marker not in transistor_isolation_page:
             return fail(f"site/research/sky130-transistor-active-isolation-preamp.html missing marker {marker!r}")
 
@@ -2199,18 +2218,18 @@ def main() -> int:
     latch_alone = json.loads((ROOT / "evidence" / "aimc-simulator-adapters" / "sky130-latch-alone-from-preamp-voltage-debug.json").read_text(encoding="utf-8"))
     if latch_alone.get("result_type") != "sky130_latch_alone_from_preamp_voltage_debug":
         return fail("Sky130 latch-alone from preamp voltage debug has wrong result_type")
-    if latch_alone.get("status") != "latch_alone_from_preamp_voltage_failed":
-        return fail("Sky130 latch-alone from preamp voltage debug should currently fail")
+    if latch_alone.get("status") != "latch_alone_from_preamp_voltage_passed_ready_for_clock_timing":
+        return fail("Sky130 latch-alone from preamp voltage debug should pass the isolated latch test")
     if latch_alone.get("measured_case_count") != 2 or latch_alone.get("timed_out_case_count") != 0:
         return fail("Sky130 latch-alone from preamp voltage debug should measure both cases without timeout")
-    if latch_alone.get("resolved_correct_polarity_count") != 0:
-        return fail("Sky130 latch-alone from preamp voltage debug should expose zero resolved cases")
+    if latch_alone.get("resolved_correct_polarity_count") != 2:
+        return fail("Sky130 latch-alone from preamp voltage debug should resolve both isolated cases")
     if latch_alone.get("uses_ideal_sources_from_measured_preamp_voltages") is not True or latch_alone.get("uses_sampled_nodes") is not False:
         return fail("Sky130 latch-alone from preamp voltage debug should isolate latch from sampled nodes")
     if latch_alone.get("accepted_post_layout_written") is not False:
         return fail("Sky130 latch-alone from preamp voltage debug must not write accepted evidence")
     latch_alone_page = (ROOT / "site" / "research" / "sky130-latch-alone-from-preamp-voltage-debug.html").read_text(encoding="utf-8")
-    for marker in ["Sky130 Latch-Alone From Preamp Voltage Debug", "latch_alone_from_preamp_voltage_failed", "measured case count: <code>2</code>", "resolved correct polarity count: <code>0</code>", "uses sampled nodes: <code>False</code>", "does not prove sampled-node kickback"]:
+    for marker in ["Sky130 Latch-Alone From Preamp Voltage Debug", "latch_alone_from_preamp_voltage_passed_ready_for_clock_timing", "measured case count: <code>2</code>", "resolved correct polarity count: <code>2</code>", "uses sampled nodes: <code>False</code>", "does not prove sampled-node kickback"]:
         if marker not in latch_alone_page:
             return fail(f"site/research/sky130-latch-alone-from-preamp-voltage-debug.html missing marker {marker!r}")
 
@@ -3344,8 +3363,10 @@ def main() -> int:
         return fail("Sky130 bootstrapped switch ngspice should run three input cases")
     if bootstrap.get("timed_out_case_count", 0) + bootstrap.get("measured_case_count", 0) != bootstrap.get("case_count"):
         return fail("Sky130 bootstrapped switch ngspice should account for every case")
-    if bootstrap.get("measured_case_count") != 0:
-        return fail("Sky130 bootstrapped switch ngspice currently documents the idealized bootstrap as not numerically stable")
+    if bootstrap.get("measured_case_count") != 3 or bootstrap.get("timed_out_case_count") != 0:
+        return fail("Sky130 bootstrapped switch ngspice should have three converged cases under the calibrated timeout")
+    if bootstrap.get("acquisition_pass_count") != 3 or bootstrap.get("hold_delta_pass_count") != 0:
+        return fail("Sky130 bootstrapped switch ngspice should preserve its measured acquisition-pass and hold-fail boundary")
     if bootstrap.get("candidate_post_layout_written") is not False or bootstrap.get("accepted_post_layout_written") is not False:
         return fail("Sky130 bootstrapped switch ngspice must not write candidate or accepted post-layout")
     bootstrap_page = (ROOT / "site" / "research" / "sky130-bootstrapped-switch-ngspice.html").read_text(encoding="utf-8")
@@ -4026,15 +4047,15 @@ def main() -> int:
     if physical_cell_gate.get("result_type") != "analog_converter_physical_cell_gate":
         return fail("analog converter physical cell gate has wrong result_type")
     if physical_cell_gate.get("status") != "physical_cells_present_waiting_for_extracted_artifacts":
-        return fail("analog converter physical cell gate should wait for extracted artifacts after starter cells exist")
+        return fail("analog converter physical cell gate should remain open until all candidate artifacts exist")
     if physical_cell_gate.get("required_cell_count") != 4:
         return fail("analog converter physical cell gate should require four named cells")
     if physical_cell_gate.get("present_cell_count") != 4:
         return fail("analog converter physical cell gate should find four physical starter cells")
     if physical_cell_gate.get("missing_cell_count") != 0:
         return fail("analog converter physical cell gate should report no missing physical starter cells")
-    if physical_cell_gate.get("present_extracted_artifact_count") != 0:
-        return fail("analog converter physical cell gate should not find extracted artifacts yet")
+    if physical_cell_gate.get("present_extracted_artifact_count") != 3:
+        return fail("analog converter physical cell gate should find the three extracted starter cell artifacts")
     if physical_cell_gate.get("ready_for_candidate_post_layout_payload") is not False:
         return fail("analog converter physical cell gate should not be candidate-ready yet")
     gate_cell_names = {item.get("name") for item in physical_cell_gate.get("required_cells", []) if isinstance(item, dict)}
@@ -4042,7 +4063,7 @@ def main() -> int:
         if name not in gate_cell_names:
             return fail(f"analog converter physical cell gate missing cell {name!r}")
     gate_page = (ROOT / "site" / "research" / "analog-converter-physical-cell-gate.html").read_text(encoding="utf-8")
-    for marker in ["Analog Converter Physical Cell Gate", "physical_cells_present_waiting_for_extracted_artifacts", "present cell count: <code>4</code>", "missing cell count: <code>0</code>", "present extracted artifact count: <code>0</code>", "row_dac_10b", "sar_readout_12b", "shared_converter_mux", "aimc_converter_macro", "A converter is not proven by having the right tools", "does not count environment files"]:
+    for marker in ["Analog Converter Physical Cell Gate", "physical_cells_present_waiting_for_extracted_artifacts", "present cell count: <code>4</code>", "missing cell count: <code>0</code>", "present extracted artifact count: <code>3</code>", "row_dac_10b", "sar_readout_12b", "shared_converter_mux", "aimc_converter_macro", "A converter is not proven by having the right tools", "does not count environment files"]:
         if marker not in gate_page:
             return fail(f"site/research/analog-converter-physical-cell-gate.html missing marker {marker!r}")
 

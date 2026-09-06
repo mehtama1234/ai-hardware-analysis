@@ -2,7 +2,7 @@
 * This uses Magic-extracted capacitances, explicit driver/load resistors, and no transistor converter behavior.
 
 .global VSUBS
-.include "/home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/aimc_converter_macro_layout_smoke.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/aimc_converter_macro_layout_smoke.spice"
 
 VDD vdd 0 1.8
 VSS vss 0 0

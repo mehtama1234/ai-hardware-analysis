@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sky130 Extracted Frontend Latch Coupling Comparison</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Sky130 Extracted Frontend Latch Coupling Comparison</h1><p class="lead">Source: docs/research/sky130-extracted-frontend-latch-coupling-comparison.md</p><nav><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Sky130 Extracted Frontend Latch Coupling Comparison</h1>
+<p>The connected extracted-frontend-to-latch runner was applied to three physical frontend candidates:</p>
+<table><tbody>
+<tr><th>candidate</th><th>standalone role</th><th>latch-connected result</th><th>sense bias before evaluation</th></tr>
+<tr><td>balanced</td><td>sign-preserving starter</td><td><code>1/2</code> polarities</td><td>about <code>16.7 mV</code></td></tr>
+<tr><td>strong</td><td>higher sample-to-sense coupling</td><td><code>1/2</code> polarities</td><td>about <code>9.1 mV</code></td></tr>
+<tr><td>ultra</td><td>highest tested sample-to-sense coupling</td><td><code>1/2</code> polarities</td><td>about <code>0.7 mV</code></td></tr>
+</tbody></table>
+<p>The connected artifacts are:</p>
+<ul>
+<li><a href="../../evidence/aimc-simulator-adapters/sky130-balanced-extracted-latch-kickback.json">balanced result</a></li>
+<li><a href="../../evidence/aimc-simulator-adapters/sky130-strong-extracted-latch-kickback.json">strong result</a></li>
+<li><a href="../../evidence/aimc-simulator-adapters/sky130-ultra-extracted-latch-kickback.json">ultra result</a></li>
+</ul>
+<h2>First-Principles Reading</h2>
+<p>Increasing coupling improves the extracted sense transfer, but it does not establish a valid latch interface. In all three connected tests, the positive and negative input cases produce the same final output polarity. The latch input devices and their parasitic environment dominate the tiny differential before the decision is made.</p>
+<p>This rules out “add more coupling” as the complete repair. The next physical object must isolate the sense nodes from the latch input capacitance or actively regenerate the sense difference before the latch. That buffer must itself be extracted and tested for input loading, common-mode range, both polarity directions, and kickback.</p>
+<h2>Boundary</h2>
+<p>These are connected transient diagnostics, not accepted converter evidence. They do not prove offset, noise, mismatch, DRC/LVS, SAR bit cycling, full converter behavior, or post-layout energy/area economics. The sample-side sources are ideal, so the zero reported sampled-node movement is not a complete source-impedance kickback result.</p></article></main></body></html>

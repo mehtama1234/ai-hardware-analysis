@@ -11,11 +11,10 @@ values, and fallback buffers.
 The calibrated CrossSim replay passes the named numerical fixture with a
 relative output difference of approximately `6.7e-8`. The nominal differential
 Sky130 DAC now passes its 16-code transfer gate with `83.5273 mV` minimum
-spacing and `1.7651 V` span. The physical converter remains blocked at the SAR
-source-interface gate: the isolated calibrated run passes its named
-representative cases, but the newer continuous five-conversion run returns
-`3/5` correctly (`0→0`, `2→0`, `4→3`, `6→6`, `7→7`) and has out-of-range
-bottom-plate nodes.
+spacing and `1.7651 V` span. The promoted continuous physical SAR candidate
+passes its nominal five-conversion map (`0→0`, `2→2`, `4→4`, `6→6`, `7→7`)
+with legal bottom-plate nodes. Robustness, extracted-layout, firmware, board,
+and silicon qualification remain open.
 
 This is a simulator-backed architecture result. It is not a board, silicon, or
 production result.

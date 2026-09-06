@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -16,12 +17,21 @@ MEASUREMENTS = LAB / "measurements"
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
 FRONTEND_NETLIST = LAB / "layout-workbench" / "extracted" / "sky130_ultra_sense_capacitive_frontend_extracted.spice"
+ISOLATION_NETLIST = LAB / "layout-workbench" / "extracted" / "sky130_transistor_active_isolation_pair_extracted.spice"
 SOURCE_FRONTEND = EVIDENCE / "sky130-ultra-sense-frontend-candidate.json"
 SOURCE_MACRO = EVIDENCE / "sky130-offset-calibrated-active-isolation-preamp.json"
-DECK_OUT = SPICE_DIR / "sky130_transistor_active_isolation_preamp.sp"
-CSV_OUT = MEASUREMENTS / "sky130-transistor-active-isolation-preamp.csv"
-OUT_JSON = EVIDENCE / "sky130-transistor-active-isolation-preamp.json"
-OUT_MD = EVIDENCE / "sky130-transistor-active-isolation-preamp.md"
+OUTPUT_STEM = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_OUTPUT_STEM", "sky130-transistor-active-isolation-preamp")
+SWAP_PREAMP_INPUTS = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_SWAP_PREAMP") == "1"
+SWAP_ISOLATION_SENSE_PINS = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_SWAP_SENSE_PINS") == "1"
+USE_EXTRACTED_ISOLATION = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_EXTRACTED") == "1"
+PDK_CORNER = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_PDK_CORNER", "tt")
+SUPPLY_V = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_SUPPLY_V", "1.8"))
+TEMPERATURE_C = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_TEMPERATURE_C", "27"))
+ISOLATION_LOAD_MISMATCH = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_LOAD_MISMATCH", "0"))
+DECK_OUT = SPICE_DIR / f"{OUTPUT_STEM}.sp"
+CSV_OUT = MEASUREMENTS / f"{OUTPUT_STEM}.csv"
+OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
 NGSPICE_TIMEOUT_S = 120
 OUTPUT_TARGET_V = 0.0005
 
@@ -31,6 +41,26 @@ SETTINGS = [
     {"name": "small_iso_pair_4ua", "wiso": 1.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 180_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
     {"name": "medium_iso_pair_8ua", "wiso": 2.0, "iso_tail_a": 8e-6, "iso_rd_ohm": 120_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
 ]
+
+SINGLE_SETTING_PROFILES = {
+    "extracted_300k_4ua": {"name": "extracted_300k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 300_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_470k_4ua": {"name": "extracted_470k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 470_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_560k_4ua": {"name": "extracted_560k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_650k_4ua": {"name": "extracted_650k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 650_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_560k_pre12_4ua": {"name": "extracted_560k_pre12_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 12.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_560k_pre4_4ua": {"name": "extracted_560k_pre4_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 4.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_300k_8ua": {"name": "extracted_300k_8ua", "wiso": 2.0, "iso_tail_a": 8e-6, "iso_rd_ohm": 300_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_pre300k_4ua": {"name": "extracted_pre300k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 300_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 300_000.0},
+}
+
+
+def settings_to_run() -> list[dict[str, Any]]:
+    profile = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_SINGLE_SETTING", "")
+    if not profile:
+        return SETTINGS
+    if profile not in SINGLE_SETTING_PROFILES:
+        raise SystemExit(f"unknown isolation setting profile {profile!r}; choose one of {sorted(SINGLE_SETTING_PROFILES)}")
+    return [SINGLE_SETTING_PROFILES[profile]]
 
 
 def rel(path: Path) -> str:
@@ -61,16 +91,35 @@ def build_deck(row: dict[str, Any], setting: dict[str, Any]) -> str:
     diff_v = float(row["input_diff_mv"]) / 1000.0
     vinp = 0.9 + diff_v / 2.0
     vinn = 0.9 - diff_v / 2.0
+    preamp_p_input = "iso_n" if SWAP_PREAMP_INPUTS else "iso_p"
+    preamp_n_input = "iso_p" if SWAP_PREAMP_INPUTS else "iso_n"
+    if USE_EXTRACTED_ISOLATION:
+        isolation_include = f'.include "{ISOLATION_NETLIST}"'
+        isolation_sense_p = "sense_n" if SWAP_ISOLATION_SENSE_PINS else "sense_p"
+        isolation_sense_n = "sense_p" if SWAP_ISOLATION_SENSE_PINS else "sense_n"
+        isolation_block = f"""RISO_P vdd iso_p {setting['iso_rd_ohm'] * (1.0 + ISOLATION_LOAD_MISMATCH):.12g}
+RISO_N vdd iso_n {setting['iso_rd_ohm'] * (1.0 - ISOLATION_LOAD_MISMATCH):.12g}
+XISO iso_tail iso_p iso_n {isolation_sense_p} {isolation_sense_n} sky130_transistor_active_isolation_pair
+IISO_TAIL iso_tail 0 {setting['iso_tail_a']:.12g}"""
+    else:
+        isolation_include = ""
+        isolation_block = f"""RISO_P vdd iso_p {setting['iso_rd_ohm'] * (1.0 + ISOLATION_LOAD_MISMATCH):.12g}
+RISO_N vdd iso_n {setting['iso_rd_ohm'] * (1.0 - ISOLATION_LOAD_MISMATCH):.12g}
+XISO_P iso_p sense_p iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
+XISO_N iso_n sense_n iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
+IISO_TAIL iso_tail 0 {setting['iso_tail_a']:.12g}"""
     return f"""* Sky130 transistor active isolation before preamp.
 * This replaces the ideal active-isolation macro with a small differential pair.
 * It is schematic transistor evidence, not layout or accepted converter evidence.
 
 .global VSUBS
-.lib "{PDK_LIB}" tt
+.lib "{PDK_LIB}" {PDK_CORNER}
 .include "{FRONTEND_NETLIST}"
-.param vdd=1.8
+{isolation_include}
+.param vdd={SUPPLY_V:.6f}
 .param lmin=0.15
 .options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12
+.temp {TEMPERATURE_C:.6f}
 
 VDD vdd 0 {{vdd}}
 VSS vss 0 0
@@ -85,18 +134,14 @@ XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn sky130_ultra
 RBIASP sense_p 0 100G
 RBIASN sense_n 0 100G
 
-RISO_P vdd iso_p {setting['iso_rd_ohm']:.12g}
-RISO_N vdd iso_n {setting['iso_rd_ohm']:.12g}
-XISO_P iso_p sense_p iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
-XISO_N iso_n sense_n iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
-IISO_TAIL iso_tail 0 {setting['iso_tail_a']:.12g}
+{isolation_block}
 CISO_P iso_p 0 2f
 CISO_N iso_n 0 2f
 
 RDP vdd pre_p {setting['pre_rd_ohm']:.12g}
 RDN vdd pre_n {setting['pre_rd_ohm']:.12g}
-XPREP pre_p iso_p pre_tail 0 sky130_fd_pr__nfet_01v8 W={setting['pre_w']:.12g} L={{lmin}}
-XPREN pre_n iso_n pre_tail 0 sky130_fd_pr__nfet_01v8 W={setting['pre_w']:.12g} L={{lmin}}
+XPREP pre_p {preamp_p_input} pre_tail 0 sky130_fd_pr__nfet_01v8 W={setting['pre_w']:.12g} L={{lmin}}
+XPREN pre_n {preamp_n_input} pre_tail 0 sky130_fd_pr__nfet_01v8 W={setting['pre_w']:.12g} L={{lmin}}
 IPRE_TAIL pre_tail 0 {setting['pre_tail_a']:.12g}
 CPREP pre_p 0 2f
 CPREN pre_n 0 2f
@@ -187,7 +232,8 @@ def build_report() -> dict[str, Any]:
     macro = json.loads(SOURCE_MACRO.read_text(encoding="utf-8"))
     all_rows: list[dict[str, Any]] = []
     summaries: list[dict[str, Any]] = []
-    for setting in SETTINGS:
+    selected_settings = settings_to_run()
+    for setting in selected_settings:
         setting_rows = [run_case(row, setting) for row in frontend_rows()]
         summaries.append(summarize(setting_rows))
         all_rows.extend(row for row in setting_rows if float(row["input_diff_mv"]) != 0.0)
@@ -197,6 +243,13 @@ def build_report() -> dict[str, Any]:
         "result_type": "sky130_transistor_active_isolation_preamp",
         "status": "transistor_active_isolation_preamp_passed_schematic_not_layout_or_strict" if passing else "transistor_active_isolation_preamp_failed_schematic",
         "source_offset_calibrated_macro": rel(SOURCE_MACRO),
+        "preamp_input_swap": SWAP_PREAMP_INPUTS,
+        "isolation_sense_pin_swap": SWAP_ISOLATION_SENSE_PINS,
+        "uses_extracted_isolation_netlist": USE_EXTRACTED_ISOLATION,
+        "pdk_corner": PDK_CORNER,
+        "supply_v": SUPPLY_V,
+        "temperature_c": TEMPERATURE_C,
+        "isolation_load_mismatch_fraction": ISOLATION_LOAD_MISMATCH,
         "source_frontend_netlist": rel(FRONTEND_NETLIST),
         "generated_deck": rel(DECK_OUT),
         "csv": rel(CSV_OUT),
@@ -228,7 +281,7 @@ def write_csv(report: dict[str, Any]) -> None:
     CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
     keys = sorted({key for row in report["rows"] for key in row})
     with CSV_OUT.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=keys)
+        writer = csv.DictWriter(handle, fieldnames=keys, lineterminator="\n")
         writer.writeheader()
         writer.writerows(report["rows"])
 

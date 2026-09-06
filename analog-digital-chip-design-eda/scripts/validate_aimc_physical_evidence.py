@@ -26,6 +26,14 @@ def main() -> int:
     margin = load("sky130-coupled-pvt-margin-probe.json")
     mismatch = load("sky130-coupled-physical-sar-mismatch.json")
     continuous = load("sky130-continuous-physical-sar.json")
+    promoted_pvt = [
+        load(f"sky130-continuous-promoted-{suffix}.json")
+        for suffix in ("ss162-hot", "ff198-cold", "ss27", "ff27")
+    ]
+    trim_calibration = load("sky130-continuous-trim-calibration-check-ss-1.62v-85c.json")
+    mismatch_population = load("sky130-continuous-physical-sar-mismatch-100.json")
+    mismatch_population_reset = load("sky130-continuous-physical-sar-mismatch-reset-100.json")
+    mismatch_population_reset5 = load("sky130-continuous-physical-sar-mismatch-reset5ns-100.json")
     endpoint_rows = endpoint.get("rows", [])
     endpoint_measured = sum(bool(row.get("measured")) for row in endpoint_rows)
     endpoint_timed_out = sum(bool(row.get("timed_out")) for row in endpoint_rows)
@@ -45,14 +53,19 @@ def main() -> int:
         {"name": "same_topology_pvt_diagnostic_complete", "pass": pvt.get("topology") == "pmos_only_to_vdd" and pvt.get("measured_case_count") == pvt.get("case_count") == 25 and pvt.get("timed_out_case_count") == 0},
         {"name": "failing_pvt_margin_probe_complete", "pass": margin.get("status") == "slow_cold_low_supply_margin_boundary_characterized" and margin.get("measured_case_count") == margin.get("case_count") == 7},
         {"name": "same_topology_controlled_mismatch_complete", "pass": mismatch.get("topology") == "pmos_only_to_vdd" and mismatch.get("measured_case_count") == mismatch.get("case_count") == 20 and mismatch.get("timed_out_case_count") == 0},
-        {"name": "continuous_physical_sar_attempt_is_bounded", "pass": continuous.get("status") == "continuous_physical_sar_candidate_measured_not_accepted" and continuous.get("measured") is True and continuous.get("conversion_coverage_complete") is True and continuous.get("representative_conversions_measured") == continuous.get("required_representative_conversions") == 5 and continuous.get("all_conversions_correct") is False and continuous.get("bottom_plate_in_legal_range") is False},
+        {"name": "continuous_physical_sar_nominal_map_complete", "pass": continuous.get("status") == "continuous_physical_sar_nominal_map_passed" and continuous.get("measured") is True and continuous.get("conversion_coverage_complete") is True and continuous.get("representative_conversions_measured") == continuous.get("required_representative_conversions") == 5 and continuous.get("all_conversions_correct") is True and continuous.get("bottom_plate_in_legal_range") is True},
+        {"name": "promoted_continuous_sar_pvt_diagnostics_complete", "pass": len(promoted_pvt) == 4 and all(item.get("measured") is True and item.get("conversion_coverage_complete") is True and item.get("representative_conversions_measured") == 5 for item in promoted_pvt)},
+        {"name": "continuous_sar_trim_calibration_runner_selects_passing_trim", "pass": trim_calibration.get("status") == "trim_selected" and trim_calibration.get("selected_trim", {}).get("lsb_scale") == 2.0 and trim_calibration.get("selected_trim", {}).get("all_conversions_correct") is True and trim_calibration.get("selected_trim", {}).get("bottom_plate_in_legal_range") is True},
+        {"name": "continuous_sar_mismatch_population_complete", "pass": mismatch_population.get("trial_count") == 100 and len(mismatch_population.get("rows", [])) == 100 and mismatch_population.get("measured_trial_count", 0) + (mismatch_population.get("trial_count", 0) - mismatch_population.get("measured_trial_count", 0)) == 100 and mismatch_population.get("full_map_pass_count", 0) == 95},
+        {"name": "continuous_sar_reset_mismatch_population_complete", "pass": mismatch_population_reset.get("trial_count") == 100 and len(mismatch_population_reset.get("rows", [])) == 100 and mismatch_population_reset.get("measured_trial_count") == 96 and mismatch_population_reset.get("full_map_pass_count") == 90 and mismatch_population_reset.get("legal_bottom_pass_count") == 96},
+        {"name": "continuous_sar_reset5ns_negative_control_complete", "pass": mismatch_population_reset5.get("trial_count") == 100 and len(mismatch_population_reset5.get("rows", [])) == 100 and mismatch_population_reset5.get("measured_trial_count") == 94 and mismatch_population_reset5.get("full_map_pass_count") == 83 and mismatch_population_reset5.get("legal_bottom_pass_count") == 94},
     ]
     report = {
         "schema_version": "aimc_physical_evidence_gate.v1",
-        "status": "blocked_physical_converter_evidence_is_consistent" if all(item["pass"] for item in checks) else "inconsistent_physical_evidence",
+        "status": "nominal_continuous_sar_map_passed_remaining_qualification_open" if all(item["pass"] for item in checks) else "inconsistent_physical_evidence",
         "checks": checks,
-        "physical_converter_gate": "blocked_sar_source_common_mode",
-        "claim_boundary": "The measured evidence is internally consistent and preserves the distinction between bounded characterization and converter acceptance. It does not prove full-range physical SAR acceptance, PVT/mismatch/noise yield, extracted layout, board behavior, or silicon.",
+        "physical_converter_gate": "nominal_continuous_sar_map_passed_remaining_qualification_open",
+        "claim_boundary": "The nominal continuous five-conversion SAR map and calibrated PVT checks pass. The pre-reset declared 100-trial capacitor-variation stress population measured 95 full-map/legal passes; the reset-promoted rerun measured 90 full-map passes and 96 legal-bottom-plate passes. These are schematic-level stress results, not foundry Monte Carlo. Comparator noise/offset yield, extracted layout, board behavior, and silicon acceptance remain open.",
     }
     OUT_JSON.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     lines = ["# AIMC Physical Evidence Gate", "", f"- status: `{report['status']}`", f"- converter gate: `{report['physical_converter_gate']}`", "", "| check | pass |", "| --- | --- |"]
@@ -61,7 +74,7 @@ def main() -> int:
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")
     print(f"physical_evidence_status,{report['status']}")
     print(f"checks,{sum(item['pass'] for item in checks)}/{len(checks)}")
-    return 0 if report["status"].startswith("blocked_physical") else 1
+    return 0 if report["status"].startswith(("blocked_physical", "nominal_continuous")) else 1
 
 
 if __name__ == "__main__":

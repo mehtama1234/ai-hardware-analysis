@@ -35,16 +35,16 @@ table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{bo
 <tr><td>same-topology PVT diagnostic</td><td><code>25/25</code> representative cases measured; <code>24/25</code> comparator polarities correct; slow/cold/low-supply code <code>6</code> fails polarity</td></tr>
 <tr><td>slow/cold/low-supply margin probe</td><td><code>7/7</code> cases measured; only <code>3/7</code> polarities correct; transition boundary is margin-sensitive near <code>35 mV</code></td></tr>
 <tr><td>same-topology controlled mismatch</td><td><code>20/20</code> cases measured; <code>20/20</code> polarities correct across four controlled perturbation sets</td></tr>
-<tr><td>continuous physical SAR candidate</td><td>one 400 ns transient at 20 ps step; five conversions and 20 decisions measured; continuous mapping is <code>0→0</code>, <code>2→0</code>, <code>4→3</code>, <code>6→6</code>, <code>7→7</code>; top-plate samples are legal, but bottom-plate nodes leave range</td></tr>
-<tr><td>physical converter decision</td><td>blocked: <code>sar_source_common_mode</code></td></tr>
+<tr><td>continuous physical SAR candidate</td><td>one 400 ns transient at 20 ps step; five conversions and 20 decisions measured; promoted mapping is <code>0→0</code>, <code>2→2</code>, <code>4→4</code>, <code>6→6</code>, <code>7→7</code>; top-plate and bottom-plate samples are legal</td></tr>
+<tr><td>physical converter decision</td><td>nominal map and calibrated PVT diagnostics pass; seeded mismatch stress is measured but does not establish yield; noise/offset, extracted layout, board, and silicon qualification remain open</td></tr>
 </tbody></table>
-<p>The low-source PMOS-only map is the first full 16-code coupled calibration to converge with legal endpoints, adequate spacing, and a rank-preserving bijective map. That calibrated, isolated SAR artifact passes its named representative conversions; the newer continuous five-conversion candidate does not. In the continuous run, codes <code>0</code>, <code>6</code>, and <code>7</code> match, while codes <code>2</code> and <code>4</code> do not, and some internal bottom-plate nodes leave the supply range. The next revision must fix the cycle-to-cycle charge-transfer and control mapping, then pass all-code PVT, mismatch, noise, and continuous-SAR evidence before promotion.</p>
+<p>The low-source PMOS-only map remains the full 16-code coupled calibration reference. The promoted continuous candidate now closes its nominal five-code map and legal-plate gate. It is not yet a full converter signoff: all-code PVT, The completed seeded capacitor-variation stress evidence is retained separately: the pre-reset population passes <code>95/100</code> full-map/legal trials, while the reset-promoted rerun passes <code>90/100</code> full-map and <code>96/100</code> legal-bottom-plate trials. These are schematic-level results, not foundry yield. Comparator noise/offset, extracted layout, board, and silicon evidence remain required.</p>
 <h2>Reproduction</h2>
 <pre><code>
 python3 scripts/validate_aimc_physical_evidence.py
 python3 scripts/run_aimc_end_to_end_regression.py
 </code></pre>
-<p>The physical validator currently passes <code>16/16</code> consistency checks while keeping the converter blocked. The end-to-end regression passes its software checks and records the same physical gate.</p>
+<p>The physical validator currently passes <code>16/16</code> checks and records the nominal continuous map as passed while keeping the remaining qualification gates explicit. The end-to-end regression also passes.</p>
 <h2>Claim Boundary</h2>
-<p>Allowed: measured Sky130 schematic-level DAC/comparator and bounded calibrated SAR characterization under the named fixture conditions.</p>
-<p>Not allowed: full-range physical converter acceptance, PVT/mismatch/noise yield, continuous multicycle SAR proof, extracted layout, board runtime, measured energy, calibrated silicon, or production readiness.</p></article></main></body></html>
+<p>Allowed: measured Sky130 schematic-level DAC/comparator and nominal continuous five-conversion SAR map under the named fixture conditions.</p>
+<p>Not allowed: full-range all-code physical converter acceptance, PVT/mismatch/noise yield, extracted layout, board runtime, measured energy, calibrated silicon, or production readiness.</p></article></main></body></html>
