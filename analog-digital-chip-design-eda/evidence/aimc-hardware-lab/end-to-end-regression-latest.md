@@ -1,7 +1,7 @@
 # AIMC End-To-End Regression
 
-- status: `pass_software_vertical_slice_physical_converter_blocked`
-- generated: `2026-09-04T20:48:39.194335+00:00`
+- status: `pass_software_vertical_slice_nominal_sar_remaining_qualification`
+- generated: `2026-09-06T06:53:12.609198+00:00`
 - task Python: `/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/backend/.venv/bin/python`
 
 | check | pass |
@@ -19,6 +19,7 @@
 | `physical_evidence_gate` | `True` |
 | `charge_transfer_spec` | `True` |
 | `continuous_physical_sar_spec` | `True` |
+| `starter_layout_drc_audit` | `True` |
 | `current_state` | `True` |
 | `portfolio_validation` | `True` |
 | `project_validation` | `True` |
@@ -43,7 +44,8 @@
 | `hardware_profile_is_bound` | `True` |
 | `charge_transfer_spec_is_bound` | `True` |
 | `continuous_sar_spec_is_bound` | `True` |
-| `physical_gate_is_consistent_blocked` | `True` |
+| `starter_layout_drc_is_clean_and_bounded` | `True` |
+| `physical_gate_is_consistent_nominal_sar` | `True` |
 
 ## Claim Boundary
 

@@ -7,7 +7,7 @@ describe the remaining system and hardware-access gates.
 
 ## Scope and evidence policy
 
-- Commit source, tests, documentation and generated site state separately from
+- Commit source, tests, documentation, lab fixtures and generated site state separately from
   experiment data and raw evidence, then retain both commits together.
 - At inspection, 136 tracked files were modified and 3,757 untracked files
   existed in the two project folders. New files totalled about 231 MB; the
@@ -25,7 +25,10 @@ describe the remaining system and hardware-access gates.
 
 ## Validation actually performed
 
-- `git diff --check`: pass.
+- `git diff --check` on initially tracked modifications: pass. The full staged
+  source/lab checkpoint subsequently reports whitespace warnings in generated
+  SPICE/CSV artifacts (including CRLF and blank EOF lines). Those bytes are
+  preserved; a scoped check of committed scripts and documentation passes.
 - Latch unit-test discovery: 33 tests pass.
 - `scripts/validate_project.py`: pass.
 - AST syntax checks across 238 changed/untracked Python files: pass.
@@ -36,3 +39,6 @@ Not performed: rerunning every historical experiment, complete end-to-end
 hardware validation, or independent review of every generated artifact. These
 commits preserve the research state; passing structural checks do not repair
 known circuit failures or supply missing hardware access.
+
+Source/lab checkpoint: `ea7b01a`. The subsequent evidence commit completes this
+pair; neither commit is intended to be used without its companion's artifacts.

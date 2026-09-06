@@ -6,13 +6,13 @@
 - PDK model library: `/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice`
 - generated deck: `labs/analog/analog-in-memory-foundation-model-hardware/spice/sky130_bootstrapped_switch.sp`
 - case count: `3`
-- measured case count: `0`
-- timed out case count: `3`
+- measured case count: `3`
+- timed out case count: `0`
 - half LSB 12b V: `2.197265625e-04`
-- worst acquisition abs error V: `not measured`
-- worst hold abs delta V: `not measured`
-- worst total abs error V: `not measured`
-- acquisition pass count: `0` of `3`
+- worst acquisition abs error V: `0.000000000e+00`
+- worst hold abs delta V: `1.045400000e-02`
+- worst total abs error V: `1.045400000e-02`
+- acquisition pass count: `3` of `3`
 - hold delta pass count: `0` of `3`
 - total error pass count: `0` of `3`
 - candidate post-layout written: `False`
@@ -31,9 +31,9 @@ This is not a finished circuit. A real bootstrap needs devices that charge, hold
 
 | case | input V | boot V | acquired V | held V | acquisition error V | hold delta V | total error V |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| low_bootstrap | `0.300000000` | timeout | timeout | timeout | timeout | timeout | timeout |
-| mid_bootstrap | `0.900000000` | timeout | timeout | timeout | timeout | timeout | timeout |
-| high_bootstrap | `1.500000000` | timeout | timeout | timeout | timeout | timeout | timeout |
+| low_bootstrap | `0.300000000` | `2.100000000` | `0.300000000` | `0.291491200` | `0.000000000e+00` | `8.508800000e-03` | `8.508800000e-03` |
+| mid_bootstrap | `0.900000000` | `2.700000000` | `0.900000000` | `0.890543200` | `0.000000000e+00` | `9.456800000e-03` | `9.456800000e-03` |
+| high_bootstrap | `1.500000000` | `3.300000000` | `1.500000000` | `1.489546000` | `0.000000000e+00` | `1.045400000e-02` | `1.045400000e-02` |
 
 ## Reading The Result
 

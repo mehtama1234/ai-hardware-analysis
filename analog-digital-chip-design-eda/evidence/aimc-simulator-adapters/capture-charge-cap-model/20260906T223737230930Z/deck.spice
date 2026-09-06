@@ -1,0 +1,17 @@
+* Installed MIM model charge probe, not combined-circuit evidence.
+.param mc_mm_switch=0 mc_pr_switch=0
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/r+c/res_typical__cap_typical.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/r+c/res_typical__cap_typical__lin.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__cap_mim_m3_1.model.spice"
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/capture-charge-cap-model/20260906T223737230930Z/cell.spice"
+.temp 25
+.options reltol=1e-6 abstol=1e-16 method=gear
+VIN top 0 PWL(0n 0 1n 0 2n 1 4n 1)
+XCAP top 0 capture_charge_cap
+.tran 1p 4n 0 1p
+.measure tran final_v FIND v(top) AT=4n
+.control
+run
+write waveform.raw v(top) i(vin)
+.endc
+.end

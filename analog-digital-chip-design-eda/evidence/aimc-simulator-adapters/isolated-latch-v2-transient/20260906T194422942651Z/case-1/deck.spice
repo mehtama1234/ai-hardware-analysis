@@ -1,0 +1,65 @@
+* Signed small-signal extracted latch diagnostic, no structural MOS substitution.
+.option scale=1u
+.param mc_mm_switch=0 mc_pr_switch=0
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+* SKY130 Spice File.
+.option scale=1.0u
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/parameters/lod.spice"
+.param
++ lv_dlc_rotweak = .00e-9
++ lvhvt_dlc_rotweak = .00e-9
++ lvt_dlc_rotweak = .00e-9
++ hv_dlc_rotweak = .00e-9
++ sky130_fd_pr__nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__esd_nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__nfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_hvt__dlc_rotweak = lvhvt_dlc_rotweak
++ sky130_fd_pr__esd_nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__esd_pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_03v3_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_05v0_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d16v0__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_flash__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_star__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_original__dlc_rotweak = hv_dlc_rotweak
++ sonos_eeol_dlc_rotweak = hv_dlc_rotweak
++ sonos_peol_dlc_rotweak = hv_dlc_rotweak
+
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/isolated-latch-v2-transient/20260906T194422942651Z/circuit.spice"
+.temp 27
+.options method=gear reltol=1e-4 abstol=1e-14 vntol=1e-7
+VDD vdd 0 1.8
+VACTIVE vdd_active 0 1.8
+VSS vss 0 0
+VP sense_p 0 0.89975
+VN sense_n 0 0.90025
+IBIAS iso_tail 0 4u
+RP vdd latch_sense_p 350000
+RN vdd latch_sense_n 350000
+VRESET reset 0 PULSE(0 1.8 8n 20p 20p 30n 50n)
+VEVAL eval 0 PULSE(0 1.8 7.8n 20p 20p 30n 50n)
+XU out_p out_n latch_sense_p latch_sense_n tail reset vdd vss eval sense_p sense_n iso_tail vdd_active sky130_isolated_frontend_active_load_latch_v2
+
+.tran 20p 20n
+.measure tran op_final FIND v(out_p) AT=18n
+.measure tran on_final FIND v(out_n) AT=18n
+.measure tran lp_before FIND v(latch_sense_p) AT=7.6n
+.measure tran ln_before FIND v(latch_sense_n) AT=7.6n
+.control
+run
+write waveform.raw v(out_p) v(out_n) v(latch_sense_p) v(latch_sense_n) v(iso_tail) v(tail) v(reset) v(eval) i(VDD) i(VACTIVE)
+.endc
+.end

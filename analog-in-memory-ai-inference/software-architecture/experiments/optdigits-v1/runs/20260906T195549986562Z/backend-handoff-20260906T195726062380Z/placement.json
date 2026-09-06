@@ -1,0 +1,124 @@
+{
+  "result_type": "hardware_placement",
+  "schema_version": "hardware-placement-v0.1",
+  "package_id": null,
+  "summary": {
+    "operators": 5,
+    "analog_candidates": 2,
+    "digital_only": 3,
+    "fallback_points": 4,
+    "converter_boundaries": 4,
+    "plain_reading": "The model graph has been translated into analog candidates, digital-only regions, converter boundaries, sensitivity classes, fallback points, and governor fields."
+  },
+  "placement_rows": [
+    {
+      "operator_id": "input_projection",
+      "operator_kind": "MatMul",
+      "shape": "[unk__0,32]",
+      "block": "block.1",
+      "placement": "analog",
+      "analog_candidate": true,
+      "digital_only_reason": null,
+      "dac_boundary": "required before analog entry",
+      "adc_boundary": "required after analog exit",
+      "expected_error_source": "DAC rounding, row voltage drop, conductance error, ADC rounding, and calibration drift",
+      "model_sensitivity_class": "projection-tolerant",
+      "fallback_point": "not required for current local budget",
+      "governor_fields": {
+        "residual_q8": 6,
+        "sensitivity_q8": 96,
+        "allow_analog": true,
+        "fallback_action": "analog_path"
+      },
+      "plain_reading": "This operator can be tried on analog only if the residual budget and sensitivity class remain inside the governor limit."
+    },
+    {
+      "operator_id": "add.2",
+      "operator_kind": "Add",
+      "shape": "[unk__0,32]",
+      "block": "block.1",
+      "placement": "digital",
+      "analog_candidate": false,
+      "digital_only_reason": "operator is better handled in digital support logic",
+      "dac_boundary": "not required here",
+      "adc_boundary": "required after analog exit",
+      "expected_error_source": "ordinary digital arithmetic and memory movement",
+      "model_sensitivity_class": "digital-support",
+      "fallback_point": "resume digital path after this operator",
+      "governor_fields": {
+        "residual_q8": 0,
+        "sensitivity_q8": 128,
+        "allow_analog": false,
+        "fallback_action": "digital_fallback"
+      },
+      "plain_reading": "This operator should stay digital in the current profile."
+    },
+    {
+      "operator_id": "relu.3",
+      "operator_kind": "Relu",
+      "shape": "[unk__0,32]",
+      "block": "block.1",
+      "placement": "digital",
+      "analog_candidate": false,
+      "digital_only_reason": "operator is better handled in digital support logic",
+      "dac_boundary": "not required here",
+      "adc_boundary": "not required here",
+      "expected_error_source": "ordinary digital arithmetic and memory movement",
+      "model_sensitivity_class": "digital-support",
+      "fallback_point": "resume digital path after this operator",
+      "governor_fields": {
+        "residual_q8": 0,
+        "sensitivity_q8": 128,
+        "allow_analog": false,
+        "fallback_action": "digital_fallback"
+      },
+      "plain_reading": "This operator should stay digital in the current profile."
+    },
+    {
+      "operator_id": "output_projection",
+      "operator_kind": "MatMul",
+      "shape": "[unk__0,10]",
+      "block": "block.2",
+      "placement": "analog",
+      "analog_candidate": true,
+      "digital_only_reason": null,
+      "dac_boundary": "required before analog entry",
+      "adc_boundary": "required after analog exit",
+      "expected_error_source": "DAC rounding, row voltage drop, conductance error, ADC rounding, and calibration drift",
+      "model_sensitivity_class": "output-sensitive",
+      "fallback_point": "resume digital path after this operator",
+      "governor_fields": {
+        "residual_q8": 40,
+        "sensitivity_q8": 224,
+        "allow_analog": false,
+        "fallback_action": "digital_fallback"
+      },
+      "plain_reading": "This operator can be tried on analog only if the residual budget and sensitivity class remain inside the governor limit."
+    },
+    {
+      "operator_id": "add.5",
+      "operator_kind": "Add",
+      "shape": "[unk__0,10]",
+      "block": "block.2",
+      "placement": "digital",
+      "analog_candidate": false,
+      "digital_only_reason": "operator is better handled in digital support logic",
+      "dac_boundary": "not required here",
+      "adc_boundary": "required after analog exit",
+      "expected_error_source": "ordinary digital arithmetic and memory movement",
+      "model_sensitivity_class": "digital-support",
+      "fallback_point": "resume digital path after this operator",
+      "governor_fields": {
+        "residual_q8": 0,
+        "sensitivity_q8": 128,
+        "allow_analog": false,
+        "fallback_action": "digital_fallback"
+      },
+      "plain_reading": "This operator should stay digital in the current profile."
+    }
+  ],
+  "claim_boundary": {
+    "allowed": "This artifact supports discussion of model-to-hardware placement for the current analyzed graph.",
+    "not_allowed": "This is not a final compiler lowering, silicon placement, measured latency, measured energy, or tapeout signoff."
+  }
+}

@@ -14,7 +14,7 @@ It uses a tiny metal wire, not a converter. That keeps the tool proof separate f
 
 ## Command
 
-`/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/tool-smoke/magic-sky130-extraction/run-smoke.tcl`
+`/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/tool-smoke/magic-sky130-extraction/run-smoke.tcl`
 
 ## Outputs
 

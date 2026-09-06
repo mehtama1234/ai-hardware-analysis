@@ -20,7 +20,7 @@ Each starter cell names a boundary that later has to become a real circuit: row 
 - cell: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/row_dac_10b.mag`
 - cell present: `True`
 - passed: `True`
-- command: `/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-row_dac_10b-starter-smoke.tcl`
+- command: `/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-row_dac_10b-starter-smoke.tcl`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/row_dac_10b.ext` present `True` bytes `1217`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/row_dac_10b_layout_smoke.spice` present `True` bytes `256`
 
@@ -30,7 +30,7 @@ Each starter cell names a boundary that later has to become a real circuit: row 
 - cell: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/sar_readout_12b.mag`
 - cell present: `True`
 - passed: `True`
-- command: `/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-sar_readout_12b-starter-smoke.tcl`
+- command: `/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-sar_readout_12b-starter-smoke.tcl`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/sar_readout_12b.ext` present `True` bytes `1176`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/sar_readout_12b_layout_smoke.spice` present `True` bytes `262`
 
@@ -40,7 +40,7 @@ Each starter cell names a boundary that later has to become a real circuit: row 
 - cell: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/shared_converter_mux.mag`
 - cell present: `True`
 - passed: `True`
-- command: `/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-shared_converter_mux-starter-smoke.tcl`
+- command: `/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-shared_converter_mux-starter-smoke.tcl`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/shared_converter_mux.ext` present `True` bytes `1174`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/shared_converter_mux_layout_smoke.spice` present `True` bytes `246`
 
@@ -50,7 +50,7 @@ Each starter cell names a boundary that later has to become a real circuit: row 
 - cell: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/aimc_converter_macro.mag`
 - cell present: `True`
 - passed: `True`
-- command: `/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-aimc_converter_macro-starter-smoke.tcl`
+- command: `/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-aimc_converter_macro-starter-smoke.tcl`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells/aimc_converter_macro.ext` present `True` bytes `2365`
 - output: `labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/aimc_converter_macro_layout_smoke.spice` present `True` bytes `799`
 

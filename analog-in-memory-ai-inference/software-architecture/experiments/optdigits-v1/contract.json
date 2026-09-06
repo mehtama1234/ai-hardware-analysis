@@ -1,0 +1,48 @@
+{
+  "schema_version": "hybrid_real_task_experiment.v1",
+  "workload_id": "optdigits-mlp-64-32-10-v1",
+  "status": "preregistered_engineering_demonstrator_not_hardware_accepted",
+  "selection_reason": "Real handwritten inputs, official writer-disjoint train/test, compact fixed-weight matrix operations, tractable converter-to-task attribution.",
+  "dataset": {
+    "doi": "10.24432/C50P49",
+    "source": "https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits",
+    "authors": ["E. Alpaydin", "C. Kaynak"],
+    "year": 1998,
+    "license": "CC-BY-4.0",
+    "download_base": "https://archive.ics.uci.edu/ml/machine-learning-databases/optdigits/",
+    "train_file": "optdigits.tra",
+    "test_file": "optdigits.tes",
+    "train_rows": 3823,
+    "test_rows": 1797,
+    "features": 64,
+    "classes": 10,
+    "normalization": "Fixed division by 16; no fitted test statistics",
+    "calibration_split": "Per-class seeded permutation of official training rows; first floor(20%) calibration, remainder training",
+    "split_seed": 130,
+    "test_policy": "Official test remains untouched by training, calibration and model selection. No test metric until model and hardware profile are frozen."
+  },
+  "model": {
+    "architecture": [64, 32, 10],
+    "hidden_activation": "ReLU",
+    "output": "logits; digital argmax",
+    "initialization_seed": 131,
+    "training": {"optimizer": "Adam", "learning_rate": 0.001, "epochs": 200, "batch_size": 128, "beta1": 0.9, "beta2": 0.999, "epsilon": 1e-8},
+    "model_selection": "Fixed final epoch; no hyperparameter search in this version"
+  },
+  "placement": {
+    "analog_candidate": "First 64x32 fixed-weight MatMul",
+    "digital": ["input normalization", "bias", "ReLU", "32x10 output MatMul", "argmax", "bit-slice accumulation", "calibration", "fallback"],
+    "analog_authorized_now": false,
+    "memory_technology": "unresolved; resistive-crossbar simulation is an assumption until a device/prototype is selected"
+  },
+  "acceptance": {
+    "origin": "Engineering targets declared before this experiment; not customer requirements",
+    "digital_test_accuracy_min": 0.95,
+    "hybrid_test_accuracy_drop_max_absolute": 0.01,
+    "uncertainty": "Report paired 95% bootstrap interval for accuracy difference; do not claim noninferiority unless its lower bound exceeds -0.01",
+    "benefit_claim": {"hybrid_energy_per_task_max_ratio": 0.9, "hybrid_p95_latency_max_ratio": 1.0, "max_fallback_fraction": 0.05},
+    "hardware_measurements": "Same model/data, instrumented rails, synchronized task traces; include conversion, movement, calibration and fallback costs",
+    "open_requirements": ["absolute latency/thermal limits for a selected device", "array technology and conductance contract", "qualified converter operating envelope", "target ISA/controller binding", "hardware access and measurement setup"]
+  },
+  "claim_boundary": "Real-data software demonstrator preparation only. Converter, physical array, firmware, board, energy advantage and customer readiness remain unproven."
+}

@@ -1,0 +1,357 @@
+{
+  "project": "model.onnx",
+  "target": "AS-EDGE wearable profile",
+  "model": {
+    "name": "model.onnx",
+    "parameters": "2.4K",
+    "operators": 5,
+    "input": "input[?,64]",
+    "device_class": "AS-EDGE wearable profile"
+  },
+  "summary": {
+    "fit": "Medium",
+    "grade": "B",
+    "analog_coverage_percent": 40,
+    "fallback_count": 0,
+    "energy_estimate_uj": 16.3,
+    "latency_estimate_ms": 1.77,
+    "fit_score": 70,
+    "next_step": "quantization sensitivity",
+    "main_risk": "frequent analog/digital conversion boundaries",
+    "caption": "40% of operators map to analog; 0 require fallback or new support.",
+    "score_reasons": [
+      "40% analog coverage limits the hardware upside.",
+      "4 analog/digital crossings add ADC/DAC cost.",
+      "Estimated 16.3 uJ is within the 50 uJ target."
+    ]
+  },
+  "layers": [
+    {
+      "id": "input_projection",
+      "operator": "MatMul",
+      "shape": "[unk__0,32]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "matrix-heavy operator with reusable weights",
+      "risk": "medium",
+      "latency_ms": 0.29,
+      "energy_uj": 1.4,
+      "conversion_energy_uj": 0.7,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Run quantization sensitivity and protect this layer if accuracy drops.",
+      "memory_energy_uj": 0.35,
+      "block": "block.1"
+    },
+    {
+      "id": "add.2",
+      "operator": "Add",
+      "shape": "[unk__0,32]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "operator is better handled in digital support logic",
+      "risk": "low",
+      "latency_ms": 0.41,
+      "energy_uj": 2.6,
+      "conversion_energy_uj": 0.9,
+      "boundaries": "ADC before",
+      "suggestion": "Keep digital unless a supported approximation reduces boundary cost.",
+      "memory_energy_uj": 0.35,
+      "block": "block.1"
+    },
+    {
+      "id": "relu.3",
+      "operator": "Relu",
+      "shape": "[unk__0,32]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "operator is better handled in digital support logic",
+      "risk": "low",
+      "latency_ms": 0.37,
+      "energy_uj": 2.6,
+      "conversion_energy_uj": 0.0,
+      "boundaries": "stays on same path",
+      "suggestion": "Keep digital unless a supported approximation reduces boundary cost.",
+      "memory_energy_uj": 0.35,
+      "block": "block.1"
+    },
+    {
+      "id": "output_projection",
+      "operator": "MatMul",
+      "shape": "[unk__0,10]",
+      "placement": "analog",
+      "placement_label": "analog core",
+      "reason": "matrix-heavy operator with reusable weights",
+      "risk": "medium",
+      "latency_ms": 0.29,
+      "energy_uj": 2.6,
+      "conversion_energy_uj": 0.7,
+      "boundaries": "DAC before, ADC after",
+      "suggestion": "Run quantization sensitivity and protect this layer if accuracy drops.",
+      "memory_energy_uj": 0.35,
+      "block": "block.2"
+    },
+    {
+      "id": "add.5",
+      "operator": "Add",
+      "shape": "[unk__0,10]",
+      "placement": "digital",
+      "placement_label": "digital path",
+      "reason": "operator is better handled in digital support logic",
+      "risk": "low",
+      "latency_ms": 0.41,
+      "energy_uj": 2.2,
+      "conversion_energy_uj": 0.9,
+      "boundaries": "ADC before",
+      "suggestion": "Keep digital unless a supported approximation reduces boundary cost.",
+      "memory_energy_uj": 0.35,
+      "block": "block.2"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "block.1",
+      "kind": "linear block with digital support",
+      "layers": [
+        "input_projection",
+        "add.2",
+        "relu.3"
+      ],
+      "operators": [
+        "MatMul",
+        "Add",
+        "Relu"
+      ],
+      "placement": "hybrid",
+      "analog_layers": 1,
+      "digital_layers": 2,
+      "fallback_layers": 0,
+      "latency_ms": 1.07,
+      "energy_uj": 6.6,
+      "reason": "This block mixes analog-friendly math with digital support, so boundary cost must be counted."
+    },
+    {
+      "id": "block.2",
+      "kind": "linear block with digital support",
+      "layers": [
+        "output_projection",
+        "add.5"
+      ],
+      "operators": [
+        "MatMul",
+        "Add"
+      ],
+      "placement": "hybrid",
+      "analog_layers": 1,
+      "digital_layers": 1,
+      "fallback_layers": 0,
+      "latency_ms": 0.7,
+      "energy_uj": 4.8,
+      "reason": "This block mixes analog-friendly math with digital support, so boundary cost must be counted."
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "digital",
+      "title": "Input",
+      "description": "Model input enters the runtime."
+    },
+    {
+      "kind": "convert",
+      "title": "DAC",
+      "description": "Digital values enter analog path."
+    },
+    {
+      "kind": "analog",
+      "title": "MatMul",
+      "description": "input_projection"
+    },
+    {
+      "kind": "convert",
+      "title": "ADC",
+      "description": "Analog result returns to digital path."
+    },
+    {
+      "kind": "digital",
+      "title": "Add",
+      "description": "add.2"
+    },
+    {
+      "kind": "digital",
+      "title": "Relu",
+      "description": "relu.3"
+    },
+    {
+      "kind": "convert",
+      "title": "DAC",
+      "description": "Digital values enter analog path."
+    },
+    {
+      "kind": "analog",
+      "title": "MatMul",
+      "description": "output_projection"
+    },
+    {
+      "kind": "convert",
+      "title": "ADC",
+      "description": "Analog result returns to digital path."
+    },
+    {
+      "kind": "digital",
+      "title": "Add",
+      "description": "add.5"
+    },
+    {
+      "kind": "digital",
+      "title": "Output",
+      "description": "Model output returned to application."
+    }
+  ],
+  "boundary_events": [
+    {
+      "layer_id": "input_projection",
+      "event": "DAC",
+      "from": "digital input",
+      "to": "analog",
+      "energy_uj": 0.7,
+      "reason": "DAC is needed before input_projection because execution moves to analog core."
+    },
+    {
+      "layer_id": "add.2",
+      "event": "ADC",
+      "from": "analog",
+      "to": "digital",
+      "energy_uj": 0.9,
+      "reason": "ADC is needed before add.2 because execution moves to digital path."
+    },
+    {
+      "layer_id": "output_projection",
+      "event": "DAC",
+      "from": "digital",
+      "to": "analog",
+      "energy_uj": 0.7,
+      "reason": "DAC is needed before output_projection because execution moves to analog core."
+    },
+    {
+      "layer_id": "add.5",
+      "event": "ADC",
+      "from": "analog",
+      "to": "digital",
+      "energy_uj": 0.9,
+      "reason": "ADC is needed before add.5 because execution moves to digital path."
+    }
+  ],
+  "boundary_hotspots": [
+    {
+      "layer_id": "add.2",
+      "event": "ADC",
+      "energy_uj": 0.9,
+      "risk": "low",
+      "reason": "ADC is needed before add.2 because execution moves to digital path."
+    },
+    {
+      "layer_id": "add.5",
+      "event": "ADC",
+      "energy_uj": 0.9,
+      "risk": "low",
+      "reason": "ADC is needed before add.5 because execution moves to digital path."
+    },
+    {
+      "layer_id": "input_projection",
+      "event": "DAC",
+      "energy_uj": 0.7,
+      "risk": "medium",
+      "reason": "DAC is needed before input_projection because execution moves to analog core."
+    },
+    {
+      "layer_id": "output_projection",
+      "event": "DAC",
+      "energy_uj": 0.7,
+      "risk": "medium",
+      "reason": "DAC is needed before output_projection because execution moves to analog core."
+    }
+  ],
+  "quantization": [
+    {
+      "label": "Baseline",
+      "value": 95.0,
+      "tone": "analog"
+    },
+    {
+      "label": "INT8 estimate",
+      "value": 94.4,
+      "tone": "analog"
+    },
+    {
+      "label": "Analog error estimate",
+      "value": 93.8,
+      "tone": "warn"
+    },
+    {
+      "label": "INT4 all layers",
+      "value": 90.6,
+      "tone": "warn"
+    }
+  ],
+  "energy_breakdown": [
+    {
+      "label": "Analog compute",
+      "value": 28,
+      "tone": "analog"
+    },
+    {
+      "label": "ADC/DAC",
+      "value": 20,
+      "tone": "warn"
+    },
+    {
+      "label": "Memory movement",
+      "value": 11,
+      "tone": "digital"
+    },
+    {
+      "label": "Digital fallback",
+      "value": 42,
+      "tone": "digital"
+    },
+    {
+      "label": "Host/runtime",
+      "value": 0,
+      "tone": "digital"
+    }
+  ],
+  "calibration": {
+    "profile_id": "sim-wearable-v0",
+    "status": "Mock profile",
+    "board": "simulated-wearable",
+    "temperature": "0C to 70C",
+    "voltage": "0.72V to 0.88V",
+    "weak_rows": "not measured",
+    "accuracy_impact": "estimated only",
+    "provenance": "estimated",
+    "confidence": "low",
+    "correction_factors": {
+      "gain": 1.0,
+      "offset": 0.0,
+      "adc_reference": "nominal"
+    },
+    "notes": "Default simulated profile for early wearable analysis."
+  },
+  "recommendations": [
+    {
+      "id": "03",
+      "text": "Measure ADC/DAC overhead around analog and digital boundaries.",
+      "tag": "energy"
+    },
+    {
+      "id": "05",
+      "text": "Consider model rewrites that increase matrix-heavy analog coverage.",
+      "tag": "fit"
+    }
+  ],
+  "targets": {
+    "accuracy": "94.0%",
+    "latency": "< 6 ms",
+    "energy": "< 50 uJ",
+    "status": "real ONNX graph analyzed with estimated calibration"
+  }
+}

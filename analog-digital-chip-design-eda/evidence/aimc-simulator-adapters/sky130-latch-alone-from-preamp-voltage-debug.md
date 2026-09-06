@@ -1,10 +1,10 @@
 # Sky130 Latch-Alone From Preamp Voltage Debug
 
-- status: `latch_alone_from_preamp_voltage_failed`
+- status: `latch_alone_from_preamp_voltage_passed_ready_for_clock_timing`
 - case count: `2`
 - measured case count: `2`
 - timed-out case count: `0`
-- resolved correct polarity count: `0`
+- resolved correct polarity count: `2`
 - minimum abs latch output diff V: `1.370960000e+00`
 - uses ideal sources from measured preamp voltages: `True`
 - uses sampled nodes: `False`
@@ -20,8 +20,8 @@ This removes sampled-node kickback and preamp loading. If this passes, the latch
 
 | case | measured | pre_p V | pre_n V | output diff V | resolved |
 |---|---:|---:|---:|---:|---:|
-| `negative_target_edge` | `True` | `8.215952000e-01` | `8.201636000e-01` | `1.370960000e+00` | `False` |
-| `positive_target_edge` | `True` | `8.201636000e-01` | `8.215952000e-01` | `-1.370960000e+00` | `False` |
+| `negative_target_edge` | `True` | `8.215952000e-01` | `8.201636000e-01` | `1.370960000e+00` | `True` |
+| `positive_target_edge` | `True` | `8.201636000e-01` | `8.215952000e-01` | `-1.370960000e+00` | `True` |
 
 ## Boundary
 

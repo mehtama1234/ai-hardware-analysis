@@ -1,0 +1,70 @@
+* Signed small-signal extracted latch diagnostic, no structural MOS substitution.
+.option scale=1u
+.param mc_mm_switch=1 mc_pr_switch=0
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+* SKY130 Spice File.
+.option scale=1.0u
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/parameters/lod.spice"
+.param
++ lv_dlc_rotweak = .00e-9
++ lvhvt_dlc_rotweak = .00e-9
++ lvt_dlc_rotweak = .00e-9
++ hv_dlc_rotweak = .00e-9
++ sky130_fd_pr__nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__esd_nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__nfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_hvt__dlc_rotweak = lvhvt_dlc_rotweak
++ sky130_fd_pr__esd_nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__esd_pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_03v3_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_05v0_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d16v0__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_flash__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_star__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_original__dlc_rotweak = hv_dlc_rotweak
++ sonos_eeol_dlc_rotweak = hv_dlc_rotweak
++ sonos_peol_dlc_rotweak = hv_dlc_rotweak
+
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/latch-repeated-readout/20260906T212726771793Z/circuit.spice"
+.temp 27
+.options method=gear reltol=1e-05 abstol=1e-14 vntol=1e-7
+VDD vdd 0 1.75
+VACTIVE vdd_active 0 1.8
+VSS vss 0 0
+VP sense_p 0 PWL(0n 0.9009375 45n 0.9009375 45.02n 0.9018125 95n 0.9018125 95.02n 0.9024375 145n 0.9024375 145.02n 0.9013125 195n 0.9013125 195.02n 0.9019375 245n 0.9019375 245.02n 0.9011875 295n 0.9011875 295.02n 0.9013125 345n 0.9013125 345.02n 0.9018125 395n 0.9018125 395.02n 0.9006875 445n 0.9006875 445.02n 0.9021875 495n 0.9021875 495.02n 0.9018125 545n 0.9018125 545.02n 0.9013125)
+VN sense_n 0 PWL(0n 0.8990625 45n 0.8990625 45.02n 0.8981875 95n 0.8981875 95.02n 0.8975625 145n 0.8975625 145.02n 0.8986875 195n 0.8986875 195.02n 0.8980625 245n 0.8980625 245.02n 0.8988125 295n 0.8988125 295.02n 0.8986875 345n 0.8986875 345.02n 0.8981875 395n 0.8981875 395.02n 0.8993125 445n 0.8993125 445.02n 0.8978125 495n 0.8978125 495.02n 0.8981875 545n 0.8981875 545.02n 0.8986875)
+IBIAS iso_tail 0 4u
+RP vdd_active latch_sense_p 350000
+RN vdd_active latch_sense_n 350000
+VRESET reset 0 PULSE(0 1.75 8n 20p 1000p 29.5n 50n)
+VEVAL eval 0 PULSE(0 1.8 7.8n 20p 1000p 30n 50n)
+VEQRESET eq_reset 0 PULSE(0 1.8 2n 20p 1000p 35.5n 50n)
+XU out_p out_n latch_sense_p latch_sense_n tail reset vdd vss eval sense_p sense_n iso_tail vdd_active rx_p rx_n eq_reset combined_latch_receiver
+
+CRXp rx_p vss 2f
+CRXn rx_n vss 2f
+.tran 20p 600n 0 5p
+.measure tran op_final FIND v(out_p) AT=18n
+.measure tran on_final FIND v(out_n) AT=18n
+.measure tran lp_before FIND v(latch_sense_p) AT=7.6n
+.measure tran ln_before FIND v(latch_sense_n) AT=7.6n
+.control
+setseed 102
+reset
+run
+write waveform.raw v(out_p) v(out_n) v(latch_sense_p) v(latch_sense_n) v(iso_tail) v(tail) v(reset) v(eval) i(vdd) i(vactive) v(eq_reset) v(rx_p) v(rx_n)
+.endc
+.end

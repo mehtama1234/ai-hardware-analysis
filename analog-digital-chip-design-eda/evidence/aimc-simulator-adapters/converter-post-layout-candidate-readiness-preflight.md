@@ -1,7 +1,7 @@
 # Converter Post-Layout Payload Preflight
 
 - status: `not_ready_for_strict_submission`
-- source payload: `/home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/payload.json`
+- source payload: `/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/payload.json`
 - shape validation passed: `False`
 - referenced file validation passed: `False`
 - same-run validation passed: `False`
@@ -42,7 +42,7 @@ The preflight report separates three mistakes. A shape mistake means the payload
 
 ## Next Command If Ready
 
-`python3 scripts/submit_converter_post_layout_payload.py /home/mehtama1/git-repo/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/payload.json`
+`python3 scripts/submit_converter_post_layout_payload.py /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/candidate-post-layout/payload.json`
 
 ## Refused Claim
 

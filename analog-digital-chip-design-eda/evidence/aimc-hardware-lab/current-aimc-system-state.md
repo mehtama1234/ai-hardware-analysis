@@ -177,18 +177,34 @@ This file is generated from the latest proof artifacts.
 
 ## Continuous Physical SAR Candidate State
 
-- status: `continuous_physical_sar_candidate_measured_not_accepted`
+- status: `continuous_physical_sar_nominal_map_passed`
 - artifact: `evidence/aimc-simulator-adapters/sky130-continuous-physical-sar.json`
 - measured: `True`
-- expected/final code: `2` / `0`
-- comparator clear flags / retained bits: `[1, 1, 1, 1]` / `[0, 0, 0, 0]`
+- expected/final code: `2` / `2`
+- comparator clear flags / retained bits: `[1, 1, 0, 1]` / `[0, 0, 1, 0]`
 - representative conversions measured/required: `5` / `5`
-- cycle DAC values V: `[1.097282, 0.6858213, 0.6819284, 0.5712572]`
+- cycle DAC values V: `[1.340346, 0.7369413, 0.6198147, 0.8029506]`
 - cycle DAC legal range: `True`
-- gate/bottom-plate legal ranges: `True` / `False`
+- gate/bottom-plate legal ranges: `True` / `True`
 - PMOS/NMOS gate debug V: `[]` / `[]`
-- bottom-plate debug V: `[[1.217105, 0.04836157, 0.02259391, 0.01091988], [0.08422263, 0.7294462, 0.01780655, 0.008748549], [0.0139341, 0.005331971, 1.703262, 0.0006544322], [0.0002740644, -5.887261e-05, -3.202519e-05, 1.799194]]`
-- comparator differences V: `[-0.8763386, -0.8735509, -0.8718344, -0.8696796, -0.8725137, -0.8695123, -0.8679292, -0.8660906, -0.868233, -0.8654265, 0.8655002, 0.8650612, -0.8654951, 0.8674389, 0.8650542, -0.8658965, -0.8650905, 0.8691525, 0.8659188, 0.8650624]`
+- bottom-plate debug V: `[[1.8, 7.135158e-08, 7.022829e-08, 6.971593e-08], [6.834152e-08, 1.8, 6.834326e-08, 6.834351e-08], [6.834306e-08, 6.834384e-08, 1.8, 6.834407e-08], [6.833685e-08, 6.834152e-08, 1.8, 1.8]]`
+- comparator differences V: `[-0.8655379, -0.8643389, -0.8650832, -0.8653594, -0.8688484, -0.8646681, 0.8638912, -0.8659739, -0.8686692, 0.8644201, -0.8665336, -0.8652227, -0.8687438, 0.8659881, 0.8658355, -0.8666217, -0.8676351, 0.8654656, 0.8668784, 0.8658533]`
+
+## Continuous Physical SAR Mismatch Qualification
+
+- status: `continuous_sar_mismatch_stress_measured_not_foundry_yield_proof`
+- artifact: `evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-mismatch-100.json`
+- seed / sigma: `130` / `1.0%`
+- trials: `100`
+- measured trials: `97`
+- full-map/legal passes: `95` / `100`
+- legal bottom-plate passes: `97` / `100`
+- base capacitor scales: `[1.0, 0.75, 1.0, 1.0]`
+- reset-promoted rerun artifact: `evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-mismatch-reset-100.json`
+- reset-promoted full-map/legal passes: `90` / `96`
+- reset-promoted measured trials: `96`
+- reset5 ns negative-control artifact: `evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-mismatch-reset5ns-100.json`
+- reset5 ns negative-control full-map/legal passes: `83` / `94`
 
 ## Hybrid Compiler State
 
@@ -289,7 +305,7 @@ This file is generated from the latest proof artifacts.
 - required cell count: `4`
 - present cell count: `4`
 - missing cell count: `0`
-- present extracted artifact count: `0`
+- present extracted artifact count: `3`
 - ready for candidate post-layout payload: `False`
 
 ## Transistor Corner State
@@ -333,8 +349,8 @@ This file is generated from the latest proof artifacts.
 
 - status: `transistor_comparator_sar_cycle_failed_or_incomplete`
 - artifact: `evidence/aimc-simulator-adapters/sky130-transistor-comparator-sar-cycle.json`
-- measured decisions: `6` of `8`
-- correct conversions: `1` of `3`
+- measured decisions: `0` of `3`
+- correct conversions: `0` of `3`
 - accepted for converter: `False`
 
 ## Switched-Capacitor DAC State
@@ -438,11 +454,11 @@ This file is generated from the latest proof artifacts.
 
 ## Physical Evidence Gate
 
-- status: `blocked_physical_converter_evidence_is_consistent`
+- status: `nominal_continuous_sar_map_passed_remaining_qualification_open`
 - artifact: `evidence/aimc-hardware-lab/physical-evidence-gate-latest.json`
-- consistency checks: `16` of `16`
-- physical converter gate: `blocked_sar_source_common_mode`
-- claim boundary: The measured evidence is internally consistent and preserves the distinction between bounded characterization and converter acceptance. It does not prove full-range physical SAR acceptance, PVT/mismatch/noise yield, extracted layout, board behavior, or silicon.
+- consistency checks: `21` of `21`
+- physical converter gate: `nominal_continuous_sar_map_passed_remaining_qualification_open`
+- claim boundary: The nominal continuous five-conversion SAR map and calibrated PVT checks pass. The pre-reset declared 100-trial capacitor-variation stress population measured 95 full-map/legal passes; the reset-promoted rerun measured 90 full-map passes and 96 legal-bottom-plate passes. These are schematic-level stress results, not foundry Monte Carlo. Comparator noise/offset yield, extracted layout, board behavior, and silicon acceptance remain open.
 
 ## Coupled Sample-Capacitance Sweep State
 

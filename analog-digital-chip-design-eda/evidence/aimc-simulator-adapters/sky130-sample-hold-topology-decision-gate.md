@@ -13,11 +13,11 @@
 | --- | ---: | --- | --- |
 | `on_state_sample_switch` | `1.369000000e-04` | `True` | the switch can charge the sample node closely enough while it is still on |
 | `plain_hold_mode` | `5.557000000e-03` | `False` | the held value moves too far after the switch turns off |
-| `larger_cap_or_switch_resize` | `2.107000000e-03` | `False` | more capacitance reduces voltage movement, but not enough |
+| `larger_cap_or_switch_resize` | `1.632500000e-03` | `False` | more capacitance reduces voltage movement, but not enough |
 | `dummy_cancellation` | `1.481300000e-03` | `False` | opposite clock charge helps, but still leaves too much held-voltage error |
 | `bottom_plate_fixture` | `7.677000000e-03` | `False` | the current two-node bottom-plate fixture does not fix the stored voltage |
 | `buffered_source_follower_candidate` | `not measured` | `False` | the naive source-follower buffer produced no measured cases, so it is not acceptable evidence |
-| `idealized_bootstrapped_switch_candidate` | `not measured` | `False` | the idealized bootstrapped Sky130 switch produced no measured cases, so the fixture is not a proof path yet |
+| `idealized_bootstrapped_switch_candidate` | `1.045400000e-02` | `False` | the idealized bootstrapped Sky130 switch converged and acquired correctly, but hold movement remains above the 12-bit target |
 | `sky130_differential_sampling_candidate` | `2.086600000e-03` | `False` | the one-case Sky130 differential transmission-gate fixture now measures, but its decision-voltage movement is still above the 12-bit target |
 | `differential_sampling_control_proof` | `3.000000000e-04` | `False` | the ideal-switch control proof shows common disturbance cancels, but mismatch remains as decision error |
 | `sky130_differential_dummy_cancellation` | `4.060000000e-05` | `True` | matched opposite-clock dummy devices produced one passing Sky130 decision-voltage case, so this is the next candidate front end to broaden and stress |

@@ -14,7 +14,7 @@ This cell is a starter row-drive boundary with rails, a row-drive node, and swit
 
 ## Command
 
-`/home/mehtama1/eda-tools/magic/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-row-dac-10b-smoke.tcl`
+`/home/mehtama1/eda-tools/magic-8.3.682/bin/magic -dnull -noconsole -rcfile /home/mehtama1/eda-tools/pdks/sky130A/libs.tech/magic/sky130A.magicrc /home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/extracted/extract-row-dac-10b-smoke.tcl`
 
 ## Outputs
 

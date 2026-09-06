@@ -1,7 +1,7 @@
 # AIMC Physical Evidence Gate
 
-- status: `blocked_physical_converter_evidence_is_consistent`
-- converter gate: `blocked_sar_source_common_mode`
+- status: `nominal_continuous_sar_map_passed_remaining_qualification_open`
+- converter gate: `nominal_continuous_sar_map_passed_remaining_qualification_open`
 
 | check | pass |
 | --- | --- |
@@ -20,8 +20,13 @@
 | `same_topology_pvt_diagnostic_complete` | `True` |
 | `failing_pvt_margin_probe_complete` | `True` |
 | `same_topology_controlled_mismatch_complete` | `True` |
-| `continuous_physical_sar_attempt_is_bounded` | `True` |
+| `continuous_physical_sar_nominal_map_complete` | `True` |
+| `promoted_continuous_sar_pvt_diagnostics_complete` | `True` |
+| `continuous_sar_trim_calibration_runner_selects_passing_trim` | `True` |
+| `continuous_sar_mismatch_population_complete` | `True` |
+| `continuous_sar_reset_mismatch_population_complete` | `True` |
+| `continuous_sar_reset5ns_negative_control_complete` | `True` |
 
 ## Claim Boundary
 
-The measured evidence is internally consistent and preserves the distinction between bounded characterization and converter acceptance. It does not prove full-range physical SAR acceptance, PVT/mismatch/noise yield, extracted layout, board behavior, or silicon.
+The nominal continuous five-conversion SAR map and calibrated PVT checks pass. The pre-reset declared 100-trial capacitor-variation stress population measured 95 full-map/legal passes; the reset-promoted rerun measured 90 full-map passes and 96 legal-bottom-plate passes. These are schematic-level stress results, not foundry Monte Carlo. Comparator noise/offset yield, extracted layout, board behavior, and silicon acceptance remain open.

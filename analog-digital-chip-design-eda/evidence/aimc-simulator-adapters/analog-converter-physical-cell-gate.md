@@ -5,7 +5,7 @@
 - required cell count: `4`
 - present cell count: `4`
 - missing cell count: `0`
-- present extracted artifact count: `0`
+- present extracted artifact count: `3`
 - ready for candidate post-layout payload: `False`
 
 ## First Principle
@@ -46,9 +46,9 @@ The named cells matter because each one controls a different error source. The D
 
 ## Required Extracted Artifacts
 
-- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/row_dac_extracted.sp` present `False` bytes `0`
-- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/sar_readout_extracted.sp` present `False` bytes `0`
-- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/shared_converter_mux_extracted.sp` present `False` bytes `0`
+- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/row_dac_extracted.sp` present `True` bytes `256`
+- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/sar_readout_extracted.sp` present `True` bytes `262`
+- `evidence/aimc-simulator-adapters/candidate-post-layout/netlist/shared_converter_mux_extracted.sp` present `True` bytes `246`
 - `evidence/aimc-simulator-adapters/candidate-post-layout/models/converter_layout_area_record.json` present `False` bytes `0`
 - `evidence/aimc-simulator-adapters/candidate-post-layout/rerun/converter-post-layout-break-even-rerun.json` present `False` bytes `0`
 

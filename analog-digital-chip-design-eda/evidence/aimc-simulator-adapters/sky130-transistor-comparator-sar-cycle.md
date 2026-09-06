@@ -1,12 +1,12 @@
 # Sky130 Transistor Comparator SAR Cycle
 
-- status: `transistor_comparator_in_sar_controller_with_ideal_dac`
+- status: `transistor_comparator_sar_cycle_failed_or_incomplete`
 - bits: `4`
 - conversions: `3`
-- comparator decisions: `8`
-- measured decisions: `6`
-- timed-out decisions: `2`
-- correct conversions: `1` of `3`
+- comparator decisions: `3`
+- measured decisions: `0`
+- timed-out decisions: `3`
+- correct conversions: `0` of `3`
 
 ## What Is Real
 
