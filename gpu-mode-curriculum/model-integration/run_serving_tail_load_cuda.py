@@ -187,7 +187,10 @@ def main() -> int:
             "parity_all_levels": all(row["output_parity"] for row in rows),
             "tail_metrics_present": all("p95_nearest_rank" in row["latency_ms"] for row in rows),
             "cuda_event_samples_present": all(isinstance(row.get("cuda_event_ms"), (int, float)) for row in rows),
-            "vectorized_observed": any("vectorized" in row["batch_modes"] for row in rows),
+            "vectorized_observed": any(
+                any("vectorized" in mode for mode in row["batch_modes"])
+                for row in rows
+            ),
             "scheduler_accounted": snapshot["rejected_count"] == 0 and snapshot["cancelled_count"] == 0,
         }
         report.update({"status": "passed" if all(checks.values()) else "failed",
