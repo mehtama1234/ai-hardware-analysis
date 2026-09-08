@@ -145,6 +145,16 @@ the explicit `cuda-graph-vectorized` batch label; the corrected rerun passed
 the report contract. The handoff supports both the original eager microbatch
 mode and the graph-microbatch mode.
 
+The speculative-decoding lane now also has a measured CUDA control artifact:
+`gpu-runs/imports/colab-t4-speculative-20260908-r4/speculative-decoding-cuda.json`.
+Four draft/target scenarios passed exact greedy-output parity, acceptance and
+rollback accounting, logical KV-commit accounting, and synchronized CUDA
+timing. The run intentionally does not claim a speedup: the equal-size exact
+draft was about 0.93x baseline and low-acceptance smaller drafts were slower.
+The remaining performance gate is a compatible, cheaper draft model (for
+example a distilled or early-exit draft) with measured acceptance high enough
+to amortize verification.
+
 The current evidence ledger contains 32 measured GPU promotion tasks, of which
 30 are accepted. The native WMMA probe was expanded to nine independent
 launches; a fresh T4 Nsight Compute capture recorded nine tensor-pipe metric
