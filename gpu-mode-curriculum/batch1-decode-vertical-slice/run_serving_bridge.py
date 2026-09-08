@@ -70,12 +70,15 @@ class DecodeModeGenerator:
         self._graph_batch_keys = set()
         if self.mode == "cuda_graph_microbatch":
             for workload in workloads:
+                # Warm the singleton bucket explicitly so request timings do
+                # not include first-use CUDA graph capture.
+                self.inner.generate(
+                    workload["prompt"], workload["max_tokens"],
+                    cached=True, cache_storage="cuda_graph",
+                )
                 for batch_size in (2, GRAPH_POOL_SIZE):
                     prompts = [workload["prompt"]] * batch_size
-                    if batch_size == 1:
-                        self.inner.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
-                    else:
-                        self.inner.generate_batch_cuda_graph(prompts, workload["max_tokens"])
+                    self.inner.generate_batch_cuda_graph(prompts, workload["max_tokens"])
                     self._graph_batch_keys.add((tuple(prompts), workload["max_tokens"]))
         for worker in self._graph_workers:
             for workload in workloads:

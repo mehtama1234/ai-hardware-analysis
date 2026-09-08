@@ -38,7 +38,7 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 # A profiler-only refresh may be supplied explicitly when its capture is a
 # separate GPU session.
 python3 batch1-decode-vertical-slice/verify_reports.py \
-  --reports-dir gpu-runs/imports/colab-t4-batch1-buckets-20260908
+  --reports-dir gpu-runs/imports/colab-t4-batch1-batchgraphs-20260908
 ```
 
 ## Acceptance contract
