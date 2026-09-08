@@ -112,6 +112,12 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
     draft = NeuralGenerator("cuda", hidden=HIDDEN, heads=HEADS, seed=scenario["draft_seed"])
     prompt = scenario["prompt"]
     max_tokens = scenario["max_tokens"]
+    # Exclude CUDA context, allocator, and first-kernel initialization from
+    # both sides of the comparison.  The warmup also validates the full
+    # draft/target control path before an event is recorded.
+    target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"])
+    torch.cuda.synchronize()
     baseline_tokens, baseline_ms = _elapsed_cuda(
         lambda: target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")[0]
     )
