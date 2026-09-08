@@ -54,12 +54,14 @@ class DecodeModeGenerator:
             self._graph_workers = []
             self._graph_slots = None
         self.model_name = self.inner.model_name
+        self._graph_bucket_keys = set()
 
     @property
     def graph_pool_size(self) -> int:
         return len(self._graph_workers)
 
     def prepare(self, workloads) -> None:
+        self._graph_bucket_keys = {(workload["prompt"], workload["max_tokens"]) for workload in workloads}
         for worker in self._graph_workers:
             for workload in workloads:
                 worker.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
@@ -72,21 +74,27 @@ class DecodeModeGenerator:
             slot = self._graph_slots.get()
             try:
                 worker = self._graph_workers[slot]
-                generated, _ = worker.generate(prompt, max_tokens, cached=True, cache_storage="cuda_graph")
+                graph_hit = (prompt, max_tokens) in self._graph_bucket_keys
+                generated, _ = worker.generate(
+                    prompt, max_tokens, cached=True,
+                    cache_storage="cuda_graph" if graph_hit else "preallocated",
+                )
             finally:
                 self._graph_slots.put(slot)
             model = worker.model
+            backend = self.backend if graph_hit else f"{self.backend}-fallback"
         else:
             generated, _ = self.inner.generate(
                 prompt, max_tokens, cached=self.mode != "uncached",
                 cache_storage="preallocated" if self.mode == "preallocated" else "dynamic",
             )
             model = self.inner.model
+            backend = self.backend
         return {
             "text": "".join(model.alphabet[index] for index in generated),
             "generated_tokens": len(generated),
             "prompt_tokens": len(self.inner.encode(prompt)),
-            "backend": self.backend,
+            "backend": backend,
         }
 
 
@@ -110,8 +118,16 @@ def _run_mode(mode: str, device: str) -> dict:
     thread.start()
     endpoint = f"http://127.0.0.1:{http.server_port}/v1/completions"
     rows = []
+    fallback_probe = None
     try:
         server.GENERATOR.prepare(WORKLOADS)
+        if mode == "cuda_graph":
+            fallback_payload = _request(endpoint, "decode step", 13)["payload"]
+            fallback_probe = {
+                "backend": fallback_payload.get("backend"),
+                "text_nonempty": bool(fallback_payload.get("choices", [{}])[0].get("text")),
+                "used_eager_fallback": str(fallback_payload.get("backend", "")).endswith("-fallback"),
+            }
         for workload in WORKLOADS:
             prompt = workload["prompt"]
             max_tokens = workload["max_tokens"]
@@ -142,7 +158,7 @@ def _run_mode(mode: str, device: str) -> dict:
         http.server_close()
         thread.join(timeout=10)
         server.GENERATOR, server.ADMISSION, server.MICRO_BATCH = previous
-    return {"mode": mode, "rows": rows, "graph_pool_size": mode_generator.graph_pool_size}
+    return {"mode": mode, "rows": rows, "graph_pool_size": mode_generator.graph_pool_size, "fallback_probe": fallback_probe}
 
 
 def main() -> int:
@@ -175,6 +191,10 @@ def main() -> int:
                 key = f"{left['workload']}_{left['concurrency']}"
                 checks[f"cuda_graph_backend_pair_{key}"] = bool(left["backend_labels"] and right["backend_labels"])
                 checks[f"uncached_cuda_graph_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
+            checks["cuda_graph_dynamic_fallback"] = bool(
+                cuda_graph.get("fallback_probe", {}).get("used_eager_fallback")
+                and cuda_graph.get("fallback_probe", {}).get("text_nonempty")
+            )
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),

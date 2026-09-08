@@ -38,8 +38,7 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 # A profiler-only refresh may be supplied explicitly when its capture is a
 # separate GPU session.
 python3 batch1-decode-vertical-slice/verify_reports.py \
-  --reports-dir gpu-runs/imports/colab-t4-batch1-graphs-serving-20260908 \
-  --profiler-dir gpu-runs/imports/colab-t4-batch1-graph-profile-20260908
+  --reports-dir gpu-runs/imports/colab-t4-batch1-buckets-20260908
 ```
 
 ## Acceptance contract
@@ -65,9 +64,12 @@ buckets; dynamic shapes require an eager fallback.
 
 ## Latest captured GPU evidence
 
-Run `colab-t4-batch1-graphs-serving-20260908` passed on an NVIDIA T4 with
+Run `colab-t4-batch1-buckets-20260908` passed on an NVIDIA T4 with
 decode and serving marked `measured_gpu`. The graph profiler refresh
 `colab-t4-batch1-graph-profile-20260908` observed both `cudaGraphLaunch` and
 `_append_kv_kernel`. All workloads matched token IDs and logits; the serving
 bridge completed 8 requests at concurrency 1, 2, and 4 for every mode with
-cross-mode output parity.
+cross-mode output parity. An unseen `(prompt, max_tokens)` pair was explicitly
+served by the eager fallback and labeled
+`neural-cuda_graph-decode-fallback`; it did not trigger capture on the request
+path.

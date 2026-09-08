@@ -52,6 +52,7 @@ def main() -> int:
         require(serving.get("cuda_graph") is not None, "CUDA Graph serving report missing")
         require(all(row.get("accepted") == 8 for row in serving["cuda_graph"]["rows"]), "CUDA Graph serving requests incomplete")
         require(all(checks.get(f"uncached_cuda_graph_output_parity_{key}") is True for key in keys), "CUDA Graph serving output parity failed")
+        require(checks.get("cuda_graph_dynamic_fallback") is True, "CUDA Graph dynamic fallback missing")
     require(profiler.get("status") == "passed", "profiler evidence did not pass")
     require(profiler.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid profiler evidence kind")
     require(profiler.get("checks", {}).get("preallocated_cat_not_greater") is True, "preallocated profiler comparison failed")
