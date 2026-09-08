@@ -168,6 +168,34 @@ class ServingControlTests(unittest.TestCase):
         finally:
             server_socket.close()
 
+    def test_started_request_cooperatively_cancels_and_is_accounted(self):
+        started = threading.Event()
+
+        class CancellableGenerator(FakeGenerator):
+            def complete(self, prompt, max_tokens, *, cancel_event=None):
+                started.set()
+                while cancel_event is None or not cancel_event.is_set():
+                    threading.Event().wait(0.001)
+                raise RuntimeError("backend observed cancellation")
+
+        scheduler = MicroBatchScheduler(CancellableGenerator(), max_batch=1, window_ms=0, max_pending=2)
+        try:
+            future = scheduler.submit("running", 1)
+            self.assertTrue(started.wait(timeout=2))
+            self.assertFalse(future.cancel())
+            for _ in range(1000):
+                if scheduler.snapshot()["inflight_cancelled_count"]:
+                    break
+                threading.Event().wait(0.001)
+            snapshot = scheduler.snapshot()
+            self.assertEqual(snapshot["inflight_cancelled_count"], 1)
+            self.assertEqual(snapshot["cancelled_count"], 1)
+            self.assertFalse(future.cancelled())
+            with self.assertRaises(RuntimeError):
+                future.result(timeout=2)
+        finally:
+            scheduler.close()
+
 
 if __name__ == "__main__":
     unittest.main()

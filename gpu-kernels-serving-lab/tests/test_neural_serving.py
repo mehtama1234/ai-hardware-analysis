@@ -96,6 +96,12 @@ class NeuralServingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 server.validate_request(body, batch=True)
 
+    def test_neural_decode_honors_cancellation_event(self):
+        cancelled = threading.Event()
+        cancelled.set()
+        with self.assertRaises(RuntimeError):
+            self.generator.complete("hello", 4, cancel_event=cancelled)
+
 
 if __name__ == "__main__":
     unittest.main()

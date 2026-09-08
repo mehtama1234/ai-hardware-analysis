@@ -28,13 +28,24 @@ class SlowGenerator:
 
     def __init__(self):
         self.started = threading.Event()
+        self.second_started = threading.Event()
+        self.cancel_observed = threading.Event()
+        self.calls = 0
 
     def encode(self, prompt):
         return list(prompt)
 
-    def complete(self, prompt, max_tokens):
-        self.started.set()
-        time.sleep(0.15)
+    def complete(self, prompt, max_tokens, *, cancel_event=None):
+        self.calls += 1
+        if self.calls == 1:
+            self.started.set()
+        else:
+            self.second_started.set()
+        for _ in range(300):
+            if cancel_event is not None and cancel_event.is_set():
+                self.cancel_observed.set()
+                raise RuntimeError("backend observed cancellation")
+            time.sleep(0.001)
         return {"text": f"{prompt}:ok", "generated_tokens": max_tokens, "backend": self.backend}
 
     def complete_batch(self, prompts, max_tokens):
@@ -66,13 +77,14 @@ def main() -> int:
     try:
         started = generator.started.wait(timeout=2)
         # The first request occupies the worker.  The second request is sent
-        # over a raw socket and closed before its queued Future can execute.
+        # over a raw socket, allowed to enter execution, then disconnected.
         request_body = json.dumps({"prompt": "abandoned", "max_tokens": 2}).encode()
         raw = socket.create_connection(("127.0.0.1", http.server_port), timeout=2)
         raw.sendall((f"POST /v1/completions HTTP/1.1\r\nHost: localhost\r\n"
                      f"Content-Type: application/json\r\nContent-Length: {len(request_body)}\r\n"
                      f"Connection: close\r\n\r\n").encode() + request_body)
-        time.sleep(0.02)
+        if not generator.second_started.wait(timeout=3):
+            raise RuntimeError("second request did not start")
         raw.close()
         deadline = time.perf_counter() + 2
         while time.perf_counter() < deadline and scheduler.snapshot()["cancelled_count"] < 1:
@@ -82,8 +94,10 @@ def main() -> int:
         checks = {
             "first_request_started": started,
             "first_request_completed": first_result.get("choices", [{}])[0].get("text") == "blocking:ok",
-            "disconnect_cancellation_recorded": snapshot["cancelled_count"] >= 1,
-            "abandoned_request_not_executed": not any(row.get("prompt_length") == len("abandoned") for row in snapshot["batches"]),
+            "second_request_started": generator.second_started.is_set(),
+            "backend_observed_cancellation": generator.cancel_observed.is_set(),
+            "disconnect_cancellation_recorded": snapshot["inflight_cancelled_count"] >= 1,
+            "abandoned_request_not_completed": not any(row.get("prompt_length") == len("abandoned") for row in snapshot["batches"]),
         }
         report = {
             "experiment": "serving_disconnect_cancellation_cpu",
@@ -93,7 +107,7 @@ def main() -> int:
             "gpu_execution_accepted": False,
             "checks": checks,
             "scheduler": snapshot,
-            "scope": "same-process loopback HTTP with a real disconnected socket; queued work is cancellable, in-flight model execution is not interrupted, no production capacity claim",
+            "scope": "same-process loopback HTTP with a real disconnected socket and cooperative backend; in-flight cancellation is measured for this backend, not forced interruption of arbitrary accelerator kernels or a production capacity claim",
             "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                               for path in (Path(__file__).resolve(), SERVING / "server.py", SERVING / "microbatch.py")},
         }

@@ -22,6 +22,18 @@ class _Request:
     submitted_at: float
 
 
+class CancellableFuture(Future):
+    """Future carrying a cooperative cancellation signal for model execution."""
+
+    def __init__(self):
+        super().__init__()
+        self.cancel_event = threading.Event()
+
+    def cancel(self) -> bool:
+        self.cancel_event.set()
+        return super().cancel()
+
+
 class MicroBatchScheduler:
     def __init__(self, generator, *, max_batch: int = 4, window_ms: float = 5.0, max_pending: int = 64):
         if max_batch < 1 or window_ms < 0 or max_pending < 1:
@@ -37,10 +49,11 @@ class MicroBatchScheduler:
         self._batches: list[dict] = []
         self._rejected = 0
         self._cancelled = 0
+        self._inflight_cancelled = 0
         self._thread.start()
 
     def submit(self, prompt: str, max_tokens: int) -> Future:
-        future: Future = Future()
+        future = CancellableFuture()
         try:
             self._queue.put_nowait(_Request(prompt, max_tokens, future, time.perf_counter()))
         except queue.Full:
@@ -53,6 +66,7 @@ class MicroBatchScheduler:
         with self._lock:
             return {"batch_count": len(self._batches), "batches": [dict(row) for row in self._batches],
                     "rejected_count": self._rejected, "cancelled_count": self._cancelled,
+                    "inflight_cancelled_count": self._inflight_cancelled,
                     "max_pending": self.max_pending}
 
     def close(self) -> None:
@@ -79,7 +93,7 @@ class MicroBatchScheduler:
                 if next_request is None:
                     self._stop.set(); break
                 requests.append(next_request)
-            active = [request for request in requests if not request.future.cancelled()]
+            active = [request for request in requests if request.future.set_running_or_notify_cancel()]
             with self._lock:
                 self._cancelled += len(requests) - len(active)
             if not active:
@@ -97,7 +111,16 @@ class MicroBatchScheduler:
                         mode = result.get("batch_mode", "unknown")
                         choices = result["choices"]
                     else:
-                        result = self.generator.complete(group[0].prompt, group[0].max_tokens)
+                        request = group[0]
+                        try:
+                            result = self.generator.complete(
+                                request.prompt, request.max_tokens,
+                                cancel_event=request.future.cancel_event,
+                            )
+                        except TypeError as exc:
+                            if "cancel_event" not in str(exc):
+                                raise
+                            result = self.generator.complete(request.prompt, request.max_tokens)
                         mode = "single"
                         choices = [{"text": result["text"]}]
                     with self._lock:
@@ -105,7 +128,21 @@ class MicroBatchScheduler:
                                               "prompt_length": len(group[0].prompt),
                                               "queue_wait_ms": round((time.perf_counter() - min(r.submitted_at for r in group)) * 1000, 4)})
                     for request, choice in zip(group, choices):
-                        request.future.set_result({"text": choice["text"], "batch_mode": mode})
+                        if request.future.cancel_event.is_set():
+                            with self._lock:
+                                self._cancelled += 1
+                                self._inflight_cancelled += 1
+                            if not request.future.done():
+                                request.future.set_exception(RuntimeError("request cancelled during execution"))
+                        elif not request.future.done():
+                            request.future.set_result({"text": choice["text"], "batch_mode": mode})
                 except Exception as exc:
                     for request in group:
-                        request.future.set_exception(exc)
+                        if request.future.cancel_event.is_set():
+                            with self._lock:
+                                self._cancelled += 1
+                                self._inflight_cancelled += 1
+                            if not request.future.done():
+                                request.future.set_exception(RuntimeError("request cancelled during execution"))
+                        elif not request.future.done():
+                            request.future.set_exception(exc)

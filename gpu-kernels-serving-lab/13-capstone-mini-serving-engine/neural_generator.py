@@ -314,7 +314,7 @@ class NeuralGenerator:
         return bundle["static_tokens"][0].tolist()
 
     @torch.inference_mode()
-    def generate(self, prompt, max_tokens, *, cached=True, cache_storage="dynamic"):
+    def generate(self, prompt, max_tokens, *, cached=True, cache_storage="dynamic", cancel_event=None):
         ids = self.encode(prompt)
         if type(max_tokens) is not int or max_tokens < 1 or len(ids) + max_tokens > self.model.context:
             raise ValueError("positive max_tokens and prompt must fit 128-character context")
@@ -335,6 +335,8 @@ class NeuralGenerator:
             )
         generated_device, logits_trace = [], []
         for _ in range(max_tokens):
+            if cancel_event is not None and cancel_event.is_set():
+                raise RuntimeError("request cancelled during neural decode")
             if cached:
                 input_tokens = tokens if cache is None or cache_storage == "preallocated" and cache[2] == 0 else tokens[:, -1:]
                 if cache_storage == "preallocated":
@@ -353,8 +355,8 @@ class NeuralGenerator:
         generated = torch.cat(generated_device, dim=1)[0].tolist()
         return generated, logits_trace
 
-    def complete(self, prompt, max_tokens, *, cache_storage="dynamic"):
-        generated, _ = self.generate(prompt, max_tokens, cache_storage=cache_storage)
+    def complete(self, prompt, max_tokens, *, cache_storage="dynamic", cancel_event=None):
+        generated, _ = self.generate(prompt, max_tokens, cache_storage=cache_storage, cancel_event=cancel_event)
         return {"text": "".join(self.model.alphabet[i] for i in generated),
                 "generated_tokens": len(generated), "prompt_tokens": len(self.encode(prompt)),
                 "backend": self.backend}

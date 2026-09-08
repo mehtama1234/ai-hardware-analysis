@@ -82,10 +82,10 @@ MICRO_BATCH = None
 def cancel_pending_request(future) -> bool:
     """Cancel queued work when the HTTP owner no longer needs its result.
 
-    ``Future.cancel`` is deliberately the only cancellation primitive exposed
-    here: the scheduler can remove a not-yet-started request from a batch, but
-    it cannot safely interrupt a model call already executing on the worker or
-    GPU.  The worker records successful cancellations in its snapshot.
+    The scheduler removes a not-yet-started request from a batch and, for a
+    cooperative backend, propagates the same signal into a running model call.
+    A backend that cannot observe the signal (for example a captured graph
+    replay) remains non-interruptible; the worker records that boundary.
     """
     return future is not None and future.cancel()
 
