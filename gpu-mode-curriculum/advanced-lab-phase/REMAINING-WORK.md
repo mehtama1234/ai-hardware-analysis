@@ -124,12 +124,12 @@ not the current test or experiment count.
 ## Current verified expansion (2026-09-07)
 
 The current hash-locked Python 3.10 environment passed all 25 isolation,
-dependency, and execution checks. The expanded checkpoint passed 116 tests
+dependency, and execution checks. The expanded checkpoint passed 118 tests
 across ten suites and 23 CPU experiments, including profiler evidence, the Colab handoff contract, admission, backpressure
 and
 cancellation, microbatching, streaming, tail-load, two-rank serving dispatch,
 and the top-level source-hash provenance schema. The current clean source-snapshot
-reproduction passed at revision `6a9946ee58090b70083d814ae7c9ed9c42d6b029`.
+reproduction passed at revision `b9845182e9ffe74285f26d435e1de3b85463c5b1`.
 
 The evidence page reports `checkpoint_current: true`, and the GPU host preflight
 reports one locally runnable step plus 31 steps ready for an accelerator host.

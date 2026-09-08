@@ -1,8 +1,8 @@
 {
   "session": "23-gpumode-shared-memory-gemm",
-  "timestamp": "2026-09-08T06:27:53.960418+00:00",
+  "timestamp": "2026-09-08T10:58:08.980934+00:00",
   "provenance": {
-    "git_revision": "a1e85206420cc942932fef2da4c0896d2c33737f",
+    "git_revision": "45dc95504e95db259520b53494eaef02de8ab720",
     "worktree_dirty": true,
     "source_sha256": {
       "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py": "365ef25f2e91bd8fcb9dfcc1b3784c1d3960630a9ea4c40f53387e93f1c9aaf8",
@@ -20,44 +20,51 @@
       "gpu-kernels-serving-lab/common/gpu_info.py",
       "gpu-kernels-serving-lab/common/provenance.py"
     ],
-    "python_executable": "/tmp/gpu-checkpoint-repro-CIEqu4/venv/bin/python",
+    "python_executable": "/usr/bin/python3",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
     "invocation": [
-      "/tmp/gpu-checkpoint-repro-CIEqu4/venv/bin/python",
+      "/usr/bin/python3",
       "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py"
     ],
     "scope": "explicit sources plus imported local Python modules at capture time; excludes unexecuted branches, data files, third-party package sources and environment locks"
   },
   "inventory": {
     "session": "23-gpumode-shared-memory-gemm",
-    "timestamp": "2026-09-08T06:27:54.999740+00:00",
+    "timestamp": "2026-09-08T10:58:09.353623+00:00",
     "host": "MithusLaptop",
     "software": {
       "python": "3.10.12",
       "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
       "packages": {
-        "torch": "2.4.1+cpu",
-        "triton": null,
-        "transformers": null,
-        "accelerate": null,
+        "torch": "2.4.1",
+        "triton": "3.0.0",
+        "transformers": "5.12.1",
+        "accelerate": "1.14.0",
         "bitsandbytes": null,
         "vllm": null,
-        "jax": null,
-        "jaxlib": null
+        "jax": "0.6.2",
+        "jaxlib": "0.6.2"
       }
     },
     "torch": {
       "installed": true,
-      "version": "2.4.1+cpu",
+      "version": "2.4.1+cu121",
       "cuda_available": false,
-      "cuda_version": null,
+      "cuda_version": "12.1",
       "hip_version": null,
       "mps_available": false,
       "devices": []
     },
     "jax": {
-      "installed": false,
-      "import_error": "No module named 'jax'"
+      "installed": true,
+      "version": "0.6.2",
+      "devices": [
+        {
+          "platform": "cpu",
+          "device_kind": "cpu",
+          "id": 0
+        }
+      ]
     },
     "commands": {
       "nvidia-smi": {
@@ -479,20 +486,20 @@
     ],
     "tile": 8,
     "seed": 23,
-    "torch_version": "2.4.1+cpu",
+    "torch_version": "2.4.1+cu121",
     "cpu_threads": 2,
     "rows": [
       {
         "path": "naive_cpu_loop",
-        "seconds": 0.6381799400041928,
+        "seconds": 0.47826738800358726,
         "gflops": 0.0001,
         "max_abs_error": 1e-06,
         "purpose": "Readable baseline matching one CUDA thread per output element.",
         "evidence_kind": "measured_cpu",
         "samples_seconds": [
-          0.694308252997871,
-          0.6381799400041928,
-          0.5275461579949479
+          0.46324399700097274,
+          0.47826738800358726,
+          0.5082936230028281
         ],
         "warmup": 1,
         "repeat": 3,
@@ -509,17 +516,17 @@
       },
       {
         "path": "tiled_cpu_proxy",
-        "seconds": 0.0027635689984890632,
-        "gflops": 0.0237,
+        "seconds": 0.002411028995993547,
+        "gflops": 0.0272,
         "max_abs_error": 2e-06,
         "purpose": "Shows tile reuse and accumulation shape before moving to shared memory.",
         "evidence_kind": "measured_cpu",
         "samples_seconds": [
-          0.002748550999967847,
-          0.0027635689984890632,
-          0.0025266890006605536,
-          0.0027663149958243594,
-          0.0032149699982255697
+          0.001820468001824338,
+          0.0025782919983612373,
+          0.0018664220042410307,
+          0.0025931950003723614,
+          0.002411028995993547
         ],
         "warmup": 1,
         "repeat": 5,
@@ -536,22 +543,22 @@
       },
       {
         "path": "torch_matmul_reference",
-        "seconds": 9.467501513427123e-06,
-        "gflops": 6.9222,
+        "seconds": 1.285749749513343e-05,
+        "gflops": 5.0971,
         "max_abs_error": 3.2695755525224968e-06,
         "purpose": "Vendor/library-style reference for correctness and scale contrast.",
         "evidence_kind": "measured_cpu",
         "samples_seconds": [
-          1.3044998922850937e-05,
-          1.028899714583531e-05,
-          9.59799945121631e-06,
-          4.8472000344190747e-05,
-          9.609000699128956e-06,
-          9.237999620381743e-06,
-          8.817005436867476e-06,
-          9.337003575637937e-06,
-          9.156996384263039e-06,
-          9.046998457051814e-06
+          1.738999708322808e-05,
+          1.3042998034507036e-05,
+          1.3433003914542496e-05,
+          1.629799953661859e-05,
+          1.4885998098179698e-05,
+          1.2671996955759823e-05,
+          1.259200507774949e-05,
+          1.2311000318732113e-05,
+          1.2420998245943338e-05,
+          1.2049997167196125e-05
         ],
         "warmup": 2,
         "repeat": 10,
@@ -584,7 +591,7 @@
       "tiled_arithmetic_intensity_flop_per_byte": 1.7778,
       "evidence_kind": "analytical"
     },
-    "tiled_vs_naive_speedup": 230.926,
+    "tiled_vs_naive_speedup": 198.3665,
     "finding": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
   },
   "cuda": {

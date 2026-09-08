@@ -1,6 +1,6 @@
 # Executable advanced checkpoint
 
-Latest verified hash-locked checkpoint: **116 tests across ten suites and 23
+Latest verified hash-locked checkpoint: **118 tests across ten suites and 23
 CPU experiments passed**. All 25 isolation/dependency/execution checks passed;
 the 35 checkpoint steps either passed or were explicitly classified unavailable
 (CUDA and HIP), so requested accelerator execution remains unaccepted. The
