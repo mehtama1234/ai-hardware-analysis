@@ -55,12 +55,17 @@ def build_calibrated_draft(target: NeuralGenerator, *, steps: int = CALIBRATION_
     different strings. The training interval is setup, not decode timing.
     """
     draft = NeuralGenerator("cuda", hidden=32, heads=4, seed=152)
-    traces = []
+    trace_texts = []
     with torch.inference_mode():
         for prompt in CALIBRATION_PROMPTS:
             tokens, _ = target.generate(prompt, CALIBRATION_TOKENS, cached=True, cache_storage="preallocated")
-            text = prompt + _tokens_to_text(target, tokens)
-            traces.append(torch.tensor([draft.encode(text)], dtype=torch.long, device=draft.device))
+            trace_texts.append(prompt + _tokens_to_text(target, tokens))
+    # Construct normal tensors after leaving inference_mode; autograd owns the
+    # draft training graph below.
+    traces = [
+        torch.tensor([draft.encode(text)], dtype=torch.long, device=draft.device)
+        for text in trace_texts
+    ]
     draft.model.train()
     optimizer = torch.optim.Adam(draft.model.parameters(), lr=0.01)
     for _ in range(steps):
