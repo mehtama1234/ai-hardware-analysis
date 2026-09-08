@@ -38,6 +38,20 @@ COLAB_RUN_ID=colab-t4-trained-tail-<date> \
 bash gpu-mode-curriculum/scripts/run_colab_gpu_handoff_local.sh
 ```
 
+For the complete bounded teaching-model slice, the wrapper can run trained
+serving, framework profiler capture, and trained CUDA-graph tail load together:
+
+```bash
+COLAB_HANDOFF_MODE=trained-e2e \
+COLAB_RUN_ID=colab-t4-trained-e2e-<date> \
+bash gpu-mode-curriculum/scripts/run_colab_gpu_handoff_local.sh
+```
+
+It downloads `serving-bridge.json`, `profiler-evidence.json`, and
+`serving-tail-load-cuda.json` into one import directory. The profiler capture
+is the untrained decode control path; its scope must remain separate from the
+trained serving quality claim.
+
 Expected artifacts are `serving-bridge.json` and
 `serving-tail-load-cuda.json`. Accept only if output parity, synchronized
 CUDA-event timing, graph-vectorized batching, and p50/p95/max latency checks

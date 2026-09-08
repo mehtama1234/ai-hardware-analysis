@@ -121,6 +121,13 @@ def main() -> int:
         commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True}]
     elif mode == "trained-serving":
         commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_serving_bridge.py", "--trained"], "required": True}]
+    elif mode == "trained-e2e":
+        commands = [
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_serving_bridge.py", "--trained"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_profiler_evidence.py"], "required": True},
+            {"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py", "--mode", "cuda_graph_microbatch", "--trained"], "required": True},
+        ]
     else:
         commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},
