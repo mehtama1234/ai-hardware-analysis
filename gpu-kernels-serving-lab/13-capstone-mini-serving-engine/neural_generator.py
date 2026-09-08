@@ -219,27 +219,35 @@ class NeuralGenerator:
         return bundle
 
     @torch.inference_mode()
-    def generate_batch_cuda_graph(self, prompts: list[str], max_tokens: int) -> list[list[int]]:
+    def generate_batch_cuda_graph(self, prompts: list[str], max_tokens: int, *, cancel_events=None) -> list[list[int]]:
         bundle = self._cuda_graph_batch_bundle(prompts, max_tokens)
+        if cancel_events and any(event.is_set() for event in cancel_events):
+            raise RuntimeError("batched request cancelled before CUDA graph decode")
         bundle["cache_k"].copy_(bundle["seed_k"])
         bundle["cache_v"].copy_(bundle["seed_v"])
         bundle["static_input"].copy_(bundle["first_token"])
         generated = [bundle["first_token"].clone()]
         for graph in bundle["graphs"]:
+            if cancel_events and any(event.is_set() for event in cancel_events):
+                raise RuntimeError("batched request cancelled between CUDA graph replays")
             graph.replay()
             generated.append(bundle["static_next"].clone())
             bundle["static_input"].copy_(bundle["static_next"])
         return torch.cat(generated, dim=1).tolist()
 
     @torch.inference_mode()
-    def _generate_cuda_graph(self, prompt: str, max_tokens: int):
+    def _generate_cuda_graph(self, prompt: str, max_tokens: int, *, cancel_event=None):
         bundle = self._cuda_graph_bundle(prompt, max_tokens)
+        if cancel_event is not None and cancel_event.is_set():
+            raise RuntimeError("request cancelled before CUDA graph decode")
         bundle["cache_k"].copy_(bundle["seed_k"])
         bundle["cache_v"].copy_(bundle["seed_v"])
         bundle["static_input"].copy_(bundle["first_token"])
         generated = [bundle["first_token"].clone()]
         logits_trace = [bundle["first_logits"].clone()]
         for graph in bundle["graphs"]:
+            if cancel_event is not None and cancel_event.is_set():
+                raise RuntimeError("request cancelled between CUDA graph replays")
             graph.replay()
             logits_trace.append(bundle["static_logits"].clone())
             generated.append(bundle["static_next"].clone())
@@ -326,7 +334,7 @@ class NeuralGenerator:
         if cache_storage == "cuda_graph":
             if not cached:
                 raise ValueError("cuda_graph requires cached=True")
-            return self._generate_cuda_graph(prompt, max_tokens)
+            return self._generate_cuda_graph(prompt, max_tokens, cancel_event=cancel_event)
         if cached and cache_storage == "preallocated":
             head_dim = self.model.block.hidden // self.model.block.heads
             cache = (

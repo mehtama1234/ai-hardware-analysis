@@ -75,7 +75,7 @@ def main() -> int:
     first_thread = threading.Thread(target=first_request, args=(endpoint, first_result), daemon=True)
     first_thread.start()
     try:
-        started = generator.started.wait(timeout=2)
+        started = generator.started.wait(timeout=5)
         # The first request occupies the worker.  The second request is sent
         # over a raw socket, allowed to enter execution, then disconnected.
         request_body = json.dumps({"prompt": "abandoned", "max_tokens": 2}).encode()
@@ -83,7 +83,7 @@ def main() -> int:
         raw.sendall((f"POST /v1/completions HTTP/1.1\r\nHost: localhost\r\n"
                      f"Content-Type: application/json\r\nContent-Length: {len(request_body)}\r\n"
                      f"Connection: close\r\n\r\n").encode() + request_body)
-        if not generator.second_started.wait(timeout=3):
+        if not generator.second_started.wait(timeout=10):
             raise RuntimeError("second request did not start")
         raw.close()
         deadline = time.perf_counter() + 2

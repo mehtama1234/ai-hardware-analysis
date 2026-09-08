@@ -124,7 +124,7 @@ not the current test or experiment count.
 ## Current verified expansion (2026-09-07)
 
 The current hash-locked Python 3.10 environment passed all 25 isolation,
-dependency, and execution checks. The expanded checkpoint passed 122 tests
+dependency, and execution checks. The expanded checkpoint passed 126 tests
 across ten suites and 24 CPU experiments, including profiler evidence, the Colab handoff contract, admission, backpressure
 and
 cancellation, microbatching, streaming, tail-load, two-rank serving dispatch,
@@ -136,6 +136,11 @@ The evidence page reports `checkpoint_current: true`, and the GPU host preflight
 reports one locally runnable step plus 31 steps ready for an accelerator host.
 CUDA, HIP, Nsight, and independent-host execution remain open where not covered
 by the accepted imported or local evidence.
+
+The serving CUDA-graph adapter now checks cancellation between its per-token
+graph replays and reports cooperative cancellation through the scheduler. The
+separate experimental single-chain replay remains boundary-only; no arbitrary
+captured-kernel interruption claim is made.
 
 ## Current continuation state (2026-09-08)
 

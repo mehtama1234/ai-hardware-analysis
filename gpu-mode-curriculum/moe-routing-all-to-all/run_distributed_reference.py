@@ -80,10 +80,14 @@ def main():
     try:
         with tempfile.TemporaryDirectory(prefix="gpu-moe-distributed-") as directory:
             context = mp.spawn(worker, args=((Path(directory) / "rendezvous").as_uri(), directory), nprocs=2, join=False)
-            deadline = time.monotonic() + 90
+            # Two spawned Gloo ranks can be heavily delayed when the full
+            # curriculum checkpoint is compiling other CPU workloads.  Keep a
+            # bounded timeout, but do not turn host contention into a false
+            # correctness failure.
+            deadline = time.monotonic() + 180
             while not context.join(timeout=1):
                 if time.monotonic() >= deadline:
-                    raise TimeoutError("two-rank MoE exceeded 90 seconds")
+                    raise TimeoutError("two-rank MoE exceeded 180 seconds")
             reports = [json.loads(Path(directory, f"rank-{r}.json").read_text()) for r in range(2)]
             for rank, data in enumerate(reports):
                 if [x.get("case") for x in data.get("rejection_checks", [])] != ["capacity-mismatch", "rank-one-nan"] or any(x.get("status") != "rejected" for x in data["rejection_checks"]):

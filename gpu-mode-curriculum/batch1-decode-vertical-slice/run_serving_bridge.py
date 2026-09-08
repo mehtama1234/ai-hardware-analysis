@@ -50,7 +50,10 @@ class DecodeModeGenerator:
         # Eager/preallocated decode checks between tokens; captured graph
         # replay is a fixed operation and can only observe cancellation at its
         # boundary.  Keep this distinction visible to scheduler accounting.
-        self.cancellation_mode = "boundary-only" if mode in {"cuda_graph", "cuda_graph_microbatch"} else "cooperative"
+        # These serving adapters use one graph replay per decode step, so the
+        # event is checked between replays.  The separate single-chain graph
+        # API remains boundary-only and is not used by this adapter.
+        self.cancellation_mode = "cooperative"
         self.backend = f"{model_name or 'neural'}-{mode}-decode"
         if mode == "cuda_graph":
             self._graph_workers = [NeuralGenerator(
@@ -105,7 +108,7 @@ class DecodeModeGenerator:
         if cancel_events and any(event.is_set() for event in cancel_events):
             raise RuntimeError("batched request cancelled before decode")
         if graph_batch:
-            generated = self.inner.generate_batch_cuda_graph(prompts, max_tokens)
+            generated = self.inner.generate_batch_cuda_graph(prompts, max_tokens, cancel_events=cancel_events)
         else:
             generated = self.inner.generate_batch(prompts, max_tokens, cached=True, cancel_events=cancel_events)
         return {
