@@ -184,7 +184,8 @@ block hardware acceptance.
 ## Current checkpoint and open gates
 
 The current worktree has a passing hash-locked CPU checkpoint with 126 tests
-across ten tracked suites and 25 CPU experiments. The evidence page is fresh,
+across ten tracked suites and 27 experiment tasks (25 passed, two explicitly
+unavailable). The evidence page is fresh,
 and the GPUMODE workbench verifier passes. The checkpoint includes GEMM,
 attention references, training/inference blocks, packed storage, neural serving
 contracts, compiler execution, collective contracts, and MoE reference checks.

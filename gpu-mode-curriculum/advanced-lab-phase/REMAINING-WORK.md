@@ -121,11 +121,12 @@ checksum matches its wrapper and the rendered evidence page is current. CUDA
 remains unavailable. The earlier checkpoint counts above are historical milestones,
 not the current test or experiment count.
 
-## Current verified expansion (2026-09-07)
+## Current verified expansion (2026-09-08)
 
 The current hash-locked Python 3.10 environment passed all 25 isolation,
 dependency, and execution checks. The expanded checkpoint passed 126 tests
-across ten suites and 25 CPU experiments, including profiler evidence, the Colab handoff contract, admission, backpressure
+across ten suites and 27 experiment tasks (25 passed, two explicitly
+unavailable), including profiler evidence, the Colab handoff contract, admission, backpressure
 and
 cancellation, microbatching, streaming, tail-load, two-rank serving dispatch,
 and the top-level source-hash provenance schema. The current clean source-snapshot

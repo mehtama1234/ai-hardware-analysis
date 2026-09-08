@@ -171,7 +171,7 @@ def main(argv=None) -> int:
             "cancellation": {"mode": generator.cancellation_mode, "inflight_interruption_proven": False},
         })
     source_paths = [Path(__file__).resolve(), HERE / "real_model_serving.py", SERVING / "server.py", SERVING / "microbatch.py"]
-    report["source_sha256"] = {str(path.relative_to(ROOT.parent)): _sha256(path) for path in source_paths}
+    report["source_sha256"] = {str(path.relative_to(ROOT)): _sha256(path) for path in source_paths}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     print(json.dumps({"status": report["status"], "measured": report["measured"], "quality": report.get("quality", {})}, indent=2))
