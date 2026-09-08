@@ -30,6 +30,9 @@ def main() -> int:
     require(decode.get("checks", {}).get("all_logit_parity") is True, "decode logit parity failed")
     require(decode.get("checks", {}).get("all_preallocated_token_parity") is True, "preallocated token parity failed")
     require(decode.get("checks", {}).get("all_preallocated_logit_parity") is True, "preallocated logit parity failed")
+    if decode.get("evidence_kind") == "measured_gpu":
+        require(decode.get("checks", {}).get("all_cuda_graph_token_parity") is True, "CUDA Graph token parity failed")
+        require(decode.get("checks", {}).get("all_cuda_graph_logit_parity") is True, "CUDA Graph logit parity failed")
     rows = decode.get("rows", [])
     require(len(rows) == 3, "decode workload coverage changed")
     require(decode.get("checks", {}).get("workload_count") is True, "decode workload coverage check failed")
@@ -45,9 +48,15 @@ def main() -> int:
     require(all(row.get("accepted") == 8 for mode in ["uncached", "cached"] for row in serving[mode]["rows"]), "serving requests incomplete")
     require(all(row.get("accepted") == 8 for row in serving["preallocated"]["rows"]), "preallocated serving requests incomplete")
     require(all(checks.get(f"uncached_preallocated_output_parity_{key}") is True for key in keys), "preallocated serving output parity failed")
+    if serving.get("device") == "cuda":
+        require(serving.get("cuda_graph") is not None, "CUDA Graph serving report missing")
+        require(all(row.get("accepted") == 8 for row in serving["cuda_graph"]["rows"]), "CUDA Graph serving requests incomplete")
+        require(all(checks.get(f"uncached_cuda_graph_output_parity_{key}") is True for key in keys), "CUDA Graph serving output parity failed")
     require(profiler.get("status") == "passed", "profiler evidence did not pass")
     require(profiler.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid profiler evidence kind")
     require(profiler.get("checks", {}).get("preallocated_cat_not_greater") is True, "preallocated profiler comparison failed")
+    if profiler.get("evidence_kind") == "measured_gpu":
+        require(profiler.get("checks", {}).get("cuda_graph_profiled") is True, "CUDA Graph profiler capture missing")
     print(json.dumps({"status": "passed", "decode_kind": decode["evidence_kind"], "serving_kind": serving["evidence_kind"]}, indent=2))
     return 0
 

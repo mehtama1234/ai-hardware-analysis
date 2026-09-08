@@ -38,8 +38,8 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 # A profiler-only refresh may be supplied explicitly when its capture is a
 # separate GPU session.
 python3 batch1-decode-vertical-slice/verify_reports.py \
-  --reports-dir gpu-runs/imports/colab-t4-batch1-device-sampling-20260908 \
-  --profiler-dir gpu-runs/imports/colab-t4-batch1-device-profile-20260908
+  --reports-dir gpu-runs/imports/colab-t4-batch1-graphs-serving-20260908 \
+  --profiler-dir gpu-runs/imports/colab-t4-batch1-graph-profile-20260908
 ```
 
 ## Acceptance contract
@@ -55,22 +55,18 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 - profiler evidence must show CUDA activity on GPU runs and must not show more
 `aten::cat` calls for preallocated storage than for dynamic cache storage.
 
-The widened T4 run recorded a 1.11x CUDA-event speedup for preallocated
-long-context decode, while the 96-token horizon remained slower (0.89x). The
-HTTP serving measurements remained slower for the optimized path, which is
-kept as evidence that a kernel-level improvement does not automatically
-survive application orchestration.
+The widened T4 run showed that preallocation alone is not sufficient: its
+long-context gain did not survive the HTTP path. The CUDA Graph path then
+reduced direct CUDA-event decode time by 2.70–4.04x and reduced loopback HTTP
+median latency across the measured workloads and concurrency levels, while
+preserving exact outputs. Graph capture is restricted to fixed batch-1 buckets;
+dynamic shapes require an eager fallback.
 
 ## Latest captured GPU evidence
 
-Run `colab-t4-batch1-triton-20260908` passed on an NVIDIA T4 with decode,
-serving, and profiler reports marked `measured_gpu`. The preallocated path uses
-a Triton K/V append kernel on CUDA, and the profiler observed
-`_append_kv_kernel`. The final profiler-only provenance refresh is
-`colab-t4-batch1-profile-final-20260908`. All four prompts matched
-token IDs and logits;
-the serving bridge completed 8 requests at concurrency 1, 2, and 4 for both
-decode modes with cross-mode output parity. On this deliberately small,
-untrained teaching model, KV caching was slower (roughly 0.71–0.77x direct
-wall-clock speedup), so this run validates the end-to-end measurement and
-correctness path rather than claiming an optimization win.
+Run `colab-t4-batch1-graphs-serving-20260908` passed on an NVIDIA T4 with
+decode and serving marked `measured_gpu`. The graph profiler refresh
+`colab-t4-batch1-graph-profile-20260908` observed both `cudaGraphLaunch` and
+`_append_kv_kernel`. All workloads matched token IDs and logits; the serving
+bridge completed 8 requests at concurrency 1, 2, and 4 for every mode with
+cross-mode output parity.

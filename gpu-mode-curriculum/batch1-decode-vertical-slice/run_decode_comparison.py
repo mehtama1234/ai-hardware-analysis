@@ -67,6 +67,7 @@ def _compare_logits(left: list[torch.Tensor], right: list[torch.Tensor]) -> dict
         "max_abs_error": max(errors, default=0.0),
         "all_finite": all(torch.isfinite(torch.tensor(errors))),
         "passed": len(left) == len(right) and max(errors, default=0.0) <= 2e-6,
+        "per_step_max_abs_error": errors,
     }
 
 
@@ -98,6 +99,9 @@ def main() -> int:
             uncached = _path_report(generator, prompt, max_tokens, repeats, cached=False)
             cached = _path_report(generator, prompt, max_tokens, repeats, cached=True, cache_storage="dynamic")
             preallocated = _path_report(generator, prompt, max_tokens, repeats, cached=True, cache_storage="preallocated")
+            cuda_graph = None
+            if generator.device.type == "cuda":
+                cuda_graph = _path_report(generator, prompt, max_tokens, repeats, cached=True, cache_storage="cuda_graph")
             parity = {
                 "tokens_equal": uncached["tokens"] == cached["tokens"],
                 "logits": _compare_logits(uncached["logits"], cached["logits"]),
@@ -117,12 +121,21 @@ def main() -> int:
                 "speedup_wall": uncached["wall_ms_samples"][-1] / max(cached["wall_ms_samples"][-1], 1e-9),
                 "preallocated_speedup_wall": uncached["wall_ms_samples"][-1] / max(preallocated["wall_ms_samples"][-1], 1e-9),
             })
+            if cuda_graph is not None:
+                rows[-1]["cuda_graph"] = {k: v for k, v in cuda_graph.items() if k not in {"tokens", "logits"}}
+                rows[-1]["parity"]["cuda_graph_tokens_equal"] = uncached["tokens"] == cuda_graph["tokens"]
+                rows[-1]["parity"]["cuda_graph_logits"] = _compare_logits(uncached["logits"], cuda_graph["logits"])
+                rows[-1]["parity"]["cuda_graph_tokens"] = cuda_graph["tokens"]
+                rows[-1]["parity"]["reference_tokens"] = uncached["tokens"]
+                rows[-1]["cuda_graph_speedup_wall"] = uncached["wall_ms_samples"][-1] / max(cuda_graph["wall_ms_samples"][-1], 1e-9)
         checks = {
             "workload_count": len(rows) == len(WORKLOADS),
             "all_token_parity": all(row["parity"]["tokens_equal"] for row in rows),
             "all_logit_parity": all(row["parity"]["logits"]["passed"] for row in rows),
             "all_preallocated_token_parity": all(row["parity"]["preallocated_tokens_equal"] for row in rows),
             "all_preallocated_logit_parity": all(row["parity"]["preallocated_logits"]["passed"] for row in rows),
+            "all_cuda_graph_token_parity": generator.device.type != "cuda" or all(row["parity"]["cuda_graph_tokens_equal"] for row in rows),
+            "all_cuda_graph_logit_parity": generator.device.type != "cuda" or all(row["parity"]["cuda_graph_logits"]["passed"] for row in rows),
             "raw_samples_present": all(len(row["cached"]["wall_ms_samples"]) == row["repeats"] for row in rows),
             "preallocated_raw_samples_present": all(len(row["preallocated"]["wall_ms_samples"]) == row["repeats"] for row in rows),
         }

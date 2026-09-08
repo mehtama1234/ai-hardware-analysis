@@ -36,7 +36,7 @@ def _event_row(event) -> dict:
 
 def _capture(generator: NeuralGenerator, mode: str) -> dict:
     cached = mode != "uncached"
-    storage = "preallocated" if mode == "preallocated" else "dynamic"
+    storage = "cuda_graph" if mode == "cuda_graph" else ("preallocated" if mode == "preallocated" else "dynamic")
     activities = [ProfilerActivity.CPU]
     if generator.device.type == "cuda":
         activities.append(ProfilerActivity.CUDA)
@@ -62,11 +62,19 @@ def main() -> int:
         generator = NeuralGenerator("cuda" if torch.cuda.is_available() else "cpu", hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
         # Warm up the dispatcher and allocator outside the captured region.
         generator.generate(PROMPT, MAX_TOKENS, cached=True, cache_storage="preallocated")
-        captures = [_capture(generator, mode) for mode in ("uncached", "cached", "preallocated")]
+        generator.generate(PROMPT, MAX_TOKENS, cached=True, cache_storage="preallocated")
+        modes = ["uncached", "cached", "preallocated"]
+        if generator.device.type == "cuda":
+            # Build the graph bucket before profiling so capture/setup cost is
+            # not confused with steady-state replay.
+            generator.generate(PROMPT, MAX_TOKENS, cached=True, cache_storage="cuda_graph")
+            modes.append("cuda_graph")
+        captures = [_capture(generator, mode) for mode in modes]
         checks = {
-            "three_modes_captured": len(captures) == 3,
+            "expected_modes_captured": len(captures) == (4 if generator.device.type == "cuda" else 3),
             "cuda_kernels_captured": generator.device.type != "cuda" or all(row["cuda_kernel_event_count"] > 0 for row in captures),
             "preallocated_cat_not_greater": captures[2]["aten_cat_count"] <= captures[1]["aten_cat_count"],
+            "cuda_graph_profiled": generator.device.type != "cuda" or any(row["mode"] == "cuda_graph" and row["cuda_kernel_event_count"] > 0 for row in captures),
             "preallocated_kernel_observed": generator.device.type != "cuda" or any(
                 "append_kv" in event["name"].lower() for event in captures[2]["top_events"]
             ),

@@ -111,6 +111,8 @@ def main() -> int:
         ]
     elif mode == "batch1-profile":
         commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_profiler_evidence.py"], "required": True}]
+    elif mode == "batch1-graphs":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True}]
     else:
         commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},
