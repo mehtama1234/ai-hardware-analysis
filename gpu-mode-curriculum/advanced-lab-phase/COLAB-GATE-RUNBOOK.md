@@ -128,7 +128,10 @@ includes:
 - `colab-t4-trained-serving-e2e-20260908`: trained synthetic-model serving;
 - `colab-t4-trained-tail-20260908`: trained CUDA-graph tail-load waves; and
 - `colab-t4-serving-tail-graphs-20260908-r2`: graph-microbatch tail-load
-  verification.
+  verification; and
+- `colab-t4-trained-e2e-20260908`: corrected combined decode, profiler,
+  trained-serving, and trained-tail run with all three measured reports
+  accepted under one source/run identity.
 
 These artifacts close a bounded single-device CUDA vertical slice. They remain
 scoped to the recorded teaching model and loopback workload. They do not close

@@ -193,7 +193,9 @@ contracts, compiler execution, collective contracts, and MoE reference checks.
 The repository also contains imported, hash-checked bounded T4 evidence. The
 accepted GPU artifacts include a CUDA-graph decode candidate search with
 profiler capture, trained synthetic-model serving, and trained graph-microbatch
-tail-load waves. Together they form a real CUDA optimization-to-serving
+tail-load waves. The corrected combined run
+`colab-t4-trained-e2e-20260908` contains all three measured GPU reports under
+one source/run identity. Together they form a real CUDA optimization-to-serving
 vertical slice for the bounded teaching workload. They are not production
 language-quality, production-capacity, multi-GPU, or second-platform evidence.
 
