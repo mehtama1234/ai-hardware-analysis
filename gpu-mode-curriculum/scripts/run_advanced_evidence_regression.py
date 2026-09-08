@@ -70,6 +70,8 @@ def tasks():
          "gpu-mode-curriculum/model-integration/reports/packed-model-cpu.json", []),
         ("neural-serving-cpu", "gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_neural_load.py",
          "gpu-kernels-serving-lab/13-capstone-mini-serving-engine/out_neural_load.json", []),
+        ("trained-quality-matrix-cpu", "gpu-mode-curriculum/model-integration/run_trained_quality_matrix.py",
+         "gpu-mode-curriculum/model-integration/reports/trained-quality-matrix.json", []),
         ("serving-admission-cpu", "gpu-mode-curriculum/model-integration/run_serving_admission.py",
          "gpu-mode-curriculum/model-integration/reports/serving-admission-cpu.json", []),
         ("serving-backpressure-cpu", "gpu-mode-curriculum/model-integration/run_serving_backpressure.py",

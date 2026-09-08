@@ -125,7 +125,7 @@ not the current test or experiment count.
 
 The current hash-locked Python 3.10 environment passed all 25 isolation,
 dependency, and execution checks. The expanded checkpoint passed 126 tests
-across ten suites and 24 CPU experiments, including profiler evidence, the Colab handoff contract, admission, backpressure
+across ten suites and 25 CPU experiments, including profiler evidence, the Colab handoff contract, admission, backpressure
 and
 cancellation, microbatching, streaming, tail-load, two-rank serving dispatch,
 and the top-level source-hash provenance schema. The current clean source-snapshot
@@ -184,6 +184,13 @@ reached 0.9955 held-out next-token accuracy, preserved cached/full parity, and
 passed the same HTTP candidate-selection gates. This closes the
 trained-quality-to-serving handoff for the synthetic workload; it does not
 close production language quality or capacity.
+
+The local quality evidence is broader than the original single-corpus result:
+`model-integration/reports/trained-quality-matrix.json` covers two held-out
+synthetic corpora, two model widths, and two seeds (eight cases), with cached
+versus full decode parity in every case. Its verifier is
+`model-integration/verify_trained_quality_matrix.py`. This strengthens the
+synthetic quality gate but remains separate from production language quality.
 
 The trained tail-load extension is promoted as `trained-serving-tail-cuda`,
 with evidence at
