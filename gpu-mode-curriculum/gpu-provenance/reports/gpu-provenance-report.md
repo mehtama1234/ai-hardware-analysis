@@ -1,6 +1,6 @@
 # GPUMODE GPU Evidence Provenance
 
-Generated: `2026-09-08T10:09:39.290988+00:00`
+Generated: `2026-09-08T10:16:40.575472+00:00`
 Status: `provenance-clear`
 Real GPU evidence: `present`
 Measured GPU runs: `3`

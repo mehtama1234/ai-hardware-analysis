@@ -109,3 +109,10 @@ candidate selection, HTTP serving parity at concurrency 1/2/4, and profiler
 capture. It observed CUDA-graph microbatch vectorization and dynamic fallback,
 so the selected direct-decode candidate was exercised through the application
 boundary as well as measured in isolation.
+
+The refreshed handoff
+`colab-t4-batch1-e2e-search-20260908/` also performs serving-level selection.
+It chose `cuda_graph` for singleton request buckets and
+`cuda_graph_microbatch` for higher concurrency based on HTTP median latency,
+with exact output parity required for every candidate. This is the current
+end-to-end optimization-loop artifact for the bounded teaching workload.

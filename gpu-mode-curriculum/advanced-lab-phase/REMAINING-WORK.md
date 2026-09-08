@@ -161,6 +161,15 @@ fallback, and captured both CUDA Graph launches and the preallocated-cache
 kernel. This is a bounded untrained-character-model vertical slice, not a
 production language-quality or capacity claim.
 
+The refreshed handoff
+`gpu-runs/imports/colab-t4-batch1-e2e-search-20260908/` adds application-level
+candidate selection. It chose `cuda_graph` for singleton buckets and
+`cuda_graph_microbatch` for higher-concurrency buckets using HTTP median
+latency, while requiring output parity for every candidate. Decode, serving,
+and profiler verification all passed on T4. This closes the bounded
+optimization-to-runtime loop for the teaching model; production-scale trained
+quality and capacity characterization remain open.
+
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and
