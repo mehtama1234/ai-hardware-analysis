@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import queue
 import statistics
 import sys
 import threading
@@ -35,30 +36,54 @@ CONCURRENCIES = (1, 2, 4)
 REQUESTS_PER_LEVEL = 8
 MODEL_HIDDEN = 128
 MODEL_HEADS = 8
+GRAPH_POOL_SIZE = 4
 
 
 class DecodeModeGenerator:
     def __init__(self, mode: str, device: str):
-        self.inner = NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
         self.mode = mode
         self.backend = f"neural-{mode}-decode"
+        if mode == "cuda_graph":
+            self._graph_workers = [NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS) for _ in range(GRAPH_POOL_SIZE)]
+            self._graph_slots = queue.Queue()
+            for index in range(GRAPH_POOL_SIZE):
+                self._graph_slots.put(index)
+            self.inner = self._graph_workers[0]
+        else:
+            self.inner = NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
+            self._graph_workers = []
+            self._graph_slots = None
         self.model_name = self.inner.model_name
-        self._graph_lock = threading.Lock()
+
+    @property
+    def graph_pool_size(self) -> int:
+        return len(self._graph_workers)
+
+    def prepare(self, workloads) -> None:
+        for worker in self._graph_workers:
+            for workload in workloads:
+                worker.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
 
     def complete(self, prompt: str, max_tokens: int) -> dict:
         if self.mode == "cuda_graph":
-            # A graph bundle owns static batch-1 addresses. Serialize requests
-            # until a batched graph bucket exists; this makes the tradeoff
-            # visible in the serving measurements instead of racing buffers.
-            with self._graph_lock:
-                generated, _ = self.inner.generate(prompt, max_tokens, cached=True, cache_storage="cuda_graph")
+            # Each slot owns static batch-1 addresses and its own graph bucket.
+            # The bounded pool permits concurrent requests without racing a
+            # single graph's mutable cache/input buffers.
+            slot = self._graph_slots.get()
+            try:
+                worker = self._graph_workers[slot]
+                generated, _ = worker.generate(prompt, max_tokens, cached=True, cache_storage="cuda_graph")
+            finally:
+                self._graph_slots.put(slot)
+            model = worker.model
         else:
             generated, _ = self.inner.generate(
                 prompt, max_tokens, cached=self.mode != "uncached",
                 cache_storage="preallocated" if self.mode == "preallocated" else "dynamic",
             )
+            model = self.inner.model
         return {
-            "text": "".join(self.inner.model.alphabet[index] for index in generated),
+            "text": "".join(model.alphabet[index] for index in generated),
             "generated_tokens": len(generated),
             "prompt_tokens": len(self.inner.encode(prompt)),
             "backend": self.backend,
@@ -76,7 +101,8 @@ def _request(endpoint: str, prompt: str, max_tokens: int) -> dict:
 
 def _run_mode(mode: str, device: str) -> dict:
     previous = server.GENERATOR, server.ADMISSION, server.MICRO_BATCH
-    server.GENERATOR = DecodeModeGenerator(mode, device)
+    mode_generator = DecodeModeGenerator(mode, device)
+    server.GENERATOR = mode_generator
     server.ADMISSION = None
     server.MICRO_BATCH = None
     http = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
@@ -85,6 +111,7 @@ def _run_mode(mode: str, device: str) -> dict:
     endpoint = f"http://127.0.0.1:{http.server_port}/v1/completions"
     rows = []
     try:
+        server.GENERATOR.prepare(WORKLOADS)
         for workload in WORKLOADS:
             prompt = workload["prompt"]
             max_tokens = workload["max_tokens"]
@@ -115,7 +142,7 @@ def _run_mode(mode: str, device: str) -> dict:
         http.server_close()
         thread.join(timeout=10)
         server.GENERATOR, server.ADMISSION, server.MICRO_BATCH = previous
-    return {"mode": mode, "rows": rows}
+    return {"mode": mode, "rows": rows, "graph_pool_size": mode_generator.graph_pool_size}
 
 
 def main() -> int:
@@ -128,9 +155,9 @@ def main() -> int:
         preallocated = _run_mode("preallocated", device)
         cuda_graph = _run_mode("cuda_graph", device) if device == "cuda" else None
         checks = {
-            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached) for row in mode["rows"]),
-            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached) for row in mode["rows"]),
-            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached) for row in mode["rows"]),
+            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
             "concurrency_levels_present": [row["concurrency"] for row in cached["rows"]] == list(CONCURRENCIES) * len(WORKLOADS),
         }
         for left, right in zip(uncached["rows"], cached["rows"]):
@@ -155,7 +182,7 @@ def main() -> int:
             "evidence_kind": "measured_gpu" if device == "cuda" else "measured_cpu",
             "device": device,
             "gpu_execution_accepted": device == "cuda" and all(checks.values()),
-            "protocol": {"workloads": list(WORKLOADS), "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
+            "protocol": {"workloads": list(WORKLOADS), "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "graph_pool_size": GRAPH_POOL_SIZE, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
             "uncached": uncached,
             "cached": cached,
             "preallocated": preallocated,

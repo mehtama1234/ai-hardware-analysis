@@ -57,10 +57,11 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 
 The widened T4 run showed that preallocation alone is not sufficient: its
 long-context gain did not survive the HTTP path. The CUDA Graph path then
-reduced direct CUDA-event decode time by 2.70–4.04x and reduced loopback HTTP
+reduced direct CUDA-event decode time by 2.74–4.37x and reduced loopback HTTP
 median latency across the measured workloads and concurrency levels, while
-preserving exact outputs. Graph capture is restricted to fixed batch-1 buckets;
-dynamic shapes require an eager fallback.
+preserving exact outputs. A four-slot graph pool supports concurrency 1/2/4
+without racing static buffers. Graph capture is restricted to fixed batch-1
+buckets; dynamic shapes require an eager fallback.
 
 ## Latest captured GPU evidence
 
