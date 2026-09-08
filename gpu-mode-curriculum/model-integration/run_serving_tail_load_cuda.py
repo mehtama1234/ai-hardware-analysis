@@ -36,6 +36,11 @@ sys.path.insert(0, str(SERVING))
 import server  # noqa: E402
 from microbatch import MicroBatchScheduler  # noqa: E402
 from neural_generator import NeuralGenerator  # noqa: E402
+BATCH1 = ROOT / "gpu-mode-curriculum" / "batch1-decode-vertical-slice"
+if not BATCH1.is_dir():
+    BATCH1 = ROOT / "batch1-decode-vertical-slice"
+sys.path.insert(0, str(BATCH1))
+from run_serving_bridge import DecodeModeGenerator  # noqa: E402
 
 OUT = HERE / "reports" / "serving-tail-load-cuda.json"
 CONCURRENCIES = (1, 2, 4, 8)
@@ -97,15 +102,29 @@ def tail_report_contract(report: dict) -> bool:
 
 
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--mode", choices=("microbatch", "cuda_graph_microbatch"),
+        default="microbatch",
+        help="decode backend exercised by the HTTP tail-load sweep",
+    )
+    args = parser.parse_args()
     report = {"experiment": "serving_tail_load_cuda",
               "generated_at": datetime.now(timezone.utc).isoformat(),
+              "mode": args.mode,
               "status": "unavailable:cuda-runtime", "measured": False,
               "gpu_execution_accepted": False}
     if not torch.cuda.is_available():
         report["reason"] = "CUDA is not available"
     else:
         previous = server.GENERATOR, server.ADMISSION, server.MICRO_BATCH
-        generator = NeuralGenerator("cuda")
+        if args.mode == "cuda_graph_microbatch":
+            generator = DecodeModeGenerator(args.mode, "cuda")
+            generator.prepare([{"prompt": "hello", "max_tokens": MAX_TOKENS}])
+        else:
+            generator = NeuralGenerator("cuda")
         expected = generator.complete("hello", MAX_TOKENS)["text"]
         scheduler = MicroBatchScheduler(generator, max_batch=4, window_ms=2.0, max_pending=64)
         server.GENERATOR, server.ADMISSION, server.MICRO_BATCH = generator, None, scheduler
