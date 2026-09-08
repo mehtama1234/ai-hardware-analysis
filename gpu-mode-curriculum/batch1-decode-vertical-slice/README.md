@@ -73,3 +73,11 @@ cross-mode output parity. An unseen `(prompt, max_tokens)` pair was explicitly
 served by the eager fallback and labeled
 `neural-cuda_graph-decode-fallback`; it did not trigger capture on the request
 path.
+
+The same run also exercises the bounded arrival-window microbatch scheduler.
+The latest T4 report (`colab-t4-batch1-microbatch-20260908`) formed 42 batches,
+including 18 vectorized groups with observed sizes 1/2/4, rejected zero
+requests, and preserved parity. At concurrency 4, vectorized microbatching
+reduced long-context median latency to about 26 ms versus about 66 ms for the
+uncached path; the CUDA Graph pool remains the lower-latency fixed-bucket
+option.

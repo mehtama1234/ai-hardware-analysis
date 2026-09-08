@@ -24,6 +24,7 @@ REPO = ROOT if (ROOT / "gpu-kernels-serving-lab").exists() else ROOT.parent
 SERVING = REPO / "gpu-kernels-serving-lab" / "13-capstone-mini-serving-engine"
 sys.path.insert(0, str(SERVING))
 import server  # noqa: E402
+from microbatch import MicroBatchScheduler  # noqa: E402
 from neural_generator import NeuralGenerator  # noqa: E402
 
 REPORT = HERE / "reports" / "serving-bridge.json"
@@ -60,11 +61,29 @@ class DecodeModeGenerator:
     def graph_pool_size(self) -> int:
         return len(self._graph_workers)
 
+    def encode(self, prompt: str):
+        return self.inner.encode(prompt)
+
     def prepare(self, workloads) -> None:
         self._graph_bucket_keys = {(workload["prompt"], workload["max_tokens"]) for workload in workloads}
         for worker in self._graph_workers:
             for workload in workloads:
                 worker.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
+
+    def complete_batch(self, prompts: list[str], max_tokens: int) -> dict:
+        if self.mode != "microbatch":
+            raise RuntimeError("complete_batch is only enabled for microbatch mode")
+        generated = self.inner.generate_batch(prompts, max_tokens, cached=True)
+        return {
+            "choices": [
+                {"index": index, "text": "".join(self.inner.model.alphabet[token] for token in tokens), "finish_reason": "length"}
+                for index, tokens in enumerate(generated)
+            ],
+            "completion_tokens": len(prompts) * max_tokens,
+            "prefix_tokens_reused": 0,
+            "batch_mode": "vectorized",
+            "backend": self.backend,
+        }
 
     def complete(self, prompt: str, max_tokens: int) -> dict:
         if self.mode == "cuda_graph":
@@ -86,7 +105,7 @@ class DecodeModeGenerator:
         else:
             generated, _ = self.inner.generate(
                 prompt, max_tokens, cached=self.mode != "uncached",
-                cache_storage="preallocated" if self.mode == "preallocated" else "dynamic",
+                cache_storage="preallocated" if self.mode in {"preallocated", "microbatch"} else "dynamic",
             )
             model = self.inner.model
             backend = self.backend
@@ -113,6 +132,10 @@ def _run_mode(mode: str, device: str) -> dict:
     server.GENERATOR = mode_generator
     server.ADMISSION = None
     server.MICRO_BATCH = None
+    scheduler = None
+    if mode == "microbatch":
+        scheduler = MicroBatchScheduler(mode_generator, max_batch=4, window_ms=3.0, max_pending=64)
+        server.MICRO_BATCH = scheduler
     http = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
     thread = threading.Thread(target=http.serve_forever, daemon=True)
     thread.start()
@@ -151,14 +174,18 @@ def _run_mode(mode: str, device: str) -> dict:
                     "output_texts": [row["payload"]["choices"][0]["text"] for row in results],
                     "output_parity": all(row["payload"]["choices"][0]["text"] == server.GENERATOR.complete(prompts[index], max_tokens)["text"] for index, row in enumerate(results)),
                     "backend_labels": sorted({row["payload"].get("backend") for row in results}),
+                    "batch_modes": sorted({row["payload"].get("batch_mode") for row in results}),
                     "expected_probe_nonempty": bool(expected),
                 })
     finally:
         http.shutdown()
         http.server_close()
         thread.join(timeout=10)
+        if scheduler is not None:
+            scheduler.close()
         server.GENERATOR, server.ADMISSION, server.MICRO_BATCH = previous
-    return {"mode": mode, "rows": rows, "graph_pool_size": mode_generator.graph_pool_size, "fallback_probe": fallback_probe}
+    return {"mode": mode, "rows": rows, "graph_pool_size": mode_generator.graph_pool_size, "fallback_probe": fallback_probe,
+            "scheduler": scheduler.snapshot() if scheduler is not None else None}
 
 
 def main() -> int:
@@ -169,12 +196,14 @@ def main() -> int:
         uncached = _run_mode("uncached", device)
         cached = _run_mode("cached", device)
         preallocated = _run_mode("preallocated", device)
+        microbatch = _run_mode("microbatch", device)
         cuda_graph = _run_mode("cuda_graph", device) if device == "cuda" else None
         checks = {
-            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
-            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
-            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached, preallocated, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
             "concurrency_levels_present": [row["concurrency"] for row in cached["rows"]] == list(CONCURRENCIES) * len(WORKLOADS),
+            "microbatch_vectorized_observed": any("vectorized" in row["batch_modes"] for row in microbatch["rows"]),
         }
         for left, right in zip(uncached["rows"], cached["rows"]):
             left_payloads = left["backend_labels"]
@@ -195,6 +224,9 @@ def main() -> int:
                 cuda_graph.get("fallback_probe", {}).get("used_eager_fallback")
                 and cuda_graph.get("fallback_probe", {}).get("text_nonempty")
             )
+        for left, right in zip(uncached["rows"], microbatch["rows"]):
+            key = f"{left['workload']}_{left['concurrency']}"
+            checks[f"microbatch_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -206,6 +238,7 @@ def main() -> int:
             "uncached": uncached,
             "cached": cached,
             "preallocated": preallocated,
+            "microbatch": microbatch,
             "cuda_graph": cuda_graph,
             "checks": checks,
             "timing_scope": "loopback HTTP request wall latency including server dispatch and autoregressive generation; excludes client queue wait outside the request",

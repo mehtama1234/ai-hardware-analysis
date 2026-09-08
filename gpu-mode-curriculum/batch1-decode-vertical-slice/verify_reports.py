@@ -48,6 +48,9 @@ def main() -> int:
     require(all(row.get("accepted") == 8 for mode in ["uncached", "cached"] for row in serving[mode]["rows"]), "serving requests incomplete")
     require(all(row.get("accepted") == 8 for row in serving["preallocated"]["rows"]), "preallocated serving requests incomplete")
     require(all(checks.get(f"uncached_preallocated_output_parity_{key}") is True for key in keys), "preallocated serving output parity failed")
+    require(all(row.get("accepted") == 8 for row in serving["microbatch"]["rows"]), "microbatch serving requests incomplete")
+    require(checks.get("microbatch_vectorized_observed") is True, "microbatch vectorized path missing")
+    require(all(checks.get(f"microbatch_output_parity_{key}") is True for key in keys), "microbatch serving output parity failed")
     if serving.get("device") == "cuda":
         require(serving.get("cuda_graph") is not None, "CUDA Graph serving report missing")
         require(all(row.get("accepted") == 8 for row in serving["cuda_graph"]["rows"]), "CUDA Graph serving requests incomplete")
