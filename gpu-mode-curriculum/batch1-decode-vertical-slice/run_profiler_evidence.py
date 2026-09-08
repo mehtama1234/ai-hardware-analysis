@@ -65,6 +65,9 @@ def main() -> int:
             "three_modes_captured": len(captures) == 3,
             "cuda_kernels_captured": generator.device.type != "cuda" or all(row["cuda_kernel_event_count"] > 0 for row in captures),
             "preallocated_cat_not_greater": captures[2]["aten_cat_count"] <= captures[1]["aten_cat_count"],
+            "preallocated_kernel_observed": generator.device.type != "cuda" or any(
+                "append_kv" in event["name"].lower() for event in captures[2]["top_events"]
+            ),
         }
         report = {
             "experiment": "batch1_decode_profiler_evidence",
@@ -73,11 +76,11 @@ def main() -> int:
             "evidence_kind": "measured_gpu" if generator.device.type == "cuda" else "measured_cpu",
             "device": str(generator.device),
             "gpu_execution_accepted": generator.device.type == "cuda" and all(checks.values()),
-            "protocol": {"prompt": PROMPT, "max_tokens": MAX_TOKENS, "activities": [activity.name for activity in activities] if False else ["CPU", "CUDA" if generator.device.type == "cuda" else "CPU-only"]},
+            "protocol": {"prompt": PROMPT, "max_tokens": MAX_TOKENS, "activities": ["CPU", "CUDA" if generator.device.type == "cuda" else "CPU-only"]},
             "captures": captures,
             "checks": checks,
             "interpretation": "PyTorch profiler evidence counts framework and CUDA activity; it is not a substitute for Nsight Compute hardware counters.",
-            "source_sha256": {str(path.relative_to(REPO)): hashlib.sha256(path.read_bytes()).hexdigest() for path in (Path(__file__).resolve(), SERVING / "neural_generator.py")},
+            "source_sha256": {str(path.relative_to(REPO)): hashlib.sha256(path.read_bytes()).hexdigest() for path in (Path(__file__).resolve(), SERVING / "neural_generator.py", ROOT / "model-integration/model_integration/tiny_transformer.py")},
         }
         REPORT.parent.mkdir(parents=True, exist_ok=True)
         REPORT.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")

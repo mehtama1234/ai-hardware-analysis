@@ -49,8 +49,11 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 
 ## Latest captured GPU evidence
 
-Run `colab-t4-batch1-prealloc-20260908` passed on an NVIDIA T4 with decode,
-serving, and profiler reports marked `measured_gpu`. All four prompts matched
+Run `colab-t4-batch1-triton-20260908` passed on an NVIDIA T4 with decode,
+serving, and profiler reports marked `measured_gpu`. The preallocated path uses
+a Triton K/V append kernel on CUDA, and the profiler observed
+`_append_kv_kernel`. The final profiler-only provenance refresh is
+`colab-t4-batch1-profile-final-20260908`. All four prompts matched
 token IDs and logits;
 the serving bridge completed 8 requests at concurrency 1, 2, and 4 for both
 decode modes with cross-mode output parity. On this deliberately small,

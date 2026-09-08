@@ -12,6 +12,52 @@ from typing import Any
 import torch
 from torch import nn
 
+try:
+    import triton
+    import triton.language as tl
+except ImportError:  # CPU environments and minimal installs retain the reference path.
+    triton = None
+    tl = None
+
+
+if triton is not None:
+    @triton.jit
+    def _append_kv_kernel(
+        k_ptr, v_ptr, cache_k_ptr, cache_v_ptr,
+        rows, heads, seq, capacity, head_dim, offset,
+        BLOCK_D: tl.constexpr,
+    ):
+        row = tl.program_id(0)
+        d = tl.arange(0, BLOCK_D)
+        mask = (row < rows) & (d < head_dim)
+        token = row % seq
+        head_row = row // seq
+        batch = head_row // heads
+        head = head_row % heads
+        source = ((batch * heads + head) * seq + token) * head_dim + d
+        target = ((batch * heads + head) * capacity + offset + token) * head_dim + d
+        values_k = tl.load(k_ptr + source, mask=mask, other=0.0)
+        values_v = tl.load(v_ptr + source, mask=mask, other=0.0)
+        tl.store(cache_k_ptr + target, values_k, mask=mask)
+        tl.store(cache_v_ptr + target, values_v, mask=mask)
+
+
+def _append_kv_into_cache(k: torch.Tensor, v: torch.Tensor, cache_k: torch.Tensor,
+                          cache_v: torch.Tensor, offset: int) -> str:
+    if k.is_cuda and triton is not None:
+        k = k.contiguous()
+        v = v.contiguous()
+        rows = k.shape[0] * k.shape[1] * k.shape[2]
+        block_d = 1 << (k.shape[-1] - 1).bit_length()
+        _append_kv_kernel[(rows,)](
+            k, v, cache_k, cache_v, rows, k.shape[1], k.shape[2],
+            cache_k.shape[2], k.shape[3], offset, BLOCK_D=block_d,
+        )
+        return "triton"
+    cache_k[:, :, offset:offset + k.shape[-2], :].copy_(k)
+    cache_v[:, :, offset:offset + v.shape[-2], :].copy_(v)
+    return "torch-copy"
+
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "custom-ops"))
@@ -106,8 +152,7 @@ class TinyTransformerBlock(nn.Module):
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
-        cache_k[:, :, offset:offset + seq, :].copy_(k)
-        cache_v[:, :, offset:offset + seq, :].copy_(v)
+        _append_kv_into_cache(k, v, cache_k, cache_v, offset)
         keys = cache_k[:, :, :offset + seq, :]
         values = cache_v[:, :, :offset + seq, :]
         allowed = torch.arange(offset + seq, device=x.device)[None, :] <= \
