@@ -196,6 +196,35 @@ class ServingControlTests(unittest.TestCase):
         finally:
             scheduler.close()
 
+    def test_vectorized_batch_cancellation_aborts_shared_batch_explicitly(self):
+        started = threading.Event()
+
+        class CancellableBatchGenerator(FakeGenerator):
+            def complete_batch(self, prompts, max_tokens, *, cancel_events=None):
+                started.set()
+                while not cancel_events or not any(event.is_set() for event in cancel_events):
+                    threading.Event().wait(0.001)
+                raise RuntimeError("shared batch observed cancellation")
+
+        scheduler = MicroBatchScheduler(CancellableBatchGenerator(), max_batch=2, window_ms=50, max_pending=4)
+        try:
+            first = scheduler.submit("aa", 1)
+            second = scheduler.submit("bb", 1)
+            self.assertTrue(started.wait(timeout=2))
+            self.assertFalse(first.cancel())
+            for _ in range(1000):
+                if scheduler.snapshot()["batch_cancelled_count"]:
+                    break
+                threading.Event().wait(0.001)
+            snapshot = scheduler.snapshot()
+            self.assertEqual(snapshot["batch_cancelled_count"], 1)
+            self.assertEqual(snapshot["inflight_cancelled_count"], 1)
+            self.assertEqual(snapshot["cancelled_count"], 1)
+            with self.assertRaises(RuntimeError):
+                second.result(timeout=2)
+        finally:
+            scheduler.close()
+
 
 if __name__ == "__main__":
     unittest.main()

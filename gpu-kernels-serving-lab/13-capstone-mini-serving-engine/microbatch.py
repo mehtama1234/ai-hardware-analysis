@@ -50,6 +50,7 @@ class MicroBatchScheduler:
         self._rejected = 0
         self._cancelled = 0
         self._inflight_cancelled = 0
+        self._batch_cancelled = 0
         self._thread.start()
 
     def submit(self, prompt: str, max_tokens: int) -> Future:
@@ -67,6 +68,7 @@ class MicroBatchScheduler:
             return {"batch_count": len(self._batches), "batches": [dict(row) for row in self._batches],
                     "rejected_count": self._rejected, "cancelled_count": self._cancelled,
                     "inflight_cancelled_count": self._inflight_cancelled,
+                    "batch_cancelled_count": self._batch_cancelled,
                     "max_pending": self.max_pending}
 
     def close(self) -> None:
@@ -107,7 +109,15 @@ class MicroBatchScheduler:
             for group in groups.values():
                 try:
                     if len(group) > 1:
-                        result = self.generator.complete_batch([r.prompt for r in group], group[0].max_tokens)
+                        try:
+                            result = self.generator.complete_batch(
+                                [r.prompt for r in group], group[0].max_tokens,
+                                cancel_events=[r.future.cancel_event for r in group],
+                            )
+                        except TypeError as exc:
+                            if "cancel_events" not in str(exc):
+                                raise
+                            result = self.generator.complete_batch([r.prompt for r in group], group[0].max_tokens)
                         mode = result.get("batch_mode", "unknown")
                         choices = result["choices"]
                     else:
@@ -137,6 +147,9 @@ class MicroBatchScheduler:
                         elif not request.future.done():
                             request.future.set_result({"text": choice["text"], "batch_mode": mode})
                 except Exception as exc:
+                    if len(group) > 1 and any(request.future.cancel_event.is_set() for request in group):
+                        with self._lock:
+                            self._batch_cancelled += 1
                     for request in group:
                         if request.future.cancel_event.is_set():
                             with self._lock:

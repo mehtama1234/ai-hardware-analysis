@@ -379,12 +379,12 @@ class NeuralGenerator:
             yield {"index": index, "token": self.model.alphabet[token_id], "token_id": token_id}
             tokens = torch.cat((tokens, next_token), dim=1)
 
-    def complete_batch(self, prompts, max_tokens):
+    def complete_batch(self, prompts, max_tokens, *, cancel_events=None):
         if not isinstance(prompts, list) or not prompts:
             raise ValueError("prompts must be a nonempty list")
         encoded = [self.encode(prompt) for prompt in prompts]
         if len({len(ids) for ids in encoded}) == 1:
-            generated = self.generate_batch(prompts, max_tokens)
+            generated = self.generate_batch(prompts, max_tokens, cancel_events=cancel_events)
             mode = "vectorized"
             choices = [{"index": index, "text": "".join(self.model.alphabet[i] for i in tokens), "finish_reason": "length"}
                        for index, tokens in enumerate(generated)]
@@ -398,7 +398,7 @@ class NeuralGenerator:
                 "prefix_tokens_reused": 0, "batch_mode": mode, "backend": self.backend}
 
     @torch.inference_mode()
-    def generate_batch(self, prompts, max_tokens, *, cached=True):
+    def generate_batch(self, prompts, max_tokens, *, cached=True, cancel_events=None):
         """Decode equal-length prompts as one tensor batch.
 
         A shared cache tuple has shape ``[batch, heads, sequence, head_dim]``.
@@ -418,6 +418,8 @@ class NeuralGenerator:
         generated = [[] for _ in prompts]
         cache = None
         for _ in range(max_tokens):
+            if cancel_events and any(event.is_set() for event in cancel_events):
+                raise RuntimeError("batched request cancelled during neural decode")
             if cached:
                 logits, cache = self.model(tokens if cache is None else tokens[:, -1:], cache, cached=True)
             else:

@@ -190,8 +190,8 @@ attention references, training/inference blocks, packed storage, neural serving
 contracts, compiler execution, collective contracts, and MoE reference checks.
 
 Current accepted results are not final-goal acceptance. The current worktree
-snapshot also passed the clean-snapshot reproduction gate at revision
-`f8160e4aed36272ab29d699236314e6cadd401da`; that proves
+snapshot also passed the clean-snapshot reproduction gate; the authoritative
+snapshot revision is recorded in `fresh-checkout-reproduction.json`. That proves
 reproducibility of that captured source snapshot, not independent-host or GPU
 execution. The
 following remain open:

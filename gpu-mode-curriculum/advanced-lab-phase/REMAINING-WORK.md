@@ -129,7 +129,8 @@ across ten suites and 24 CPU experiments, including profiler evidence, the Colab
 and
 cancellation, microbatching, streaming, tail-load, two-rank serving dispatch,
 and the top-level source-hash provenance schema. The current clean source-snapshot
-reproduction passed at revision `f8160e4aed36272ab29d699236314e6cadd401da`.
+reproduction passed; its authoritative snapshot revision is recorded in
+`fresh-checkout-reproduction.json`.
 
 The evidence page reports `checkpoint_current: true`, and the GPU host preflight
 reports one locally runnable step plus 31 steps ready for an accelerator host.
