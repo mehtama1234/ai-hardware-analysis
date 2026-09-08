@@ -21,31 +21,35 @@ sys.path.insert(0, str(SERVING))
 from neural_generator import NeuralGenerator  # noqa: E402
 
 REPORT = HERE / "reports" / "decode-comparison.json"
-PROMPTS = ("hello gpu", "attention cache", "decode step", "memory traffic")
-MAX_TOKENS = 12
+WORKLOADS = (
+    {"id": "short-context", "prompt": "attention cache", "max_tokens": 12, "repeats": 7},
+    {"id": "long-context", "prompt": "attention cache " * 5, "max_tokens": 24, "repeats": 7},
+    {"id": "long-decode", "prompt": "attention cache", "max_tokens": 96, "repeats": 3},
+)
 WARMUPS = 2
-REPEATS = 7
+MODEL_HIDDEN = 128
+MODEL_HEADS = 8
 
 
 def _median(values: list[float]) -> float:
     return float(statistics.median(values))
 
 
-def _run_once(generator: NeuralGenerator, prompt: str, cached: bool, cache_storage: str = "dynamic") -> dict:
+def _run_once(generator: NeuralGenerator, prompt: str, max_tokens: int, cached: bool, cache_storage: str = "dynamic") -> dict:
     started = time.perf_counter()
-    generated, logits = generator.generate(prompt, MAX_TOKENS, cached=cached, cache_storage=cache_storage)
+    generated, logits = generator.generate(prompt, max_tokens, cached=cached, cache_storage=cache_storage)
     wall_ms = (time.perf_counter() - started) * 1000.0
     return {"tokens": generated, "logits": logits, "wall_ms": wall_ms}
 
 
-def _cuda_run_once(generator: NeuralGenerator, prompt: str, cached: bool, cache_storage: str = "dynamic") -> dict:
+def _cuda_run_once(generator: NeuralGenerator, prompt: str, max_tokens: int, cached: bool, cache_storage: str = "dynamic") -> dict:
     if generator.device.type != "cuda":
-        return _run_once(generator, prompt, cached, cache_storage)
+        return _run_once(generator, prompt, max_tokens, cached, cache_storage)
     start = torch.cuda.Event(enable_timing=True)
     end = torch.cuda.Event(enable_timing=True)
     started = time.perf_counter()
     start.record()
-    generated, logits = generator.generate(prompt, MAX_TOKENS, cached=cached, cache_storage=cache_storage)
+    generated, logits = generator.generate(prompt, max_tokens, cached=cached, cache_storage=cache_storage)
     end.record()
     end.synchronize()
     return {
@@ -66,10 +70,10 @@ def _compare_logits(left: list[torch.Tensor], right: list[torch.Tensor]) -> dict
     }
 
 
-def _path_report(generator: NeuralGenerator, prompt: str, cached: bool, cache_storage: str = "dynamic") -> dict:
+def _path_report(generator: NeuralGenerator, prompt: str, max_tokens: int, repeats: int, cached: bool, cache_storage: str = "dynamic") -> dict:
     for _ in range(WARMUPS):
-        _cuda_run_once(generator, prompt, cached, cache_storage)
-    samples = [_cuda_run_once(generator, prompt, cached, cache_storage) for _ in range(REPEATS)]
+        _cuda_run_once(generator, prompt, max_tokens, cached, cache_storage)
+    samples = [_cuda_run_once(generator, prompt, max_tokens, cached, cache_storage) for _ in range(repeats)]
     return {
         "cached": cached,
         "wall_ms_samples": [row["wall_ms"] for row in samples],
@@ -85,12 +89,15 @@ def main() -> int:
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
-        generator = NeuralGenerator("cuda" if torch.cuda.is_available() else "cpu")
+        generator = NeuralGenerator("cuda" if torch.cuda.is_available() else "cpu", hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
         rows = []
-        for prompt in PROMPTS:
-            uncached = _path_report(generator, prompt, cached=False)
-            cached = _path_report(generator, prompt, cached=True, cache_storage="dynamic")
-            preallocated = _path_report(generator, prompt, cached=True, cache_storage="preallocated")
+        for workload in WORKLOADS:
+            prompt = workload["prompt"]
+            max_tokens = workload["max_tokens"]
+            repeats = workload["repeats"]
+            uncached = _path_report(generator, prompt, max_tokens, repeats, cached=False)
+            cached = _path_report(generator, prompt, max_tokens, repeats, cached=True, cache_storage="dynamic")
+            preallocated = _path_report(generator, prompt, max_tokens, repeats, cached=True, cache_storage="preallocated")
             parity = {
                 "tokens_equal": uncached["tokens"] == cached["tokens"],
                 "logits": _compare_logits(uncached["logits"], cached["logits"]),
@@ -98,9 +105,11 @@ def main() -> int:
                 "preallocated_logits": _compare_logits(uncached["logits"], preallocated["logits"]),
             }
             rows.append({
+                "workload": workload["id"],
                 "prompt": prompt,
                 "prompt_tokens": len(generator.encode(prompt)),
-                "max_tokens": MAX_TOKENS,
+                "max_tokens": max_tokens,
+                "repeats": repeats,
                 "uncached": {k: v for k, v in uncached.items() if k not in {"tokens", "logits"}},
                 "cached": {k: v for k, v in cached.items() if k not in {"tokens", "logits"}},
                 "preallocated": {k: v for k, v in preallocated.items() if k not in {"tokens", "logits"}},
@@ -109,13 +118,13 @@ def main() -> int:
                 "preallocated_speedup_wall": uncached["wall_ms_samples"][-1] / max(preallocated["wall_ms_samples"][-1], 1e-9),
             })
         checks = {
-            "prompt_count": len(rows) == len(PROMPTS),
+            "workload_count": len(rows) == len(WORKLOADS),
             "all_token_parity": all(row["parity"]["tokens_equal"] for row in rows),
             "all_logit_parity": all(row["parity"]["logits"]["passed"] for row in rows),
             "all_preallocated_token_parity": all(row["parity"]["preallocated_tokens_equal"] for row in rows),
             "all_preallocated_logit_parity": all(row["parity"]["preallocated_logits"]["passed"] for row in rows),
-            "raw_samples_present": all(len(row["cached"]["wall_ms_samples"]) == REPEATS for row in rows),
-            "preallocated_raw_samples_present": all(len(row["preallocated"]["wall_ms_samples"]) == REPEATS for row in rows),
+            "raw_samples_present": all(len(row["cached"]["wall_ms_samples"]) == row["repeats"] for row in rows),
+            "preallocated_raw_samples_present": all(len(row["preallocated"]["wall_ms_samples"]) == row["repeats"] for row in rows),
         }
         device = str(generator.device)
         evidence_kind = "measured_gpu" if generator.device.type == "cuda" else "measured_cpu"
@@ -126,7 +135,7 @@ def main() -> int:
             "evidence_kind": evidence_kind,
             "device": device,
             "gpu_execution_accepted": generator.device.type == "cuda" and all(checks.values()),
-            "protocol": {"prompts": list(PROMPTS), "max_tokens": MAX_TOKENS, "warmups": WARMUPS, "repeats": REPEATS, "threads": 1},
+            "protocol": {"workloads": list(WORKLOADS), "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "warmups": WARMUPS, "threads": 1},
             "rows": rows,
             "checks": checks,
             "timing_scope": "complete autoregressive generator call including prefill, decode, sampling, and Python orchestration; CUDA event covers the same call on the default stream",

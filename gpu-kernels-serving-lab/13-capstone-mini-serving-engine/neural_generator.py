@@ -26,14 +26,15 @@ from model_integration.tiny_transformer import TinyTransformerBlock
 class CharacterModel(nn.Module):
     alphabet = "? abcdefghijklmnopqrstuvwxyz0123456789.,!\n"
 
-    def __init__(self, context=128):
+    def __init__(self, context=128, hidden=32, heads=4):
         super().__init__()
         self.context = context
-        self.embedding = nn.Embedding(len(self.alphabet), 32)
-        self.position = nn.Embedding(context, 32)
-        self.block = TinyTransformerBlock(32, 4, False, "sdpa")
-        self.norm = nn.LayerNorm(32)
-        self.head = nn.Linear(32, len(self.alphabet), bias=False)
+        self.hidden = hidden
+        self.embedding = nn.Embedding(len(self.alphabet), hidden)
+        self.position = nn.Embedding(context, hidden)
+        self.block = TinyTransformerBlock(hidden, heads, False, "sdpa")
+        self.norm = nn.LayerNorm(hidden)
+        self.head = nn.Linear(hidden, len(self.alphabet), bias=False)
 
     def forward(self, tokens, cache=None, *, cached=False, preallocated_cache=None):
         if preallocated_cache is not None:
@@ -60,16 +61,16 @@ class CharacterModel(nn.Module):
 class NeuralGenerator:
     model_name = "gpu-lab-untrained-character-transformer"
 
-    def __init__(self, device="cpu"):
+    def __init__(self, device="cpu", *, hidden=32, heads=4):
         # Preserve the caller's global RNG state; no request mutates weights.
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(151)
-            self.model = CharacterModel().eval()
+            self.model = CharacterModel(hidden=hidden, heads=heads).eval()
         self.device = torch.device(device)
         if self.device.type == "cuda" and not torch.cuda.is_available():
             raise RuntimeError("CUDA device requested but CUDA is unavailable")
         self.model = self.model.to(self.device)
-        self.backend = f"untrained-character-transformer-{self.device.type}-kv"
+        self.backend = f"untrained-character-transformer-{self.device.type}-kv-h{hidden}"
 
     def encode(self, prompt):
         if not isinstance(prompt, str) or not prompt:
@@ -92,7 +93,7 @@ class NeuralGenerator:
                 torch.empty((1, self.model.block.heads, self.model.context, head_dim), device=self.device),
                 0,
             )
-        generated, logits_trace = [], []
+        generated_device, logits_trace = [], []
         for _ in range(max_tokens):
             if cached:
                 input_tokens = tokens if cache is None or cache_storage == "preallocated" and cache[2] == 0 else tokens[:, -1:]
@@ -104,9 +105,12 @@ class NeuralGenerator:
                 logits = self.model(tokens)
             last = logits[:, -1]
             next_token = last.argmax(-1, keepdim=True)
-            generated.append(int(next_token.item()))
+            # Keep sampling on device; converting every token with ``item``
+            # forces a host synchronization on each decode step.
+            generated_device.append(next_token)
             logits_trace.append(last.clone())
             tokens = torch.cat((tokens, next_token), dim=1) if not cached else next_token
+        generated = torch.cat(generated_device, dim=1)[0].tolist()
         return generated, logits_trace
 
     def complete(self, prompt, max_tokens, *, cache_storage="dynamic"):

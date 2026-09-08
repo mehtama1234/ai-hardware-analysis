@@ -21,7 +21,9 @@ from neural_generator import NeuralGenerator  # noqa: E402
 
 REPORT = HERE / "reports" / "profiler-evidence.json"
 PROMPT = "attention cache"
-MAX_TOKENS = 12
+MAX_TOKENS = 96
+MODEL_HIDDEN = 128
+MODEL_HEADS = 8
 
 
 def _event_row(event) -> dict:
@@ -57,7 +59,7 @@ def main() -> int:
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
-        generator = NeuralGenerator("cuda" if torch.cuda.is_available() else "cpu")
+        generator = NeuralGenerator("cuda" if torch.cuda.is_available() else "cpu", hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
         # Warm up the dispatcher and allocator outside the captured region.
         generator.generate(PROMPT, MAX_TOKENS, cached=True, cache_storage="preallocated")
         captures = [_capture(generator, mode) for mode in ("uncached", "cached", "preallocated")]
@@ -76,7 +78,7 @@ def main() -> int:
             "evidence_kind": "measured_gpu" if generator.device.type == "cuda" else "measured_cpu",
             "device": str(generator.device),
             "gpu_execution_accepted": generator.device.type == "cuda" and all(checks.values()),
-            "protocol": {"prompt": PROMPT, "max_tokens": MAX_TOKENS, "activities": ["CPU", "CUDA" if generator.device.type == "cuda" else "CPU-only"]},
+            "protocol": {"prompt": PROMPT, "max_tokens": MAX_TOKENS, "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "activities": ["CPU", "CUDA" if generator.device.type == "cuda" else "CPU-only"]},
             "captures": captures,
             "checks": checks,
             "interpretation": "PyTorch profiler evidence counts framework and CUDA activity; it is not a substitute for Nsight Compute hardware counters.",

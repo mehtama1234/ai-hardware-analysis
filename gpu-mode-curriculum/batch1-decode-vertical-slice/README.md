@@ -23,7 +23,10 @@ synchronized CUDA-event timing, Nsight evidence, and the same comparison
 through the HTTP tail-load path.
 
 The serving bridge writes `reports/serving-bridge.json` and compares the same
-two decode modes through the loopback HTTP endpoint at concurrency 1, 2, and 4.
+three decode modes through the loopback HTTP endpoint at concurrency 1, 2, and
+4. The protocol measures short-context/12-token, long-context/24-token, and
+long-decode/96-token workloads, so cache behavior is not inferred from only a
+toy prompt.
 
 Verify captured reports without rerunning the experiment:
 
@@ -32,6 +35,11 @@ python3 batch1-decode-vertical-slice/verify_reports.py
 # or verify an imported GPU handoff without replacing the local baseline
 python3 batch1-decode-vertical-slice/verify_reports.py \
   --reports-dir gpu-runs/imports/<run-id>
+# A profiler-only refresh may be supplied explicitly when its capture is a
+# separate GPU session.
+python3 batch1-decode-vertical-slice/verify_reports.py \
+  --reports-dir gpu-runs/imports/colab-t4-batch1-device-sampling-20260908 \
+  --profiler-dir gpu-runs/imports/colab-t4-batch1-device-profile-20260908
 ```
 
 ## Acceptance contract
@@ -45,7 +53,13 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 - explicit evidence kind: `measured_cpu`, `measured_gpu`, or unavailable;
 - no speedup claim without application-level serving evidence.
 - profiler evidence must show CUDA activity on GPU runs and must not show more
-  `aten::cat` calls for preallocated storage than for dynamic cache storage.
+`aten::cat` calls for preallocated storage than for dynamic cache storage.
+
+The widened T4 run recorded a 1.11x CUDA-event speedup for preallocated
+long-context decode, while the 96-token horizon remained slower (0.89x). The
+HTTP serving measurements remained slower for the optimized path, which is
+kept as evidence that a kernel-level improvement does not automatically
+survive application orchestration.
 
 ## Latest captured GPU evidence
 

@@ -26,15 +26,20 @@ import server  # noqa: E402
 from neural_generator import NeuralGenerator  # noqa: E402
 
 REPORT = HERE / "reports" / "serving-bridge.json"
-PROMPTS = ("hello gpu", "attention cache", "decode step", "memory traffic")
-MAX_TOKENS = 12
+WORKLOADS = (
+    {"id": "short-context", "prompt": "attention cache", "max_tokens": 12},
+    {"id": "long-context", "prompt": "attention cache " * 5, "max_tokens": 24},
+    {"id": "long-decode", "prompt": "attention cache", "max_tokens": 96},
+)
 CONCURRENCIES = (1, 2, 4)
 REQUESTS_PER_LEVEL = 8
+MODEL_HIDDEN = 128
+MODEL_HEADS = 8
 
 
 class DecodeModeGenerator:
     def __init__(self, mode: str, device: str):
-        self.inner = NeuralGenerator(device)
+        self.inner = NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
         self.mode = mode
         self.backend = f"neural-{mode}-decode"
         self.model_name = self.inner.model_name
@@ -52,8 +57,8 @@ class DecodeModeGenerator:
         }
 
 
-def _request(endpoint: str, prompt: str) -> dict:
-    body = json.dumps({"prompt": prompt, "max_tokens": MAX_TOKENS}).encode()
+def _request(endpoint: str, prompt: str, max_tokens: int) -> dict:
+    body = json.dumps({"prompt": prompt, "max_tokens": max_tokens}).encode()
     request = urllib.request.Request(endpoint, data=body, headers={"Content-Type": "application/json"})
     started = time.perf_counter()
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -72,25 +77,31 @@ def _run_mode(mode: str, device: str) -> dict:
     endpoint = f"http://127.0.0.1:{http.server_port}/v1/completions"
     rows = []
     try:
-        expected = server.GENERATOR.complete(PROMPTS[0], MAX_TOKENS)["text"]
-        for concurrency in CONCURRENCIES:
-            prompts = [PROMPTS[index % len(PROMPTS)] for index in range(REQUESTS_PER_LEVEL)]
-            started = time.perf_counter()
-            with ThreadPoolExecutor(max_workers=concurrency) as pool:
-                results = list(pool.map(lambda prompt: _request(endpoint, prompt), prompts))
-            wave_ms = (time.perf_counter() - started) * 1000.0
-            rows.append({
-                "concurrency": concurrency,
-                "request_count": len(results),
-                "accepted": len(results),
-                "wave_elapsed_ms": wave_ms,
-                "latency_ms_samples": [row["latency_ms"] for row in results],
-                "latency_ms_median": float(statistics.median(row["latency_ms"] for row in results)),
-                "output_texts": [row["payload"]["choices"][0]["text"] for row in results],
-                "output_parity": all(row["payload"]["choices"][0]["text"] == server.GENERATOR.complete(prompts[index], MAX_TOKENS)["text"] for index, row in enumerate(results)),
-                "backend_labels": sorted({row["payload"].get("backend") for row in results}),
-                "expected_probe_nonempty": bool(expected),
-            })
+        for workload in WORKLOADS:
+            prompt = workload["prompt"]
+            max_tokens = workload["max_tokens"]
+            expected = server.GENERATOR.complete(prompt, max_tokens)["text"]
+            for concurrency in CONCURRENCIES:
+                prompts = [prompt for _ in range(REQUESTS_PER_LEVEL)]
+                started = time.perf_counter()
+                with ThreadPoolExecutor(max_workers=concurrency) as pool:
+                    results = list(pool.map(lambda item: _request(endpoint, item[0], item[1]), [(p, max_tokens) for p in prompts]))
+                wave_ms = (time.perf_counter() - started) * 1000.0
+                rows.append({
+                    "workload": workload["id"],
+                    "prompt_tokens": len(server.GENERATOR.inner.encode(prompt)),
+                    "max_tokens": max_tokens,
+                    "concurrency": concurrency,
+                    "request_count": len(results),
+                    "accepted": len(results),
+                    "wave_elapsed_ms": wave_ms,
+                    "latency_ms_samples": [row["latency_ms"] for row in results],
+                    "latency_ms_median": float(statistics.median(row["latency_ms"] for row in results)),
+                    "output_texts": [row["payload"]["choices"][0]["text"] for row in results],
+                    "output_parity": all(row["payload"]["choices"][0]["text"] == server.GENERATOR.complete(prompts[index], max_tokens)["text"] for index, row in enumerate(results)),
+                    "backend_labels": sorted({row["payload"].get("backend") for row in results}),
+                    "expected_probe_nonempty": bool(expected),
+                })
     finally:
         http.shutdown()
         http.server_close()
@@ -111,16 +122,18 @@ def main() -> int:
             "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached) for row in mode["rows"]),
             "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached) for row in mode["rows"]),
             "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached) for row in mode["rows"]),
-            "concurrency_levels_present": all([row["concurrency"] for row in cached["rows"]] == list(CONCURRENCIES) for _ in [0]),
+            "concurrency_levels_present": [row["concurrency"] for row in cached["rows"]] == list(CONCURRENCIES) * len(WORKLOADS),
         }
         for left, right in zip(uncached["rows"], cached["rows"]):
             left_payloads = left["backend_labels"]
             right_payloads = right["backend_labels"]
-            checks[f"backend_pair_{left['concurrency']}"] = bool(left_payloads and right_payloads)
-            checks[f"cross_mode_output_parity_{left['concurrency']}"] = left["output_texts"] == right["output_texts"]
+            key = f"{left['workload']}_{left['concurrency']}"
+            checks[f"backend_pair_{key}"] = bool(left_payloads and right_payloads)
+            checks[f"cross_mode_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
         for left, right in zip(uncached["rows"], preallocated["rows"]):
-            checks[f"preallocated_backend_pair_{left['concurrency']}"] = bool(left["backend_labels"] and right["backend_labels"])
-            checks[f"uncached_preallocated_output_parity_{left['concurrency']}"] = left["output_texts"] == right["output_texts"]
+            key = f"{left['workload']}_{left['concurrency']}"
+            checks[f"preallocated_backend_pair_{key}"] = bool(left["backend_labels"] and right["backend_labels"])
+            checks[f"uncached_preallocated_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -128,7 +141,7 @@ def main() -> int:
             "evidence_kind": "measured_gpu" if device == "cuda" else "measured_cpu",
             "device": device,
             "gpu_execution_accepted": device == "cuda" and all(checks.values()),
-            "protocol": {"prompts": list(PROMPTS), "max_tokens": MAX_TOKENS, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
+            "protocol": {"workloads": list(WORKLOADS), "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
             "uncached": uncached,
             "cached": cached,
             "preallocated": preallocated,
