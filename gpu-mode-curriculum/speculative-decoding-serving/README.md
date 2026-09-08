@@ -17,10 +17,11 @@ the local machine writes an explicit unavailable report instead of falling back
 to CPU.
 
 The accepted T4 artifact is
-`gpu-runs/imports/colab-t4-speculative-20260908-r5/speculative-decoding-cuda.json`.
-It covers four scenarios, including an exact-draft control and low-acceptance
-shifted drafts. All outputs match ordinary target decoding, rollback and KV
-commit accounting pass, and CUDA timings are present.
+`gpu-runs/imports/colab-t4-speculative-20260908-r7/speculative-decoding-cuda.json`.
+It covers five scenarios, including an exact-draft control, low-acceptance
+shifted drafts, and a held-out calibrated draft. All outputs match ordinary
+target decoding, rollback and KV commit accounting pass, and CUDA timings are
+present.
 
 The runner also measures an acceptance-gated policy. The always-speculative
 path measured about 0.15–0.19x baseline for the zero-acceptance smaller drafts;
@@ -29,3 +30,10 @@ the policy fell back after the probe and improved those cases to about
 0.97x. This is still not a speedup claim: it is evidence that admission policy
 can prevent a bad draft from catastrophically regressing latency, while a
 compatible cheap draft is still needed to produce a positive gain.
+
+The calibrated held-out draft reached 0.80 acceptance versus 0.00 for the
+random small draft. Its decode path measured about 0.82x baseline, while the
+11.9-second trace-calibration setup was excluded from decode timing. This
+separates the remaining problems: draft quality is now measurable, but target
+verification and launch overhead still need fusion/batching before the quality
+gain becomes a throughput gain.
