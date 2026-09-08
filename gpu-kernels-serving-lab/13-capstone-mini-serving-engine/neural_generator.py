@@ -61,10 +61,10 @@ class CharacterModel(nn.Module):
 class NeuralGenerator:
     model_name = "gpu-lab-untrained-character-transformer"
 
-    def __init__(self, device="cpu", *, hidden=32, heads=4):
+    def __init__(self, device="cpu", *, hidden=32, heads=4, seed=151):
         # Preserve the caller's global RNG state; no request mutates weights.
         with torch.random.fork_rng(devices=[]):
-            torch.manual_seed(151)
+            torch.manual_seed(seed)
             self.model = CharacterModel(hidden=hidden, heads=heads).eval()
         self.device = torch.device(device)
         if self.device.type == "cuda" and not torch.cuda.is_available():
