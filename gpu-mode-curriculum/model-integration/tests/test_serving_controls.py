@@ -40,6 +40,7 @@ class ServingControlTests(unittest.TestCase):
             "rows": [{
                 "concurrency": 1, "accepted": 2, "rejected": 0,
                 "output_parity": True, "batch_modes": ["vectorized"],
+                "backend_labels": ["neural-microbatch-decode"],
                 "cuda_event_ms": 1.5,
                 "latency_ms": {"p50": 2.0, "p95_nearest_rank": 3.0, "max": 4.0},
             }],
@@ -56,6 +57,7 @@ class ServingControlTests(unittest.TestCase):
             "concurrency_levels": [1], "requests_per_level": 2,
             "rows": [{"concurrency": 1, "accepted": 2, "rejected": 0,
                        "output_parity": True, "batch_modes": ["scalar"],
+                       "backend_labels": ["neural-microbatch-decode"],
                        "cuda_event_ms": 1.0,
                        "latency_ms": {"p50": 2.0, "p95_nearest_rank": 3.0, "max": 4.0}}],
             "scheduler": {"rejected_count": 0, "cancelled_count": 0},

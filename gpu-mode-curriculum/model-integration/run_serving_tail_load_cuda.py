@@ -88,6 +88,8 @@ def tail_report_contract(report: dict) -> bool:
             return False
         if not isinstance(row.get("cuda_event_ms"), (int, float)) or row["cuda_event_ms"] < 0:
             return False
+        if not row.get("backend_labels"):
+            return False
     # Concurrency 1 may be a synthetic/contract fixture; for a multi-level
     # sweep require vectorized batching at one or more genuinely concurrent
     # levels, while a single-level contract must still show its declared mode.
@@ -157,6 +159,7 @@ def main() -> int:
                     "cuda_event_ms": cuda_event_ms,
                     "output_parity": all(row["payload"].get("choices", [{}])[0].get("text") == expected for row in accepted),
                     "batch_modes": sorted({row["payload"].get("batch_mode") for row in accepted}),
+                    "backend_labels": sorted({row["payload"].get("backend") for row in accepted}),
                     "output_tokens_per_second": (sum(len(row["payload"].get("choices", [{}])[0].get("text", "")) for row in accepted)
                                                   / max(elapsed_ms / 1000, 1e-9)),
                 })
@@ -183,9 +186,12 @@ def main() -> int:
         report["checks"]["report_contract"] = tail_report_contract(report)
         report["gpu_execution_accepted"] = all(report["checks"].values())
         report["status"] = "passed" if report["gpu_execution_accepted"] else "failed"
+    source_paths = [Path(__file__).resolve(), SERVING / "server.py", SERVING / "microbatch.py", SERVING / "neural_generator.py"]
+    if args.mode == "cuda_graph_microbatch":
+        source_paths.append(BATCH1 / "run_serving_bridge.py")
     report["source_sha256"] = {
         str(path.relative_to(ROOT.parent)): hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (Path(__file__).resolve(), SERVING / "server.py", SERVING / "microbatch.py", SERVING / "neural_generator.py")
+        for path in source_paths
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
