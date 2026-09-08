@@ -35,13 +35,46 @@ SCENARIOS = (
     {"id": "shifted-draft", "prompt": "attention cache", "max_tokens": 24, "draft_width": 4, "draft_seed": 152},
     {"id": "wide-draft", "prompt": "gpu serving", "max_tokens": 24, "draft_width": 6, "draft_seed": 152},
     {"id": "long-prefix", "prompt": "attention cache " * 3, "max_tokens": 20, "draft_width": 5, "draft_seed": 152},
+    {"id": "calibrated-heldout", "prompt": "attention cache ", "max_tokens": 20, "draft_width": 4, "draft_seed": 152, "draft_kind": "calibrated"},
 )
 HIDDEN = 128
 HEADS = 8
+CALIBRATION_PROMPTS = ("attention cache", "gpu serving", "batch decode", "kernel launch")
+CALIBRATION_TOKENS = 32
+CALIBRATION_STEPS = 300
 
 
 def _tokens_to_text(model: NeuralGenerator, tokens: list[int]) -> str:
     return "".join(model.model.alphabet[token] for token in tokens)
+
+
+def build_calibrated_draft(target: NeuralGenerator, *, steps: int = CALIBRATION_STEPS) -> NeuralGenerator:
+    """Distill target greedy traces into a smaller draft model.
+
+    Calibration prompts and the held-out evaluation prompt are intentionally
+    different strings. The training interval is setup, not decode timing.
+    """
+    draft = NeuralGenerator("cuda", hidden=32, heads=4, seed=152)
+    traces = []
+    with torch.inference_mode():
+        for prompt in CALIBRATION_PROMPTS:
+            tokens, _ = target.generate(prompt, CALIBRATION_TOKENS, cached=True, cache_storage="preallocated")
+            text = prompt + _tokens_to_text(target, tokens)
+            traces.append(torch.tensor([draft.encode(text)], dtype=torch.long, device=draft.device))
+    draft.model.train()
+    optimizer = torch.optim.Adam(draft.model.parameters(), lr=0.01)
+    for _ in range(steps):
+        optimizer.zero_grad(set_to_none=True)
+        loss = 0.0
+        for tokens in traces:
+            logits = draft.model(tokens[:, :-1], cached=False)
+            loss = loss + torch.nn.functional.cross_entropy(
+                logits.reshape(-1, logits.shape[-1]), tokens[:, 1:].reshape(-1)
+            )
+        loss.backward()
+        optimizer.step()
+    draft.model.eval()
+    return draft
 
 
 @torch.inference_mode()
@@ -125,9 +158,9 @@ def _elapsed_cuda(fn):
     return value, start.elapsed_time(end)
 
 
-def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
+def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: NeuralGenerator | None = None) -> dict:
     draft_hidden, draft_heads = (HIDDEN, HEADS) if scenario["draft_seed"] == 151 else (32, 4)
-    draft = NeuralGenerator("cuda", hidden=draft_hidden, heads=draft_heads, seed=scenario["draft_seed"])
+    draft = draft_override or NeuralGenerator("cuda", hidden=draft_hidden, heads=draft_heads, seed=scenario["draft_seed"])
     prompt = scenario["prompt"]
     max_tokens = scenario["max_tokens"]
     # Exclude CUDA context, allocator, and first-kernel initialization from
@@ -169,7 +202,8 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
         "adaptive_fallback_tokens": adaptive_stats["fallback_tokens"],
         "adaptive_acceptance_rate": adaptive_stats["accepted_tokens"] / max(adaptive_stats["draft_tokens"], 1),
     })
-    return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"], **stats}
+    return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"],
+            "draft_kind": scenario.get("draft_kind", "random-seed"), **stats}
 
 
 def main() -> int:
@@ -186,9 +220,18 @@ def main() -> int:
         report["reason"] = "CUDA is not available"
     else:
         target = NeuralGenerator("cuda", hidden=HIDDEN, heads=HEADS, seed=151)
-        rows = [run_scenario(target, scenario) for scenario in SCENARIOS]
+        calibration_started = time.perf_counter()
+        calibrated_draft = build_calibrated_draft(target)
+        calibration_seconds = time.perf_counter() - calibration_started
+        rows = [
+            run_scenario(
+                target, scenario,
+                draft_override=calibrated_draft if scenario.get("draft_kind") == "calibrated" else None,
+            )
+            for scenario in SCENARIOS
+        ]
         checks = {
-            "scenario_count": len(rows) >= 4,
+            "scenario_count": len(rows) >= 5,
             "all_output_parity": all(row["output_parity"] for row in rows),
             "all_adaptive_output_parity": all(row["adaptive_output_parity"] for row in rows),
             "acceptance_accounted": all(row["accepted_tokens"] <= row["draft_tokens"] for row in rows),
@@ -197,12 +240,18 @@ def main() -> int:
             "low_acceptance_covered": min(row["acceptance_rate"] for row in rows) < 0.95,
             "kv_commit_accounted": all(row["kv_tokens_committed"] == row["generated_tokens"] for row in rows),
             "adaptive_fallback_observed": any(row["adaptive_policy_fallback"] for row in rows),
+            "calibrated_case_present": any(row["draft_kind"] == "calibrated" for row in rows),
         }
         report.update({
             "status": "passed" if all(checks.values()) else "failed",
             "measured": True, "gpu_execution_accepted": all(checks.values()),
             "device_name": torch.cuda.get_device_name(0), "torch_version": torch.__version__,
             "target_seed": 151, "hidden": HIDDEN, "heads": HEADS,
+            "calibration": {
+                "prompts": list(CALIBRATION_PROMPTS), "tokens_per_prompt": CALIBRATION_TOKENS,
+                "steps": CALIBRATION_STEPS, "draft_hidden": 32, "draft_heads": 4,
+                "setup_seconds": calibration_seconds,
+            },
             "rows": rows, "checks": checks,
             "scope": "greedy draft/target execution on one CUDA device using an untrained character transformer; no production model or multi-GPU claim",
         })
