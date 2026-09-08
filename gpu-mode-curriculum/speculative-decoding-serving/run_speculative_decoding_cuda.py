@@ -44,6 +44,54 @@ CALIBRATION_TOKENS = 32
 CALIBRATION_STEPS = 300
 
 
+class CudaBlockVerifier:
+    """Replay fixed-shape target verification buckets without launch setup."""
+
+    def __init__(self, target: NeuralGenerator):
+        if target.device.type != "cuda":
+            raise ValueError("CUDA block verifier requires a CUDA target")
+        self.target = target
+        self.bundles = {}
+        self.capture_count = 0
+        self.replay_count = 0
+
+    @torch.inference_mode()
+    def _build(self, prompt_ids: list[int], width: int) -> dict:
+        heads = self.target.model.block.heads
+        head_dim = self.target.model.hidden // heads
+        cache_k = torch.empty((1, heads, self.target.model.context, head_dim), device=self.target.device)
+        cache_v = torch.empty_like(cache_k)
+        static_prompt = torch.tensor([prompt_ids], dtype=torch.long, device=self.target.device)
+        static_suffix = torch.zeros((1, width), dtype=torch.long, device=self.target.device)
+        static_predictions = torch.empty((width + 1,), dtype=torch.long, device=self.target.device)
+        # Establish allocator/attention state before capture.
+        for _ in range(2):
+            prefill, _ = self.target.model(static_prompt, preallocated_cache=(cache_k, cache_v, 0))
+            suffix, _ = self.target.model(static_suffix, preallocated_cache=(cache_k, cache_v, len(prompt_ids)))
+            static_predictions.copy_(torch.cat((prefill[:, -1:], suffix), dim=1)[0].argmax(-1))
+        torch.cuda.synchronize()
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            prefill, _ = self.target.model(static_prompt, preallocated_cache=(cache_k, cache_v, 0))
+            suffix, _ = self.target.model(static_suffix, preallocated_cache=(cache_k, cache_v, len(prompt_ids)))
+            static_predictions.copy_(torch.cat((prefill[:, -1:], suffix), dim=1)[0].argmax(-1))
+        torch.cuda.synchronize()
+        self.capture_count += 1
+        return {"graph": graph, "prompt": static_prompt, "suffix": static_suffix, "predictions": static_predictions}
+
+    def verify(self, prompt_ids: list[int], draft_tokens: list[int]) -> list[int]:
+        key = (len(prompt_ids), len(draft_tokens))
+        bundle = self.bundles.get(key)
+        if bundle is None:
+            bundle = self._build(prompt_ids, len(draft_tokens))
+            self.bundles[key] = bundle
+        bundle["prompt"].copy_(torch.tensor([prompt_ids], dtype=torch.long, device=self.target.device))
+        bundle["suffix"].copy_(torch.tensor([draft_tokens], dtype=torch.long, device=self.target.device))
+        bundle["graph"].replay()
+        self.replay_count += 1
+        return bundle["predictions"].tolist()
+
+
 def _tokens_to_text(model: NeuralGenerator, tokens: list[int]) -> str:
     return "".join(model.model.alphabet[token] for token in tokens)
 
@@ -83,7 +131,7 @@ def build_calibrated_draft(target: NeuralGenerator, *, steps: int = CALIBRATION_
 
 
 @torch.inference_mode()
-def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int]) -> dict:
+def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int], *, verifier: CudaBlockVerifier | None = None) -> dict:
     """Verify a draft suffix against target greedy predictions.
 
     The returned correction is the target token at the first mismatch.  When
@@ -91,21 +139,18 @@ def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int]) 
     the draft; the caller may commit it as the next exact token.
     """
     ids = target.encode(prefix)
-    heads = target.model.block.heads
-    head_dim = target.model.hidden // heads
-    cache_k = torch.empty((1, heads, target.model.context, head_dim), device=target.device)
-    cache_v = torch.empty_like(cache_k)
-    prompt_tokens = torch.tensor([ids], dtype=torch.long, device=target.device)
-    # Prefill once, then append the complete proposed suffix as a single
-    # preallocated-KV block.  The prefill's last logit predicts draft token 0;
-    # each suffix logit predicts the next draft token, with the final one as
-    # the bonus token. This avoids recomputing the prefix for every verify.
-    prefill_logits, _ = target.model(prompt_tokens, preallocated_cache=(cache_k, cache_v, 0))
-    suffix_tokens = torch.tensor([draft_tokens], dtype=torch.long, device=target.device)
-    suffix_logits, _ = target.model(
-        suffix_tokens, preallocated_cache=(cache_k, cache_v, len(ids))
-    )
-    predictions = torch.cat((prefill_logits[:, -1:], suffix_logits), dim=1)[0].argmax(-1).tolist()
+    if verifier is not None:
+        predictions = verifier.verify(ids, draft_tokens)
+    else:
+        heads = target.model.block.heads
+        head_dim = target.model.hidden // heads
+        cache_k = torch.empty((1, heads, target.model.context, head_dim), device=target.device)
+        cache_v = torch.empty_like(cache_k)
+        prompt_tokens = torch.tensor([ids], dtype=torch.long, device=target.device)
+        prefill_logits, _ = target.model(prompt_tokens, preallocated_cache=(cache_k, cache_v, 0))
+        suffix_tokens = torch.tensor([draft_tokens], dtype=torch.long, device=target.device)
+        suffix_logits, _ = target.model(suffix_tokens, preallocated_cache=(cache_k, cache_v, len(ids)))
+        predictions = torch.cat((prefill_logits[:, -1:], suffix_logits), dim=1)[0].argmax(-1).tolist()
     accepted = 0
     for candidate, predicted in zip(draft_tokens, predictions):
         if candidate != predicted:
@@ -122,6 +167,7 @@ def speculative_generate(
     width: int,
     *,
     fallback_threshold: float | None = None,
+    verifier: CudaBlockVerifier | None = None,
 ) -> tuple[list[int], dict]:
     generated: list[int] = []
     prefix = prompt
@@ -133,7 +179,7 @@ def speculative_generate(
         proposed, _ = draft.generate(prefix, count, cached=True, cache_storage="preallocated")
         stats["draft_rounds"] += 1
         stats["draft_tokens"] += len(proposed)
-        verification = verify_draft(target, prefix, proposed)
+        verification = verify_draft(target, prefix, proposed, verifier=verifier)
         stats["accepted_tokens"] += verification["accepted"]
         stats["rollback_tokens"] += verification["rollback"]
         stats["rollback_count"] += int(verification["rollback"] > 0)
@@ -176,22 +222,24 @@ def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: Neu
     draft = draft_override or NeuralGenerator("cuda", hidden=draft_hidden, heads=draft_heads, seed=scenario["draft_seed"])
     prompt = scenario["prompt"]
     max_tokens = scenario["max_tokens"]
+    verifier = CudaBlockVerifier(target)
     # Exclude CUDA context, allocator, and first-kernel initialization from
     # both sides of the comparison.  The warmup also validates the full
     # draft/target control path before an event is recorded.
     target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"])
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5)
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier)
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5, verifier=verifier)
     torch.cuda.synchronize()
     baseline_tokens, baseline_ms = _elapsed_cuda(
         lambda: target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")[0]
     )
     (spec_tokens, stats), speculative_ms = _elapsed_cuda(
-        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"])
+        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier)
     )
     (adaptive_tokens, adaptive_stats), adaptive_ms = _elapsed_cuda(
         lambda: speculative_generate(
             target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5
+            , verifier=verifier
         )
     )
     output_parity = spec_tokens == baseline_tokens
@@ -214,6 +262,8 @@ def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: Neu
         "adaptive_policy_fallback": adaptive_stats["policy_fallback"],
         "adaptive_fallback_tokens": adaptive_stats["fallback_tokens"],
         "adaptive_acceptance_rate": adaptive_stats["accepted_tokens"] / max(adaptive_stats["draft_tokens"], 1),
+        "verifier_capture_count": verifier.capture_count,
+        "verifier_replay_count": verifier.replay_count,
     })
     return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"],
             "draft_kind": scenario.get("draft_kind", "random-seed"), **stats}
