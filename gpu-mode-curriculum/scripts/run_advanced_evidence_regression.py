@@ -78,6 +78,8 @@ def tasks():
          "gpu-mode-curriculum/model-integration/reports/serving-microbatch-cpu.json", []),
         ("serving-http-controls-cpu", "gpu-mode-curriculum/model-integration/run_serving_http_controls.py",
          "gpu-mode-curriculum/model-integration/reports/serving-http-controls-cpu.json", []),
+        ("serving-disconnect-cancellation-cpu", "gpu-mode-curriculum/model-integration/run_serving_disconnect_cancellation.py",
+         "gpu-mode-curriculum/model-integration/reports/serving-disconnect-cancellation-cpu.json", []),
         ("serving-streaming-cpu", "gpu-mode-curriculum/model-integration/run_serving_streaming.py",
          "gpu-mode-curriculum/model-integration/reports/serving-streaming-cpu.json", []),
         ("serving-tail-load-cpu", "gpu-mode-curriculum/model-integration/run_serving_tail_load.py",

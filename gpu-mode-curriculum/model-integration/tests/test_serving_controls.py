@@ -1,5 +1,7 @@
 import sys
+import socket
 import threading
+from concurrent.futures import Future
 from pathlib import Path
 import unittest
 
@@ -154,6 +156,17 @@ class ServingControlTests(unittest.TestCase):
             self.assertEqual(scheduler.snapshot()["cancelled_count"], 1)
         finally:
             scheduler.close()
+
+    def test_disconnect_poll_cancels_future_before_batch_execution(self):
+        client, server_socket = socket.socketpair()
+        future = Future()
+        try:
+            client.close()
+            with self.assertRaises(server._ClientDisconnected):
+                server.wait_for_request_result(future, server_socket, timeout=0.2, poll_seconds=0.001)
+            self.assertTrue(future.cancelled())
+        finally:
+            server_socket.close()
 
 
 if __name__ == "__main__":

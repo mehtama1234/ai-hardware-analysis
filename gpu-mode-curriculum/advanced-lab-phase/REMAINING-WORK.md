@@ -12,7 +12,7 @@ one progression through GEMM, attention, and a small training/inference block.
 | Attention | Materialized and recomputed derivatives, gradcheck, saved-tensor instrumentation | Fused accelerator kernels, peak allocator measurements, shape/dtype sweeps, dropout/GQA where supported |
 | Compiler/layout/synthesis | CPU Inductor operation and whole-transformer forward/backward execution; generated code, gradient/optimizer checks and raw timings; Triton CUDA matmul plus memory/reduction/softmax/layernorm family promotions, including a fixed tail-mask bug | Broader application shapes, full GPU/DSL comparisons, profiler explanations, autotune breadth, bounded synthesis and broader held-out correctness |
 | Low precision | Actual packed INT4 buffers, tail tests, conversion-inclusive timings, transformer storage/drift, three predeclared trained digits seed/split quality checks, accepted native CUDA FP16 plus INT8 GEMM evidence, and one accepted CUDA trained-digits quality run | Native INT4/FP8/MX kernels; broader models/workloads and joint memory/performance/quality evidence; rejected configurations and stronger statistical coverage |
-| Application integration | Paired optimizer checks; CPU block benchmarks; cached-vector replay; trained autoregressive HTTP backend; accepted single-T4 CUDA KV-cache decode/HTTP parity; repeated three-seed trained-quality protocol; bounded admission, queue rejection, cancellation, microbatch HTTP controls, accepted single-T4 CUDA graph tail-load sweep, and paged-cache/attention correctness | Production-scale trained quality; kernel-to-application comparisons; production-scale GPU capacity/tail characterization; production cancellation semantics; multi-GPU serving |
+| Application integration | Paired optimizer checks; CPU block benchmarks; cached-vector replay; trained autoregressive HTTP backend; accepted single-T4 CUDA KV-cache decode/HTTP parity; repeated three-seed trained-quality protocol; bounded admission, queue rejection, queued HTTP disconnect cancellation, microbatch HTTP controls, accepted single-T4 CUDA graph tail-load sweep, and paged-cache/attention correctness | Production-scale trained quality; kernel-to-application comparisons; production-scale GPU capacity/tail characterization; in-flight accelerator cancellation/accounting; multi-GPU serving |
 | Distributed/portable | CPU two-rank request dispatch with rank ownership, global ordering, unique IDs, output parity, and peer agreement; one-rank NCCL smoke, bounded multi-rank NCCL runner, and bounded multi-rank sharded-MoE runner | Measured multi-GPU/all-to-all performance and second-platform experiments; no local hardware acceptance |
 | Publication | Linked walkthroughs, six exercises tied to tested reference solutions, complete 24-topic source registry, regression command, and rendered evidence page with source/test freshness checks | Independent-host reproduction and continued evidence-page expansion |
 
@@ -186,6 +186,13 @@ It passed synchronized CUDA-event waves and p50/p95/max latency checks at
 concurrency 1/2/4/8, observed graph-vectorized batching, preserved output
 parity, and recorded zero scheduler rejection/cancellation. This is bounded
 single-process T4 evidence, not production capacity.
+
+The HTTP cancellation boundary is now executable on CPU in
+`model-integration/reports/serving-disconnect-cancellation-cpu.json`: a real
+disconnected socket cancels a queued Future before its batch executes. The
+server still deliberately does not claim interruption of a model call already
+running on the worker or accelerator; that in-flight production cancellation
+and resource-accounting gate remains open.
 
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.

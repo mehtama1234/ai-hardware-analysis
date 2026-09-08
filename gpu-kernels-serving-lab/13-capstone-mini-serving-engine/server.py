@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import select
+import socket
 import time
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -85,6 +88,44 @@ def cancel_pending_request(future) -> bool:
     GPU.  The worker records successful cancellations in its snapshot.
     """
     return future is not None and future.cancel()
+
+
+class _ClientDisconnected(Exception):
+    """Internal signal used to leave a request whose client has gone away."""
+
+
+def _connection_closed(connection) -> bool:
+    """Return whether a non-blocking peek observes an orderly socket close."""
+    try:
+        readable, _, _ = select.select([connection], [], [], 0)
+    except (OSError, ValueError):
+        return True
+    if not readable:
+        return False
+    try:
+        return connection.recv(1, socket.MSG_PEEK | socket.MSG_DONTWAIT) == b""
+    except (BlockingIOError, InterruptedError):
+        return False
+    except (ConnectionResetError, ConnectionAbortedError, OSError):
+        return True
+
+
+def wait_for_request_result(future, connection, *, timeout: float = 10.0,
+                            poll_seconds: float = 0.01):
+    """Wait for queued work while allowing a disconnected client to cancel it."""
+    deadline = time.perf_counter() + timeout
+    while True:
+        if _connection_closed(connection):
+            cancel_pending_request(future)
+            raise _ClientDisconnected()
+        remaining = deadline - time.perf_counter()
+        if remaining <= 0:
+            cancel_pending_request(future)
+            raise TimeoutError()
+        try:
+            return future.result(timeout=min(poll_seconds, remaining))
+        except (TimeoutError, FutureTimeoutError):
+            continue
 
 
 def validate_request(body, *, batch):
@@ -189,8 +230,8 @@ class Handler(BaseHTTPRequestHandler):
             if MICRO_BATCH is not None:
                 try:
                     scheduled_future = MICRO_BATCH.submit(prompt, max_tokens)
-                    scheduled = scheduled_future.result(timeout=10)
-                except TimeoutError:
+                    scheduled = wait_for_request_result(scheduled_future, self.connection, timeout=10)
+                except (TimeoutError, FutureTimeoutError):
                     cancel_pending_request(scheduled_future)
                     self._json(504, {"error": "microbatch_timeout", "scheduler": MICRO_BATCH.snapshot()})
                     return
@@ -226,7 +267,7 @@ class Handler(BaseHTTPRequestHandler):
                     "admission_queue_wait_ms": round(lease.queue_wait_ms, 4) if lease else 0.0,
                 },
             )
-        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+        except (_ClientDisconnected, BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
             # A client can disappear while queued.  Cancellation is best
             # effort: if the worker already started the batch, Future.cancel()
             # correctly returns false and the in-flight model call completes.

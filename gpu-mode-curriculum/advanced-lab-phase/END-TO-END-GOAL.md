@@ -183,15 +183,15 @@ block hardware acceptance.
 
 ## Current checkpoint and open gates
 
-The current worktree has a passing hash-locked CPU checkpoint with 116 tests
-across ten tracked suites and 23 CPU experiments. The evidence page is fresh,
+The current worktree has a passing hash-locked CPU checkpoint with 119 tests
+across ten tracked suites and 24 CPU experiments. The evidence page is fresh,
 and the GPUMODE workbench verifier passes. The checkpoint includes GEMM,
 attention references, training/inference blocks, packed storage, neural serving
 contracts, compiler execution, collective contracts, and MoE reference checks.
 
 Current accepted results are not final-goal acceptance. The current worktree
 snapshot also passed the clean-snapshot reproduction gate at revision
-`a27916ed8b252b58187c9ecd6ea5e351d9e356d9`; that proves
+`6ecc43140f76ef384333ca363418688dd83353d5`; that proves
 reproducibility of that captured source snapshot, not independent-host or GPU
 execution. The
 following remain open:
@@ -200,6 +200,8 @@ following remain open:
 - broader trained-model quality beyond the synthetic/local digits protocols;
 - compiled and profiled CUDA GEMM/attention/training paths;
 - GPU tail-load and allocator evidence for the serving path;
+- production cancellation beyond queued HTTP disconnects, including safe
+  interruption/accounting for in-flight accelerator work;
 - real multi-GPU collectives, MoE routing, and distributed serving;
 - executed ROCm/HIP portability on a second accelerator stack;
 - complete primary-source/prerequisite audit and final publication review.
