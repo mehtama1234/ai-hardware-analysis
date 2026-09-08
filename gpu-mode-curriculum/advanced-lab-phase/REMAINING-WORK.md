@@ -146,14 +146,15 @@ the report contract. The handoff supports both the original eager microbatch
 mode and the graph-microbatch mode.
 
 The speculative-decoding lane now also has a measured CUDA control artifact:
-`gpu-runs/imports/colab-t4-speculative-20260908-r7/speculative-decoding-cuda.json`.
+`gpu-runs/imports/colab-t4-speculative-20260908-r8/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and
 rollback accounting, logical KV-commit accounting, and synchronized CUDA
 timing. Trace calibration raised held-out small-draft acceptance to 0.80 from
-0.00 for the random draft, while preserving parity; the calibrated decode path
-still measured about 0.82x baseline. The remaining performance gate is fused
-or batched target verification and draft execution overhead, not merely draft
-quality.
+0.00 for the random draft, while preserving parity. The cached block verifier
+is numerically correct, but the calibrated decode path measured about 0.63x
+baseline and adaptive fallback about 0.85x. The remaining performance gate is
+a fused/persistent target-verification path and lower launch overhead, not
+merely draft quality.
 
 The current evidence ledger contains 32 measured GPU promotion tasks, of which
 30 are accepted. The native WMMA probe was expanded to nine independent
