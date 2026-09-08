@@ -231,19 +231,22 @@ def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: Neu
     # both sides of the comparison.  The warmup also validates the full
     # draft/target control path before an event is recorded.
     target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=True)
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5, verifier=verifier, draft_graph=True)
+    # The target verifier graph is accepted.  The experimental single-graph
+    # draft chain remains opt-in until its T4 device-side indexing failure is
+    # resolved; keep the measured path on the previously accepted draft path.
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=False)
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5, verifier=verifier, draft_graph=False)
     torch.cuda.synchronize()
     baseline_tokens, baseline_ms = _elapsed_cuda(
         lambda: target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")[0]
     )
     (spec_tokens, stats), speculative_ms = _elapsed_cuda(
-        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=True)
+        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=False)
     )
     (adaptive_tokens, adaptive_stats), adaptive_ms = _elapsed_cuda(
         lambda: speculative_generate(
             target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5
-            , verifier=verifier, draft_graph=True
+            , verifier=verifier, draft_graph=False
         )
     )
     output_parity = spec_tokens == baseline_tokens

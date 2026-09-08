@@ -156,6 +156,13 @@ is observed for every scenario; the calibrated decode path measured about
 gate is a persistent/static-bucket target-verification path and lower draft
 overhead, not merely draft quality.
 
+An experimental follow-up attempted to capture the entire multi-token draft
+chain in one replay. Three T4 executions exposed a device-side indexing assert
+inside that chain, so the candidate is explicitly rejected and is not part of
+the accepted runner. The next optimization loop must either isolate the
+unsupported graph operation or retain the stable draft path while searching
+other end-to-end candidates; no draft-chain graph gain is currently claimed.
+
 The current evidence ledger contains 32 measured GPU promotion tasks, of which
 30 are accepted. The native WMMA probe was expanded to nine independent
 launches; a fresh T4 Nsight Compute capture recorded nine tensor-pipe metric

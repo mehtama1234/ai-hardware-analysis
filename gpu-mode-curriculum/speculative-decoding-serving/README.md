@@ -39,3 +39,9 @@ preallocated target block verifier still needs a persistent/static-bucket
 execution path before the quality gain becomes a throughput gain. The cached
 block verifier is numerically correct, and graph capture/replay moved the
 calibrated case to about 0.83x speculative and 0.87x with adaptive fallback.
+
+An attempted extension captured the complete multi-token draft chain as one
+CUDA graph replay. Repeated T4 runs reached a device-side indexing assert
+inside the captured chain, so this candidate is rejected and remains opt-in
+only. The accepted measurement path uses the stable draft decode path plus
+the CUDA-graph target verifier; no single-draft-graph speedup is claimed.
