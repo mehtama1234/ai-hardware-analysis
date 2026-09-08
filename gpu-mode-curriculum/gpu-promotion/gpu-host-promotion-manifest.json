@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-08T10:28:47.330864+00:00",
-  "step_count": 33,
+  "generated_at": "2026-09-08T10:36:24.772602+00:00",
+  "step_count": 34,
   "ready_on_this_host": 1,
-  "ready_on_gpu_host": 32,
+  "ready_on_gpu_host": 33,
   "local_capabilities": {
     "python": true,
     "torch": true,
@@ -500,6 +500,26 @@
         "model-integration/reports/serving-tail-load-cuda.json"
       ],
       "validation": "Require synchronized bounded request waves, exact CPU-oracle output parity, observed vectorized batches, and explicit p95 wall-latency samples; this is single-device loopback evidence, not production capacity or multi-GPU serving."
+    },
+    {
+      "id": "trained-serving-tail-cuda",
+      "title": "Measure trained neural-serving microbatch tail load",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 model-integration/run_serving_tail_load_cuda.py --mode cuda_graph_microbatch --trained",
+        "python3 model-integration/verify_trained_tail_load_cuda.py --report model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "validation": "Require the trained quality profile, synchronized request-wave p95 samples, exact output parity, vectorized batching, and zero scheduler rejection/cancellation; keep synthetic quality separate from production capacity."
     },
     {
       "id": "vllm-serving-trace",

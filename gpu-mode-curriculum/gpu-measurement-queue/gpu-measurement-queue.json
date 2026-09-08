@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-08T10:30:15.504583+00:00",
+  "generated_at": "2026-09-08T10:36:25.866482+00:00",
   "status": "queue-ready",
-  "task_count": 33,
+  "task_count": 34,
   "queued_task_count": 0,
-  "measured_task_count": 33,
-  "accepted_task_count": 31,
+  "measured_task_count": 34,
+  "accepted_task_count": 32,
   "failed_measured_task_count": 2,
   "real_measured_completion": false,
   "source_manifest": "gpu-promotion/gpu-host-promotion-manifest.json",
@@ -1240,6 +1240,50 @@
             "requests_per_level >= 12": true,
             "all rows have p95 and parity": true,
             "vectorized batching observed above concurrency 1": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "trained-serving-tail-cuda",
+      "title": "Measure trained neural-serving microbatch tail load",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 2,
+      "commands": [
+        "python3 model-integration/run_serving_tail_load_cuda.py --mode cuda_graph_microbatch --trained",
+        "python3 model-integration/verify_trained_tail_load_cuda.py --report model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
           },
           "checks_passed": true,
           "accepted": true

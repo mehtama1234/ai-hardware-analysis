@@ -337,6 +337,18 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             caps,
         ),
         _step(
+            "trained-serving-tail-cuda",
+            "Measure trained neural-serving microbatch tail load",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 model-integration/run_serving_tail_load_cuda.py --mode cuda_graph_microbatch --trained",
+                "python3 model-integration/verify_trained_tail_load_cuda.py --report model-integration/reports/serving-tail-load-cuda.json",
+            ],
+            ["model-integration/reports/serving-tail-load-cuda.json"],
+            "Require the trained quality profile, synchronized request-wave p95 samples, exact output parity, vectorized batching, and zero scheduler rejection/cancellation; keep synthetic quality separate from production capacity.",
+            caps,
+        ),
+        _step(
             "vllm-serving-trace",
             "Replay or import vLLM-style serving traces",
             ["nvidia_smi"],

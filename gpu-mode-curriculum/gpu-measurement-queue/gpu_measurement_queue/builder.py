@@ -121,6 +121,7 @@ for _step_id in (
     "neural-serving-cuda",
     "trained-neural-quality-cuda",
     "trained-serving-e2e-cuda",
+    "trained-serving-tail-cuda",
     "paged-kv-gather-cuda",
     "paged-attention-cuda",
 ):

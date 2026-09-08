@@ -1,9 +1,9 @@
 # GPUMODE GPU Measurement Queue
 
-Generated: `2026-09-08T10:30:15.504583+00:00`
+Generated: `2026-09-08T10:36:25.866482+00:00`
 Status: `queue-ready`
 Real measured completion: `False`
-Measured tasks: `33/33`
+Measured tasks: `34/34`
 
 | step | host class | status | accepted rows | commands | required metrics | thresholds |
 |---|---|---|---:|---:|---|---|
@@ -29,6 +29,7 @@ Measured tasks: `33/33`
 | `paged-kv-gather-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
 | `paged-attention-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
 | `serving-tail-load-cuda` | nvidia-cuda-serving | `measured-accepted` | 1/1 | 1 | status, gpu_execution_accepted, concurrency_levels, requests_per_level, rows | status == passed; gpu_execution_accepted == true; concurrency_levels == [1, 2, 4, 8]; requests_per_level >= 12; all rows have p95 and parity; vectorized batching observed above concurrency 1 |
+| `trained-serving-tail-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 2 | status | status in {passed, task_gate_passed} |
 | `vllm-serving-trace` | nvidia-cuda-serving | `measured-accepted` | 2/2 | 3 | cuda_available, passed_traces, prefix_cache_blocks_saved | cuda_available == true; passed_traces >= 3; prefix_cache_blocks_saved > 0 |
 | `attention-serving-stack` | nvidia-cuda-serving-profiler | `measured-accepted` | 2/2 | 4 | cuda_available, attention_scenarios, hbm_reduction, prefix_blocks_reused, profiler_rows | cuda_available == true; attention_scenarios >= 5; hbm_reduction > 0; prefix_blocks_reused > 0; profiler_rows >= 1 |
 | `flash-attention-backward` | nvidia-cuda-training-profiler | `measured-accepted` | 2/2 | 6 | cuda_available, flash_backward_scenarios, gradient_paths, max_abs_error, hbm_reduction, recompute_overhead_ratio, occupancy_proxy | cuda_available == true; flash_backward_scenarios >= 6; gradient_paths >= 4; max_abs_error <= 0.02; hbm_reduction >= 0.40; recompute_overhead_ratio >= 0; occupancy_proxy >= 0.45 |

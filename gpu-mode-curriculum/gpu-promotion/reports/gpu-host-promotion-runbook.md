@@ -1,9 +1,9 @@
 # GPU Host Promotion Runbook
 
-Generated: `2026-09-08T10:28:47.330864+00:00`
-Steps: `33`
+Generated: `2026-09-08T10:36:24.772602+00:00`
+Steps: `34`
 Ready on this host: `1`
-Ready on GPU host: `32`
+Ready on GPU host: `33`
 
 ## Local Capability Snapshot
 
@@ -221,6 +221,15 @@ Commands:
 - `python3 model-integration/run_serving_tail_load_cuda.py`
 Expected evidence: `model-integration/reports/serving-tail-load-cuda.json`
 Validation: Require synchronized bounded request waves, exact CPU-oracle output parity, observed vectorized batches, and explicit p95 wall-latency samples; this is single-device loopback evidence, not production capacity or multi-GPU serving.
+
+### trained-serving-tail-cuda: Measure trained neural-serving microbatch tail load
+Status: `ready-on-gpu-host`
+Missing locally: `nvidia_smi`
+Commands:
+- `python3 model-integration/run_serving_tail_load_cuda.py --mode cuda_graph_microbatch --trained`
+- `python3 model-integration/verify_trained_tail_load_cuda.py --report model-integration/reports/serving-tail-load-cuda.json`
+Expected evidence: `model-integration/reports/serving-tail-load-cuda.json`
+Validation: Require the trained quality profile, synchronized request-wave p95 samples, exact output parity, vectorized batching, and zero scheduler rejection/cancellation; keep synthetic quality separate from production capacity.
 
 ### vllm-serving-trace: Replay or import vLLM-style serving traces
 Status: `ready-on-gpu-host`

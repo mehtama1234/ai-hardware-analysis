@@ -41,6 +41,7 @@ if not BATCH1.is_dir():
     BATCH1 = ROOT / "batch1-decode-vertical-slice"
 sys.path.insert(0, str(BATCH1))
 from run_serving_bridge import DecodeModeGenerator  # noqa: E402
+from trained_serving_model import train_state  # noqa: E402
 
 OUT = HERE / "reports" / "serving-tail-load-cuda.json"
 CONCURRENCIES = (1, 2, 4, 8)
@@ -118,6 +119,8 @@ def main() -> int:
         default="microbatch",
         help="decode backend exercised by the HTTP tail-load sweep",
     )
+    parser.add_argument("--trained", action="store_true", help="train and serve the synthetic quality-gated model")
+    parser.add_argument("--train-steps", type=int, default=200)
     args = parser.parse_args()
     report = {"experiment": "serving_tail_load_cuda",
               "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -128,11 +131,17 @@ def main() -> int:
         report["reason"] = "CUDA is not available"
     else:
         previous = server.GENERATOR, server.ADMISSION, server.MICRO_BATCH
+        state_dict = None
+        training = {"trained": False, "quality_passed": False}
+        model_name = None
+        if args.trained:
+            state_dict, training = train_state(device=torch.device("cuda"), steps=args.train_steps, context=128)
+            model_name = "trained-synthetic-character"
         if args.mode == "cuda_graph_microbatch":
-            generator = DecodeModeGenerator(args.mode, "cuda")
+            generator = DecodeModeGenerator(args.mode, "cuda", state_dict=state_dict, model_name=model_name)
             generator.prepare([{"prompt": "hello", "max_tokens": MAX_TOKENS}])
         else:
-            generator = NeuralGenerator("cuda")
+            generator = NeuralGenerator("cuda", hidden=128, heads=8, state_dict=state_dict, model_name=model_name)
         expected = generator.complete("hello", MAX_TOKENS)["text"]
         scheduler = MicroBatchScheduler(generator, max_batch=4, window_ms=2.0, max_pending=64)
         server.GENERATOR, server.ADMISSION, server.MICRO_BATCH = generator, None, scheduler
@@ -186,15 +195,19 @@ def main() -> int:
                        "device_name": torch.cuda.get_device_name(0), "torch_version": torch.__version__,
                        "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL,
                        "max_tokens": MAX_TOKENS, "rows": rows, "scheduler": snapshot,
+                       "model_profile": training,
                        "checks": checks,
                        "timing_scope": "wall latency is measured per HTTP request; cuda_event_ms is the synchronized default-stream event span for each request wave",
-                       "scope": "single-process loopback HTTP on one CUDA device; 12 requests per concurrency and a 2-ms microbatch window; untrained model, no production capacity or multi-GPU claim"})
+                       "scope": ("single-process loopback HTTP on one CUDA device; 12 requests per concurrency and a 2-ms microbatch window; "
+                                 + ("synthetic trained model, not production language quality or capacity" if args.trained else "untrained model, no production capacity or multi-GPU claim"))})
         report["checks"]["report_contract"] = tail_report_contract(report)
         report["gpu_execution_accepted"] = all(report["checks"].values())
         report["status"] = "passed" if report["gpu_execution_accepted"] else "failed"
     source_paths = [Path(__file__).resolve(), SERVING / "server.py", SERVING / "microbatch.py", SERVING / "neural_generator.py"]
     if args.mode == "cuda_graph_microbatch":
         source_paths.append(BATCH1 / "run_serving_bridge.py")
+    if args.trained:
+        source_paths.append(HERE / "trained_serving_model.py")
     report["source_sha256"] = {
         str(path.relative_to(ROOT.parent)): hashlib.sha256(path.read_bytes()).hexdigest()
         for path in source_paths

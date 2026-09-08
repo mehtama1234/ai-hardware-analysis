@@ -179,6 +179,14 @@ passed the same HTTP candidate-selection gates. This closes the
 trained-quality-to-serving handoff for the synthetic workload; it does not
 close production language quality or capacity.
 
+The trained tail-load extension is promoted as `trained-serving-tail-cuda`,
+with evidence at
+`gpu-runs/imports/colab-t4-trained-tail-20260908/serving-tail-load-cuda.json`.
+It passed synchronized CUDA-event waves and p50/p95/max latency checks at
+concurrency 1/2/4/8, observed graph-vectorized batching, preserved output
+parity, and recorded zero scheduler rejection/cancellation. This is bounded
+single-process T4 evidence, not production capacity.
+
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and

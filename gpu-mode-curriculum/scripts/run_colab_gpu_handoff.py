@@ -99,6 +99,8 @@ def main() -> int:
         commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py"], "required": True}]
     elif mode == "serving-tail-graphs":
         commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py", "--mode", "cuda_graph_microbatch"], "required": True}]
+    elif mode == "trained-tail":
+        commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py", "--mode", "cuda_graph_microbatch", "--trained"], "required": True}]
     elif mode == "speculative-cuda":
         commands = [{"cmd": [sys.executable, "speculative-decoding-serving/run_speculative_decoding_cuda.py"], "required": True}]
     elif mode == "digits-quality":
