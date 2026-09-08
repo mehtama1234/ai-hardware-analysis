@@ -95,3 +95,10 @@ The batch-aware graph scheduler is also measured in
 `single`, and all outputs remain parity-checked. At concurrency 4 on the
 long-decode workload, graph microbatching measured about 15.6 ms median versus
 about 99.9 ms for vectorized eager microbatching.
+
+The bounded candidate-search handoff
+`colab-t4-batch1-search-20260908/decode-comparison.json` passed on T4. It
+selected `cuda-graph` for all three direct-decode workloads, with CUDA-event
+speedups of 2.88x, 3.70x, and 2.78x versus full-prefix recomputation. Every
+candidate passed exact token/logit parity; this is direct decode evidence, not
+yet a replacement for the separate HTTP serving and profiler gates.

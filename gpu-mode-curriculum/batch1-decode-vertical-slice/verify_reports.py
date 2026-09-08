@@ -19,8 +19,25 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--reports-dir", type=Path, default=HERE / "reports")
     parser.add_argument("--profiler-dir", type=Path)
+    parser.add_argument("--decode-only", action="store_true", help="verify only the decode candidate-search artifact")
     args = parser.parse_args()
     decode = json.loads((args.reports_dir / "decode-comparison.json").read_text())
+    if args.decode_only:
+        require(decode.get("status") == "passed", "decode comparison did not pass")
+        require(decode.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid decode evidence kind")
+        checks = decode.get("checks", {})
+        for name in (
+            "workload_count", "all_token_parity", "all_logit_parity",
+            "all_preallocated_token_parity", "all_preallocated_logit_parity",
+            "all_search_candidates_accepted", "selected_candidate_present",
+            "raw_samples_present", "preallocated_raw_samples_present",
+        ):
+            require(checks.get(name) is True, f"decode check failed: {name}")
+        rows = decode.get("rows", [])
+        require(len(rows) == 3, "decode workload coverage changed")
+        require(all(row.get("candidate_search", {}).get("selected") for row in rows), "candidate selection missing")
+        print(json.dumps({"status": "passed", "decode_kind": decode["evidence_kind"], "workloads": len(rows)}, indent=2))
+        return 0
     serving = json.loads((args.reports_dir / "serving-bridge.json").read_text())
     profiler_dir = args.profiler_dir or args.reports_dir
     profiler = json.loads((profiler_dir / "profiler-evidence.json").read_text())

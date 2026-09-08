@@ -145,6 +145,14 @@ the explicit `cuda-graph-vectorized` batch label; the corrected rerun passed
 the report contract. The handoff supports both the original eager microbatch
 mode and the graph-microbatch mode.
 
+The batch-1 decode slice now has a measured bounded candidate-search artifact:
+`gpu-runs/imports/colab-t4-batch1-search-20260908/decode-comparison.json`.
+The search enumerated cached, preallocated, and CUDA-graph candidates, gated
+each on token/logit parity, and selected CUDA Graph for all three workloads.
+Measured CUDA-event speedups versus full-prefix recomputation were 2.88x,
+3.70x, and 2.78x. This closes the candidate-selection control loop for direct
+decode; HTTP serving and profiler evidence remain separate application gates.
+
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and
