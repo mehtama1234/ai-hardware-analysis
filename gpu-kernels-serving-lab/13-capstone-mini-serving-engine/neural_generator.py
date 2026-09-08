@@ -11,7 +11,15 @@ import sys
 import torch
 from torch import nn
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "gpu-mode-curriculum" / "model-integration"))
+_HERE = Path(__file__).resolve()
+_MODEL_INTEGRATION_CANDIDATES = (
+    _HERE.parents[2] / "gpu-mode-curriculum" / "model-integration",
+    _HERE.parents[2] / "model-integration",
+)
+for _candidate in _MODEL_INTEGRATION_CANDIDATES:
+    if (_candidate / "model_integration").exists():
+        sys.path.insert(0, str(_candidate))
+        break
 from model_integration.tiny_transformer import TinyTransformerBlock
 
 

@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Verify the batch-1 decode vertical-slice reports without rerunning them."""
+
+from __future__ import annotations
+
+import json
+import argparse
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reports-dir", type=Path, default=HERE / "reports")
+    args = parser.parse_args()
+    decode = json.loads((args.reports_dir / "decode-comparison.json").read_text())
+    serving = json.loads((args.reports_dir / "serving-bridge.json").read_text())
+    require(decode.get("status") == "passed", "decode comparison did not pass")
+    require(decode.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid decode evidence kind")
+    require(decode.get("checks", {}).get("all_token_parity") is True, "decode token parity failed")
+    require(decode.get("checks", {}).get("all_logit_parity") is True, "decode logit parity failed")
+    rows = decode.get("rows", [])
+    require(len(rows) == 4, "decode prompt coverage changed")
+    require(all(len(row["cached"]["wall_ms_samples"]) == 7 for row in rows), "decode raw sample count changed")
+
+    require(serving.get("status") == "passed", "serving bridge did not pass")
+    require(serving.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid serving evidence kind")
+    require(serving.get("protocol", {}).get("concurrency_levels") == [1, 2, 4], "serving concurrency protocol changed")
+    checks = serving.get("checks", {})
+    require(all(checks.get(f"cross_mode_output_parity_{level}") is True for level in [1, 2, 4]), "serving output parity failed")
+    require(all(row.get("accepted") == 8 for mode in ["uncached", "cached"] for row in serving[mode]["rows"]), "serving requests incomplete")
+    print(json.dumps({"status": "passed", "decode_kind": decode["evidence_kind"], "serving_kind": serving["evidence_kind"]}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

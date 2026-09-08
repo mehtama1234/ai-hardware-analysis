@@ -103,6 +103,11 @@ def main() -> int:
         commands = [{"cmd": [sys.executable, "scripts/run_kernel_benchmarks.py", "--repeats", "7"], "required": True}]
     elif mode == "wmma-profiler":
         commands = [{"cmd": [sys.executable, "tensor-core-gemm/profile_native.py"], "required": True}]
+    elif mode == "batch1-decode":
+        commands = [
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_serving_bridge.py"], "required": True},
+        ]
     else:
         commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},
