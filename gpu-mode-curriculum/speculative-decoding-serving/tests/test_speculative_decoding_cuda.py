@@ -31,6 +31,17 @@ class SpeculativeDecodeTests(unittest.TestCase):
         self.assertEqual(stats["rollback_tokens"], 0)
         self.assertEqual(stats["accepted_tokens"], stats["draft_tokens"])
 
+    def test_adaptive_policy_falls_back_and_preserves_target(self):
+        target = NeuralGenerator("cpu", hidden=32, heads=4, seed=151)
+        draft = NeuralGenerator("cpu", hidden=32, heads=4, seed=152)
+        expected, _ = target.generate("attention cache", 8, cached=True, cache_storage="preallocated")
+        actual, stats = speculative_generate(
+            target, draft, "attention cache", 8, 3, fallback_threshold=0.5
+        )
+        self.assertEqual(actual, expected)
+        self.assertTrue(stats["policy_fallback"])
+        self.assertGreater(stats["fallback_tokens"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

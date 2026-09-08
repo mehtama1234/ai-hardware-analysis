@@ -68,12 +68,20 @@ def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int]) 
     return {"accepted": accepted, "correction": predictions[-1], "rollback": 0, "target_steps": 1}
 
 
-def speculative_generate(target: NeuralGenerator, draft: NeuralGenerator, prompt: str, max_tokens: int, width: int) -> tuple[list[int], dict]:
+def speculative_generate(
+    target: NeuralGenerator,
+    draft: NeuralGenerator,
+    prompt: str,
+    max_tokens: int,
+    width: int,
+    *,
+    fallback_threshold: float | None = None,
+) -> tuple[list[int], dict]:
     generated: list[int] = []
     prefix = prompt
     stats = {"draft_tokens": 0, "accepted_tokens": 0, "rollback_tokens": 0,
              "rollback_count": 0, "target_verify_steps": 0, "kv_tokens_committed": 0,
-             "draft_rounds": 0}
+             "draft_rounds": 0, "policy_fallback": False, "fallback_tokens": 0}
     while len(generated) < max_tokens:
         count = min(width, max_tokens - len(generated))
         proposed, _ = draft.generate(prefix, count, cached=True, cache_storage="preallocated")
@@ -95,6 +103,14 @@ def speculative_generate(target: NeuralGenerator, draft: NeuralGenerator, prompt
         generated.append(correction)
         stats["kv_tokens_committed"] += 1
         prefix = prompt + _tokens_to_text(target, generated)
+        if fallback_threshold is not None and stats["accepted_tokens"] / max(stats["draft_tokens"], 1) < fallback_threshold:
+            remaining = max_tokens - len(generated)
+            if remaining:
+                fallback_tokens, _ = target.generate(prefix, remaining, cached=True, cache_storage="preallocated")
+                generated.extend(fallback_tokens)
+                stats["fallback_tokens"] = len(fallback_tokens)
+            stats["policy_fallback"] = True
+            break
     return generated, stats
 
 
@@ -119,6 +135,7 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
     # draft/target control path before an event is recorded.
     target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")
     speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"])
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5)
     torch.cuda.synchronize()
     baseline_tokens, baseline_ms = _elapsed_cuda(
         lambda: target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")[0]
@@ -126,7 +143,13 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
     (spec_tokens, stats), speculative_ms = _elapsed_cuda(
         lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"])
     )
+    (adaptive_tokens, adaptive_stats), adaptive_ms = _elapsed_cuda(
+        lambda: speculative_generate(
+            target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5
+        )
+    )
     output_parity = spec_tokens == baseline_tokens
+    adaptive_parity = adaptive_tokens == baseline_tokens
     stats.update({
         "acceptance_rate": stats["accepted_tokens"] / max(stats["draft_tokens"], 1),
         "wasted_draft_ratio": stats["rollback_tokens"] / max(stats["draft_tokens"], 1),
@@ -136,9 +159,15 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
         "baseline_tpot_ms": baseline_ms / max(len(baseline_tokens), 1),
         "speculative_tpot_ms": speculative_ms / max(len(spec_tokens), 1),
         "output_parity": output_parity,
+        "adaptive_output_parity": adaptive_parity,
         "generated_tokens": len(spec_tokens),
         "draft_width": scenario["draft_width"],
         "draft_hidden": draft_hidden,
+        "adaptive_ms": adaptive_ms,
+        "adaptive_speedup_vs_baseline": baseline_ms / max(adaptive_ms, 1e-9),
+        "adaptive_policy_fallback": adaptive_stats["policy_fallback"],
+        "adaptive_fallback_tokens": adaptive_stats["fallback_tokens"],
+        "adaptive_acceptance_rate": adaptive_stats["accepted_tokens"] / max(adaptive_stats["draft_tokens"], 1),
     })
     return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"], **stats}
 
@@ -161,11 +190,13 @@ def main() -> int:
         checks = {
             "scenario_count": len(rows) >= 4,
             "all_output_parity": all(row["output_parity"] for row in rows),
+            "all_adaptive_output_parity": all(row["adaptive_output_parity"] for row in rows),
             "acceptance_accounted": all(row["accepted_tokens"] <= row["draft_tokens"] for row in rows),
             "rollback_accounted": all(row["rollback_tokens"] >= 0 and row["rollback_count"] >= 0 for row in rows),
             "cuda_timings_present": all(row["baseline_ms"] > 0 and row["speculative_ms"] > 0 for row in rows),
             "low_acceptance_covered": min(row["acceptance_rate"] for row in rows) < 0.95,
             "kv_commit_accounted": all(row["kv_tokens_committed"] == row["generated_tokens"] for row in rows),
+            "adaptive_fallback_observed": any(row["adaptive_policy_fallback"] for row in rows),
         }
         report.update({
             "status": "passed" if all(checks.values()) else "failed",
