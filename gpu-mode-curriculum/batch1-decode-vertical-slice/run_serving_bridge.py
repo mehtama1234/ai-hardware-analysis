@@ -56,6 +56,7 @@ class DecodeModeGenerator:
             self._graph_slots = None
         self.model_name = self.inner.model_name
         self._graph_bucket_keys = set()
+        self._graph_batch_keys = set()
 
     @property
     def graph_pool_size(self) -> int:
@@ -66,14 +67,28 @@ class DecodeModeGenerator:
 
     def prepare(self, workloads) -> None:
         self._graph_bucket_keys = {(workload["prompt"], workload["max_tokens"]) for workload in workloads}
+        self._graph_batch_keys = set()
+        if self.mode == "cuda_graph_microbatch":
+            for workload in workloads:
+                for batch_size in (2, GRAPH_POOL_SIZE):
+                    prompts = [workload["prompt"]] * batch_size
+                    if batch_size == 1:
+                        self.inner.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
+                    else:
+                        self.inner.generate_batch_cuda_graph(prompts, workload["max_tokens"])
+                    self._graph_batch_keys.add((tuple(prompts), workload["max_tokens"]))
         for worker in self._graph_workers:
             for workload in workloads:
                 worker.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
 
     def complete_batch(self, prompts: list[str], max_tokens: int) -> dict:
-        if self.mode != "microbatch":
+        if self.mode not in {"microbatch", "cuda_graph_microbatch"}:
             raise RuntimeError("complete_batch is only enabled for microbatch mode")
-        generated = self.inner.generate_batch(prompts, max_tokens, cached=True)
+        graph_batch = self.mode == "cuda_graph_microbatch" and (tuple(prompts), max_tokens) in self._graph_batch_keys
+        if graph_batch:
+            generated = self.inner.generate_batch_cuda_graph(prompts, max_tokens)
+        else:
+            generated = self.inner.generate_batch(prompts, max_tokens, cached=True)
         return {
             "choices": [
                 {"index": index, "text": "".join(self.inner.model.alphabet[token] for token in tokens), "finish_reason": "length"}
@@ -81,7 +96,7 @@ class DecodeModeGenerator:
             ],
             "completion_tokens": len(prompts) * max_tokens,
             "prefix_tokens_reused": 0,
-            "batch_mode": "vectorized",
+            "batch_mode": "cuda-graph-vectorized" if graph_batch else "vectorized",
             "backend": self.backend,
         }
 
@@ -103,12 +118,13 @@ class DecodeModeGenerator:
             model = worker.model
             backend = self.backend if graph_hit else f"{self.backend}-fallback"
         else:
+            graph_bucket = self.mode == "cuda_graph_microbatch" and (prompt, max_tokens) in self._graph_bucket_keys
             generated, _ = self.inner.generate(
                 prompt, max_tokens, cached=self.mode != "uncached",
-                cache_storage="preallocated" if self.mode in {"preallocated", "microbatch"} else "dynamic",
+                cache_storage="cuda_graph" if graph_bucket else ("preallocated" if self.mode in {"preallocated", "microbatch", "cuda_graph_microbatch"} else "dynamic"),
             )
             model = self.inner.model
-            backend = self.backend
+            backend = self.backend if graph_bucket or self.mode != "cuda_graph_microbatch" else f"{self.backend}-fallback"
         return {
             "text": "".join(model.alphabet[index] for index in generated),
             "generated_tokens": len(generated),
@@ -134,6 +150,9 @@ def _run_mode(mode: str, device: str) -> dict:
     server.MICRO_BATCH = None
     scheduler = None
     if mode == "microbatch":
+        scheduler = MicroBatchScheduler(mode_generator, max_batch=4, window_ms=3.0, max_pending=64)
+        server.MICRO_BATCH = scheduler
+    if mode == "cuda_graph_microbatch":
         scheduler = MicroBatchScheduler(mode_generator, max_batch=4, window_ms=3.0, max_pending=64)
         server.MICRO_BATCH = scheduler
     http = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
@@ -197,11 +216,12 @@ def main() -> int:
         cached = _run_mode("cached", device)
         preallocated = _run_mode("preallocated", device)
         microbatch = _run_mode("microbatch", device)
+        cuda_graph_microbatch = _run_mode("cuda_graph_microbatch", device) if device == "cuda" else None
         cuda_graph = _run_mode("cuda_graph", device) if device == "cuda" else None
         checks = {
-            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
-            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
-            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, microbatch, cuda_graph_microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph_microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
+            "all_backend_labels_present": all(row["backend_labels"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph_microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
             "concurrency_levels_present": [row["concurrency"] for row in cached["rows"]] == list(CONCURRENCIES) * len(WORKLOADS),
             "microbatch_vectorized_observed": any("vectorized" in row["batch_modes"] for row in microbatch["rows"]),
         }
@@ -227,6 +247,11 @@ def main() -> int:
         for left, right in zip(uncached["rows"], microbatch["rows"]):
             key = f"{left['workload']}_{left['concurrency']}"
             checks[f"microbatch_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
+        if cuda_graph_microbatch is not None:
+            checks["cuda_graph_microbatch_vectorized_observed"] = any("cuda-graph-vectorized" in row["batch_modes"] for row in cuda_graph_microbatch["rows"])
+            for left, right in zip(uncached["rows"], cuda_graph_microbatch["rows"]):
+                key = f"{left['workload']}_{left['concurrency']}"
+                checks[f"cuda_graph_microbatch_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -239,6 +264,7 @@ def main() -> int:
             "cached": cached,
             "preallocated": preallocated,
             "microbatch": microbatch,
+            "cuda_graph_microbatch": cuda_graph_microbatch,
             "cuda_graph": cuda_graph,
             "checks": checks,
             "timing_scope": "loopback HTTP request wall latency including server dispatch and autoregressive generation; excludes client queue wait outside the request",

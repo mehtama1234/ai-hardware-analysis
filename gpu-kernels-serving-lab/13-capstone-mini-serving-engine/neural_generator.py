@@ -72,6 +72,7 @@ class NeuralGenerator:
         self.model = self.model.to(self.device)
         self.backend = f"untrained-character-transformer-{self.device.type}-kv-h{hidden}"
         self._cuda_graph_cache = {}
+        self._cuda_graph_batch_cache = {}
 
     def encode(self, prompt):
         if not isinstance(prompt, str) or not prompt:
@@ -152,6 +153,77 @@ class NeuralGenerator:
             bundle = self._build_cuda_graph_bundle(prompt, max_tokens)
             self._cuda_graph_cache[key] = bundle
         return bundle
+
+    @torch.inference_mode()
+    def _build_cuda_graph_batch_bundle(self, prompts: list[str], max_tokens: int) -> dict:
+        """Capture a fixed batch-size graph bucket for equal-length prompts."""
+        if self.device.type != "cuda":
+            raise RuntimeError("CUDA Graph decode requires a CUDA device")
+        ids = [self.encode(prompt) for prompt in prompts]
+        if not ids or len({len(row) for row in ids}) != 1:
+            raise ValueError("CUDA Graph batch buckets require equal-length prompts")
+        if len(ids[0]) + max_tokens > self.model.context:
+            raise ValueError("prompt and max_tokens exceed model context")
+        batch = len(ids)
+        heads = self.model.block.heads
+        head_dim = self.model.block.hidden // heads
+        cache_k = torch.empty((batch, heads, self.model.context, head_dim), device=self.device)
+        cache_v = torch.empty_like(cache_k)
+        prompt_tokens = torch.tensor(ids, dtype=torch.long, device=self.device)
+        prefill_logits, _ = self.model(prompt_tokens, preallocated_cache=(cache_k, cache_v, 0))
+        first_logits = prefill_logits[:, -1].clone()
+        first_token = prefill_logits[:, -1].argmax(-1, keepdim=True)
+        seed_k = cache_k.clone()
+        seed_v = cache_v.clone()
+        static_input = torch.empty((batch, 1), dtype=torch.long, device=self.device)
+        static_next = torch.empty_like(static_input)
+        static_logits = torch.empty((batch, len(self.model.alphabet)), device=self.device)
+        graphs = []
+        warm_token = first_token.clone()
+        torch.cuda.synchronize()
+        for step in range(max_tokens - 1):
+            static_input.copy_(warm_token)
+            offset = len(ids[0]) + step
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                logits, _ = self.model(static_input, preallocated_cache=(cache_k, cache_v, offset))
+                static_logits.copy_(logits[:, -1])
+                static_next.copy_(static_logits.argmax(-1, keepdim=True))
+            torch.cuda.synchronize()
+            warm_token = static_next.clone()
+            graphs.append(graph)
+        cache_k.copy_(seed_k)
+        cache_v.copy_(seed_v)
+        static_input.copy_(first_token)
+        torch.cuda.synchronize()
+        return {
+            "graphs": graphs, "cache_k": cache_k, "cache_v": cache_v,
+            "seed_k": seed_k, "seed_v": seed_v,
+            "static_input": static_input, "static_next": static_next,
+            "static_logits": static_logits, "first_logits": first_logits,
+            "first_token": first_token, "batch": batch,
+        }
+
+    def _cuda_graph_batch_bundle(self, prompts: list[str], max_tokens: int) -> dict:
+        key = (tuple(prompts), max_tokens, self.model.hidden, self.model.block.heads)
+        bundle = self._cuda_graph_batch_cache.get(key)
+        if bundle is None:
+            bundle = self._build_cuda_graph_batch_bundle(prompts, max_tokens)
+            self._cuda_graph_batch_cache[key] = bundle
+        return bundle
+
+    @torch.inference_mode()
+    def generate_batch_cuda_graph(self, prompts: list[str], max_tokens: int) -> list[list[int]]:
+        bundle = self._cuda_graph_batch_bundle(prompts, max_tokens)
+        bundle["cache_k"].copy_(bundle["seed_k"])
+        bundle["cache_v"].copy_(bundle["seed_v"])
+        bundle["static_input"].copy_(bundle["first_token"])
+        generated = [bundle["first_token"].clone()]
+        for graph in bundle["graphs"]:
+            graph.replay()
+            generated.append(bundle["static_next"].clone())
+            bundle["static_input"].copy_(bundle["static_next"])
+        return torch.cat(generated, dim=1).tolist()
 
     @torch.inference_mode()
     def _generate_cuda_graph(self, prompt: str, max_tokens: int):

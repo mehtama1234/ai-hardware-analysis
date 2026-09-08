@@ -81,3 +81,10 @@ requests, and preserved parity. At concurrency 4, vectorized microbatching
 reduced long-context median latency to about 26 ms versus about 66 ms for the
 uncached path; the CUDA Graph pool remains the lower-latency fixed-bucket
 option.
+
+The batch-aware graph scheduler is also measured in
+`colab-t4-batch1-batchgraphs-20260908`: equal-length groups use
+`cuda-graph-vectorized` buckets for batch sizes 2/4, singleton groups remain
+`single`, and all outputs remain parity-checked. At concurrency 4 on the
+long-decode workload, graph microbatching measured about 15.6 ms median versus
+about 99.9 ms for vectorized eager microbatching.
