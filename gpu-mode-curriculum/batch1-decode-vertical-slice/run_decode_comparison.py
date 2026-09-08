@@ -71,6 +71,33 @@ def _compare_logits(left: list[torch.Tensor], right: list[torch.Tensor]) -> dict
     }
 
 
+def _candidate_search(reference: dict, candidates: dict[str, dict]) -> dict:
+    """Select the fastest candidate that preserves the reference outputs.
+
+    This is deliberately a bounded, deterministic search space.  It is the
+    promotion seam an agent can extend with retained candidate implementations
+    without allowing a fast but numerically divergent candidate through.
+    """
+    rows = []
+    for candidate_id, result in candidates.items():
+        token_parity = result["tokens"] == reference["tokens"]
+        logit_parity = _compare_logits(reference["logits"], result["logits"])
+        timing = result.get("cuda_event_ms_median")
+        if timing is None:
+            timing = result["wall_ms_median"]
+        rows.append({
+            "candidate_id": candidate_id,
+            "timing_ms": timing,
+            "tokens_equal": token_parity,
+            "logit_parity": logit_parity,
+            "accepted": token_parity and logit_parity["passed"],
+            "speedup_vs_reference": reference["wall_ms_median"] / max(result["wall_ms_median"], 1e-9),
+        })
+    accepted = [row for row in rows if row["accepted"]]
+    selected = min(accepted, key=lambda row: row["timing_ms"]) if accepted else None
+    return {"candidates": rows, "selected": selected["candidate_id"] if selected else None}
+
+
 def _path_report(generator: NeuralGenerator, prompt: str, max_tokens: int, repeats: int, cached: bool, cache_storage: str = "dynamic") -> dict:
     for _ in range(WARMUPS):
         _cuda_run_once(generator, prompt, max_tokens, cached, cache_storage)
@@ -108,6 +135,10 @@ def main() -> int:
                 "preallocated_tokens_equal": uncached["tokens"] == preallocated["tokens"],
                 "preallocated_logits": _compare_logits(uncached["logits"], preallocated["logits"]),
             }
+            candidates = {"cached-dynamic": cached, "preallocated": preallocated}
+            if cuda_graph is not None:
+                candidates["cuda-graph"] = cuda_graph
+            search = _candidate_search(uncached, candidates)
             rows.append({
                 "workload": workload["id"],
                 "prompt": prompt,
@@ -120,6 +151,7 @@ def main() -> int:
                 "parity": parity,
                 "speedup_wall": uncached["wall_ms_samples"][-1] / max(cached["wall_ms_samples"][-1], 1e-9),
                 "preallocated_speedup_wall": uncached["wall_ms_samples"][-1] / max(preallocated["wall_ms_samples"][-1], 1e-9),
+                "candidate_search": search,
             })
             if cuda_graph is not None:
                 rows[-1]["cuda_graph"] = {k: v for k, v in cuda_graph.items() if k not in {"tokens", "logits"}}
@@ -134,6 +166,8 @@ def main() -> int:
             "all_logit_parity": all(row["parity"]["logits"]["passed"] for row in rows),
             "all_preallocated_token_parity": all(row["parity"]["preallocated_tokens_equal"] for row in rows),
             "all_preallocated_logit_parity": all(row["parity"]["preallocated_logits"]["passed"] for row in rows),
+            "all_search_candidates_accepted": all(all(candidate["accepted"] for candidate in row["candidate_search"]["candidates"]) for row in rows),
+            "selected_candidate_present": all(row["candidate_search"]["selected"] for row in rows),
             "all_cuda_graph_token_parity": generator.device.type != "cuda" or all(row["parity"]["cuda_graph_tokens_equal"] for row in rows),
             "all_cuda_graph_logit_parity": generator.device.type != "cuda" or all(row["parity"]["cuda_graph_logits"]["passed"] for row in rows),
             "raw_samples_present": all(len(row["cached"]["wall_ms_samples"]) == row["repeats"] for row in rows),

@@ -54,6 +54,13 @@ python3 batch1-decode-vertical-slice/verify_reports.py \
 - profiler evidence must show CUDA activity on GPU runs and must not show more
 `aten::cat` calls for preallocated storage than for dynamic cache storage.
 
+The comparison also records a bounded candidate search for each workload. It
+enumerates the available cached, preallocated, and CUDA-graph paths, applies
+token and logit parity to every candidate, and selects the fastest accepted
+candidate using synchronized CUDA-event medians when available (wall medians
+otherwise). A candidate that is faster but changes outputs is retained as
+rejected evidence and cannot be selected.
+
 The widened T4 run showed that preallocation alone is not sufficient: its
 long-context gain did not survive the HTTP path. The CUDA Graph path then
 reduced direct CUDA-event decode time by 2.74–4.37x and reduced loopback HTTP
