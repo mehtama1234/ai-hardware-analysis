@@ -91,13 +91,21 @@ def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int]) 
     the draft; the caller may commit it as the next exact token.
     """
     ids = target.encode(prefix)
-    full = torch.tensor([ids + draft_tokens], dtype=torch.long, device=target.device)
-    # Verify the complete proposed suffix in one target forward.  Position
-    # p+i predicts draft token i; the final position supplies the bonus token
-    # when the whole draft is accepted.  This is the batched verification path
-    # whose launch count matters for a real speculative decoder.
-    logits = target.model(full, cached=False)
-    predictions = logits[0, len(ids) - 1 : len(ids) - 1 + len(draft_tokens) + 1].argmax(-1).tolist()
+    heads = target.model.block.heads
+    head_dim = target.model.hidden // heads
+    cache_k = torch.empty((1, heads, target.model.context, head_dim), device=target.device)
+    cache_v = torch.empty_like(cache_k)
+    prompt_tokens = torch.tensor([ids], dtype=torch.long, device=target.device)
+    # Prefill once, then append the complete proposed suffix as a single
+    # preallocated-KV block.  The prefill's last logit predicts draft token 0;
+    # each suffix logit predicts the next draft token, with the final one as
+    # the bonus token. This avoids recomputing the prefix for every verify.
+    prefill_logits, _ = target.model(prompt_tokens, preallocated_cache=(cache_k, cache_v, 0))
+    suffix_tokens = torch.tensor([draft_tokens], dtype=torch.long, device=target.device)
+    suffix_logits, _ = target.model(
+        suffix_tokens, preallocated_cache=(cache_k, cache_v, len(ids))
+    )
+    predictions = torch.cat((prefill_logits[:, -1:], suffix_logits), dim=1)[0].argmax(-1).tolist()
     accepted = 0
     for candidate, predicted in zip(draft_tokens, predictions):
         if candidate != predicted:
