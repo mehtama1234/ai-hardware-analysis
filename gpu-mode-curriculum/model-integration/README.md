@@ -117,6 +117,18 @@ accounting. It proves a bounded single-device loopback result for the graph
 microbatch path; it is not production capacity, trained-model quality, or
 multi-GPU evidence.
 
+The paired comparison is generated with:
+
+```bash
+python3 gpu-mode-curriculum/model-integration/compare_serving_tail_loads.py \
+  --eager gpu-runs/imports/colab-t4-serving-tail-eager-20260908/serving-tail-load-cuda.json \
+  --graphs gpu-runs/imports/colab-t4-serving-tail-graphs-20260908-r2/serving-tail-load-cuda.json \
+  --output gpu-runs/imports/colab-t4-serving-tail-comparison-20260908/comparison.json
+```
+
+The paired T4 report passes matching-device/load, both report contracts,
+parity, graph-vectorization, and majority-level p95 checks.
+
 ## Packed-weight block inference
 
 ```bash
