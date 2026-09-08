@@ -168,6 +168,7 @@ def speculative_generate(
     *,
     fallback_threshold: float | None = None,
     verifier: CudaBlockVerifier | None = None,
+    draft_graph: bool = False,
 ) -> tuple[list[int], dict]:
     generated: list[int] = []
     prefix = prompt
@@ -176,7 +177,10 @@ def speculative_generate(
              "draft_rounds": 0, "policy_fallback": False, "fallback_tokens": 0}
     while len(generated) < max_tokens:
         count = min(width, max_tokens - len(generated))
-        proposed, _ = draft.generate(prefix, count, cached=True, cache_storage="preallocated")
+        if draft_graph and draft.device.type == "cuda":
+            proposed = draft.generate_cuda_graph_single(prefix, count)
+        else:
+            proposed, _ = draft.generate(prefix, count, cached=True, cache_storage="preallocated")
         stats["draft_rounds"] += 1
         stats["draft_tokens"] += len(proposed)
         verification = verify_draft(target, prefix, proposed, verifier=verifier)
@@ -227,19 +231,19 @@ def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: Neu
     # both sides of the comparison.  The warmup also validates the full
     # draft/target control path before an event is recorded.
     target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier)
-    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5, verifier=verifier)
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=True)
+    speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5, verifier=verifier, draft_graph=True)
     torch.cuda.synchronize()
     baseline_tokens, baseline_ms = _elapsed_cuda(
         lambda: target.generate(prompt, max_tokens, cached=True, cache_storage="preallocated")[0]
     )
     (spec_tokens, stats), speculative_ms = _elapsed_cuda(
-        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier)
+        lambda: speculative_generate(target, draft, prompt, max_tokens, scenario["draft_width"], verifier=verifier, draft_graph=True)
     )
     (adaptive_tokens, adaptive_stats), adaptive_ms = _elapsed_cuda(
         lambda: speculative_generate(
             target, draft, prompt, max_tokens, scenario["draft_width"], fallback_threshold=0.5
-            , verifier=verifier
+            , verifier=verifier, draft_graph=True
         )
     )
     output_parity = spec_tokens == baseline_tokens
@@ -264,6 +268,7 @@ def run_scenario(target: NeuralGenerator, scenario: dict, *, draft_override: Neu
         "adaptive_acceptance_rate": adaptive_stats["accepted_tokens"] / max(adaptive_stats["draft_tokens"], 1),
         "verifier_capture_count": verifier.capture_count,
         "verifier_replay_count": verifier.replay_count,
+        "draft_graph_bucket_count": len(draft._cuda_graph_single_cache),
     })
     return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"],
             "draft_kind": scenario.get("draft_kind", "random-seed"), **stats}

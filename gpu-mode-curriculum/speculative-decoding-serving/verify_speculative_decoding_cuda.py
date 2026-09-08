@@ -29,6 +29,7 @@ def main() -> int:
         "adaptive_fallback_observed": any(row.get("adaptive_policy_fallback") is True for row in rows),
         "calibrated_case_present": any(row.get("draft_kind") == "calibrated" for row in rows),
         "cuda_graph_verifier_observed": all(row.get("verifier_capture_count", 0) > 0 and row.get("verifier_replay_count", 0) > 0 for row in rows),
+        "draft_graph_observed": all(row.get("draft_graph_bucket_count", 0) > 0 for row in rows),
     }
     result = {"status": "passed" if all(checks.values()) else "failed", "checks": checks, "scenario_count": len(rows)}
     print(json.dumps(result, indent=2))

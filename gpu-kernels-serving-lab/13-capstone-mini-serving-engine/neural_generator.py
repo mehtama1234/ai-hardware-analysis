@@ -73,6 +73,7 @@ class NeuralGenerator:
         self.backend = f"untrained-character-transformer-{self.device.type}-kv-h{hidden}"
         self._cuda_graph_cache = {}
         self._cuda_graph_batch_cache = {}
+        self._cuda_graph_single_cache = {}
 
     def encode(self, prompt):
         if not isinstance(prompt, str) or not prompt:
@@ -239,6 +240,73 @@ class NeuralGenerator:
             generated.append(bundle["static_next"].clone())
             bundle["static_input"].copy_(bundle["static_next"])
         return torch.cat(generated, dim=1)[0].tolist(), logits_trace
+
+    @torch.inference_mode()
+    def _build_cuda_graph_single_bundle(self, prompt: str, max_tokens: int) -> dict:
+        """Capture an entire fixed-length decode chain in one CUDA graph."""
+        if self.device.type != "cuda" or not hasattr(torch.cuda, "CUDAGraph"):
+            raise RuntimeError("single CUDA graph decode requires CUDA graph support")
+        ids = self.encode(prompt)
+        if len(ids) + max_tokens > self.model.context:
+            raise ValueError("prompt and max_tokens exceed model context")
+        heads = self.model.block.heads
+        head_dim = self.model.hidden // heads
+        cache_k = torch.empty((1, heads, self.model.context, head_dim), device=self.device)
+        cache_v = torch.empty_like(cache_k)
+        prompt_tokens = torch.tensor([ids], dtype=torch.long, device=self.device)
+        prefill_logits, _ = self.model(prompt_tokens, preallocated_cache=(cache_k, cache_v, 0))
+        first_token = prefill_logits[:, -1].argmax(-1, keepdim=True)
+        seed_k = cache_k.clone()
+        seed_v = cache_v.clone()
+        static_input = torch.empty((1, 1), dtype=torch.long, device=self.device)
+        static_next = torch.empty_like(static_input)
+        static_logits = torch.empty((1, len(self.model.alphabet)), device=self.device)
+        static_tokens = torch.empty((1, max_tokens), dtype=torch.long, device=self.device)
+
+        def run_chain() -> None:
+            static_tokens[:, 0].copy_(first_token)
+            static_input.copy_(first_token)
+            for step in range(1, max_tokens):
+                logits, _ = self.model(
+                    static_input,
+                    preallocated_cache=(cache_k, cache_v, len(ids) + step - 1),
+                )
+                static_logits.copy_(logits[:, -1])
+                static_next.copy_(static_logits.argmax(-1, keepdim=True))
+                static_tokens[:, step].copy_(static_next)
+                static_input.copy_(static_next)
+
+        for _ in range(2):
+            run_chain()
+        cache_k.copy_(seed_k)
+        cache_v.copy_(seed_v)
+        torch.cuda.synchronize()
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            run_chain()
+        torch.cuda.synchronize()
+        return {
+            "graph": graph, "cache_k": cache_k, "cache_v": cache_v,
+            "seed_k": seed_k, "seed_v": seed_v, "static_input": static_input,
+            "static_tokens": static_tokens, "first_token": first_token,
+        }
+
+    def _cuda_graph_single_bundle(self, prompt: str, max_tokens: int) -> dict:
+        key = (prompt, max_tokens, self.model.hidden, self.model.block.heads)
+        bundle = self._cuda_graph_single_cache.get(key)
+        if bundle is None:
+            bundle = self._build_cuda_graph_single_bundle(prompt, max_tokens)
+            self._cuda_graph_single_cache[key] = bundle
+        return bundle
+
+    @torch.inference_mode()
+    def generate_cuda_graph_single(self, prompt: str, max_tokens: int) -> list[int]:
+        """Replay one graph for the complete fixed-length decode chain."""
+        bundle = self._cuda_graph_single_bundle(prompt, max_tokens)
+        bundle["cache_k"].copy_(bundle["seed_k"])
+        bundle["cache_v"].copy_(bundle["seed_v"])
+        bundle["graph"].replay()
+        return bundle["static_tokens"][0].tolist()
 
     @torch.inference_mode()
     def generate(self, prompt, max_tokens, *, cached=True, cache_storage="dynamic"):
