@@ -1,6 +1,6 @@
 # GPUMODE GPU Run Imports
 
-Generated: `2026-09-08T10:16:40.473738+00:00`
+Generated: `2026-09-08T10:30:15.160464+00:00`
 Status: `import-ready`
 Real measured runs: `3`
 
@@ -13,15 +13,15 @@ Real measured runs: `3`
 - `measured_run_count`: `3`
 - `sample_run_count`: `2`
 - `host_collected_run_count`: `1`
-- `promotion_step_count`: `32`
-- `promotion_steps`: `['attention-serving-stack', 'bank-conflict-cuda', 'cuda-graphs-native', 'cuda-kernel-compile', 'distributed-collectives', 'distributed-training-optimizer', 'eager-kernel-suite-cuda', 'flash-attention-backward', 'full-gpu-regression', 'fused-training-kernels', 'low-precision-native', 'model-integration-gpu', 'neural-serving-cuda', 'paged-attention-cuda', 'paged-kv-gather-cuda', 'parallel-primitives', 'persistent-kernels', 'profiler-capture', 'rl-policy-quality-cuda', 'rl-simulation-cuda', 'rocm-hip-port', 'serving-tail-load-cuda', 'sparse-attention-kernels', 'speculative-decoding-serving', 'tensor-core-gemm', 'torch-custom-extension', 'trained-digits-quality-cuda', 'trained-neural-quality-cuda', 'triton-kernel-families', 'triton-kernel-sweep', 'triton-layout-cuda', 'vllm-serving-trace']`
-- `passed_steps`: `63`
+- `promotion_step_count`: `33`
+- `promotion_steps`: `['attention-serving-stack', 'bank-conflict-cuda', 'cuda-graphs-native', 'cuda-kernel-compile', 'distributed-collectives', 'distributed-training-optimizer', 'eager-kernel-suite-cuda', 'flash-attention-backward', 'full-gpu-regression', 'fused-training-kernels', 'low-precision-native', 'model-integration-gpu', 'neural-serving-cuda', 'paged-attention-cuda', 'paged-kv-gather-cuda', 'parallel-primitives', 'persistent-kernels', 'profiler-capture', 'rl-policy-quality-cuda', 'rl-simulation-cuda', 'rocm-hip-port', 'serving-tail-load-cuda', 'sparse-attention-kernels', 'speculative-decoding-serving', 'tensor-core-gemm', 'torch-custom-extension', 'trained-digits-quality-cuda', 'trained-neural-quality-cuda', 'trained-serving-e2e-cuda', 'triton-kernel-families', 'triton-kernel-sweep', 'triton-layout-cuda', 'vllm-serving-trace']`
+- `passed_steps`: `64`
 - `failed_steps`: `0`
 - `unknown_steps`: `0`
 
 ## Validation
 
-- `covered_gpu_host_steps`: `['attention-serving-stack', 'bank-conflict-cuda', 'cuda-graphs-native', 'cuda-kernel-compile', 'distributed-collectives', 'distributed-training-optimizer', 'eager-kernel-suite-cuda', 'flash-attention-backward', 'fused-training-kernels', 'low-precision-native', 'model-integration-gpu', 'neural-serving-cuda', 'paged-attention-cuda', 'paged-kv-gather-cuda', 'parallel-primitives', 'persistent-kernels', 'profiler-capture', 'rl-policy-quality-cuda', 'rl-simulation-cuda', 'rocm-hip-port', 'serving-tail-load-cuda', 'sparse-attention-kernels', 'speculative-decoding-serving', 'tensor-core-gemm', 'torch-custom-extension', 'trained-digits-quality-cuda', 'trained-neural-quality-cuda', 'triton-kernel-families', 'triton-kernel-sweep', 'triton-layout-cuda', 'vllm-serving-trace']`
+- `covered_gpu_host_steps`: `['attention-serving-stack', 'bank-conflict-cuda', 'cuda-graphs-native', 'cuda-kernel-compile', 'distributed-collectives', 'distributed-training-optimizer', 'eager-kernel-suite-cuda', 'flash-attention-backward', 'fused-training-kernels', 'low-precision-native', 'model-integration-gpu', 'neural-serving-cuda', 'paged-attention-cuda', 'paged-kv-gather-cuda', 'parallel-primitives', 'persistent-kernels', 'profiler-capture', 'rl-policy-quality-cuda', 'rl-simulation-cuda', 'rocm-hip-port', 'serving-tail-load-cuda', 'sparse-attention-kernels', 'speculative-decoding-serving', 'tensor-core-gemm', 'torch-custom-extension', 'trained-digits-quality-cuda', 'trained-neural-quality-cuda', 'trained-serving-e2e-cuda', 'triton-kernel-families', 'triton-kernel-sweep', 'triton-layout-cuda', 'vllm-serving-trace']`
 - `missing_gpu_host_steps`: `[]`
 
 ## Imported Steps
@@ -90,6 +90,7 @@ Real measured runs: `3`
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `model-integration-gpu` | passed | 2 |
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `neural-serving-cuda` | passed | 10 |
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `trained-neural-quality-cuda` | passed | 15 |
+| `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `trained-serving-e2e-cuda` | passed | 11 |
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `paged-kv-gather-cuda` | passed | 4 |
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `paged-attention-cuda` | passed | 4 |
 | `colab-t4-promoted-20260907` | Google Colab runtime (imported) | Tesla T4 | `serving-tail-load-cuda` | passed | 9 |

@@ -120,6 +120,7 @@ for _step_id in (
     "cuda-graphs-native",
     "neural-serving-cuda",
     "trained-neural-quality-cuda",
+    "trained-serving-e2e-cuda",
     "paged-kv-gather-cuda",
     "paged-attention-cuda",
 ):

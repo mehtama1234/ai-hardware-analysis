@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-07T12:26:00.221391+00:00",
-  "step_count": 32,
+  "generated_at": "2026-09-08T10:28:47.330864+00:00",
+  "step_count": 33,
   "ready_on_this_host": 1,
-  "ready_on_gpu_host": 31,
+  "ready_on_gpu_host": 32,
   "local_capabilities": {
     "python": true,
     "torch": true,
@@ -421,6 +421,26 @@
         "model-integration/reports/trained-neural-quality-cuda.json"
       ],
       "validation": "Record fixed-protocol training, held-out next-token accuracy, and cached/full autoregressive parity; keep synthetic quality separate from production language quality, serving capacity, and the untrained serving benchmark."
+    },
+    {
+      "id": "trained-serving-e2e-cuda",
+      "title": "Serve the trained quality-gated model through the runtime-aware decode selector",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 batch1-decode-vertical-slice/run_serving_bridge.py --trained",
+        "python3 batch1-decode-vertical-slice/verify_trained_serving.py --report batch1-decode-vertical-slice/reports/serving-bridge.json"
+      ],
+      "expected_evidence": [
+        "gpu-runs/imports/<run-id>/serving-bridge.json"
+      ],
+      "validation": "Require held-out synthetic quality, cached/runtime output parity, completed HTTP waves, and parity-gated serving candidate selection; keep this separate from production language quality and capacity claims."
     },
     {
       "id": "paged-kv-gather-cuda",

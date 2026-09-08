@@ -1,9 +1,9 @@
 # GPU Host Promotion Runbook
 
-Generated: `2026-09-07T12:26:00.221391+00:00`
-Steps: `32`
+Generated: `2026-09-08T10:28:47.330864+00:00`
+Steps: `33`
 Ready on this host: `1`
-Ready on GPU host: `31`
+Ready on GPU host: `32`
 
 ## Local Capability Snapshot
 
@@ -188,6 +188,15 @@ Commands:
 - `python3 model-integration/run_trained_neural_quality_cuda.py --device cuda`
 Expected evidence: `model-integration/reports/trained-neural-quality-cuda.json`
 Validation: Record fixed-protocol training, held-out next-token accuracy, and cached/full autoregressive parity; keep synthetic quality separate from production language quality, serving capacity, and the untrained serving benchmark.
+
+### trained-serving-e2e-cuda: Serve the trained quality-gated model through the runtime-aware decode selector
+Status: `ready-on-gpu-host`
+Missing locally: `nvidia_smi`
+Commands:
+- `python3 batch1-decode-vertical-slice/run_serving_bridge.py --trained`
+- `python3 batch1-decode-vertical-slice/verify_trained_serving.py --report batch1-decode-vertical-slice/reports/serving-bridge.json`
+Expected evidence: `gpu-runs/imports/<run-id>/serving-bridge.json`
+Validation: Require held-out synthetic quality, cached/runtime output parity, completed HTTP waves, and parity-gated serving candidate selection; keep this separate from production language quality and capacity claims.
 
 ### paged-kv-gather-cuda: Execute native CUDA page-table KV gather against a host oracle
 Status: `ready-on-gpu-host`

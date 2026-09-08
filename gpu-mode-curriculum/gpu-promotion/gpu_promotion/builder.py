@@ -292,6 +292,18 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             caps,
         ),
         _step(
+            "trained-serving-e2e-cuda",
+            "Serve the trained quality-gated model through the runtime-aware decode selector",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 batch1-decode-vertical-slice/run_serving_bridge.py --trained",
+                "python3 batch1-decode-vertical-slice/verify_trained_serving.py --report batch1-decode-vertical-slice/reports/serving-bridge.json",
+            ],
+            ["gpu-runs/imports/<run-id>/serving-bridge.json"],
+            "Require held-out synthetic quality, cached/runtime output parity, completed HTTP waves, and parity-gated serving candidate selection; keep this separate from production language quality and capacity claims.",
+            caps,
+        ),
+        _step(
             "paged-kv-gather-cuda",
             "Execute native CUDA page-table KV gather against a host oracle",
             ["nvcc", "nvidia_smi"],

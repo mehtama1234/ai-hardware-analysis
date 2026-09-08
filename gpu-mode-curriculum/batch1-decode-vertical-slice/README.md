@@ -116,3 +116,11 @@ It chose `cuda_graph` for singleton request buckets and
 `cuda_graph_microbatch` for higher concurrency based on HTTP median latency,
 with exact output parity required for every candidate. This is the current
 end-to-end optimization-loop artifact for the bounded teaching workload.
+
+The trained-model handoff
+`colab-t4-trained-serving-e2e-20260908/serving-bridge.json` uses the same
+runtime selector after 200-step synthetic training. It reached 0.9955 held-out
+next-token accuracy, preserved cached/full and cross-backend output parity, and
+passed all HTTP candidate-selection checks on T4. The corpus is intentionally
+synthetic; this is trained-serving integration evidence, not production model
+quality.

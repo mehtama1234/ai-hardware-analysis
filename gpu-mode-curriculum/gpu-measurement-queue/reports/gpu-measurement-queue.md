@@ -1,9 +1,9 @@
 # GPUMODE GPU Measurement Queue
 
-Generated: `2026-09-08T10:16:40.666200+00:00`
+Generated: `2026-09-08T10:30:15.504583+00:00`
 Status: `queue-ready`
 Real measured completion: `False`
-Measured tasks: `32/32`
+Measured tasks: `33/33`
 
 | step | host class | status | accepted rows | commands | required metrics | thresholds |
 |---|---|---|---:|---:|---|---|
@@ -25,6 +25,7 @@ Measured tasks: `32/32`
 | `model-integration-gpu` | accelerator-torch | `measured-accepted` | 2/3 | 3 | accelerator_ready, passed_cases, uses_custom_op | accelerator_ready == true; passed_cases >= 3; uses_custom_op == fused_bias_gelu_residual |
 | `neural-serving-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
 | `trained-neural-quality-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
+| `trained-serving-e2e-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 2 | status | status in {passed, task_gate_passed} |
 | `paged-kv-gather-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
 | `paged-attention-cuda` | accelerator-claim-scoped | `measured-accepted` | 1/1 | 1 | status | status in {passed, task_gate_passed} |
 | `serving-tail-load-cuda` | nvidia-cuda-serving | `measured-accepted` | 1/1 | 1 | status, gpu_execution_accepted, concurrency_levels, requests_per_level, rows | status == passed; gpu_execution_accepted == true; concurrency_levels == [1, 2, 4, 8]; requests_per_level >= 12; all rows have p95 and parity; vectorized batching observed above concurrency 1 |

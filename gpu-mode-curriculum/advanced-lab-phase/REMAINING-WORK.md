@@ -170,6 +170,15 @@ and profiler verification all passed on T4. This closes the bounded
 optimization-to-runtime loop for the teaching model; production-scale trained
 quality and capacity characterization remain open.
 
+The trained-serving extension is now also promoted as
+`trained-serving-e2e-cuda`, with authoritative evidence at
+`gpu-runs/imports/colab-t4-trained-serving-e2e-20260908/serving-bridge.json`.
+The T4 run trained the 128-wide synthetic character model for 200 steps,
+reached 0.9955 held-out next-token accuracy, preserved cached/full parity, and
+passed the same HTTP candidate-selection gates. This closes the
+trained-quality-to-serving handoff for the synthetic workload; it does not
+close production language quality or capacity.
+
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and
