@@ -1,7 +1,8 @@
 # GPUMODE parallel primitives
 
-Generated: `2026-08-31T01:52:59.584702+00:00`
+Generated: `2026-09-07T03:14:07.574769+00:00`
 Status: `parallel-primitives-ready`
+Evidence: analytical scenarios; timings are supplied constants, not device measurements. Passing status checks model assumptions, not numerical correctness.
 
 | scenario | primitive | algorithm | efficiency | bandwidth proxy GB/s | occupancy | status |
 |---|---|---|---:|---:|---:|---|

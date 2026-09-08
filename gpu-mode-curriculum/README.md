@@ -4,6 +4,24 @@ This track turns GPUMODE's YouTube lectures into a transcript-backed GPU systems
 curriculum that can feed deeper runnable labs in `gpu-kernels-serving-lab`. The
 full objective is specified in `MEATY-GOAL.md`.
 
+## Advanced executable expansion
+
+The active [end-to-end goal](advanced-lab-phase/END-TO-END-GOAL.md) builds on this
+curriculum with measured GEMM, attention derivatives/recomputation, packed-weight
+quality checks, neural serving, and compiled training integration. Begin with
+the [checkpoint walkthrough](advanced-lab-phase/EXECUTABLE-CHECKPOINT.md).
+Analytical reports and CPU measurements are not interchangeable with GPU evidence.
+
+The [learning paths](advanced-lab-phase/LEARNING-PATHS.md) order the implemented
+labs by prerequisites, learner deliverables and evidence limits.
+The [exercises](advanced-lab-phase/EXERCISES.md) link derivations to tested
+reference implementations. The [partial source registry](advanced-lab-phase/SOURCE-REGISTRY.md)
+records which primary-source claims were reviewed and which remain unverified.
+The [capability matrix](advanced-lab-phase/CAPABILITY-MATRIX.md) maps inspected
+artifacts to handbook topics, prerequisites, checks and missing evidence.
+Use the [remaining-work audit](advanced-lab-phase/REMAINING-WORK.md) to distinguish
+the current CPU checkpoint from the full advanced GPU curriculum goal.
+
 ## What This Adds
 
 - `scripts/download_gpumode_transcripts.py` captures channel metadata with `yt-dlp`,

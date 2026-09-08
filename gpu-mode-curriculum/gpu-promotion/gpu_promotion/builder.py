@@ -85,6 +85,17 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             caps,
         ),
         _step(
+            "eager-kernel-suite-cuda",
+            "Run the broad eager CUDA kernel suite",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 scripts/run_kernel_benchmarks.py --repeats 7",
+            ],
+            ["kernel-benchmarks/reports/kernel-benchmark-report.json"],
+            "Require all 14 cases to pass with raw synchronized CUDA-event samples and explicit device labels; this suite does not attribute work to Triton or custom native kernels.",
+            caps,
+        ),
+        _step(
             "triton-kernel-sweep",
             "Run Triton kernels on CUDA",
             ["triton", "nvidia_smi"],
@@ -100,6 +111,17 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             caps,
         ),
         _step(
+            "triton-kernel-families",
+            "Run Triton memory, reduction and normalization families on CUDA",
+            ["triton", "nvidia_smi"],
+            [
+                "python3 kernel-benchmarks/run_triton_families_cuda.py",
+            ],
+            ["kernel-benchmarks/reports/triton-families-cuda.json"],
+            "Check contiguous/strided copy, block reduction, softmax and layernorm against CUDA oracles, including non-power-of-two tail columns and synchronized samples.",
+            caps,
+        ),
+        _step(
             "tensor-core-gemm",
             "Build and profile CUTLASS/CuTe tensor-core GEMM",
             ["nvcc", "nvidia_smi", "ncu"],
@@ -111,6 +133,83 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             ],
             ["tensor-core-gemm/tensor-core-gemm-report.json", "tensor-core-gemm/reports/tensor-core-gemm-report.md", "site/tensor-core-gemm.html"],
             "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters.",
+            caps,
+        ),
+        _step(
+            "low-precision-native",
+            "Measure native CUDA FP16 compute and numerical drift",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 quantization-memory-formats/run_low_precision_cuda.py",
+            ],
+            ["quantization-memory-formats/reports/low-precision-cuda.json"],
+            "Compare native FP16 and INT8 activation/weight matmul with an FP32 oracle (including an exact integer accumulator oracle), record memory bytes and synchronized CUDA-event samples, and keep packed INT4 and task-quality evidence separate.",
+            caps,
+        ),
+        _step(
+            "trained-digits-quality-cuda",
+            "Run the held-out trained-digits quality protocol on CUDA",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 quantization-memory-formats/run_digits_cuda.py",
+            ],
+            ["quantization-memory-formats/reports/digits-quality-cuda.json"],
+            "Preserve the fixed seeds, split, 150-step Adam protocol and quality thresholds; compare FP32 and packed INT4 held-out accuracy and record CUDA-event inference samples.",
+            caps,
+        ),
+        _step(
+            "rl-simulation-cuda",
+            "Run vectorized reinforcement-learning environment transitions on CUDA",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 rl-gpu-simulation/run_vectorized_simulation.py --device cuda",
+            ],
+            ["rl-gpu-simulation/reports/vectorized-simulation.json"],
+            "Compare the vectorized transition and reward path with the scalar oracle, record synchronized CUDA-event samples, and keep the deterministic grid-world scope separate from physics and policy-quality claims.",
+            caps,
+        ),
+        _step(
+            "rl-policy-quality-cuda",
+            "Train and evaluate a deterministic goal-policy on CUDA",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 rl-gpu-simulation/run_policy_quality.py --device cuda",
+            ],
+            ["rl-gpu-simulation/reports/policy-quality.json"],
+            "Preserve fixed synthetic seeds and training steps, compare action accuracy and episodic success with the analytic oracle, and keep this supervised grid-world quality result separate from RL optimization and physics claims.",
+            caps,
+        ),
+        _step(
+            "triton-layout-cuda",
+            "Execute blocked and XOR-swizzled layout mappings in Triton",
+            ["torch", "triton", "nvidia_smi"],
+            [
+                "python3 layout-algebra/run_triton_layout_cuda.py --device cuda",
+            ],
+            ["layout-algebra/reports/triton-layout-cuda.json"],
+            "Compare every emitted device offset against the host layout algebra and record CUDA-event launch samples; this does not establish CuTe lowering, bank-conflict freedom, or occupancy.",
+            caps,
+        ),
+        _step(
+            "bank-conflict-cuda",
+            "Measure shared-memory bank-conflict access patterns",
+            ["nvcc", "nvidia_smi"],
+            [
+                "python3 layout-algebra/run_bank_conflict_cuda.py",
+            ],
+            ["layout-algebra/reports/bank-conflict-cuda.json"],
+            "Compile and execute distinct-bank, 32-way-conflicted, and XOR bank-spread probes; validate output with a relative floating-point tolerance and report raw CUDA-event samples. The timing comparison is workload-specific and is not a general occupancy claim.",
+            caps,
+        ),
+        _step(
+            "cuda-graphs-native",
+            "Capture and replay a fixed-shape CUDA Graph",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 cuda-graphs-latency/run_cuda_graphs_cuda.py",
+            ],
+            ["cuda-graphs-latency/reports/cuda-graphs-cuda.json"],
+            "Compare graph replay with eager CUDA using exact output checks and synchronized CUDA-event samples; dynamic shapes and changed addresses must use eager execution or recapture.",
             caps,
         ),
         _step(
@@ -168,6 +267,61 @@ def promotion_steps(caps: dict[str, Any]) -> list[dict[str, Any]]:
             ],
             ["model-integration/reports/tiny-transformer-report.json", "regression-ledger/regression-ledger.json"],
             "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs.",
+            caps,
+        ),
+        _step(
+            "neural-serving-cuda",
+            "Run real autoregressive KV-cache serving on CUDA",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 model-integration/run_neural_serving_cuda.py",
+            ],
+            ["model-integration/reports/neural-serving-cuda.json"],
+            "Compare CUDA-generated text with a separately initialized CPU oracle, retain CUDA-event decode samples, and verify the loopback HTTP response. This is untrained single-GPU application evidence, not vLLM capacity or language quality.",
+            caps,
+        ),
+        _step(
+            "trained-neural-quality-cuda",
+            "Train and evaluate the tiny neural serving model on CUDA",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 model-integration/run_trained_neural_quality_cuda.py --device cuda",
+            ],
+            ["model-integration/reports/trained-neural-quality-cuda.json"],
+            "Record fixed-protocol training, held-out next-token accuracy, and cached/full autoregressive parity; keep synthetic quality separate from production language quality, serving capacity, and the untrained serving benchmark.",
+            caps,
+        ),
+        _step(
+            "paged-kv-gather-cuda",
+            "Execute native CUDA page-table KV gather against a host oracle",
+            ["nvcc", "nvidia_smi"],
+            [
+                "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_kv_cuda.py",
+            ],
+            ["model-integration/reports/paged-kv-cuda.json"],
+            "Check non-contiguous page-table gather against exact output, retain CUDA-event samples, and keep CPU/reference or unavailable outcomes separate from native GPU acceptance.",
+            caps,
+        ),
+        _step(
+            "paged-attention-cuda",
+            "Execute native CUDA paged attention against a host oracle",
+            ["nvcc", "nvidia_smi"],
+            [
+                "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py",
+            ],
+            ["model-integration/reports/paged-attention-cuda.json"],
+            "Compare paged softmax attention with a host oracle, retain CUDA-event samples, and keep this bounded correctness kernel distinct from production FlashAttention or paged serving capacity.",
+            caps,
+        ),
+        _step(
+            "serving-tail-load-cuda",
+            "Measure CUDA neural-serving microbatch tail load",
+            ["torch", "nvidia_smi"],
+            [
+                "python3 model-integration/run_serving_tail_load_cuda.py",
+            ],
+            ["model-integration/reports/serving-tail-load-cuda.json"],
+            "Require synchronized bounded request waves, exact CPU-oracle output parity, observed vectorized batches, and explicit p95 wall-latency samples; this is single-device loopback evidence, not production capacity or multi-GPU serving.",
             caps,
         ),
         _step(

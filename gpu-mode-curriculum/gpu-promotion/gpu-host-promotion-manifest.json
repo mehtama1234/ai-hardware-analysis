@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-31T01:53:30.041343+00:00",
-  "step_count": 18,
+  "generated_at": "2026-09-07T12:26:00.221391+00:00",
+  "step_count": 32,
   "ready_on_this_host": 1,
-  "ready_on_gpu_host": 17,
+  "ready_on_gpu_host": 31,
   "local_capabilities": {
     "python": true,
     "torch": true,
@@ -58,6 +58,25 @@
       "validation": "Re-run python3 scripts/verify_kernel_benchmarks.py and confirm torch_device=cuda in the report."
     },
     {
+      "id": "eager-kernel-suite-cuda",
+      "title": "Run the broad eager CUDA kernel suite",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 scripts/run_kernel_benchmarks.py --repeats 7"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/reports/kernel-benchmark-report.json"
+      ],
+      "validation": "Require all 14 cases to pass with raw synchronized CUDA-event samples and explicit device labels; this suite does not attribute work to Triton or custom native kernels."
+    },
+    {
       "id": "triton-kernel-sweep",
       "title": "Run Triton kernels on CUDA",
       "required_capabilities": [
@@ -80,6 +99,25 @@
         "autotune-db/autotune-db.json"
       ],
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
+    },
+    {
+      "id": "triton-kernel-families",
+      "title": "Run Triton memory, reduction and normalization families on CUDA",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 kernel-benchmarks/run_triton_families_cuda.py"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/reports/triton-families-cuda.json"
+      ],
+      "validation": "Check contiguous/strided copy, block reduction, softmax and layernorm against CUDA oracles, including non-power-of-two tail columns and synchronized samples."
     },
     {
       "id": "tensor-core-gemm",
@@ -107,6 +145,141 @@
         "site/tensor-core-gemm.html"
       ],
       "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
+    },
+    {
+      "id": "low-precision-native",
+      "title": "Measure native CUDA FP16 compute and numerical drift",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 quantization-memory-formats/run_low_precision_cuda.py"
+      ],
+      "expected_evidence": [
+        "quantization-memory-formats/reports/low-precision-cuda.json"
+      ],
+      "validation": "Compare native FP16 and INT8 activation/weight matmul with an FP32 oracle (including an exact integer accumulator oracle), record memory bytes and synchronized CUDA-event samples, and keep packed INT4 and task-quality evidence separate."
+    },
+    {
+      "id": "trained-digits-quality-cuda",
+      "title": "Run the held-out trained-digits quality protocol on CUDA",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 quantization-memory-formats/run_digits_cuda.py"
+      ],
+      "expected_evidence": [
+        "quantization-memory-formats/reports/digits-quality-cuda.json"
+      ],
+      "validation": "Preserve the fixed seeds, split, 150-step Adam protocol and quality thresholds; compare FP32 and packed INT4 held-out accuracy and record CUDA-event inference samples."
+    },
+    {
+      "id": "rl-simulation-cuda",
+      "title": "Run vectorized reinforcement-learning environment transitions on CUDA",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 rl-gpu-simulation/run_vectorized_simulation.py --device cuda"
+      ],
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/vectorized-simulation.json"
+      ],
+      "validation": "Compare the vectorized transition and reward path with the scalar oracle, record synchronized CUDA-event samples, and keep the deterministic grid-world scope separate from physics and policy-quality claims."
+    },
+    {
+      "id": "rl-policy-quality-cuda",
+      "title": "Train and evaluate a deterministic goal-policy on CUDA",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 rl-gpu-simulation/run_policy_quality.py --device cuda"
+      ],
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/policy-quality.json"
+      ],
+      "validation": "Preserve fixed synthetic seeds and training steps, compare action accuracy and episodic success with the analytic oracle, and keep this supervised grid-world quality result separate from RL optimization and physics claims."
+    },
+    {
+      "id": "triton-layout-cuda",
+      "title": "Execute blocked and XOR-swizzled layout mappings in Triton",
+      "required_capabilities": [
+        "torch",
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 layout-algebra/run_triton_layout_cuda.py --device cuda"
+      ],
+      "expected_evidence": [
+        "layout-algebra/reports/triton-layout-cuda.json"
+      ],
+      "validation": "Compare every emitted device offset against the host layout algebra and record CUDA-event launch samples; this does not establish CuTe lowering, bank-conflict freedom, or occupancy."
+    },
+    {
+      "id": "bank-conflict-cuda",
+      "title": "Measure shared-memory bank-conflict access patterns",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 layout-algebra/run_bank_conflict_cuda.py"
+      ],
+      "expected_evidence": [
+        "layout-algebra/reports/bank-conflict-cuda.json"
+      ],
+      "validation": "Compile and execute distinct-bank, 32-way-conflicted, and XOR bank-spread probes; validate output with a relative floating-point tolerance and report raw CUDA-event samples. The timing comparison is workload-specific and is not a general occupancy claim."
+    },
+    {
+      "id": "cuda-graphs-native",
+      "title": "Capture and replay a fixed-shape CUDA Graph",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 cuda-graphs-latency/run_cuda_graphs_cuda.py"
+      ],
+      "expected_evidence": [
+        "cuda-graphs-latency/reports/cuda-graphs-cuda.json"
+      ],
+      "validation": "Compare graph replay with eager CUDA using exact output checks and synchronized CUDA-event samples; dynamic shapes and changed addresses must use eager execution or recapture."
     },
     {
       "id": "persistent-kernels",
@@ -210,6 +383,103 @@
         "regression-ledger/regression-ledger.json"
       ],
       "validation": "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs."
+    },
+    {
+      "id": "neural-serving-cuda",
+      "title": "Run real autoregressive KV-cache serving on CUDA",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 model-integration/run_neural_serving_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/neural-serving-cuda.json"
+      ],
+      "validation": "Compare CUDA-generated text with a separately initialized CPU oracle, retain CUDA-event decode samples, and verify the loopback HTTP response. This is untrained single-GPU application evidence, not vLLM capacity or language quality."
+    },
+    {
+      "id": "trained-neural-quality-cuda",
+      "title": "Train and evaluate the tiny neural serving model on CUDA",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 model-integration/run_trained_neural_quality_cuda.py --device cuda"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/trained-neural-quality-cuda.json"
+      ],
+      "validation": "Record fixed-protocol training, held-out next-token accuracy, and cached/full autoregressive parity; keep synthetic quality separate from production language quality, serving capacity, and the untrained serving benchmark."
+    },
+    {
+      "id": "paged-kv-gather-cuda",
+      "title": "Execute native CUDA page-table KV gather against a host oracle",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_kv_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/paged-kv-cuda.json"
+      ],
+      "validation": "Check non-contiguous page-table gather against exact output, retain CUDA-event samples, and keep CPU/reference or unavailable outcomes separate from native GPU acceptance."
+    },
+    {
+      "id": "paged-attention-cuda",
+      "title": "Execute native CUDA paged attention against a host oracle",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/paged-attention-cuda.json"
+      ],
+      "validation": "Compare paged softmax attention with a host oracle, retain CUDA-event samples, and keep this bounded correctness kernel distinct from production FlashAttention or paged serving capacity."
+    },
+    {
+      "id": "serving-tail-load-cuda",
+      "title": "Measure CUDA neural-serving microbatch tail load",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "status": "ready-on-gpu-host",
+      "commands": [
+        "python3 model-integration/run_serving_tail_load_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "validation": "Require synchronized bounded request waves, exact CPU-oracle output parity, observed vectorized batches, and explicit p95 wall-latency samples; this is single-device loopback evidence, not production capacity or multi-GPU serving."
     },
     {
       "id": "vllm-serving-trace",

@@ -1,7 +1,11 @@
 # Profiler Evidence Report
 
+Normalized rows are deterministic fixture evidence; native captures are listed separately.
+Fixture classifications are teaching heuristics, not verified hardware diagnoses.
+
 Rows: 9
 Sources: 3
+Native captures: 1
 
 ## Classification Counts
 

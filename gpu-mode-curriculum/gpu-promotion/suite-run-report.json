@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-08-31T01:53:34.465532+00:00",
+  "generated_at": "2026-09-08T06:46:07.499881+00:00",
   "run_id": "local-suite-dry-run",
   "mode": "dry-run",
   "status": "dry-run-ready",
   "manifest": "gpu-promotion/gpu-host-promotion-manifest.json",
-  "command_count": 88,
-  "planned": 69,
+  "command_count": 102,
+  "planned": 83,
   "passed": 0,
   "skipped": 19,
   "failed": 0,
-  "step_count": 18,
+  "step_count": 32,
   "commands": [
     {
       "order": 1,
@@ -61,6 +61,17 @@
     },
     {
       "order": 5,
+      "step_id": "eager-kernel-suite-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 scripts/run_kernel_benchmarks.py --repeats 7",
+      "status": "planned",
+      "expected_evidence": [
+        "kernel-benchmarks/reports/kernel-benchmark-report.json"
+      ],
+      "validation": "Require all 14 cases to pass with raw synchronized CUDA-event samples and explicit device labels; this suite does not attribute work to Triton or custom native kernels."
+    },
+    {
+      "order": 6,
       "step_id": "triton-kernel-sweep",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/memory.py",
@@ -72,7 +83,7 @@
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
     },
     {
-      "order": 6,
+      "order": 7,
       "step_id": "triton-kernel-sweep",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/reduction.py",
@@ -84,7 +95,7 @@
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
     },
     {
-      "order": 7,
+      "order": 8,
       "step_id": "triton-kernel-sweep",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/softmax_layernorm.py",
@@ -96,7 +107,7 @@
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
     },
     {
-      "order": 8,
+      "order": 9,
       "step_id": "triton-kernel-sweep",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/matmul_mlp.py",
@@ -108,7 +119,7 @@
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
     },
     {
-      "order": 9,
+      "order": 10,
       "step_id": "triton-kernel-sweep",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_kernel_benchmarks.py",
@@ -120,7 +131,18 @@
       "validation": "Refresh autotune records and verify selected configs after GPU timings are present."
     },
     {
-      "order": 10,
+      "order": 11,
+      "step_id": "triton-kernel-families",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 kernel-benchmarks/run_triton_families_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "kernel-benchmarks/reports/triton-families-cuda.json"
+      ],
+      "validation": "Check contiguous/strided copy, block reduction, softmax and layernorm against CUDA oracles, including non-power-of-two tail columns and synchronized samples."
+    },
+    {
+      "order": 12,
       "step_id": "tensor-core-gemm",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_tensor_core_gemm.py",
@@ -133,7 +155,7 @@
       "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
     },
     {
-      "order": 11,
+      "order": 13,
       "step_id": "tensor-core-gemm",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_tensor_core_gemm.py",
@@ -146,7 +168,7 @@
       "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
     },
     {
-      "order": 12,
+      "order": 14,
       "step_id": "tensor-core-gemm",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o tensor-core-gemm python3 <cutlass_gemm_probe.py>",
@@ -159,7 +181,7 @@
       "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
     },
     {
-      "order": 13,
+      "order": 15,
       "step_id": "tensor-core-gemm",
       "step_status": "ready-on-gpu-host",
       "command": "cuobjdump --dump-sass <cutlass_gemm_binary>",
@@ -172,7 +194,84 @@
       "validation": "GPU host should provide CUTLASS/CuTe build evidence, MMA instruction evidence, cuBLAS/Triton comparisons, and profiler counters."
     },
     {
-      "order": 14,
+      "order": 16,
+      "step_id": "low-precision-native",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 quantization-memory-formats/run_low_precision_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "quantization-memory-formats/reports/low-precision-cuda.json"
+      ],
+      "validation": "Compare native FP16 and INT8 activation/weight matmul with an FP32 oracle (including an exact integer accumulator oracle), record memory bytes and synchronized CUDA-event samples, and keep packed INT4 and task-quality evidence separate."
+    },
+    {
+      "order": 17,
+      "step_id": "trained-digits-quality-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 quantization-memory-formats/run_digits_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "quantization-memory-formats/reports/digits-quality-cuda.json"
+      ],
+      "validation": "Preserve the fixed seeds, split, 150-step Adam protocol and quality thresholds; compare FP32 and packed INT4 held-out accuracy and record CUDA-event inference samples."
+    },
+    {
+      "order": 18,
+      "step_id": "rl-simulation-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 rl-gpu-simulation/run_vectorized_simulation.py --device cuda",
+      "status": "planned",
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/vectorized-simulation.json"
+      ],
+      "validation": "Compare the vectorized transition and reward path with the scalar oracle, record synchronized CUDA-event samples, and keep the deterministic grid-world scope separate from physics and policy-quality claims."
+    },
+    {
+      "order": 19,
+      "step_id": "rl-policy-quality-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 rl-gpu-simulation/run_policy_quality.py --device cuda",
+      "status": "planned",
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/policy-quality.json"
+      ],
+      "validation": "Preserve fixed synthetic seeds and training steps, compare action accuracy and episodic success with the analytic oracle, and keep this supervised grid-world quality result separate from RL optimization and physics claims."
+    },
+    {
+      "order": 20,
+      "step_id": "triton-layout-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 layout-algebra/run_triton_layout_cuda.py --device cuda",
+      "status": "planned",
+      "expected_evidence": [
+        "layout-algebra/reports/triton-layout-cuda.json"
+      ],
+      "validation": "Compare every emitted device offset against the host layout algebra and record CUDA-event launch samples; this does not establish CuTe lowering, bank-conflict freedom, or occupancy."
+    },
+    {
+      "order": 21,
+      "step_id": "bank-conflict-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 layout-algebra/run_bank_conflict_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "layout-algebra/reports/bank-conflict-cuda.json"
+      ],
+      "validation": "Compile and execute distinct-bank, 32-way-conflicted, and XOR bank-spread probes; validate output with a relative floating-point tolerance and report raw CUDA-event samples. The timing comparison is workload-specific and is not a general occupancy claim."
+    },
+    {
+      "order": 22,
+      "step_id": "cuda-graphs-native",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 cuda-graphs-latency/run_cuda_graphs_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "cuda-graphs-latency/reports/cuda-graphs-cuda.json"
+      ],
+      "validation": "Compare graph replay with eager CUDA using exact output checks and synchronized CUDA-event samples; dynamic shapes and changed addresses must use eager execution or recapture."
+    },
+    {
+      "order": 23,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_persistent_kernels.py",
@@ -185,7 +284,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 15,
+      "order": 24,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_persistent_kernels.py",
@@ -198,7 +297,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 16,
+      "order": 25,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/softmax_layernorm.py",
@@ -211,7 +310,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 17,
+      "order": 26,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/matmul_mlp.py",
@@ -224,7 +323,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 18,
+      "order": 27,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o persistent-kernels python3 <persistent_kernel_probe.py>",
@@ -237,7 +336,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 19,
+      "order": 28,
       "step_id": "persistent-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id persistent-kernels --execute",
@@ -250,7 +349,7 @@
       "validation": "GPU host should capture occupancy, launch amortization, register pressure, shared memory, L2 reuse, and DRAM-byte counters for persistent versus non-persistent baselines."
     },
     {
-      "order": 20,
+      "order": 29,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_parallel_primitives.py",
@@ -263,7 +362,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 21,
+      "order": 30,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_parallel_primitives.py",
@@ -276,7 +375,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 22,
+      "order": 31,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 kernel-benchmarks/kernels/triton/reduction.py",
@@ -289,7 +388,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 23,
+      "order": 32,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "nvcc -O3 kernel-benchmarks/kernels/cuda/reduction.cu -c -o /tmp/gpumode-reduction.o",
@@ -302,7 +401,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 24,
+      "order": 33,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o parallel-primitives python3 <parallel_primitives_probe.py>",
@@ -315,7 +414,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 25,
+      "order": 34,
       "step_id": "parallel-primitives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id parallel-primitives --execute",
@@ -328,7 +427,7 @@
       "validation": "GPU host should capture DRAM bytes, shared-memory bank conflicts, atomics, synchronization depth, occupancy, and stable-order correctness for primitive kernels."
     },
     {
-      "order": 26,
+      "order": 35,
       "step_id": "torch-custom-extension",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_custom_ops.py",
@@ -341,7 +440,7 @@
       "validation": "Confirm compiled_extension_status changes from source-only to cuda-ready."
     },
     {
-      "order": 27,
+      "order": 36,
       "step_id": "torch-custom-extension",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_custom_ops.py",
@@ -354,7 +453,7 @@
       "validation": "Confirm compiled_extension_status changes from source-only to cuda-ready."
     },
     {
-      "order": 28,
+      "order": 37,
       "step_id": "model-integration-gpu",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/build_autotune_db.py",
@@ -366,7 +465,7 @@
       "validation": "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs."
     },
     {
-      "order": 29,
+      "order": 38,
       "step_id": "model-integration-gpu",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_model_integration.py",
@@ -378,7 +477,7 @@
       "validation": "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs."
     },
     {
-      "order": 30,
+      "order": 39,
       "step_id": "model-integration-gpu",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_model_integration.py",
@@ -390,7 +489,62 @@
       "validation": "Verify model cases pass and regression ledger captures tokens_per_second from GPU-backed runs."
     },
     {
-      "order": 31,
+      "order": 40,
+      "step_id": "neural-serving-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 model-integration/run_neural_serving_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "model-integration/reports/neural-serving-cuda.json"
+      ],
+      "validation": "Compare CUDA-generated text with a separately initialized CPU oracle, retain CUDA-event decode samples, and verify the loopback HTTP response. This is untrained single-GPU application evidence, not vLLM capacity or language quality."
+    },
+    {
+      "order": 41,
+      "step_id": "trained-neural-quality-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 model-integration/run_trained_neural_quality_cuda.py --device cuda",
+      "status": "planned",
+      "expected_evidence": [
+        "model-integration/reports/trained-neural-quality-cuda.json"
+      ],
+      "validation": "Record fixed-protocol training, held-out next-token accuracy, and cached/full autoregressive parity; keep synthetic quality separate from production language quality, serving capacity, and the untrained serving benchmark."
+    },
+    {
+      "order": 42,
+      "step_id": "paged-kv-gather-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_kv_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "model-integration/reports/paged-kv-cuda.json"
+      ],
+      "validation": "Check non-contiguous page-table gather against exact output, retain CUDA-event samples, and keep CPU/reference or unavailable outcomes separate from native GPU acceptance."
+    },
+    {
+      "order": 43,
+      "step_id": "paged-attention-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "model-integration/reports/paged-attention-cuda.json"
+      ],
+      "validation": "Compare paged softmax attention with a host oracle, retain CUDA-event samples, and keep this bounded correctness kernel distinct from production FlashAttention or paged serving capacity."
+    },
+    {
+      "order": 44,
+      "step_id": "serving-tail-load-cuda",
+      "step_status": "ready-on-gpu-host",
+      "command": "python3 model-integration/run_serving_tail_load_cuda.py",
+      "status": "planned",
+      "expected_evidence": [
+        "model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "validation": "Require synchronized bounded request waves, exact CPU-oracle output parity, observed vectorized batches, and explicit p95 wall-latency samples; this is single-device loopback evidence, not production capacity or multi-GPU serving."
+    },
+    {
+      "order": 45,
       "step_id": "vllm-serving-trace",
       "step_status": "ready-on-gpu-host",
       "command": "vllm serve <model> --enable-prefix-caching",
@@ -402,7 +556,7 @@
       "validation": "Replace deterministic timing constants with server trace measurements using the same schema."
     },
     {
-      "order": 32,
+      "order": 46,
       "step_id": "vllm-serving-trace",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_serving_traces.py",
@@ -414,7 +568,7 @@
       "validation": "Replace deterministic timing constants with server trace measurements using the same schema."
     },
     {
-      "order": 33,
+      "order": 47,
       "step_id": "vllm-serving-trace",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_serving_traces.py",
@@ -426,7 +580,7 @@
       "validation": "Replace deterministic timing constants with server trace measurements using the same schema."
     },
     {
-      "order": 34,
+      "order": 48,
       "step_id": "attention-serving-stack",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_attention_serving_stack.py",
@@ -439,7 +593,7 @@
       "validation": "GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces."
     },
     {
-      "order": 35,
+      "order": 49,
       "step_id": "attention-serving-stack",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_attention_serving_stack.py",
@@ -452,7 +606,7 @@
       "validation": "GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces."
     },
     {
-      "order": 36,
+      "order": 50,
       "step_id": "attention-serving-stack",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o flashattention-serving python3 <vllm_trace_replay.py>",
@@ -465,7 +619,7 @@
       "validation": "GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces."
     },
     {
-      "order": 37,
+      "order": 51,
       "step_id": "attention-serving-stack",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o flashattention-kernel python3 <flash_attention_probe.py>",
@@ -478,7 +632,7 @@
       "validation": "GPU-host run should replace local stack estimates with FlashAttention kernel counters and prefill/decode serving traces."
     },
     {
-      "order": 38,
+      "order": 52,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_flash_attention_backward.py",
@@ -491,7 +645,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 39,
+      "order": 53,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_flash_attention_backward.py",
@@ -504,7 +658,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 40,
+      "order": 54,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_attention_serving_stack.py",
@@ -517,7 +671,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 41,
+      "order": 55,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o flash-attention-backward python3 <flash_attention_backward_probe.py>",
@@ -530,7 +684,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 42,
+      "order": 56,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o flash-attention-training-step python3 <flash_attention_training_step.py>",
@@ -543,7 +697,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 43,
+      "order": 57,
       "step_id": "flash-attention-backward",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id flash-attention-backward --execute",
@@ -556,7 +710,7 @@
       "validation": "GPU host should capture dQ/dK/dV gradient correctness, DRAM bytes, occupancy, register pressure, shared memory, exp recompute cost, and training-step timeline evidence."
     },
     {
-      "order": 44,
+      "order": 58,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_sparse_attention_kernels.py",
@@ -569,7 +723,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 45,
+      "order": 59,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_sparse_attention_kernels.py",
@@ -582,7 +736,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 46,
+      "order": 60,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_attention_serving_stack.py",
@@ -595,7 +749,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 47,
+      "order": 61,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_flash_attention_backward.py",
@@ -608,7 +762,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 48,
+      "order": 62,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o sparse-attention-kernels python3 <sparse_attention_probe.py>",
@@ -621,7 +775,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 49,
+      "order": 63,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o sparse-attention-ragged-decode python3 <ragged_decode_probe.py>",
@@ -634,7 +788,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 50,
+      "order": 64,
       "step_id": "sparse-attention-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id sparse-attention-kernels --execute",
@@ -647,7 +801,7 @@
       "validation": "GPU host should capture metadata build cost, sparse QK/PV DRAM bytes, branch efficiency, warp execution efficiency, load balance, occupancy, metadata cache hit rate, and numerical error."
     },
     {
-      "order": 51,
+      "order": 65,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_fused_training_kernels.py",
@@ -660,7 +814,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 52,
+      "order": 66,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_fused_training_kernels.py",
@@ -673,7 +827,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 53,
+      "order": 67,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_model_integration.py",
@@ -686,7 +840,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 54,
+      "order": 68,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_distributed_training_optimizer.py",
@@ -699,7 +853,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 55,
+      "order": 69,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o fused-training-kernels python3 <fused_training_probe.py>",
@@ -712,7 +866,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 56,
+      "order": 70,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o fused-training-step python3 <training_step_probe.py>",
@@ -725,7 +879,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 57,
+      "order": 71,
       "step_id": "fused-training-kernels",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id fused-training-kernels --execute",
@@ -738,7 +892,7 @@
       "validation": "GPU host should capture launch count, DRAM bytes, occupancy, register pressure, reduction stability, optimizer-state bandwidth, and max error for fused training kernels."
     },
     {
-      "order": 58,
+      "order": 72,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_speculative_decoding_serving.py",
@@ -751,7 +905,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 59,
+      "order": 73,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_speculative_decoding_serving.py",
@@ -764,7 +918,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 60,
+      "order": 74,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_serving_traces.py",
@@ -777,7 +931,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 61,
+      "order": 75,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_serving_engine_comparison.py",
@@ -790,7 +944,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 62,
+      "order": 76,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o speculative-decoding-serving python3 <speculative_serving_probe.py>",
@@ -803,7 +957,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 63,
+      "order": 77,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full -o speculative-target-verify python3 <target_verify_probe.py>",
@@ -816,7 +970,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 64,
+      "order": 78,
       "step_id": "speculative-decoding-serving",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_gpu_promotion_suite.py --run-id speculative-decoding-serving --execute",
@@ -829,7 +983,7 @@
       "validation": "GPU host or Colab should capture acceptance rate, target verification latency, wasted draft tokens, rollback count, KV commit telemetry, TTFT, TPOT, throughput, and profiler timelines."
     },
     {
-      "order": 65,
+      "order": 79,
       "step_id": "profiler-capture",
       "step_status": "ready-on-gpu-host",
       "command": "ncu --set full --target-processes all python3 scripts/run_kernel_benchmarks.py",
@@ -841,7 +995,7 @@
       "validation": "Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer."
     },
     {
-      "order": 66,
+      "order": 80,
       "step_id": "profiler-capture",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile python3 scripts/run_model_integration.py",
@@ -853,7 +1007,7 @@
       "validation": "Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer."
     },
     {
-      "order": 67,
+      "order": 81,
       "step_id": "profiler-capture",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_profiler_evidence.py",
@@ -865,7 +1019,7 @@
       "validation": "Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer."
     },
     {
-      "order": 68,
+      "order": 82,
       "step_id": "profiler-capture",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_profiler_evidence.py",
@@ -877,7 +1031,7 @@
       "validation": "Profiler rows should classify memory bandwidth, tensor-core compute, launch overhead, and host/device transfer."
     },
     {
-      "order": 69,
+      "order": 83,
       "step_id": "rocm-hip-port",
       "step_status": "ready-on-gpu-host",
       "command": "hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port",
@@ -889,7 +1043,7 @@
       "validation": "ROCm host should move the HIP project from source-only to measured runtime evidence."
     },
     {
-      "order": 70,
+      "order": 84,
       "step_id": "rocm-hip-port",
       "step_status": "ready-on-gpu-host",
       "command": "rocprof /tmp/rocm-hip-port",
@@ -901,7 +1055,7 @@
       "validation": "ROCm host should move the HIP project from source-only to measured runtime evidence."
     },
     {
-      "order": 71,
+      "order": 85,
       "step_id": "rocm-hip-port",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_gpu_programming_projects.py",
@@ -913,7 +1067,7 @@
       "validation": "ROCm host should move the HIP project from source-only to measured runtime evidence."
     },
     {
-      "order": 72,
+      "order": 86,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_distributed_collectives.py",
@@ -929,7 +1083,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 73,
+      "order": 87,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_distributed_collectives.py",
@@ -945,7 +1099,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 74,
+      "order": 88,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "torchrun --nproc_per_node=2 scripts/run_distributed_collectives_benchmark.py",
@@ -961,7 +1115,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 75,
+      "order": 89,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_distributed_collectives_benchmark.py",
@@ -977,7 +1131,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 76,
+      "order": 90,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "nccl-tests/build/all_reduce_perf -b 8M -e 1G -f 2 -g 1",
@@ -993,7 +1147,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 77,
+      "order": 91,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "rocprof <rccl_collective_benchmark>",
@@ -1009,7 +1163,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 78,
+      "order": 92,
       "step_id": "distributed-collectives",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/gpu_workbench.py \"nccl nvshmem all reduce bandwidth\" --run-lab --dry-run",
@@ -1025,7 +1179,7 @@
       "validation": "Capture NCCL/RCCL/NVSHMEM bandwidth, collective algorithm, rank-count, and communication-overlap measurements on a multi-GPU host."
     },
     {
-      "order": 79,
+      "order": 93,
       "step_id": "distributed-training-optimizer",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/run_distributed_training_optimizer.py",
@@ -1038,7 +1192,7 @@
       "validation": "Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host."
     },
     {
-      "order": 80,
+      "order": 94,
       "step_id": "distributed-training-optimizer",
       "step_status": "ready-on-gpu-host",
       "command": "python3 scripts/verify_distributed_training_optimizer.py",
@@ -1051,7 +1205,7 @@
       "validation": "Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host."
     },
     {
-      "order": 81,
+      "order": 95,
       "step_id": "distributed-training-optimizer",
       "step_status": "ready-on-gpu-host",
       "command": "torchrun --nproc_per_node=8 <fsdp_zero_training_step.py>",
@@ -1064,7 +1218,7 @@
       "validation": "Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host."
     },
     {
-      "order": 82,
+      "order": 96,
       "step_id": "distributed-training-optimizer",
       "step_status": "ready-on-gpu-host",
       "command": "nsys profile -o fsdp-zero-step torchrun --nproc_per_node=8 <fsdp_zero_training_step.py>",
@@ -1077,7 +1231,7 @@
       "validation": "Measure FSDP/ZeRO step time, memory peak, reduce-scatter/all-gather overlap, and pipeline bubble behavior on a multi-GPU training host."
     },
     {
-      "order": 83,
+      "order": 97,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 run_all.py",
@@ -1091,7 +1245,7 @@
       "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
     },
     {
-      "order": 84,
+      "order": 98,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 scripts/collect_gpu_run.py --run-id <gpu-host-run-id>",
@@ -1105,7 +1259,7 @@
       "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
     },
     {
-      "order": 85,
+      "order": 99,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 scripts/build_gpu_runs.py",
@@ -1119,7 +1273,7 @@
       "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
     },
     {
-      "order": 86,
+      "order": 100,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 scripts/verify_gpu_runs.py",
@@ -1133,7 +1287,7 @@
       "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
     },
     {
-      "order": 87,
+      "order": 101,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 scripts/build_regression_ledger.py",
@@ -1147,7 +1301,7 @@
       "validation": "Final GPU-host run should have zero regression failures, a collected GPU-run import, and fewer source-ready fallback profiles."
     },
     {
-      "order": 88,
+      "order": 102,
       "step_id": "full-gpu-regression",
       "step_status": "ready-on-this-host",
       "command": "python3 scripts/verify_regression_ledger.py",

@@ -80,6 +80,9 @@ def _scenario(row: PersistentScenario) -> dict[str, Any]:
     passed = persistent_fit and speedup >= 1.15 and hbm_reduction >= 0.15
     return {
         "scenario_id": row.scenario_id,
+        "evidence_kind": "analytical",
+        "measured": False,
+        "numerical_correctness_status": "not_executed",
         "kernel_family": row.kernel_family,
         "strategy": row.strategy,
         "problem_size": row.problem_size,
@@ -124,6 +127,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"Generated: `{report['generated_at']}`",
         f"Status: `{report['status']}`",
+        "Evidence: analytical scenarios; timings are supplied constants, not device measurements. Passing status checks model assumptions, not numerical correctness.",
         "",
         "| scenario | family | strategy | occupancy | speedup | HBM reduction | resident CTA/SM | status |",
         "|---|---|---|---:|---:|---:|---:|---|",
@@ -150,6 +154,9 @@ def build_persistent_kernel_report() -> dict[str, Any]:
     producer_consumer = sum(1 for row in scenarios if row["producer_consumer"])
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "evidence_kind": "analytical",
+        "measured": False,
+        "gpu_execution_accepted": False,
         "status": "persistent-kernels-ready" if len(scenarios) >= 6 and passed >= 5 and len(families) >= 5 else "needs-work",
         "scenario_count": len(scenarios),
         "passed_scenarios": passed,

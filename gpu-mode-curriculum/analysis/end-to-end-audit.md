@@ -1,6 +1,6 @@
 # GPUMODE Workbench End-To-End Audit
 
-Generated: 2026-08-31T01:53:41.030014+00:00
+Generated: 2026-09-08T06:46:24.007603+00:00
 Overall status: proven-with-runtime-caveats
 
 ## Ingest and maintain GPUMODE YouTube metadata/transcripts.
@@ -217,36 +217,36 @@ Caveat: Current thresholds compare against local generated metrics; GPU-host run
 ## Generate an ordered GPU-host promotion manifest for accelerator-only validation.
 Status: proven-with-runtime-caveat
 Evidence: gpu-promotion/gpu-host-promotion-manifest.json, gpu-promotion/reports/gpu-host-promotion-runbook.md, site/gpu-promotion.html, scripts/build_gpu_promotion.py, scripts/verify_gpu_promotion.py
-Facts: steps=18, ready_on_this_host=1, ready_on_gpu_host=17, local_capabilities={'python': True, 'torch': True, 'torch_device': 'cpu', 'triton': True, 'jax': True, 'nvcc': False, 'hipcc': False, 'nvidia_smi': False, 'nsys': False, 'ncu': False, 'rocprof': False, 'torchrun': True}
+Facts: steps=32, ready_on_this_host=1, ready_on_gpu_host=31, local_capabilities={'python': True, 'torch': True, 'torch_device': 'cpu', 'triton': True, 'jax': True, 'nvcc': False, 'hipcc': False, 'nvidia_smi': False, 'nsys': False, 'ncu': False, 'rocprof': False, 'torchrun': True}
 Caveat: This host lacks CUDA/ROCm/profiler hardware tools, so accelerator-only steps are intentionally marked ready-on-gpu-host.
 
 ## Plan the GPU-host promotion commands as a dry-run-safe executable suite.
 Status: proven-with-runtime-caveat
 Evidence: gpu-promotion/suite-run-report.json, gpu-promotion/reports/suite-run-report.md, site/gpu-promotion-suite.html, scripts/run_gpu_promotion_suite.py, scripts/verify_gpu_promotion_suite.py
-Facts: commands=88, steps=18, planned=69, skipped=19, status=dry-run-ready
+Facts: commands=102, steps=32, planned=83, skipped=19, status=dry-run-ready
 Caveat: The local suite is a dry-run command plan; use --execute on a GPU host after reviewing placeholder commands.
 
 ## Import GPU-host run evidence and link it to CUDA, Triton, ROCm/HIP, profiler, serving, distributed, and regression promotion steps.
 Status: proven-with-runtime-caveat
 Evidence: gpu-runs/fixtures, gpu-runs/gpu-run-report.json, gpu-runs/reports/gpu-run-report.md, site/gpu-runs.html, scripts/verify_gpu_runs.py
-Facts: runs=3, vendors=['AMD', 'NVIDIA', 'unknown'], promotion_steps=16, status=import-ready
+Facts: runs=6, vendors=['AMD', 'NVIDIA', 'unknown'], promotion_steps=32, status=import-ready
 Caveat: Current fixtures define the import contract; real GPU hosts should replace these rows with measured A100/H100/MI300 evidence.
 
 ## Lint GPU run fixtures and imports before accepting accelerator evidence.
 Status: proven
 Evidence: gpu-runs/import-lint-report.json, gpu-runs/reports/import-lint-report.md, site/gpu-import-lint.html, scripts/lint_gpu_run_imports.py
-Facts: status=lint-clean, files=3, fixtures=2, imports=1, errors=0, warnings=0
+Facts: status=lint-clean, files=5, fixtures=2, imports=3, errors=0, warnings=3
 
 ## Separate sample fixtures, host-collected smoke runs, and real measured GPU evidence provenance.
 Status: proven-with-runtime-caveat
 Evidence: gpu-provenance/gpu-provenance-report.json, gpu-provenance/reports/gpu-provenance-report.md, site/gpu-provenance.html, scripts/verify_gpu_provenance.py
-Facts: status=provenance-clear, real_gpu_evidence_status=not-present-on-this-host, measured_runs=0, sample_runs=2, host_collected_runs=1
+Facts: status=provenance-clear, real_gpu_evidence_status=present, measured_runs=3, sample_runs=2, host_collected_runs=1
 Caveat: This host has no real measured GPU imports yet; sample fixtures remain schema examples only.
 
 ## Define per-step GPU measurement contracts with host class, metrics, thresholds, and queued/measured status.
 Status: proven-with-runtime-caveat
 Evidence: gpu-measurement-queue/gpu-measurement-queue.json, gpu-measurement-queue/reports/gpu-measurement-queue.md, site/gpu-measurement-queue.html, scripts/verify_gpu_measurement_queue.py
-Facts: status=queue-ready, tasks=18, queued=18, measured=0, accepted=0, failed_measured=0, real_measured_completion=False
+Facts: status=queue-ready, tasks=32, queued=0, measured=32, accepted=30, failed_measured=2, real_measured_completion=False
 Caveat: Measurement contracts are ready locally; real measured completion still requires accelerator-host imports.
 
 ## Regression-test GPU measurement acceptance logic against canonical good and bad metric rows.
@@ -257,7 +257,7 @@ Facts: status=passed, cases=18, accepted_good=18, rejected_bad=18
 ## Run GPU-host preflight before accelerator promotion execution.
 Status: proven-with-runtime-caveat
 Evidence: gpu-handoff/gpu-host-preflight.json, gpu-handoff/reports/gpu-host-preflight.md, site/gpu-host-preflight.html, scripts/run_gpu_host_preflight.py, scripts/verify_gpu_host_preflight.py
-Facts: status=preflight-complete, accelerator_ready=False, steps=18, runnable=1, blocked=17
+Facts: status=preflight-complete, accelerator_ready=False, steps=32, runnable=1, blocked=31
 Caveat: This host is CPU-only for accelerator tooling; the preflight report records blocked GPU promotion steps instead of treating them as hidden failures.
 
 ## Package a portable GPU-host handoff bundle for accelerator execution and evidence collection.
@@ -281,7 +281,7 @@ Caveat: Concept checks are graded for answer-key/source readiness; practical tas
 ## Grade the complete curriculum as a portfolio capstone with a scored acceptance rubric.
 Status: proven-with-runtime-caveat
 Evidence: capstone-acceptance/capstone-acceptance.json, capstone-acceptance/reports/capstone-acceptance.md, site/capstone-acceptance.html, scripts/build_capstone_acceptance.py, scripts/verify_capstone_acceptance.py
-Facts: score=400, max_score=400, criteria=40, failed_criteria=0, status=accepted-with-runtime-caveats
+Facts: score=380, max_score=400, criteria=40, failed_criteria=2, status=incomplete
 Caveat: The capstone is accepted with explicit runtime caveats because accelerator hardware validation remains GPU-host gated.
 
 ## Include external CUDA/Triton/ROCm/HIP/JAX/Hugging Face tutorial sources.

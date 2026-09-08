@@ -507,6 +507,9 @@ def build_persistent_kernels_page(report: dict[str, Any] | None = None) -> None:
 <div class="wrap">
   <div class="kick">Generated persistent-kernel lab</div>
   <h1>GPUMODE persistent kernels.</h1>
+  <p><strong>Analytical scenarios, not GPU measurements.</strong> Timings are supplied
+  constants. Speedup, residency and traffic reductions are model outputs;
+  passing design checks does not establish numerical correctness or device execution.</p>
   <p class="dek">Persistent softmax, matmul, grouped GEMM, normalization, and attention
   scenarios with occupancy, register pressure, shared memory residency, launch
   amortization, producer/consumer structure, and GPU-host profiler promotion.</p>
@@ -519,7 +522,7 @@ def build_persistent_kernels_page(report: dict[str, Any] | None = None) -> None:
 
   <section>
     <h2>Persistent Kernel Scenarios</h2>
-    <table><tr><th>scenario</th><th>family</th><th>strategy</th><th>occupancy</th><th>speedup</th><th>HBM reduction</th><th>resident CTA/SM</th><th>producer</th><th>status</th></tr>{render_persistent_kernel_rows(report)}</table>
+    <table><tr><th>scenario</th><th>family</th><th>strategy</th><th>occupancy proxy</th><th>modeled speedup</th><th>modeled HBM reduction</th><th>modeled resident CTA/SM</th><th>producer</th><th>design status</th></tr>{render_persistent_kernel_rows(report)}</table>
   </section>
 
   <section>
@@ -555,6 +558,9 @@ def build_parallel_primitives_page(report: dict[str, Any] | None = None) -> None
 <div class="wrap">
   <div class="kick">Generated parallel-primitives lab</div>
   <h1>GPUMODE parallel primitives.</h1>
+  <p><strong>Analytical scenarios, not GPU measurements.</strong> Timings are supplied
+  constants. Efficiency and bandwidth are derived proxies; numerical correctness
+  and stable ordering have not been executed by this scenario report.</p>
   <p class="dek">Reduction, scan, stream compaction, radix sort, histogram, and
   segmented reduction scenarios with memory traffic, occupancy, atomics,
   stability, shared-memory pressure, and GPU-host profiler promotion.</p>
@@ -567,7 +573,7 @@ def build_parallel_primitives_page(report: dict[str, Any] | None = None) -> None
 
   <section>
     <h2>Primitive Scenarios</h2>
-    <table><tr><th>scenario</th><th>primitive</th><th>algorithm</th><th>efficiency</th><th>bandwidth proxy</th><th>occupancy</th><th>stable</th><th>status</th></tr>{render_parallel_primitives_rows(report)}</table>
+    <table><tr><th>scenario</th><th>primitive</th><th>algorithm</th><th>modeled efficiency</th><th>bandwidth proxy</th><th>occupancy proxy</th><th>stable order required</th><th>design status</th></tr>{render_parallel_primitives_rows(report)}</table>
   </section>
 
   <section>
@@ -658,6 +664,21 @@ def render_profiler_counts(report: dict[str, Any] | None = None) -> str:
     return "\n".join(rows) if rows else '<tr><td colspan="2">No classifications generated.</td></tr>'
 
 
+def render_native_profiler_captures(report: dict[str, Any] | None = None) -> str:
+    rows = []
+    for capture in (report or {}).get("native_captures", []):
+        rows.append(
+            "<tr>"
+            f"<td>{esc(capture.get('project'))}</td>"
+            f"<td>{esc(capture.get('evidence_kind'))}</td>"
+            f"<td>{esc(capture.get('sass', {}).get('instruction_line_count'))}</td>"
+            f"<td>{esc(capture.get('nsight_compute', {}).get('metric'))}</td>"
+            f"<td>{esc(capture.get('artifact'))}</td>"
+            "</tr>"
+        )
+    return "\n".join(rows) if rows else '<tr><td colspan="5">No native profiler captures recorded.</td></tr>'
+
+
 def build_profiler_evidence_page(report: dict[str, Any] | None = None) -> None:
     body = f"""<meta charset="utf-8">
 <title>GPUMODE Profiler Evidence</title>
@@ -665,14 +686,23 @@ def build_profiler_evidence_page(report: dict[str, Any] | None = None) -> None:
 <div class="wrap">
   <div class="kick">Generated profiler parser</div>
   <h1>GPUMODE profiler evidence.</h1>
+  <p class="dek">Normalized rows are teaching fixtures; separately listed native captures
+  retain measured device evidence. Fixture classifications are heuristics, not verified
+  hardware diagnoses.</p>
   <p class="dek">Normalized Nsight Compute, Nsight Systems, and rocprof-shaped rows into
   bottleneck classifications and remediation actions.</p>
   <div class="grid">
     <div class="card"><h2>{esc((report or {}).get("row_count", 0))}</h2><p>normalized rows</p></div>
     <div class="card"><h2>{esc((report or {}).get("source_count", 0))}</h2><p>profiler sources</p></div>
+    <div class="card"><h2>{esc((report or {}).get("native_capture_count", 0))}</h2><p>native captures</p></div>
     <div class="card"><h2><a href="../profiler-evidence/reports/profiler-evidence-report.md">Report</a></h2><p>Markdown evidence</p></div>
     <div class="card"><h2><a href="../profiler-evidence/README.md">README</a></h2><p>fixture contract</p></div>
   </div>
+
+  <section>
+    <h2>Native profiler captures</h2>
+    <table><tr><th>project</th><th>evidence kind</th><th>HMMA/SASS lines</th><th>Nsight metric</th><th>artifact</th></tr>{render_native_profiler_captures(report)}</table>
+  </section>
 
   <section>
     <h2>Classification Counts</h2>
@@ -680,8 +710,8 @@ def build_profiler_evidence_page(report: dict[str, Any] | None = None) -> None:
   </section>
 
   <section>
-    <h2>Profiler Rows</h2>
-    <table><tr><th>source</th><th>name</th><th>classification</th><th>duration us</th><th>remediation</th></tr>{render_profiler_rows(report)}</table>
+    <h2>Profiler-shaped Fixture Rows</h2>
+    <table><tr><th>source</th><th>name</th><th>heuristic classification</th><th>fixture duration us</th><th>remediation</th></tr>{render_profiler_rows(report)}</table>
   </section>
 
   <section>
@@ -1730,13 +1760,14 @@ def render_autotune_rows(database: dict[str, Any] | None = None) -> str:
             f"<td>{esc(record['family'])}</td>"
             f"<td>{esc(record['shape_class'])}</td>"
             f"<td>{esc(config.get('id', ''))}</td>"
+            f"<td>{esc(record.get('selection_status', 'unknown'))}</td>"
             f"<td>{esc(record.get('measured_seconds', 0))}</td>"
             f"<td>{esc(selected.get('estimated_seconds', 0))}</td>"
             f"<td>{esc(selected.get('estimated_speedup_vs_measured', 0))}</td>"
             f"<td>{esc(', '.join(record.get('promotion_targets', [])))}</td>"
             "</tr>"
         )
-    return "\n".join(rows) if rows else '<tr><td colspan="8">No autotune records generated.</td></tr>'
+    return "\n".join(rows) if rows else '<tr><td colspan="9">No autotune records generated.</td></tr>'
 
 
 def build_autotune_db_page(database: dict[str, Any] | None = None) -> None:
@@ -1757,7 +1788,7 @@ def build_autotune_db_page(database: dict[str, Any] | None = None) -> None:
 
   <section>
     <h2>Selected Configs</h2>
-    <table><tr><th>record</th><th>family</th><th>shape</th><th>selected config</th><th>measured s</th><th>estimated s</th><th>speedup</th><th>targets</th></tr>{render_autotune_rows(database)}</table>
+    <table><tr><th>record</th><th>family</th><th>shape</th><th>selected config</th><th>status</th><th>measured s</th><th>estimated s</th><th>modeled speedup</th><th>targets</th></tr>{render_autotune_rows(database)}</table>
   </section>
 
   <section>
@@ -2944,6 +2975,8 @@ def build_bridge_pages(workbench: dict[str, Any]) -> None:
 
 def build() -> None:
     SITE.mkdir(parents=True, exist_ok=True)
+    from scripts.build_executable_evidence_page import build_page
+    build_page()
     curriculum = load_json(CURRICULUM)
     graph = load_json(CURRICULUM_GRAPH) if CURRICULUM_GRAPH.exists() else {}
     workbench = load_json(WORKBENCH) if WORKBENCH.exists() else None
@@ -3811,6 +3844,7 @@ def build() -> None:
 <div class="wrap">
   <div class="kick">Transcript-backed GPU systems curriculum</div>
   <h1>GPUMODE lessons into runnable labs.</h1>
+  <p><a href="advanced-executable-evidence.html">Advanced executable evidence: GEMM, attention, training, caching and packed quantization</a></p>
   <p class="dek">This generated page turns the GPUMODE video index into topic clusters and
   concrete lab candidates that extend the CUDA, Triton, ROCm/HIP, JAX, Hugging Face, and vLLM
   serving work in the GPU kernels lab.</p>

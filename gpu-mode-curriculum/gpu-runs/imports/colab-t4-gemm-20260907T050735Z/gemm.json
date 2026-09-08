@@ -1,0 +1,999 @@
+{
+  "session": "23-gpumode-shared-memory-gemm",
+  "timestamp": "2026-09-07T05:09:02.727798+00:00",
+  "provenance": {
+    "git_revision": null,
+    "worktree_dirty": null,
+    "source_sha256": {
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py": "365ef25f2e91bd8fcb9dfcc1b3784c1d3960630a9ea4c40f53387e93f1c9aaf8",
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+      "gpu-kernels-serving-lab/common/bench.py": "d7b592f65489267ff2d5a731a42219d39a1147ae796d88292358062cda59eb4b",
+      "gpu-kernels-serving-lab/common/gpu_info.py": "647162b645b245b6b9f9a7109e14b8a10667f078722ae02b2bb756603ee85c22",
+      "gpu-kernels-serving-lab/common/provenance.py": "476e60591b7efd1d856b250ed1bd785c696e3cb10856c7fabcb9823c4753a24d"
+    },
+    "python": "3.13.15 (main, Aug  6 2026, 11:06:23) [GCC 11.4.0]",
+    "imported_source_files": [
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py",
+      "gpu-kernels-serving-lab/common/bench.py",
+      "gpu-kernels-serving-lab/common/gpu_info.py",
+      "gpu-kernels-serving-lab/common/provenance.py"
+    ],
+    "python_executable": "/usr/bin/python3",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+    "invocation": [
+      "/usr/bin/python3",
+      "/content/colab-gemm-smoke/gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py"
+    ],
+    "scope": "explicit sources plus imported local Python modules at capture time; excludes unexecuted branches, data files, third-party package sources and environment locks"
+  },
+  "inventory": {
+    "session": "23-gpumode-shared-memory-gemm",
+    "timestamp": "2026-09-07T05:09:02.836857+00:00",
+    "host": "87bfb34c9824",
+    "software": {
+      "python": "3.13.15",
+      "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+      "packages": {
+        "torch": "2.11.0+cu128",
+        "triton": "3.6.0",
+        "transformers": "5.16.1",
+        "accelerate": "1.14.0",
+        "bitsandbytes": null,
+        "vllm": null,
+        "jax": "0.11.1",
+        "jaxlib": "0.11.1"
+      }
+    },
+    "torch": {
+      "installed": true,
+      "version": "2.11.0+cu128",
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "hip_version": null,
+      "mps_available": false,
+      "devices": [
+        {
+          "index": 0,
+          "name": "Tesla T4",
+          "total_memory_mb": 15637.1,
+          "major": 7,
+          "minor": 5,
+          "multi_processor_count": 40
+        }
+      ]
+    },
+    "jax": {
+      "installed": true,
+      "version": "0.11.1",
+      "devices": [
+        {
+          "platform": "gpu",
+          "device_kind": "Tesla T4",
+          "id": 0
+        }
+      ]
+    },
+    "commands": {
+      "nvidia-smi": {
+        "path": "/opt/bin/nvidia-smi",
+        "returncode": 0,
+        "stdout_head": [
+          "Tesla T4, 15360 MiB, 580.82.07"
+        ]
+      },
+      "nvcc": {
+        "path": "/usr/local/cuda/bin/nvcc",
+        "returncode": 0,
+        "stdout_head": [
+          "nvcc: NVIDIA (R) Cuda compiler driver",
+          "Copyright (c) 2005-2025 NVIDIA Corporation",
+          "Built on Fri_Feb_21_20:23:50_PST_2025",
+          "Cuda compilation tools, release 12.8, V12.8.93",
+          "Build cuda_12.8.r12.8/compiler.35583870_0"
+        ]
+      },
+      "hipcc": {
+        "path": null
+      },
+      "rocminfo": {
+        "path": null
+      }
+    },
+    "boundary": "This inventory proves which local runtimes and accelerator interfaces are available for later tutorials. It does not benchmark model throughput or prove CUDA/ROCm correctness."
+  },
+  "source": {
+    "gpumode_lab_id": "gpumode-lab-09-shared-memory-gemm",
+    "gpumode_lessons": [],
+    "extends": "04-cuda-tiled-matmul, 15-gpumode-coalescing, 17-gpumode-triton-autotune, and 22-gpumode-nsight-roofline"
+  },
+  "shared_memory_gemm": {
+    "status": "ran",
+    "shape": [
+      32,
+      32,
+      32
+    ],
+    "tile": 8,
+    "seed": 23,
+    "torch_version": "2.11.0+cu128",
+    "cpu_threads": 1,
+    "rows": [
+      {
+        "path": "naive_cpu_loop",
+        "seconds": 0.2751369499999896,
+        "gflops": 0.0002,
+        "max_abs_error": 1e-06,
+        "purpose": "Readable baseline matching one CUDA thread per output element.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          0.26826626199999737,
+          0.2751369499999896,
+          0.28392591899995523
+        ],
+        "warmup": 1,
+        "repeat": 3,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 6.451965610665411e-07,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
+      },
+      {
+        "path": "tiled_cpu_proxy",
+        "seconds": 0.0015252979999900163,
+        "gflops": 0.043,
+        "max_abs_error": 2e-06,
+        "purpose": "Shows tile reuse and accumulation shape before moving to shared memory.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          0.0016327010000054543,
+          0.0015252979999900163,
+          0.001434850999999071,
+          0.0014602289999743334,
+          0.0015559739999844169
+        ],
+        "warmup": 1,
+        "repeat": 5,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 1.803107945619331e-06,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
+      },
+      {
+        "path": "torch_matmul_reference",
+        "seconds": 4.897499991329823e-06,
+        "gflops": 13.3815,
+        "max_abs_error": 3.2695755525224968e-06,
+        "purpose": "Vendor/library-style reference for correctness and scale contrast.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          8.504999982505979e-06,
+          1.2192999975013663e-05,
+          7.031999984974391e-06,
+          4.934000003231631e-06,
+          4.893999971500307e-06,
+          4.7540000309709285e-06,
+          4.757999988669326e-06,
+          4.756000009820127e-06,
+          4.88900002437731e-06,
+          4.90100001115934e-06
+        ],
+        "warmup": 2,
+        "repeat": 10,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 3.2695755525224968e-06,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
+      }
+    ],
+    "traffic_model": {
+      "shape": [
+        32,
+        32,
+        32
+      ],
+      "tile": 8,
+      "flops": 65536,
+      "naive_global_load_elements": 65536,
+      "tiled_global_load_elements_upper_bound": 8192,
+      "naive_bytes": 266240,
+      "tiled_bytes_upper_bound": 36864,
+      "modeled_global_memory_reduction_pct": 86.154,
+      "naive_arithmetic_intensity_flop_per_byte": 0.2462,
+      "tiled_arithmetic_intensity_flop_per_byte": 1.7778,
+      "evidence_kind": "analytical"
+    },
+    "tiled_vs_naive_speedup": 180.3824,
+    "finding": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
+  },
+  "cuda": {
+    "status": "ran",
+    "compile_cmd": [
+      "/usr/local/cuda/bin/nvcc",
+      "-O3",
+      "-std=c++17",
+      "-DGEMM_M=256",
+      "-DGEMM_N=256",
+      "-DGEMM_K=256",
+      "/content/colab-gemm-smoke/gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu",
+      "-lcublas",
+      "-o",
+      "/tmp/gemm-benchmark-7v59vp61/shared_memory_gemm"
+    ],
+    "returncode": 0,
+    "stdout": "{\"shape\":[256,256,256],\"tile\":16,\"naive_ms\":0.09346,\"tiled_ms\":0.06385,\"naive_gflops\":359.02349,\"tiled_gflops\":525.51423,\"speedup\":1.46373,\"naive_max_abs_error\":0.00000011,\"tiled_max_abs_error\":0.00000011,\"naive_samples_ms\":[0.0938506648,0.0933429301,0.0934613273,0.0934186727,0.0935242623,0.0934474617,0.0934602693],\"tiled_samples_ms\":[0.0638218671,0.0640202686,0.0638250634,0.0638976023,0.0638506636,0.063908264,0.0638495982],\"cublas_samples_ms\":[0.0318869315,0.0312063992,0.0307829343,0.0307199992,0.0306453332,0.0306517351,0.0306933317],\"cublas_ms\":0.0307199992,\"cublas_max_abs_error\":1.45454887e-07,\"cublas_gflops\":1092.26669,\"tiled_vs_cublas_speedup\":0.481122643,\"cublas_math_mode\":\"CUBLAS_PEDANTIC_MATH\",\"cublas_version\":120804,\"cuda_runtime_version\":12080,\"cuda_driver_version\":13000,\"compute_capability\":[7,5],\"device_ordinal\":0,\"device_memory_bytes\":15637086208,\"evidence_kind\":\"measured_gpu\",\"warmup_launches\":1,\"launches_per_sample\":30,\"sample_count\":7,\"reference\":\"CPU FP64 accumulation\",\"timing_scope\":\"median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers\"}",
+    "stderr": "",
+    "kernel": {
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "tile": 16,
+      "naive_ms": 0.09346,
+      "tiled_ms": 0.06385,
+      "naive_gflops": 359.02349,
+      "tiled_gflops": 525.51423,
+      "speedup": 1.46373,
+      "naive_max_abs_error": 1.1e-07,
+      "tiled_max_abs_error": 1.1e-07,
+      "naive_samples_ms": [
+        0.0938506648,
+        0.0933429301,
+        0.0934613273,
+        0.0934186727,
+        0.0935242623,
+        0.0934474617,
+        0.0934602693
+      ],
+      "tiled_samples_ms": [
+        0.0638218671,
+        0.0640202686,
+        0.0638250634,
+        0.0638976023,
+        0.0638506636,
+        0.063908264,
+        0.0638495982
+      ],
+      "cublas_samples_ms": [
+        0.0318869315,
+        0.0312063992,
+        0.0307829343,
+        0.0307199992,
+        0.0306453332,
+        0.0306517351,
+        0.0306933317
+      ],
+      "cublas_ms": 0.0307199992,
+      "cublas_max_abs_error": 1.45454887e-07,
+      "cublas_gflops": 1092.26669,
+      "tiled_vs_cublas_speedup": 0.481122643,
+      "cublas_math_mode": "CUBLAS_PEDANTIC_MATH",
+      "cublas_version": 120804,
+      "cuda_runtime_version": 12080,
+      "cuda_driver_version": 13000,
+      "compute_capability": [
+        7,
+        5
+      ],
+      "device_ordinal": 0,
+      "device_memory_bytes": 15637086208,
+      "evidence_kind": "measured_gpu",
+      "warmup_launches": 1,
+      "launches_per_sample": 30,
+      "sample_count": 7,
+      "reference": "CPU FP64 accumulation",
+      "timing_scope": "median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers"
+    },
+    "requested_shape": [
+      256,
+      256,
+      256
+    ],
+    "source_sha256": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+    "boundary": "CUDA path compares naive global-memory GEMM with a shared-memory tiled kernel."
+  },
+  "cuda_cases": [
+    {
+      "status": "ran",
+      "compile_cmd": [
+        "/usr/local/cuda/bin/nvcc",
+        "-O3",
+        "-std=c++17",
+        "-DGEMM_M=256",
+        "-DGEMM_N=256",
+        "-DGEMM_K=256",
+        "/content/colab-gemm-smoke/gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu",
+        "-lcublas",
+        "-o",
+        "/tmp/gemm-benchmark-7v59vp61/shared_memory_gemm"
+      ],
+      "returncode": 0,
+      "stdout": "{\"shape\":[256,256,256],\"tile\":16,\"naive_ms\":0.09346,\"tiled_ms\":0.06385,\"naive_gflops\":359.02349,\"tiled_gflops\":525.51423,\"speedup\":1.46373,\"naive_max_abs_error\":0.00000011,\"tiled_max_abs_error\":0.00000011,\"naive_samples_ms\":[0.0938506648,0.0933429301,0.0934613273,0.0934186727,0.0935242623,0.0934474617,0.0934602693],\"tiled_samples_ms\":[0.0638218671,0.0640202686,0.0638250634,0.0638976023,0.0638506636,0.063908264,0.0638495982],\"cublas_samples_ms\":[0.0318869315,0.0312063992,0.0307829343,0.0307199992,0.0306453332,0.0306517351,0.0306933317],\"cublas_ms\":0.0307199992,\"cublas_max_abs_error\":1.45454887e-07,\"cublas_gflops\":1092.26669,\"tiled_vs_cublas_speedup\":0.481122643,\"cublas_math_mode\":\"CUBLAS_PEDANTIC_MATH\",\"cublas_version\":120804,\"cuda_runtime_version\":12080,\"cuda_driver_version\":13000,\"compute_capability\":[7,5],\"device_ordinal\":0,\"device_memory_bytes\":15637086208,\"evidence_kind\":\"measured_gpu\",\"warmup_launches\":1,\"launches_per_sample\":30,\"sample_count\":7,\"reference\":\"CPU FP64 accumulation\",\"timing_scope\":\"median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers\"}",
+      "stderr": "",
+      "kernel": {
+        "shape": [
+          256,
+          256,
+          256
+        ],
+        "tile": 16,
+        "naive_ms": 0.09346,
+        "tiled_ms": 0.06385,
+        "naive_gflops": 359.02349,
+        "tiled_gflops": 525.51423,
+        "speedup": 1.46373,
+        "naive_max_abs_error": 1.1e-07,
+        "tiled_max_abs_error": 1.1e-07,
+        "naive_samples_ms": [
+          0.0938506648,
+          0.0933429301,
+          0.0934613273,
+          0.0934186727,
+          0.0935242623,
+          0.0934474617,
+          0.0934602693
+        ],
+        "tiled_samples_ms": [
+          0.0638218671,
+          0.0640202686,
+          0.0638250634,
+          0.0638976023,
+          0.0638506636,
+          0.063908264,
+          0.0638495982
+        ],
+        "cublas_samples_ms": [
+          0.0318869315,
+          0.0312063992,
+          0.0307829343,
+          0.0307199992,
+          0.0306453332,
+          0.0306517351,
+          0.0306933317
+        ],
+        "cublas_ms": 0.0307199992,
+        "cublas_max_abs_error": 1.45454887e-07,
+        "cublas_gflops": 1092.26669,
+        "tiled_vs_cublas_speedup": 0.481122643,
+        "cublas_math_mode": "CUBLAS_PEDANTIC_MATH",
+        "cublas_version": 120804,
+        "cuda_runtime_version": 12080,
+        "cuda_driver_version": 13000,
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_ordinal": 0,
+        "device_memory_bytes": 15637086208,
+        "evidence_kind": "measured_gpu",
+        "warmup_launches": 1,
+        "launches_per_sample": 30,
+        "sample_count": 7,
+        "reference": "CPU FP64 accumulation",
+        "timing_scope": "median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers"
+      },
+      "requested_shape": [
+        256,
+        256,
+        256
+      ],
+      "source_sha256": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+      "boundary": "CUDA path compares naive global-memory GEMM with a shared-memory tiled kernel."
+    },
+    {
+      "status": "ran",
+      "compile_cmd": [
+        "/usr/local/cuda/bin/nvcc",
+        "-O3",
+        "-std=c++17",
+        "-DGEMM_M=5",
+        "-DGEMM_N=7",
+        "-DGEMM_K=11",
+        "/content/colab-gemm-smoke/gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu",
+        "-lcublas",
+        "-o",
+        "/tmp/gemm-benchmark-mcipbstl/shared_memory_gemm"
+      ],
+      "returncode": 0,
+      "stdout": "{\"shape\":[5,7,11],\"tile\":16,\"naive_ms\":0.00287,\"tiled_ms\":0.00280,\"naive_gflops\":0.26865,\"tiled_gflops\":0.27479,\"speedup\":1.02284,\"naive_max_abs_error\":0.00000002,\"tiled_max_abs_error\":0.00000002,\"naive_samples_ms\":[0.00312853325,0.0027178668,0.00293653342,0.00286613335,0.00280213333,0.00285866647,0.00456533348],\"tiled_samples_ms\":[0.00300373347,0.0027989333,0.00286719995,0.00273066666,0.00280213333,0.00300373347,0.0027989333],\"cublas_samples_ms\":[0.00752213364,0.00655360008,0.00669333339,0.00662399968,0.00685653323,0.00648533367,0.00667733373],\"cublas_ms\":0.00667733373,\"cublas_max_abs_error\":3.27016434e-08,\"cublas_gflops\":0.115315488,\"tiled_vs_cublas_speedup\":2.38294649,\"cublas_math_mode\":\"CUBLAS_PEDANTIC_MATH\",\"cublas_version\":120804,\"cuda_runtime_version\":12080,\"cuda_driver_version\":13000,\"compute_capability\":[7,5],\"device_ordinal\":0,\"device_memory_bytes\":15637086208,\"evidence_kind\":\"measured_gpu\",\"warmup_launches\":1,\"launches_per_sample\":30,\"sample_count\":7,\"reference\":\"CPU FP64 accumulation\",\"timing_scope\":\"median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers\"}",
+      "stderr": "",
+      "kernel": {
+        "shape": [
+          5,
+          7,
+          11
+        ],
+        "tile": 16,
+        "naive_ms": 0.00287,
+        "tiled_ms": 0.0028,
+        "naive_gflops": 0.26865,
+        "tiled_gflops": 0.27479,
+        "speedup": 1.02284,
+        "naive_max_abs_error": 2e-08,
+        "tiled_max_abs_error": 2e-08,
+        "naive_samples_ms": [
+          0.00312853325,
+          0.0027178668,
+          0.00293653342,
+          0.00286613335,
+          0.00280213333,
+          0.00285866647,
+          0.00456533348
+        ],
+        "tiled_samples_ms": [
+          0.00300373347,
+          0.0027989333,
+          0.00286719995,
+          0.00273066666,
+          0.00280213333,
+          0.00300373347,
+          0.0027989333
+        ],
+        "cublas_samples_ms": [
+          0.00752213364,
+          0.00655360008,
+          0.00669333339,
+          0.00662399968,
+          0.00685653323,
+          0.00648533367,
+          0.00667733373
+        ],
+        "cublas_ms": 0.00667733373,
+        "cublas_max_abs_error": 3.27016434e-08,
+        "cublas_gflops": 0.115315488,
+        "tiled_vs_cublas_speedup": 2.38294649,
+        "cublas_math_mode": "CUBLAS_PEDANTIC_MATH",
+        "cublas_version": 120804,
+        "cuda_runtime_version": 12080,
+        "cuda_driver_version": 13000,
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_ordinal": 0,
+        "device_memory_bytes": 15637086208,
+        "evidence_kind": "measured_gpu",
+        "warmup_launches": 1,
+        "launches_per_sample": 30,
+        "sample_count": 7,
+        "reference": "CPU FP64 accumulation",
+        "timing_scope": "median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers"
+      },
+      "requested_shape": [
+        5,
+        7,
+        11
+      ],
+      "source_sha256": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+      "boundary": "CUDA path compares naive global-memory GEMM with a shared-memory tiled kernel."
+    },
+    {
+      "status": "ran",
+      "compile_cmd": [
+        "/usr/local/cuda/bin/nvcc",
+        "-O3",
+        "-std=c++17",
+        "-DGEMM_M=31",
+        "-DGEMM_N=17",
+        "-DGEMM_K=33",
+        "/content/colab-gemm-smoke/gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu",
+        "-lcublas",
+        "-o",
+        "/tmp/gemm-benchmark-u932fo6s/shared_memory_gemm"
+      ],
+      "returncode": 0,
+      "stdout": "{\"shape\":[31,17,33],\"tile\":16,\"naive_ms\":0.00419,\"tiled_ms\":0.00464,\"naive_gflops\":8.30992,\"tiled_gflops\":7.49268,\"speedup\":0.90165,\"naive_max_abs_error\":0.00000005,\"tiled_max_abs_error\":0.00000005,\"naive_samples_ms\":[0.00422720006,0.00472213328,0.00394559978,0.00389013346,0.00418560021,0.00445439992,0.00404906692],\"tiled_samples_ms\":[0.00439040037,0.00618560007,0.00430186698,0.00468586665,0.0046421336,0.00485440018,0.00431573344],\"cublas_samples_ms\":[0.0081621334,0.00813546684,0.00778346648,0.0077162669,0.00778240012,0.00796480011,0.00774080027],\"cublas_ms\":0.00778346648,\"cublas_max_abs_error\":5.79358497e-08,\"cublas_gflops\":4.468703,\"tiled_vs_cublas_speedup\":1.67670023,\"cublas_math_mode\":\"CUBLAS_PEDANTIC_MATH\",\"cublas_version\":120804,\"cuda_runtime_version\":12080,\"cuda_driver_version\":13000,\"compute_capability\":[7,5],\"device_ordinal\":0,\"device_memory_bytes\":15637086208,\"evidence_kind\":\"measured_gpu\",\"warmup_launches\":1,\"launches_per_sample\":30,\"sample_count\":7,\"reference\":\"CPU FP64 accumulation\",\"timing_scope\":\"median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers\"}",
+      "stderr": "",
+      "kernel": {
+        "shape": [
+          31,
+          17,
+          33
+        ],
+        "tile": 16,
+        "naive_ms": 0.00419,
+        "tiled_ms": 0.00464,
+        "naive_gflops": 8.30992,
+        "tiled_gflops": 7.49268,
+        "speedup": 0.90165,
+        "naive_max_abs_error": 5e-08,
+        "tiled_max_abs_error": 5e-08,
+        "naive_samples_ms": [
+          0.00422720006,
+          0.00472213328,
+          0.00394559978,
+          0.00389013346,
+          0.00418560021,
+          0.00445439992,
+          0.00404906692
+        ],
+        "tiled_samples_ms": [
+          0.00439040037,
+          0.00618560007,
+          0.00430186698,
+          0.00468586665,
+          0.0046421336,
+          0.00485440018,
+          0.00431573344
+        ],
+        "cublas_samples_ms": [
+          0.0081621334,
+          0.00813546684,
+          0.00778346648,
+          0.0077162669,
+          0.00778240012,
+          0.00796480011,
+          0.00774080027
+        ],
+        "cublas_ms": 0.00778346648,
+        "cublas_max_abs_error": 5.79358497e-08,
+        "cublas_gflops": 4.468703,
+        "tiled_vs_cublas_speedup": 1.67670023,
+        "cublas_math_mode": "CUBLAS_PEDANTIC_MATH",
+        "cublas_version": 120804,
+        "cuda_runtime_version": 12080,
+        "cuda_driver_version": 13000,
+        "compute_capability": [
+          7,
+          5
+        ],
+        "device_ordinal": 0,
+        "device_memory_bytes": 15637086208,
+        "evidence_kind": "measured_gpu",
+        "warmup_launches": 1,
+        "launches_per_sample": 30,
+        "sample_count": 7,
+        "reference": "CPU FP64 accumulation",
+        "timing_scope": "median of seven CUDA-event batch means; 30 launches per batch; excludes allocation and transfers"
+      },
+      "requested_shape": [
+        31,
+        17,
+        33
+      ],
+      "source_sha256": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+      "boundary": "CUDA path compares naive global-memory GEMM with a shared-memory tiled kernel."
+    }
+  ],
+  "correctness_cases": [
+    {
+      "case": "scalar",
+      "path": "naive_cpu_loop",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "scalar",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "scalar",
+      "path": "torch_matmul_reference",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "naive_cpu_loop",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 2.2011018607770438e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 3.83931327618825e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "torch_matmul_reference",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 3.4896247136373404e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "naive_cpu_loop",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.557332325319294e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 2.8734345702829955e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "torch_matmul_reference",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 4.1723342203425773e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "naive_cpu_loop",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "torch_matmul_reference",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "naive_cpu_loop",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.011614045864917e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "torch_matmul_reference",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.017573367789737e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    }
+  ],
+  "gpu_execution_accepted": true,
+  "correctness": {
+    "status": "passed",
+    "checks": {
+      "cpu_proxy_ran": true,
+      "all_cpu_paths_finite": true,
+      "naive_correct": true,
+      "tiled_correct": true,
+      "elementwise_reference_checks": true,
+      "edge_cases_correct": true,
+      "modeled_traffic_reduction": true,
+      "cuda_path_classified": true,
+      "cuda_correct_if_executed": true
+    }
+  },
+  "boundary": "This lab focuses on the shared-memory GEMM idea that sits between naive CUDA matmul and CUTLASS/Tensor Core kernels. Local CPU proxy numbers prove correctness and reuse math; CUDA timing is recorded only when the machine can compile and run it."
+}

@@ -68,6 +68,9 @@ def _scenario(row: PrimitiveScenario) -> dict[str, Any]:
     passed = work_efficiency >= 1.20 and occupancy_proxy >= 0.35 and row.shared_memory_kb <= 96 and row.registers_per_thread <= 96
     return {
         "scenario_id": row.scenario_id,
+        "evidence_kind": "analytical",
+        "measured": False,
+        "numerical_correctness_status": "not_executed",
         "primitive": row.primitive,
         "algorithm": row.algorithm,
         "elements": row.elements,
@@ -108,6 +111,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"Generated: `{report['generated_at']}`",
         f"Status: `{report['status']}`",
+        "Evidence: analytical scenarios; timings are supplied constants, not device measurements. Passing status checks model assumptions, not numerical correctness.",
         "",
         "| scenario | primitive | algorithm | efficiency | bandwidth proxy GB/s | occupancy | status |",
         "|---|---|---|---:|---:|---:|---|",
@@ -133,6 +137,9 @@ def build_parallel_primitives_report() -> dict[str, Any]:
     stable = sum(1 for row in scenarios if row["stable_order_required"])
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "evidence_kind": "analytical",
+        "measured": False,
+        "gpu_execution_accepted": False,
         "status": "parallel-primitives-ready" if len(scenarios) >= 6 and passed >= 5 and len(primitives) >= 6 else "needs-work",
         "scenario_count": len(scenarios),
         "passed_scenarios": passed,

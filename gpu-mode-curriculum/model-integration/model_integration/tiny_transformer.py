@@ -16,6 +16,7 @@ from torch import nn
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "custom-ops"))
 sys.path.insert(0, str(ROOT / "autotune-db"))
+sys.path.insert(0, str(ROOT / "flash-attention-backward"))
 
 from autotune_db import select_config  # noqa: E402
 from custom_ops import fused_bias_gelu_residual, reference_bias_gelu_residual  # noqa: E402
@@ -43,13 +44,16 @@ CASES = [
 
 
 class TinyTransformerBlock(nn.Module):
-    def __init__(self, hidden: int, heads: int, use_fused: bool) -> None:
+    def __init__(self, hidden: int, heads: int, use_fused: bool, attention_backend: str = "materialized") -> None:
         super().__init__()
         if hidden % heads != 0:
             raise ValueError("hidden must be divisible by heads")
         self.hidden = hidden
         self.heads = heads
         self.use_fused = use_fused
+        if attention_backend not in {"materialized", "sdpa", "recomputed"}:
+            raise ValueError("unknown attention backend")
+        self.attention_backend = attention_backend
         self.ln1 = nn.LayerNorm(hidden)
         self.qkv = nn.Linear(hidden, hidden * 3, bias=False)
         self.proj = nn.Linear(hidden, hidden, bias=False)
@@ -58,6 +62,23 @@ class TinyTransformerBlock(nn.Module):
         self.ff_bias = nn.Parameter(torch.zeros(hidden))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self._forward(x)
+
+    @torch.no_grad()
+    def forward_cached(self, x: torch.Tensor, cache=None):
+        """Inference-only append-only KV cache; returns (output, (keys, values)).
+
+        A caller owns one cache per sequence batch and must not reuse it across
+        different inputs or changed model weights. This is contiguous storage,
+        not paging, eviction, prefix sharing, or a generation engine.
+        """
+        if self.training:
+            raise ValueError("cached inference requires model.eval()")
+        return self._forward(x, cache=cache, return_cache=True)
+
+    def _forward(self, x: torch.Tensor, cache=None, return_cache=False):
+        if x.ndim != 3 or x.shape[-1] != self.hidden or x.shape[1] < 1:
+            raise ValueError("expected nonempty [batch, sequence, hidden] input")
         batch, seq, hidden = x.shape
         head_dim = hidden // self.heads
         normed = self.ln1(x)
@@ -66,11 +87,39 @@ class TinyTransformerBlock(nn.Module):
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
-        scores = torch.matmul(q, k.transpose(-2, -1)) / (head_dim**0.5)
-        mask = torch.triu(torch.ones(seq, seq, dtype=torch.bool, device=x.device), diagonal=1)
-        scores = scores.masked_fill(mask, float("-inf"))
-        attention = torch.softmax(scores, dim=-1)
-        context = torch.matmul(attention, v).transpose(1, 2).contiguous().view(batch, seq, hidden)
+        offset = 0
+        if cache is not None:
+            if not isinstance(cache, tuple) or len(cache) != 2:
+                raise ValueError("cache must be a (keys, values) tuple")
+            old_k, old_v = cache
+            for old in cache:
+                if not isinstance(old, torch.Tensor) or old.ndim != 4 or \
+                   old.shape[:2] != (batch, self.heads) or old.shape[-1] != head_dim or \
+                   old.device != k.device or old.dtype != k.dtype:
+                    raise ValueError("cache shape, dtype or device mismatch")
+            if old_k.shape != old_v.shape:
+                raise ValueError("key/value cache shapes must match")
+            offset = old_k.shape[-2]
+            k = torch.cat((old_k, k), dim=-2)
+            v = torch.cat((old_v, v), dim=-2)
+        # Queries start at offset in the full sequence. Upper-left causal masks
+        # would incorrectly hide cached keys during single-token decoding.
+        allowed = None
+        if return_cache:
+            allowed = torch.arange(k.shape[-2], device=x.device)[None, :] <= \
+                      (offset + torch.arange(seq, device=x.device))[:, None]
+        if self.attention_backend == "sdpa":
+            context = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=allowed, is_causal=allowed is None)
+        elif self.attention_backend == "recomputed":
+            from flash_attention_backward.recomputed import recomputed_attention
+            context = recomputed_attention(q, k, v, allowed=allowed, causal=allowed is None)
+        else:
+            scores = torch.matmul(q, k.transpose(-2, -1)) / (head_dim**0.5)
+            mask = ~allowed if allowed is not None else torch.triu(torch.ones(seq, seq, dtype=torch.bool, device=x.device), diagonal=1)
+            scores = scores.masked_fill(mask, float("-inf"))
+            attention = torch.softmax(scores, dim=-1)
+            context = torch.matmul(attention, v)
+        context = context.transpose(1, 2).contiguous().view(batch, seq, hidden)
         residual = x + self.proj(context)
         ff_input = self.ff(self.ln2(residual)).reshape(batch * seq, hidden)
         residual_flat = residual.reshape(batch * seq, hidden)
@@ -78,7 +127,8 @@ class TinyTransformerBlock(nn.Module):
             out = fused_bias_gelu_residual(ff_input, self.ff_bias, residual_flat)
         else:
             out = reference_bias_gelu_residual(ff_input, self.ff_bias, residual_flat)
-        return out.view(batch, seq, hidden)
+        output = out.view(batch, seq, hidden)
+        return (output, (k, v)) if return_cache else output
 
 
 def _load_autotune() -> dict[str, Any]:

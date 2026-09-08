@@ -1,7 +1,8 @@
 # GPUMODE persistent kernels
 
-Generated: `2026-08-31T01:52:59.478298+00:00`
+Generated: `2026-09-07T03:14:07.390274+00:00`
 Status: `persistent-kernels-ready`
+Evidence: analytical scenarios; timings are supplied constants, not device measurements. Passing status checks model assumptions, not numerical correctness.
 
 | scenario | family | strategy | occupancy | speedup | HBM reduction | resident CTA/SM | status |
 |---|---|---|---:|---:|---:|---:|---|

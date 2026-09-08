@@ -1,6 +1,6 @@
 # GPUMODE CUTLASS CuTe Tensor Core GEMM
 
-Generated: `2026-08-31T01:52:59.339469+00:00`
+Generated: `2026-09-07T05:56:47.871329+00:00`
 Status: `tensor-core-gemm-ready`
 
 | scenario | status | dtype | CTA | MMA | smem | regs | intensity | epilogue |

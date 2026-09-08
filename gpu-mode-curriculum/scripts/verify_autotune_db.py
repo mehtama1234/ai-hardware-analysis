@@ -40,13 +40,16 @@ def main() -> int:
         require(len(record.get("candidates", [])) == record.get("candidate_count"), f"{record.get('id')} candidate count mismatch")
         selected = record.get("selected", {})
         require(selected in record.get("candidates", []), f"{record.get('id')} selected config not in candidates")
+        require(record.get("selection_status") == "proposed_not_measured", f"{record.get('id')} selection status overclaims execution")
+        require(selected.get("evidence_kind") == "analytical", f"{record.get('id')} candidate evidence kind missing")
+        require(selected.get("measured") is False, f"{record.get('id')} analytical candidate marked measured")
         require(selected.get("estimated_speedup_vs_measured", 0) >= 1.0, f"{record.get('id')} selected config regresses")
         require(record.get("promotion_targets"), f"{record.get('id')} missing promotion targets")
         require(record.get("measured_seconds", 0) >= 0, f"{record.get('id')} missing measured seconds")
     if SITE_PAGE.exists():
         page = SITE_PAGE.read_text(encoding="utf-8")
         require("GPUMODE autotuning database" in page, "autotune site page missing title")
-        require("selected config" in page, "autotune site page missing selected config column")
+        require("modeled speedup" in page, "autotune site page missing modeled status column")
     facts = {
         "records": database["record_count"],
         "families": sorted(families),

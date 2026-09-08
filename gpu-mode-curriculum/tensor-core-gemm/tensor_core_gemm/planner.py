@@ -170,6 +170,20 @@ def build_tensor_core_gemm_report() -> dict[str, Any]:
     passed = sum(1 for row in scenarios if row["status"] == "passed")
     fused = sum(1 for row in scenarios if row["epilogue_fused"])
     tensor_core = sum(1 for row in scenarios if row["tensor_core_eligible"])
+    native_path = OUT / "native-execution.json"
+    native_artifact = "tensor-core-gemm/native-execution.json"
+    if native_path.exists():
+        native = _read_json(native_artifact)
+    else:
+        imported = sorted((ROOT / "gpu-runs" / "imports").glob("colab-t4-wmma-*/native-execution.json"))
+        native_path = imported[-1] if imported else native_path
+        native_artifact = str(native_path.relative_to(ROOT)) if imported else native_artifact
+        native = json.loads(native_path.read_text(encoding="utf-8")) if native_path.exists() else {}
+    profiler_candidates = sorted((ROOT / "gpu-runs" / "imports").glob("colab-t4-wmma-*/profiler-evidence.json"))
+    profiler_path = OUT / "profiler-evidence.json"
+    if not profiler_path.exists() and profiler_candidates:
+        profiler_path = profiler_candidates[-1]
+    profiler = json.loads(profiler_path.read_text(encoding="utf-8")) if profiler_path.exists() else {}
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "tensor-core-gemm-ready" if passed >= 4 and tensor_core >= 5 and fused >= 4 else "needs-work",
@@ -198,6 +212,18 @@ def build_tensor_core_gemm_report() -> dict[str, Any]:
                 "python3 scripts/run_gpu_promotion_suite.py --run-id tensor-core-gemm --execute",
             ],
             "note": "Local planner validates GEMM design constraints; final acceptance needs real CUTLASS/CuTe build, profiler counters, and cuBLAS/Triton comparisons.",
+        },
+        "native_wmma_promotion": {
+            "status": native.get("status", "not-run"),
+            "gpu_execution_accepted": native.get("gpu_execution_accepted", False),
+            "artifact": native_artifact if native else None,
+        },
+        "profiler_promotion": {
+            "status": profiler.get("status", "not-run"),
+            "sass_tensor_core_instruction_seen": profiler.get("sass", {}).get("tensor_core_instruction_seen", False),
+            "sass_instruction_line_count": profiler.get("sass", {}).get("instruction_line_count", 0),
+            "nsight_compute_status": profiler.get("nsight_compute", {}).get("status", "not-run"),
+            "artifact": str(profiler_path.relative_to(ROOT)) if profiler else None,
         },
     }
     REPORT_JSON.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

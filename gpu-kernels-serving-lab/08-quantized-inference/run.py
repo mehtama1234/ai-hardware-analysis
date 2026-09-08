@@ -36,23 +36,32 @@ def int8_quant(torch: Any, x: Any) -> Any:
     return (x / scale).round().clamp(-127, 127) * scale
 
 
-def int4_block_quant(torch: Any, x: Any, block: int = 32) -> Any:
+def padded_blocks(torch: Any, x: Any, block: int) -> tuple[Any, int]:
+    if not isinstance(block, int) or isinstance(block, bool) or block <= 0:
+        raise ValueError("block must be a positive integer")
     flat = x.flatten()
-    flat = flat[: (flat.numel() // block) * block]
-    view = flat.view(-1, block)
+    count = flat.numel()
+    if count == 0:
+        raise ValueError("quantization input must not be empty")
+    if not x.is_floating_point() or not bool(torch.isfinite(x).all()):
+        raise ValueError("finite floating-point input required")
+    padded = torch.nn.functional.pad(flat, (0, (-count) % block))
+    return padded.reshape(-1, block), count
+
+
+def int4_block_quant(torch: Any, x: Any, block: int = 32) -> Any:
+    view, count = padded_blocks(torch, x, block)
     scale = view.abs().amax(-1, keepdim=True) / 7.0 + 1e-12
-    return ((view / scale).round().clamp(-7, 7) * scale).flatten()
+    return ((view / scale).round().clamp(-7, 7) * scale).flatten()[:count]
 
 
 def mxfp4_like_quant(torch: Any, x: Any, block: int = 32) -> Any:
     codes = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0], dtype=x.dtype, device=x.device)
-    flat = x.flatten()
-    flat = flat[: (flat.numel() // block) * block]
-    view = flat.view(-1, block)
+    view, count = padded_blocks(torch, x, block)
     scale = torch.pow(2.0, torch.ceil(torch.log2(view.abs().amax(-1, keepdim=True) / 6.0 + 1e-12)))
     scaled = view / scale
     idx = (scaled.abs().unsqueeze(-1) - codes).abs().argmin(-1)
-    return scaled.sign() * codes[idx] * scale
+    return (scaled.sign() * codes[idx] * scale).flatten()[:count]
 
 
 def load_weight_vector(torch: Any) -> tuple[str, Any, str | None]:
@@ -125,4 +134,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -19,11 +19,22 @@ LOCAL_COLLECTOR_SMOKE = ROOT / "gpu-runs" / "imports" / "local-cpu-collector-smo
 SITE_PAGE = ROOT / "site" / "gpu-runs.html"
 REQUIRED_STEPS = {
     "cuda-kernel-compile",
+    "eager-kernel-suite-cuda",
+    "low-precision-native",
+    "trained-digits-quality-cuda",
+    "rl-simulation-cuda",
+    "rl-policy-quality-cuda",
+    "triton-layout-cuda",
+    "bank-conflict-cuda",
+    "cuda-graphs-native",
     "triton-kernel-sweep",
+    "triton-kernel-families",
     "persistent-kernels",
     "parallel-primitives",
     "torch-custom-extension",
     "model-integration-gpu",
+    "neural-serving-cuda",
+    "trained-neural-quality-cuda",
     "vllm-serving-trace",
     "flash-attention-backward",
     "sparse-attention-kernels",
@@ -35,6 +46,7 @@ REQUIRED_STEPS = {
     "distributed-training-optimizer",
     "full-gpu-regression",
 }
+PROMOTION_MANIFEST = ROOT / "gpu-promotion" / "gpu-host-promotion-manifest.json"
 
 
 def load_json(path: Path) -> Any:
@@ -55,6 +67,7 @@ def main() -> int:
     lint = load_json(IMPORT_LINT)
     coverage = report.get("coverage", {})
     validation = report.get("validation", {})
+    manifest = load_json(PROMOTION_MANIFEST)
     rows = report.get("rows", [])
     require(report.get("status") == "import-ready", "GPU run report is not import-ready")
     require(lint.get("status") == "lint-clean", "GPU import lint report is not clean")
@@ -88,6 +101,8 @@ def main() -> int:
         "runs": coverage["run_count"],
         "vendors": coverage["vendors"],
         "promotion_steps": coverage["promotion_step_count"],
+        "manifest_steps": len({row.get("id") for row in manifest.get("steps", []) if row.get("id")}),
+        "missing_gpu_host_steps": validation.get("missing_gpu_host_steps", []),
         "imports": report.get("import_count", 0),
         "measured_runs": coverage["measured_run_count"],
         "lint_status": lint["status"],

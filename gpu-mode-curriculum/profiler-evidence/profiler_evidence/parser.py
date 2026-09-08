@@ -12,6 +12,7 @@ FIXTURES = ROOT / "profiler-evidence" / "fixtures"
 REPORTS = ROOT / "profiler-evidence" / "reports"
 REPORT_JSON = REPORTS / "profiler-evidence-report.json"
 REPORT_MD = REPORTS / "profiler-evidence-report.md"
+NATIVE_CAPTURE = ROOT / "gpu-runs" / "imports" / "colab-t4-wmma-20260907T055545Z" / "profiler-evidence.json"
 
 
 @dataclass(frozen=True)
@@ -19,13 +20,20 @@ class NormalizedRow:
     source: str
     name: str
     kind: str
-    duration_us: float
-    metrics: dict[str, float]
+    duration_us: float | None
+    metrics: dict[str, float | None]
 
 
 def number(value: str | int | float | None) -> float:
     if value is None or value == "":
         return 0.0
+    return float(value)
+
+
+def metric_number(value: str | int | float | None) -> float | None:
+    """Parse a counter without converting an absent counter into zero."""
+    if value is None or value == "":
+        return None
     return float(value)
 
 
@@ -38,15 +46,15 @@ def parse_nsight_compute(path: Path) -> list[NormalizedRow]:
                     source="nsight-compute",
                     name=row["kernel"],
                     kind="kernel",
-                    duration_us=number(row.get("duration_us")),
+                    duration_us=metric_number(row.get("duration_us")),
                     metrics={
-                        "dram_util_pct": number(row.get("dram_util_pct")),
-                        "sm_util_pct": number(row.get("sm_util_pct")),
-                        "tensor_util_pct": number(row.get("tensor_util_pct")),
-                        "l2_hit_pct": number(row.get("l2_hit_pct")),
-                        "launches": number(row.get("launches")),
-                        "bytes": number(row.get("bytes")),
-                        "flops": number(row.get("flops")),
+                        "dram_util_pct": metric_number(row.get("dram_util_pct")),
+                        "sm_util_pct": metric_number(row.get("sm_util_pct")),
+                        "tensor_util_pct": metric_number(row.get("tensor_util_pct")),
+                        "l2_hit_pct": metric_number(row.get("l2_hit_pct")),
+                        "launches": metric_number(row.get("launches")),
+                        "bytes": metric_number(row.get("bytes")),
+                        "flops": metric_number(row.get("flops")),
                     },
                 )
             )
@@ -62,14 +70,14 @@ def parse_rocprof(path: Path) -> list[NormalizedRow]:
                     source="rocprof",
                     name=row["kernel"],
                     kind="kernel",
-                    duration_us=number(row.get("duration_us")),
+                    duration_us=metric_number(row.get("duration_us")),
                     metrics={
-                        "vgpr": number(row.get("vgpr")),
-                        "sgpr": number(row.get("sgpr")),
-                        "waves_per_eu": number(row.get("waves_per_eu")),
-                        "valu_util_pct": number(row.get("valu_util_pct")),
-                        "fetch_size_bytes": number(row.get("fetch_size_bytes")),
-                        "write_size_bytes": number(row.get("write_size_bytes")),
+                        "vgpr": metric_number(row.get("vgpr")),
+                        "sgpr": metric_number(row.get("sgpr")),
+                        "waves_per_eu": metric_number(row.get("waves_per_eu")),
+                        "valu_util_pct": metric_number(row.get("valu_util_pct")),
+                        "fetch_size_bytes": metric_number(row.get("fetch_size_bytes")),
+                        "write_size_bytes": metric_number(row.get("write_size_bytes")),
                     },
                 )
             )
@@ -85,10 +93,10 @@ def parse_nsight_systems(path: Path) -> list[NormalizedRow]:
                 source="nsight-systems",
                 name=span["name"],
                 kind=span.get("kind", "span"),
-                duration_us=number(span.get("duration_us")),
+                duration_us=metric_number(span.get("duration_us")),
                 metrics={
-                    "kernels": number(span.get("kernels")),
-                    "memcpy_us": number(span.get("memcpy_us")),
+                    "kernels": metric_number(span.get("kernels")),
+                    "memcpy_us": metric_number(span.get("memcpy_us")),
                 },
             )
         )
@@ -98,23 +106,29 @@ def parse_nsight_systems(path: Path) -> list[NormalizedRow]:
 def classify(row: NormalizedRow) -> str:
     m = row.metrics
     if row.source == "nsight-compute":
-        if m.get("dram_util_pct", 0) >= 75 and m.get("sm_util_pct", 0) < 70:
+        if any(m.get(key) is None for key in ("dram_util_pct", "sm_util_pct", "tensor_util_pct", "l2_hit_pct")):
+            return "insufficient-data"
+        if m["dram_util_pct"] >= 75 and m["sm_util_pct"] < 70:
             return "memory-bandwidth"
-        if m.get("sm_util_pct", 0) >= 80 and m.get("tensor_util_pct", 0) >= 50:
+        if m["sm_util_pct"] >= 80 and m["tensor_util_pct"] >= 50:
             return "tensor-core-compute"
-        if m.get("l2_hit_pct", 100) < 55 and m.get("dram_util_pct", 0) >= 60:
+        if m["l2_hit_pct"] < 55 and m["dram_util_pct"] >= 60:
             return "cache-locality"
     if row.source == "rocprof":
-        if m.get("valu_util_pct", 0) >= 80 and m.get("waves_per_eu", 0) <= 4:
+        if any(m.get(key) is None for key in ("waves_per_eu", "valu_util_pct", "fetch_size_bytes", "write_size_bytes")):
+            return "insufficient-data"
+        if m["valu_util_pct"] >= 80 and m["waves_per_eu"] <= 4:
             return "compute-occupancy"
-        if m.get("fetch_size_bytes", 0) > m.get("write_size_bytes", 0) * 2:
+        if m["fetch_size_bytes"] > m["write_size_bytes"] * 2:
             return "memory-bandwidth"
     if row.source == "nsight-systems":
-        if m.get("kernels", 0) > 1000:
+        if any(m.get(key) is None for key in ("kernels", "memcpy_us")) or row.duration_us is None:
+            return "insufficient-data"
+        if m["kernels"] > 1000:
             return "launch-overhead"
         if row.kind == "nccl":
             return "communication"
-        if m.get("memcpy_us", 0) / max(1.0, row.duration_us) > 0.08:
+        if m["memcpy_us"] / max(1.0, row.duration_us) > 0.08:
             return "host-device-transfer"
     return "mixed"
 
@@ -128,6 +142,7 @@ def remediation(kind: str) -> list[str]:
         "launch-overhead": ["fuse small kernels", "use CUDA graphs", "batch decode work"],
         "communication": ["compare ring/tree/channel topology", "increase payload aggregation", "inspect overlap with compute"],
         "host-device-transfer": ["remove sync copies", "pin and batch transfers", "move preprocessing onto device"],
+        "insufficient-data": ["retain the raw capture", "collect the missing counters before classifying", "do not infer zero from an absent field"],
         "mixed": ["split by kernel", "collect roofline counters", "compare against baseline"],
     }
     return table[kind]
@@ -142,13 +157,17 @@ def normalize_all() -> list[dict[str, Any]]:
     rows = []
     for row in parsed:
         bottleneck = classify(row)
+        missing_metrics = [key for key, value in row.metrics.items() if value is None]
         rows.append(
             {
                 "source": row.source,
+                "evidence_kind": "fixture",
+                "measured": False,
                 "name": row.name,
                 "kind": row.kind,
                 "duration_us": row.duration_us,
                 "metrics": row.metrics,
+                "missing_metrics": missing_metrics,
                 "classification": bottleneck,
                 "remediation": remediation(bottleneck),
             }
@@ -162,10 +181,47 @@ def build_report() -> dict[str, Any]:
     counts: dict[str, int] = {}
     for row in rows:
         counts[row["classification"]] = counts.get(row["classification"], 0) + 1
+    native_captures: list[dict[str, Any]] = []
+    if NATIVE_CAPTURE.exists():
+        capture = json.loads(NATIVE_CAPTURE.read_text(encoding="utf-8"))
+        native_captures.append({
+            "artifact": str(NATIVE_CAPTURE.relative_to(ROOT.parent)),
+            "artifact_sha256": __import__("hashlib").sha256(NATIVE_CAPTURE.read_bytes()).hexdigest(),
+            "evidence_kind": "native-capture",
+            "measured": capture.get("status") == "passed",
+            "gpu_execution_accepted": capture.get("status") == "passed",
+            "project": capture.get("project"),
+            "tool_availability": capture.get("tool_availability", {}),
+            "sass": {
+                "status": capture.get("sass", {}).get("status"),
+                "tensor_core_instruction_seen": capture.get("sass", {}).get("tensor_core_instruction_seen"),
+                "instruction_line_count": capture.get("sass", {}).get("instruction_line_count"),
+            },
+            "nsight_compute": {
+                "status": capture.get("nsight_compute", {}).get("status"),
+                "version": capture.get("nsight_compute", {}).get("version"),
+                "metric": capture.get("nsight_compute", {}).get("metric"),
+                "returncode": capture.get("nsight_compute", {}).get("returncode"),
+            },
+            "source_sha256": capture.get("source_sha256", {}),
+        })
     report = {
         "artifact": "profiler-evidence-report",
+        "evidence_kind": "fixture",
+        "measured": False,
+        "gpu_execution_accepted": False,
+        "scope": "deterministic profiler-shaped teaching fixtures and heuristic classifications; not captured device profiler evidence",
         "row_count": len(rows),
         "source_count": len({row["source"] for row in rows}),
+        "native_capture_count": len(native_captures),
+        "native_captures": native_captures,
+        "source_sha256": {
+            str(path.relative_to(ROOT.parent)): __import__("hashlib").sha256(path.read_bytes()).hexdigest()
+            for path in (Path(__file__).resolve(),
+                         FIXTURES / "nsight_compute_kernels.csv",
+                         FIXTURES / "nsight_systems_timeline.json",
+                         FIXTURES / "rocprof_kernels.csv")
+        },
         "classification_counts": dict(sorted(counts.items())),
         "rows": rows,
         "checks": {
@@ -187,8 +243,12 @@ def markdown(report: dict[str, Any]) -> str:
     lines = [
         "# Profiler Evidence Report",
         "",
+        "Normalized rows are deterministic fixture evidence; native captures are listed separately.",
+        "Fixture classifications are teaching heuristics, not verified hardware diagnoses.",
+        "",
         f"Rows: {report['row_count']}",
         f"Sources: {report['source_count']}",
+        f"Native captures: {report['native_capture_count']}",
         "",
         "## Classification Counts",
         "",

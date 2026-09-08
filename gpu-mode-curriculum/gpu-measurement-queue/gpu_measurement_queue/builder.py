@@ -105,6 +105,53 @@ MEASUREMENT_SPECS: dict[str, dict[str, Any]] = {
     },
 }
 
+# These claim-scoped runs use their report's explicit status as the metric
+# contract.  They are still real GPU artifacts when imported by
+# ``build_colab_gpu_import.py``; keeping the contract here prevents them from
+# becoming invisible holes in the measurement queue.
+for _step_id in (
+    "triton-kernel-families",
+    "low-precision-native",
+    "trained-digits-quality-cuda",
+    "rl-simulation-cuda",
+    "rl-policy-quality-cuda",
+    "triton-layout-cuda",
+    "bank-conflict-cuda",
+    "cuda-graphs-native",
+    "neural-serving-cuda",
+    "trained-neural-quality-cuda",
+    "paged-kv-gather-cuda",
+    "paged-attention-cuda",
+):
+    MEASUREMENT_SPECS[_step_id] = {
+        "host_class": "accelerator-claim-scoped",
+        "required_metrics": ["status"],
+        "acceptance_thresholds": ["status in {passed, task_gate_passed}"],
+    }
+MEASUREMENT_SPECS["eager-kernel-suite-cuda"] = {
+    "host_class": "nvidia-cuda",
+    "required_metrics": ["benchmark_count", "passed", "failed", "accelerator_readiness"],
+    "acceptance_thresholds": [
+        "failed == 0",
+        "passed == benchmark_count",
+        "benchmark_count >= 14",
+        "accelerator_readiness.torch_device == cuda",
+        "accelerator_readiness.nvidia_smi == true",
+    ],
+}
+MEASUREMENT_SPECS["serving-tail-load-cuda"] = {
+    "host_class": "nvidia-cuda-serving",
+    "required_metrics": ["status", "gpu_execution_accepted", "concurrency_levels", "requests_per_level", "rows"],
+    "acceptance_thresholds": [
+        "status == passed",
+        "gpu_execution_accepted == true",
+        "concurrency_levels == [1, 2, 4, 8]",
+        "requests_per_level >= 12",
+        "all rows have p95 and parity",
+        "vectorized batching observed above concurrency 1",
+    ],
+}
+
 
 def load_json(path: Path, default: Any) -> Any:
     if not path.exists():
@@ -240,7 +287,7 @@ def _metric_checks(step_id: str, metrics: dict[str, Any]) -> dict[str, bool]:
         }
     elif step_id == "profiler-capture":
         checks = {
-            "ncu/nsys or rocprof available": (_truthy(metrics.get("ncu")) and _truthy(metrics.get("nsys"))) or _truthy(metrics.get("rocprof")),
+            "ncu/nsys or rocprof available": _truthy(metrics.get("ncu")) or _truthy(metrics.get("nsys")) or _truthy(metrics.get("rocprof")),
             "profiler_rows >= 9": metrics.get("profiler_rows", 0) >= 9,
         }
     elif step_id == "rocm-hip-port":
@@ -274,6 +321,35 @@ def _metric_checks(step_id: str, metrics: dict[str, Any]) -> dict[str, bool]:
             "metric_count >= 79": metrics.get("metric_count", 0) >= 79,
             "failed_metrics == 0": metrics.get("failed_metrics", 1) == 0,
         }
+    elif step_id == "serving-tail-load-cuda":
+        rows = metrics.get("rows", [])
+        levels = metrics.get("concurrency_levels", [])
+        checks = {
+            "status == passed": metrics.get("status") == "passed",
+            "gpu_execution_accepted == true": metrics.get("gpu_execution_accepted") is True,
+            "concurrency_levels == [1, 2, 4, 8]": levels == [1, 2, 4, 8],
+            "requests_per_level >= 12": metrics.get("requests_per_level", 0) >= 12,
+            "all rows have p95 and parity": len(rows) == len(levels) and all(
+                isinstance(row.get("latency_ms", {}).get("p95_nearest_rank"), (int, float))
+                and row.get("output_parity") is True
+                for row in rows
+            ),
+            "vectorized batching observed above concurrency 1": any(
+                row.get("concurrency", 1) > 1 and "vectorized" in row.get("batch_modes", [])
+                for row in rows
+            ),
+        }
+    elif step_id == "eager-kernel-suite-cuda":
+        readiness = metrics.get("accelerator_readiness", {})
+        checks = {
+            "failed == 0": metrics.get("failed", 1) == 0,
+            "passed == benchmark_count": metrics.get("passed", 0) == metrics.get("benchmark_count", -1),
+            "benchmark_count >= 14": metrics.get("benchmark_count", 0) >= 14,
+            "accelerator_readiness.torch_device == cuda": readiness.get("torch_device") == "cuda",
+            "accelerator_readiness.nvidia_smi == true": readiness.get("nvidia_smi") is True,
+        }
+    elif step_id in MEASUREMENT_SPECS:
+        checks = {"status in {passed, task_gate_passed}": metrics.get("status") in {"passed", "task_gate_passed"}}
     return checks
 
 

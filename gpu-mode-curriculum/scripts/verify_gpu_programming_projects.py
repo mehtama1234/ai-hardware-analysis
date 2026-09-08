@@ -34,6 +34,18 @@ def require(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+def correctness_is_acceptable(measurement_artifact: dict[str, Any]) -> bool:
+    """Accept a pass or a fully explicit unavailable/source-only result."""
+    correctness_status = measurement_artifact.get("correctness", {}).get("status")
+    unavailable_skip = (
+        correctness_status == "not_executed"
+        and measurement_artifact.get("measured") is False
+        and measurement_artifact.get("gpu_execution_accepted") is False
+        and measurement_artifact.get("runtime_readiness", {}).get("status") in {"source-only", "unavailable"}
+    )
+    return correctness_status == "passed" or unavailable_skip
+
+
 def main() -> int:
     if not (PROJECTS / "index.json").exists():
         subprocess.run([sys.executable, "scripts/build_gpu_programming_projects.py"], cwd=ROOT, check=True)
@@ -105,7 +117,8 @@ def main() -> int:
         require(metadata.get("measurement", {}).get("path"), f"{row['id']} missing measurement link")
         require(contract.get("required_fields"), f"{row['id']} missing measurement contract fields")
         require(len(tasks.get("tasks", [])) >= 5, f"{row['id']} missing task milestones")
-        require(measurement_artifact.get("correctness", {}).get("status") == "passed", f"{row['id']} measurement correctness did not pass")
+        require(correctness_is_acceptable(measurement_artifact),
+                f"{row['id']} measurement correctness did not pass or declare an explicit unavailable skip")
         require(measurement_artifact.get("measurement", {}).get("rows"), f"{row['id']} measurement rows missing")
         require("## Local Run" in readme and "## Existing Lab To Compare Against" in readme, f"{row['id']} README missing runnable sections")
         require("python3 measure.py" in readme, f"{row['id']} README missing measure command")

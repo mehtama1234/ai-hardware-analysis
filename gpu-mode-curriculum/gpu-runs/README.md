@@ -19,3 +19,17 @@ python3 scripts/verify_gpu_runs.py
 ```
 
 Sample fixtures under `gpu-runs/fixtures/` model the expected structure for NVIDIA A100 and AMD MI300 hosts. Replace or extend them with real host exports after running CUDA, Triton, ROCm/HIP, profiler, serving, distributed collective, and full-regression promotion steps.
+
+For the current Colab evidence, build the claim-scoped adapter before the
+normal import report:
+
+```bash
+python3 scripts/build_colab_gpu_import.py
+python3 scripts/build_gpu_runs.py
+python3 scripts/verify_gpu_runs.py
+```
+
+This writes `imports/colab-t4-promoted.json` while retaining each source
+handoff under its timestamped directory. The adapter indexes thirteen
+claim-scoped steps from the T4 runs; the NCCL row is explicitly marked
+`partial:world-size-one`, and unlisted curriculum steps remain open.

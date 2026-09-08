@@ -20,7 +20,10 @@ def row_layernorm_kernel(x, y, cols: tl.constexpr, eps: tl.constexpr, block: tl.
     offsets = tl.arange(0, block)
     mask = offsets < cols
     values = tl.load(x + row * cols + offsets, mask=mask, other=0.0)
-    mean = tl.sum(values, axis=0) / cols
+    valid = mask.to(tl.float32)
+    valid_count = tl.sum(valid, axis=0)
+    mean = tl.sum(values, axis=0) / valid_count
     centered = values - mean
-    var = tl.sum(centered * centered, axis=0) / cols
+    centered = tl.where(mask, centered, 0.0)
+    var = tl.sum(centered * centered, axis=0) / valid_count
     tl.store(y + row * cols + offsets, centered * tl.rsqrt(var + eps), mask=mask)

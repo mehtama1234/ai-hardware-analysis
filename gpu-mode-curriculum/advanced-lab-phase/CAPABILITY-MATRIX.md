@@ -1,0 +1,50 @@
+# Handbook capability matrix — initial topic coverage
+
+This maps concrete artifacts, not whole-topic completion. The
+[source registry](SOURCE-REGISTRY.md) records upstream review scope. The
+[checkpoint](EXECUTABLE-CHECKPOINT.md) supplies executable coverage and freshness.
+
+| Topics | Inspected artifact / evidence class | Prerequisites and checks | Missing evidence |
+|---|---|---|---|
+| 1, 21 | [Recomputed attention](../flash-attention-backward/flash_attention_backward/recomputed.py): executed CPU reference | Tensor algebra/autograd; [gradient, mask and saved-tensor tests](../flash-attention-backward/tests/test_recomputed.py) | Fused GPU kernels, allocator peaks, broader shapes/dtypes |
+| 2 | [Packed INT4](../../gpu-kernels-serving-lab/common/packed_int4.py), [repeated digits task](../../gpu-kernels-serving-lab/08-quantized-inference/run_digits_repeats.py), accepted native CUDA FP16/INT8 promotion, and accepted CUDA trained-digits quality ([reports](../quantization-memory-formats/reports/low-precision-cuda-colab.json), [quality report](../quantization-memory-formats/reports/digits-quality-cuda-colab.json)) | Quantization arithmetic/train-test separation; layout/tail tests, fixed seed protocols, FP16-vs-FP32 and exact INT8 integer-oracle checks, 50%/75% reductions, held-out FP32/packed-INT4 accuracy, and CUDA-event samples | Native INT4/FP8/MX compute, broader models/rejected configurations, and stronger task-quality statistics |
+| 3, 5 | [Inductor experiment](../compiler-runtime-inspection/run_cpu_compile.py): executed CPU forward/backward and captured code; accepted Triton CUDA matmul and memory/reduction/normalization family promotions ([reports](../kernel-benchmarks/reports/triton-cuda-colab.json), [family report](../kernel-benchmarks/reports/triton-families-cuda-colab.json)) | C++ toolchain/PyTorch; FP64 output/gradient oracle, strided inputs, separate compile timing; Triton square/rectangular/tail matmul and non-power-of-two normalization oracle checks with CUDA-event samples | Full matched CUDA/Triton/CuTe workload sweep, graph breaks, profiler explanations, autotune breadth, and broader generated-kernel coverage |
+| 5, 13, 21 | [Compiled transformer](../model-integration/run_compiled_training.py): CPU application integration | Attention/optimizers; three paired gradient/update/momentum checks and reset-state timing | Broader shapes/optimizers, trained quality and GPU execution |
+| 6 | [Neural backend](../../gpu-kernels-serving-lab/13-capstone-mini-serving-engine/neural_generator.py), [CPU HTTP sweep](../../gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_neural_load.py), accepted single-T4 CUDA runner ([report](../model-integration/reports/neural-serving-cuda-colab.json)), repeated-seed quality protocol ([report](../model-integration/reports/trained-neural-quality-repeated.json)), bounded microbatch scheduler ([report](../model-integration/reports/serving-microbatch-cpu.json)), bounded backpressure/cancellation ([report](../model-integration/reports/serving-backpressure-cpu.json)), HTTP controls ([report](../model-integration/reports/serving-http-controls-cpu.json)), repeated tail-load sweep ([report](../model-integration/reports/serving-tail-load-cpu.json)), CUDA tail-load runner/report ([runner](../model-integration/run_serving_tail_load_cuda.py), [local unavailable report](../model-integration/reports/serving-tail-load-cuda.json)), distributed dispatch contract ([report](../model-integration/reports/distributed-serving-cpu.json)), paged-cache reference ([report](../model-integration/reports/paged-kv-cache-cpu.json)), and accepted native CUDA gather/attention ([reports](../model-integration/reports/paged-kv-cuda.json), [paged attention](../model-integration/reports/paged-attention-cuda.json)) | Causal masks/tokenization; cached/full parity, CPU HTTP tests, synchronized CUDA-event decode samples, CUDA-vs-CPU text parity, individual/vectorized/fallback batch checks, three independent training seeds with held-out quality, bounded arrival-window grouping, finite queue rejection/cancellation accounting at scheduler and HTTP layers, 16-request concurrency 1/2/4/8 latency/p95/parity sweep, two-rank request ownership/order/peer agreement, page-boundary/gather/free/reuse/capacity checks, native gather and fused softmax attention oracle paths | Production-scale trained quality, optimized paged attention, production cancellation semantics, GPU tail-load, and multi-GPU inference/capacity |
+| 9 | [HIP source](../programming-projects/rocm-hip-port/kernel.hip.cpp): uncompiled locally; [native runner](../programming-projects/rocm-hip-port/run_native.py): unavailable locally | Host/device memory and launch concepts; [harness tests](../programming-projects/rocm-hip-port/test_native.py) are not GPU validation | Actual compiler/device execution, sanitizers, matched second platform |
+| 12 | [Regression](../scripts/run_advanced_evidence_regression.py), [provenance](../../gpu-kernels-serving-lab/common/provenance.py) and [evidence page](../scripts/build_executable_evidence_page.py): executed CPU infrastructure | Test design/measurement scopes; source/test/artifact freshness and explicit skips | Complete dependency closure, independent reproduction and profiler capture |
+| 14 | [GEMM](../../gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py): CPU references, accepted eager CUDA suite, and native CUDA/Triton promotions | Indexing/tiling/error bounds; edge/output-contract tests; 14 eager CUDA cases with synchronized events and broad shape families | Tensor cores, measured bank conflicts, asynchronous transfers, TMA/TMEM, and complete native-kernel attribution |
+| 18 | [CPU primitive references](../parallel-primitives/parallel_primitives/reference.py): scan, stable compaction, histogram and stable uint32 radix permutation; [analyzer](../parallel-primitives/parallel_primitives/analyzer.py): separate analytical constants/proxies | Scan/tree/bucket concepts; [seven reference tests](../parallel-primitives/tests/test_reference.py) compare exact outputs, full permutations and boundary contracts; scenario verifier is not numerical evidence | Device implementations, fixed-width overflow contracts, multi-block synchronization, measured throughput and profiler counters |
+| 3, 5 extension | [Persistent analyzer](../persistent-kernels/persistent_kernels/analyzer.py): analytical resource/reuse scenarios | Blocks/registers/shared memory; [verifier](../scripts/verify_persistent_kernels.py) checks assumptions and labels | Native scheduling, real resource limits and persistent/non-persistent measurements |
+| 4 | [CPU collective correctness](../distributed-collectives/CPU-CORRECTNESS.md): five operations on two real Gloo processes; one-rank NCCL smoke and a bounded multi-rank NCCL runner; old benchmark remains unaccepted; [topology planner](../distributed-topology/distributed_topology/planner.py): analytical proxies | Rank/collective semantics; exact per-rank output checks, independent parent oracle and five report-contract tests; explicit unavailable handling when CUDA or multiple GPUs are absent | Broader shapes/world sizes, raw multi-rank timing, measured overlap/topology, GPU acceptance |
+| 15 | [MoE tensor reference](../moe-routing-all-to-all/REFERENCE.md), [two-process sharded experts](../moe-routing-all-to-all/DISTRIBUTED.md), and a bounded multi-rank CUDA/NCCL runner | Eleven unit tests; twenty-four rank/scenario output comparisons; explicit multi-rank GPU dispatch/return path with CPU-oracle comparison; both CPU ranks reject bad local data and mismatched capacity, then recover | Multi-GPU execution remains unavailable here; expert MLP/trained quality, more ranks, process-loss handling beyond timeouts, distributed gradients, and accepted GPU timing remain open |
+
+## Unfinished inventory
+
+Additional audited starting points:
+
+| Topics | Inspected artifact / evidence class | Checks and missing evidence |
+|---|---|---|
+| 7 | [Profiler parser](../profiler-evidence/profiler_evidence/parser.py): nine fixture rows, explicit missing-counter handling, plus accepted native Nsight Compute/SASS evidence for WMMA ([report](../gpu-runs/imports/colab-t4-wmma-20260907T055545Z/profiler-evidence.json)) | Native tensor-pipe counter and `HMMA` SASS checks now exist for one kernel; missing counters remain `null`/`insufficient-data`; broader raw profiler captures, schema adapters, and before/after bottleneck explanations remain open |
+| 5, 16 | [Autotune builder](../autotune-db/autotune_db/builder.py): baseline times multiplied by preset factors | Candidate record/selector checks only; actual candidate compilation, held-out execution, synthesis and formal verification remain open |
+| 12, 20 | [Legacy ledger](../regression-ledger/regression_ledger/builder.py): threshold-based report aggregation | Not a controlled cross-run performance comparison or a competition submission; measured optimization exercises and regression statistics remain open |
+
+See the [profiling/search audit](PROFILING-SEARCH-AUDIT.md) for concrete source-level
+limitations and acceptance requirements.
+
+These rows touch topics 1, 2, 3, 4, 5, 6, 7, 9, 12, 13, 14, 15, 16, 18, 20 and 21, often only
+their foundations. Their full research scope remains open. Separate artifact,
+test, report and primary-source mappings are still required for:
+
+The [specialist elective audit](ELECTIVE-AUDIT.md) now maps topics 8, 10, 11, 17,
+19, 22, 23 and 24 to inspected starting points, observed proxy behavior and
+explicit missing implementations. Six lesson programs were executed; their
+CPU proxy outputs do not establish title-specific capability.
+
+All 24 topics now have an initial routing/audit disposition. This is not a
+complete source inventory: full per-artifact provenance, primary-source review,
+prerequisite chains and acceptance tests remain required across the handbook.
+
+A directory name, scenario verifier, readiness script or external paper's
+performance numbers do not establish local capability. No end-to-end work package
+is accepted as complete by this matrix.

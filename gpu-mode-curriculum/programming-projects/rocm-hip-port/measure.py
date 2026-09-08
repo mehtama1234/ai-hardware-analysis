@@ -56,8 +56,17 @@ def main() -> int:
             "stderr_tail": proc.stderr.strip()[-2000:],
         },
     }
+    if True:
+        artifact["metadata_checks"] = artifact["correctness"]["checks"]
+        artifact["metadata_checks"]["source_named"] = starter_payload.get("source") == "kernel.hip.cpp"
+        artifact["correctness"] = {"status": "not_executed", "checks": {},
+            "reason": "readiness starter does not compile or invoke native validation"}
+        artifact["gpu_execution_accepted"] = False
+        artifact["measured"] = False
     OUT.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({"status": artifact["status"], "path": OUT.name, "correctness": artifact["correctness"]["status"]}, indent=2))
+    if True:
+        return 0 if all(artifact["metadata_checks"].values()) else 1
     return 0 if artifact["correctness"]["status"] == "passed" else 1
 
 

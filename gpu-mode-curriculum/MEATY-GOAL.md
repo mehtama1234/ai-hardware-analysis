@@ -106,6 +106,36 @@ labs with measurement-backed generated pages and a final GPU systems workbench.
 
 ## Current Slice
 
+## Current execution state (2026-09-07)
+
+The goal is now an executable, evidence-led build rather than a tutorial-indexing
+project. The current worktree has a passing CPU checkpoint, a 32-step promotion
+manifest (31 steps requiring a GPU host), and imported T4 evidence for paged KV
+gather and paged attention. The serving path also has tested CPU contracts for
+microbatching, bounded backpressure/cancellation, HTTP controls, tail-load
+behavior, and two-rank request dispatch. These are accepted correctness and
+bounded-load results; they are not production-scale language quality, GPU tail
+latency, multi-GPU throughput, or hardware portability acceptance.
+
+The next gates are deliberately ordered:
+
+1. **Reproduction gate:** reproduce the current CPU checkpoint from a clean
+   checkout with the pinned dependency closure, retaining raw logs and hashes.
+2. **Model-quality gate:** broaden the trained workload beyond the synthetic
+   character task and report held-out quality, memory, and conversion-inclusive
+   timing together.
+3. **GPU-serving gate:** run paged attention, batching/backpressure, and tail-load
+   measurements on a real accelerator with synchronized timing and allocator
+   evidence.
+4. **Systems gate:** measure multi-GPU dispatch/all-to-all behavior and repeat at
+   least one portability path on a second accelerator stack.
+5. **Publication gate:** regenerate the site and audit every claim against a
+   source hash, raw sample, reproduction command, and explicit limitation.
+
+Each gate can advance independently, but no gate is considered complete because
+of a source-shaped fixture or a modeled estimate. Missing hardware remains an
+explicit unavailable result, never an implicit pass.
+
 The current slice now goes past indexing and basic labs: it builds the transcript
 corpus, deterministic topic map, lesson-intelligence artifact, proposed lab
 backlog, generated curriculum site, per-lesson tutorial pages, bottleneck

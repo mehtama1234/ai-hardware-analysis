@@ -23,3 +23,19 @@ python3 scripts/run_gpu_promotion_suite.py --run-id colab-advanced-phase --execu
 python3 scripts/collect_gpu_run.py --run-id colab-advanced-phase
 python3 scripts/build_gpu_measurement_queue.py
 ```
+
+For the currently missing serving-tail GPU artifact, use the claim-scoped
+handoff mode after authentication:
+
+```bash
+COLAB_HANDOFF_MODE=serving-tail \
+COLAB_RUN_ID=colab-t4-serving-tail-$(date -u +%Y%m%dT%H%M%SZ) \
+scripts/run_colab_gpu_handoff_local.sh
+python3 scripts/verify_colab_handoff.py
+```
+
+The local report remains `unavailable` until the Colab artifact is downloaded;
+the handoff verifier checks that boundary and does not promote a CPU fallback.
+The local dry-run plan is recorded in
+`gpu-promotion/suite-run-report.json` with run ID
+`colab-serving-tail-plan`.

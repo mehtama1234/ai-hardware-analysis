@@ -80,10 +80,31 @@ def load_run_id() -> str:
     return os.environ.get("COLAB_RUN_ID", "colab-advanced-phase")
 
 
+def load_mode() -> str:
+    if CONFIG.exists():
+        config = json.loads(CONFIG.read_text(encoding="utf-8"))
+        return str(config.get("mode") or "full")
+    return "full"
+
+
 def main() -> int:
     run_id = load_run_id()
+    mode = load_mode()
     unpack_archive()
-    commands = [
+    if mode == "paged-kv":
+        commands = [{"cmd": [sys.executable, "gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_kv_cuda.py"], "required": True}]
+    elif mode == "paged-attention":
+        commands = [{"cmd": [sys.executable, "gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py"], "required": True}]
+    elif mode == "serving-tail":
+        commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py"], "required": True}]
+    elif mode == "digits-quality":
+        commands = [{"cmd": [sys.executable, "quantization-memory-formats/run_digits_cuda.py"], "required": True}]
+    elif mode == "eager-kernels":
+        commands = [{"cmd": [sys.executable, "scripts/run_kernel_benchmarks.py", "--repeats", "7"], "required": True}]
+    elif mode == "wmma-profiler":
+        commands = [{"cmd": [sys.executable, "tensor-core-gemm/profile_native.py"], "required": True}]
+    else:
+        commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},
         {"cmd": [sys.executable, "scripts/run_gpu_host_preflight.py"], "required": True},
         {"cmd": [sys.executable, "scripts/run_kernel_benchmarks.py"], "required": True},
@@ -121,7 +142,7 @@ def main() -> int:
         {"cmd": [sys.executable, "scripts/verify_gpu_provenance.py"], "required": True},
         {"cmd": [sys.executable, "scripts/verify_gpu_measurement_queue.py"], "required": True},
         {"cmd": [sys.executable, "scripts/verify_capstone_acceptance.py"], "required": False},
-    ]
+        ]
 
     results = []
     failed = False

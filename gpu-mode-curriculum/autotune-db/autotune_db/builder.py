@@ -62,6 +62,8 @@ def _candidate_rows(family: str, measured_seconds: float) -> list[dict[str, Any]
         candidates.append(
             {
                 "config": payload,
+                "evidence_kind": "analytical",
+                "measured": False,
                 "estimated_seconds": round(estimated, 10),
                 "estimated_speedup_vs_measured": round(measured_seconds / max(estimated, 1e-12), 4),
             }
@@ -81,6 +83,7 @@ def _kernel_record(row: dict[str, Any]) -> dict[str, Any]:
         "measured_seconds": measured,
         "measured_device": row.get("result", {}).get("device", "unknown"),
         "candidate_count": len(candidates),
+        "selection_status": "proposed_not_measured",
         "selected": candidates[0],
         "candidates": candidates,
         "promotion_targets": ["cuda", "triton"],
@@ -102,6 +105,7 @@ def _custom_op_records(report: dict[str, Any]) -> list[dict[str, Any]]:
                 "measured_seconds": measured,
                 "measured_device": report.get("accelerator_readiness", {}).get("torch_device", "unknown"),
                 "candidate_count": len(candidates),
+                "selection_status": "proposed_not_measured",
                 "selected": candidates[0],
                 "candidates": candidates,
                 "promotion_targets": ["torch-extension", "cuda"],
@@ -129,15 +133,15 @@ def render_markdown(database: dict[str, Any]) -> str:
         f"Records: `{database['record_count']}`",
         f"Families: `{', '.join(database['families'])}`",
         "",
-        "| record | family | shape | selected config | measured s | estimated s | speedup | targets |",
-        "|---|---|---|---|---:|---:|---:|---|",
+        "| record | family | shape | selected config | status | measured s | estimated s | modeled speedup | targets |",
+        "|---|---|---|---|---|---:|---:|---:|---|",
     ]
     for record in database["records"]:
         selected = record["selected"]
         lines.append(
             "| "
             f"{record['id']} | {record['family']} | {record['shape_class']} | {selected['config']['id']} | "
-            f"{record['measured_seconds']:.8f} | {selected['estimated_seconds']:.8f} | "
+            f"{record['selection_status']} | {record['measured_seconds']:.8f} | {selected['estimated_seconds']:.8f} | "
             f"{selected['estimated_speedup_vs_measured']} | {', '.join(record['promotion_targets'])} |"
         )
     return "\n".join(lines).rstrip() + "\n"
@@ -160,9 +164,10 @@ def build_database() -> dict[str, Any]:
             "custom-ops/reports/custom-op-report.json",
         ],
         "selector_contract": {
-            "required_record_fields": ["id", "family", "shape_class", "params", "selected", "candidates", "promotion_targets"],
+            "required_record_fields": ["id", "family", "shape_class", "params", "selected", "candidates", "promotion_targets", "selection_status"],
             "selection_rule": "lowest estimated_seconds among candidate configs for the record",
             "regression_rule": "selected config must estimate speedup >= 1.0 versus measured local baseline",
+            "execution_rule": "analytical candidates are proposed only; they cannot establish measured speedup or promotion",
         },
         "records": records,
     }

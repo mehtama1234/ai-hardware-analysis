@@ -5,6 +5,9 @@ from __future__ import annotations
 import json
 import math
 import shutil
+import statistics
+import tempfile
+import hashlib
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,8 +19,9 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from common.bench import median_seconds
+from common.bench import sample_seconds
 from common.gpu_info import collect_inventory
+from common.provenance import source_provenance
 
 
 HERE = Path(__file__).resolve().parent
@@ -88,6 +92,8 @@ def naive_loop(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
 
 def tiled_loop(a: torch.Tensor, b: torch.Tensor, tile: int) -> torch.Tensor:
+    if not isinstance(tile, int) or isinstance(tile, bool) or tile < 1:
+        raise ValueError("tile must be a positive integer")
     m, k = a.shape
     _k, n = b.shape
     out = torch.zeros((m, n), dtype=torch.float32)
@@ -127,16 +133,57 @@ def traffic_model(m: int, n: int, k: int, tile: int, bytes_per_element: int = 4)
     }
 
 
+def comparison(got: torch.Tensor, ref: torch.Tensor) -> dict[str, Any]:
+    """Elementwise comparison against an independently accumulated FP64 result."""
+    valid = got.shape == ref.shape and bool(torch.isfinite(got).all()) and bool(torch.isfinite(ref).all())
+    error = max_abs_error(got.double(), ref) if valid else None
+    passed = valid and bool(torch.allclose(got.double(), ref, atol=1e-4, rtol=1e-5))
+    return {"passed": passed, "max_abs_error": error, "atol": 1e-4, "rtol": 1e-5,
+            "reference": "torch CPU FP64 matmul", "finite_and_shape_match": valid}
+
+
+def correctness_suite() -> list[dict[str, Any]]:
+    generator = torch.Generator().manual_seed(23)
+    cases = []
+    for name, m, n, k, tile in (("scalar", 1, 1, 1, 8),
+                                ("rectangular-tail", 5, 7, 11, 4),
+                                ("noncontiguous", 9, 3, 5, 4),
+                                ("zeros", 3, 5, 7, 4),
+                                ("cancellation", 3, 4, 8, 4)):
+        a = torch.randn((m, k), generator=generator)
+        b = torch.randn((k, n), generator=generator)
+        if name == "noncontiguous":
+            a = a.t().contiguous().t()
+            b = b.t().contiguous().t()
+        elif name == "zeros":
+            a.zero_()
+        elif name == "cancellation":
+            a[:, 1::2] = a[:, ::2]
+            b[1::2] = -b[::2]
+        ref = a.double() @ b.double()
+        for implementation, output in (("naive_cpu_loop", naive_loop(a, b)),
+                                       ("tiled_cpu_proxy", tiled_loop(a, b, tile)),
+                                       ("torch_matmul_reference", a @ b)):
+            cases.append({"case": name, "path": implementation, "shape": [m, n, k],
+                          "tile": tile, "evidence_kind": "measured_cpu",
+                          "input_strides": [list(a.stride()), list(b.stride())],
+                          **comparison(output, ref)})
+    return cases
+
+
 def cpu_proxy(m: int = 32, n: int = 32, k: int = 32, tile: int = 8) -> dict[str, Any]:
     torch.manual_seed(23)
     a = torch.randn((m, k), dtype=torch.float32)
     b = torch.randn((k, n), dtype=torch.float32)
-    ref = a @ b
+    ref = a.double() @ b.double()
     flops = 2 * m * n * k
 
-    naive_seconds = median_seconds(lambda: naive_loop(a, b), warmup=1, repeat=3)
-    tiled_seconds = median_seconds(lambda: tiled_loop(a, b, tile), warmup=1, repeat=5)
-    torch_seconds = median_seconds(lambda: a @ b, warmup=2, repeat=10)
+    naive_samples = sample_seconds(lambda: naive_loop(a, b), warmup=1, repeat=3)
+    tiled_samples = sample_seconds(lambda: tiled_loop(a, b, tile), warmup=1, repeat=5)
+    torch_samples = sample_seconds(lambda: a @ b, warmup=2, repeat=10)
+    naive_seconds = statistics.median(naive_samples)
+    tiled_seconds = statistics.median(tiled_samples)
+    torch_seconds = statistics.median(torch_samples)
     naive_out = naive_loop(a, b)
     tiled_out = tiled_loop(a, b, tile)
     model = traffic_model(m, n, k, tile)
@@ -159,15 +206,26 @@ def cpu_proxy(m: int = 32, n: int = 32, k: int = 32, tile: int = 8) -> dict[str,
             "path": "torch_matmul_reference",
             "seconds": round(torch_seconds, 6),
             "gflops": gflops(flops, torch_seconds),
-            "max_abs_error": 0.0,
+            "max_abs_error": max_abs_error((a @ b).double(), ref),
             "purpose": "Vendor/library-style reference for correctness and scale contrast.",
         },
     ]
+    for row, samples, warmup, output in zip(rows, (naive_samples, tiled_samples, torch_samples),
+                                            (1, 1, 2), (naive_out, tiled_out, a @ b)):
+        row.update({"evidence_kind": "measured_cpu", "samples_seconds": samples,
+                    "seconds": statistics.median(samples), "warmup": warmup,
+                    "repeat": len(samples), "correctness": comparison(output, ref),
+                    "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+                    "synchronization": "CPU synchronous operations"})
+    model["evidence_kind"] = "analytical"
     speedup = naive_seconds / tiled_seconds if tiled_seconds else math.inf
     return {
         "status": "ran",
         "shape": [m, n, k],
         "tile": tile,
+        "seed": 23,
+        "torch_version": torch.__version__,
+        "cpu_threads": torch.get_num_threads(),
         "rows": rows,
         "traffic_model": model,
         "tiled_vs_naive_speedup": round(speedup, 4),
@@ -180,7 +238,7 @@ def cpu_proxy(m: int = 32, n: int = 32, k: int = 32, tile: int = 8) -> dict[str,
     }
 
 
-def cuda_result() -> dict[str, Any]:
+def cuda_result(shape: tuple[int, int, int] = (256, 256, 256)) -> dict[str, Any]:
     nvcc = shutil.which("nvcc")
     if not nvcc:
         return {
@@ -189,8 +247,18 @@ def cuda_result() -> dict[str, Any]:
             "source": SRC.name,
             "boundary": "CUDA source is present, but compiling/running requires the NVIDIA CUDA toolkit and a visible CUDA device.",
         }
-    compile_cmd = [nvcc, "-O3", "-std=c++17", str(SRC), "-o", str(BIN)]
-    code, stdout, stderr = run_cmd(compile_cmd)
+    with tempfile.TemporaryDirectory(prefix="gemm-benchmark-") as build_dir:
+        binary = str(Path(build_dir) / "shared_memory_gemm")
+        compile_cmd = [nvcc, "-O3", "-std=c++17",
+                       *[f"-DGEMM_{axis}={size}" for axis, size in zip("MNK", shape)],
+                       str(SRC), "-lcublas", "-o", binary]
+        try:
+            code, stdout, stderr = run_cmd(compile_cmd)
+            if code == 0:
+                run_code, run_stdout, run_stderr = run_cmd([binary])
+        except subprocess.TimeoutExpired as exc:
+            return {"status": "run_failed", "reason": "compile or execution timeout",
+                    "command": exc.cmd, "shape": list(shape)}
     if code != 0:
         return {
             "status": "compile_failed",
@@ -199,7 +267,7 @@ def cuda_result() -> dict[str, Any]:
             "stderr": stderr,
             "boundary": "nvcc ran but shared_memory_gemm.cu did not compile.",
         }
-    code, stdout, stderr = run_cmd([str(BIN)])
+    code, stdout, stderr = run_code, run_stdout, run_stderr
     try:
         parsed = json.loads(stdout.splitlines()[-1]) if stdout else {}
     except Exception:
@@ -211,24 +279,65 @@ def cuda_result() -> dict[str, Any]:
         "stdout": stdout,
         "stderr": stderr,
         "kernel": parsed,
+        "requested_shape": list(shape),
+        "source_sha256": hashlib.sha256(SRC.read_bytes()).hexdigest(),
         "boundary": "CUDA path compares naive global-memory GEMM with a shared-memory tiled kernel.",
     }
 
 
-def main() -> None:
+def cuda_passes(cuda: dict[str, Any]) -> bool:
+    if cuda["status"] == "skipped":
+        return True  # Execution coverage remains unavailable, not measured.
+    if cuda["status"] != "ran":
+        return False
+    kernel = cuda.get("kernel", {})
+    if not isinstance(kernel, dict):
+        return False
+    if "requested_shape" in cuda and kernel.get("shape") != cuda["requested_shape"]:
+        return False
+    for key in ("naive_max_abs_error", "tiled_max_abs_error", "cublas_max_abs_error"):
+        value = kernel.get(key)
+        if not isinstance(value, (float, int)) or isinstance(value, bool) or not math.isfinite(value) or not 0 <= value <= 1e-4:
+            return False
+    for key in ("naive_ms", "tiled_ms", "cublas_ms"):
+        value = kernel.get(key)
+        if not isinstance(value, (float, int)) or isinstance(value, bool) or not math.isfinite(value) or value <= 0:
+            return False
+    for prefix in ("naive", "tiled", "cublas"):
+        samples = kernel.get(f"{prefix}_samples_ms")
+        if not isinstance(samples, list) or len(samples) != 7:
+            return False
+        if any(not isinstance(value, (int, float)) or isinstance(value, bool) or
+               not math.isfinite(value) or value <= 0 for value in samples):
+            return False
+        if not math.isclose(statistics.median(samples), kernel[f"{prefix}_ms"], rel_tol=1e-4, abs_tol=1e-5):
+            return False
+    return True
+
+
+def main() -> int:
     proxy = cpu_proxy()
+    suite = correctness_suite()
     cuda = cuda_result()
+    cuda_cases = [cuda]
+    if cuda["status"] != "skipped":
+        cuda_cases.extend(cuda_result(shape) for shape in ((5, 7, 11), (31, 17, 33)))
     checks = {
         "cpu_proxy_ran": proxy["status"] == "ran",
         "all_cpu_paths_finite": all(math.isfinite(row["seconds"]) and row["seconds"] > 0 for row in proxy["rows"]),
         "naive_correct": proxy["rows"][0]["max_abs_error"] <= 1e-4,
         "tiled_correct": proxy["rows"][1]["max_abs_error"] <= 1e-4,
+        "elementwise_reference_checks": all(row["correctness"]["passed"] for row in proxy["rows"]),
+        "edge_cases_correct": all(row["passed"] for row in suite),
         "modeled_traffic_reduction": proxy["traffic_model"]["modeled_global_memory_reduction_pct"] > 0,
         "cuda_path_classified": cuda["status"] in {"skipped", "compile_failed", "run_failed", "ran"},
+        "cuda_correct_if_executed": all(cuda_passes(case) for case in cuda_cases),
     }
     out = {
         "session": "23-gpumode-shared-memory-gemm",
         "timestamp": now(),
+        "provenance": source_provenance(ROOT.parent, [Path(__file__), SRC,
+            ROOT / "common/bench.py", ROOT / "common/gpu_info.py", ROOT / "common/provenance.py"]),
         "inventory": collect_inventory("23-gpumode-shared-memory-gemm"),
         "source": {
             "gpumode_lab_id": "gpumode-lab-09-shared-memory-gemm",
@@ -237,6 +346,9 @@ def main() -> None:
         },
         "shared_memory_gemm": proxy,
         "cuda": cuda,
+        "cuda_cases": cuda_cases,
+        "correctness_cases": suite,
+        "gpu_execution_accepted": len(cuda_cases) == 3 and all(case["status"] == "ran" and cuda_passes(case) for case in cuda_cases),
         "correctness": {
             "status": "passed" if all(checks.values()) else "failed",
             "checks": checks,
@@ -248,7 +360,7 @@ def main() -> None:
         ),
     }
     path = HERE / "out_gpumode_shared_memory_gemm.json"
-    path.write_text(json.dumps(out, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(out, indent=2, allow_nan=False), encoding="utf-8")
     print(
         "wrote",
         path.name,
@@ -259,7 +371,8 @@ def main() -> None:
         "correctness",
         out["correctness"]["status"],
     )
+    return 0 if all(checks.values()) else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

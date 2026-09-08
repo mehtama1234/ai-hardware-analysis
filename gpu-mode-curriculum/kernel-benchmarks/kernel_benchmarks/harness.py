@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import importlib.util
 import shutil
 import statistics
@@ -51,9 +52,24 @@ def timed_call(fn: Callable[..., dict[str, Any]], params: dict[str, Any], repeat
     durations = []
     result: dict[str, Any] = {}
     for _ in range(repeats):
-        start = time.perf_counter()
-        result = fn(**params)
-        durations.append(time.perf_counter() - start)
+        # GPU-capable operations must be measured after device completion.  The
+        # returned device marker is available only after the call, so use a
+        # short synchronized host probe for the first sample and CUDA events on
+        # subsequent calls once the operation's device is known.
+        if ops.device() == "cuda" and ops.torch is not None:
+            start_event = ops.torch.cuda.Event(enable_timing=True)
+            end_event = ops.torch.cuda.Event(enable_timing=True)
+            start_event.record()
+            result = fn(**params)
+            end_event.record()
+            end_event.synchronize()
+            durations.append(start_event.elapsed_time(end_event) / 1000.0)
+        else:
+            start = time.perf_counter()
+            result = fn(**params)
+            if result.get("device", "").startswith("cuda") and ops.torch is not None:
+                ops.torch.cuda.synchronize()
+            durations.append(time.perf_counter() - start)
     return {
         "result": result,
         "seconds": {
@@ -61,6 +77,9 @@ def timed_call(fn: Callable[..., dict[str, Any]], params: dict[str, Any], repeat
             "median": statistics.median(durations),
             "max": max(durations),
         },
+        "samples_seconds": durations,
+        "timing_scope": "CUDA event elapsed time for device results; host wall clock for CPU/python results",
+        "synchronization": "CUDA event completion or synchronous host call",
     }
 
 
@@ -74,7 +93,12 @@ def validate(row: dict[str, Any], required: list[str]) -> dict[str, bool]:
     if "shape" in result:
         checks["shape_positive"] = all(v > 0 for v in result["shape"])
     if "checksum" in result:
-        checks["checksum_finite"] = isinstance(result["checksum"], (int, float))
+        checksum = result["checksum"]
+        checks["checksum_finite"] = (
+            isinstance(checksum, (int, float))
+            and not isinstance(checksum, bool)
+            and math.isfinite(checksum)
+        )
     return checks
 
 

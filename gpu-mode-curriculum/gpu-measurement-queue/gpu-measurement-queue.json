@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-08-31T02:44:10.812009+00:00",
+  "generated_at": "2026-09-08T06:44:22.403560+00:00",
   "status": "queue-ready",
-  "task_count": 18,
+  "task_count": 32,
   "queued_task_count": 0,
-  "measured_task_count": 18,
-  "accepted_task_count": 15,
-  "failed_measured_task_count": 3,
+  "measured_task_count": 32,
+  "accepted_task_count": 30,
+  "failed_measured_task_count": 2,
   "real_measured_completion": false,
   "source_manifest": "gpu-promotion/gpu-host-promotion-manifest.json",
   "source_gpu_runs": "gpu-runs/gpu-run-report.json",
   "source_provenance": "gpu-provenance/gpu-provenance-report.json",
   "real_gpu_evidence_status": "present",
-  "measured_run_count": 1,
+  "measured_run_count": 3,
   "tasks": [
     {
       "step_id": "cuda-kernel-compile",
@@ -48,9 +48,9 @@
         "torch_device == cuda",
         "passed_benchmarks >= 14"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
-      "failed_measured_rows": 0,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 2,
+      "failed_measured_rows": 1,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -60,6 +60,84 @@
             "nvidia_smi == true": true,
             "torch_device == cuda": true,
             "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": true,
+            "nvidia_smi == true": true,
+            "torch_device == cuda": true,
+            "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": false,
+            "nvidia_smi == true": false,
+            "torch_device == cuda": false,
+            "passed_benchmarks >= 14": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "eager-kernel-suite-cuda",
+      "title": "Run the broad eager CUDA kernel suite",
+      "host_class": "nvidia-cuda",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 scripts/run_kernel_benchmarks.py --repeats 7"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/reports/kernel-benchmark-report.json"
+      ],
+      "required_metrics": [
+        "benchmark_count",
+        "passed",
+        "failed",
+        "accelerator_readiness"
+      ],
+      "acceptance_thresholds": [
+        "failed == 0",
+        "passed == benchmark_count",
+        "benchmark_count >= 14",
+        "accelerator_readiness.torch_device == cuda",
+        "accelerator_readiness.nvidia_smi == true"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "failed == 0": true,
+            "passed == benchmark_count": true,
+            "benchmark_count >= 14": true,
+            "accelerator_readiness.torch_device == cuda": true,
+            "accelerator_readiness.nvidia_smi == true": true
           },
           "checks_passed": true,
           "accepted": true
@@ -103,9 +181,9 @@
         "triton_cases >= 4",
         "passed_benchmarks >= 14"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
-      "failed_measured_rows": 0,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 2,
+      "failed_measured_rows": 1,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -114,6 +192,71 @@
             "cuda_available == true": true,
             "triton_cases >= 4": true,
             "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "triton_cases >= 4": true,
+            "passed_benchmarks >= 14": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "partial:matmul-only",
+          "checks": {
+            "cuda_available == true": false,
+            "triton_cases >= 4": false,
+            "passed_benchmarks >= 14": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "triton-kernel-families",
+      "title": "Run Triton memory, reduction and normalization families on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 kernel-benchmarks/run_triton_families_cuda.py"
+      ],
+      "expected_evidence": [
+        "kernel-benchmarks/reports/triton-families-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
           },
           "checks_passed": true,
           "accepted": true
@@ -164,9 +307,9 @@
         "tensor_core_scenarios >= 5",
         "mma_instruction_seen == true"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
-      "failed_measured_rows": 0,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 2,
+      "failed_measured_rows": 1,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -177,6 +320,335 @@
             "ncu == true": true,
             "tensor_core_scenarios >= 5": true,
             "mma_instruction_seen == true": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": true,
+            "nvidia_smi == true": true,
+            "ncu == true": true,
+            "tensor_core_scenarios >= 5": true,
+            "mma_instruction_seen == true": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "nvcc == true": false,
+            "nvidia_smi == true": false,
+            "ncu == true": false,
+            "tensor_core_scenarios >= 5": false,
+            "mma_instruction_seen == true": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "low-precision-native",
+      "title": "Measure native CUDA FP16 compute and numerical drift",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 quantization-memory-formats/run_low_precision_cuda.py"
+      ],
+      "expected_evidence": [
+        "quantization-memory-formats/reports/low-precision-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "trained-digits-quality-cuda",
+      "title": "Run the held-out trained-digits quality protocol on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 quantization-memory-formats/run_digits_cuda.py"
+      ],
+      "expected_evidence": [
+        "quantization-memory-formats/reports/digits-quality-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "rl-simulation-cuda",
+      "title": "Run vectorized reinforcement-learning environment transitions on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 rl-gpu-simulation/run_vectorized_simulation.py --device cuda"
+      ],
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/vectorized-simulation.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "rl-policy-quality-cuda",
+      "title": "Train and evaluate a deterministic goal-policy on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 rl-gpu-simulation/run_policy_quality.py --device cuda"
+      ],
+      "expected_evidence": [
+        "rl-gpu-simulation/reports/policy-quality.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "triton-layout-cuda",
+      "title": "Execute blocked and XOR-swizzled layout mappings in Triton",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "triton",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 layout-algebra/run_triton_layout_cuda.py --device cuda"
+      ],
+      "expected_evidence": [
+        "layout-algebra/reports/triton-layout-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "bank-conflict-cuda",
+      "title": "Measure shared-memory bank-conflict access patterns",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 layout-algebra/run_bank_conflict_cuda.py"
+      ],
+      "expected_evidence": [
+        "layout-algebra/reports/bank-conflict-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "cuda-graphs-native",
+      "title": "Capture and replay a fixed-shape CUDA Graph",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 cuda-graphs-latency/run_cuda_graphs_cuda.py"
+      ],
+      "expected_evidence": [
+        "cuda-graphs-latency/reports/cuda-graphs-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
           },
           "checks_passed": true,
           "accepted": true
@@ -232,12 +704,27 @@
         "occupancy_proxy >= 0.30",
         "hbm_reduction >= 0.15"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "triton == true": true,
+            "nvidia_smi == true": true,
+            "ncu == true": true,
+            "persistent_scenarios >= 6": true,
+            "speedup_vs_baseline >= 1.15": true,
+            "occupancy_proxy >= 0.30": true,
+            "hbm_reduction >= 0.15": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "triton == true": true,
@@ -299,9 +786,9 @@
         "occupancy_proxy >= 0.35",
         "stable_order_scenarios >= 3"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
-      "failed_measured_rows": 0,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 2,
+      "failed_measured_rows": 1,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -316,6 +803,34 @@
           },
           "checks_passed": true,
           "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "primitive_scenarios >= 6": true,
+            "work_efficiency >= 1.20": true,
+            "bandwidth_proxy_gbps > 0": true,
+            "occupancy_proxy >= 0.35": true,
+            "stable_order_scenarios >= 3": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": false,
+            "primitive_scenarios >= 6": false,
+            "work_efficiency >= 1.20": false,
+            "bandwidth_proxy_gbps > 0": false,
+            "occupancy_proxy >= 0.35": false,
+            "stable_order_scenarios >= 3": false
+          },
+          "checks_passed": false,
+          "accepted": false
         }
       ],
       "has_metric_contract": true,
@@ -356,12 +871,22 @@
         "compiled_extension_status == cuda-ready",
         "passed_cases >= 4"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "compiled_extension_status == cuda-ready": true,
+            "passed_cases >= 4": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "compiled_extension_status == cuda-ready": true,
@@ -407,9 +932,9 @@
         "passed_cases >= 3",
         "uses_custom_op == fused_bias_gelu_residual"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
-      "failed_measured_rows": 0,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 2,
+      "failed_measured_rows": 1,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -418,6 +943,259 @@
             "accelerator_ready == true": true,
             "passed_cases >= 3": true,
             "uses_custom_op == fused_bias_gelu_residual": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "passed_cases >= 3": true,
+            "uses_custom_op == fused_bias_gelu_residual": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": false,
+            "passed_cases >= 3": false,
+            "uses_custom_op == fused_bias_gelu_residual": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "neural-serving-cuda",
+      "title": "Run real autoregressive KV-cache serving on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 model-integration/run_neural_serving_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/neural-serving-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "trained-neural-quality-cuda",
+      "title": "Train and evaluate the tiny neural serving model on CUDA",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 model-integration/run_trained_neural_quality_cuda.py --device cuda"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/trained-neural-quality-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "paged-kv-gather-cuda",
+      "title": "Execute native CUDA page-table KV gather against a host oracle",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_kv_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/paged-kv-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "paged-attention-cuda",
+      "title": "Execute native CUDA paged attention against a host oracle",
+      "host_class": "accelerator-claim-scoped",
+      "required_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvcc",
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/paged-attention-cuda.json"
+      ],
+      "required_metrics": [
+        "status"
+      ],
+      "acceptance_thresholds": [
+        "status in {passed, task_gate_passed}"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status in {passed, task_gate_passed}": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        }
+      ],
+      "has_metric_contract": true,
+      "has_commands": true,
+      "has_expected_evidence": true,
+      "measurement_status": "measured-accepted"
+    },
+    {
+      "step_id": "serving-tail-load-cuda",
+      "title": "Measure CUDA neural-serving microbatch tail load",
+      "host_class": "nvidia-cuda-serving",
+      "required_capabilities": [
+        "torch",
+        "nvidia_smi"
+      ],
+      "missing_capabilities": [
+        "nvidia_smi"
+      ],
+      "command_count": 1,
+      "commands": [
+        "python3 model-integration/run_serving_tail_load_cuda.py"
+      ],
+      "expected_evidence": [
+        "model-integration/reports/serving-tail-load-cuda.json"
+      ],
+      "required_metrics": [
+        "status",
+        "gpu_execution_accepted",
+        "concurrency_levels",
+        "requests_per_level",
+        "rows"
+      ],
+      "acceptance_thresholds": [
+        "status == passed",
+        "gpu_execution_accepted == true",
+        "concurrency_levels == [1, 2, 4, 8]",
+        "requests_per_level >= 12",
+        "all rows have p95 and parity",
+        "vectorized batching observed above concurrency 1"
+      ],
+      "real_measured_rows": 1,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 0,
+      "measurement_evaluations": [
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "status == passed": true,
+            "gpu_execution_accepted == true": true,
+            "concurrency_levels == [1, 2, 4, 8]": true,
+            "requests_per_level >= 12": true,
+            "all rows have p95 and parity": true,
+            "vectorized batching observed above concurrency 1": true
           },
           "checks_passed": true,
           "accepted": true
@@ -458,12 +1236,23 @@
         "passed_traces >= 3",
         "prefix_cache_blocks_saved > 0"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "passed_traces >= 3": true,
+            "prefix_cache_blocks_saved > 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -519,12 +1308,25 @@
         "prefix_blocks_reused > 0",
         "profiler_rows >= 1"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "attention_scenarios >= 5": true,
+            "hbm_reduction > 0": true,
+            "prefix_blocks_reused > 0": true,
+            "profiler_rows >= 1": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -588,12 +1390,27 @@
         "recompute_overhead_ratio >= 0",
         "occupancy_proxy >= 0.45"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "flash_backward_scenarios >= 6": true,
+            "gradient_paths >= 4": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.40": true,
+            "recompute_overhead_ratio >= 0": true,
+            "occupancy_proxy >= 0.45": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -662,12 +1479,28 @@
         "hbm_reduction >= 0.55",
         "load_balance_proxy >= 0.75"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "sparse_attention_scenarios >= 6": true,
+            "pattern_count >= 6": true,
+            "ragged_scenarios >= 1": true,
+            "backward_scenarios >= 4": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.55": true,
+            "load_balance_proxy >= 0.75": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -737,12 +1570,28 @@
         "hbm_reduction >= 0.45",
         "launch_reduction >= 0.45"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "fused_training_scenarios >= 6": true,
+            "family_count >= 5": true,
+            "backward_scenarios >= 4": true,
+            "optimizer_state_scenarios >= 2": true,
+            "max_abs_error <= 0.02": true,
+            "hbm_reduction >= 0.45": true,
+            "launch_reduction >= 0.45": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -812,12 +1661,28 @@
         "max_speedup_vs_baseline >= 2.0",
         "max_wasted_draft_ratio > 0.35"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "cuda_available == true": true,
+            "speculative_scenarios >= 6": true,
+            "passed_scenarios >= 4": true,
+            "engine_count >= 4": true,
+            "scheduler_policy_count >= 2": true,
+            "min_acceptance_rate < 0.50": true,
+            "max_speedup_vs_baseline >= 2.0": true,
+            "max_wasted_draft_ratio > 0.35": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "cuda_available == true": true,
@@ -873,25 +1738,45 @@
         "ncu/nsys or rocprof available",
         "profiler_rows >= 9"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 0,
-      "failed_measured_rows": 1,
+      "real_measured_rows": 3,
+      "accepted_measured_rows": 1,
+      "failed_measured_rows": 2,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
           "row_status": "skipped:missing-profiler-tools",
           "checks": {
-            "ncu/nsys or rocprof available": false,
+            "ncu/nsys or rocprof available": true,
             "profiler_rows >= 9": true
           },
-          "checks_passed": false,
+          "checks_passed": true,
           "accepted": false
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "skipped:missing-profiler-tools",
+          "checks": {
+            "ncu/nsys or rocprof available": true,
+            "profiler_rows >= 9": true
+          },
+          "checks_passed": true,
+          "accepted": false
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "passed",
+          "checks": {
+            "ncu/nsys or rocprof available": true,
+            "profiler_rows >= 9": true
+          },
+          "checks_passed": true,
+          "accepted": true
         }
       ],
       "has_metric_contract": true,
       "has_commands": true,
       "has_expected_evidence": true,
-      "measurement_status": "measured-failed"
+      "measurement_status": "measured-accepted"
     },
     {
       "step_id": "rocm-hip-port",
@@ -925,12 +1810,23 @@
         "rocprof == true",
         "starter_status == ran"
       ],
-      "real_measured_rows": 1,
+      "real_measured_rows": 2,
       "accepted_measured_rows": 0,
-      "failed_measured_rows": 1,
+      "failed_measured_rows": 2,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "skipped:missing-hipcc-or-rocprof",
+          "checks": {
+            "hipcc == true": false,
+            "rocprof == true": false,
+            "starter_status == ran": false
+          },
+          "checks_passed": false,
+          "accepted": false
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "skipped:missing-hipcc-or-rocprof",
           "checks": {
             "hipcc == true": false,
@@ -991,9 +1887,9 @@
         "overlap_gain > 0",
         "nccl_or_rccl == true"
       ],
-      "real_measured_rows": 1,
+      "real_measured_rows": 3,
       "accepted_measured_rows": 0,
-      "failed_measured_rows": 1,
+      "failed_measured_rows": 3,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
@@ -1005,6 +1901,34 @@
             "bandwidth_efficiency >= 0.45": true,
             "overlap_gain > 0": true,
             "nccl_or_rccl == true": true
+          },
+          "checks_passed": false,
+          "accepted": false
+        },
+        {
+          "run_id": "colab-full-20260908",
+          "row_status": "skipped:missing-measured-collective-benchmark",
+          "checks": {
+            "torchrun == true": false,
+            "accelerator_ready == true": true,
+            "collective_scenarios >= 6": true,
+            "bandwidth_efficiency >= 0.45": true,
+            "overlap_gain > 0": true,
+            "nccl_or_rccl == true": true
+          },
+          "checks_passed": false,
+          "accepted": false
+        },
+        {
+          "run_id": "colab-t4-promoted-20260907",
+          "row_status": "partial:world-size-one",
+          "checks": {
+            "torchrun == true": false,
+            "accelerator_ready == true": false,
+            "collective_scenarios >= 6": false,
+            "bandwidth_efficiency >= 0.45": false,
+            "overlap_gain > 0": false,
+            "nccl_or_rccl == true": false
           },
           "checks_passed": false,
           "accepted": false
@@ -1058,12 +1982,27 @@
         "step_time_ms > 0",
         "optimizer_state_savings > 0"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "torchrun == true": true,
+            "accelerator_ready == true": true,
+            "training_optimizer_scenarios >= 6": true,
+            "passed_scenarios >= 4": true,
+            "max_memory_gb_per_gpu <= 80": true,
+            "step_time_ms > 0": true,
+            "optimizer_state_savings > 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "torchrun == true": true,
@@ -1117,12 +2056,23 @@
         "metric_count >= 79",
         "failed_metrics == 0"
       ],
-      "real_measured_rows": 1,
-      "accepted_measured_rows": 1,
+      "real_measured_rows": 2,
+      "accepted_measured_rows": 2,
       "failed_measured_rows": 0,
       "measurement_evaluations": [
         {
           "run_id": "colab-advanced-phase",
+          "row_status": "passed",
+          "checks": {
+            "accelerator_ready == true": true,
+            "metric_count >= 79": true,
+            "failed_metrics == 0": true
+          },
+          "checks_passed": true,
+          "accepted": true
+        },
+        {
+          "run_id": "colab-full-20260908",
           "row_status": "passed",
           "checks": {
             "accelerator_ready == true": true,

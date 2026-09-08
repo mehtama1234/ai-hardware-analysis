@@ -1,0 +1,20 @@
+#include <cuda_runtime.h>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <vector>
+
+__global__ void paged_attention(const float*, const float*, const int*, const int*, float*, int, int, int, int, int, int);
+static void check(cudaError_t e, const char* where) { if (e != cudaSuccess) { std::cerr << where << ": " << cudaGetErrorString(e) << "\n"; std::exit(2); } }
+
+int main() {
+    int devices = 0; check(cudaGetDeviceCount(&devices), "device count"); if (!devices) return 2;
+    constexpr int sequences=3, max_pages=4, heads=2, page_size=4, head_dim=8, max_tokens=16, page_count=12;
+    size_t query_values=(size_t)sequences*heads*head_dim, page_values=(size_t)page_count*heads*page_size*head_dim, output_values=query_values;
+    std::vector<float> q(query_values), pages(page_values), out(output_values), oracle(output_values); std::vector<int> table={5,1,9,0,7,3,11,2,8,6,4,10}, lengths={7,5,10};
+    for (size_t i=0;i<q.size();++i) q[i]=std::sin((float)i*0.17f); for(size_t i=0;i<pages.size();++i) pages[i]=std::cos((float)i*0.013f);
+    for(int s=0;s<sequences;++s) for(int h=0;h<heads;++h) for(int d=0;d<head_dim;++d){ float mx=-1e30f; for(int t=0;t<lengths[s];++t){int pp=table[s*max_pages+t/page_size],ip=t%page_size;float dot=0;for(int k=0;k<head_dim;++k){size_t qi=((size_t)s*heads+h)*head_dim+k,ki=(((size_t)pp*heads+h)*page_size+ip)*head_dim+k;dot+=q[qi]*pages[ki];} mx=std::max(mx,dot/std::sqrt((float)head_dim));}float norm=0;for(int t=0;t<lengths[s];++t){int pp=table[s*max_pages+t/page_size],ip=t%page_size;float dot=0;for(int k=0;k<head_dim;++k){size_t qi=((size_t)s*heads+h)*head_dim+k,ki=(((size_t)pp*heads+h)*page_size+ip)*head_dim+k;dot+=q[qi]*pages[ki];}norm+=std::exp(dot/std::sqrt((float)head_dim)-mx);}for(int d=0;d<head_dim;++d){float value=0;for(int t=0;t<lengths[s];++t){int pp=table[s*max_pages+t/page_size],ip=t%page_size;float dot=0;for(int k=0;k<head_dim;++k){size_t qi=((size_t)s*heads+h)*head_dim+k,ki=(((size_t)pp*heads+h)*page_size+ip)*head_dim+k;dot+=q[qi]*pages[ki];}float weight=std::exp(dot/std::sqrt((float)head_dim)-mx)/norm;size_t vi=(((size_t)pp*heads+h)*page_size+ip)*head_dim+d;value+=weight*pages[vi];}oracle[((size_t)s*heads+h)*head_dim+d]=value;}}
+    float *dq,*dp,*do_;int *dt,*dl;check(cudaMalloc(&dq,q.size()*sizeof(float)),"q");check(cudaMalloc(&dp,pages.size()*sizeof(float)),"pages");check(cudaMalloc(&do_,out.size()*sizeof(float)),"out");check(cudaMalloc(&dt,table.size()*sizeof(int)),"table");check(cudaMalloc(&dl,lengths.size()*sizeof(int)),"lengths");check(cudaMemcpy(dq,q.data(),q.size()*sizeof(float),cudaMemcpyHostToDevice),"q copy");check(cudaMemcpy(dp,pages.data(),pages.size()*sizeof(float),cudaMemcpyHostToDevice),"page copy");check(cudaMemcpy(dt,table.data(),table.size()*sizeof(int),cudaMemcpyHostToDevice),"table copy");check(cudaMemcpy(dl,lengths.data(),lengths.size()*sizeof(int),cudaMemcpyHostToDevice),"length copy");
+    auto launch=[&](){paged_attention<<<sequences*heads,128>>>(dq,dp,dt,dl,do_,sequences,max_pages,heads,page_size,head_dim,max_tokens);}; launch();check(cudaGetLastError(),"launch");check(cudaDeviceSynchronize(),"sync");check(cudaMemcpy(out.data(),do_,out.size()*sizeof(float),cudaMemcpyDeviceToHost),"out copy");float error=0;for(size_t i=0;i<out.size();++i)error=std::max(error,std::abs(out[i]-oracle[i]));cudaEvent_t a,b;check(cudaEventCreate(&a),"event");check(cudaEventCreate(&b),"event");std::vector<float> samples;for(int i=0;i<30;++i){check(cudaEventRecord(a),"start");launch();check(cudaEventRecord(b),"stop");check(cudaEventSynchronize(b),"event sync");float ms=0;check(cudaEventElapsedTime(&ms,a,b),"elapsed");if(i>=5)samples.push_back(ms);}std::sort(samples.begin(),samples.end());
+    std::cout<<"{\"status\":\"passed\",\"gpu_execution_accepted\":true,\"sequences\":"<<sequences<<",\"max_abs_error\":"<<error<<",\"median_ms\":"<<samples[samples.size()/2]<<"}\n";cudaFree(dq);cudaFree(dp);cudaFree(do_);cudaFree(dt);cudaFree(dl);cudaEventDestroy(a);cudaEventDestroy(b);return error<2e-5f?0:1;
+}

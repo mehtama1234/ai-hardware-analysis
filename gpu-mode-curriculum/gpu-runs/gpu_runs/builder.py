@@ -109,7 +109,9 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for key, value in report["coverage"].items():
         lines.append(f"- `{key}`: `{value}`")
-    lines.extend(["", "## Imported Steps", "", "| run | host | accelerator | step | status | metrics |", "|---|---|---|---|---|---:|"])
+    lines.extend(["", "## Validation", "", f"- `covered_gpu_host_steps`: `{report['validation']['covered_gpu_host_steps']}`",
+                  f"- `missing_gpu_host_steps`: `{report['validation']['missing_gpu_host_steps']}`",
+                  "", "## Imported Steps", "", "| run | host | accelerator | step | status | metrics |", "|---|---|---|---|---|---:|"])
     for row in report["rows"]:
         lines.append(
             f"| `{row['run_id']}` | {row['host']} | {row['accelerator']} | "

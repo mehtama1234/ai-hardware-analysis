@@ -31,6 +31,13 @@ REQUIRED_STEPS = {
     "distributed-training-optimizer",
     "full-gpu-regression",
 }
+PROMOTION_MANIFEST = ROOT / "gpu-promotion" / "gpu-host-promotion-manifest.json"
+
+
+def promotion_step_ids() -> set[str]:
+    manifest = load_json(PROMOTION_MANIFEST, {})
+    ids = {row.get("id") for row in manifest.get("steps", []) if row.get("id")}
+    return ids or REQUIRED_STEPS
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -49,7 +56,7 @@ def _paths() -> list[tuple[str, Path]]:
     ]
 
 
-def _lint_run(kind: str, path: Path, run: dict[str, Any]) -> dict[str, Any]:
+def _lint_run(kind: str, path: Path, run: dict[str, Any], required_steps: set[str]) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
     provenance = run.get("provenance", {})
@@ -94,9 +101,9 @@ def _lint_run(kind: str, path: Path, run: dict[str, Any]) -> dict[str, Any]:
         status = step.get("status")
         metrics = step.get("metrics", {})
         evidence = step.get("evidence", [])
-        if step_id not in REQUIRED_STEPS:
+        if step_id not in required_steps:
             errors.append(f"step {index} has unknown id {step_id!r}")
-        if status not in ALLOWED_STEP_STATUSES and not str(status).startswith("skipped:"):
+        if status not in ALLOWED_STEP_STATUSES and not str(status).startswith(("skipped:", "partial:")):
             errors.append(f"step {step_id} has invalid status {status!r}")
         if not isinstance(metrics, dict) or not metrics:
             errors.append(f"step {step_id} missing metrics")
@@ -105,8 +112,8 @@ def _lint_run(kind: str, path: Path, run: dict[str, Any]) -> dict[str, Any]:
         if provenance_kind == "real-measured" and status == "passed" and not metrics:
             errors.append(f"real-measured passed step {step_id} has no metrics")
 
-    if kind == "import" and not REQUIRED_STEPS.issubset(step_ids):
-        warnings.append(f"import covers {len(step_ids & REQUIRED_STEPS)}/{len(REQUIRED_STEPS)} promotion steps")
+    if kind == "import" and not required_steps.issubset(step_ids):
+        warnings.append(f"import covers {len(step_ids & required_steps)}/{len(required_steps)} promotion steps")
 
     return {
         "path": str(path.relative_to(ROOT)),
@@ -148,7 +155,8 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 def lint_imports() -> dict[str, Any]:
     REPORT_MD.parent.mkdir(parents=True, exist_ok=True)
-    files = [_lint_run(kind, path, load_json(path, {})) for kind, path in _paths()]
+    required_steps = promotion_step_ids()
+    files = [_lint_run(kind, path, load_json(path, {}), required_steps) for kind, path in _paths()]
     error_count = sum(row["error_count"] for row in files)
     warning_count = sum(row["warning_count"] for row in files)
     import_files = [row for row in files if row["kind"] == "import"]

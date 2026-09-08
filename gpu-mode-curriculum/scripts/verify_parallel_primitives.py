@@ -34,6 +34,9 @@ def main() -> int:
     if not REPORT.exists():
         subprocess.run([sys.executable, "scripts/run_parallel_primitives.py"], cwd=ROOT, check=True)
     report = load_json(REPORT)
+    require(report.get("evidence_kind") == "analytical" and report.get("measured") is False,
+            "scenario model must not be labeled measured")
+    require(report.get("gpu_execution_accepted") is False, "scenario model cannot accept GPU execution")
     scenarios = report.get("scenarios", [])
     require(report.get("status") == "parallel-primitives-ready", "parallel-primitives report is not ready")
     require(report.get("scenario_count") == len(scenarios) >= 6, "scenario count mismatch")
@@ -43,6 +46,8 @@ def main() -> int:
     require(REQUIRED_SOURCES.issubset(set(report.get("source_reports", []))), "missing source reports")
     require(report.get("gpu_host_promotion", {}).get("required") is True, "GPU promotion must be required")
     for row in scenarios:
+        require(row.get("evidence_kind") == "analytical" and row.get("measured") is False
+                and row.get("numerical_correctness_status") == "not_executed", "scenario evidence boundary missing")
         sid = row.get("scenario_id")
         require(row.get("work_efficiency", 0) > 1.0, f"{sid} lacks work efficiency")
         require(row.get("memory_traffic_mb", 0) > 0, f"{sid} lacks memory traffic")

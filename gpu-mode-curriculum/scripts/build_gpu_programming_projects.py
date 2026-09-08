@@ -127,20 +127,7 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 ''',
-    "kernel.hip.cpp": r'''
-#include <hip/hip_runtime.h>
-#include <stdio.h>
-
-__global__ void hip_vector_add(const float* a, const float* b, float* c, int n) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < n) c[i] = a[i] + b[i];
-}
-
-int main() {
-  printf("{\"status\":\"source-only\",\"next\":\"compile with hipcc on a ROCm machine\"}\n");
-  return 0;
-}
-''',
+    "kernel.hip.cpp": (Path(__file__).parent / "project_templates/hip_vector_add.cpp").read_text(),
     "scheduler.py": r'''
 from dataclasses import dataclass
 
@@ -353,8 +340,17 @@ def measure_text(project: dict[str, str], diagnosis: dict[str, Any]) -> str:
                     "stderr_tail": proc.stderr.strip()[-2000:],
                 }},
             }}
+            if {project["id"] == "rocm-hip-port"}:
+                artifact["metadata_checks"] = artifact["correctness"]["checks"]
+                artifact["metadata_checks"]["source_named"] = starter_payload.get("source") == "kernel.hip.cpp"
+                artifact["correctness"] = {{"status": "not_executed", "checks": {{}},
+                    "reason": "readiness starter does not compile or invoke native validation"}}
+                artifact["gpu_execution_accepted"] = False
+                artifact["measured"] = False
             OUT.write_text(json.dumps(artifact, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
             print(json.dumps({{"status": artifact["status"], "path": OUT.name, "correctness": artifact["correctness"]["status"]}}, indent=2))
+            if {project["id"] == "rocm-hip-port"}:
+                return 0 if all(artifact["metadata_checks"].values()) else 1
             return 0 if artifact["correctness"]["status"] == "passed" else 1
 
 

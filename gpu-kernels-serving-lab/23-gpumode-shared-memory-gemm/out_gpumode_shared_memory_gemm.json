@@ -1,43 +1,63 @@
 {
   "session": "23-gpumode-shared-memory-gemm",
-  "timestamp": "2026-08-30T07:17:09.373193+00:00",
+  "timestamp": "2026-09-08T06:27:53.960418+00:00",
+  "provenance": {
+    "git_revision": "a1e85206420cc942932fef2da4c0896d2c33737f",
+    "worktree_dirty": true,
+    "source_sha256": {
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py": "365ef25f2e91bd8fcb9dfcc1b3784c1d3960630a9ea4c40f53387e93f1c9aaf8",
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/shared_memory_gemm.cu": "66fde5e6ec4d3cb0fa297417d41fbe8728072a5648bc114a46039ccd61050a5f",
+      "gpu-kernels-serving-lab/common/__init__.py": "fba100f4d5a0c7a23887ef486160214309a5c13a9bffc06656a307e2900e8e5f",
+      "gpu-kernels-serving-lab/common/bench.py": "d7b592f65489267ff2d5a731a42219d39a1147ae796d88292358062cda59eb4b",
+      "gpu-kernels-serving-lab/common/gpu_info.py": "647162b645b245b6b9f9a7109e14b8a10667f078722ae02b2bb756603ee85c22",
+      "gpu-kernels-serving-lab/common/provenance.py": "476e60591b7efd1d856b250ed1bd785c696e3cb10856c7fabcb9823c4753a24d"
+    },
+    "python": "3.10.12 (main, Jun 22 2026, 18:55:27) [GCC 11.4.0]",
+    "imported_source_files": [
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py",
+      "gpu-kernels-serving-lab/common/__init__.py",
+      "gpu-kernels-serving-lab/common/bench.py",
+      "gpu-kernels-serving-lab/common/gpu_info.py",
+      "gpu-kernels-serving-lab/common/provenance.py"
+    ],
+    "python_executable": "/tmp/gpu-checkpoint-repro-CIEqu4/venv/bin/python",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "invocation": [
+      "/tmp/gpu-checkpoint-repro-CIEqu4/venv/bin/python",
+      "gpu-kernels-serving-lab/23-gpumode-shared-memory-gemm/run.py"
+    ],
+    "scope": "explicit sources plus imported local Python modules at capture time; excludes unexecuted branches, data files, third-party package sources and environment locks"
+  },
   "inventory": {
     "session": "23-gpumode-shared-memory-gemm",
-    "timestamp": "2026-08-30T07:17:09.373242+00:00",
+    "timestamp": "2026-09-08T06:27:54.999740+00:00",
     "host": "MithusLaptop",
     "software": {
       "python": "3.10.12",
       "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
       "packages": {
-        "torch": "2.4.1",
-        "triton": "3.0.0",
-        "transformers": "5.12.1",
-        "accelerate": "1.14.0",
+        "torch": "2.4.1+cpu",
+        "triton": null,
+        "transformers": null,
+        "accelerate": null,
         "bitsandbytes": null,
         "vllm": null,
-        "jax": "0.6.2",
-        "jaxlib": "0.6.2"
+        "jax": null,
+        "jaxlib": null
       }
     },
     "torch": {
       "installed": true,
-      "version": "2.4.1+cu121",
+      "version": "2.4.1+cpu",
       "cuda_available": false,
-      "cuda_version": "12.1",
+      "cuda_version": null,
       "hip_version": null,
       "mps_available": false,
       "devices": []
     },
     "jax": {
-      "installed": true,
-      "version": "0.6.2",
-      "devices": [
-        {
-          "platform": "cpu",
-          "device_kind": "cpu",
-          "id": 0
-        }
-      ]
+      "installed": false,
+      "import_error": "No module named 'jax'"
     },
     "commands": {
       "nvidia-smi": {
@@ -458,27 +478,93 @@
       32
     ],
     "tile": 8,
+    "seed": 23,
+    "torch_version": "2.4.1+cpu",
+    "cpu_threads": 2,
     "rows": [
       {
         "path": "naive_cpu_loop",
-        "seconds": 0.366288,
-        "gflops": 0.0002,
-        "max_abs_error": 3e-06,
-        "purpose": "Readable baseline matching one CUDA thread per output element."
+        "seconds": 0.6381799400041928,
+        "gflops": 0.0001,
+        "max_abs_error": 1e-06,
+        "purpose": "Readable baseline matching one CUDA thread per output element.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          0.694308252997871,
+          0.6381799400041928,
+          0.5275461579949479
+        ],
+        "warmup": 1,
+        "repeat": 3,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 6.451965610665411e-07,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
       },
       {
         "path": "tiled_cpu_proxy",
-        "seconds": 0.00134,
-        "gflops": 0.0489,
-        "max_abs_error": 4e-06,
-        "purpose": "Shows tile reuse and accumulation shape before moving to shared memory."
+        "seconds": 0.0027635689984890632,
+        "gflops": 0.0237,
+        "max_abs_error": 2e-06,
+        "purpose": "Shows tile reuse and accumulation shape before moving to shared memory.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          0.002748550999967847,
+          0.0027635689984890632,
+          0.0025266890006605536,
+          0.0027663149958243594,
+          0.0032149699982255697
+        ],
+        "warmup": 1,
+        "repeat": 5,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 2.4027295992823383e-06,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
       },
       {
         "path": "torch_matmul_reference",
-        "seconds": 7e-06,
-        "gflops": 8.876,
-        "max_abs_error": 0.0,
-        "purpose": "Vendor/library-style reference for correctness and scale contrast."
+        "seconds": 9.467501513427123e-06,
+        "gflops": 6.9222,
+        "max_abs_error": 3.2695755525224968e-06,
+        "purpose": "Vendor/library-style reference for correctness and scale contrast.",
+        "evidence_kind": "measured_cpu",
+        "samples_seconds": [
+          1.3044998922850937e-05,
+          1.028899714583531e-05,
+          9.59799945121631e-06,
+          4.8472000344190747e-05,
+          9.609000699128956e-06,
+          9.237999620381743e-06,
+          8.817005436867476e-06,
+          9.337003575637937e-06,
+          9.156996384263039e-06,
+          9.046998457051814e-06
+        ],
+        "warmup": 2,
+        "repeat": 10,
+        "correctness": {
+          "passed": true,
+          "max_abs_error": 3.2695755525224968e-06,
+          "atol": 0.0001,
+          "rtol": 1e-05,
+          "reference": "torch CPU FP64 matmul",
+          "finite_and_shape_match": true
+        },
+        "timing_scope": "CPU host wall clock including output allocation and Python dispatch; inputs preallocated",
+        "synchronization": "CPU synchronous operations"
       }
     ],
     "traffic_model": {
@@ -495,9 +581,10 @@
       "tiled_bytes_upper_bound": 36864,
       "modeled_global_memory_reduction_pct": 86.154,
       "naive_arithmetic_intensity_flop_per_byte": 0.2462,
-      "tiled_arithmetic_intensity_flop_per_byte": 1.7778
+      "tiled_arithmetic_intensity_flop_per_byte": 1.7778,
+      "evidence_kind": "analytical"
     },
-    "tiled_vs_naive_speedup": 273.2653,
+    "tiled_vs_naive_speedup": 230.926,
     "finding": "A 8x8 tile raises modeled arithmetic intensity from 0.2462 to 1.7778 FLOP/byte and cuts modeled global-memory traffic by 86.154%."
   },
   "cuda": {
@@ -506,6 +593,422 @@
     "source": "shared_memory_gemm.cu",
     "boundary": "CUDA source is present, but compiling/running requires the NVIDIA CUDA toolkit and a visible CUDA device."
   },
+  "cuda_cases": [
+    {
+      "status": "skipped",
+      "reason": "nvcc not found on PATH",
+      "source": "shared_memory_gemm.cu",
+      "boundary": "CUDA source is present, but compiling/running requires the NVIDIA CUDA toolkit and a visible CUDA device."
+    }
+  ],
+  "correctness_cases": [
+    {
+      "case": "scalar",
+      "path": "naive_cpu_loop",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "scalar",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "scalar",
+      "path": "torch_matmul_reference",
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "tile": 8,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.0641869607752596e-09,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "naive_cpu_loop",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 2.2011018607770438e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 3.83931327618825e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "rectangular-tail",
+      "path": "torch_matmul_reference",
+      "shape": [
+        5,
+        7,
+        11
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          11,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 4.801308901569712e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "naive_cpu_loop",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 1.557332325319294e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 4.1723342203425773e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "noncontiguous",
+      "path": "torch_matmul_reference",
+      "shape": [
+        9,
+        3,
+        5
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          1,
+          9
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 4.1723342203425773e-07,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "naive_cpu_loop",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "zeros",
+      "path": "torch_matmul_reference",
+      "shape": [
+        3,
+        5,
+        7
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          7,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "naive_cpu_loop",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "tiled_cpu_proxy",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    },
+    {
+      "case": "cancellation",
+      "path": "torch_matmul_reference",
+      "shape": [
+        3,
+        4,
+        8
+      ],
+      "tile": 4,
+      "evidence_kind": "measured_cpu",
+      "input_strides": [
+        [
+          8,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "passed": true,
+      "max_abs_error": 0.0,
+      "atol": 0.0001,
+      "rtol": 1e-05,
+      "reference": "torch CPU FP64 matmul",
+      "finite_and_shape_match": true
+    }
+  ],
+  "gpu_execution_accepted": false,
   "correctness": {
     "status": "passed",
     "checks": {
@@ -513,8 +1016,11 @@
       "all_cpu_paths_finite": true,
       "naive_correct": true,
       "tiled_correct": true,
+      "elementwise_reference_checks": true,
+      "edge_cases_correct": true,
       "modeled_traffic_reduction": true,
-      "cuda_path_classified": true
+      "cuda_path_classified": true,
+      "cuda_correct_if_executed": true
     }
   },
   "boundary": "This lab focuses on the shared-memory GEMM idea that sits between naive CUDA matmul and CUTLASS/Tensor Core kernels. Local CPU proxy numbers prove correctness and reuse math; CUDA timing is recorded only when the machine can compile and run it."
