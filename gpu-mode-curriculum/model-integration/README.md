@@ -101,6 +101,22 @@ same full SDPA block; raw CPU call latencies and final cache payload bytes are
 recorded. These are not generated tokens, end-user TTFT, a server load test,
 peak memory, or GPU performance evidence. Real serving integration remains open.
 
+## CUDA graph tail-load acceptance
+
+```bash
+python3 gpu-mode-curriculum/model-integration/run_serving_tail_load_cuda.py \
+  --mode cuda_graph_microbatch
+```
+
+On an authorized CUDA host this runs the neural HTTP endpoint at concurrency
+1/2/4/8 with 12 requests per level. The accepted T4 artifact
+`gpu-runs/imports/colab-t4-serving-tail-graphs-20260908-r2/serving-tail-load-cuda.json`
+records synchronized CUDA-event spans, wall-latency p50/p95/max, backend and
+batch-mode labels, exact output parity, and scheduler rejection/cancellation
+accounting. It proves a bounded single-device loopback result for the graph
+microbatch path; it is not production capacity, trained-model quality, or
+multi-GPU evidence.
+
 ## Packed-weight block inference
 
 ```bash

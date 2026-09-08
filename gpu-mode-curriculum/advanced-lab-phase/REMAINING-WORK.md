@@ -12,7 +12,7 @@ one progression through GEMM, attention, and a small training/inference block.
 | Attention | Materialized and recomputed derivatives, gradcheck, saved-tensor instrumentation | Fused accelerator kernels, peak allocator measurements, shape/dtype sweeps, dropout/GQA where supported |
 | Compiler/layout/synthesis | CPU Inductor operation and whole-transformer forward/backward execution; generated code, gradient/optimizer checks and raw timings; Triton CUDA matmul plus memory/reduction/softmax/layernorm family promotions, including a fixed tail-mask bug | Broader application shapes, full GPU/DSL comparisons, profiler explanations, autotune breadth, bounded synthesis and broader held-out correctness |
 | Low precision | Actual packed INT4 buffers, tail tests, conversion-inclusive timings, transformer storage/drift, three predeclared trained digits seed/split quality checks, accepted native CUDA FP16 plus INT8 GEMM evidence, and one accepted CUDA trained-digits quality run | Native INT4/FP8/MX kernels; broader models/workloads and joint memory/performance/quality evidence; rejected configurations and stronger statistical coverage |
-| Application integration | Paired optimizer checks; CPU block benchmarks; cached-vector replay; trained autoregressive HTTP backend; accepted single-T4 CUDA KV-cache decode/HTTP parity; repeated three-seed trained-quality protocol; bounded admission, queue rejection, cancellation, microbatch HTTP controls, tail-load sweep, and paged-cache/attention correctness | Production-scale trained quality; kernel-to-application comparisons; GPU tail-load studies; production cancellation semantics; multi-GPU serving |
+| Application integration | Paired optimizer checks; CPU block benchmarks; cached-vector replay; trained autoregressive HTTP backend; accepted single-T4 CUDA KV-cache decode/HTTP parity; repeated three-seed trained-quality protocol; bounded admission, queue rejection, cancellation, microbatch HTTP controls, accepted single-T4 CUDA graph tail-load sweep, and paged-cache/attention correctness | Production-scale trained quality; kernel-to-application comparisons; production-scale GPU capacity/tail characterization; production cancellation semantics; multi-GPU serving |
 | Distributed/portable | CPU two-rank request dispatch with rank ownership, global ordering, unique IDs, output parity, and peer agreement; one-rank NCCL smoke, bounded multi-rank NCCL runner, and bounded multi-rank sharded-MoE runner | Measured multi-GPU/all-to-all performance and second-platform experiments; no local hardware acceptance |
 | Publication | Linked walkthroughs, six exercises tied to tested reference solutions, complete 24-topic source registry, regression command, and rendered evidence page with source/test freshness checks | Independent-host reproduction and continued evidence-page expansion |
 
@@ -47,11 +47,13 @@ one progression through GEMM, attention, and a small training/inference block.
 - `../model-integration/run_serving_tail_load_cuda.py` now has an executable
   report contract: every accepted GPU report must include synchronized
   per-wave CUDA-event timing, p95 wall latency, exact output parity, observed
-  vectorized batching, and scheduler accounting. The local run records
-  `unavailable:cuda-runtime` with `measured: false`; a real accelerator-host
-  execution is still required for GPU tail-load acceptance. The Colab promotion
-  index now records the absent accepted `serving-tail-load-cuda` artifact as an
-  explicit handoff gap rather than treating it as a measurement.
+  vectorized batching, backend labels, and scheduler accounting. The local run
+  remains `unavailable:cuda-runtime` with `measured: false`, while
+  `colab-t4-serving-tail-graphs-20260908-r2` is an accepted single-T4 run of
+  the CUDA-graph microbatch mode: 12 requests at concurrency 1/2/4/8, all
+  accepted, parity-preserving, with graph-vectorized batches at concurrent
+  levels and zero scheduler rejection/cancellation. This is bounded loopback
+  evidence, not production capacity or cancellation proof.
 - `../../gpu-kernels-serving-lab/08-quantized-inference/run.py` simulates
   quantization and returns dequantized floating values. Its memory estimates are
   bit-budget models, not measured packed storage. Original block helpers truncated
@@ -135,6 +137,13 @@ CUDA, HIP, Nsight, and independent-host execution remain open where not covered
 by the accepted imported or local evidence.
 
 ## Current continuation state (2026-09-08)
+
+The serving acceptance lane now has a measured GPU tail-load artifact:
+`gpu-runs/imports/colab-t4-serving-tail-graphs-20260908-r2/serving-tail-load-cuda.json`.
+The first run exposed and then fixed a verifier bug that failed to recognize
+the explicit `cuda-graph-vectorized` batch label; the corrected rerun passed
+the report contract. The handoff supports both the original eager microbatch
+mode and the graph-microbatch mode.
 
 The current evidence ledger contains 32 measured GPU promotion tasks, of which
 30 are accepted. The native WMMA probe was expanded to nine independent
