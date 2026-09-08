@@ -139,6 +139,22 @@ class ServingControlTests(unittest.TestCase):
         finally:
             scheduler.close()
 
+    def test_http_cancellation_contract_cancels_queued_future(self):
+        scheduler = MicroBatchScheduler(FakeGenerator(), max_batch=1, window_ms=50, max_pending=4)
+        try:
+            future = scheduler.submit("queued", 1)
+            self.assertTrue(server.cancel_pending_request(future))
+            # Let the worker observe the cancelled future before inspecting
+            # accounting; this is the same boundary used by Handler.
+            for _ in range(100):
+                if scheduler.snapshot()["cancelled_count"]:
+                    break
+                threading.Event().wait(0.005)
+            self.assertTrue(future.cancelled())
+            self.assertEqual(scheduler.snapshot()["cancelled_count"], 1)
+        finally:
+            scheduler.close()
+
 
 if __name__ == "__main__":
     unittest.main()

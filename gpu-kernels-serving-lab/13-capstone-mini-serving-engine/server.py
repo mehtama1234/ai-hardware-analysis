@@ -76,6 +76,17 @@ ADMISSION = None
 MICRO_BATCH = None
 
 
+def cancel_pending_request(future) -> bool:
+    """Cancel queued work when the HTTP owner no longer needs its result.
+
+    ``Future.cancel`` is deliberately the only cancellation primitive exposed
+    here: the scheduler can remove a not-yet-started request from a batch, but
+    it cannot safely interrupt a model call already executing on the worker or
+    GPU.  The worker records successful cancellations in its snapshot.
+    """
+    return future is not None and future.cancel()
+
+
 def validate_request(body, *, batch):
     """Bound teaching requests before either backend performs work."""
     if not isinstance(body, dict):
@@ -113,6 +124,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         lease = None
+        scheduled_future = None
         try:
             if self.path not in {"/v1/completions", "/v1/batch_completions", "/v1/stream"}:
                 self._json(404, {"error": "not found"})
@@ -176,7 +188,12 @@ class Handler(BaseHTTPRequestHandler):
             started = time.perf_counter()
             if MICRO_BATCH is not None:
                 try:
-                    scheduled = MICRO_BATCH.submit(prompt, max_tokens).result(timeout=10)
+                    scheduled_future = MICRO_BATCH.submit(prompt, max_tokens)
+                    scheduled = scheduled_future.result(timeout=10)
+                except TimeoutError:
+                    cancel_pending_request(scheduled_future)
+                    self._json(504, {"error": "microbatch_timeout", "scheduler": MICRO_BATCH.snapshot()})
+                    return
                 except Exception as exc:
                     # queue.Full is deliberately surfaced as bounded HTTP
                     # backpressure; other scheduler errors remain server errors.
@@ -209,6 +226,11 @@ class Handler(BaseHTTPRequestHandler):
                     "admission_queue_wait_ms": round(lease.queue_wait_ms, 4) if lease else 0.0,
                 },
             )
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # A client can disappear while queued.  Cancellation is best
+            # effort: if the worker already started the batch, Future.cancel()
+            # correctly returns false and the in-flight model call completes.
+            cancel_pending_request(scheduled_future)
         except (ValueError, TypeError) as exc:
             self._json(400, {"error": str(exc)})
         except Exception as exc:
