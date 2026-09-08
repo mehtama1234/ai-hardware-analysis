@@ -305,6 +305,7 @@ class NeuralGenerator:
         bundle = self._cuda_graph_single_bundle(prompt, max_tokens)
         bundle["cache_k"].copy_(bundle["seed_k"])
         bundle["cache_v"].copy_(bundle["seed_v"])
+        bundle["static_input"].copy_(bundle["first_token"])
         bundle["graph"].replay()
         return bundle["static_tokens"][0].tolist()
 
