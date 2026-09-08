@@ -59,6 +59,8 @@ def main() -> int:
     require(serving.get("evidence_kind") in {"measured_cpu", "measured_gpu"}, "invalid serving evidence kind")
     require(serving.get("protocol", {}).get("concurrency_levels") == [1, 2, 4], "serving concurrency protocol changed")
     checks = serving.get("checks", {})
+    require(checks.get("serving_search_candidates_accepted") is True, "serving candidate parity gate failed")
+    require(checks.get("serving_search_selection_present") is True, "serving candidate selection missing")
     workload_ids = ["short-context", "long-context", "long-decode"]
     keys = [f"{workload}_{level}" for workload in workload_ids for level in [1, 2, 4]]
     require(all(checks.get(f"cross_mode_output_parity_{key}") is True for key in keys), "serving output parity failed")

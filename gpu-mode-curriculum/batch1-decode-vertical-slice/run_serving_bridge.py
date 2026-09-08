@@ -145,6 +145,23 @@ def _request(endpoint: str, prompt: str, max_tokens: int) -> dict:
     return {"latency_ms": (time.perf_counter() - started) * 1000.0, "payload": payload}
 
 
+def _serving_candidate_search(reference: dict, candidates: dict[str, dict]) -> dict:
+    """Select the fastest parity-preserving serving backend for one bucket."""
+    rows = []
+    reference_outputs = reference["output_texts"]
+    for candidate_id, candidate in candidates.items():
+        output_parity = candidate["output_texts"] == reference_outputs
+        rows.append({
+            "candidate_id": candidate_id,
+            "latency_ms_median": candidate["latency_ms_median"],
+            "output_parity": output_parity,
+            "accepted": output_parity and candidate["accepted"] == reference["accepted"],
+        })
+    accepted = [row for row in rows if row["accepted"]]
+    selected = min(accepted, key=lambda row: row["latency_ms_median"]) if accepted else None
+    return {"candidates": rows, "selected": selected["candidate_id"] if selected else None}
+
+
 def _run_mode(mode: str, device: str) -> dict:
     previous = server.GENERATOR, server.ADMISSION, server.MICRO_BATCH
     mode_generator = DecodeModeGenerator(mode, device)
@@ -255,6 +272,29 @@ def main() -> int:
             for left, right in zip(uncached["rows"], cuda_graph_microbatch["rows"]):
                 key = f"{left['workload']}_{left['concurrency']}"
                 checks[f"cuda_graph_microbatch_output_parity_{key}"] = left["output_texts"] == right["output_texts"]
+        mode_reports = {
+            "cached": cached, "preallocated": preallocated, "microbatch": microbatch,
+        }
+        if cuda_graph is not None:
+            mode_reports["cuda_graph"] = cuda_graph
+        if cuda_graph_microbatch is not None:
+            mode_reports["cuda_graph_microbatch"] = cuda_graph_microbatch
+        serving_search = []
+        for reference in uncached["rows"]:
+            key = (reference["workload"], reference["concurrency"])
+            candidates = {
+                mode: next(row for row in report["rows"] if (row["workload"], row["concurrency"]) == key)
+                for mode, report in mode_reports.items()
+            }
+            serving_search.append({
+                "workload": reference["workload"],
+                "concurrency": reference["concurrency"],
+                **_serving_candidate_search(reference, candidates),
+            })
+        checks["serving_search_candidates_accepted"] = all(
+            candidate["accepted"] for bucket in serving_search for candidate in bucket["candidates"]
+        )
+        checks["serving_search_selection_present"] = all(bucket["selected"] for bucket in serving_search)
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -269,6 +309,7 @@ def main() -> int:
             "microbatch": microbatch,
             "cuda_graph_microbatch": cuda_graph_microbatch,
             "cuda_graph": cuda_graph,
+            "serving_candidate_search": serving_search,
             "checks": checks,
             "timing_scope": "loopback HTTP request wall latency including server dispatch and autoregressive generation; excludes client queue wait outside the request",
             "limitations": ["untrained character model", "same-process loopback", "CPU result is not a GPU throughput claim", "no production capacity claim", "microbatching is a separate follow-up comparison"],
