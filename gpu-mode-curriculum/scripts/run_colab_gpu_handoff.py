@@ -97,6 +97,8 @@ def main() -> int:
         commands = [{"cmd": [sys.executable, "gpu-kernels-serving-lab/13-capstone-mini-serving-engine/run_paged_attention_cuda.py"], "required": True}]
     elif mode == "serving-tail":
         commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py"], "required": True}]
+    elif mode == "serving-tail-graphs":
+        commands = [{"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py", "--mode", "cuda_graph_microbatch"], "required": True}]
     elif mode == "digits-quality":
         commands = [{"cmd": [sys.executable, "quantization-memory-formats/run_digits_cuda.py"], "required": True}]
     elif mode == "eager-kernels":

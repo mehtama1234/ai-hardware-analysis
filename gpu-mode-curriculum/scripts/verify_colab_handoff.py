@@ -30,10 +30,14 @@ def main() -> int:
 
     require("COLAB_HANDOFF_MODE" in local and '"serving-tail"' in local,
             "local handoff does not expose serving-tail mode")
+    require("serving-tail-graphs" in local,
+            "local handoff does not expose CUDA-graph tail-load mode")
     require("serving-tail-load-cuda.json" in local,
             "local handoff does not download the serving-tail artifact")
     require('mode == "serving-tail"' in remote,
             "remote handoff does not branch on serving-tail mode")
+    require('mode == "serving-tail-graphs"' in remote and "cuda_graph_microbatch" in remote,
+            "remote handoff does not branch on CUDA-graph tail-load mode")
     require("model-integration/run_serving_tail_load_cuda.py" in remote,
             "remote handoff does not execute the CUDA tail-load runner")
     require(step is not None, "promotion manifest lacks serving-tail-load-cuda")
