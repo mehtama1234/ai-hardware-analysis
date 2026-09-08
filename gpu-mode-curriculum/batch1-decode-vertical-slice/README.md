@@ -102,3 +102,10 @@ selected `cuda-graph` for all three direct-decode workloads, with CUDA-event
 speedups of 2.88x, 3.70x, and 2.78x versus full-prefix recomputation. Every
 candidate passed exact token/logit parity; this is direct decode evidence, not
 yet a replacement for the separate HTTP serving and profiler gates.
+
+The combined handoff
+`colab-t4-batch1-e2e-20260908/` passed all three gates together: decode
+candidate selection, HTTP serving parity at concurrency 1/2/4, and profiler
+capture. It observed CUDA-graph microbatch vectorization and dynamic fallback,
+so the selected direct-decode candidate was exercised through the application
+boundary as well as measured in isolation.

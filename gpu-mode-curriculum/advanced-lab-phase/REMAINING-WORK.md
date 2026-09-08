@@ -153,6 +153,14 @@ Measured CUDA-event speedups versus full-prefix recomputation were 2.88x,
 3.70x, and 2.78x. This closes the candidate-selection control loop for direct
 decode; HTTP serving and profiler evidence remain separate application gates.
 
+The combined end-to-end T4 handoff
+`gpu-runs/imports/colab-t4-batch1-e2e-20260908/` then passed the full decode,
+HTTP serving, and profiler contracts. It preserved output parity at
+concurrency 1/2/4, observed CUDA-graph microbatch vectorization and dynamic
+fallback, and captured both CUDA Graph launches and the preallocated-cache
+kernel. This is a bounded untrained-character-model vertical slice, not a
+production language-quality or capacity claim.
+
 The speculative-decoding lane now also has a measured CUDA control artifact:
 `gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 Five draft/target scenarios passed exact greedy-output parity, acceptance and
