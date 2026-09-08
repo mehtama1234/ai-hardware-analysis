@@ -273,7 +273,7 @@ class NeuralGenerator:
                 )
                 static_logits.copy_(logits[:, -1])
                 static_next.copy_(static_logits.argmax(-1, keepdim=True))
-                static_tokens[:, step].copy_(static_next)
+                static_tokens[:, step:step + 1].copy_(static_next)
                 static_input.copy_(static_next)
 
         for _ in range(2):
