@@ -61,16 +61,20 @@ class CharacterModel(nn.Module):
 class NeuralGenerator:
     model_name = "gpu-lab-untrained-character-transformer"
 
-    def __init__(self, device="cpu", *, hidden=32, heads=4, seed=151):
+    def __init__(self, device="cpu", *, hidden=32, heads=4, seed=151,
+                 context=128, state_dict=None, model_name=None):
         # Preserve the caller's global RNG state; no request mutates weights.
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(seed)
-            self.model = CharacterModel(hidden=hidden, heads=heads).eval()
+            self.model = CharacterModel(context=context, hidden=hidden, heads=heads).eval()
+        if state_dict is not None:
+            self.model.load_state_dict(state_dict)
         self.device = torch.device(device)
         if self.device.type == "cuda" and not torch.cuda.is_available():
             raise RuntimeError("CUDA device requested but CUDA is unavailable")
         self.model = self.model.to(self.device)
-        self.backend = f"untrained-character-transformer-{self.device.type}-kv-h{hidden}"
+        self.backend = model_name or f"untrained-character-transformer-{self.device.type}-kv-h{hidden}"
+        self.model_name = model_name or self.model_name
         self._cuda_graph_cache = {}
         self._cuda_graph_batch_cache = {}
         self._cuda_graph_single_cache = {}

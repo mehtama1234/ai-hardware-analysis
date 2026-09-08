@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
 import queue
 import statistics
@@ -26,6 +27,9 @@ sys.path.insert(0, str(SERVING))
 import server  # noqa: E402
 from microbatch import MicroBatchScheduler  # noqa: E402
 from neural_generator import NeuralGenerator  # noqa: E402
+TRAINED_MODEL_DIR = ROOT / "model-integration"
+sys.path.insert(0, str(TRAINED_MODEL_DIR))
+from trained_serving_model import train_state  # noqa: E402
 
 REPORT = HERE / "reports" / "serving-bridge.json"
 WORKLOADS = (
@@ -41,17 +45,23 @@ GRAPH_POOL_SIZE = 4
 
 
 class DecodeModeGenerator:
-    def __init__(self, mode: str, device: str):
+    def __init__(self, mode: str, device: str, *, state_dict=None, model_name=None):
         self.mode = mode
-        self.backend = f"neural-{mode}-decode"
+        self.backend = f"{model_name or 'neural'}-{mode}-decode"
         if mode == "cuda_graph":
-            self._graph_workers = [NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS) for _ in range(GRAPH_POOL_SIZE)]
+            self._graph_workers = [NeuralGenerator(
+                device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS,
+                state_dict=state_dict, model_name=model_name,
+            ) for _ in range(GRAPH_POOL_SIZE)]
             self._graph_slots = queue.Queue()
             for index in range(GRAPH_POOL_SIZE):
                 self._graph_slots.put(index)
             self.inner = self._graph_workers[0]
         else:
-            self.inner = NeuralGenerator(device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS)
+            self.inner = NeuralGenerator(
+                device, hidden=MODEL_HIDDEN, heads=MODEL_HEADS,
+                state_dict=state_dict, model_name=model_name,
+            )
             self._graph_workers = []
             self._graph_slots = None
         self.model_name = self.inner.model_name
@@ -162,9 +172,9 @@ def _serving_candidate_search(reference: dict, candidates: dict[str, dict]) -> d
     return {"candidates": rows, "selected": selected["candidate_id"] if selected else None}
 
 
-def _run_mode(mode: str, device: str) -> dict:
+def _run_mode(mode: str, device: str, *, state_dict=None, model_name=None) -> dict:
     previous = server.GENERATOR, server.ADMISSION, server.MICRO_BATCH
-    mode_generator = DecodeModeGenerator(mode, device)
+    mode_generator = DecodeModeGenerator(mode, device, state_dict=state_dict, model_name=model_name)
     server.GENERATOR = mode_generator
     server.ADMISSION = None
     server.MICRO_BATCH = None
@@ -227,17 +237,29 @@ def _run_mode(mode: str, device: str) -> dict:
             "scheduler": scheduler.snapshot() if scheduler is not None else None}
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--trained", action="store_true", help="train and serve the synthetic quality-gated model")
+    parser.add_argument("--train-steps", type=int, default=200)
+    args = parser.parse_args(argv)
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        uncached = _run_mode("uncached", device)
-        cached = _run_mode("cached", device)
-        preallocated = _run_mode("preallocated", device)
-        microbatch = _run_mode("microbatch", device)
-        cuda_graph_microbatch = _run_mode("cuda_graph_microbatch", device) if device == "cuda" else None
-        cuda_graph = _run_mode("cuda_graph", device) if device == "cuda" else None
+        state_dict = None
+        model_name = None
+        training = {"trained": False, "quality_passed": False}
+        if args.trained:
+            state_dict, training = train_state(
+                device=torch.device(device), steps=args.train_steps, context=128,
+            )
+            model_name = "trained-synthetic-character"
+        uncached = _run_mode("uncached", device, state_dict=state_dict, model_name=model_name)
+        cached = _run_mode("cached", device, state_dict=state_dict, model_name=model_name)
+        preallocated = _run_mode("preallocated", device, state_dict=state_dict, model_name=model_name)
+        microbatch = _run_mode("microbatch", device, state_dict=state_dict, model_name=model_name)
+        cuda_graph_microbatch = _run_mode("cuda_graph_microbatch", device, state_dict=state_dict, model_name=model_name) if device == "cuda" else None
+        cuda_graph = _run_mode("cuda_graph", device, state_dict=state_dict, model_name=model_name) if device == "cuda" else None
         checks = {
             "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached, preallocated, microbatch, cuda_graph_microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
             "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached, preallocated, microbatch, cuda_graph_microbatch, cuda_graph) if mode is not None for row in mode["rows"]),
@@ -295,6 +317,8 @@ def main() -> int:
             candidate["accepted"] for bucket in serving_search for candidate in bucket["candidates"]
         )
         checks["serving_search_selection_present"] = all(bucket["selected"] for bucket in serving_search)
+        if args.trained:
+            checks["trained_quality_gate"] = training.get("quality_passed") is True
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -302,6 +326,7 @@ def main() -> int:
             "evidence_kind": "measured_gpu" if device == "cuda" else "measured_cpu",
             "device": device,
             "gpu_execution_accepted": device == "cuda" and all(checks.values()),
+            "model_profile": training,
             "protocol": {"workloads": list(WORKLOADS), "model_hidden": MODEL_HIDDEN, "model_heads": MODEL_HEADS, "graph_pool_size": GRAPH_POOL_SIZE, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
             "uncached": uncached,
             "cached": cached,
@@ -312,8 +337,8 @@ def main() -> int:
             "serving_candidate_search": serving_search,
             "checks": checks,
             "timing_scope": "loopback HTTP request wall latency including server dispatch and autoregressive generation; excludes client queue wait outside the request",
-            "limitations": ["untrained character model", "same-process loopback", "CPU result is not a GPU throughput claim", "no production capacity claim", "microbatching is a separate follow-up comparison"],
-            "source_sha256": {str(path.relative_to(REPO)): hashlib.sha256(path.read_bytes()).hexdigest() for path in (Path(__file__).resolve(), SERVING / "server.py", SERVING / "neural_generator.py", SERVING / "microbatch.py")},
+            "limitations": (["synthetic character corpus, not production language quality"] if args.trained else ["untrained character model"]) + ["same-process loopback", "CPU result is not a GPU throughput claim", "no production capacity claim", "microbatching is a separate follow-up comparison"],
+            "source_sha256": {str(path.relative_to(REPO)): hashlib.sha256(path.read_bytes()).hexdigest() for path in (Path(__file__).resolve(), SERVING / "server.py", SERVING / "neural_generator.py", SERVING / "microbatch.py", TRAINED_MODEL_DIR / "trained_serving_model.py")},
         }
         REPORT.parent.mkdir(parents=True, exist_ok=True)
         REPORT.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")

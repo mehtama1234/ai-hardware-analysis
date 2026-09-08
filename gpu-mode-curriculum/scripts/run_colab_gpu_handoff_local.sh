@@ -67,7 +67,7 @@ echo "Executing remote handoff ..."
 colab --auth oauth2 exec -s "${SESSION_NAME}" -f "${ROOT_DIR}/scripts/run_colab_gpu_handoff.py" --timeout "${TIMEOUT_SECONDS}"
 
 echo "Downloading Colab artifacts ..."
-if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" || "${MODE}" == "speculative-cuda" || "${MODE}" == "digits-quality" || "${MODE}" == "eager-kernels" || "${MODE}" == "wmma-profiler" || "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" ]]; then
+if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" || "${MODE}" == "speculative-cuda" || "${MODE}" == "digits-quality" || "${MODE}" == "eager-kernels" || "${MODE}" == "wmma-profiler" || "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" ]]; then
   DEST="${ROOT_DIR}/gpu-runs/imports/${RUN_ID}"
   mkdir -p "${DEST}"
   if [[ "${MODE}" == "batch1-graphs" ]]; then
@@ -76,6 +76,8 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
     REPORT_NAME="profiler-evidence.json"
   elif [[ "${MODE}" == "batch1-decode" ]]; then
     REPORT_NAME="decode-comparison.json"
+  elif [[ "${MODE}" == "trained-serving" ]]; then
+    REPORT_NAME="serving-bridge.json"
   elif [[ "${MODE}" == "paged-attention" ]]; then
     REPORT_NAME="paged-attention-cuda.json"
   elif [[ "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" ]]; then
@@ -91,7 +93,7 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
   else
     REPORT_NAME="paged-kv-cuda.json"
   fi
-  if [[ "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" ]]; then
+  if [[ "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" ]]; then
     REPORT_DIR="batch1-decode-vertical-slice/reports"
   elif [[ "${MODE}" == "digits-quality" ]]; then
     REPORT_DIR="quantization-memory-formats/reports"
@@ -116,7 +118,7 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
 else
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-runs/imports/${RUN_ID}.json" "${ROOT_DIR}/gpu-runs/imports/${RUN_ID}.json"
 fi
-if [[ "${MODE}" != "paged-kv" && "${MODE}" != "paged-attention" && "${MODE}" != "serving-tail" && "${MODE}" != "serving-tail-graphs" && "${MODE}" != "speculative-cuda" && "${MODE}" != "digits-quality" && "${MODE}" != "eager-kernels" && "${MODE}" != "wmma-profiler" && "${MODE}" != "batch1-decode" && "${MODE}" != "batch1-profile" && "${MODE}" != "batch1-graphs" ]]; then
+if [[ "${MODE}" != "paged-kv" && "${MODE}" != "paged-attention" && "${MODE}" != "serving-tail" && "${MODE}" != "serving-tail-graphs" && "${MODE}" != "speculative-cuda" && "${MODE}" != "digits-quality" && "${MODE}" != "eager-kernels" && "${MODE}" != "wmma-profiler" && "${MODE}" != "batch1-decode" && "${MODE}" != "batch1-profile" && "${MODE}" != "batch1-graphs" && "${MODE}" != "trained-serving" ]]; then
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-promotion/suite-run-report.json" "${ARTIFACT_DIR}/suite-run-report.json" || true
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-measurement-queue/gpu-measurement-queue.json" "${ARTIFACT_DIR}/gpu-measurement-queue.json" || true
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/capstone-acceptance/capstone-acceptance.json" "${ARTIFACT_DIR}/capstone-acceptance.json" || true

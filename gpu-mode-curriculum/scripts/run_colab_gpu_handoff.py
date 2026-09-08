@@ -117,6 +117,8 @@ def main() -> int:
         commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_profiler_evidence.py"], "required": True}]
     elif mode == "batch1-graphs":
         commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True}]
+    elif mode == "trained-serving":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_serving_bridge.py", "--trained"], "required": True}]
     else:
         commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},

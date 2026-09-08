@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "13-capstone-mini-serving-engine"))
-from neural_generator import NeuralGenerator
+from neural_generator import CharacterModel, NeuralGenerator
 import server
 
 
@@ -29,6 +29,19 @@ class NeuralServingTests(unittest.TestCase):
             self.assertEqual(cached, full)
             for a, b in zip(cache_logits, full_logits):
                 torch.testing.assert_close(a, b, atol=2e-6, rtol=2e-5)
+
+    def test_trained_state_dict_can_cross_into_serving_generator(self):
+        torch.manual_seed(8181)
+        source = CharacterModel(context=128, hidden=128, heads=8).eval()
+        trained = NeuralGenerator(
+            hidden=128, heads=8,
+            state_dict={key: value.clone() for key, value in source.state_dict().items()},
+            model_name="trained-synthetic-character",
+        )
+        reference, _ = trained.generate("hello gpu", 6, cached=False)
+        cached, _ = trained.generate("hello gpu", 6, cached=True)
+        self.assertEqual(reference, cached)
+        self.assertEqual(trained.model_name, "trained-synthetic-character")
 
     def test_request_isolation_and_batch(self):
         before = self.generator.complete("hello", 4)
