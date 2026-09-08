@@ -50,6 +50,26 @@ class ServingControlTests(unittest.TestCase):
         report["rows"][0].pop("cuda_event_ms")
         self.assertFalse(tail_report_contract(report))
 
+    def test_cuda_tail_report_contract_accepts_graph_vectorized_batches(self):
+        report = {
+            "status": "passed", "measured": True,
+            "concurrency_levels": [1, 2], "requests_per_level": 2,
+            "rows": [
+                {"concurrency": 1, "accepted": 2, "rejected": 0,
+                 "output_parity": True, "batch_modes": ["single"],
+                 "backend_labels": ["neural-cuda_graph_microbatch-decode"],
+                 "cuda_event_ms": 1.0,
+                 "latency_ms": {"p50": 2.0, "p95_nearest_rank": 3.0, "max": 4.0}},
+                {"concurrency": 2, "accepted": 2, "rejected": 0,
+                 "output_parity": True, "batch_modes": ["cuda-graph-vectorized"],
+                 "backend_labels": ["neural-cuda_graph_microbatch-decode"],
+                 "cuda_event_ms": 1.0,
+                 "latency_ms": {"p50": 2.0, "p95_nearest_rank": 3.0, "max": 4.0}},
+            ],
+            "scheduler": {"rejected_count": 0, "cancelled_count": 0},
+        }
+        self.assertTrue(tail_report_contract(report))
+
     def test_cuda_tail_report_contract_rejects_unavailable_or_incomplete_rows(self):
         self.assertFalse(tail_report_contract({"status": "unavailable:cuda-runtime"}))
         self.assertFalse(tail_report_contract({

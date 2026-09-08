@@ -94,9 +94,15 @@ def tail_report_contract(report: dict) -> bool:
     # sweep require vectorized batching at one or more genuinely concurrent
     # levels, while a single-level contract must still show its declared mode.
     if max(levels) > 1:
-        vectorized = any("vectorized" in row.get("batch_modes", []) for row in rows if row.get("concurrency", 1) > 1)
+        vectorized = any(
+            any("vectorized" in mode for mode in row.get("batch_modes", []))
+            for row in rows if row.get("concurrency", 1) > 1
+        )
     else:
-        vectorized = any("vectorized" in row.get("batch_modes", []) for row in rows)
+        vectorized = any(
+            any("vectorized" in mode for mode in row.get("batch_modes", []))
+            for row in rows
+        )
     if not vectorized:
         return False
     scheduler = report.get("scheduler", {})
