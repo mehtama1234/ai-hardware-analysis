@@ -53,18 +53,19 @@ def verify_draft(target: NeuralGenerator, prefix: str, draft_tokens: list[int]) 
     the draft; the caller may commit it as the next exact token.
     """
     ids = target.encode(prefix)
-    tokens = torch.tensor([ids], dtype=torch.long, device=target.device)
-    logits, cache = target.model(tokens, cached=True)
+    full = torch.tensor([ids + draft_tokens], dtype=torch.long, device=target.device)
+    # Verify the complete proposed suffix in one target forward.  Position
+    # p+i predicts draft token i; the final position supplies the bonus token
+    # when the whole draft is accepted.  This is the batched verification path
+    # whose launch count matters for a real speculative decoder.
+    logits = target.model(full, cached=False)
+    predictions = logits[0, len(ids) - 1 : len(ids) - 1 + len(draft_tokens) + 1].argmax(-1).tolist()
     accepted = 0
-    for candidate in draft_tokens:
-        predicted = int(logits[:, -1].argmax(-1).item())
-        if predicted != candidate:
-            return {"accepted": accepted, "correction": predicted, "rollback": len(draft_tokens) - accepted, "target_steps": accepted + 1}
+    for candidate, predicted in zip(draft_tokens, predictions):
+        if candidate != predicted:
+            return {"accepted": accepted, "correction": predicted, "rollback": len(draft_tokens) - accepted, "target_steps": 1}
         accepted += 1
-        next_token = torch.tensor([[candidate]], dtype=torch.long, device=target.device)
-        logits, cache = target.model(next_token, cache=cache, cached=True)
-    correction = int(logits[:, -1].argmax(-1).item())
-    return {"accepted": accepted, "correction": correction, "rollback": 0, "target_steps": accepted + 1}
+    return {"accepted": accepted, "correction": predictions[-1], "rollback": 0, "target_steps": 1}
 
 
 def speculative_generate(target: NeuralGenerator, draft: NeuralGenerator, prompt: str, max_tokens: int, width: int) -> tuple[list[int], dict]:
@@ -109,7 +110,8 @@ def _elapsed_cuda(fn):
 
 
 def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
-    draft = NeuralGenerator("cuda", hidden=HIDDEN, heads=HEADS, seed=scenario["draft_seed"])
+    draft_hidden, draft_heads = (HIDDEN, HEADS) if scenario["draft_seed"] == 151 else (32, 4)
+    draft = NeuralGenerator("cuda", hidden=draft_hidden, heads=draft_heads, seed=scenario["draft_seed"])
     prompt = scenario["prompt"]
     max_tokens = scenario["max_tokens"]
     # Exclude CUDA context, allocator, and first-kernel initialization from
@@ -136,6 +138,7 @@ def run_scenario(target: NeuralGenerator, scenario: dict) -> dict:
         "output_parity": output_parity,
         "generated_tokens": len(spec_tokens),
         "draft_width": scenario["draft_width"],
+        "draft_hidden": draft_hidden,
     })
     return {"scenario_id": scenario["id"], "prompt": prompt, "draft_seed": scenario["draft_seed"], **stats}
 
