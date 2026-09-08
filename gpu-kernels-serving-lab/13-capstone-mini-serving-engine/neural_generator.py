@@ -264,7 +264,7 @@ class NeuralGenerator:
         static_tokens = torch.empty((1, max_tokens), dtype=torch.long, device=self.device)
 
         def run_chain() -> None:
-            static_tokens[:, 0].copy_(first_token)
+            static_tokens[:, 0:1].copy_(first_token)
             static_input.copy_(first_token)
             for step in range(1, max_tokens):
                 logits, _ = self.model(
