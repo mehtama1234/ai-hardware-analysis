@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from dataclasses import dataclass
+import inspect
 import queue
 import threading
 import time
@@ -51,6 +52,7 @@ class MicroBatchScheduler:
         self._cancelled = 0
         self._inflight_cancelled = 0
         self._batch_cancelled = 0
+        self._noncooperative_cancellation = 0
         self._thread.start()
 
     def submit(self, prompt: str, max_tokens: int) -> Future:
@@ -69,6 +71,7 @@ class MicroBatchScheduler:
                     "rejected_count": self._rejected, "cancelled_count": self._cancelled,
                     "inflight_cancelled_count": self._inflight_cancelled,
                     "batch_cancelled_count": self._batch_cancelled,
+                    "noncooperative_cancellation_count": self._noncooperative_cancellation,
                     "max_pending": self.max_pending}
 
     def close(self) -> None:
@@ -107,30 +110,23 @@ class MicroBatchScheduler:
                 key = (len(self.generator.encode(request.prompt)), request.max_tokens)
                 groups.setdefault(key, []).append(request)
             for group in groups.values():
+                group_cooperative = False
                 try:
                     if len(group) > 1:
-                        try:
-                            result = self.generator.complete_batch(
-                                [r.prompt for r in group], group[0].max_tokens,
-                                cancel_events=[r.future.cancel_event for r in group],
-                            )
-                        except TypeError as exc:
-                            if "cancel_events" not in str(exc):
-                                raise
-                            result = self.generator.complete_batch([r.prompt for r in group], group[0].max_tokens)
+                        method = self.generator.complete_batch
+                        accepts_cancel = _accepts_keyword(method, "cancel_events")
+                        group_cooperative = accepts_cancel and _cooperative_backend(self.generator)
+                        kwargs = {"cancel_events": [r.future.cancel_event for r in group]} if accepts_cancel else {}
+                        result = method([r.prompt for r in group], group[0].max_tokens, **kwargs)
                         mode = result.get("batch_mode", "unknown")
                         choices = result["choices"]
                     else:
                         request = group[0]
-                        try:
-                            result = self.generator.complete(
-                                request.prompt, request.max_tokens,
-                                cancel_event=request.future.cancel_event,
-                            )
-                        except TypeError as exc:
-                            if "cancel_event" not in str(exc):
-                                raise
-                            result = self.generator.complete(request.prompt, request.max_tokens)
+                        method = self.generator.complete
+                        accepts_cancel = _accepts_keyword(method, "cancel_event")
+                        group_cooperative = accepts_cancel and _cooperative_backend(self.generator)
+                        kwargs = {"cancel_event": request.future.cancel_event} if accepts_cancel else {}
+                        result = method(request.prompt, request.max_tokens, **kwargs)
                         mode = "single"
                         choices = [{"text": result["text"]}]
                     with self._lock:
@@ -139,23 +135,46 @@ class MicroBatchScheduler:
                                               "queue_wait_ms": round((time.perf_counter() - min(r.submitted_at for r in group)) * 1000, 4)})
                     for request, choice in zip(group, choices):
                         if request.future.cancel_event.is_set():
-                            with self._lock:
-                                self._cancelled += 1
-                                self._inflight_cancelled += 1
-                            if not request.future.done():
-                                request.future.set_exception(RuntimeError("request cancelled during execution"))
+                            if group_cooperative:
+                                with self._lock:
+                                    self._cancelled += 1
+                                    self._inflight_cancelled += 1
+                                if not request.future.done():
+                                    request.future.set_exception(RuntimeError("request cancelled during execution"))
+                            else:
+                                with self._lock:
+                                    self._noncooperative_cancellation += 1
+                                if not request.future.done():
+                                    request.future.set_result({"text": choice["text"], "batch_mode": mode})
                         elif not request.future.done():
                             request.future.set_result({"text": choice["text"], "batch_mode": mode})
                 except Exception as exc:
-                    if len(group) > 1 and any(request.future.cancel_event.is_set() for request in group):
+                    if len(group) > 1 and group_cooperative and any(request.future.cancel_event.is_set() for request in group):
                         with self._lock:
                             self._batch_cancelled += 1
                     for request in group:
                         if request.future.cancel_event.is_set():
-                            with self._lock:
-                                self._cancelled += 1
-                                self._inflight_cancelled += 1
-                            if not request.future.done():
-                                request.future.set_exception(RuntimeError("request cancelled during execution"))
+                            if group_cooperative:
+                                with self._lock:
+                                    self._cancelled += 1
+                                    self._inflight_cancelled += 1
+                                if not request.future.done():
+                                    request.future.set_exception(RuntimeError("request cancelled during execution"))
+                            else:
+                                with self._lock:
+                                    self._noncooperative_cancellation += 1
+                                if not request.future.done():
+                                    request.future.set_exception(exc)
                         elif not request.future.done():
                             request.future.set_exception(exc)
+
+
+def _accepts_keyword(method, name: str) -> bool:
+    parameters = inspect.signature(method).parameters.values()
+    return name in inspect.signature(method).parameters or any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters
+    )
+
+
+def _cooperative_backend(generator) -> bool:
+    return getattr(generator, "cancellation_mode", "cooperative") == "cooperative"

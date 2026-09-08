@@ -47,6 +47,10 @@ GRAPH_POOL_SIZE = 4
 class DecodeModeGenerator:
     def __init__(self, mode: str, device: str, *, state_dict=None, model_name=None):
         self.mode = mode
+        # Eager/preallocated decode checks between tokens; captured graph
+        # replay is a fixed operation and can only observe cancellation at its
+        # boundary.  Keep this distinction visible to scheduler accounting.
+        self.cancellation_mode = "boundary-only" if mode in {"cuda_graph", "cuda_graph_microbatch"} else "cooperative"
         self.backend = f"{model_name or 'neural'}-{mode}-decode"
         if mode == "cuda_graph":
             self._graph_workers = [NeuralGenerator(
@@ -94,14 +98,16 @@ class DecodeModeGenerator:
             for workload in workloads:
                 worker.generate(workload["prompt"], workload["max_tokens"], cached=True, cache_storage="cuda_graph")
 
-    def complete_batch(self, prompts: list[str], max_tokens: int) -> dict:
+    def complete_batch(self, prompts: list[str], max_tokens: int, *, cancel_events=None) -> dict:
         if self.mode not in {"microbatch", "cuda_graph_microbatch"}:
             raise RuntimeError("complete_batch is only enabled for microbatch mode")
         graph_batch = self.mode == "cuda_graph_microbatch" and (tuple(prompts), max_tokens) in self._graph_batch_keys
+        if cancel_events and any(event.is_set() for event in cancel_events):
+            raise RuntimeError("batched request cancelled before decode")
         if graph_batch:
             generated = self.inner.generate_batch_cuda_graph(prompts, max_tokens)
         else:
-            generated = self.inner.generate_batch(prompts, max_tokens, cached=True)
+            generated = self.inner.generate_batch(prompts, max_tokens, cached=True, cancel_events=cancel_events)
         return {
             "choices": [
                 {"index": index, "text": "".join(self.inner.model.alphabet[token] for token in tokens), "finish_reason": "length"}
@@ -113,7 +119,9 @@ class DecodeModeGenerator:
             "backend": self.backend,
         }
 
-    def complete(self, prompt: str, max_tokens: int) -> dict:
+    def complete(self, prompt: str, max_tokens: int, *, cancel_event=None) -> dict:
+        if cancel_event is not None and cancel_event.is_set():
+            raise RuntimeError("request cancelled before decode")
         if self.mode == "cuda_graph":
             # Each slot owns static batch-1 addresses and its own graph bucket.
             # The bounded pool permits concurrent requests without racing a
@@ -125,6 +133,7 @@ class DecodeModeGenerator:
                 generated, _ = worker.generate(
                     prompt, max_tokens, cached=True,
                     cache_storage="cuda_graph" if graph_hit else "preallocated",
+                    cancel_event=cancel_event,
                 )
             finally:
                 self._graph_slots.put(slot)
@@ -135,6 +144,7 @@ class DecodeModeGenerator:
             generated, _ = self.inner.generate(
                 prompt, max_tokens, cached=self.mode != "uncached",
                 cache_storage="cuda_graph" if graph_bucket else ("preallocated" if self.mode in {"preallocated", "microbatch", "cuda_graph_microbatch"} else "dynamic"),
+                cancel_event=cancel_event,
             )
             model = self.inner.model
             backend = self.backend if graph_bucket or self.mode != "cuda_graph_microbatch" else f"{self.backend}-fallback"

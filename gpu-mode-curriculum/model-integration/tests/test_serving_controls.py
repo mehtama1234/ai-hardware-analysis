@@ -225,6 +225,32 @@ class ServingControlTests(unittest.TestCase):
         finally:
             scheduler.close()
 
+    def test_boundary_only_backend_is_not_claimed_as_cooperatively_cancelled(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        class BoundaryOnlyGenerator(FakeGenerator):
+            cancellation_mode = "boundary-only"
+
+            def complete(self, prompt, max_tokens, *, cancel_event=None):
+                started.set()
+                release.wait(timeout=2)
+                return {"text": prompt.upper(), "generated_tokens": max_tokens, "backend": self.backend}
+
+        scheduler = MicroBatchScheduler(BoundaryOnlyGenerator(), max_batch=1, window_ms=0, max_pending=2)
+        try:
+            future = scheduler.submit("graph", 1)
+            self.assertTrue(started.wait(timeout=2))
+            self.assertFalse(future.cancel())
+            release.set()
+            self.assertEqual(future.result(timeout=2)["text"], "GRAPH")
+            snapshot = scheduler.snapshot()
+            self.assertEqual(snapshot["inflight_cancelled_count"], 0)
+            self.assertEqual(snapshot["noncooperative_cancellation_count"], 1)
+        finally:
+            release.set()
+            scheduler.close()
+
 
 if __name__ == "__main__":
     unittest.main()

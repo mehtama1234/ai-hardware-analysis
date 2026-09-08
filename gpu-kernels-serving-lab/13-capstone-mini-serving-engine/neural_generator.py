@@ -63,6 +63,7 @@ class NeuralGenerator:
 
     def __init__(self, device="cpu", *, hidden=32, heads=4, seed=151,
                  context=128, state_dict=None, model_name=None):
+        self.cancellation_mode = "cooperative"
         # Preserve the caller's global RNG state; no request mutates weights.
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(seed)
