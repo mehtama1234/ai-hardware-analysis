@@ -21,10 +21,11 @@ from pathlib import Path
 import torch
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
-SERVING = ROOT.parent / "gpu-kernels-serving-lab" / "13-capstone-mini-serving-engine"
+ROOT = HERE.parent
+REPO = ROOT.parent
+SERVING = ROOT / "gpu-kernels-serving-lab" / "13-capstone-mini-serving-engine"
 if not SERVING.is_dir():
-    SERVING = ROOT / "gpu-kernels-serving-lab" / "13-capstone-mini-serving-engine"
+    SERVING = REPO / "gpu-kernels-serving-lab" / "13-capstone-mini-serving-engine"
 sys.path.insert(0, str(SERVING))
 from neural_generator import NeuralGenerator  # noqa: E402
 
