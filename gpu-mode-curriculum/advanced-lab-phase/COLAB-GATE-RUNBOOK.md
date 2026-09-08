@@ -131,7 +131,9 @@ includes:
   verification; and
 - `colab-t4-trained-e2e-20260908`: corrected combined decode, profiler,
   trained-serving, and trained-tail run with all three measured reports
-  accepted under one source/run identity.
+  accepted under one source/run identity; and
+- `colab-full-20260908`: accepted bounded attention-serving,
+  FlashAttention-backward, and fused-training T4 reports.
 
 These artifacts close a bounded single-device CUDA vertical slice. They remain
 scoped to the recorded teaching model and loopback workload. They do not close

@@ -199,6 +199,13 @@ one source/run identity. Together they form a real CUDA optimization-to-serving
 vertical slice for the bounded teaching workload. They are not production
 language-quality, production-capacity, multi-GPU, or second-platform evidence.
 
+The imported `colab-full-20260908` T4 run also contains accepted bounded
+attention-serving, FlashAttention-backward, and fused-training reports with
+CUDA execution, numerical checks, memory/launch metrics, and profiler rows.
+Those reports close the corresponding bounded teaching experiments; they do not
+close broader architecture coverage, independent-host reproduction, or
+production-scale claims.
+
 Current accepted results are not final-goal acceptance. The current worktree
 snapshot also passed the clean-snapshot reproduction gate; the authoritative
 snapshot revision is recorded in `fresh-checkout-reproduction.json`. That proves
@@ -209,8 +216,8 @@ following remain open:
 - independent-host reproduction beyond the local package/clean-snapshot gates;
 - production-scale trained-model quality beyond the expanded synthetic matrix,
   local digits protocols, and the new local real-model CPU serving boundary;
-- compiled and profiled CUDA attention/training paths, plus broader shape and
-  allocator attribution beyond the accepted bounded T4 slice;
+- broader CUDA attention/training shapes, allocator attribution, and profiler
+  explanations beyond the accepted bounded T4 reports;
 - production-scale GPU capacity and allocator characterization beyond the
   accepted single-device tail-load waves;
 - in-flight accelerator cancellation and resource accounting; the local
@@ -229,7 +236,8 @@ does not invalidate the separately imported, accepted T4 artifacts.
 - [x] A clean-checkout reproduction retains raw logs, hashes, and commands.
 - [x] At least one bounded CUDA vertical slice is numerically and profiler
       validated; broader attention/training coverage remains open.
-- [ ] Attention forward/backward and memory claims are executed and scoped.
+- [x] Bounded attention forward/backward and memory claims are executed and
+      scoped; broader shapes and attribution remain open.
 - [ ] Compiler/layout/generated-kernel claims have held-out correctness.
 - [ ] Low-precision claims combine storage, speed, drift, and quality.
 - [x] Serving claims include bounded trained-model behavior and tail-load
