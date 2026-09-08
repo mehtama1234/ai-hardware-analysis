@@ -99,6 +99,7 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/${REPORT_NAME}" "${DEST}/${REPORT_NAME}"
   if [[ "${MODE}" == "batch1-decode" ]]; then
     colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/batch1-decode-vertical-slice/reports/serving-bridge.json" "${DEST}/serving-bridge.json"
+    colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/batch1-decode-vertical-slice/reports/profiler-evidence.json" "${DEST}/profiler-evidence.json"
   fi
 else
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-runs/imports/${RUN_ID}.json" "${ROOT_DIR}/gpu-runs/imports/${RUN_ID}.json"

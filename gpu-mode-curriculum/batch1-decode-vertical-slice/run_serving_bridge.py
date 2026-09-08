@@ -40,7 +40,10 @@ class DecodeModeGenerator:
         self.model_name = self.inner.model_name
 
     def complete(self, prompt: str, max_tokens: int) -> dict:
-        generated, _ = self.inner.generate(prompt, max_tokens, cached=self.mode == "cached")
+        generated, _ = self.inner.generate(
+            prompt, max_tokens, cached=self.mode != "uncached",
+            cache_storage="preallocated" if self.mode == "preallocated" else "dynamic",
+        )
         return {
             "text": "".join(self.inner.model.alphabet[index] for index in generated),
             "generated_tokens": len(generated),
@@ -103,6 +106,7 @@ def main() -> int:
     try:
         uncached = _run_mode("uncached", device)
         cached = _run_mode("cached", device)
+        preallocated = _run_mode("preallocated", device)
         checks = {
             "all_requests_completed": all(row["accepted"] == REQUESTS_PER_LEVEL for mode in (uncached, cached) for row in mode["rows"]),
             "all_outputs_nonempty": all(row["expected_probe_nonempty"] for mode in (uncached, cached) for row in mode["rows"]),
@@ -114,6 +118,9 @@ def main() -> int:
             right_payloads = right["backend_labels"]
             checks[f"backend_pair_{left['concurrency']}"] = bool(left_payloads and right_payloads)
             checks[f"cross_mode_output_parity_{left['concurrency']}"] = left["output_texts"] == right["output_texts"]
+        for left, right in zip(uncached["rows"], preallocated["rows"]):
+            checks[f"preallocated_backend_pair_{left['concurrency']}"] = bool(left["backend_labels"] and right["backend_labels"])
+            checks[f"uncached_preallocated_output_parity_{left['concurrency']}"] = left["output_texts"] == right["output_texts"]
         report = {
             "experiment": "batch1_decode_serving_bridge",
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -124,6 +131,7 @@ def main() -> int:
             "protocol": {"prompts": list(PROMPTS), "max_tokens": MAX_TOKENS, "concurrency_levels": list(CONCURRENCIES), "requests_per_level": REQUESTS_PER_LEVEL},
             "uncached": uncached,
             "cached": cached,
+            "preallocated": preallocated,
             "checks": checks,
             "timing_scope": "loopback HTTP request wall latency including server dispatch and autoregressive generation; excludes client queue wait outside the request",
             "limitations": ["untrained character model", "same-process loopback", "CPU result is not a GPU throughput claim", "no production capacity claim", "microbatching is a separate follow-up comparison"],

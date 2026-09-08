@@ -107,6 +107,7 @@ def main() -> int:
         commands = [
             {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_decode_comparison.py"], "required": True},
             {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_serving_bridge.py"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_profiler_evidence.py"], "required": True},
         ]
     else:
         commands = [

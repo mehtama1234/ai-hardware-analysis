@@ -35,11 +35,18 @@ class CharacterModel(nn.Module):
         self.norm = nn.LayerNorm(32)
         self.head = nn.Linear(32, len(self.alphabet), bias=False)
 
-    def forward(self, tokens, cache=None, *, cached=False):
-        offset = 0 if cache is None else cache[0].shape[-2]
+    def forward(self, tokens, cache=None, *, cached=False, preallocated_cache=None):
+        if preallocated_cache is not None:
+            offset = preallocated_cache[2]
+        else:
+            offset = 0 if cache is None else cache[0].shape[-2]
         if tokens.ndim != 2 or tokens.shape[1] < 1 or offset + tokens.shape[1] > self.context:
             raise ValueError("nonempty tokens must fit context")
         x = self.embedding(tokens) + self.position(torch.arange(offset, offset + tokens.shape[1], device=tokens.device))
+        if preallocated_cache is not None:
+            cache_k, cache_v, offset = preallocated_cache
+            x, next_offset = self.block.forward_cached_preallocated(x, cache_k, cache_v, offset)
+            return self.norm(x).matmul(self.head.weight.t()), (cache_k, cache_v, next_offset)
         if cached:
             x, cache = self.block.forward_cached(x, cache)
         else:
@@ -70,27 +77,40 @@ class NeuralGenerator:
         return [self.model.alphabet.find(c) if c in self.model.alphabet else 0 for c in prompt.lower()]
 
     @torch.inference_mode()
-    def generate(self, prompt, max_tokens, *, cached=True):
+    def generate(self, prompt, max_tokens, *, cached=True, cache_storage="dynamic"):
         ids = self.encode(prompt)
         if type(max_tokens) is not int or max_tokens < 1 or len(ids) + max_tokens > self.model.context:
             raise ValueError("positive max_tokens and prompt must fit 128-character context")
         tokens = torch.tensor([ids], dtype=torch.long, device=self.device)
         cache = None
+        if cache_storage not in {"dynamic", "preallocated"}:
+            raise ValueError("cache_storage must be dynamic or preallocated")
+        if cached and cache_storage == "preallocated":
+            head_dim = self.model.block.hidden // self.model.block.heads
+            cache = (
+                torch.empty((1, self.model.block.heads, self.model.context, head_dim), device=self.device),
+                torch.empty((1, self.model.block.heads, self.model.context, head_dim), device=self.device),
+                0,
+            )
         generated, logits_trace = [], []
         for _ in range(max_tokens):
             if cached:
-                logits, cache = self.model(tokens if cache is None else tokens[:, -1:], cache, cached=True)
+                input_tokens = tokens if cache is None or cache_storage == "preallocated" and cache[2] == 0 else tokens[:, -1:]
+                if cache_storage == "preallocated":
+                    logits, cache = self.model(input_tokens, preallocated_cache=cache)
+                else:
+                    logits, cache = self.model(input_tokens, cache, cached=True)
             else:
                 logits = self.model(tokens)
             last = logits[:, -1]
             next_token = last.argmax(-1, keepdim=True)
             generated.append(int(next_token.item()))
             logits_trace.append(last.clone())
-            tokens = torch.cat((tokens, next_token), dim=1)
+            tokens = torch.cat((tokens, next_token), dim=1) if not cached else next_token
         return generated, logits_trace
 
-    def complete(self, prompt, max_tokens):
-        generated, _ = self.generate(prompt, max_tokens)
+    def complete(self, prompt, max_tokens, *, cache_storage="dynamic"):
+        generated, _ = self.generate(prompt, max_tokens, cache_storage=cache_storage)
         return {"text": "".join(self.model.alphabet[i] for i in generated),
                 "generated_tokens": len(generated), "prompt_tokens": len(self.encode(prompt)),
                 "backend": self.backend}

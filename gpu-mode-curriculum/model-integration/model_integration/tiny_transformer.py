@@ -76,6 +76,50 @@ class TinyTransformerBlock(nn.Module):
             raise ValueError("cached inference requires model.eval()")
         return self._forward(x, cache=cache, return_cache=True)
 
+    @torch.no_grad()
+    def forward_cached_preallocated(self, x: torch.Tensor, cache_k: torch.Tensor,
+                                    cache_v: torch.Tensor, offset: int):
+        """Append K/V into caller-owned capacity and attend without ``cat``.
+
+        This is the optimized inference path for the decode vertical slice. The
+        caller owns fixed-capacity contiguous K/V storage; each call writes only
+        the new range and attends to the populated prefix. It intentionally
+        remains separate from ``forward_cached`` so the allocating reference
+        path stays available for parity checks.
+        """
+        if self.training:
+            raise ValueError("preallocated cached inference requires model.eval()")
+        if x.ndim != 3 or x.shape[-1] != self.hidden or x.shape[1] < 1:
+            raise ValueError("expected nonempty [batch, sequence, hidden] input")
+        if cache_k.ndim != 4 or cache_v.shape != cache_k.shape:
+            raise ValueError("preallocated caches must be matching rank-4 tensors")
+        batch, seq, hidden = x.shape
+        head_dim = hidden // self.heads
+        expected = (batch, self.heads, cache_k.shape[-2], head_dim)
+        if tuple(cache_k.shape) != expected or cache_k.device != x.device or cache_v.device != x.device:
+            raise ValueError("preallocated cache shape or device mismatch")
+        if offset < 0 or offset + seq > cache_k.shape[-2]:
+            raise ValueError("preallocated cache capacity exceeded")
+        normed = self.ln1(x)
+        qkv = self.qkv(normed).view(batch, seq, 3, self.heads, head_dim)
+        q, k, v = qkv.unbind(dim=2)
+        q = q.transpose(1, 2)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+        cache_k[:, :, offset:offset + seq, :].copy_(k)
+        cache_v[:, :, offset:offset + seq, :].copy_(v)
+        keys = cache_k[:, :, :offset + seq, :]
+        values = cache_v[:, :, :offset + seq, :]
+        allowed = torch.arange(offset + seq, device=x.device)[None, :] <= \
+            (offset + torch.arange(seq, device=x.device))[:, None]
+        context = torch.nn.functional.scaled_dot_product_attention(q, keys, values, attn_mask=allowed)
+        context = context.transpose(1, 2).contiguous().view(batch, seq, hidden)
+        residual = x + self.proj(context)
+        ff_input = self.ff(self.ln2(residual)).reshape(batch * seq, hidden)
+        residual_flat = residual.reshape(batch * seq, hidden)
+        out = reference_bias_gelu_residual(ff_input, self.ff_bias, residual_flat)
+        return out.view(batch, seq, hidden), offset + seq
+
     def _forward(self, x: torch.Tensor, cache=None, return_cache=False):
         if x.ndim != 3 or x.shape[-1] != self.hidden or x.shape[1] < 1:
             raise ValueError("expected nonempty [batch, sequence, hidden] input")
