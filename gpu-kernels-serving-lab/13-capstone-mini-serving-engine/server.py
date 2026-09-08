@@ -77,6 +77,10 @@ class TinyGenerator:
 GENERATOR = TinyGenerator()
 ADMISSION = None
 MICRO_BATCH = None
+# The default remains intentionally small for the teaching server.  Slow,
+# explicitly scoped real-model experiments may raise this value for their
+# local process rather than silently changing the default contract.
+REQUEST_TIMEOUT_SECONDS = 10.0
 
 
 def cancel_pending_request(future) -> bool:
@@ -230,7 +234,9 @@ class Handler(BaseHTTPRequestHandler):
             if MICRO_BATCH is not None:
                 try:
                     scheduled_future = MICRO_BATCH.submit(prompt, max_tokens)
-                    scheduled = wait_for_request_result(scheduled_future, self.connection, timeout=10)
+                    scheduled = wait_for_request_result(
+                        scheduled_future, self.connection, timeout=REQUEST_TIMEOUT_SECONDS
+                    )
                 except (TimeoutError, FutureTimeoutError):
                     cancel_pending_request(scheduled_future)
                     self._json(504, {"error": "microbatch_timeout", "scheduler": MICRO_BATCH.snapshot()})

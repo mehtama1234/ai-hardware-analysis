@@ -192,6 +192,20 @@ versus full decode parity in every case. Its verifier is
 `model-integration/verify_trained_quality_matrix.py`. This strengthens the
 synthetic quality gate but remains separate from production language quality.
 
+The real-model serving boundary now has a local-only CPU artifact at
+`model-integration/reports/real-model-serving-cpu.json`. It loads the already
+materialized SmolLM2-360M-Instruct checkpoint without network access, records
+six task-quality cases, compares cached and uncached greedy decode, and sends
+the same model through direct and microbatch HTTP paths. The run measured
+361,821,120 parameters, passed four of six task cases, preserved output parity
+for all five HTTP load rows, and measured a 2.24x cached-versus-uncached decode
+median on this host. The adapter and verifier are
+`model-integration/real_model_serving.py` and
+`model-integration/verify_real_model_serving.py`. This closes a real-trained-
+model CPU integration boundary, not production language quality, GPU capacity,
+or in-flight cancellation: `transformers.generate` remains explicitly
+boundary-only.
+
 The trained tail-load extension is promoted as `trained-serving-tail-cuda`,
 with evidence at
 `gpu-runs/imports/colab-t4-trained-tail-20260908/serving-tail-load-cuda.json`.

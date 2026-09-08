@@ -129,6 +129,32 @@ python3 gpu-mode-curriculum/model-integration/compare_serving_tail_loads.py \
 The paired T4 report passes matching-device/load, both report contracts,
 parity, graph-vectorization, and majority-level p95 checks.
 
+## Real trained-model CPU serving boundary
+
+The local-only real-model lane connects an already materialized Hugging Face
+causal LM to the same completion server:
+
+```bash
+python3 gpu-mode-curriculum/model-integration/run_real_model_serving.py \
+  --model-path /path/to/local/checkpoint
+python3 gpu-mode-curriculum/model-integration/verify_real_model_serving.py \
+  --report gpu-mode-curriculum/model-integration/reports/real-model-serving-cpu.json
+```
+
+The runner uses `local_files_only=True`; it never downloads a checkpoint. The
+accepted local artifact uses a cached SmolLM2-360M-Instruct checkpoint and
+records a six-case answer rubric, cached versus uncached greedy decode, direct
+HTTP requests, and equal-length Transformer microbatches. The 361.8M-parameter
+CPU run passed four of six rubric cases, preserved output parity for every
+HTTP row, and measured the cache comparison separately from transport timing.
+This is real trained-model evidence, but not production language quality,
+GPU throughput, or capacity evidence. `transformers.generate` is treated as
+boundary-only for cancellation; the report does not claim interruption of an
+in-flight model call.
+
+The report is `reports/real-model-serving-cpu.json`; the adapter is
+`real_model_serving.py` and the verifier is `verify_real_model_serving.py`.
+
 ## Packed-weight block inference
 
 ```bash

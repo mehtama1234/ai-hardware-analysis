@@ -197,8 +197,8 @@ execution. The
 following remain open:
 
 - independent-host reproduction beyond the local package/clean-snapshot gates;
-- production-scale trained-model quality beyond the expanded synthetic matrix
-  and local digits protocols;
+- production-scale trained-model quality beyond the expanded synthetic matrix,
+  local digits protocols, and the new local real-model CPU serving boundary;
 - compiled and profiled CUDA GEMM/attention/training paths;
 - GPU tail-load and allocator evidence for the serving path;
 - in-flight accelerator cancellation and resource accounting; the local
