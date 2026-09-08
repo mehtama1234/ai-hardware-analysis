@@ -61,11 +61,11 @@ and the regenerated checkpoint hash in `isolated-cpu-reproduction.json`.
 This is reproduction against the current worktree: a fresh checkout and a
 wheel-hashed lock remain separate requirements even if this check passes.
 
-## Verified CPU reproduction (2026-09-07 UTC)
+## Verified CPU reproduction (2026-09-08 UTC)
 
 The freshly recreated pinned Python 3.10 CPU environment completed the expanded
-checkpoint: 116 tests passed, all 23 CPU experiment commands passed, and the
-CUDA/HIP requests reported unavailable. All 25 wrapper checks passed, including
+checkpoint: 126 tests passed, 27 experiment tasks passed or were explicitly
+classified unavailable, and the CUDA/HIP requests reported unavailable. All 25 wrapper checks passed, including
 isolation, pins, pip consistency, artifact regeneration and use of the new
 interpreter throughout. The recorded checkpoint SHA-256 matches its actual file.
 
@@ -85,7 +85,7 @@ was not modified.
 `scripts/run_fresh_checkout_reproduction.py` copied the complete current source
 snapshot (including uncommitted and untracked lab files) into a temporary Git
 repository, created and verified a clean commit, and ran the full checkpoint from
-that checkout. The snapshot passed all 116 tests, 23 CPU experiments, and
+that checkout. The snapshot passed all 126 tests, 27 experiment tasks, and
 the explicit CUDA/HIP-unavailable checks. The recorded snapshot revision and
 checkpoint hash are in [fresh-checkout-reproduction.json](fresh-checkout-reproduction.json).
 
@@ -119,7 +119,8 @@ reproduction. Regenerating hashes from arbitrary replacement wheels does not
 verify those replacements against the original lock.
 
 The latest offline hash-checked installation and runtime reproduction passed:
-116 tests and all 23 CPU experiments succeeded, with CUDA/HIP explicitly
+126 tests and 27 experiment tasks succeeded or were explicitly unavailable,
+with CUDA/HIP explicitly
 unavailable. See [the installation record](HASHLOCKED-INSTALL.md) and
 `isolated-cpu-reproduction.json`. Independent-host and GPU validation remain
 open.

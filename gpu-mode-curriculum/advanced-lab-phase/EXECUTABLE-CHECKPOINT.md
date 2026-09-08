@@ -1,8 +1,8 @@
 # Executable advanced checkpoint
 
-Latest verified hash-locked checkpoint: **118 tests across ten suites and 23
-CPU experiments passed**. All 25 isolation/dependency/execution checks passed;
-the 35 checkpoint steps either passed or were explicitly classified unavailable
+Latest verified hash-locked checkpoint: **126 tests across ten suites and 27
+CPU experiment tasks passed**. All 25 isolation/dependency/execution checks passed;
+the 37 checkpoint steps either passed or were explicitly classified unavailable
 (CUDA and HIP), so requested accelerator execution remains unaccepted. The
 evidence page verifies checkpoint freshness against source, test, and artifact
 hashes, and the isolated reproduction report accepts this same checkpoint.
@@ -21,7 +21,7 @@ python3 gpu-mode-curriculum/scripts/run_advanced_evidence_regression.py
 ```
 
 This runs ten test suites (including profiler evidence, CPU primitives, collective contracts and
-MoE reference/contracts) and regenerates 23 CPU experiments: GEMM, packed
+MoE reference/contracts) and regenerates 27 experiment tasks: GEMM, packed
 INT4 operations, single-protocol and repeated trained digits quality, attention saved-tensor/timing, paired
 training, training-block timing, cached-vector decode, packed transformer storage,
 neural HTTP load, Inductor forward/backward compilation, and compiled transformer

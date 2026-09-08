@@ -40,8 +40,8 @@ and in the reproduction report.
 
 The exact 15-wheel set was reacquired and installed offline into a new Python
 3.10 virtual environment at `/tmp/gpu-checkpoint-repro-CIEqu4/venv` using the
-same lock and `--require-hashes`. The expanded checkpoint then passed with 116
-tests and 23 CPU experiments. All 25 isolation/dependency/execution checks
+same lock and `--require-hashes`. The expanded checkpoint then passed with 126
+tests and 27 experiment tasks. All 25 isolation/dependency/execution checks
 passed; CUDA and HIP remained explicit unavailable results. The authoritative
 current report is [isolated-cpu-reproduction.json](isolated-cpu-reproduction.json).
 
