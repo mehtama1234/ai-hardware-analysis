@@ -190,6 +190,13 @@ and the GPUMODE workbench verifier passes. The checkpoint includes GEMM,
 attention references, training/inference blocks, packed storage, neural serving
 contracts, compiler execution, collective contracts, and MoE reference checks.
 
+The repository also contains imported, hash-checked bounded T4 evidence. The
+accepted GPU artifacts include a CUDA-graph decode candidate search with
+profiler capture, trained synthetic-model serving, and trained graph-microbatch
+tail-load waves. Together they form a real CUDA optimization-to-serving
+vertical slice for the bounded teaching workload. They are not production
+language-quality, production-capacity, multi-GPU, or second-platform evidence.
+
 Current accepted results are not final-goal acceptance. The current worktree
 snapshot also passed the clean-snapshot reproduction gate; the authoritative
 snapshot revision is recorded in `fresh-checkout-reproduction.json`. That proves
@@ -200,26 +207,31 @@ following remain open:
 - independent-host reproduction beyond the local package/clean-snapshot gates;
 - production-scale trained-model quality beyond the expanded synthetic matrix,
   local digits protocols, and the new local real-model CPU serving boundary;
-- compiled and profiled CUDA GEMM/attention/training paths;
-- GPU tail-load and allocator evidence for the serving path;
+- compiled and profiled CUDA attention/training paths, plus broader shape and
+  allocator attribution beyond the accepted bounded T4 slice;
+- production-scale GPU capacity and allocator characterization beyond the
+  accepted single-device tail-load waves;
 - in-flight accelerator cancellation and resource accounting; the local
   cooperative CPU backend probe does not establish this accelerator claim;
 - real multi-GPU collectives, MoE routing, and distributed serving;
 - executed ROCm/HIP portability on a second accelerator stack;
 - complete primary-source/prerequisite audit and final publication review.
 
-The local environment currently lacks accepted CUDA/HIP execution. The absence
-is recorded as unavailable; it is not a waived requirement.
+The local environment currently lacks CUDA/HIP execution. That local absence is
+recorded as unavailable; it is not a waiver of the remaining hardware gates and
+does not invalidate the separately imported, accepted T4 artifacts.
 
 ## Final acceptance checklist
 
 - [ ] All 24 topics have current capability and source records.
-- [ ] A clean-checkout reproduction retains raw logs, hashes, and commands.
-- [ ] At least one CUDA vertical slice is numerically and profiler validated.
+- [x] A clean-checkout reproduction retains raw logs, hashes, and commands.
+- [x] At least one bounded CUDA vertical slice is numerically and profiler
+      validated; broader attention/training coverage remains open.
 - [ ] Attention forward/backward and memory claims are executed and scoped.
 - [ ] Compiler/layout/generated-kernel claims have held-out correctness.
 - [ ] Low-precision claims combine storage, speed, drift, and quality.
-- [ ] Serving claims include real model behavior and tail-load evidence.
+- [x] Serving claims include bounded trained-model behavior and tail-load
+      evidence; production-scale quality/capacity remains open.
 - [ ] Multi-GPU collective/MoE behavior is measured, not modeled.
 - [ ] A second accelerator stack has one executed portability comparison.
 - [ ] The generated site and workbench pass freshness and coverage audits.

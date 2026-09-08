@@ -117,9 +117,30 @@ but the report must retain the runtime identity, source revision, commands,
 raw samples, and unavailable-tool declarations. The generated site audit is a
 separate publication check.
 
+## Evidence already imported
+
+The repository already contains accepted bounded T4 results; a new session is
+not required to reproduce those existing claims. The current imported evidence
+includes:
+
+- `colab-t4-batch1-e2e-search-20260908`: decode candidate search, serving
+  bridge, and profiler evidence with output parity;
+- `colab-t4-trained-serving-e2e-20260908`: trained synthetic-model serving;
+- `colab-t4-trained-tail-20260908`: trained CUDA-graph tail-load waves; and
+- `colab-t4-serving-tail-graphs-20260908-r2`: graph-microbatch tail-load
+  verification.
+
+These artifacts close a bounded single-device CUDA vertical slice. They remain
+scoped to the recorded teaching model and loopback workload. They do not close
+production language quality, production capacity, arbitrary in-flight kernel
+cancellation, multi-GPU execution, or ROCm/HIP portability.
+
 ## Current boundary
 
 The repository already contains accepted bounded T4 artifacts for several of
 these lanes. This runbook does not promote old artifacts or infer missing
 hardware evidence; each new run must be imported and verified by its own
-report contract.
+report contract. The local runtime still reports
+`unavailable:cuda-runtime`; local CPU reports must not be promoted to GPU
+evidence. New Colab runs are only needed for a fresh reproduction, broader
+workload coverage, or a changed implementation.
