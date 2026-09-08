@@ -238,5 +238,6 @@ decision and separate evidence.
 - [Executable checkpoint](EXECUTABLE-CHECKPOINT.md)
 - [Capability matrix](CAPABILITY-MATRIX.md)
 - [Remaining-work audit](REMAINING-WORK.md)
+- [Colab gate runbook](COLAB-GATE-RUNBOOK.md)
 - [Exercises](EXERCISES.md)
 - [Environment and reproduction notes](ENVIRONMENT.md)
