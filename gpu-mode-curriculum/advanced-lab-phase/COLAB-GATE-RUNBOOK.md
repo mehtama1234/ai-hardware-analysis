@@ -89,14 +89,41 @@ device-kernel time.
 Standard Colab/T4 is insufficient. The existing `distributed-collectives`
 handoff may run a world-size-one smoke, but it must remain marked partial. Do
 not promote it to multi-GPU acceptance. Use a host with at least two physical
-accelerators, NCCL/RCCL, and `torchrun` for this gate.
+accelerators, NCCL/RCCL, and `torchrun` for this gate. From the curriculum root,
+the host handoff is:
+
+```bash
+nvidia-smi -L
+python3 scripts/run_distributed_collectives.py
+python3 scripts/verify_distributed_collectives.py
+torchrun --nproc_per_node=2 scripts/run_distributed_collectives_benchmark.py
+python3 scripts/verify_distributed_collectives_benchmark.py
+```
+
+For the acceptance report, retain NCCL/RCCL backend, rank count, algorithm,
+bandwidth, and overlap measurements. The expected artifacts are
+`distributed-collectives/distributed-collectives-report.json`,
+`distributed-collectives/reports/collective-benchmark-run.json`,
+`programming-projects/distributed-collectives/measurements.json`, and the
+generated site page. A world-size-one result is useful smoke evidence but does
+not satisfy this gate.
 
 ### 5. ROCm/HIP portability
 
 Colab's NVIDIA runtime cannot close this gate. Run
 `programming-projects/rocm-hip-port/run_native.py` on an AMD ROCm host with
-`hipcc` and `rocprof`; preserve the unavailable status when those tools are
-absent.
+`hipcc` and `rocprof`. The native handoff is:
+
+```bash
+hipcc programming-projects/rocm-hip-port/kernel.hip.cpp -o /tmp/rocm-hip-port
+rocprof /tmp/rocm-hip-port
+python3 scripts/verify_gpu_programming_projects.py
+```
+
+Require host/device allocation, copy, launch, tail-shape correctness, and
+profiler rows in `programming-projects/rocm-hip-port/measurements.json` before
+promoting the report. Preserve the unavailable status when `hipcc` or `rocprof`
+is absent.
 
 ### 6. Independent reproduction and publication audit
 
