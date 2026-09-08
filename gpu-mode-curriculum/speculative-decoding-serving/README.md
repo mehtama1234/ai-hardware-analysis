@@ -17,7 +17,7 @@ the local machine writes an explicit unavailable report instead of falling back
 to CPU.
 
 The accepted T4 artifact is
-`gpu-runs/imports/colab-t4-speculative-20260908-r8/speculative-decoding-cuda.json`.
+`gpu-runs/imports/colab-t4-speculative-20260908-r9/speculative-decoding-cuda.json`.
 It covers five scenarios, including an exact-draft control, low-acceptance
 shifted drafts, and a held-out calibrated draft. All outputs match ordinary
 target decoding, rollback and KV commit accounting pass, and CUDA timings are
@@ -35,7 +35,7 @@ The calibrated held-out draft reached 0.80 acceptance versus 0.00 for the
 random small draft. Its decode path measured about 0.82x baseline, while the
 11.9-second trace-calibration setup was excluded from decode timing. This
 separates the remaining problems: draft quality is now measurable, but the
-preallocated target block verifier still needs a fused/persistent execution
-path before the quality gain becomes a throughput gain. The cached block
-verifier is numerically correct, but the calibrated case measured about 0.63x
-speculative and 0.85x with adaptive fallback in this toy engine.
+preallocated target block verifier still needs a persistent/static-bucket
+execution path before the quality gain becomes a throughput gain. The cached
+block verifier is numerically correct, and graph capture/replay moved the
+calibrated case to about 0.83x speculative and 0.87x with adaptive fallback.
