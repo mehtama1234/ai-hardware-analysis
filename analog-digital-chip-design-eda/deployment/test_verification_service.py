@@ -60,3 +60,13 @@ def test_job_admission_control_rejects_full_backlog(tmp_path, monkeypatch):
     else:
         raise AssertionError("expected queue capacity rejection")
     assert service.get_job(first["id"])["status"] == "queued"
+
+def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    project = service.create_project(service.ProjectRequest(id="p1", name="Project one"))
+    assert project["id"] == "p1"
+    collateral = service.add_collateral("p1", service.CollateralRequest(name="counter.sv", kind="rtl", version="r7", content="module counter(input logic clk); endmodule\n"))
+    created = service.create_job(service.JobRequest(kind="project-compile", project_id="p1", artifact_id=collateral["id"]))
+    finished = service.run_job(created["id"])
+    assert finished["status"] == "passed"
+    assert finished["evidence"]["project_compile"].endswith("project-compile-result.json")

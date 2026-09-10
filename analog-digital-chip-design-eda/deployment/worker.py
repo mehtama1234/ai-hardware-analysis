@@ -14,6 +14,8 @@ import time
 
 from deployment.job_queue import DurableJobQueue
 from deployment.verification_service import JOB_ROOT, PILOT, ROOT, _path, _read, _write
+from deployment.collateral_store import CollateralStore
+from deployment.project_execution import compile_project_rtl
 
 
 def _now() -> str:
@@ -39,10 +41,18 @@ def process_once(*, stale_after_seconds: float = 900.0, job_timeout_seconds: flo
         _write(job)
         job_dir = _path(job_id).parent
         try:
-            result = subprocess.run(
-                ["python3", str(PILOT)], cwd=ROOT, capture_output=True, text=True,
-                check=False, timeout=job_timeout_seconds,
-            )
+            if job["kind"] == "project-compile":
+                record = CollateralStore(JOB_ROOT.parent / "jobs.sqlite", JOB_ROOT.parent / "collateral").get(str(job["artifact_id"]))
+                compile_project_rtl(record, collateral_root=JOB_ROOT.parent / "collateral", run_root=job_dir, timeout_seconds=job_timeout_seconds)
+                stdout = (job_dir / "stdout.log").read_text(encoding="utf-8") if (job_dir / "stdout.log").is_file() else ""
+                stderr = (job_dir / "stderr.log").read_text(encoding="utf-8") if (job_dir / "stderr.log").is_file() else ""
+                return_code = 0
+            else:
+                result = subprocess.run(
+                    ["python3", str(PILOT)], cwd=ROOT, capture_output=True, text=True,
+                    check=False, timeout=job_timeout_seconds,
+                )
+                stdout, stderr, return_code = result.stdout, result.stderr, result.returncode
         except subprocess.TimeoutExpired as exc:
             (job_dir / "stdout.log").write_text(_text(exc.stdout), encoding="utf-8")
             (job_dir / "stderr.log").write_text(_text(exc.stderr) + "\nworker timeout\n", encoding="utf-8")
@@ -54,16 +64,16 @@ def process_once(*, stale_after_seconds: float = 900.0, job_timeout_seconds: flo
             _write(job)
             queue.finish(job_id, status="failed")
             return True
-        (job_dir / "stdout.log").write_text(result.stdout, encoding="utf-8")
-        (job_dir / "stderr.log").write_text(result.stderr, encoding="utf-8")
-        job["status"] = "passed" if result.returncode == 0 else "failed"
-        job.setdefault("events", []).append({"at": _now(), "status": job["status"], "exit_code": result.returncode})
+        (job_dir / "stdout.log").write_text(stdout, encoding="utf-8")
+        (job_dir / "stderr.log").write_text(stderr, encoding="utf-8")
+        job["status"] = "passed" if return_code == 0 else "failed"
+        job.setdefault("events", []).append({"at": _now(), "status": job["status"], "exit_code": return_code})
         job["finished_at"] = _now()
-        job["exit_code"] = result.returncode
-        job["evidence"] = {
+        job["exit_code"] = return_code
+        job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {
             "pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json",
             "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json",
-        }
+        })
         _write(job)
         queue.finish(job_id, status=job["status"])
     except Exception:
