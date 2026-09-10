@@ -13,7 +13,7 @@ from verification_platform.simulation import run_iverilog_vvp
 from verification_platform.triage import failure_to_ir, parse_failure
 from verification_platform.logic import dependency_cone
 from verification_platform.closure import evaluate_closure, write_closure
-from verification_platform.formal import yosys_sat_prove, yosys_syntax_check, parse_yosys_sat_result
+from verification_platform.formal import counterexample_to_failure, yosys_sat_prove, yosys_syntax_check
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
 COVERAGE_RE = re.compile(r"COVERAGE\s+kind=(?P<kind>[A-Za-z_][\w-]*)\s+covered=(?P<covered>\d+)\s+total=(?P<total>\d+)")
@@ -116,6 +116,18 @@ def prove_project_invariant(record: dict[str, Any], *, signal: str, expected_val
     tool_run = yosys_sat_prove(source, top=modules[0], signal=signal, expected_value=expected_value, sequence=sequence, run_root=run_root, source_revision=source_revision or str(record["version"]), timeout_seconds=timeout_seconds)
     proof_result = tool_run.metadata.get("proof_result", "unknown")
     result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "signal": signal, "expected_value": expected_value, "sequence": sequence, "status": "passed" if proof_result == "proven" else ("failed" if proof_result == "counterexample" else "blocked"), "proof_result": proof_result, "tool_run": asdict(tool_run), "claim": "bounded_formal_result"}
+    if proof_result == "counterexample":
+        stdout_path = Path(run_root) / "stdout.log"
+        failure = counterexample_to_failure(stdout_path.read_text(encoding="utf-8") if stdout_path.is_file() else "", signal=signal, expected_value=expected_value)
+        if failure:
+            result["failure"] = asdict(failure)
+            triage = failure_to_ir(failure, root=run_root, source_revision=source_revision or str(record["version"]), artifact_paths=["stdout.log", "stderr.log"])
+            triage_path = Path(run_root) / "verification-ir.json"
+            triage.write(triage_path)
+            result["triage_path"] = str(triage_path)
+            closure_path = Path(run_root) / "closure-report.json"
+            write_closure(evaluate_closure(triage), closure_path)
+            result["closure_path"] = str(closure_path)
     result_path = Path(run_root) / "project-formal-proof-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     result["result_path"] = str(result_path)
