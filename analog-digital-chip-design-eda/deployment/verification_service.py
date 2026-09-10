@@ -25,6 +25,7 @@ from deployment.job_queue import DurableJobQueue
 from deployment.project_store import ProjectStore
 from deployment.collateral_store import CollateralStore, MAX_CONTENT_BYTES
 from deployment.collateral_ingest import ingest_artifact
+from verification_platform.retrieval import build_retrieval_index, retrieve
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -198,6 +199,22 @@ def ingest_project_collateral(project_id: str, artifact_id: str) -> dict[str, An
         return ingest_artifact(record, artifact_root=JOB_ROOT.parent / "collateral", output_root=JOB_ROOT.parent / "ir")
     except (OSError, UnicodeError, ValueError) as error:
         raise HTTPException(status_code=422, detail=f"collateral ingestion failed: {error}") from error
+
+@app.get("/v1/projects/{project_id}/search")
+def search_project(project_id: str, q: str = "", limit: int = 5) -> dict[str, Any]:
+    if not q.strip() or limit < 1 or limit > 20:
+        raise HTTPException(status_code=400, detail="invalid search query")
+    try:
+        _projects().get(project_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="project not found") from error
+    records = _collateral().list(project_id)
+    root = JOB_ROOT.parent / "collateral"
+    paths = [root / str(record["path"]) for record in records]
+    if not paths:
+        return {"project_id": project_id, "query": q, "hits": [], "source_count": 0}
+    index = build_retrieval_index(paths, root=root, source_revision="project-collateral")
+    return {"project_id": project_id, "query": q, "hits": retrieve(index, q, limit=limit), "source_count": len(paths), "index_sha256": index["index_sha256"]}
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
