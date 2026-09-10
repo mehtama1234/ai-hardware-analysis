@@ -117,3 +117,17 @@ def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     retest_finished = service.run_job(approved["retest_job"]["id"])
     comparison = service.compare_project_jobs(created["id"], retest_finished["id"])
     assert comparison["metrics"]["failure_resolved"] is False
+
+def test_project_regression_job_and_pov_endpoint(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    service.create_project(service.ProjectRequest(id="p1", name="Project one"))
+    rtl = service.add_collateral("p1", service.CollateralRequest(name="counter.sv", kind="rtl", content="module counter(input logic clk); endmodule\n"))
+    tb_text = 'module tb; initial begin $dumpfile("waveform.vcd"); $dumpvars; $display("COVERAGE kind=functional covered=1 total=1"); $finish; end endmodule\n'
+    tb1 = service.add_collateral("p1", service.CollateralRequest(name="tb1.sv", kind="testbench", content=tb_text))
+    tb2 = service.add_collateral("p1", service.CollateralRequest(name="tb2.sv", kind="testbench", content=tb_text))
+    created = service.create_job(service.JobRequest(kind="project-regression", project_id="p1", artifact_id=rtl["id"], testbench_artifact_ids=[tb1["id"], tb2["id"]]))
+    finished = service.run_job(created["id"])
+    assert finished["status"] == "passed"
+    report = service.project_regression_proof_of_value(created["id"])
+    assert report["case_count"] == 2
+    assert report["coverage"]["percentage"] == 100.0
