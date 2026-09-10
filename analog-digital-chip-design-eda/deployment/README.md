@@ -80,6 +80,21 @@ After both jobs are terminal, retrieve
 and coverage-delta metrics. All reports retain their source artifact IDs and
 hashes, and simulation metrics remain separate from formal and hardware claims.
 
+For several tests, submit one durable regression job with the same RTL artifact
+and an ordered list of testbench IDs:
+
+```json
+{
+  "kind": "project-regression",
+  "project_id": "customer_demo",
+  "artifact_id": "customer_demo-<rtl-digest>",
+  "testbench_artifact_ids": ["customer_demo-<smoke-digest>", "customer_demo-<corner-digest>"]
+}
+```
+
+Retrieve `GET /v1/jobs/{job_id}/regression-proof-of-value` after completion to
+see per-case status, aggregate coverage, and links to each isolated case root.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
