@@ -68,6 +68,13 @@ def test_job_admission_control_rejects_full_backlog(tmp_path, monkeypatch):
         raise AssertionError("expected queue capacity rejection")
     assert service.get_job(first["id"])["status"] == "queued"
 
+def test_job_idempotency_returns_existing_submission(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    first = service.create_job(service.JobRequest(project_id="p1", idempotency_key="pilot-001"))
+    second = service.create_job(service.JobRequest(project_id="p1", idempotency_key="pilot-001"))
+    assert second["id"] == first["id"]
+    assert len(service.list_jobs(project_id="p1")) == 1
+
 def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
     project = service.create_project(service.ProjectRequest(id="p1", name="Project one"))
