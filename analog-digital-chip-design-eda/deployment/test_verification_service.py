@@ -76,6 +76,10 @@ def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     lint_finished = service.run_job(lint_job["id"])
     assert lint_finished["status"] == "passed"
     assert lint_finished["evidence"]["project_lint"].endswith("project-lint-result.json")
+    formal_job = service.create_job(service.JobRequest(kind="project-formal", project_id="p1", artifact_id=collateral["id"]))
+    formal_finished = service.run_job(formal_job["id"])
+    assert formal_finished["status"] == "passed"
+    assert formal_finished["evidence"]["project_formal"].endswith("project-formal-result.json")
 
 def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
