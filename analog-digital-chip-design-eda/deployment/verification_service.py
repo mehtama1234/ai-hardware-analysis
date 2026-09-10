@@ -32,6 +32,7 @@ from deployment.project_execution import compile_project_rtl, formal_preflight_p
 from deployment.repair_service import propose_repair
 from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
+from deployment.project_regression_pov import write_regression_pov
 from verification_platform.capabilities import discover_capabilities
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -335,6 +336,17 @@ def compare_project_jobs(baseline_job_id: str, retest_job_id: str) -> dict[str, 
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"comparison failed: {error}") from error
+
+@app.get("/v1/jobs/{job_id}/regression-proof-of-value")
+def project_regression_proof_of_value(job_id: str) -> dict[str, Any]:
+    job = _read(job_id)
+    if job.get("kind") != "project-regression" or job.get("status") not in {"passed", "failed"}:
+        raise HTTPException(status_code=409, detail="a terminal project-regression job is required")
+    try:
+        path = write_regression_pov(_path(job_id).parent)
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"regression proof-of-value generation failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
