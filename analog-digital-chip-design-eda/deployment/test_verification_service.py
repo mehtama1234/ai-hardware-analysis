@@ -85,6 +85,13 @@ def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     pov = service.project_proof_of_value(created["id"])
     assert pov["execution"]["status"] == "failed"
     assert pov["coverage"]["percentage"] == 0.0
+    bundle = service.get_bundle(created["id"])
+    assert bundle["status"] == "failed"
+    with zipfile.ZipFile(bundle["bundle_path"]) as archive:
+        names = set(archive.namelist())
+    assert "project-simulation-result.json" in names
+    assert "verification-ir.json" in names
+    assert "diagnosis.json" in names
     review = service.repair_retest_job(created["id"], service.RepairRequest(before="always_ff", after="always_ff", rationale="review selected RTL change"))
     assert review["retest_job"] is None
     approved = service.repair_retest_job(created["id"], service.RepairRequest(before="always_ff", after="always_ff", rationale="review selected RTL change", approved=True))

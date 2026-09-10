@@ -447,6 +447,17 @@ def cancel_job(job_id: str) -> dict[str, Any]:
 @app.get("/v1/jobs/{job_id}/bundle")
 def get_bundle(job_id: str) -> dict[str, Any]:
     job = _read(job_id)
+    if job["kind"] in {"project-compile", "project-simulation"}:
+        if job["status"] not in {"passed", "failed"}:
+            raise HTTPException(status_code=409, detail="project evidence bundle requires a terminal job")
+        bundle_path = _path(job_id).parent / "evidence-bundle.zip"
+        included: list[str] = []
+        with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for source in sorted(_path(job_id).parent.rglob("*")):
+                if source.is_file() and source.name != bundle_path.name:
+                    archive.write(source, source.relative_to(_path(job_id).parent).as_posix())
+                    included.append(source.relative_to(_path(job_id).parent).as_posix())
+        return {"job_id": job_id, "status": job["status"], "evidence": job.get("evidence", {}), "job_metadata": str(_path(job_id)), "bundle_path": str(bundle_path), "bundle_files": len(included), "missing_files": []}
     if job["status"] != "passed":
         raise HTTPException(status_code=409, detail="evidence bundle is unavailable until the job passes")
     bundle_path = _path(job_id).parent / "evidence-bundle.zip"
