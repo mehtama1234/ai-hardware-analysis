@@ -26,6 +26,7 @@ from deployment.project_store import ProjectStore
 from deployment.collateral_store import CollateralStore, MAX_CONTENT_BYTES
 from deployment.collateral_ingest import ingest_artifact
 from verification_platform.retrieval import build_retrieval_index, retrieve
+from deployment.planning_service import plan_persisted_ir
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -215,6 +216,22 @@ def search_project(project_id: str, q: str = "", limit: int = 5) -> dict[str, An
         return {"project_id": project_id, "query": q, "hits": [], "source_count": 0}
     index = build_retrieval_index(paths, root=root, source_revision="project-collateral")
     return {"project_id": project_id, "query": q, "hits": retrieve(index, q, limit=limit), "source_count": len(paths), "index_sha256": index["index_sha256"]}
+
+@app.post("/v1/projects/{project_id}/collateral/{artifact_id}/plan")
+def plan_project_collateral(project_id: str, artifact_id: str) -> dict[str, Any]:
+    try:
+        record = _collateral().get(artifact_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="collateral not found") from error
+    if record["project_id"] != project_id:
+        raise HTTPException(status_code=404, detail="collateral not found")
+    ir_path = JOB_ROOT.parent / "ir" / project_id / "ir" / f"{artifact_id}.json"
+    if not ir_path.is_file():
+        raise HTTPException(status_code=409, detail="collateral must be ingested before planning")
+    try:
+        return plan_persisted_ir(ir_path, output_root=JOB_ROOT.parent / "ir", project_id=project_id, artifact_id=artifact_id)
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"planning failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
