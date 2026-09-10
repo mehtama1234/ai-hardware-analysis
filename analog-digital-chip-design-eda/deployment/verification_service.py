@@ -23,6 +23,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from deployment.job_queue import DurableJobQueue
 from deployment.project_store import ProjectStore
+from deployment.collateral_store import CollateralStore, MAX_CONTENT_BYTES
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -35,6 +36,9 @@ def _queue() -> DurableJobQueue:
 
 def _projects() -> ProjectStore:
     return ProjectStore(JOB_ROOT.parent / "jobs.sqlite")
+
+def _collateral() -> CollateralStore:
+    return CollateralStore(JOB_ROOT.parent / "jobs.sqlite", JOB_ROOT.parent / "collateral")
 
 app = FastAPI(title="Verification Pilot Service", version="v1")
 
@@ -98,6 +102,12 @@ class ProjectRequest(BaseModel):
     id: str
     name: str
 
+class CollateralRequest(BaseModel):
+    name: str
+    kind: str
+    version: str = "1"
+    content: str
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -151,6 +161,29 @@ def get_project(project_id: str) -> dict[str, str]:
         return _projects().get(project_id)
     except KeyError as error:
         raise HTTPException(status_code=404, detail="project not found") from error
+
+@app.post("/v1/projects/{project_id}/collateral", status_code=201)
+def add_collateral(project_id: str, request: CollateralRequest) -> dict[str, object]:
+    try:
+        _projects().get(project_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="project not found") from error
+    if not request.name.strip() or not request.kind.strip() or not request.version.strip():
+        raise HTTPException(status_code=400, detail="invalid collateral metadata")
+    if len(request.content.encode("utf-8")) > MAX_CONTENT_BYTES:
+        raise HTTPException(status_code=413, detail="collateral exceeds 1 MB limit")
+    try:
+        return _collateral().add(project_id, request.name.strip(), request.kind.strip(), request.version.strip(), request.content)
+    except ValueError as error:
+        raise HTTPException(status_code=413, detail=str(error)) from error
+
+@app.get("/v1/projects/{project_id}/collateral")
+def list_collateral(project_id: str) -> list[dict[str, object]]:
+    try:
+        _projects().get(project_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="project not found") from error
+    return _collateral().list(project_id)
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:

@@ -18,6 +18,9 @@ def test_job_lifecycle_persists_status_and_rejects_unknown_kind(tmp_path, monkey
     assert cancelled["status"] == "cancelled"
     assert [event["status"] for event in cancelled["events"]] == ["queued", "cancelled"]
     assert service.get_project("customer_demo")["id"] == "customer_demo"
+    collateral = service.add_collateral("customer_demo", service.CollateralRequest(name="spec.md", kind="specification", content="module spec;"))
+    assert collateral["sha256"]
+    assert service.list_collateral("customer_demo")[0]["name"] == "spec.md"
 
 def test_async_run_submission_is_nonblocking_for_queued_job(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
