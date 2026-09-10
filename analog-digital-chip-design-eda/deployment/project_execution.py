@@ -25,6 +25,16 @@ def _write_manifest(run_root: str | Path) -> Path:
     return write_artifact_manifest(root / "artifact-manifest.json", build_artifact_manifest(root, exclude={"artifact-manifest.json"}))
 
 
+def _verified_source(record: dict[str, Any], collateral_root: str | Path) -> Path:
+    source = Path(collateral_root) / str(record["path"])
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    actual = hashlib.sha256(source.read_bytes()).hexdigest()
+    if actual != str(record.get("sha256")):
+        raise ValueError("collateral content hash does not match its stored record")
+    return source
+
+
 def compile_project_rtl(
     record: dict[str, Any],
     *,
@@ -34,9 +44,7 @@ def compile_project_rtl(
     timeout_seconds: float = 120.0,
 ) -> dict[str, Any]:
     """Compile uploaded RTL with Icarus and persist the normal provenance ledger."""
-    source = Path(collateral_root) / str(record["path"])
-    if not source.is_file():
-        raise FileNotFoundError(source)
+    source = _verified_source(record, collateral_root)
     content = source.read_text(encoding="utf-8")
     modules = sorted(set(MODULE_RE.findall(content)))
     if not modules:
@@ -76,9 +84,7 @@ def lint_project_rtl(
     timeout_seconds: float = 120.0,
 ) -> dict[str, Any]:
     """Run Verilator's static front end without claiming simulation coverage."""
-    source = Path(collateral_root) / str(record["path"])
-    if not source.is_file():
-        raise FileNotFoundError(source)
+    source = _verified_source(record, collateral_root)
     modules = sorted(set(MODULE_RE.findall(source.read_text(encoding="utf-8"))))
     if not modules:
         raise ValueError("collateral contains no SystemVerilog module")
@@ -99,9 +105,7 @@ def lint_project_rtl(
 
 def formal_preflight_project_rtl(record: dict[str, Any], *, collateral_root: str | Path, run_root: str | Path, source_revision: str | None = None, timeout_seconds: float = 120.0) -> dict[str, Any]:
     """Run Yosys parsing/elaboration; this does not claim a property proof."""
-    source = Path(collateral_root) / str(record["path"])
-    if not source.is_file():
-        raise FileNotFoundError(source)
+    source = _verified_source(record, collateral_root)
     modules = sorted(set(MODULE_RE.findall(source.read_text(encoding="utf-8"))))
     if not modules:
         raise ValueError("collateral contains no SystemVerilog module")
@@ -116,9 +120,7 @@ def formal_preflight_project_rtl(record: dict[str, Any], *, collateral_root: str
 
 def prove_project_invariant(record: dict[str, Any], *, signal: str, expected_value: str, collateral_root: str | Path, run_root: str | Path, source_revision: str | None = None, sequence: int = 3, timeout_seconds: float = 120.0) -> dict[str, Any]:
     """Run a bounded SAT invariant supplied by an approved verification plan."""
-    source = Path(collateral_root) / str(record["path"])
-    if not source.is_file():
-        raise FileNotFoundError(source)
+    source = _verified_source(record, collateral_root)
     modules = sorted(set(MODULE_RE.findall(source.read_text(encoding="utf-8"))))
     if not modules:
         raise ValueError("collateral contains no SystemVerilog module")
@@ -154,10 +156,8 @@ def simulate_project(
     timeout_seconds: float = 180.0,
 ) -> dict[str, Any]:
     """Run a customer RTL/testbench pair and preserve failure evidence."""
-    rtl = Path(collateral_root) / str(rtl_record["path"])
-    testbench = Path(collateral_root) / str(testbench_record["path"])
-    if not rtl.is_file() or not testbench.is_file():
-        raise FileNotFoundError("RTL or testbench collateral is missing")
+    rtl = _verified_source(rtl_record, collateral_root)
+    testbench = _verified_source(testbench_record, collateral_root)
     run_root = Path(run_root)
     compile_run, simulation_run = run_iverilog_vvp(
         rtl,
