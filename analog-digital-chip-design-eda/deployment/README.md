@@ -23,6 +23,11 @@ and updates its durable status. Use `/healthz` and `/readyz` for probes and
 `/metrics` for the pilot counters. Every non-probe endpoint requires the
 `X-API-Key` header when an API key is configured.
 
+Deployments may additionally set `VERIFICATION_PROJECT_KEYS` to a JSON object
+mapping project IDs to scoped keys. Project routes then require
+`X-Project-Key` matching the project entry; this is a pilot isolation aid and
+does not replace enterprise identity and RBAC.
+
 For secret-manager mounts, set `VERIFICATION_SERVICE_API_KEY_FILE` to a file
 containing the key; it takes precedence over the environment value.
 
