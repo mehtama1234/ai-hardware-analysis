@@ -29,6 +29,7 @@ from verification_platform.retrieval import build_retrieval_index, retrieve
 from deployment.planning_service import plan_persisted_ir
 from deployment.generation_service import generate_persisted_plan
 from deployment.project_execution import compile_project_rtl, simulate_project
+from deployment.repair_service import propose_repair
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -114,6 +115,12 @@ class CollateralRequest(BaseModel):
     kind: str
     version: str = "1"
     content: str
+
+class RepairRequest(BaseModel):
+    before: str
+    after: str
+    rationale: str
+    approved: bool = False
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -257,6 +264,23 @@ def generate_project_artifacts(project_id: str, artifact_id: str) -> dict[str, A
         )
     except (OSError, UnicodeError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"artifact generation failed: {error}") from error
+
+@app.post("/v1/projects/{project_id}/collateral/{artifact_id}/repair")
+def repair_project_collateral(project_id: str, artifact_id: str, request: RepairRequest) -> dict[str, Any]:
+    try:
+        record = _collateral().get(artifact_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="collateral not found") from error
+    if record["project_id"] != project_id:
+        raise HTTPException(status_code=404, detail="collateral not found")
+    try:
+        proposal, repaired_content = propose_repair(record, collateral_root=JOB_ROOT.parent / "collateral", before=request.before, after=request.after, rationale=request.rationale, approved=request.approved)
+    except (OSError, UnicodeError) as error:
+        raise HTTPException(status_code=422, detail=f"repair proposal failed: {error}") from error
+    if repaired_content is None:
+        return {"project_id": project_id, "source_artifact_id": artifact_id, "proposal": proposal}
+    repaired = _collateral().add(project_id, str(record["name"]), str(record["kind"]), f"repair-of-{record['version']}", repaired_content)
+    return {"project_id": project_id, "source_artifact_id": artifact_id, "proposal": proposal, "repaired_artifact": repaired}
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
