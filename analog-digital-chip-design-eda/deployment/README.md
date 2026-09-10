@@ -95,6 +95,17 @@ and an ordered list of testbench IDs:
 Retrieve `GET /v1/jobs/{job_id}/regression-proof-of-value` after completion to
 see per-case status, aggregate coverage, and links to each isolated case root.
 
+After review, bind the pilot decision to the exact report with
+`POST /v1/jobs/{job_id}/signoff`:
+
+```json
+{"reviewer":"verification-lead","notes":"metrics reviewed against the run bundle","approved":true}
+```
+
+The service writes `pilot-signoff.json` containing the reviewer, timestamp,
+decision, and PoV report digest. Bundles created after sign-off include this
+record automatically.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
