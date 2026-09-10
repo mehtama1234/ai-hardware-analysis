@@ -19,6 +19,8 @@ def test_workbench_exposes_live_api_and_evidence_boundaries():
     ):
         assert endpoint in html
     assert "evidence-backed" in html
+    assert 'data-tab="formal"' in html
+    assert "Counterexample" in html
     for job_kind in ("project-simulation", "project-compile", "project-lint", "project-formal", "project-formal-proof", "project-regression"):
         assert job_kind in html
     assert "reference marker · not exhaustive coverage" in html.lower()
