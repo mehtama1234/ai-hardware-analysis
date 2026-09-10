@@ -39,3 +39,5 @@ def test_workbench_keeps_an_offline_demo_path():
     assert "Stale · retrying" in html
     assert "Unauthorized · reconnect required" in html
     assert "setInterval" in html
+    assert "Loading durable runs" in html
+    assert "Loading project collateral" in html
