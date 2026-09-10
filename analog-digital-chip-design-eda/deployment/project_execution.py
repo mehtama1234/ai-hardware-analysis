@@ -217,3 +217,37 @@ def simulate_project(
     _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result
+
+
+def simulate_project_regression(
+    rtl_record: dict[str, Any],
+    testbench_records: list[dict[str, Any]],
+    *,
+    collateral_root: str | Path,
+    run_root: str | Path,
+    source_revision: str = "unknown",
+    timeout_seconds: float = 180.0,
+) -> dict[str, Any]:
+    """Run a set of customer testbenches, retaining each case's evidence."""
+    if not testbench_records:
+        raise ValueError("at least one testbench is required")
+    root = Path(run_root)
+    cases = []
+    for index, record in enumerate(testbench_records, 1):
+        case_root = root / f"case-{index:03d}"
+        cases.append(simulate_project(rtl_record, record, collateral_root=collateral_root, run_root=case_root, source_revision=source_revision, timeout_seconds=timeout_seconds))
+    result = {
+        "project_id": rtl_record["project_id"],
+        "rtl_artifact_id": rtl_record["id"],
+        "testbench_artifact_ids": [record["id"] for record in testbench_records],
+        "status": "passed" if all(case["status"] == "passed" for case in cases) else "failed",
+        "case_count": len(cases),
+        "passed_cases": sum(case["status"] == "passed" for case in cases),
+        "failed_cases": sum(case["status"] != "passed" for case in cases),
+        "cases": cases,
+    }
+    result_path = root / "project-regression-result.json"
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(root)
+    result["result_path"] = str(result_path)
+    return result

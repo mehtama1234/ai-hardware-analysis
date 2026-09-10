@@ -28,7 +28,7 @@ from deployment.collateral_ingest import ingest_artifact
 from verification_platform.retrieval import build_retrieval_index, retrieve
 from deployment.planning_service import plan_persisted_ir
 from deployment.generation_service import generate_persisted_plan
-from deployment.project_execution import compile_project_rtl, formal_preflight_project_rtl, lint_project_rtl, prove_project_invariant, simulate_project
+from deployment.project_execution import compile_project_rtl, formal_preflight_project_rtl, lint_project_rtl, prove_project_invariant, simulate_project, simulate_project_regression
 from deployment.repair_service import propose_repair
 from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
@@ -113,6 +113,7 @@ class JobRequest(BaseModel):
     project_id: str = "default"
     artifact_id: str | None = None
     testbench_artifact_id: str | None = None
+    testbench_artifact_ids: list[str] = []
     formal_signal: str | None = None
     formal_expected: str | None = None
     formal_sequence: int = 3
@@ -337,7 +338,7 @@ def compare_project_jobs(baseline_job_id: str, retest_job_id: str) -> dict[str, 
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
-    if request.kind not in {"multi-design-pilot", "project-compile", "project-lint", "project-formal", "project-formal-proof", "project-simulation"}:
+    if request.kind not in {"multi-design-pilot", "project-compile", "project-lint", "project-formal", "project-formal-proof", "project-simulation", "project-regression"}:
         raise HTTPException(status_code=400, detail="unsupported job kind")
     if not request.project_id or not request.project_id.replace("-", "").replace("_", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid project id")
@@ -362,16 +363,26 @@ def create_job(request: JobRequest) -> dict[str, Any]:
             raise HTTPException(status_code=404, detail="collateral not found") from error
         if rtl_record["project_id"] != request.project_id or tb_record["project_id"] != request.project_id:
             raise HTTPException(status_code=404, detail="collateral not found")
+    if request.kind == "project-regression":
+        if not request.artifact_id or not request.testbench_artifact_ids:
+            raise HTTPException(status_code=400, detail="artifact_id and testbench_artifact_ids are required for project-regression")
+        try:
+            rtl_record = _collateral().get(request.artifact_id)
+            tb_records = [_collateral().get(item) for item in request.testbench_artifact_ids]
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail="collateral not found") from error
+        if rtl_record["project_id"] != request.project_id or any(record["project_id"] != request.project_id for record in tb_records):
+            raise HTTPException(status_code=404, detail="collateral not found")
     queue_counts = _queue().counts()
     backlog = queue_counts.get("queued", 0) + queue_counts.get("running", 0)
     if backlog >= _max_queued_jobs():
         raise HTTPException(status_code=429, detail="verification job capacity is full")
     _projects().ensure(request.project_id)
-    job = {"id": uuid.uuid4().hex, "kind": request.kind, "project_id": request.project_id, "artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence, "status": "queued", "created_at": _now(), "events": []}
+    job = {"id": uuid.uuid4().hex, "kind": request.kind, "project_id": request.project_id, "artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "testbench_artifact_ids": request.testbench_artifact_ids, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence, "status": "queued", "created_at": _now(), "events": []}
     _record(job, "queued")
     _COUNTERS["submitted"] += 1
     _write(job)
-    _queue().enqueue(job["id"], project_id=request.project_id, kind=request.kind, payload={"artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence} if request.artifact_id else {})
+    _queue().enqueue(job["id"], project_id=request.project_id, kind=request.kind, payload={"artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "testbench_artifact_ids": request.testbench_artifact_ids, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence} if request.artifact_id else {})
     return job
 
 @app.get("/v1/jobs/{job_id}")
@@ -434,6 +445,12 @@ def run_job(job_id: str) -> dict[str, Any]:
                 stdout = (job_dir / "simulation" / "stdout.log").read_text(encoding="utf-8") if (job_dir / "simulation" / "stdout.log").is_file() else ""
                 stderr = (job_dir / "simulation" / "stderr.log").read_text(encoding="utf-8") if (job_dir / "simulation" / "stderr.log").is_file() else ""
                 exit_code = 0 if result_data["status"] == "passed" else 1
+            elif job["kind"] == "project-regression":
+                store = _collateral()
+                rtl_record = store.get(str(job["artifact_id"]))
+                tb_records = [store.get(str(item)) for item in job["testbench_artifact_ids"]]
+                result_data = simulate_project_regression(rtl_record, tb_records, collateral_root=JOB_ROOT.parent / "collateral", run_root=job_dir, source_revision=str(rtl_record["version"]), timeout_seconds=_job_timeout_seconds())
+                stdout, stderr, exit_code = "", "", 0 if result_data["status"] == "passed" else 1
             else:
                 result = subprocess.run(["python3", str(PILOT)], cwd=ROOT, capture_output=True, text=True, check=False, timeout=_job_timeout_seconds())
                 stdout, stderr, exit_code = result.stdout, result.stderr, result.returncode
@@ -452,7 +469,7 @@ def run_job(job_id: str) -> dict[str, Any]:
     job["finished_at"] = _now(); job["exit_code"] = exit_code
     if timeout_error:
         job["error"] = timeout_error
-    job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_lint": str(job_dir / "project-lint-result.json")} if job["kind"] == "project-lint" else {"project_formal": str(job_dir / "project-formal-result.json")} if job["kind"] == "project-formal" else {"project_formal_proof": str(job_dir / "project-formal-proof-result.json")} if job["kind"] == "project-formal-proof" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {"pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json", "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json"})
+    job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_lint": str(job_dir / "project-lint-result.json")} if job["kind"] == "project-lint" else {"project_formal": str(job_dir / "project-formal-result.json")} if job["kind"] == "project-formal" else {"project_formal_proof": str(job_dir / "project-formal-proof-result.json")} if job["kind"] == "project-formal-proof" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {"project_regression": str(job_dir / "project-regression-result.json")} if job["kind"] == "project-regression" else {"pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json", "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json"})
     _write(job)
     return job
 
@@ -480,7 +497,7 @@ def cancel_job(job_id: str) -> dict[str, Any]:
 @app.get("/v1/jobs/{job_id}/bundle")
 def get_bundle(job_id: str) -> dict[str, Any]:
     job = _read(job_id)
-    if job["kind"] in {"project-compile", "project-lint", "project-formal", "project-formal-proof", "project-simulation"}:
+    if job["kind"] in {"project-compile", "project-lint", "project-formal", "project-formal-proof", "project-simulation", "project-regression"}:
         if job["status"] not in {"passed", "failed"}:
             raise HTTPException(status_code=409, detail="project evidence bundle requires a terminal job")
         bundle_path = _path(job_id).parent / "evidence-bundle.zip"
