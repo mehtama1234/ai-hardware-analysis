@@ -267,11 +267,15 @@ def generate_project_artifacts(project_id: str, artifact_id: str) -> dict[str, A
     if not plan_path.is_file():
         raise HTTPException(status_code=409, detail="collateral must be planned before generation")
     try:
+        ir_path = JOB_ROOT.parent / "ir" / project_id / "ir" / f"{artifact_id}.json"
+        ir_payload = json.loads(ir_path.read_text(encoding="utf-8")) if ir_path.is_file() else {}
+        signals = [str(item["name"]) for item in ir_payload.get("checks", []) if item.get("type") == "port" and str(item.get("name", "")).isidentifier()]
         return generate_persisted_plan(
             plan_path,
             output_root=JOB_ROOT.parent / "ir",
             project_id=project_id,
             artifact_id=artifact_id,
+            signals=signals or None,
         )
     except (OSError, UnicodeError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"artifact generation failed: {error}") from error

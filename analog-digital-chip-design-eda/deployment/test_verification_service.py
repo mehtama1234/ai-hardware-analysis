@@ -31,6 +31,11 @@ def test_job_lifecycle_persists_status_and_rejects_unknown_kind(tmp_path, monkey
     assert generated["files"]["uvm"]["status"] == "review_only"
     review = service.repair_project_collateral("customer_demo", collateral["id"], service.RepairRequest(before="module", after="module", rationale="test"))
     assert review["proposal"]["status"] == "review_required"
+    ported = service.add_collateral("customer_demo", service.CollateralRequest(name="ports.sv", kind="rtl", content="module ports(input logic data); endmodule\n"))
+    service.ingest_project_collateral("customer_demo", ported["id"])
+    service.plan_project_collateral("customer_demo", ported["id"])
+    generated_ports = service.generate_project_artifacts("customer_demo", ported["id"])
+    assert "logic data;" in Path(generated_ports["files"]["uvm"]["path"]).read_text()
 
 def test_async_run_submission_is_nonblocking_for_queued_job(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
