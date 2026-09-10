@@ -131,3 +131,6 @@ def test_project_regression_job_and_pov_endpoint(tmp_path, monkeypatch):
     report = service.project_regression_proof_of_value(created["id"])
     assert report["case_count"] == 2
     assert report["coverage"]["percentage"] == 100.0
+    signoff = service.signoff_project_job(created["id"], service.SignoffRequest(reviewer="lead", notes="reviewed regression evidence", approved=True))
+    assert signoff["status"] == "approved"
+    assert signoff["report_sha256"] == report["report_sha256"]

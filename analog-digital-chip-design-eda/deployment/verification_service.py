@@ -34,6 +34,7 @@ from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
 from deployment.project_regression_pov import write_regression_pov
 from verification_platform.capabilities import discover_capabilities
+from deployment.signoff_service import write_signoff
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -133,6 +134,11 @@ class RepairRequest(BaseModel):
     before: str
     after: str
     rationale: str
+    approved: bool = False
+
+class SignoffRequest(BaseModel):
+    reviewer: str
+    notes: str
     approved: bool = False
 
 def _now() -> str:
@@ -347,6 +353,29 @@ def project_regression_proof_of_value(job_id: str) -> dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"regression proof-of-value generation failed: {error}") from error
+
+@app.post("/v1/jobs/{job_id}/signoff")
+def signoff_project_job(job_id: str, request: SignoffRequest) -> dict[str, Any]:
+    job = _read(job_id)
+    if job.get("kind") == "project-simulation":
+        if job.get("status") not in {"passed", "failed"}:
+            raise HTTPException(status_code=409, detail="a terminal project-simulation job is required")
+        report_path = _path(job_id).parent / "proof-of-value-report.json"
+        if not report_path.is_file():
+            write_project_pov(_path(job_id).parent)
+    elif job.get("kind") == "project-regression":
+        if job.get("status") not in {"passed", "failed"}:
+            raise HTTPException(status_code=409, detail="a terminal project-regression job is required")
+        report_path = _path(job_id).parent / "regression-proof-of-value-report.json"
+        if not report_path.is_file():
+            write_regression_pov(_path(job_id).parent)
+    else:
+        raise HTTPException(status_code=409, detail="project simulation or regression job is required")
+    try:
+        signoff_path = write_signoff(report_path, reviewer=request.reviewer, notes=request.notes, approved=request.approved)
+        return json.loads(signoff_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"sign-off failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
