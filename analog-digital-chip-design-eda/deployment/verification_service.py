@@ -27,6 +27,7 @@ from deployment.collateral_store import CollateralStore, MAX_CONTENT_BYTES
 from deployment.collateral_ingest import ingest_artifact
 from verification_platform.retrieval import build_retrieval_index, retrieve
 from deployment.planning_service import plan_persisted_ir
+from deployment.generation_service import generate_persisted_plan
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -232,6 +233,27 @@ def plan_project_collateral(project_id: str, artifact_id: str) -> dict[str, Any]
         return plan_persisted_ir(ir_path, output_root=JOB_ROOT.parent / "ir", project_id=project_id, artifact_id=artifact_id)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"planning failed: {error}") from error
+
+@app.post("/v1/projects/{project_id}/collateral/{artifact_id}/generate")
+def generate_project_artifacts(project_id: str, artifact_id: str) -> dict[str, Any]:
+    try:
+        record = _collateral().get(artifact_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="collateral not found") from error
+    if record["project_id"] != project_id:
+        raise HTTPException(status_code=404, detail="collateral not found")
+    plan_path = JOB_ROOT.parent / "ir" / project_id / "plans" / f"{artifact_id}.json"
+    if not plan_path.is_file():
+        raise HTTPException(status_code=409, detail="collateral must be planned before generation")
+    try:
+        return generate_persisted_plan(
+            plan_path,
+            output_root=JOB_ROOT.parent / "ir",
+            project_id=project_id,
+            artifact_id=artifact_id,
+        )
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"artifact generation failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
