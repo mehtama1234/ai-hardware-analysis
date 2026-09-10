@@ -2,6 +2,7 @@ from pathlib import Path
 
 
 WORKBENCH = Path(__file__).parents[1] / "site" / "verification-workbench.html"
+GUIDE = Path(__file__).parents[1] / "site" / "VERIFICATION_WORKBENCH.md"
 
 
 def test_workbench_exposes_live_api_and_evidence_boundaries():
@@ -42,3 +43,9 @@ def test_workbench_keeps_an_offline_demo_path():
     assert "setInterval" in html
     assert "Loading durable runs" in html
     assert "Loading project collateral" in html
+
+
+def test_workbench_guide_covers_customer_pov_flow():
+    guide = GUIDE.read_text(encoding="utf-8")
+    for phrase in ("Run the demo", "Connect a live pilot service", "Customer PoV walkthrough", "Generated SVA/UVM remains review-only"):
+        assert phrase in guide
