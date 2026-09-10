@@ -36,3 +36,6 @@ def test_workbench_keeps_an_offline_demo_path():
     assert "Demo data loaded" in html
     assert "Demo fallback · API unavailable" in html
     assert "Demo report: 3 blockers" in html
+    assert "Stale · retrying" in html
+    assert "Unauthorized · reconnect required" in html
+    assert "setInterval" in html
