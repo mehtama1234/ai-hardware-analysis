@@ -75,6 +75,16 @@ def test_job_idempotency_returns_existing_submission(tmp_path, monkeypatch):
     assert second["id"] == first["id"]
     assert len(service.list_jobs(project_id="p1")) == 1
 
+def test_job_idempotency_rejects_key_payload_collision(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    service.create_job(service.JobRequest(project_id="p1", idempotency_key="pilot-001", kind="multi-design-pilot"))
+    try:
+        service.create_job(service.JobRequest(project_id="p1", idempotency_key="pilot-001", kind="project-compile", artifact_id="missing"))
+    except Exception as error:
+        assert getattr(error, "status_code", None) == 409
+    else:
+        raise AssertionError("idempotency key collision must be rejected")
+
 def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
     project = service.create_project(service.ProjectRequest(id="p1", name="Project one"))

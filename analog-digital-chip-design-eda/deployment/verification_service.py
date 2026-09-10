@@ -8,6 +8,7 @@ provisioning is enabled.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import hmac
 import json
 import os
@@ -386,9 +387,12 @@ def create_job(request: JobRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="invalid project id")
     if request.idempotency_key is not None and (not request.idempotency_key.strip() or len(request.idempotency_key) > 128):
         raise HTTPException(status_code=400, detail="invalid idempotency key")
+    request_fingerprint = hashlib.sha256(json.dumps(request.model_dump(exclude={"idempotency_key"}), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     if request.idempotency_key:
         for existing in list_jobs(project_id=request.project_id):
             if existing.get("idempotency_key") == request.idempotency_key:
+                if existing.get("request_fingerprint") != request_fingerprint:
+                    raise HTTPException(status_code=409, detail="idempotency key is already bound to a different request")
                 return existing
     if request.kind in {"project-compile", "project-lint", "project-formal", "project-formal-proof"}:
         if not request.artifact_id:
@@ -426,7 +430,7 @@ def create_job(request: JobRequest) -> dict[str, Any]:
     if backlog >= _max_queued_jobs():
         raise HTTPException(status_code=429, detail="verification job capacity is full")
     _projects().ensure(request.project_id)
-    job = {"id": uuid.uuid4().hex, "kind": request.kind, "project_id": request.project_id, "artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "testbench_artifact_ids": request.testbench_artifact_ids, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence, "idempotency_key": request.idempotency_key, "status": "queued", "created_at": _now(), "events": []}
+    job = {"id": uuid.uuid4().hex, "kind": request.kind, "project_id": request.project_id, "artifact_id": request.artifact_id, "testbench_artifact_id": request.testbench_artifact_id, "testbench_artifact_ids": request.testbench_artifact_ids, "formal_signal": request.formal_signal, "formal_expected": request.formal_expected, "formal_sequence": request.formal_sequence, "idempotency_key": request.idempotency_key, "request_fingerprint": request_fingerprint, "status": "queued", "created_at": _now(), "events": []}
     _record(job, "queued")
     _COUNTERS["submitted"] += 1
     _write(job)
