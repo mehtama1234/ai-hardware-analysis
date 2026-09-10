@@ -32,6 +32,7 @@ from deployment.project_execution import compile_project_rtl, formal_preflight_p
 from deployment.repair_service import propose_repair
 from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
+from verification_platform.capabilities import discover_capabilities
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -101,6 +102,11 @@ def prometheus_metrics() -> str:
         lines.append(f'verification_queue_jobs{{state="{state}"}} {value}')
     lines.append("verification_single_flight 1")
     return "\n".join(lines) + "\n"
+
+@app.get("/v1/capabilities")
+def capabilities() -> dict[str, Any]:
+    discovered = discover_capabilities()
+    return {"schema_version": "verification-capabilities-v1", "capabilities": [{"tool": item.tool, "executable": item.executable, "available": item.available, "status": item.status} for item in discovered], "available": sum(item.available for item in discovered), "blocked": sum(not item.available for item in discovered)}
 
 class JobRequest(BaseModel):
     kind: str = "multi-design-pilot"
