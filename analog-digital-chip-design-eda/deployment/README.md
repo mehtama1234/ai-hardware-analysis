@@ -130,6 +130,11 @@ starts its worker when those live parameters are present. The repair action is
 deliberately review-only in the browser; approval and retest remain explicit
 API operations.
 
+The workbench's collateral panel reads
+`GET /v1/projects/{project_id}/collateral`, exposes each artifact's kind,
+ingestion state, and content hash, and supports client-side filtering so a
+reviewer can trace the evidence set before launching a run.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
