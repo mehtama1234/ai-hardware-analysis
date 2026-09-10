@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: verification-pilot-api
+type: Opaque
+stringData:
+  api-key: replace-with-a-long-random-secret
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: verification-pilot-artifacts
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verification-pilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: verification-pilot
+  template:
+    metadata:
+      labels:
+        app: verification-pilot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: api
+          image: verification-pilot:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: VERIFICATION_SERVICE_API_KEY_FILE
+              value: /run/secrets/api-key
+            - name: VERIFICATION_JOB_TIMEOUT_SECONDS
+              value: "1800"
+            - name: VERIFICATION_MAX_QUEUED_JOBS
+              value: "32"
+          volumeMounts:
+            - name: artifacts
+              mountPath: /app/.artifacts
+            - name: api-key
+              mountPath: /run/secrets
+              readOnly: true
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 30
+            timeoutSeconds: 5
+        - name: worker
+          image: verification-pilot:latest
+          imagePullPolicy: IfNotPresent
+          command: [python3, -m, deployment.worker]
+          env:
+            - name: VERIFICATION_WORKER_TIMEOUT_SECONDS
+              value: "1800"
+          volumeMounts:
+            - name: artifacts
+              mountPath: /app/.artifacts
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "2", memory: 2Gi}
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: verification-pilot-artifacts
+        - name: api-key
+          secret:
+            secretName: verification-pilot-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: verification-pilot
+spec:
+  selector:
+    app: verification-pilot
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+  type: ClusterIP

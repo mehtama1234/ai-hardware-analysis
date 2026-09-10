@@ -1,0 +1,46 @@
+services:
+  verification-pilot:
+    restart: unless-stopped
+    init: true
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    ports:
+      - "8080:8080"
+    cpus: "${VERIFICATION_API_CPUS:-1.0}"
+    mem_limit: ${VERIFICATION_API_MEMORY:-512m}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      VERIFICATION_SERVICE_API_KEY: ${VERIFICATION_SERVICE_API_KEY:?set an API key}
+      VERIFICATION_JOB_TIMEOUT_SECONDS: ${VERIFICATION_JOB_TIMEOUT_SECONDS:-1800}
+      VERIFICATION_MAX_QUEUED_JOBS: ${VERIFICATION_MAX_QUEUED_JOBS:-32}
+      VERIFICATION_WORKER_TIMEOUT_SECONDS: ${VERIFICATION_WORKER_TIMEOUT_SECONDS:-1800}
+    volumes:
+      - verification-pilot-artifacts:/app/.artifacts
+    read_only: true
+    tmpfs:
+      - /tmp
+  verification-pilot-worker:
+    restart: unless-stopped
+    init: true
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    command: ["python3", "-m", "deployment.worker"]
+    cpus: "${VERIFICATION_WORKER_CPUS:-2.0}"
+    mem_limit: ${VERIFICATION_WORKER_MEMORY:-2g}
+    environment:
+      VERIFICATION_SERVICE_API_KEY: ${VERIFICATION_SERVICE_API_KEY:?set an API key}
+    volumes:
+      - verification-pilot-artifacts:/app/.artifacts
+    read_only: true
+    tmpfs:
+      - /tmp
+
+volumes:
+  verification-pilot-artifacts:
