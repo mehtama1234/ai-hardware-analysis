@@ -16,6 +16,7 @@ def test_workbench_exposes_live_api_and_evidence_boundaries():
         "/bundle/download",
         "/compare/",
         "/signoff",
+        "/repair-retest",
     ):
         assert endpoint in html
     assert "evidence-backed" in html
@@ -25,6 +26,8 @@ def test_workbench_exposes_live_api_and_evidence_boundaries():
         assert job_kind in html
     assert "reference marker · not exhaustive coverage" in html.lower()
     assert "Proposal created as review-only" in html
+    assert "approved:false" in html
+    assert "approved:true" in html
     assert "confirm('Sign off this exact evidence package as reviewed?')" in html
 
 
