@@ -85,6 +85,17 @@ def test_job_idempotency_rejects_key_payload_collision(tmp_path, monkeypatch):
     else:
         raise AssertionError("idempotency key collision must be rejected")
 
+def test_project_dashboard_aggregates_jobs_collateral_and_signoffs(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    service.create_project(service.ProjectRequest(id="p1", name="Project one"))
+    service.add_collateral("p1", service.CollateralRequest(name="spec.md", kind="specification", content="REQ-RST: reg0 resets to zero"))
+    job = service.create_job(service.JobRequest(project_id="p1", idempotency_key="pilot-1"))
+    service._write({**job, "status": "passed"})
+    dashboard = service.project_dashboard("p1")
+    assert dashboard["collateral_count"] == 1
+    assert dashboard["jobs"]["passed"] == 1
+    assert dashboard["terminal_jobs"][0]["id"] == job["id"]
+
 def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
     project = service.create_project(service.ProjectRequest(id="p1", name="Project one"))

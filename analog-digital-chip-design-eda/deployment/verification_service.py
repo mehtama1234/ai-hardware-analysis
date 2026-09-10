@@ -197,6 +197,24 @@ def get_project(project_id: str) -> dict[str, str]:
     except KeyError as error:
         raise HTTPException(status_code=404, detail="project not found") from error
 
+@app.get("/v1/projects/{project_id}/dashboard")
+def project_dashboard(project_id: str) -> dict[str, Any]:
+    try:
+        project = _projects().get(project_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="project not found") from error
+    jobs = list_jobs(project_id=project_id)
+    terminal = [job for job in jobs if job.get("status") in {"passed", "failed"}]
+    signed = []
+    for job in terminal:
+        signoff = _path(job["id"]).parent / "pilot-signoff.json"
+        if signoff.is_file():
+            try:
+                signed.append(json.loads(signoff.read_text(encoding="utf-8")))
+            except json.JSONDecodeError:
+                continue
+    return {"project": project, "collateral_count": len(_collateral().list(project_id)), "jobs": {"total": len(jobs), "queued": sum(job.get("status") == "queued" for job in jobs), "running": sum(job.get("status") == "running" for job in jobs), "passed": sum(job.get("status") == "passed" for job in jobs), "failed": sum(job.get("status") == "failed" for job in jobs)}, "terminal_jobs": [{"id": job["id"], "kind": job["kind"], "status": job["status"], "evidence": job.get("evidence", {})} for job in terminal], "signoffs": signed}
+
 @app.post("/v1/projects/{project_id}/collateral", status_code=201)
 def add_collateral(project_id: str, request: CollateralRequest) -> dict[str, object]:
     try:
