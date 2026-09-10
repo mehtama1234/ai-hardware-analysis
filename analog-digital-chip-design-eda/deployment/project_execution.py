@@ -15,6 +15,7 @@ from verification_platform.logic import dependency_cone
 from verification_platform.closure import evaluate_closure, write_closure
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
+COVERAGE_RE = re.compile(r"COVERAGE\s+kind=(?P<kind>[A-Za-z_][\w-]*)\s+covered=(?P<covered>\d+)\s+total=(?P<total>\d+)")
 
 
 def compile_project_rtl(
@@ -91,7 +92,16 @@ def simulate_project(
     }
     if simulation_run:
         stdout_path = run_root / "simulation" / "stdout.log"
-        failure = parse_failure(stdout_path.read_text(encoding="utf-8")) if stdout_path.is_file() else None
+        stdout = stdout_path.read_text(encoding="utf-8") if stdout_path.is_file() else ""
+        failure = parse_failure(stdout)
+        coverage_match = COVERAGE_RE.search(stdout)
+        if coverage_match:
+            covered, total = int(coverage_match["covered"]), int(coverage_match["total"])
+            if total <= 0 or covered > total:
+                raise ValueError("coverage marker requires 0 <= covered <= total and total > 0")
+            coverage_path = run_root / "functional-coverage.json"
+            coverage_path.write_text(json.dumps({"kind": coverage_match["kind"], "covered": covered, "total": total}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            result["coverage_path"] = str(coverage_path)
         if failure:
             result["status"] = "failed"
             result["failure"] = asdict(failure)
