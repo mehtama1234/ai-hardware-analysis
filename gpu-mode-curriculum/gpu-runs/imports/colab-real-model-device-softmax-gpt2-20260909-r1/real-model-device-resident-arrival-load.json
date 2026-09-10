@@ -1,0 +1,119 @@
+{
+  "schema_version": "real-model-device-resident-arrival-load-v0.1",
+  "experiment": "real_gpt2_device_resident_paged_decode_arrival_trace",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "max_new_tokens": 8,
+    "repeats": 2,
+    "stress_profile": true,
+    "scheduler": "accepted bounded arrival-window grouping with pre-service cancellation",
+    "decode": "device-resident K/V page packing plus CUDA paged attention across all 12 GPT-2 layers",
+    "kernel_variant": "one CUDA launch per GPT-2 attention layer over batch*heads with per-request page offsets",
+    "timing": "CUDA synchronized around complete request set",
+    "memory": "torch.cuda.max_memory_allocated per phase"
+  },
+  "result": {
+    "request_count": 8,
+    "active_request_count": 7,
+    "cancelled_request_indices": [
+      7
+    ],
+    "arrival_trace_ms": [
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      20.0,
+      20.5,
+      21.0,
+      21.5
+    ],
+    "groups": [
+      [
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        4,
+        5,
+        6
+      ]
+    ],
+    "window_ms": 2.0,
+    "max_batch": 4,
+    "output_parity": true,
+    "native_sequential": {
+      "wall_time_ms_samples": [
+        1314.525511,
+        542.478542
+      ],
+      "wall_time_ms_median": 928.5020265,
+      "peak_memory_allocated_mb": 659.1123046875,
+      "power": {
+        "status": "sampled_nvml_protocol_scope",
+        "sample_count": 123,
+        "duration_s": 1.847278059,
+        "average_power_w": 48.8419012079115,
+        "peak_power_w": 80.421,
+        "integrated_energy_j": 90.2245724612205,
+        "scope": "entire extended characterization process; not an isolated per-token energy claim"
+      }
+    },
+    "native_scheduled": {
+      "wall_time_ms_samples": [
+        550.447867,
+        399.193219
+      ],
+      "wall_time_ms_median": 474.820543,
+      "peak_memory_allocated_mb": 996.65380859375,
+      "power": {
+        "status": "sampled_nvml_protocol_scope",
+        "sample_count": 53,
+        "duration_s": 0.94814982,
+        "average_power_w": 59.313333916493285,
+        "peak_power_w": 87.034,
+        "integrated_energy_j": 56.237926876523005,
+        "scope": "entire extended characterization process; not an isolated per-token energy claim"
+      }
+    },
+    "device_resident_scheduled": {
+      "wall_time_ms_samples": [
+        548.032439,
+        475.010719
+      ],
+      "wall_time_ms_median": 511.521579,
+      "peak_memory_allocated_mb": 1002.57373046875,
+      "power": {
+        "status": "sampled_nvml_protocol_scope",
+        "sample_count": 60,
+        "duration_s": 1.011025145,
+        "average_power_w": 68.0870335269688,
+        "peak_power_w": 99.796,
+        "integrated_energy_j": 68.8377029442235,
+        "scope": "entire extended characterization process; not an isolated per-token energy claim"
+      }
+    },
+    "throughput_speedup": 1.8151766506413605,
+    "claim_boundary": "Full GPT-2 arrival-trace parity and bounded scheduled-vs-sequential timing/memory/power at this T4 protocol; not production continuous batching."
+  },
+  "decision": "device_resident_arrival_load_parity_passed",
+  "claim_boundary": {
+    "allowed": "Exact GPT-2 token parity, cancellation trace, scheduled-vs-sequential timing, CUDA peak memory, and phase-scoped NVML samples for this T4 protocol.",
+    "refused": "General serving superiority, isolated per-token energy, production eviction/scalability, analog benefit, or silicon performance."
+  }
+}

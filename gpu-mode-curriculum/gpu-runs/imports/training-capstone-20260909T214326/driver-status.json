@@ -1,0 +1,65 @@
+{
+  "statuses": [
+    {
+      "command": [
+        "python",
+        "prepare_training_data.py",
+        "--data-dir",
+        "data"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "python",
+        "run_real_training.py",
+        "--data-dir",
+        "data",
+        "--output-dir",
+        "reports/gpu-run",
+        "--device",
+        "cuda",
+        "--steps",
+        "4",
+        "--sequence",
+        "64",
+        "--chunk-size",
+        "16",
+        "--seeds",
+        "7",
+        "19"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "python",
+        "verify_real_training.py",
+        "reports/gpu-run/real-training.json",
+        "--data-dir",
+        "data"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "python",
+        "verify_checkpoint_artifacts.py",
+        "reports/gpu-run/real-training.json"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "python",
+        "build_training_decision.py",
+        "reports/gpu-run/real-training.json",
+        "--output",
+        "reports/gpu-run/training-decision.json",
+        "--data-dir",
+        "data"
+      ],
+      "returncode": 0
+    }
+  ]
+}

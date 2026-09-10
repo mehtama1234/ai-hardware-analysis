@@ -1,0 +1,94 @@
+{
+  "schema_version": "real-model-candidate-comparison-v0.1",
+  "experiment": "real_model_framework_generate_vs_explicit_kv_decode",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "prompts": [
+      "The system bottleneck is",
+      "Memory movement dominates transformer inference when context grows because"
+    ],
+    "max_new_tokens": 8,
+    "repeats": 5,
+    "generation": "greedy",
+    "timing": "torch.cuda.synchronize before and after each sample"
+  },
+  "rows": [
+    {
+      "prompt": "The system bottleneck is",
+      "prompt_token_count": 4,
+      "generated_token_count": 8,
+      "output_parity": true,
+      "framework_generate": {
+        "wall_time_ms_samples": [
+          70.963562,
+          64.435782,
+          63.431262,
+          65.089382,
+          63.209665
+        ],
+        "wall_time_ms_median": 64.435782,
+        "wall_time_ms_p95": 70.963562
+      },
+      "explicit_kv_decode_candidate": {
+        "wall_time_ms_samples": [
+          57.91667,
+          60.576778,
+          63.761036,
+          58.98885,
+          59.198753
+        ],
+        "wall_time_ms_median": 59.198753,
+        "wall_time_ms_p95": 63.761036
+      },
+      "candidate_speedup_framework_over_candidate": 1.0884651911502257
+    },
+    {
+      "prompt": "Memory movement dominates transformer inference when context grows because",
+      "prompt_token_count": 9,
+      "generated_token_count": 8,
+      "output_parity": true,
+      "framework_generate": {
+        "wall_time_ms_samples": [
+          68.405708,
+          66.843234,
+          64.050685,
+          64.609716,
+          70.436982
+        ],
+        "wall_time_ms_median": 66.843234,
+        "wall_time_ms_p95": 70.436982
+      },
+      "explicit_kv_decode_candidate": {
+        "wall_time_ms_samples": [
+          58.03549,
+          73.014709,
+          58.740828,
+          59.194538,
+          60.956117
+        ],
+        "wall_time_ms_median": 59.194538,
+        "wall_time_ms_p95": 73.014709
+      },
+      "candidate_speedup_framework_over_candidate": 1.1292128675790998
+    }
+  ],
+  "decision": "candidate_accepted_for_recorded_scope",
+  "claim_boundary": {
+    "allowed": "Framework-versus-explicit-KV candidate timing and exact generated-token parity for this GPT-2/T4 protocol.",
+    "refused": "General serving superiority, energy savings, analog benefit, silicon performance, or production readiness."
+  }
+}

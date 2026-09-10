@@ -1,0 +1,26 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/76 [00:00<?, ?it/s]Loading weights: 100%|██████████| 76/76 [00:00<00:00, 2685.96it/s]
+{
+  "status": "passed",
+  "output": "/content/architecture-characterization/reports/pythia-serving-characterization.json",
+  "device": "Tesla T4",
+  "rows": 3,
+  "parity": true
+}
+$ python run_real_model_serving_characterization.py --model-id EleutherAI/pythia-70m --revision a39f36b100fe8a5377810d56c3f4789b9c53ac42 --output /content/architecture-characterization/reports/pythia-serving-characterization.json
+{"status": "passed", "errors": []}
+$ python verify_serving_characterization.py /content/architecture-characterization/reports/pythia-serving-characterization.json --model-id EleutherAI/pythia-70m --revision a39f36b100fe8a5377810d56c3f4789b9c53ac42
+Loading weights:   0%|          | 0/76 [00:00<?, ?it/s]Loading weights: 100%|██████████| 76/76 [00:00<00:00, 5075.18it/s]
+{"run": "r0-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.8483005440000113, "completion_p95_ms": 309.456205999993, "ttft_p95_ms": 39.49869699999908, "arrival_lateness_p95_ms": 5.217268999984981, "goodput_requests_per_s": 4.157679426817645, "output_tokens_per_s": 59.246931832151446, "peak_allocated_bytes": 167980544}}
+{"run": "r0-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 52, "rejected": 12, "failed": 0, "measured_window_s": 4.756910521999998, "completion_p95_ms": 1089.2980589999866, "ttft_p95_ms": 797.539324000013, "arrival_lateness_p95_ms": 0.6601190000026236, "goodput_requests_per_s": 10.931464815137428, "output_tokens_per_s": 153.88138932078073, "peak_allocated_bytes": 167906816}}
+{"run": "r0-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 52, "rejected": 140, "failed": 0, "measured_window_s": 5.579820226999999, "completion_p95_ms": 1558.2827340000165, "ttft_p95_ms": 1045.8784909999963, "arrival_lateness_p95_ms": 0.5168436666451726, "goodput_requests_per_s": 8.064775955012145, "output_tokens_per_s": 135.84667053109345, "peak_allocated_bytes": 167968256}}
+{"run": "r1-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 55, "rejected": 137, "failed": 0, "measured_window_s": 4.7875101099999995, "completion_p95_ms": 1174.3246050000096, "ttft_p95_ms": 1076.945577999993, "arrival_lateness_p95_ms": 1.863498666665464, "goodput_requests_per_s": 10.65271901848788, "output_tokens_per_s": 138.69422408384222, "peak_allocated_bytes": 168263168}}
+{"run": "r1-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 52, "rejected": 12, "failed": 0, "measured_window_s": 4.877808447000007, "completion_p95_ms": 1126.7824910000002, "ttft_p95_ms": 838.0902380000066, "arrival_lateness_p95_ms": 0.940721000006306, "goodput_requests_per_s": 10.660525226647943, "output_tokens_per_s": 154.9876359874201, "peak_allocated_bytes": 167919104}}
+{"run": "r1-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.8860766980000108, "completion_p95_ms": 313.9787880000142, "ttft_p95_ms": 33.215869999992265, "arrival_lateness_p95_ms": 0.9940680000113389, "goodput_requests_per_s": 4.1172630504782575, "output_tokens_per_s": 58.67099846931517, "peak_allocated_bytes": 167525376}}
+$ python run_continuous_load.py --model-id EleutherAI/pythia-70m --revision a39f36b100fe8a5377810d56c3f4789b9c53ac42 --engine hf --output-dir reports/pythia-load --seconds 4
+{
+  "status": "passed",
+  "errors": [],
+  "scope": "Bounded repeated HTTP arrival windows; no matched-baseline advantage or independent replay acceptance"
+}
+$ python verify_continuous_load.py reports/pythia-load/continuous-load.json --model-id EleutherAI/pythia-70m --model-revision a39f36b100fe8a5377810d56c3f4789b9c53ac42

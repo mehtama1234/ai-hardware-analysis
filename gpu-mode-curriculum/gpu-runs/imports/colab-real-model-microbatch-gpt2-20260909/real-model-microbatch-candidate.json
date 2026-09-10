@@ -1,0 +1,71 @@
+{
+  "schema_version": "real-model-microbatch-candidate-v0.1",
+  "experiment": "real_model_sequential_vs_padded_microbatch",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "prompts": [
+      "The system bottleneck is",
+      "Memory movement dominates transformer inference when context grows because",
+      "attention cache attention cache attention cache attention cache",
+      "A hardware decision must account for longer context and concurrency because"
+    ],
+    "max_new_tokens": 8,
+    "repeats": 5,
+    "generation": "greedy",
+    "timing": "torch.cuda.synchronize before and after each complete service sample",
+    "candidate_scope": "padded static microbatch; not continuous-arrival scheduler evidence"
+  },
+  "result": {
+    "request_count": 4,
+    "prompt_token_counts": [
+      4,
+      9,
+      9,
+      12
+    ],
+    "output_parity": false,
+    "sequential_service": {
+      "wall_time_ms_samples": [
+        267.135668,
+        261.411071,
+        368.460452,
+        375.904919,
+        362.303353
+      ],
+      "wall_time_ms_median": 362.303353,
+      "requests_per_second": 11.040471932921912
+    },
+    "padded_microbatch_candidate": {
+      "wall_time_ms_samples": [
+        81.552117,
+        137.072813,
+        104.22067,
+        109.122612,
+        127.389985
+      ],
+      "wall_time_ms_median": 109.122612,
+      "requests_per_second": 36.656014062419985
+    },
+    "throughput_speedup": 3.320149200607478,
+    "batch_latency_ratio": 0.30119128375828197
+  },
+  "decision": "candidate_not_proven_better",
+  "claim_boundary": {
+    "allowed": "Exact GPT-2 token parity and bounded sequential-versus-padded-microbatch T4 throughput for these requests.",
+    "refused": "Continuous-arrival scheduling, paged-KV eviction, general serving superiority, energy savings, analog benefit, or silicon performance."
+  }
+}

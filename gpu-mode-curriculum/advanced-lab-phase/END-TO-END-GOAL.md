@@ -1,5 +1,11 @@
 # Advanced GPU systems: the end-to-end goal
 
+This implementation foundation is part of the broader
+[long-term end-to-end program](../LONG-TERM-END-TO-END-GOAL.md). Its open
+requirements remain in scope. For the completed pretrained-model inference
+slice, see the [current slice checkpoint](../batch1-decode-vertical-slice/END-TO-END-GOAL.md);
+the dated checkpoints below predate that result.
+
 Status: **active**. Started 2026-09-06. No final phase is accepted yet.
 
 ## North-star outcome

@@ -1,0 +1,484 @@
+{
+  "schema_version": "real-model-inference-decision-v0.1",
+  "status": "passed",
+  "correctness": "passed",
+  "evidence_kind": "measured_gpu",
+  "summary": "Counterbalanced real GPT-2/T4 HTTP runs preserve outputs and establish a batching benefit; optimized paged attention does not consistently beat equally batched native attention.",
+  "inputs": {
+    "profile": {
+      "path": "gpu-runs/imports/colab-real-model-profile-corrected-gpt2-20260909/real-model-profile.json",
+      "sha256": "b93179830dc5e72e43f4a56b19143758db039b0df83bc92e30accdbab6a910d5"
+    },
+    "http": {
+      "path": "gpu-runs/imports/colab-real-model-http-gpt2-20260909/real-model-http.json",
+      "sha256": "bffb9d2c37fdcc10253e3caadd9339299e5db3ef5b571bc66c63569f448a8c97"
+    },
+    "optimized_profile": {
+      "path": "gpu-runs/imports/colab-real-model-profile-offsets-gpt2-20260909/real-model-profile.json",
+      "sha256": "358a409eaee7da979032148e585a4155015634fa7fa0f0dfe0e4cad14f86a276"
+    },
+    "http_repeated": {
+      "path": "gpu-runs/imports/colab-real-model-http-repeated-gpt2-20260909/real-model-http-repeated.json",
+      "sha256": "6404a797dc4f3373bf704cc2a1e9f94f07d13c7a831cf71fbe976b5ec540ac0f"
+    },
+    "http_replay": {
+      "path": "gpu-runs/imports/colab-real-model-http-replay-gpt2-20260909/real-model-http-repeated.json",
+      "sha256": "7c897a050071efd64cbfb4f67d3d34eb0cdd0dd8d798995ee2e4f8fd6d47253f"
+    },
+    "reproduction": {
+      "path": "gpu-runs/imports/colab-real-model-http-replay-gpt2-20260909/real-model-reproduction.json",
+      "sha256": "5646612013a7cfc026eb7afcfe304f7fbcb16e1d66cf294b5f978357fcac0fd9"
+    }
+  },
+  "profile": [
+    {
+      "variant": "eager",
+      "wall_ms_median": 378.862995,
+      "latency_over_eager_ratio": 1.0,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 32
+    },
+    {
+      "variant": "sdpa",
+      "wall_ms_median": 435.246294,
+      "latency_over_eager_ratio": 1.1488223968667088,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 33
+    },
+    {
+      "variant": "paged",
+      "wall_ms_median": 617.890358,
+      "latency_over_eager_ratio": 1.630907125146915,
+      "nonzero_calls": 1488,
+      "stream_synchronizations": 1520
+    },
+    {
+      "variant": "persistent",
+      "wall_ms_median": 652.74088,
+      "latency_over_eager_ratio": 1.7228942615522531,
+      "nonzero_calls": 1488,
+      "stream_synchronizations": 1520
+    }
+  ],
+  "http": [
+    {
+      "mode": "eager_serial",
+      "completed_count": 16,
+      "ttft_ms_median": 1191.8936789999748,
+      "completion_ms_p95": 2519.8914900000773,
+      "output_tokens_per_second": 99.19398209453361
+    },
+    {
+      "mode": "eager_microbatch",
+      "completed_count": 16,
+      "ttft_ms_median": 363.65563299995074,
+      "completion_ms_p95": 942.5134209999442,
+      "output_tokens_per_second": 254.51157786141584
+    },
+    {
+      "mode": "sdpa_microbatch",
+      "completed_count": 16,
+      "ttft_ms_median": 257.8567094999471,
+      "completion_ms_p95": 640.1253930000621,
+      "output_tokens_per_second": 365.50450753508824
+    }
+  ],
+  "optimized_profile": [
+    {
+      "variant": "eager",
+      "wall_ms_median": 383.353412,
+      "latency_over_eager_ratio": 1.0,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 32
+    },
+    {
+      "variant": "sdpa",
+      "wall_ms_median": 421.470395,
+      "latency_over_eager_ratio": 1.0994303997482093,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 33
+    },
+    {
+      "variant": "paged",
+      "wall_ms_median": 558.756441,
+      "latency_over_eager_ratio": 1.457549153103664,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 32
+    },
+    {
+      "variant": "persistent",
+      "wall_ms_median": 626.275344,
+      "latency_over_eager_ratio": 1.6336761964179414,
+      "nonzero_calls": 0,
+      "stream_synchronizations": 32
+    }
+  ],
+  "repeated_http": [
+    {
+      "run": "http_repeated",
+      "mode": "eager_serial",
+      "rounds": 4,
+      "round_p95_min_ms": 2541.422056999977,
+      "round_p95_median_ms": 2580.4417234999733,
+      "round_p95_max_ms": 3077.827116000094,
+      "rounds_faster_than_eager_microbatch": 0
+    },
+    {
+      "run": "http_repeated",
+      "mode": "eager_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 700.3543340000533,
+      "round_p95_median_ms": 728.4300654999925,
+      "round_p95_max_ms": 947.6037599999927,
+      "rounds_faster_than_eager_microbatch": 0
+    },
+    {
+      "run": "http_repeated",
+      "mode": "sdpa_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 677.8492320000851,
+      "round_p95_median_ms": 695.6799669999896,
+      "round_p95_max_ms": 864.8643779999929,
+      "rounds_faster_than_eager_microbatch": 3
+    },
+    {
+      "run": "http_repeated",
+      "mode": "paged_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 737.0238330000802,
+      "round_p95_median_ms": 857.4608535000152,
+      "round_p95_max_ms": 1075.6802440000683,
+      "rounds_faster_than_eager_microbatch": 1
+    },
+    {
+      "run": "http_replay",
+      "mode": "eager_serial",
+      "rounds": 4,
+      "round_p95_min_ms": 2440.5215279999766,
+      "round_p95_median_ms": 2710.7444999999757,
+      "round_p95_max_ms": 3029.0235570000164,
+      "rounds_faster_than_eager_microbatch": 0
+    },
+    {
+      "run": "http_replay",
+      "mode": "eager_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 689.6212870000227,
+      "round_p95_median_ms": 699.0189625000198,
+      "round_p95_max_ms": 709.0098279999779,
+      "rounds_faster_than_eager_microbatch": 0
+    },
+    {
+      "run": "http_replay",
+      "mode": "sdpa_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 670.6328930000041,
+      "round_p95_median_ms": 676.0391514999924,
+      "round_p95_max_ms": 741.3397040000405,
+      "rounds_faster_than_eager_microbatch": 3
+    },
+    {
+      "run": "http_replay",
+      "mode": "paged_microbatch",
+      "rounds": 4,
+      "round_p95_min_ms": 714.9944829999981,
+      "round_p95_median_ms": 718.1504584999914,
+      "round_p95_max_ms": 992.6823580000246,
+      "rounds_faster_than_eager_microbatch": 0
+    }
+  ],
+  "reproduction": {
+    "schema_version": "real-model-bundle-replay-v0.1",
+    "host_label": "colab-real-model-http-replay-gpt2-20260909",
+    "original_report_sha256": "6404a797dc4f3373bf704cc2a1e9f94f07d13c7a831cf71fbe976b5ec540ac0f",
+    "bundle_sha256": "18032d1b2672e4ae4019c66c737d2a45c6bd5f8d406825dd6657c22e1829060d",
+    "dependency_checks": {
+      "ninja": {
+        "recorded": "1.13.2",
+        "installed": "1.13.2"
+      },
+      "transformers": {
+        "recorded": "5.16.1",
+        "installed": "5.16.1"
+      },
+      "tqdm": {
+        "recorded": "4.67.3",
+        "installed": "4.67.3"
+      },
+      "safetensors": {
+        "recorded": "0.8.0",
+        "installed": "0.8.0"
+      },
+      "typer": {
+        "recorded": "0.27.2",
+        "installed": "0.27.2"
+      },
+      "annotated-doc": {
+        "recorded": "0.0.5",
+        "installed": "0.0.5"
+      },
+      "rich": {
+        "recorded": "13.9.4",
+        "installed": "13.9.4"
+      },
+      "pygments": {
+        "recorded": "2.21.0",
+        "installed": "2.21.0"
+      },
+      "markdown-it-py": {
+        "recorded": "4.2.0",
+        "installed": "4.2.0"
+      },
+      "mdurl": {
+        "recorded": "0.1.2",
+        "installed": "0.1.2"
+      },
+      "shellingham": {
+        "recorded": "1.5.4",
+        "installed": "1.5.4"
+      },
+      "tokenizers": {
+        "recorded": "0.23.1",
+        "installed": "0.23.1"
+      },
+      "huggingface-hub": {
+        "recorded": "1.29.0",
+        "installed": "1.29.0"
+      },
+      "typing-extensions": {
+        "recorded": "4.16.0",
+        "installed": "4.16.0"
+      },
+      "pyyaml": {
+        "recorded": "6.0.3",
+        "installed": "6.0.3"
+      },
+      "packaging": {
+        "recorded": "26.3",
+        "installed": "26.3"
+      },
+      "httpx": {
+        "recorded": "0.28.1",
+        "installed": "0.28.1"
+      },
+      "idna": {
+        "recorded": "3.19",
+        "installed": "3.19"
+      },
+      "httpcore": {
+        "recorded": "1.0.9",
+        "installed": "1.0.9"
+      },
+      "h11": {
+        "recorded": "0.16.0",
+        "installed": "0.16.0"
+      },
+      "certifi": {
+        "recorded": "2026.7.22",
+        "installed": "2026.7.22"
+      },
+      "anyio": {
+        "recorded": "4.14.2",
+        "installed": "4.14.2"
+      },
+      "hf-xet": {
+        "recorded": "1.6.0",
+        "installed": "1.6.0"
+      },
+      "fsspec": {
+        "recorded": "2025.12.0",
+        "installed": "2025.12.0"
+      },
+      "filelock": {
+        "recorded": "3.32.5",
+        "installed": "3.32.5"
+      },
+      "click": {
+        "recorded": "8.5.0",
+        "installed": "8.5.0"
+      },
+      "regex": {
+        "recorded": "2025.11.3",
+        "installed": "2025.11.3"
+      },
+      "numpy": {
+        "recorded": "2.1.3",
+        "installed": "2.1.3"
+      },
+      "torch": {
+        "recorded": "2.11.0+cu128",
+        "installed": "2.11.0+cu128"
+      },
+      "triton": {
+        "recorded": "3.6.0",
+        "installed": "3.6.0"
+      },
+      "nvidia-nvshmem-cu12": {
+        "recorded": "3.4.5",
+        "installed": "3.4.5"
+      },
+      "nvidia-nccl-cu12": {
+        "recorded": "2.28.9",
+        "installed": "2.28.9"
+      },
+      "nvidia-cusparselt-cu12": {
+        "recorded": "0.7.1",
+        "installed": "0.7.1"
+      },
+      "nvidia-cudnn-cu12": {
+        "recorded": "9.19.0.56",
+        "installed": "9.19.0.56"
+      },
+      "nvidia-cublas-cu12": {
+        "recorded": "12.8.4.1",
+        "installed": "12.8.4.1"
+      },
+      "cuda-bindings": {
+        "recorded": "12.9.7",
+        "installed": "12.9.7"
+      },
+      "cuda-pathfinder": {
+        "recorded": "1.8.0",
+        "installed": "1.8.0"
+      },
+      "cuda-toolkit": {
+        "recorded": "12.8.1",
+        "installed": "12.8.1"
+      },
+      "jinja2": {
+        "recorded": "3.1.6",
+        "installed": "3.1.6"
+      },
+      "markupsafe": {
+        "recorded": "3.0.3",
+        "installed": "3.0.3"
+      },
+      "networkx": {
+        "recorded": "3.6.1",
+        "installed": "3.6.1"
+      },
+      "sympy": {
+        "recorded": "1.14.0",
+        "installed": "1.14.0"
+      },
+      "mpmath": {
+        "recorded": "1.3.0",
+        "installed": "1.3.0"
+      },
+      "setuptools": {
+        "recorded": "80.10.2",
+        "installed": "80.10.2"
+      }
+    },
+    "errors": [],
+    "source_isolation": "temporary directory populated only from checksum-verified bundle",
+    "wrapper_sha256": "731426855ea2f79f7e8d31041f55def12e7b51ec70eaf0dc077ad7b904807337",
+    "returncode": 0,
+    "replayed_report_sha256": "7c897a050071efd64cbfb4f67d3d34eb0cdd0dd8d798995ee2e4f8fd6d47253f",
+    "status": "passed"
+  },
+  "operator_attribution": [
+    {
+      "variant": "eager",
+      "category": "other",
+      "self_cpu_ms": 188.31971400000015,
+      "self_device_ms": 28.926092000002914
+    },
+    {
+      "variant": "eager",
+      "category": "allocation",
+      "self_cpu_ms": 29.597809999999566,
+      "self_device_ms": 0.0
+    },
+    {
+      "variant": "eager",
+      "category": "movement",
+      "self_cpu_ms": 28.11772800000378,
+      "self_device_ms": 24.23076599999931
+    },
+    {
+      "variant": "eager",
+      "category": "matrix_multiply",
+      "self_cpu_ms": 91.06911500000163,
+      "self_device_ms": 146.47859500000249
+    },
+    {
+      "variant": "eager",
+      "category": "attention",
+      "self_cpu_ms": 34.768255999999255,
+      "self_device_ms": 21.846384999999827
+    },
+    {
+      "variant": "eager",
+      "category": "cudaLaunchKernel",
+      "self_cpu_ms": 118.50220299999602,
+      "self_device_ms": 0.0
+    },
+    {
+      "variant": "eager",
+      "category": "cudaStreamSynchronize",
+      "self_cpu_ms": 57.49225599999982,
+      "self_device_ms": 0.0
+    },
+    {
+      "variant": "paged",
+      "category": "other",
+      "self_cpu_ms": 150.40201700000082,
+      "self_device_ms": 30.532369999999588
+    },
+    {
+      "variant": "paged",
+      "category": "allocation",
+      "self_cpu_ms": 29.125059999999042,
+      "self_device_ms": 0.0
+    },
+    {
+      "variant": "paged",
+      "category": "movement",
+      "self_cpu_ms": 39.18147499999858,
+      "self_device_ms": 26.217901000001344
+    },
+    {
+      "variant": "paged",
+      "category": "matrix_multiply",
+      "self_cpu_ms": 66.06227400000208,
+      "self_device_ms": 150.57523899999907
+    },
+    {
+      "variant": "paged",
+      "category": "attention",
+      "self_cpu_ms": 1.2490770000000029,
+      "self_device_ms": 5.226572999999999
+    },
+    {
+      "variant": "paged",
+      "category": "cudaLaunchKernel",
+      "self_cpu_ms": 102.77805100000252,
+      "self_device_ms": 0.0
+    },
+    {
+      "variant": "paged",
+      "category": "cudaStreamSynchronize",
+      "self_cpu_ms": 52.01496300000007,
+      "self_device_ms": 0.0
+    }
+  ],
+  "decision": "Bounded HTTP batching improvement established. General backend superiority and production capacity remain unproven.",
+  "next_action": "Run the selected native microbatch endpoint, or extend the measured workload with longer generations and sustained arrivals before generalizing the result.",
+  "limitations": [
+    "Each mode has four 16-request rounds per session; round p95 remains a small-sample tail statistic.",
+    "Repeated HTTP mode order is counterbalanced; earlier direct profiles used fixed-order blocks and separate instrumented captures.",
+    "Custom direct-generation and HTTP protocols use different prompts/token counts; do not compare their absolute latencies.",
+    "Cancellation stops token delivery at boundaries; mixed-batch GPU slots persist until batch completion.",
+    "Profiler category totals in the initial raw report include overlapping event types; use individual operator counts and raw traces, not summed GPU categories.",
+    "No production language-quality, multi-GPU, portability, or analog hardware acceptance."
+  ],
+  "selected_path": {
+    "mode": "eager_microbatch",
+    "max_batch": 4,
+    "max_pending": 32,
+    "window_ms": 5,
+    "max_tokens": 16,
+    "reason": "Native eager batching improves every recorded round versus serial eager; a custom-kernel or universal backend advantage is not established."
+  }
+}

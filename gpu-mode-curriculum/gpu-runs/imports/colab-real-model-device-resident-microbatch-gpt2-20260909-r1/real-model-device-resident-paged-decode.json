@@ -1,0 +1,108 @@
+{
+  "schema_version": "real-model-fused-paged-decode-v0.1",
+  "experiment": "real_gpt2_end_to_end_decode_with_device_resident_cuda_paged_attention",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "page_size_tokens": 16,
+    "prompts": [
+      "context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement  because"
+    ],
+    "batch_sizes": [
+      1,
+      2,
+      4
+    ],
+    "max_new_tokens": 8,
+    "repeats": 2,
+    "extended_profile": false,
+    "microbatch_profile": true,
+    "patched_attention_layers": 12,
+    "prefill": "native GPT-2 attention",
+    "decode": "every one-token GPT-2 attention call routes through device-side K/V page packing plus CUDA paged attention",
+    "page_allocator": "PyTorch CUDA workspace allocation inside the extension; no Python page-table or repack path",
+    "timing": "CUDA synchronized around complete generation"
+  },
+  "power": {
+    "status": "sampled_nvml_protocol_scope",
+    "sample_count": 209,
+    "duration_s": 3.166224486,
+    "average_power_w": 47.19693600019759,
+    "peak_power_w": 79.151,
+    "integrated_energy_j": 149.4360944280005,
+    "scope": "entire extended characterization process; not an isolated per-token energy claim"
+  },
+  "rows": [
+    {
+      "prompt_token_count": 66,
+      "batch_size": 1,
+      "output_parity": true,
+      "native_decode_ms_median": 80.3590595,
+      "fused_paged_decode_ms_median": 158.2067005,
+      "fused_overhead_ratio": 1.9687475374198475,
+      "generated_tokens": [
+        286,
+        262,
+        835,
+        262,
+        3356,
+        318,
+        20793,
+        11
+      ]
+    },
+    {
+      "prompt_token_count": 132,
+      "batch_size": 2,
+      "output_parity": true,
+      "native_decode_ms_median": 71.9687745,
+      "fused_paged_decode_ms_median": 83.6267355,
+      "fused_overhead_ratio": 1.1619863764666438,
+      "generated_tokens": [
+        286,
+        262,
+        835,
+        262,
+        3356,
+        318,
+        20793,
+        11
+      ]
+    },
+    {
+      "prompt_token_count": 264,
+      "batch_size": 4,
+      "output_parity": true,
+      "native_decode_ms_median": 80.19158949999999,
+      "fused_paged_decode_ms_median": 104.019497,
+      "fused_overhead_ratio": 1.29713723906171,
+      "generated_tokens": [
+        286,
+        262,
+        835,
+        262,
+        3356,
+        318,
+        20793,
+        11
+      ]
+    }
+  ],
+  "decision": "end_to_end_fused_paged_decode_parity_passed",
+  "claim_boundary": {
+    "allowed": "Full GPT-2 greedy decode token parity and synchronized timing with device-side page packing and paged attention on this T4 protocol.",
+    "refused": "Optimized production performance, energy savings, allocator scalability under concurrency, analog benefit, silicon performance, or broad model generalization."
+  }
+}

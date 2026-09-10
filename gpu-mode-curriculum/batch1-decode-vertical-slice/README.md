@@ -1,5 +1,57 @@
 # Batch-1 Decode Vertical Slice
 
+## Active real-model continuation
+
+The [six-gate audit](../analysis/real-model-goal-audit.json) now passes for this
+bounded real-model slice, with 20 passing local tests and a verified workbench.
+
+The [real-model end-to-end goal](END-TO-END-GOAL.md) extends the synthetic
+checkpoint below into pretrained GPT-2 inference, fair kernel comparisons,
+profiling, live serving, and a reproducible workbench decision.
+
+The corrected T4 run
+[`colab-real-model-sdpa-corrected-gpt2-20260909`](../gpu-runs/imports/colab-real-model-sdpa-corrected-gpt2-20260909/real-model-sdpa-backend.json)
+explicitly selected eager and SDPA, pinned the model/tokenizer revision, and
+passed exact cross-backend and individual-versus-batched token parity. Its
+source hashes match the corrected implementation. Five alternating repetitions
+measured 671.62 ms eager and 664.39 ms SDPA median for the recorded batch and
+64-token generation. The roughly 1% median difference, with substantial sample
+variation, does not establish a reliable performance advantage.
+
+The shared decode loop now supplies padding-aware position IDs. Nine local
+tests pass, including comparisons against library generation for both attention
+backends and rejection of inconsistent evidence. Earlier imported reports are
+preserved but do not satisfy the corrected v0.2 acceptance contract.
+
+```bash
+python3 batch1-decode-vertical-slice/verify_real_model_comparison.py \
+  gpu-runs/imports/colab-real-model-sdpa-corrected-gpt2-20260909/real-model-sdpa-backend.json
+```
+
+The [generated decision page](../site/real-model-inference-decision.html) now
+includes corrected four-way GPU profiles, vectorized mask-offset remeasurement,
+and live GPT-2 HTTP streaming. All three new reports pass their verifier; 17
+local tests pass. HTTP completion p95 measured 2,519.89 ms for serial eager,
+942.51 ms for eager microbatching, and 640.13 ms for SDPA microbatching, with
+exact output parity across 16 requests per mode. Overload rejection and
+in-flight cancellation were exercised separately. The optimized custom paged
+path still loses to native eager in direct generation.
+
+The later counterbalanced experiment and fresh-session source-bundle replay
+cover four modes × four rounds × 16 requests in each session: **512 main-load
+requests**, all with exact reference outputs. The replay checks 44 dependency
+versions. Native eager microbatching beats serial eager in all eight rounds;
+the custom path does not establish a consistent advantage over native batching.
+The selected endpoint is runnable with:
+
+```bash
+python3 batch1-decode-vertical-slice/serve_real_model.py --backend eager
+```
+
+See the [goal checkpoint](END-TO-END-GOAL.md) for results, reproduction commands,
+the six-gate audit, and evidence boundaries. The following sections describe
+the earlier synthetic-model checkpoint.
+
 This is the next end-to-end GPU-systems slice:
 
 `reference decode -> KV-cached decode -> model output parity -> timing -> serving integration -> profiler`

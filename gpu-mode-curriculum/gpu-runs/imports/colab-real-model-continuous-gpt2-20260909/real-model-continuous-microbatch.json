@@ -1,0 +1,106 @@
+{
+  "schema_version": "real-model-continuous-microbatch-v0.1",
+  "experiment": "real_model_arrival_trace_sequential_vs_continuous_microbatch",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "max_new_tokens": 8,
+    "repeats": 3,
+    "generation": "greedy",
+    "timing": "torch.cuda.synchronize around every sequential request set and scheduled batch",
+    "scheduler": "bounded arrival-window grouping; no eviction or cancellation"
+  },
+  "result": {
+    "request_count": 8,
+    "arrival_trace_ms": [
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      20.0,
+      20.5,
+      21.0,
+      21.5
+    ],
+    "groups": [
+      [
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        4,
+        5,
+        6,
+        7
+      ]
+    ],
+    "window_ms": 2.0,
+    "max_batch": 4,
+    "output_parity": true,
+    "sequential_service": {
+      "wall_time_ms_samples": [
+        736.844581,
+        552.221764,
+        551.485017
+      ],
+      "wall_time_ms_median": 552.221764,
+      "requests_per_second": 14.486933550123533
+    },
+    "continuous_microbatch_candidate": {
+      "wall_time_ms_samples": [
+        175.958606,
+        167.950566,
+        165.502085
+      ],
+      "wall_time_ms_median": 167.950566,
+      "requests_per_second": 47.63306364802605,
+      "last_batch_rows": [
+        {
+          "request_indices": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "service_ms": 82.546488,
+          "arrival_start_ms": 0.0,
+          "completion_end_ms": 82.585615,
+          "queue_wait_before_service_ms": 0.007076
+        },
+        {
+          "request_indices": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "service_ms": 82.843196,
+          "arrival_start_ms": 20.0,
+          "completion_end_ms": 165.466428,
+          "queue_wait_before_service_ms": 62.608380999999994
+        }
+      ]
+    },
+    "throughput_speedup": 3.2880018040546526
+  },
+  "decision": "candidate_accepted_for_recorded_scope",
+  "claim_boundary": {
+    "allowed": "Exact GPT-2 token parity and bounded arrival-trace microbatch throughput on this T4 protocol.",
+    "refused": "Production continuous batching, paged-KV eviction, cancellation, energy savings, analog benefit, or silicon performance."
+  }
+}

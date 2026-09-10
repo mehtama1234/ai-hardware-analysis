@@ -1,0 +1,264 @@
+{
+  "schema_version": "real-model-serving-extended-characterization-v0.1",
+  "experiment": "real_model_colab_context_tail_operator_sweep",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "max_new_tokens": 8,
+    "context_word_counts": [
+      8,
+      32,
+      128,
+      256
+    ],
+    "tail_repeats": 20,
+    "timing": "torch.cuda.synchronize before and after each measured sample",
+    "power": {
+      "status": "sampled_nvml_protocol_scope",
+      "sample_count": 445,
+      "duration_s": 8.193847591,
+      "average_power_w": 37.3296825450039,
+      "peak_power_w": 60.241,
+      "integrated_energy_j": 305.873729394175,
+      "scope": "entire extended characterization process; not an isolated per-token energy claim"
+    }
+  },
+  "context_sweep": [
+    {
+      "requested_context_words": 8,
+      "prompt_token_count": 17,
+      "cached_total_ms": {
+        "count": 3,
+        "min_ms": 74.98181,
+        "median_ms": 78.365886,
+        "p95_ms": 78.365886,
+        "max_ms": 79.78928499999999
+      },
+      "last_prefill_ms": 11.631763,
+      "last_decode_ms": 63.350047,
+      "peak_memory_mb": 490.55126953125
+    },
+    {
+      "requested_context_words": 32,
+      "prompt_token_count": 65,
+      "cached_total_ms": {
+        "count": 3,
+        "min_ms": 75.190243,
+        "median_ms": 75.453822,
+        "p95_ms": 75.453822,
+        "max_ms": 76.831414
+      },
+      "last_prefill_ms": 12.912094,
+      "last_decode_ms": 62.541728,
+      "peak_memory_mb": 503.16455078125
+    },
+    {
+      "requested_context_words": 128,
+      "prompt_token_count": 257,
+      "cached_total_ms": {
+        "count": 3,
+        "min_ms": 81.75734800000001,
+        "median_ms": 90.485885,
+        "p95_ms": 90.485885,
+        "max_ms": 108.943848
+      },
+      "last_prefill_ms": 17.868732,
+      "last_decode_ms": 63.888616,
+      "peak_memory_mb": 554.76953125
+    },
+    {
+      "requested_context_words": 256,
+      "prompt_token_count": 513,
+      "cached_total_ms": {
+        "count": 3,
+        "min_ms": 98.347974,
+        "median_ms": 98.35335900000001,
+        "p95_ms": 98.35335900000001,
+        "max_ms": 102.810528
+      },
+      "last_prefill_ms": 33.847552,
+      "last_decode_ms": 64.505807,
+      "peak_memory_mb": 630.23876953125
+    }
+  ],
+  "tail_latency": {
+    "request": "The system bottleneck is",
+    "concurrency": 1,
+    "protocol": "serialized cached requests; CUDA synchronized around every sample",
+    "latency": {
+      "count": 20,
+      "min_ms": 69.14238,
+      "median_ms": 73.2507335,
+      "p95_ms": 89.380008,
+      "max_ms": 93.120029
+    }
+  },
+  "concurrency": [
+    {
+      "concurrency": 2,
+      "protocol": "independent CUDA streams with synchronized join",
+      "per_request_latency": {
+        "count": 3,
+        "min_ms": 112.8894375,
+        "median_ms": 119.043843,
+        "p95_ms": 119.043843,
+        "max_ms": 122.9432895
+      },
+      "batch_equivalent": false
+    },
+    {
+      "concurrency": 4,
+      "protocol": "independent CUDA streams with synchronized join",
+      "per_request_latency": {
+        "count": 3,
+        "min_ms": 109.88010375,
+        "median_ms": 114.716695,
+        "p95_ms": 114.716695,
+        "max_ms": 128.62392475
+      },
+      "batch_equivalent": false
+    }
+  ],
+  "operator_data_movement_profile": {
+    "status": "measured_cuda_profiler",
+    "top_operators": [
+      {
+        "operator": "aten::addmm",
+        "self_cuda_ms": 13.275144999999846,
+        "self_cuda_memory_bytes": 0,
+        "calls": 384
+      },
+      {
+        "operator": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, float, float, float, float, false, true, false, false, 9, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float>)",
+        "self_cuda_ms": 7.552044999999809,
+        "self_cuda_memory_bytes": 0,
+        "calls": 252
+      },
+      {
+        "operator": "aten::mm",
+        "self_cuda_ms": 5.521788000000044,
+        "self_cuda_memory_bytes": 0,
+        "calls": 8
+      },
+      {
+        "operator": "void gemv2T_kernel_val<int, int, float, float, float, float, 128, 16, 4, 4, false, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float>, float, float)",
+        "self_cuda_ms": 4.256762000000046,
+        "self_cuda_memory_bytes": 0,
+        "calls": 7
+      },
+      {
+        "operator": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, float, float, float, float, false, true, false, false, 7, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float>)",
+        "self_cuda_ms": 3.459889000000039,
+        "self_cuda_memory_bytes": 0,
+        "calls": 84
+      },
+      {
+        "operator": "aten::_efficient_attention_forward",
+        "self_cuda_ms": 2.487524999999907,
+        "self_cuda_memory_bytes": 0,
+        "calls": 96
+      },
+      {
+        "operator": "fmha_cutlassF_f32_aligned_64x64_rf_sm75(PyTorchMemEffAttention::AttentionKernel<float, cutlass::arch::Sm75, true, 64, 64, 64, true, true>::Params)",
+        "self_cuda_ms": 2.487524999999907,
+        "self_cuda_memory_bytes": 0,
+        "calls": 96
+      },
+      {
+        "operator": "aten::native_layer_norm",
+        "self_cuda_ms": 1.666585000000041,
+        "self_cuda_memory_bytes": 0,
+        "calls": 200
+      },
+      {
+        "operator": "void at::native::(anonymous namespace)::vectorized_layer_norm_kernel<float, float, false>(int, float, float const*, float const*, float const*, float*, float*, float*)",
+        "self_cuda_ms": 1.666585000000041,
+        "self_cuda_memory_bytes": 0,
+        "calls": 200
+      },
+      {
+        "operator": "void gemmSN_NN_kernel<float, 256, 4, 2, 8, 4, 4, true, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float> >(cublasGemmSmallNParams<cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float const>, cublasGemvTensorStridedBatched<float>, float>)",
+        "self_cuda_ms": 1.3253769999999987,
+        "self_cuda_memory_bytes": 0,
+        "calls": 36
+      },
+      {
+        "operator": "void sgemm_largek_lds64<true, false, 6, 3, 4, 5, 2, 66>(float*, float const*, float const*, int, int, int, int, int, int, float const*, float const*, float, float, int, int, int*, int*)",
+        "self_cuda_ms": 1.2516820000000006,
+        "self_cuda_memory_bytes": 0,
+        "calls": 1
+      },
+      {
+        "operator": "aten::add",
+        "self_cuda_ms": 1.1553269999998539,
+        "self_cuda_memory_bytes": 0,
+        "calls": 400
+      },
+      {
+        "operator": "aten::mul",
+        "self_cuda_ms": 1.018860000000168,
+        "self_cuda_memory_bytes": 0,
+        "calls": 384
+      },
+      {
+        "operator": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul> >(int, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul>)",
+        "self_cuda_ms": 0.8821520000000074,
+        "self_cuda_memory_bytes": 0,
+        "calls": 296
+      },
+      {
+        "operator": "void sgemm_largek_lds64<false, false, 6, 3, 4, 5, 2, 64>(float*, float const*, float const*, int, int, int, int, int, int, float const*, float const*, float, float, int, int, int*, int*)",
+        "self_cuda_ms": 0.855083999999999,
+        "self_cuda_memory_bytes": 0,
+        "calls": 12
+      },
+      {
+        "operator": "aten::cat",
+        "self_cuda_ms": 0.8180300000001298,
+        "self_cuda_memory_bytes": 0,
+        "calls": 200
+      },
+      {
+        "operator": "void at::native::vectorized_elementwise_kernel<4, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul> >(int, at::native::AUnaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<float> >, std::array<char*, 2ul>)",
+        "self_cuda_ms": 0.7482409999999509,
+        "self_cuda_memory_bytes": 0,
+        "calls": 288
+      },
+      {
+        "operator": "void at::native::(anonymous namespace)::CatArrayBatchedCopy_vectorized<at::native::(anonymous namespace)::OpaqueType<4u>, unsigned int, 3, 128, 1, 16, 4>(char*, at::native::(anonymous namespace)::CatArrInputTensorMetadata<at::native::(anonymous namespace)::OpaqueType<4u>, unsigned int, 128, 1>, at::native::(anonymous namespace)::TensorSizeStride<unsigned int, 4u>, int, unsigned int)",
+        "self_cuda_ms": 0.648945000000138,
+        "self_cuda_memory_bytes": 0,
+        "calls": 168
+      },
+      {
+        "operator": "aten::argmax",
+        "self_cuda_ms": 0.3015940000000046,
+        "self_cuda_memory_bytes": 0,
+        "calls": 8
+      },
+      {
+        "operator": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::ArgMaxOps<float>, unsigned int, long, 4, 4> >(at::native::ReduceOp<float, at::native::ArgMaxOps<float>, unsigned int, long, 4, 4>)",
+        "self_cuda_ms": 0.3015940000000046,
+        "self_cuda_memory_bytes": 0,
+        "calls": 8
+      }
+    ]
+  },
+  "claim_boundary": {
+    "allowed": "Measured GPT-2/Tesla-T4 context scaling, serialized and concurrent tail samples, and CUDA profiler rows for this protocol.",
+    "refused": "Synchronized energy, analog benefit, silicon performance, and production capacity."
+  }
+}

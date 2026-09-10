@@ -1,0 +1,76 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{
+  "schema_version": "training-data-v0.1",
+  "source_url": "https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt",
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "source_characters": 1115394,
+  "tokenizer": "openai-community/gpt2",
+  "tokenizer_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "prepare_source_sha256": "0da7d212bd2675c04fe8d27b58329ea884f9d72e16a1b7cabc823c7c64733814",
+  "split_policy": "contiguous 90/5/5 percent character ranges; tokenize each separately; no boundary-spanning examples",
+  "limitations": "Character boundaries may divide a scene or word; source overlap is prevented, semantic independence is not guaranteed.",
+  "test_policy": "test tokens excluded from training and checkpoint selection",
+  "splits": {
+    "train": {
+      "character_start": 0,
+      "character_end": 1003854,
+      "text_sha256": "a9e24e23a1ec77744dad26844bfd5a09b6e041954e1eef0000e7f24cba6db735",
+      "tokens": 301966,
+      "file": "train.npy",
+      "sha256": "0e6a72f2ef6105765077d57f6f62808b396bbb03b032486bbb8cfd6ba5fd086b"
+    },
+    "validation": {
+      "character_start": 1003854,
+      "character_end": 1059624,
+      "text_sha256": "c64e90c160750d91a9d2d9b1ace5eab1a440f5a1701d32a8e97a179b7839f1c8",
+      "tokens": 18066,
+      "file": "validation.npy",
+      "sha256": "0ae1ab2b1b482c22a4ad83d93ac90fae2e67402fee3e0243de344a495143bc98"
+    },
+    "test": {
+      "character_start": 1059624,
+      "character_end": 1115394,
+      "text_sha256": "8b5a8c8af45905547ad03b7aae6980a277a5dd78924a6e6ac64b75d63d7d40bd",
+      "tokens": 17995,
+      "file": "test.npy",
+      "sha256": "2283cb39a47d5e0f6e699df3ccf753137de656bfe9e95ea220d0ab966c93a702"
+    }
+  }
+}
+$ python prepare_training_data.py --data-dir data
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 14852.42it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.12s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.12s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 4460.81it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:42<00:00, 42.88s/it]Writing model shards: 100%|██████████| 1/1 [00:42<00:00, 42.88s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 14207.89it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:54<00:00, 54.25s/it]Writing model shards: 100%|██████████| 1/1 [00:54<00:00, 54.25s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 5883.45it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:59<00:00, 59.64s/it]Writing model shards: 100%|██████████| 1/1 [00:59<00:00, 59.64s/it]
+{"status": "completed", "runs": 4, "report": "reports/gpu-run/real-training.json"}
+$ python run_real_training.py --data-dir data --output-dir reports/gpu-run --device cuda --steps 16 --sequence 64 --chunk-size 16 --seeds 7 19 --save-checkpoints
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 49/148 [00:00<00:00, 479.70it/s]Loading weights:  72%|███████▏  | 106/148 [00:00<00:00, 530.10it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 500.72it/s]
+{"status": "passed", "checks": {"token_parity": true, "terminal_completed": true, "accounted": true, "cache_empty": true}, "decoded": ", a man,"}
+$ python run_gpu_checkpoint_serving.py --checkpoint reports/gpu-run/7-recomputed --output reports/gpu-run/gpu-checkpoint-serving.json --serving-dir serving
+{"status": "passed", "errors": []}
+$ python verify_gpu_checkpoint_serving.py reports/gpu-run/gpu-checkpoint-serving.json
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 5940.94it/s]
+{"run": "r0-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.820689673000061, "completion_p95_ms": 183.75214799993955, "ttft_p95_ms": 55.22467600007985, "arrival_lateness_p95_ms": 0.5202250001730135, "goodput_requests_per_s": 4.187725612228687, "output_tokens_per_s": 59.67508997425878, "peak_allocated_bytes": 599275008}}
+{"run": "r0-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.013109600000007, "completion_p95_ms": 178.24115299981713, "ttft_p95_ms": 24.571447999960583, "arrival_lateness_p95_ms": 1.600626000254124, "goodput_requests_per_s": 15.94773290019288, "output_tokens_per_s": 227.25519382774854, "peak_allocated_bytes": 599275008}}
+{"run": "r0-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 112, "rejected": 80, "failed": 0, "measured_window_s": 4.395064372999968, "completion_p95_ms": 509.1090070000064, "ttft_p95_ms": 384.1721870001038, "arrival_lateness_p95_ms": 0.9849056668826961, "goodput_requests_per_s": 25.483130733657813, "output_tokens_per_s": 356.7638302712094, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 113, "rejected": 79, "failed": 0, "measured_window_s": 4.381366493000087, "completion_p95_ms": 504.5106989998658, "ttft_p95_ms": 371.78956200000357, "arrival_lateness_p95_ms": 0.8828853333398001, "goodput_requests_per_s": 25.791040347922284, "output_tokens_per_s": 355.8250610832818, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.014283279999972, "completion_p95_ms": 186.107937000088, "ttft_p95_ms": 27.819164999982604, "arrival_lateness_p95_ms": 1.7678589999832184, "goodput_requests_per_s": 15.943070166189278, "output_tokens_per_s": 227.18874986819722, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.825610672000039, "completion_p95_ms": 136.66587900002014, "ttft_p95_ms": 20.259174999864626, "arrival_lateness_p95_ms": 0.37592500007122, "goodput_requests_per_s": 4.182338813801761, "output_tokens_per_s": 59.59832809667509, "peak_allocated_bytes": 599275008}}
+$ python run_continuous_load.py --checkpoint reports/gpu-run/7-recomputed --output-dir reports/gpu-run/checkpoint-load --seconds 4
+{
+  "status": "passed",
+  "errors": [],
+  "scope": "Bounded repeated HTTP arrival windows; no matched-baseline advantage or independent replay acceptance"
+}
+$ python verify_continuous_load.py reports/gpu-run/checkpoint-load/continuous-load.json
+{"status": "passed", "errors": [], "error_count": 0}
+$ python verify_real_training.py reports/gpu-run/real-training.json --data-dir data
+{"status": "passed", "checkpoint_runs": 4, "errors": []}
+$ python verify_checkpoint_artifacts.py reports/gpu-run/real-training.json
+{"status": "ready_for_review", "verification": "passed", "paired_seeds": 2}
+$ python build_training_decision.py reports/gpu-run/real-training.json --output reports/gpu-run/training-decision.json --data-dir data

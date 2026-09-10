@@ -1,0 +1,439 @@
+{
+  "schema_version": "real-training-v0.2",
+  "status": "completed",
+  "evidence_kind": "measured_cpu",
+  "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "data_manifest": {
+    "schema_version": "training-data-v0.1",
+    "source_url": "https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt",
+    "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "source_characters": 1115394,
+    "tokenizer": "openai-community/gpt2",
+    "tokenizer_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "prepare_source_sha256": "0da7d212bd2675c04fe8d27b58329ea884f9d72e16a1b7cabc823c7c64733814",
+    "split_policy": "contiguous 90/5/5 percent character ranges; tokenize each separately; no boundary-spanning examples",
+    "limitations": "Character boundaries may divide a scene or word; source overlap is prevented, semantic independence is not guaranteed.",
+    "test_policy": "test tokens excluded from training and checkpoint selection",
+    "splits": {
+      "train": {
+        "character_start": 0,
+        "character_end": 1003854,
+        "text_sha256": "a9e24e23a1ec77744dad26844bfd5a09b6e041954e1eef0000e7f24cba6db735",
+        "tokens": 301966,
+        "file": "train.npy",
+        "sha256": "0e6a72f2ef6105765077d57f6f62808b396bbb03b032486bbb8cfd6ba5fd086b"
+      },
+      "validation": {
+        "character_start": 1003854,
+        "character_end": 1059624,
+        "text_sha256": "c64e90c160750d91a9d2d9b1ace5eab1a440f5a1701d32a8e97a179b7839f1c8",
+        "tokens": 18066,
+        "file": "validation.npy",
+        "sha256": "0ae1ab2b1b482c22a4ad83d93ac90fae2e67402fee3e0243de344a495143bc98"
+      },
+      "test": {
+        "character_start": 1059624,
+        "character_end": 1115394,
+        "text_sha256": "8b5a8c8af45905547ad03b7aae6980a277a5dd78924a6e6ac64b75d63d7d40bd",
+        "tokens": 17995,
+        "file": "test.npy",
+        "sha256": "2283cb39a47d5e0f6e699df3ccf753137de656bfe9e95ea220d0ab966c93a702"
+      }
+    }
+  },
+  "data_manifest_sha256": "1893c578d3b45ec4b5fe955403e990f4cce431500c9240684c4652c2c456807a",
+  "source_hashes": {
+    "run_real_training.py": "e8e4f9487404333e6cae057446c48acc69368d33055e649a7ce3645ed40a10e2",
+    "prepare_training_data.py": "0da7d212bd2675c04fe8d27b58329ea884f9d72e16a1b7cabc823c7c64733814",
+    "fused_training_kernels/linear_cross_entropy.py": "60492d46f6aca4dd155164783af065b9452245b335ec9d5cd1333c0461b9b261",
+    "fused_training_kernels/evaluation.py": "6f61affeb2ed6c535bb2efd8872cf653bd5be986daca644ec313b10bdbf9ff27"
+  },
+  "runtime": {
+    "python": "3.10.12",
+    "torch": "2.4.1+cu121",
+    "device": "cpu"
+  },
+  "protocol": {
+    "steps": 2,
+    "sequence": 16,
+    "batch": 1,
+    "seeds": [
+      7,
+      19
+    ],
+    "chunk_size": 8,
+    "optimizer": "AdamW lr=0.00001 default betas/eps/weight_decay",
+    "parameters": "all parameters including tied input/output embedding",
+    "dtype": "float32",
+    "dropout": "disabled in both arms to isolate loss intervention",
+    "evaluation": "token-weighted validation; context resets per sequence block; each target scored once; test unused",
+    "validation_targets": 64,
+    "validation_scope": "prefix_probe",
+    "timing": "synchronized wall forward/backward/optimizer; includes first-step state initialization; evaluation and loading excluded",
+    "selection": "no cross-run selection; checkpoints optional; larger validation evaluation still required"
+  },
+  "runs": [
+    {
+      "seed": 7,
+      "mode": "standard",
+      "training_starts": [
+        285314,
+        188747
+      ],
+      "validation_before": {
+        "targets": 64,
+        "mean_nll": 5.213941931724548,
+        "perplexity": 183.8172268746386,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.76305389404297
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 91.0335693359375
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.25364685058594
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 72.64201354980469
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step": 0,
+          "loss": 6.716991901397705,
+          "seconds": 11.81501650700011,
+          "tokens_processed": 16,
+          "cuda_peak_allocated_bytes": null
+        },
+        {
+          "step": 1,
+          "loss": 5.188467025756836,
+          "seconds": 7.175369374999718,
+          "tokens_processed": 32,
+          "cuda_peak_allocated_bytes": null
+        }
+      ],
+      "validation_after": {
+        "targets": 64,
+        "mean_nll": 5.176448822021484,
+        "perplexity": 177.05294674974735,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.16499328613281
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 90.57534790039062
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.04106903076172
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 71.51131439208984
+          }
+        ]
+      },
+      "status": "completed"
+    },
+    {
+      "seed": 7,
+      "mode": "recomputed",
+      "training_starts": [
+        285314,
+        188747
+      ],
+      "validation_before": {
+        "targets": 64,
+        "mean_nll": 5.213941931724548,
+        "perplexity": 183.8172268746386,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.76305389404297
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 91.0335693359375
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.25364685058594
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 72.64201354980469
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step": 0,
+          "loss": 6.716991424560547,
+          "seconds": 10.556059684997308,
+          "tokens_processed": 16,
+          "cuda_peak_allocated_bytes": null
+        },
+        {
+          "step": 1,
+          "loss": 5.18846321105957,
+          "seconds": 4.61789216300167,
+          "tokens_processed": 32,
+          "cuda_peak_allocated_bytes": null
+        }
+      ],
+      "validation_after": {
+        "targets": 64,
+        "mean_nll": 5.17644739151001,
+        "perplexity": 177.05269347365657,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.16499328613281
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 90.57528686523438
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.04103088378906
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 71.51132202148438
+          }
+        ]
+      },
+      "status": "completed"
+    },
+    {
+      "seed": 19,
+      "mode": "recomputed",
+      "training_starts": [
+        177860,
+        126933
+      ],
+      "validation_before": {
+        "targets": 64,
+        "mean_nll": 5.213941931724548,
+        "perplexity": 183.8172268746386,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.76305389404297
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 91.0335693359375
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.25364685058594
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 72.64201354980469
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step": 0,
+          "loss": 3.5104241371154785,
+          "seconds": 14.17226138299884,
+          "tokens_processed": 16,
+          "cuda_peak_allocated_bytes": null
+        },
+        {
+          "step": 1,
+          "loss": 5.2629170417785645,
+          "seconds": 9.837528512998688,
+          "tokens_processed": 32,
+          "cuda_peak_allocated_bytes": null
+        }
+      ],
+      "validation_after": {
+        "targets": 64,
+        "mean_nll": 5.180593967437744,
+        "perplexity": 177.78838014655736,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.03076934814453
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 90.66958618164062
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.30168914794922
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 71.55596923828125
+          }
+        ]
+      },
+      "status": "completed"
+    },
+    {
+      "seed": 19,
+      "mode": "standard",
+      "training_starts": [
+        177860,
+        126933
+      ],
+      "validation_before": {
+        "targets": 64,
+        "mean_nll": 5.213941931724548,
+        "perplexity": 183.8172268746386,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.76305389404297
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 91.0335693359375
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.25364685058594
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 72.64201354980469
+          }
+        ]
+      },
+      "steps": [
+        {
+          "step": 0,
+          "loss": 3.5104243755340576,
+          "seconds": 9.044033464000677,
+          "tokens_processed": 16,
+          "cuda_peak_allocated_bytes": null
+        },
+        {
+          "step": 1,
+          "loss": 5.262916564941406,
+          "seconds": 5.032025632001023,
+          "tokens_processed": 32,
+          "cuda_peak_allocated_bytes": null
+        }
+      ],
+      "validation_after": {
+        "targets": 64,
+        "mean_nll": 5.18059515953064,
+        "perplexity": 177.78859208694854,
+        "context_policy": "reset per block; one overlapping input; every target scored once",
+        "blocks": [
+          {
+            "target_start": 1,
+            "target_end": 17,
+            "targets": 16,
+            "nll_sum": 98.03083038330078
+          },
+          {
+            "target_start": 17,
+            "target_end": 33,
+            "targets": 16,
+            "nll_sum": 90.6695556640625
+          },
+          {
+            "target_start": 33,
+            "target_end": 49,
+            "targets": 16,
+            "nll_sum": 71.30168914794922
+          },
+          {
+            "target_start": 49,
+            "target_end": 65,
+            "targets": 16,
+            "nll_sum": 71.55601501464844
+          }
+        ]
+      },
+      "status": "completed"
+    }
+  ],
+  "limitations": [
+    "bounded integration experiment; not full quality acceptance",
+    "no GPU claims from CPU execution",
+    "CPU peak memory not measured",
+    "step samples are not independent performance trials"
+  ]
+}

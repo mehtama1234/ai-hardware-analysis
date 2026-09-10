@@ -1,0 +1,59 @@
+{
+  "schema_version": "real-model-paged-cache-adapter-v0.1",
+  "experiment": "real_model_dynamic_cache_vs_page_backed_cache_adapter",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "prompts": [
+      "The system bottleneck is",
+      "context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement  because",
+      "context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement  because"
+    ],
+    "page_size_tokens": 16,
+    "max_new_tokens": 8,
+    "repeats": 3,
+    "timing": "CUDA synchronized around complete decode",
+    "adapter": "pack pages, gather into DynamicCache, run attention, repack each step"
+  },
+  "rows": [
+    {
+      "prompt_token_count": 4,
+      "output_parity": true,
+      "normal_dynamic_cache_ms_median": 96.262884,
+      "paged_adapter_ms_median": 184.677807,
+      "paged_adapter_overhead_ratio": 1.9184736559523814
+    },
+    {
+      "prompt_token_count": 66,
+      "output_parity": true,
+      "normal_dynamic_cache_ms_median": 65.712314,
+      "paged_adapter_ms_median": 419.208404,
+      "paged_adapter_overhead_ratio": 6.379449732967856
+    },
+    {
+      "prompt_token_count": 258,
+      "output_parity": true,
+      "normal_dynamic_cache_ms_median": 74.48841,
+      "paged_adapter_ms_median": 1389.670232,
+      "paged_adapter_overhead_ratio": 18.656194057572176
+    }
+  ],
+  "decision": "paged_cache_functionally_accepted_overhead_requires_fused_kernel",
+  "claim_boundary": {
+    "allowed": "Functional page-backed KV adapter parity and measured gather/repack overhead for this GPT-2/T4 scope.",
+    "refused": "Fused paged-attention performance, eviction policy, production serving, energy savings, analog benefit, or silicon performance."
+  }
+}

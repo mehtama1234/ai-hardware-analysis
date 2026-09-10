@@ -1,0 +1,169 @@
+{
+  "schema_version": "real-model-microbatch-candidate-v0.1",
+  "experiment": "real_model_sequential_vs_padded_microbatch",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tokenizer_id": "openai-community/gpt2",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "prompts": [
+      "The system bottleneck is",
+      "Memory movement dominates transformer inference when context grows because",
+      "attention cache attention cache attention cache attention cache",
+      "A hardware decision must account for longer context and concurrency because"
+    ],
+    "max_new_tokens": 8,
+    "repeats": 5,
+    "generation": "greedy",
+    "timing": "torch.cuda.synchronize before and after each complete service sample",
+    "candidate_scope": "padded static microbatch; not continuous-arrival scheduler evidence"
+  },
+  "result": {
+    "request_count": 4,
+    "prompt_token_counts": [
+      4,
+      9,
+      9,
+      12
+    ],
+    "output_parity": false,
+    "output_parity_by_request": [
+      false,
+      false,
+      false,
+      false
+    ],
+    "last_sequential_token_ids": [
+      [
+        [
+          262,
+          1109,
+          326,
+          262,
+          1271,
+          286,
+          8945,
+          583
+        ]
+      ],
+      [
+        [
+          286,
+          262,
+          1109,
+          326,
+          262,
+          4732,
+          318,
+          407
+        ]
+      ],
+      [
+        [
+          3241,
+          12940,
+          3241,
+          12940,
+          3241,
+          12940,
+          3241,
+          12940
+        ]
+      ],
+      [
+        [
+          286,
+          262,
+          1109,
+          326,
+          262,
+          9135,
+          318,
+          407
+        ]
+      ]
+    ],
+    "last_microbatch_token_ids": [
+      [
+        262,
+        1109,
+        326,
+        262,
+        1271,
+        286,
+        8945,
+        583
+      ],
+      [
+        286,
+        262,
+        1109,
+        326,
+        262,
+        4732,
+        318,
+        407
+      ],
+      [
+        3241,
+        12940,
+        3241,
+        12940,
+        3241,
+        12940,
+        3241,
+        12940
+      ],
+      [
+        286,
+        262,
+        1109,
+        326,
+        262,
+        9135,
+        318,
+        407
+      ]
+    ],
+    "sequential_service": {
+      "wall_time_ms_samples": [
+        273.646735,
+        259.484443,
+        257.053412,
+        280.045993,
+        404.527394
+      ],
+      "wall_time_ms_median": 273.646735,
+      "requests_per_second": 14.617386171262012
+    },
+    "padded_microbatch_candidate": {
+      "wall_time_ms_samples": [
+        87.27615,
+        80.633356,
+        84.039366,
+        80.986957,
+        102.451535
+      ],
+      "wall_time_ms_median": 84.039366,
+      "requests_per_second": 47.59674174600508
+    },
+    "throughput_speedup": 3.256173243858122,
+    "batch_latency_ratio": 0.30710896660250675
+  },
+  "decision": "candidate_not_proven_better",
+  "claim_boundary": {
+    "allowed": "Exact GPT-2 token parity and bounded sequential-versus-padded-microbatch T4 throughput for these requests.",
+    "refused": "Continuous-arrival scheduling, paged-KV eviction, general serving superiority, energy savings, analog benefit, or silicon performance."
+  }
+}

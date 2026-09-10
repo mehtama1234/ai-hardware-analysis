@@ -2,7 +2,56 @@
 
 This track turns GPUMODE's YouTube lectures into a transcript-backed GPU systems
 curriculum that can feed deeper runnable labs in `gpu-kernels-serving-lab`. The
-full objective is specified in `MEATY-GOAL.md`.
+original curriculum objective is specified in `MEATY-GOAL.md`.
+
+The [long-term end-to-end goal](LONG-TERM-END-TO-END-GOAL.md) defines the broader
+research and engineering program: kernels and compilers through dynamic serving,
+training and precision, distributed MoE, portability, multimodal execution, and
+GPU simulation. It maps all 24 handbook categories to deliverables and final
+acceptance criteria. The completed inference slice below is its starting point.
+
+Execution has started; the [long-term progress ledger](LONG-TERM-PROGRESS.md)
+tracks the full program separately from completed slices. Execution progressed
+from fixed-cache graph decoding to token-level continuous admission and matched
+serving comparisons.
+The [graph-decode decision](analysis/graph-decode-decision.md) now records matched
+profiles, pretrained correctness, and a verified fresh-session source-bundle
+replay for the fixed-batch experiment.
+The [slot and HTTP extension](batch1-decode-vertical-slice/SLOT-DECODE.md) now
+passes a bounded GPU proof of cancellation, reclaimed-slot reuse, and admission
+while a peer remains active. Sustained-load capacity and dynamic-engine replay
+remain open; see the [functional decision](analysis/continuous-admission-decision.json).
+The [mixed-length arrival measurements](analysis/continuous-load-decision.md)
+add per-request budgets, controlled EOS, and repeated bounded load windows with
+verified rejection and goodput accounting. Independent replay of the dynamic
+engine remains open.
+The [matched serving comparison](analysis/matched-serving-decision.md) now
+compares compacting native microbatching, graph microbatching, and continuous
+graph admission under identical offered workloads. Its bounded measurements
+validate; independent replay of this dynamic comparison remains open.
+The [training-loss implementation](fused-training-kernels/LINEAR-CROSS-ENTROPY.md)
+adds chunked logit recomputation with an analytical backward and CPU derivative/
+optimizer checks. A two-seed, 16-update real-data CUDA quality capture now passes
+on a T4, and a selected checkpoint has completed a CUDA serving smoke. Multi-request
+capacity from that checkpoint also passes the mixed-arrival verifier; matched
+baseline comparison also passes with native, graph-group, and continuous controls.
+Its dependency-closed source bundle also replays successfully in isolation.
+The same load contract now passes on a pinned DistilGPT2 model as well.
+A Pythia-70M GPT-NeoX characterization now passes cached-path parity on CUDA
+for batch sizes 1, 2, and 4, and the generic `HFSlotDecode` adapter passes the
+same mixed-arrival load contract. Its uncached batch-4 numerical divergence
+remains documented; its generic dynamic slot load and native-vs-generic
+comparison also pass correctness, while optimization and broader workloads remain
+the next gates.
+Its protocol and evidence are recorded in the
+[long-term progress ledger](LONG-TERM-PROGRESS.md).
+
+The [real-model inference decision](site/real-model-inference-decision.html)
+now closes one bounded loop from pretrained GPT-2 correctness through GPU
+profiling, custom-kernel optimization, actual HTTP serving, and fresh-session
+source-bundle reproduction. All 512 main-load requests match the reference;
+native microbatching is the selected path. The
+[six-gate audit](analysis/real-model-goal-audit.json) records the proof and scope.
 
 ## Advanced executable expansion
 
@@ -147,6 +196,10 @@ the current CPU checkpoint from the full advanced GPU curriculum goal.
   RMSNorm/residual backward, SwiGLU MLP fusion, cross-entropy/z-loss,
   multi-tensor AdamW, grad clipping/unscale, dropout/residual/norm, checkpoint
   safety, launch reduction, HBM reduction, and GPU-host profiler promotion.
+- `fused-training-kernels/REAL-DATA-TRAINING.md` documents the pinned corpus,
+  full-split evaluator, real-model parity diagnostics, and checkpoint smoke.
+- `scripts/run_training_colab.sh` runs the bounded two-seed CUDA training gate
+  and imports a report-sized artifact from a fresh T4 session.
 - `scripts/run_fused_training_kernels.py` writes the fused training kernel JSON
   and Markdown report.
 - `scripts/verify_fused_training_kernels.py` verifies training-kernel family

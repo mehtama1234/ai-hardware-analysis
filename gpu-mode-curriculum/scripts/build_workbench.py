@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import re
@@ -605,6 +606,25 @@ def artifact_label(path: Path) -> str:
     return str(path.relative_to(LAB_ROOT))
 
 
+def real_model_measurement() -> dict[str, Any] | None:
+    path = ANALYSIS / "real-model-inference-decision.json"
+    if not path.exists():
+        return None
+    data = read_json(path, {})
+    if data.get("status") != "passed" or not data.get("inputs"):
+        return None
+    for source in data["inputs"].values():
+        artifact = ROOT / source["path"]
+        if not artifact.is_file() or hashlib.sha256(artifact.read_bytes()).hexdigest() != source["sha256"]:
+            raise ValueError("Real-model decision is stale; rerun build_real_model_decision.py")
+    return {"path": "gpu-mode-curriculum/analysis/real-model-inference-decision.json",
+            "session": "real-model-inference-decision", "status": "passed", "correctness": "passed",
+            "cuda_status": "measured_gpu", "summary": data["summary"], "score": 1000,
+            "page_href": "real-model-inference-decision.html", "page": "site/real-model-inference-decision.html",
+            "runtime_readiness": {"cuda": {"status": "measured_gpu", "reason": "verified imported T4 evidence"}},
+            "next_action": data["next_action"]}
+
+
 def collect_measurements(profile: dict[str, Any]) -> list[dict[str, Any]]:
     rows = []
     for path in sorted(LAB_ROOT.glob("**/out_*.json")):
@@ -627,6 +647,9 @@ def collect_measurements(profile: dict[str, Any]) -> list[dict[str, Any]]:
                 "score": score,
             }
         )
+    real_model = real_model_measurement()
+    if real_model and profile["id"] in {"attention-serving", "serving-scheduler", "profiling-roofline"}:
+        rows.append(real_model)
     return sorted(rows, key=lambda row: (-row["score"], row["path"]))[:8]
 
 
@@ -690,6 +713,9 @@ def collect_latest_measurement_index() -> dict[str, Any]:
                 "page": str(page.relative_to(LAB_ROOT)) if page.exists() else "",
             }
         )
+    real_model = real_model_measurement()
+    if real_model:
+        rows.append(real_model)
     return {
         "generated_at": now(),
         "artifact_count": len(rows),
@@ -1031,6 +1057,8 @@ def diagnosis_for(profile_id: str) -> str:
 
 
 def next_action(labs: list[dict[str, Any]], measurements: list[dict[str, Any]]) -> str:
+    if measurements and measurements[0].get("next_action"):
+        return measurements[0]["next_action"]
     if labs:
         top = labs[0]
         if top["status"] == "implemented":
@@ -1067,7 +1095,7 @@ def build() -> None:
             "lessons": len(lessons),
             "labs": len(labs),
             "implemented_labs": sum(1 for lab in labs if lab.get("status") == "implemented"),
-            "measurement_artifacts": len(list(LAB_ROOT.glob("**/out_*.json"))),
+            "measurement_artifacts": len(list(LAB_ROOT.glob("**/out_*.json"))) + int(real_model_measurement() is not None),
             "paper_json": len(list(PAPER_ROOT.glob("*.json"))),
             "tutorial_sources": len(TUTORIAL_SOURCES),
             "graph_nodes": curriculum_graph.get("node_count", 0),
@@ -1298,8 +1326,8 @@ def measurement_rows(rows: list[dict[str, Any]]) -> str:
         return '<tr><td colspan="5">No matching measurement artifacts found.</td></tr>'
     return "\n".join(
         "<tr>"
-        f"<td>{esc(row['path'])}</td>"
-        f"<td>{esc(row['session'])}</td>"
+        + (f'<td><a href="{esc(row["page_href"])}">{esc(row["path"])}</a></td>' if row.get("page_href") else f"<td>{esc(row['path'])}</td>")
+        + f"<td>{esc(row['session'])}</td>"
         f"<td>{esc(row['status'])}</td>"
         f"<td>{esc(row.get('cuda_status') or '')}</td>"
         f"<td>{esc(row['summary'])}</td>"

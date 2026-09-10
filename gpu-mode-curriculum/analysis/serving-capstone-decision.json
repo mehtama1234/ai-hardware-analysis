@@ -1,0 +1,38 @@
+{
+  "schema_version": "serving-capstone-decision-v0.1",
+  "decision": "promote_bounded_shape_budget_graph_bucket",
+  "status": "accepted-with-hardware-and-scope-caveats",
+  "model_id": "EleutherAI/pythia-70m",
+  "model_revision": "a39f36b100fe8a5377810d56c3f4789b9c53ac42",
+  "reports": [
+    "gpu-runs/imports/pythia-mixed-budget-backpressure-20260910T190000/reports/static-graph-http.json",
+    "gpu-runs/imports/pythia-mixed-budget-sustained-20260910T200000/reports/static-graph-http.json"
+  ],
+  "verification": "verify_static_graph_http.py passed for both reports",
+  "checks": [
+    "exact token parity",
+    "mixed prompt widths",
+    "mixed output budgets",
+    "bounded HTTP 429 backpressure",
+    "scheduler drain",
+    "recapture-per-cache-lifetime"
+  ],
+  "hardware": "NVIDIA A100-SXM4-40GB",
+  "sustained_metrics": {
+    "primary_rounds": 3,
+    "primary_served_tokens": 144,
+    "recapture_total_ms": 102.9857150015232,
+    "recapture_ms_per_primary_request": 4.2910714583968,
+    "recapture_ms_per_primary_token": 0.7151785763994667,
+    "peak_allocated_bytes": 268818432,
+    "overload_accepted": 4,
+    "overload_rejected_429": 8
+  },
+  "limitations": [
+    "A100 result is not a T4 comparison",
+    "loopback HTTP is not production capacity",
+    "fixed batch and graph buckets require recapture",
+    "cancellation, prefix reuse, and chunked prefill remain open"
+  ],
+  "next_gate": "target-hardware matched comparison and fresh-environment replay"
+}

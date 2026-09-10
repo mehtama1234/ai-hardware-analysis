@@ -67,7 +67,7 @@ echo "Executing remote handoff ..."
 colab --auth oauth2 exec -s "${SESSION_NAME}" -f "${ROOT_DIR}/scripts/run_colab_gpu_handoff.py" --timeout "${TIMEOUT_SECONDS}"
 
 echo "Downloading Colab artifacts ..."
-if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" || "${MODE}" == "trained-tail" || "${MODE}" == "speculative-cuda" || "${MODE}" == "digits-quality" || "${MODE}" == "eager-kernels" || "${MODE}" == "wmma-profiler" || "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" || "${MODE}" == "trained-e2e" ]]; then
+  if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" || "${MODE}" == "trained-tail" || "${MODE}" == "speculative-cuda" || "${MODE}" == "digits-quality" || "${MODE}" == "eager-kernels" || "${MODE}" == "wmma-profiler" || "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" || "${MODE}" == "trained-e2e" || "${MODE}" == "real-model-decision" || "${MODE}" == "real-model-characterization" || "${MODE}" == "real-model-extended-characterization" || "${MODE}" == "real-model-candidate-comparison" || "${MODE}" == "real-model-microbatch-candidate" || "${MODE}" == "real-model-continuous-microbatch" || "${MODE}" == "real-model-paged-cache-adapter" || "${MODE}" == "real-model-paged-attention-kernel" || "${MODE}" == "real-model-fused-paged-decode" || "${MODE}" == "real-model-device-resident-paged-decode" || "${MODE}" == "real-model-device-resident-arrival-load" || "${MODE}" == "real-model-device-resident-arrival-load-workspace-reuse" || "${MODE}" == "real-model-persistent-cache-long-decode" || "${MODE}" == "real-model-sdpa-backend" || "${MODE}" == "real-model-profile" || "${MODE}" == "real-model-http" || "${MODE}" == "real-model-http-repeated" || "${MODE}" == "real-model-http-replay" ]]; then
   DEST="${ROOT_DIR}/gpu-runs/imports/${RUN_ID}"
   mkdir -p "${DEST}"
   if [[ "${MODE}" == "trained-e2e" ]]; then
@@ -83,6 +83,44 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
     REPORT_NAME="decode-comparison.json"
   elif [[ "${MODE}" == "trained-serving" ]]; then
     REPORT_NAME="serving-bridge.json"
+  elif [[ "${MODE}" == "real-model-decision" ]]; then
+    REPORT_NAME="real-model-serving-comparison.json"
+  elif [[ "${MODE}" == "real-model-characterization" ]]; then
+    REPORT_NAME="real-model-serving-characterization.json"
+  elif [[ "${MODE}" == "real-model-extended-characterization" ]]; then
+    REPORT_NAME="real-model-serving-extended-characterization.json"
+  elif [[ "${MODE}" == "real-model-candidate-comparison" ]]; then
+    REPORT_NAME="real-model-candidate-comparison.json"
+  elif [[ "${MODE}" == "real-model-microbatch-candidate" ]]; then
+    REPORT_NAME="real-model-microbatch-candidate.json"
+  elif [[ "${MODE}" == "real-model-continuous-microbatch" ]]; then
+    REPORT_NAME="real-model-continuous-microbatch.json"
+  elif [[ "${MODE}" == "real-model-paged-cache-adapter" ]]; then
+    REPORT_NAME="real-model-paged-cache-adapter.json"
+  elif [[ "${MODE}" == "real-model-paged-attention-kernel" ]]; then
+    REPORT_NAME="real-model-paged-attention-kernel.json"
+  elif [[ "${MODE}" == "real-model-fused-paged-decode" ]]; then
+    REPORT_NAME="real-model-fused-paged-decode.json"
+  elif [[ "${MODE}" == "real-model-device-resident-paged-decode" ]]; then
+    REPORT_NAME="real-model-device-resident-paged-decode.json"
+  elif [[ "${MODE}" == "real-model-device-resident-arrival-load" ]]; then
+    REPORT_NAME="real-model-device-resident-arrival-load.json"
+  elif [[ "${MODE}" == "real-model-device-resident-arrival-load-workspace-reuse" ]]; then
+    REPORT_NAME="real-model-device-resident-arrival-load.json"
+  elif [[ "${MODE}" == "real-model-persistent-cache-long-decode" ]]; then
+    REPORT_NAME="real-model-device-resident-arrival-load.json"
+  elif [[ "${MODE}" == "real-model-http-replay" ]]; then
+    REPORT_NAME="real-model-http-repeated.json"
+  elif [[ "${MODE}" == "real-model-http-repeated" ]]; then
+    REPORT_NAME="real-model-http-repeated.json"
+  elif [[ "${MODE}" == "real-model-http" ]]; then
+    REPORT_NAME="real-model-http.json"
+  elif [[ "${MODE}" == "real-model-profile" ]]; then
+    REPORT_NAME="real-model-profile.json"
+  elif [[ "${MODE}" == "real-model-sdpa-backend" ]]; then
+    REPORT_NAME="real-model-sdpa-backend.json"
+  elif [[ "${MODE}" == "real-model-device-resident-arrival-load" ]]; then
+    REPORT_NAME="real-model-device-resident-arrival-load.json"
   elif [[ "${MODE}" == "paged-attention" ]]; then
     REPORT_NAME="paged-attention-cuda.json"
   elif [[ "${MODE}" == "serving-tail" || "${MODE}" == "serving-tail-graphs" || "${MODE}" == "trained-tail" ]]; then
@@ -98,7 +136,7 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
   else
     REPORT_NAME="paged-kv-cuda.json"
   fi
-  if [[ "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" ]]; then
+  if [[ "${MODE}" == "batch1-decode" || "${MODE}" == "batch1-profile" || "${MODE}" == "batch1-graphs" || "${MODE}" == "trained-serving" || "${MODE}" == "real-model-decision" || "${MODE}" == "real-model-characterization" || "${MODE}" == "real-model-extended-characterization" || "${MODE}" == "real-model-candidate-comparison" || "${MODE}" == "real-model-microbatch-candidate" || "${MODE}" == "real-model-continuous-microbatch" || "${MODE}" == "real-model-paged-cache-adapter" || "${MODE}" == "real-model-paged-attention-kernel" || "${MODE}" == "real-model-fused-paged-decode" || "${MODE}" == "real-model-device-resident-paged-decode" || "${MODE}" == "real-model-device-resident-arrival-load" || "${MODE}" == "real-model-device-resident-arrival-load-workspace-reuse" || "${MODE}" == "real-model-persistent-cache-long-decode" || "${MODE}" == "real-model-sdpa-backend" || "${MODE}" == "real-model-profile" || "${MODE}" == "real-model-http" || "${MODE}" == "real-model-http-repeated" || "${MODE}" == "real-model-http-replay" ]]; then
     REPORT_DIR="batch1-decode-vertical-slice/reports"
   elif [[ "${MODE}" == "digits-quality" ]]; then
     REPORT_DIR="quantization-memory-formats/reports"
@@ -111,6 +149,12 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
   else
     REPORT_DIR="model-integration/reports"
   fi
+  if [[ "${MODE}" == "real-model-http-replay" ]]; then
+    REPORT_DIR="batch1-decode-vertical-slice/reports/replay"
+    colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/real-model-reproduction.json" "${DEST}/real-model-reproduction.json"
+    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["status"], d["errors"]); sys.exit(d["status"] != "passed")' "${DEST}/real-model-reproduction.json"
+    colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/replay.log" "${DEST}/replay.log"
+  fi
   if [[ "${MODE}" != "trained-e2e" ]]; then
     colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/${REPORT_NAME}" "${DEST}/${REPORT_NAME}"
   fi
@@ -120,6 +164,16 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
     colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/batch1-decode-vertical-slice/reports/serving-bridge.json" "${DEST}/serving-bridge.json"
     colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/batch1-decode-vertical-slice/reports/profiler-evidence.json" "${DEST}/profiler-evidence.json"
   fi
+  if [[ "${MODE}" == "real-model-http-repeated" || "${MODE}" == "real-model-http-replay" ]]; then
+    for artifact in real-model-http-reproduction.tar.gz source-manifest.json requirements.recorded.txt; do
+      colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/${artifact}" "${DEST}/${artifact}"
+    done
+  fi
+  if [[ "${MODE}" == "real-model-profile" ]]; then
+    for variant in eager sdpa paged persistent; do
+      colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/${REPORT_DIR}/real-model-profile-${variant}.json.gz" "${DEST}/real-model-profile-${variant}.json.gz"
+    done
+  fi
   if [[ "${MODE}" == "batch1-profile" ]]; then
     # Keep the imported report name stable for the report verifier.
     true
@@ -127,7 +181,7 @@ if [[ "${MODE}" == "paged-kv" || "${MODE}" == "paged-attention" || "${MODE}" == 
 else
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-runs/imports/${RUN_ID}.json" "${ROOT_DIR}/gpu-runs/imports/${RUN_ID}.json"
 fi
-if [[ "${MODE}" != "paged-kv" && "${MODE}" != "paged-attention" && "${MODE}" != "serving-tail" && "${MODE}" != "serving-tail-graphs" && "${MODE}" != "trained-tail" && "${MODE}" != "speculative-cuda" && "${MODE}" != "digits-quality" && "${MODE}" != "eager-kernels" && "${MODE}" != "wmma-profiler" && "${MODE}" != "batch1-decode" && "${MODE}" != "batch1-profile" && "${MODE}" != "batch1-graphs" && "${MODE}" != "trained-serving" && "${MODE}" != "trained-e2e" ]]; then
+  if [[ "${MODE}" != "paged-kv" && "${MODE}" != "paged-attention" && "${MODE}" != "serving-tail" && "${MODE}" != "serving-tail-graphs" && "${MODE}" != "trained-tail" && "${MODE}" != "speculative-cuda" && "${MODE}" != "digits-quality" && "${MODE}" != "eager-kernels" && "${MODE}" != "wmma-profiler" && "${MODE}" != "batch1-decode" && "${MODE}" != "batch1-profile" && "${MODE}" != "batch1-graphs" && "${MODE}" != "trained-serving" && "${MODE}" != "trained-e2e" && "${MODE}" != "real-model-decision" && "${MODE}" != "real-model-characterization" && "${MODE}" != "real-model-extended-characterization" && "${MODE}" != "real-model-candidate-comparison" && "${MODE}" != "real-model-microbatch-candidate" && "${MODE}" != "real-model-continuous-microbatch" && "${MODE}" != "real-model-paged-cache-adapter" && "${MODE}" != "real-model-paged-attention-kernel" && "${MODE}" != "real-model-fused-paged-decode" && "${MODE}" != "real-model-device-resident-paged-decode" && "${MODE}" != "real-model-device-resident-arrival-load" && "${MODE}" != "real-model-device-resident-arrival-load-workspace-reuse" && "${MODE}" != "real-model-persistent-cache-long-decode" && "${MODE}" != "real-model-sdpa-backend" && "${MODE}" != "real-model-profile" && "${MODE}" != "real-model-http" && "${MODE}" != "real-model-http-repeated" && "${MODE}" != "real-model-http-replay" ]]; then
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-promotion/suite-run-report.json" "${ARTIFACT_DIR}/suite-run-report.json" || true
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/gpu-measurement-queue/gpu-measurement-queue.json" "${ARTIFACT_DIR}/gpu-measurement-queue.json" || true
   colab --auth oauth2 download -s "${SESSION_NAME}" "/content/gpu-mode-curriculum/capstone-acceptance/capstone-acceptance.json" "${ARTIFACT_DIR}/capstone-acceptance.json" || true

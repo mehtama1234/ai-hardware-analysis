@@ -65,8 +65,9 @@ def write_json(path: Path, payload: object) -> None:
 def unpack_archive() -> None:
     if not ARCHIVE.exists():
         raise FileNotFoundError(f"missing uploaded archive: {ARCHIVE}")
-    if WORKDIR.exists():
-        run(["rm", "-rf", str(WORKDIR)], CONTENT, timeout=120)
+    # Do not delete the prior checkout.  Colab reruns are allowed to overwrite
+    # files from the uploaded archive, while preserving unrelated run outputs
+    # and avoiding a destructive shell command that can block the handoff.
     with tarfile.open(ARCHIVE, "r:gz") as archive:
         archive.extractall(CONTENT)
     if not WORKDIR.exists():
@@ -128,6 +129,69 @@ def main() -> int:
             {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_profiler_evidence.py"], "required": True},
             {"cmd": [sys.executable, "model-integration/run_serving_tail_load_cuda.py", "--mode", "cuda_graph_microbatch", "--trained"], "required": True},
         ]
+    elif mode == "real-model-decision":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_decision.py"], "required": True}]
+    elif mode == "real-model-characterization":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_serving_characterization.py"], "required": True}]
+    elif mode == "real-model-extended-characterization":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_extended_characterization.py"], "required": True}]
+    elif mode == "real-model-candidate-comparison":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_candidate_comparison.py"], "required": True}]
+    elif mode == "real-model-microbatch-candidate":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_microbatch_candidate.py"], "required": True}]
+    elif mode == "real-model-continuous-microbatch":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_continuous_microbatch.py"], "required": True}]
+    elif mode == "real-model-paged-cache-adapter":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_paged_cache_adapter.py"], "required": True}]
+    elif mode == "real-model-paged-attention-kernel":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_paged_attention_kernel.py"], "required": True},
+        ]
+    elif mode == "real-model-fused-paged-decode":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_fused_paged_decode.py"], "required": True},
+        ]
+    elif mode == "real-model-device-resident-paged-decode":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_fused_paged_decode.py", "--microbatch"], "required": True},
+        ]
+    elif mode == "real-model-device-resident-arrival-load":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_device_resident_arrival_load.py", "--stress"], "required": True},
+        ]
+    elif mode == "real-model-device-resident-arrival-load-workspace-reuse":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_device_resident_arrival_load.py", "--stress"], "required": True},
+        ]
+    elif mode == "real-model-persistent-cache-long-decode":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_device_resident_arrival_load.py", "--stress", "--long"], "required": True},
+        ]
+    elif mode == "real-model-http-replay":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/replay_real_model_bundle.py", "--original-report", "gpu-runs/imports/colab-real-model-http-repeated-gpt2-20260909/real-model-http-repeated.json", "--output-dir", "batch1-decode-vertical-slice/reports/replay", "--host-label", run_id], "required": True},
+        ]
+    elif mode == "real-model-http-repeated":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_http_repeated.py"], "required": True},
+        ]
+    elif mode == "real-model-http":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_http.py"], "required": True}]
+    elif mode == "real-model-profile":
+        commands = [
+            {"cmd": [sys.executable, "-m", "pip", "install", "-q", "ninja"], "required": True},
+            {"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_profile.py"], "required": True},
+        ]
+    elif mode == "real-model-sdpa-backend":
+        commands = [{"cmd": [sys.executable, "batch1-decode-vertical-slice/run_real_model_sdpa_backend.py"], "required": True}]
     else:
         commands = [
         {"cmd": [sys.executable, "scripts/verify_advanced_phase.py"], "required": True},

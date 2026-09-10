@@ -1,0 +1,68 @@
+{
+  "schema_version": "real-model-fused-paged-decode-v0.1",
+  "experiment": "real_gpt2_end_to_end_decode_with_cuda_paged_attention",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "page_size_tokens": 16,
+    "prompts": [
+      "The system bottleneck is",
+      "context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement context movement  because"
+    ],
+    "max_new_tokens": 6,
+    "repeats": 2,
+    "patched_attention_layers": 12,
+    "prefill": "native GPT-2 attention",
+    "decode": "every one-token GPT-2 attention call routes through Python page allocation plus CUDA paged K/V attention",
+    "timing": "CUDA synchronized around complete generation"
+  },
+  "rows": [
+    {
+      "prompt_token_count": 4,
+      "output_parity": true,
+      "native_decode_ms_median": 54.178719,
+      "fused_paged_decode_ms_median": 231.678653,
+      "fused_overhead_ratio": 4.2761928904225295,
+      "generated_tokens": [
+        262,
+        1109,
+        326,
+        262,
+        1271,
+        286
+      ]
+    },
+    {
+      "prompt_token_count": 66,
+      "output_parity": true,
+      "native_decode_ms_median": 57.0566475,
+      "fused_paged_decode_ms_median": 303.7487085,
+      "fused_overhead_ratio": 5.32363399900073,
+      "generated_tokens": [
+        286,
+        262,
+        835,
+        262,
+        3356,
+        318
+      ]
+    }
+  ],
+  "decision": "end_to_end_fused_paged_decode_parity_passed",
+  "claim_boundary": {
+    "allowed": "Full GPT-2 greedy decode token parity and synchronized timing with the prototype paged-attention kernel on this T4 protocol.",
+    "refused": "Optimized production performance, energy savings, allocator scalability, analog benefit, silicon performance, or broad model generalization."
+  }
+}

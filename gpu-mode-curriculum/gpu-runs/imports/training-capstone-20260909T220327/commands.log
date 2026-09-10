@@ -1,0 +1,60 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{
+  "schema_version": "training-data-v0.1",
+  "source_url": "https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt",
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "source_characters": 1115394,
+  "tokenizer": "openai-community/gpt2",
+  "tokenizer_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "prepare_source_sha256": "0da7d212bd2675c04fe8d27b58329ea884f9d72e16a1b7cabc823c7c64733814",
+  "split_policy": "contiguous 90/5/5 percent character ranges; tokenize each separately; no boundary-spanning examples",
+  "limitations": "Character boundaries may divide a scene or word; source overlap is prevented, semantic independence is not guaranteed.",
+  "test_policy": "test tokens excluded from training and checkpoint selection",
+  "splits": {
+    "train": {
+      "character_start": 0,
+      "character_end": 1003854,
+      "text_sha256": "a9e24e23a1ec77744dad26844bfd5a09b6e041954e1eef0000e7f24cba6db735",
+      "tokens": 301966,
+      "file": "train.npy",
+      "sha256": "0e6a72f2ef6105765077d57f6f62808b396bbb03b032486bbb8cfd6ba5fd086b"
+    },
+    "validation": {
+      "character_start": 1003854,
+      "character_end": 1059624,
+      "text_sha256": "c64e90c160750d91a9d2d9b1ace5eab1a440f5a1701d32a8e97a179b7839f1c8",
+      "tokens": 18066,
+      "file": "validation.npy",
+      "sha256": "0ae1ab2b1b482c22a4ad83d93ac90fae2e67402fee3e0243de344a495143bc98"
+    },
+    "test": {
+      "character_start": 1059624,
+      "character_end": 1115394,
+      "text_sha256": "8b5a8c8af45905547ad03b7aae6980a277a5dd78924a6e6ac64b75d63d7d40bd",
+      "tokens": 17995,
+      "file": "test.npy",
+      "sha256": "2283cb39a47d5e0f6e699df3ccf753137de656bfe9e95ea220d0ab966c93a702"
+    }
+  }
+}
+$ python prepare_training_data.py --data-dir data
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 4420.46it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.37s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.37s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 7108.26it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.43s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.43s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 6875.15it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.39s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.39s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 6519.32it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.42s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.42s/it]
+{"status": "completed", "runs": 4, "report": "reports/gpu-run/real-training.json"}
+$ python run_real_training.py --data-dir data --output-dir reports/gpu-run --device cuda --steps 16 --sequence 64 --chunk-size 16 --seeds 7 19 --save-checkpoints
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights:  39%|███▊      | 57/148 [00:00<00:00, 567.07it/s]Loading weights:  77%|███████▋  | 114/148 [00:00<00:00, 536.04it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 574.04it/s]
+{"status": "passed", "checks": {"token_parity": true, "terminal_completed": true, "accounted": true, "cache_empty": true}, "decoded": ", a man,"}
+$ python run_gpu_checkpoint_serving.py --checkpoint reports/gpu-run/7-recomputed --output reports/gpu-run/gpu-checkpoint-serving.json --serving-dir serving
+{"status": "passed", "errors": [], "error_count": 0}
+$ python verify_real_training.py reports/gpu-run/real-training.json --data-dir data
+{"status": "passed", "checkpoint_runs": 4, "errors": []}
+$ python verify_checkpoint_artifacts.py reports/gpu-run/real-training.json
+{"status": "ready_for_review", "verification": "passed", "paired_seeds": 2}
+$ python build_training_decision.py reports/gpu-run/real-training.json --output reports/gpu-run/training-decision.json --data-dir data

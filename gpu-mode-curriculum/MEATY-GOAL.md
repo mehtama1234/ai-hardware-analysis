@@ -1,5 +1,11 @@
 # Meaty Goal: GPUMODE To Runnable GPU Systems Labs
 
+The overarching program is now specified in the
+[long-term end-to-end goal](LONG-TERM-END-TO-END-GOAL.md). It preserves this
+curriculum foundation and connects all 24 handbook categories to integrated
+systems, hardware experiments, reproduction, and completion gates. The dated
+checkpoints below describe earlier foundation work, not the full current state.
+
 Build an end-to-end GPUMODE-powered GPU systems curriculum that ingests YouTube
 transcripts, extracts a structured topic and prerequisite map, connects lessons
 to the existing AI-hardware corpus, and produces runnable CUDA/Triton/PyTorch/vLLM

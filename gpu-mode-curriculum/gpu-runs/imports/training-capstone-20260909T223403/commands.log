@@ -1,0 +1,104 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{
+  "schema_version": "training-data-v0.1",
+  "source_url": "https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt",
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "source_characters": 1115394,
+  "tokenizer": "openai-community/gpt2",
+  "tokenizer_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "prepare_source_sha256": "0da7d212bd2675c04fe8d27b58329ea884f9d72e16a1b7cabc823c7c64733814",
+  "split_policy": "contiguous 90/5/5 percent character ranges; tokenize each separately; no boundary-spanning examples",
+  "limitations": "Character boundaries may divide a scene or word; source overlap is prevented, semantic independence is not guaranteed.",
+  "test_policy": "test tokens excluded from training and checkpoint selection",
+  "splits": {
+    "train": {
+      "character_start": 0,
+      "character_end": 1003854,
+      "text_sha256": "a9e24e23a1ec77744dad26844bfd5a09b6e041954e1eef0000e7f24cba6db735",
+      "tokens": 301966,
+      "file": "train.npy",
+      "sha256": "0e6a72f2ef6105765077d57f6f62808b396bbb03b032486bbb8cfd6ba5fd086b"
+    },
+    "validation": {
+      "character_start": 1003854,
+      "character_end": 1059624,
+      "text_sha256": "c64e90c160750d91a9d2d9b1ace5eab1a440f5a1701d32a8e97a179b7839f1c8",
+      "tokens": 18066,
+      "file": "validation.npy",
+      "sha256": "0ae1ab2b1b482c22a4ad83d93ac90fae2e67402fee3e0243de344a495143bc98"
+    },
+    "test": {
+      "character_start": 1059624,
+      "character_end": 1115394,
+      "text_sha256": "8b5a8c8af45905547ad03b7aae6980a277a5dd78924a6e6ac64b75d63d7d40bd",
+      "tokens": 17995,
+      "file": "test.npy",
+      "sha256": "2283cb39a47d5e0f6e699df3ccf753137de656bfe9e95ea220d0ab966c93a702"
+    }
+  }
+}
+$ python prepare_training_data.py --data-dir data
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 20846.86it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.36s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.36s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 7030.97it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.42s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.42s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 4995.31it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.01s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.01s/it]
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 5136.42it/s]
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.39s/it]Writing model shards: 100%|██████████| 1/1 [00:03<00:00,  3.39s/it]
+{"status": "completed", "runs": 4, "report": "reports/gpu-run/real-training.json"}
+$ python run_real_training.py --data-dir data --output-dir reports/gpu-run --device cuda --steps 16 --sequence 64 --chunk-size 16 --seeds 7 19 --save-checkpoints
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights:  33%|███▎      | 49/148 [00:00<00:00, 489.56it/s]Loading weights:  74%|███████▍  | 110/148 [00:00<00:00, 552.97it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 572.38it/s]
+{"status": "passed", "checks": {"token_parity": true, "terminal_completed": true, "accounted": true, "cache_empty": true}, "decoded": ", a man,"}
+$ python run_gpu_checkpoint_serving.py --checkpoint reports/gpu-run/7-recomputed --output reports/gpu-run/gpu-checkpoint-serving.json --serving-dir serving
+{"status": "passed", "errors": []}
+$ python verify_gpu_checkpoint_serving.py reports/gpu-run/gpu-checkpoint-serving.json
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 4968.72it/s]
+{"run": "r0-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.819472195000003, "completion_p95_ms": 170.65906300001643, "ttft_p95_ms": 57.81990399998449, "arrival_lateness_p95_ms": 0.46877199997652497, "goodput_requests_per_s": 4.189060473053133, "output_tokens_per_s": 59.69411174100714, "peak_allocated_bytes": 599275008}}
+{"run": "r0-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.006228331999978, "completion_p95_ms": 177.0329789999323, "ttft_p95_ms": 27.144661999955133, "arrival_lateness_p95_ms": 1.8609789999572968, "goodput_requests_per_s": 15.975125403810946, "output_tokens_per_s": 227.645537004306, "peak_allocated_bytes": 599275008}}
+{"run": "r0-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 115, "rejected": 77, "failed": 0, "measured_window_s": 4.315883062000012, "completion_p95_ms": 484.51934399997754, "ttft_p95_ms": 351.3015139999425, "arrival_lateness_p95_ms": 0.6900683333697089, "goodput_requests_per_s": 26.645763647430282, "output_tokens_per_s": 357.05323287556575, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate48", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 108, "rejected": 84, "failed": 0, "measured_window_s": 4.3970027520000485, "completion_p95_ms": 510.8747439999206, "ttft_p95_ms": 414.0375810000023, "arrival_lateness_p95_ms": 0.7024529999171136, "goodput_requests_per_s": 24.562186128010595, "output_tokens_per_s": 363.8842389334903, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate16", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.015474346000019, "completion_p95_ms": 181.59585199998673, "ttft_p95_ms": 26.894335999941177, "arrival_lateness_p95_ms": 2.041403999896829, "goodput_requests_per_s": 15.938341148600056, "output_tokens_per_s": 227.12136136755078, "peak_allocated_bytes": 599275008}}
+{"run": "r1-rate4", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 16, "rejected": 0, "failed": 0, "measured_window_s": 3.820685800000092, "completion_p95_ms": 132.07635200001278, "ttft_p95_ms": 16.13489200008189, "arrival_lateness_p95_ms": 0.434333999919545, "goodput_requests_per_s": 4.187729857294105, "output_tokens_per_s": 59.675150466441, "peak_allocated_bytes": 599275008}}
+$ python run_continuous_load.py --checkpoint reports/gpu-run/7-recomputed --output-dir reports/gpu-run/checkpoint-load --seconds 4
+{
+  "status": "passed",
+  "errors": [],
+  "scope": "Bounded repeated HTTP arrival windows; no matched-baseline advantage or independent replay acceptance"
+}
+$ python verify_continuous_load.py reports/gpu-run/checkpoint-load/continuous-load.json
+Loading weights:   0%|          | 0/148 [00:00<?, ?it/s]Loading weights: 100%|██████████| 148/148 [00:00<00:00, 4706.95it/s]
+{"run": "r0-rate16-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 39, "rejected": 25, "failed": 0, "measured_window_s": 5.013077740999961, "completion_p95_ms": 1318.7212760000193, "ttft_p95_ms": 1162.5414049999563, "arrival_lateness_p95_ms": 0.49833000002763583, "goodput_requests_per_s": 5.984347650275195, "output_tokens_per_s": 111.90730106014615, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 9, "8": 11, "16": 9, "32": 10}}}
+{"run": "r0-rate16-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.158593200000041, "completion_p95_ms": 244.98398099990482, "ttft_p95_ms": 167.19979499998772, "arrival_lateness_p95_ms": 2.2994429999698696, "goodput_requests_per_s": 15.38981980733277, "output_tokens_per_s": 219.30493225449197, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r0-rate16-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.007451825000089, "completion_p95_ms": 173.20626499997616, "ttft_p95_ms": 25.131230999932086, "arrival_lateness_p95_ms": 1.8112999999857493, "goodput_requests_per_s": 15.970248126438445, "output_tokens_per_s": 227.57603580174782, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r0-rate48-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 44, "rejected": 148, "failed": 0, "measured_window_s": 5.003497693000099, "completion_p95_ms": 1322.8563559999884, "ttft_p95_ms": 1181.4419679999446, "arrival_lateness_p95_ms": 0.4528873333811134, "goodput_requests_per_s": 6.595386272720191, "output_tokens_per_s": 118.71695290896344, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 10, "8": 13, "16": 12, "32": 9}}}
+{"run": "r0-rate48-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 74, "rejected": 118, "failed": 0, "measured_window_s": 4.535677552000038, "completion_p95_ms": 693.0067320000717, "ttft_p95_ms": 630.0539970000045, "arrival_lateness_p95_ms": 2.089512666543669, "goodput_requests_per_s": 16.315092762131908, "output_tokens_per_s": 235.4664739183362, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 20, "8": 15, "16": 20, "32": 19}}}
+{"run": "r0-rate48-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 96, "rejected": 96, "failed": 0, "measured_window_s": 4.416439383000011, "completion_p95_ms": 565.4829660001042, "ttft_p95_ms": 428.50070399993, "arrival_lateness_p95_ms": 1.9847549999667535, "goodput_requests_per_s": 21.736967650802185, "output_tokens_per_s": 327.63950198657045, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 23, "8": 22, "16": 24, "32": 27}}}
+{"run": "r1-rate48-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 76, "rejected": 116, "failed": 0, "measured_window_s": 4.345491306999975, "completion_p95_ms": 666.694360000065, "ttft_p95_ms": 576.9651210000575, "arrival_lateness_p95_ms": 1.004884666599537, "goodput_requests_per_s": 17.489391792724266, "output_tokens_per_s": 257.27815821402277, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 22, "8": 15, "16": 17, "32": 22}}}
+{"run": "r1-rate48-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 107, "rejected": 85, "failed": 0, "measured_window_s": 4.385875392000003, "completion_p95_ms": 550.0646049999887, "ttft_p95_ms": 427.34134900001663, "arrival_lateness_p95_ms": 1.58338599999297, "goodput_requests_per_s": 24.396497947746514, "output_tokens_per_s": 344.059022459341, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 29, "8": 25, "16": 26, "32": 27}}}
+{"run": "r1-rate48-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 32, "rejected": 160, "failed": 0, "measured_window_s": 5.645870746000014, "completion_p95_ms": 1914.6310280000307, "ttft_p95_ms": 1849.429353000005, "arrival_lateness_p95_ms": 2.5389923333705156, "goodput_requests_per_s": 1.4169647800860194, "output_tokens_per_s": 83.24668083005363, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 6, "8": 8, "16": 11, "32": 7}}}
+{"run": "r1-rate16-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.040707300999998, "completion_p95_ms": 208.1625639999629, "ttft_p95_ms": 124.88913000004231, "arrival_lateness_p95_ms": 0.4501739999795973, "goodput_requests_per_s": 15.838811186388389, "output_tokens_per_s": 225.70305940603455, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r1-rate16-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.00696722400005, "completion_p95_ms": 164.18770500001756, "ttft_p95_ms": 19.75947799996902, "arrival_lateness_p95_ms": 0.8611389999941821, "goodput_requests_per_s": 15.97217956180597, "output_tokens_per_s": 227.60355875573507, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r1-rate16-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 31, "rejected": 33, "failed": 0, "measured_window_s": 5.7999541740000495, "completion_p95_ms": 2087.923891999935, "ttft_p95_ms": 1708.095802999992, "arrival_lateness_p95_ms": 3.033799000036197, "goodput_requests_per_s": 1.8965667089768814, "output_tokens_per_s": 78.79372600022134, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 9, "8": 6, "16": 7, "32": 9}}}
+{"run": "r2-rate16-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.007055414999968, "completion_p95_ms": 183.14783099992837, "ttft_p95_ms": 27.85996900001919, "arrival_lateness_p95_ms": 1.4494710000008126, "goodput_requests_per_s": 15.971828031232883, "output_tokens_per_s": 227.59854944506858, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r2-rate16-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 43, "rejected": 21, "failed": 0, "measured_window_s": 4.85528629800001, "completion_p95_ms": 1103.593444000012, "ttft_p95_ms": 962.9315370000313, "arrival_lateness_p95_ms": 1.2349170000334198, "goodput_requests_per_s": 8.856326354578218, "output_tokens_per_s": 120.89915279389335, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 11, "8": 12, "16": 10, "32": 10}}}
+{"run": "r2-rate16-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 64, "rejected": 0, "failed": 0, "measured_window_s": 4.054972334000013, "completion_p95_ms": 206.31982299994434, "ttft_p95_ms": 124.40779300004579, "arrival_lateness_p95_ms": 2.0575779999489896, "goodput_requests_per_s": 15.783091653517506, "output_tokens_per_s": 224.90905606262444, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 16, "8": 16, "16": 16, "32": 16}}}
+{"run": "r2-rate48-graph_continuous", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 98, "rejected": 94, "failed": 0, "measured_window_s": 4.443562455999995, "completion_p95_ms": 547.1397500000421, "ttft_p95_ms": 467.266779000056, "arrival_lateness_p95_ms": 2.6471686666127425, "goodput_requests_per_s": 22.054376633701605, "output_tokens_per_s": 283.5562710047349, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 28, "8": 26, "16": 24, "32": 20}}}
+{"run": "r2-rate48-native_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 38, "rejected": 154, "failed": 0, "measured_window_s": 5.141545124000004, "completion_p95_ms": 1622.8137350000225, "ttft_p95_ms": 1596.3372349999645, "arrival_lateness_p95_ms": 2.0536040000251887, "goodput_requests_per_s": 3.8898812550808577, "output_tokens_per_s": 106.19375826370742, "peak_allocated_bytes": 613459456, "accepted_by_budget": {"1": 10, "8": 9, "16": 9, "32": 10}}}
+{"run": "r2-rate48-graph_microbatch", "checks": {"no_failed_requests": true, "all_accounted": true, "queue_rejections_match": true, "accepted_records_match": true, "drained": true, "cache_cleared": true}, "summary": {"completed": 81, "rejected": 111, "failed": 0, "measured_window_s": 4.458197401999996, "completion_p95_ms": 592.0585769999889, "ttft_p95_ms": 534.4118069999695, "arrival_lateness_p95_ms": 1.2057646666789879, "goodput_requests_per_s": 18.168778251869806, "output_tokens_per_s": 259.2976254217469, "peak_allocated_bytes": 599275008, "accepted_by_budget": {"1": 20, "8": 20, "16": 21, "32": 20}}}
+$ python run_serving_comparison.py --checkpoint reports/gpu-run/7-recomputed --output-dir reports/gpu-run/checkpoint-comparison --seconds 4
+{
+  "status": "passed",
+  "error_count": 0,
+  "errors": []
+}
+$ python verify_serving_comparison.py reports/gpu-run/checkpoint-comparison/serving-comparison.json
+{"status": "passed", "dependency_count": 43, "errors": []}
+$ python replay_serving_comparison.py --original-report reports/gpu-run/checkpoint-comparison/serving-comparison.json --checkpoint reports/gpu-run/7-recomputed --output-dir reports/gpu-run/checkpoint-replay
+{"status": "passed", "errors": [], "error_count": 0}
+$ python verify_real_training.py reports/gpu-run/real-training.json --data-dir data
+{"status": "passed", "checkpoint_runs": 4, "errors": []}
+$ python verify_checkpoint_artifacts.py reports/gpu-run/real-training.json
+{"status": "ready_for_review", "verification": "passed", "paired_seeds": 2}
+$ python build_training_decision.py reports/gpu-run/real-training.json --output reports/gpu-run/training-decision.json --data-dir data

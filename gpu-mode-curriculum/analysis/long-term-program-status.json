@@ -1,0 +1,484 @@
+{
+  "schema_version": "gpu-long-term-program-status-v0.1",
+  "status": "active",
+  "goal": "LONG-TERM-END-TO-END-GOAL.md",
+  "goal_sha256": "b8bbcc791b2235267e65fe08a2f4e09fee9c00594de00cd921ed8e54457febdb",
+  "checkpoint": "LONG-TERM-PROGRESS.md",
+  "latest_serving_capstone_decision": "analysis/serving-capstone-decision.json",
+  "latest_serving_cancellation_correctness": {
+    "status": "passed_cuda_http",
+    "source": "batch1-decode-vertical-slice/microbatch_control.py",
+    "test": "batch1-decode-vertical-slice/tests/test_continuous_service.py::test_microbatch_cancellation_discards_late_group_row",
+    "finding": "late rows for an in-flight canceled request are discarded while the peer completes; scheduler drains without a false KeyError",
+    "verification": "11 serving HTTP/scheduler tests passed; verify_static_graph_http.py passed on A100",
+    "gpu_report": "gpu-runs/imports/pythia-static-graph-http-cancel-20260910T210000/reports/static-graph-http.json",
+    "gpu_device": "NVIDIA A100-SXM4-40GB",
+    "gpu_finding": "one streamed token was followed by accepted /cancel, cancelled_inflight terminal status, and clean scheduler drain while mixed-budget and backpressure checks remained green",
+    "limitation": "A100 loopback evidence; target T4 comparison and cancellation under longer production-like streams remain open"
+  },
+  "active_milestone": "C/D: GPT-NeoX architecture, generic dynamic-slot load, and native-vs-generic comparison passed; optimization and broader workloads remain open",
+  "first_measured_report": "gpu-runs/imports/graph-decode-20260909T183016/reports/real-model-graph-decode.json",
+  "accepted_scope": "Three-way matched bounded serving comparison with counterbalanced order, compacting native baseline, graph fixed-group control, and graph continuous admission",
+  "remaining_packages": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H"
+  ],
+  "next_gates": [
+    "Optimize and counterbalance the generic GPT-NeoX slot path, then extend workload duration",
+    "Capture dependency-closed source bundle and independently replay matched dynamic serving",
+    "Optimize and counterbalance the generic GPT-NeoX slot path, then extend workload duration",
+    "Longer/broader workloads and additional pretrained architectures",
+    "Established serving implementation comparison on compatible hardware",
+    "Chunked prefill/cache-policy and full serving capstone publication"
+  ],
+  "latest_measured_report": "gpu-runs/imports/comparison-decode-20260909T192009/reports/serving-comparison.json",
+  "latest_training_report": "gpu-runs/imports/training-capstone-20260909T220327/reports/gpu-run/real-training.json",
+  "latest_longer_training_report": "gpu-runs/imports/training-capstone-20260909T215804/reports/gpu-run/real-training.json",
+  "latest_gpu_training_serving_report": "gpu-runs/imports/training-capstone-20260909T220327/reports/gpu-run/gpu-checkpoint-serving.json",
+  "latest_gpu_checkpoint_load_report": "gpu-runs/imports/training-capstone-20260909T221639/reports/gpu-run/checkpoint-load/continuous-load.json",
+  "latest_gpu_checkpoint_comparison_report": "gpu-runs/imports/training-capstone-20260909T222606/reports/gpu-run/checkpoint-comparison/serving-comparison.json",
+  "latest_alternate_model_load_report": "gpu-runs/imports/alternate-model-20260909T224534/reports/alternate-load/continuous-load.json",
+  "latest_gpt_neox_load_report": "gpu-runs/imports/architecture-characterization-20260909T230939/reports/pythia-load/continuous-load.json",
+  "latest_gpt_neox_comparison_report": "gpu-runs/imports/architecture-characterization-20260909T231914/reports/pythia-comparison/serving-comparison.json",
+  "latest_gpt_neox_optimization": {
+    "status": "cuda_measured_inconclusive_no_promotion",
+    "change": "reusable per-slot attention-mask buffers and slot token tensors in HFSlotDecode",
+    "source": "batch1-decode-vertical-slice/hf_slot_decode.py",
+    "verification": "CPU tests passed; fresh counterbalanced Pythia T4 comparison verifier passed all 18 runs",
+    "comparison_report": "gpu-runs/imports/pythia-hf-buffer-opt-20260910T000000/reports/pythia-comparison/serving-comparison.json",
+    "repeat_comparison_report": "gpu-runs/imports/pythia-hf-buffer-opt-20260910T001500/reports/pythia-comparison/serving-comparison.json",
+    "graph_continuous_rate_48": {"baseline_goodput_rps": 8.079, "optimized_goodput_rps": 10.834, "baseline_completion_p95_ms": 1495.55, "optimized_completion_p95_ms": 1217.257},
+    "repeat_graph_continuous_rate_48": {"goodput_rps": 4.26, "completion_p95_ms": 1869.2},
+    "two_run_median_graph_continuous_rate_48": {"goodput_rps": 7.547, "completion_p95_ms": 1543.2},
+    "interpretation": "inconclusive and not promoted; repeat variance erases the first-run improvement",
+    "next_evidence": "profile launch/allocation behavior and run longer repeated windows"
+  },
+  "latest_gpt_neox_profile": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-profile-20260910T020000/reports/pythia-load/continuous-load.json",
+    "prior_report": "gpu-runs/imports/pythia-profile-20260910T010000/reports/pythia-load/continuous-load.json",
+    "verification": "verify_continuous_load.py passed all six windows with zero errors",
+    "profile_mode": "synchronized CUDA model timing plus host preparation timing",
+    "finding": "preparation was 0.33-0.63 ms per tick, admission 6.9-9.1 ms per request, inter-tick gaps about 0.4-0.46 s over high-load windows, and synchronized model execution 10.8-13.3 ms per tick; variance is dominated by model execution and launch behavior rather than mask allocation or host gaps",
+    "next_gate": "investigate batched model-call and CUDA-graph launch behavior, then run longer repeated windows"
+  },
+  "latest_gpt_neox_long_profile": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-profile-20260910T030000/reports/pythia-load/continuous-load.json",
+    "verification": "verify_continuous_load.py passed all six 12-second windows with zero errors",
+    "finding": "at 48 req/s graph-continuous goodput was 7.22 and 9.32 across reversed rounds with 12.57-12.70 ms model time per tick; at 16 req/s it was 10.21 and 6.99 with 11.66-13.33 ms model time per tick",
+    "conclusion": "longer windows still show model-call variance; host gaps are not the dominant signal",
+    "next_gate": "compare batched model calls and CUDA Graph launch behavior"
+  },
+  "latest_gpt_neox_comparison_profile": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-comparison-profile-20260910T040000/reports/pythia-comparison/serving-comparison.json",
+    "verification": "verify_serving_comparison.py passed all 18 runs with zero errors",
+    "execution_note": "HF generic modes are eager per-slot model calls; graph labels describe scheduler controls, not CUDA Graph captures",
+    "median_rate_48": {"graph_microbatch": {"goodput_rps": 5.67, "completion_p95_ms": 1532.39, "model_cuda_ms_per_tick": 9.531}, "graph_continuous": {"goodput_rps": 10.533, "completion_p95_ms": 1231.73, "model_cuda_ms_per_tick": 11.202}},
+    "finding": "continuous admission improves useful throughput despite higher per-tick model time; fixed-group mode has lower model time but poorer system goodput",
+    "next_gate": "instrument native batched model execution and compare launch overhead under matched duration"
+  },
+  "latest_native_batched_profile": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-native-profile-20260910T050000/reports/pythia-comparison/serving-comparison.json",
+    "verification": "verify_serving_comparison.py passed all 18 runs with zero errors",
+    "rate_48_native": {"median_goodput_rps": 12.795, "median_completion_p95_ms": 981.654, "median_cuda_ms_per_call": 6.193, "median_batch_size": 1.279, "median_prep_ms_per_call": 0.07},
+    "rate_48_generic": {"graph_microbatch_cuda_ms_per_tick": 8.82, "graph_continuous_cuda_ms_per_tick": 11.719},
+    "finding": "native batching has lower per-call execution cost and better tail latency; continuous generic admission yields more useful throughput than fixed groups despite higher per-tick cost",
+    "next_gate": "implement a true fixed-shape batched generic cache path or CUDA Graph capture where architecture semantics permit"
+  },
+  "latest_static_cache_comparison": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-static-cache-20260910T060000/reports/pythia-comparison/serving-comparison.json",
+    "verification": "verify_serving_comparison.py passed all 18 runs with zero errors",
+    "cache_kind": "StaticCache with fixed max cache length and explicit row compaction",
+    "rate_48": {"native_static_goodput_rps": 12.613, "native_static_completion_p95_ms": 983.9, "native_static_cuda_ms_per_call": 6.558, "native_static_average_batch_size": 1.234, "generic_continuous_goodput_rps": 9.413},
+    "finding": "fixed-capacity static cache preserves parity and native batching performance; it is a batched cache backend, not yet CUDA Graph capture",
+    "next_gate": "attempt architecture-compatible fixed-shape CUDA Graph capture and compare capture memory/launch cost"
+  },
+  "latest_static_cache_graph_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-static-graph-probe-20260910T083000/reports/static-cache-graph.json",
+    "verification": "verify_static_cache_graph_probe.py passed",
+    "protocol": "Pythia-70M, T4, batch 2, prompt width 5, eight decode steps, StaticCache max length 17, SDPA, fixed shapes",
+    "checks": ["exact eager token parity", "stable output shape", "CUDA Graph replay"],
+    "peak_allocated_bytes_after_capture": 173031424,
+    "finding": "architecture-compatible fixed-shape capture is feasible with StaticCache and SDPA; eager GPT-NeoX masking is not capture-compatible due to CPU scalar construction",
+    "limitations": ["fixed batch and prompt width only", "no dynamic admission or slot reuse", "allocator peak is not a graph memory decomposition"],
+    "next_gate": "integrate captured static-cache decode into a bounded serving bucket and measure launch/memory tradeoffs"
+  },
+  "static_cache_graph_reuse_probe": {
+    "status": "failed_reuse_parity_boundary",
+    "report": "gpu-runs/imports/pythia-static-graph-reuse-20260910T093000/reports/static-cache-graph.json",
+    "finding": "initial graph replay remains exact, but replay after StaticCache reset and new prefill diverges; captured graph reuse is not yet safe for slot lifecycle",
+    "next_gate": "identify graph-safe cache reset/reprefill lifecycle or recapture per bucket"
+  },
+  "static_cache_graph_recapture_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-static-graph-recapture-20260910T103000/reports/static-cache-graph.json",
+    "verification": "verify_static_cache_graph_probe.py passed initial and slot-reuse parity",
+    "policy": "recapture after StaticCache reset and new prefill",
+    "recapture_ms": 8.472382000036305,
+    "peak_allocated_bytes_after_capture": 174660608,
+    "finding": "recapture restores exact parity for a second fixed-shape bucket; same-graph reuse remains unsafe",
+    "next_gate": "integrate recapture-per-bucket into bounded serving and quantify amortized capture cost"
+  },
+  "static_graph_bucket_serving_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-static-bucket-20260910T110000/reports/static-graph-bucket.json",
+    "verification": "verify_static_graph_bucket.py passed",
+    "protocol": "two successive batch-2, width-5, eight-token Pythia buckets on T4 with StaticCache, SDPA, recapture per bucket",
+    "checks": ["first bucket parity", "second bucket parity", "fixed shape", "recapture performed"],
+    "recapture_ms": [13.777932, 9.155599],
+    "peak_allocated_bytes": 182135808,
+    "limitations": ["bounded batch runner, no HTTP dynamic admission", "no amortized capacity claim"],
+    "next_gate": "integrate bucket admission into HTTP scheduler and measure capture amortization"
+  },
+  "static_graph_http_bucket_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-static-http-bucket-20260910T120000/reports/static-graph-http.json",
+    "verification": "verify_static_graph_http.py passed",
+    "protocol": "two successive loopback HTTP buckets, batch 2, eight tokens, StaticCache SDPA, recapture per bucket",
+    "checks": ["four HTTP requests", "token parity for both rounds", "scheduler drained", "two recaptures"],
+    "recapture_ms": [14.997473, 8.66265],
+    "peak_allocated_bytes": 191903744,
+    "limitations": ["fixed batch/shape/budget", "no dynamic admission", "loopback proof, not production capacity"],
+    "next_gate": "add shape-bucket admission policy and measure capture amortization under mixed arrivals"
+  },
+  "static_graph_shape_router_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-shape-router-20260910T160000/reports/static-graph-http.json",
+    "verification": "verify_static_graph_http.py passed",
+    "protocol": "four concurrent loopback HTTP requests routed into width-5 and width-6 StaticCache graph buckets",
+    "checks": ["two shape classes", "four requests", "token parity", "two recaptures", "scheduler drain"],
+    "recapture_ms": [10.282235, 7.373657],
+    "peak_allocated_bytes": 191903744,
+    "finding": "shape-bucket routing safely handles mixed prompt widths by isolating graph captures and serializing GPU ownership",
+    "limitations": ["fixed output budget", "two-request buckets", "loopback HTTP proof, not production capacity"],
+    "next_gate": "add mixed output budgets, bounded backpressure, and amortized capacity measurement"
+  },
+  "static_graph_mixed_budget_backpressure_probe": {
+    "status": "passed",
+    "runner": "batch1-decode-vertical-slice/run_static_graph_http.py",
+    "verifier": "batch1-decode-vertical-slice/verify_static_graph_http.py",
+    "protocol": "two prompt-width classes x two output budgets (4/8), fixed batch-2 graph buckets, max-pending=2, deliberate 12-request overload",
+    "local_verification": "python3 -m py_compile and 10 HTTP/static-cache tests passed",
+    "allocation_attempt": "gpu-runs/imports/pythia-mixed-budget-backpressure-20260910T190000",
+    "allocation_result": "A100-SXM4-40GB completed; earlier T4 attempt was rejected by Colab quota",
+    "report": "gpu-runs/imports/pythia-mixed-budget-backpressure-20260910T190000/reports/static-graph-http.json",
+    "verification": "verify_static_graph_http.py passed",
+    "finding": "all eight mixed-budget requests matched exact references; four shape/budget buckets recaptured and drained; 12-request overload yielded four HTTP 200 and eight bounded HTTP 429 responses",
+    "metrics": {"primary_served_tokens": 48, "recapture_total_ms": 46.82437399992523, "recapture_ms_per_primary_token": 0.9755077916651089, "recapture_ms_per_primary_request": 5.8530467499906536, "peak_allocated_bytes": 268616192},
+    "next_gate": "repeat on T4 or another target deployment GPU for comparable amortization, then run sustained mixed arrivals and integrate backpressure into the serving capstone"
+  },
+  "static_graph_mixed_budget_sustained_probe": {
+    "status": "passed",
+    "report": "gpu-runs/imports/pythia-mixed-budget-sustained-20260910T200000/reports/static-graph-http.json",
+    "verification": "verify_static_graph_http.py passed",
+    "device": "NVIDIA A100-SXM4-40GB",
+    "protocol": "three repeated primary rounds, eight requests per round across four shape/budget buckets, plus 12-request overload",
+    "checks": ["exact token parity", "mixed budgets", "scheduler drain", "bounded 429 backpressure"],
+    "metrics": {"primary_served_tokens": 144, "recapture_total_ms": 102.9857150015232, "recapture_ms_per_primary_token": 0.7151785763994667, "recapture_ms_per_primary_request": 4.2910714583968, "peak_allocated_bytes": 268818432, "overload_accepted": 4, "overload_rejected_429": 8},
+    "finding": "repeated rounds reduced recapture overhead per primary token from 0.976 ms to 0.715 ms while preserving parity and bounded rejection; this is an A100 loopback measurement, not a production capacity claim",
+    "next_gate": "repeat on T4 or run a longer target-hardware sweep, then publish the serving capstone decision with capture amortization and queue policy"
+  },
+  "reproduction_proof": "gpu-runs/imports/graph-decode-20260909T184413/reports/graph-reproduction.json",
+  "dynamic_engine_replay": "passed for trained-checkpoint v0.2 bundle; isolated replay reproduced both declared performance directions",
+  "gpu_allocation_gate": {
+    "status": "completed_for_training_capture",
+    "attempt": "comparison-decode-20260909T192909",
+    "error": "Colab TooManyAssignmentsError (HTTP 412), before session creation",
+    "ownership_action": "Two T4 sessions listed without recognized names; left untouched",
+    "latest_session_listing_exec": 24171,
+    "latest_session_listing_status": "still running/no output at observation",
+    "latest_session_listing": "gpu-t4-s-kkb-usw4a1-1lu6i5x59ajpp (unrecognized, left untouched)"
+  },
+  "gpu_training_handoff": {
+    "status": "completed_verified",
+    "runner": "scripts/run_training_colab.sh",
+    "remote_driver": "scripts/run_training_colab.py",
+    "protocol": "T4 CUDA, seeds 7 and 19, 16 updates, sequence 64, chunk size 16, full validation, remote checkpoints, selected CUDA serving smoke",
+    "report": "gpu-runs/imports/training-capstone-20260909T220327/reports/gpu-run/real-training.json",
+    "decision": "gpu-runs/imports/training-capstone-20260909T220327/reports/gpu-run/training-decision.json",
+    "verification": "verify_real_training.py passed with zero errors",
+    "validation_targets": 18065,
+    "seeds": [7, 19],
+    "median_validation_delta_recomputed_minus_standard": 2.8771242872593916e-06,
+    "median_step_ratio_recomputed_over_standard": 1.1659810015541425,
+    "validation_after": {"seed_7_standard": 4.3163990610958365, "seed_7_recomputed": 4.3164006444116465, "seed_19_standard": 4.2645320855380096, "seed_19_recomputed": 4.264536256470774},
+    "steady_state_step_seconds": {"standard": 0.071, "recomputed": 0.088},
+    "peak_cuda_allocated_bytes": 2514488832,
+    "gpu_evidence": "accepted CUDA training/evaluation evidence; checkpoint payload retained remotely for the serving smoke"
+  },
+  "gpu_checkpoint_serving": {
+    "status": "passed",
+    "report": "gpu-runs/imports/training-capstone-20260909T220327/reports/gpu-run/gpu-checkpoint-serving.json",
+    "checkpoint": "seed 7 recomputed",
+    "device": "cuda",
+    "checks": ["token parity", "length terminal", "zero active/queued", "empty KV cache"],
+    "ttft_ms": 31.612094000024626,
+    "completion_ms": 84.10398700004862,
+    "scope": "one-request loopback correctness/lifecycle smoke; no capacity claim"
+  },
+  "gpu_checkpoint_load": {
+    "status": "passed",
+    "report": "gpu-runs/imports/training-capstone-20260909T221639/reports/gpu-run/checkpoint-load/continuous-load.json",
+    "verification": "verify_continuous_load.py passed remotely and locally",
+    "protocol": "two reversed-order rounds; rates 4/16/48; four seconds per window; budgets 1/8/16/32; two slots",
+    "checks": ["output parity", "queue accounting", "drain", "KV-cache clearing", "controlled EOS", "overload rejection"],
+    "scope": "trained checkpoint mixed-arrival capacity; no matched-baseline advantage claim"
+  },
+  "gpu_checkpoint_comparison": {
+    "status": "passed",
+    "report": "gpu-runs/imports/training-capstone-20260909T222606/reports/gpu-run/checkpoint-comparison/serving-comparison.json",
+    "verification": "verify_serving_comparison.py passed all 18 runs",
+    "protocol": "three modes; rates 16/48; three counterbalanced rounds; four seconds per window; budgets 1/8/16/32",
+    "median_goodput_at_48": {"native_microbatch": 5.275546280656361, "graph_microbatch": 17.337507035901343, "graph_continuous": 25.3329971230072},
+    "median_completion_p95_at_16_ms": {"native_microbatch": 1231.186815000001, "graph_microbatch": 208.3253319999585, "graph_continuous": 179.55674600011662},
+    "scope": "matched trained-checkpoint serving comparison",
+    "replay": {
+      "status": "passed",
+      "report": "gpu-runs/imports/training-capstone-20260909T223403/reports/gpu-run/checkpoint-replay/serving-reproduction.json",
+      "source_isolation": "fresh temporary extraction with PYTHONPATH cleared",
+      "directions_reproduced": ["high-rate goodput", "low-rate tail latency"]
+    }
+  },
+  "alternate_model_serving": {
+    "status": "passed",
+    "model_id": "distilbert/distilgpt2",
+    "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+    "report": "gpu-runs/imports/alternate-model-20260909T224534/reports/alternate-load/continuous-load.json",
+    "verification": "model-aware verify_continuous_load.py passed with zero errors",
+    "median_goodput_at_48": 38.70914044034906,
+    "median_completion_p95_at_16_ms": 86.89574150000112,
+    "scope": "second pretrained GPT-2-compatible model; genuinely different architecture remains open"
+  },
+  "gpt_neox_architecture_probe": {
+    "status": "passed_cached_reference_and_dynamic_load; uncached_diagnostic_gap",
+    "model_id": "EleutherAI/pythia-70m",
+    "revision": "a39f36b100fe8a5377810d56c3f4789b9c53ac42",
+    "reports": [
+      "gpu-runs/imports/architecture-characterization-20260909T225114/reports/pythia-serving-characterization.json",
+      "gpu-runs/imports/architecture-characterization-20260909T225357/reports/pythia-serving-characterization.json",
+      "gpu-runs/imports/architecture-characterization-20260909T225612/reports/pythia-serving-characterization.json",
+      "gpu-runs/imports/architecture-characterization-20260909T230410/reports/pythia-serving-characterization.json"
+    ],
+    "finding": "Cached path matches authoritative Transformers generate for batch sizes 1, 2, and 4; uncached diagnostic diverges at batch 4",
+    "promotion_rule": "Cached reference parity is required for promotion; retain uncached divergence as a diagnostic limitation",
+    "final_report": "gpu-runs/imports/architecture-characterization-20260909T230410/reports/pythia-serving-characterization.json",
+    "dynamic_load_report": "gpu-runs/imports/architecture-characterization-20260909T230939/reports/pythia-load/continuous-load.json",
+    "parameter_count": 70426624,
+    "batch4_cached_ms": 48.715128,
+    "batch4_uncached_ms": 45.042767,
+    "dynamic_load_verification": "passed all six windows with zero errors",
+    "dynamic_load_median_goodput": {"rate_16": 10.795995020892686, "rate_48": 9.358747486750012}
+    ,"comparison_report": "gpu-runs/imports/architecture-characterization-20260909T231914/reports/pythia-comparison/serving-comparison.json"
+    ,"comparison_verification": "passed all 18 runs with zero errors"
+    ,"comparison_scope": "native-vs-generic correctness and per-mode metrics; no performance advantage presupposed"
+    ,"comparison_median_goodput": {"rate_16": {"native_microbatch": 13.334, "graph_microbatch": 9.961, "graph_continuous": 10.603}, "rate_48": {"native_microbatch": 13.194, "graph_microbatch": 5.802, "graph_continuous": 8.079}}
+    ,"comparison_median_completion_p95_ms": {"rate_16": {"native_microbatch": 662.59, "graph_microbatch": 960.728, "graph_continuous": 1192.836}, "rate_48": {"native_microbatch": 868.93, "graph_microbatch": 1539.666, "graph_continuous": 1495.55}}
+  },
+  "local_replay_validation": {
+    "command": "python3 -m unittest discover -s gpu-mode-curriculum/batch1-decode-vertical-slice/tests -p '*replay.py' -v",
+    "passed": 3,
+    "coverage": [
+      "archive integrity and tampering",
+      "both declared performance directions",
+      "stale result rejection"
+    ]
+  },
+  "training_loss": {
+    "implementation": "fused-training-kernels/fused_training_kernels/linear_cross_entropy.py",
+    "documentation": "fused-training-kernels/LINEAR-CROSS-ENTROPY.md",
+    "evidence_scope": "CPU derivative, saved-activation, and synthetic tied-weight optimizer parity; no GPU performance or real-data learning claim",
+    "real_data_integration": "fused-training-kernels/reports/real-data-cpu-smoke-01/real-training.json",
+    "next_gate": "Full validation and longer multi-seed budget, then GPU execution and selected-checkpoint serving",
+    "validation_runner": "v0.2 full-split token-weighted evaluation integrated; two evaluator tests passed; end-to-end execution pending",
+    "real_data_parity": {
+      "status": "failed",
+      "report": "fused-training-kernels/reports/real-data-parity-cpu-01/real-training-parity.json",
+      "failed_gradient_tensors": 29,
+      "failed_updated_parameter_tensors": 56,
+      "failed_first_moment_tensors": 1,
+      "failed_second_moment_tensors": 0
+    },
+    "active_diagnostic": {
+      "status": "head-level diagnostic completed",
+      "report": "fused-training-kernels/reports/loss-numerics-cpu-01/loss-numerics.json",
+      "finding": "chunked native and custom hidden-gradient maximum error match; full-model native chunking control started"
+    },
+    "forward_stability_fix": {
+      "change": "select target loss from log_softmax",
+      "local_tests_passed": 6,
+      "real_data_recheck": "pending"
+    },
+    "report_verifier": {
+      "script": "fused-training-kernels/verify_real_training.py",
+      "historical_v0_1_smoke": "passed",
+      "scope": [
+        "identity and hashes",
+        "arm/sample coverage",
+        "finite metrics",
+        "v0.2 validation accounting"
+      ]
+    },
+    "normalization_recheck": {
+      "report": "fused-training-kernels/reports/loss-numerics-cpu-02/loss-numerics.json",
+      "rows": 5,
+      "finding": "custom full projection max hidden-gradient error 3.725e-9; custom chunked matches native chunked error 1.672e-5; chunking dominates",
+      "status": "report complete; process termination pending poll"
+    },
+    "active_processes": [],
+    "verifier_tests": {
+      "passed": 4,
+      "scope": [
+        "historical report acceptance",
+        "manifest drift rejection",
+        "unmatched offsets rejection",
+        "nonfinite step rejection",
+        "malformed protocol graceful rejection"
+      ]
+    },
+    "decision_builder": {
+      "script": "fused-training-kernels/build_training_decision.py",
+      "historical_smoke": "verified; review status; one paired seed",
+      "scope": "verification-gated paired validation/step summary; no checkpoint or time-to-quality claim"
+    },
+    "output_head_parity": {
+      "status": "passed",
+      "report": "fused-training-kernels/reports/output-head-parity-cpu-01/output-head-parity.json",
+      "loss_max_abs_error": 1.1920928955078125e-05,
+      "hidden_gradient_max_abs_error": 1.671910285949707e-05,
+      "head_gradient_max_abs_error": 0.000110626220703125,
+      "updated_head_max_abs_error": 2.9802322387695312e-08,
+      "elements_checked": 38597376,
+      "scope": "real pretrained GPT-2 hidden states; detached output-head loss/backward/update; not full-model optimizer parity"
+    },
+    "checkpoint_verifier": {
+      "script": "fused-training-kernels/verify_checkpoint_artifacts.py",
+      "status": "implemented; py_compile passed",
+      "historical_smoke": "not_applicable (no checkpoint requested)",
+      "scope": "hashes and optimizer/RNG training-state loadability for future checkpoint runs",
+      "historical_smoke_run": {
+        "status": "not_applicable",
+        "checkpoint_runs": 0,
+        "errors": []
+      }
+    },
+    "stalled_full_control": {
+      "status": "terminated_after_27m",
+      "report": "fused-training-kernels/reports/real-data-native-chunk-control-cpu-01/real-training-parity.json",
+      "evidence": "incomplete; one standard loss; zero checks"
+    },
+    "scoped_parity": {
+      "status": "terminated_after_second_arm_disk_wait",
+      "report": "fused-training-kernels/reports/real-data-scoped-parity-cpu-01/real-training-parity.json",
+      "evidence": "one standard loss, zero checks; incomplete"
+    },
+    "terminated_artifacts": [
+      "fused-training-kernels/reports/real-data-native-chunk-control-cpu-01/real-training-parity.json",
+      "fused-training-kernels/reports/real-data-scoped-parity-cpu-01/real-training-parity.json"
+    ],
+    "v0_2_cpu_probe": {
+      "report": "fused-training-kernels/reports/real-data-v02-cpu-probe-01/real-training.json",
+      "decision": "fused-training-kernels/reports/real-data-v02-cpu-probe-01/training-decision.json",
+      "status": "completed_and_verified",
+      "verification_errors": 0,
+      "scope": "one seed, one step, eight training tokens, 16 validation targets; CPU integration probe only",
+      "metrics": {
+        "standard_validation_after_mean_nll": 6.53320050239563,
+        "recomputed_validation_after_mean_nll": 6.533195972442627,
+        "recomputed_minus_standard": -4.5299530029296875e-06,
+        "standard_step_seconds": 72.05870240799959,
+        "recomputed_step_seconds": 24.48062547600057
+      }
+    },
+    "checkpoint_smoke": {
+      "status": "passed_and_verified",
+      "report": "fused-training-kernels/reports/real-data-checkpoint-cpu-01/real-training.json",
+      "decision": "fused-training-kernels/reports/real-data-checkpoint-cpu-01/training-decision.json",
+      "verification": {
+        "training_report": "passed",
+        "checkpoint_artifacts": "passed",
+        "checkpoint_runs": 2,
+        "errors": 0
+      },
+      "checkpoint_bytes_each": 1493420983,
+      "scope": "one seed, one step, eight tokens, 16 validation targets; CPU integration and reloadability only"
+    },
+    "checkpoint_reload": {
+      "status": "passed",
+      "report": "fused-training-kernels/reports/real-data-checkpoint-cpu-01/checkpoint-reload-v2.json",
+      "checkpoint": "7-recomputed",
+      "training_state_steps": 1,
+      "generation": "greedy 4 new tokens with explicit attention mask",
+      "decoded": "To be, or not to be, a member of",
+      "scope": "CPU checkpoint reload/generation smoke; no serving transport or GPU latency claim"
+    },
+    "checkpoint_http_smoke": {
+      "status": "passed",
+      "report": "fused-training-kernels/reports/real-data-checkpoint-cpu-01/checkpoint-http-smoke.json",
+      "checkpoint": "7-recomputed",
+      "transport": "continuous_http + ContinuousScheduler + SlotDecode CPU",
+      "checks": {
+        "token_parity": true,
+        "terminal_completed": true,
+        "accounted": true,
+        "cache_empty": true
+      },
+      "scope": "one four-token request; CPU loopback; no GPU latency/capacity claim"
+    },
+    "checkpoint_http_verifier": {
+      "script": "fused-training-kernels/verify_checkpoint_http_smoke.py",
+      "status": "passed",
+      "errors": 0,
+      "scope": "checkpoint identity/hash, served/reference token parity, budget terminal, scheduler drain, cache cleanup"
+    },
+    "multiseed_cpu_quality": {
+      "status": "completed_and_verified",
+      "report": "fused-training-kernels/reports/real-data-multiseed-cpu-01/real-training.json",
+      "decision": "fused-training-kernels/reports/real-data-multiseed-cpu-01/training-decision.json",
+      "verification_errors": 0,
+      "protocol": "two seeds (7,19), two updates per arm, sequence 16, 64 validation targets",
+      "metrics": {
+        "median_validation_delta_recomputed_minus_standard": -1.3113021850585938e-06,
+        "median_step_ratio_recomputed_over_standard": 1.2523757699953837
+      },
+      "scope": "CPU multi-seed integration/quality probe; tiny budget; no GPU performance or time-to-quality claim"
+    }
+  },
+  "quantization": {
+    "packed_int4": "quantization-memory-formats/quantization_memory_formats/packed_int4.py",
+    "tests_passed": 3,
+    "evidence_scope": "CPU storage and dequantized linear round-trip; native low-bit execution and model quality remain open",
+    "tests_status": "3 tests completed successfully; py_compile and diff checks passed",
+    "quality_metrics": {
+      "implementation": "quantization-memory-formats/quantization_memory_formats/quality.py",
+      "tests_passed": 5,
+      "scope": "CPU packed/dequantized linear output quality and storage metrics; calibration and native execution remain open"
+    }
+  },
+  "local_baseline": {
+    "fused_training_tests": {
+      "passed": 14,
+      "elapsed_seconds": 18.53,
+      "command": "python3 -m unittest discover -s fused-training-kernels/tests -v"
+    },
+    "quantization_tests": {
+      "passed": 5,
+      "elapsed_seconds": 2.769,
+      "command": "python3 -m unittest discover -s quantization-memory-formats/tests -v"
+    },
+    "training_report_verifier": {
+      "status": "passed",
+      "errors": 0
+    }
+  }
+}

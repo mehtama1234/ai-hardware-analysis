@@ -1,0 +1,67 @@
+{
+  "schema_version": "real-model-paged-attention-kernel-v0.1",
+  "experiment": "real_gpt2_kv_to_cuda_paged_attention_oracle",
+  "evidence_kind": "measured_gpu",
+  "gpu_execution_accepted": true,
+  "model_profile": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "trained": true,
+    "parameter_count": 124439808
+  },
+  "device": "cuda",
+  "device_name": "Tesla T4",
+  "runtime": {
+    "torch_version": "2.11.0+cu128",
+    "transformers_version": "5.16.1"
+  },
+  "protocol": {
+    "page_size_tokens": 16,
+    "context_word_counts": [
+      2,
+      32,
+      128
+    ],
+    "layer": 0,
+    "query": "last real GPT-2 layer-0 key used as a real-shaped query for attention-oracle comparison",
+    "oracle": "PyTorch softmax(QK^T/sqrt(d))V",
+    "timing": "CUDA synchronized around kernel call"
+  },
+  "rows": [
+    {
+      "prompt_token_count": 5,
+      "heads": 12,
+      "head_dim": 64,
+      "dtype": "torch.float32",
+      "output_max_abs_error": 5.227891445159912,
+      "parity": false,
+      "kernel_ms_median": 0.0808565,
+      "page_count": 1
+    },
+    {
+      "prompt_token_count": 65,
+      "heads": 12,
+      "head_dim": 64,
+      "dtype": "torch.float32",
+      "output_max_abs_error": 6.362454414367676,
+      "parity": false,
+      "kernel_ms_median": 0.263328,
+      "page_count": 5
+    },
+    {
+      "prompt_token_count": 257,
+      "heads": 12,
+      "head_dim": 64,
+      "dtype": "torch.float32",
+      "output_max_abs_error": 6.891506195068359,
+      "parity": false,
+      "kernel_ms_median": 0.988448,
+      "page_count": 17
+    }
+  ],
+  "decision": "real_model_paged_kernel_parity_failed",
+  "claim_boundary": {
+    "allowed": "CUDA paged-attention kernel parity and launch timing against real GPT-2 layer-0 K/V tensors.",
+    "refused": "Full GPT-2 layer replacement, fused projection integration, production paged attention, energy savings, analog benefit, or silicon performance."
+  }
+}
