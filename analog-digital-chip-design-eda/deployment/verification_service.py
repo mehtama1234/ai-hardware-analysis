@@ -30,6 +30,7 @@ from deployment.planning_service import plan_persisted_ir
 from deployment.generation_service import generate_persisted_plan
 from deployment.project_execution import compile_project_rtl, simulate_project
 from deployment.repair_service import propose_repair
+from deployment.project_pov import write_project_pov
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -292,6 +293,17 @@ def repair_retest_job(job_id: str, request: RepairRequest) -> dict[str, Any]:
         return {"source_job_id": job_id, "proposal": result["proposal"], "retest_job": None}
     retest = create_job(JobRequest(kind="project-simulation", project_id=str(job["project_id"]), artifact_id=str(result["repaired_artifact"]["id"]), testbench_artifact_id=str(job["testbench_artifact_id"])))
     return {"source_job_id": job_id, "proposal": result["proposal"], "repaired_artifact": result["repaired_artifact"], "retest_job": retest}
+
+@app.get("/v1/jobs/{job_id}/proof-of-value")
+def project_proof_of_value(job_id: str) -> dict[str, Any]:
+    job = _read(job_id)
+    if job.get("kind") != "project-simulation" or job.get("status") not in {"passed", "failed"}:
+        raise HTTPException(status_code=409, detail="a terminal project-simulation job is required")
+    try:
+        report_path = write_project_pov(_path(job_id).parent)
+        return json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"proof-of-value generation failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:

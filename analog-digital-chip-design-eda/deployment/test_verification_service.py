@@ -82,6 +82,9 @@ def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     finished = service.run_job(created["id"])
     assert finished["status"] == "failed"
     assert finished["evidence"]["project_simulation"].endswith("project-simulation-result.json")
+    pov = service.project_proof_of_value(created["id"])
+    assert pov["execution"]["status"] == "failed"
+    assert pov["coverage"]["percentage"] == 0.0
     review = service.repair_retest_job(created["id"], service.RepairRequest(before="always_ff", after="always_ff", rationale="review selected RTL change"))
     assert review["retest_job"] is None
     approved = service.repair_retest_job(created["id"], service.RepairRequest(before="always_ff", after="always_ff", rationale="review selected RTL change", approved=True))
