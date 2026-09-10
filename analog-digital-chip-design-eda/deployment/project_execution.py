@@ -59,6 +59,35 @@ def compile_project_rtl(
     return result
 
 
+def lint_project_rtl(
+    record: dict[str, Any],
+    *,
+    collateral_root: str | Path,
+    run_root: str | Path,
+    source_revision: str | None = None,
+    timeout_seconds: float = 120.0,
+) -> dict[str, Any]:
+    """Run Verilator's static front end without claiming simulation coverage."""
+    source = Path(collateral_root) / str(record["path"])
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    modules = sorted(set(MODULE_RE.findall(source.read_text(encoding="utf-8"))))
+    if not modules:
+        raise ValueError("collateral contains no SystemVerilog module")
+    tool_run = run_command(
+        ["verilator", "--lint-only", "--language", "1800-2012", "--top-module", modules[0], str(source)],
+        tool="verilator-project-lint",
+        run_root=run_root,
+        source_revision=source_revision or str(record["version"]),
+        timeout_seconds=timeout_seconds,
+    )
+    result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "status": tool_run.status, "exit_code": tool_run.exit_code, "tool_run": asdict(tool_run)}
+    result_path = Path(run_root) / "project-lint-result.json"
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    result["result_path"] = str(result_path)
+    return result
+
+
 def simulate_project(
     rtl_record: dict[str, Any],
     testbench_record: dict[str, Any],

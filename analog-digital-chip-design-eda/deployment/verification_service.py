@@ -28,7 +28,7 @@ from deployment.collateral_ingest import ingest_artifact
 from verification_platform.retrieval import build_retrieval_index, retrieve
 from deployment.planning_service import plan_persisted_ir
 from deployment.generation_service import generate_persisted_plan
-from deployment.project_execution import compile_project_rtl, simulate_project
+from deployment.project_execution import compile_project_rtl, lint_project_rtl, simulate_project
 from deployment.repair_service import propose_repair
 from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
@@ -324,11 +324,11 @@ def compare_project_jobs(baseline_job_id: str, retest_job_id: str) -> dict[str, 
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
-    if request.kind not in {"multi-design-pilot", "project-compile", "project-simulation"}:
+    if request.kind not in {"multi-design-pilot", "project-compile", "project-lint", "project-simulation"}:
         raise HTTPException(status_code=400, detail="unsupported job kind")
     if not request.project_id or not request.project_id.replace("-", "").replace("_", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid project id")
-    if request.kind == "project-compile":
+    if request.kind in {"project-compile", "project-lint"}:
         if not request.artifact_id:
             raise HTTPException(status_code=400, detail="artifact_id is required for project-compile")
         try:
@@ -394,6 +394,12 @@ def run_job(job_id: str) -> dict[str, Any]:
                 stdout = (job_dir / "stdout.log").read_text(encoding="utf-8") if (job_dir / "stdout.log").is_file() else ""
                 stderr = (job_dir / "stderr.log").read_text(encoding="utf-8") if (job_dir / "stderr.log").is_file() else ""
                 exit_code = result_data["exit_code"]
+            elif job["kind"] == "project-lint":
+                record = _collateral().get(str(job["artifact_id"]))
+                result_data = lint_project_rtl(record, collateral_root=JOB_ROOT.parent / "collateral", run_root=job_dir, timeout_seconds=_job_timeout_seconds())
+                stdout = (job_dir / "stdout.log").read_text(encoding="utf-8") if (job_dir / "stdout.log").is_file() else ""
+                stderr = (job_dir / "stderr.log").read_text(encoding="utf-8") if (job_dir / "stderr.log").is_file() else ""
+                exit_code = result_data["exit_code"]
             elif job["kind"] == "project-simulation":
                 rtl_record = _collateral().get(str(job["artifact_id"]))
                 tb_record = _collateral().get(str(job["testbench_artifact_id"]))
@@ -419,7 +425,7 @@ def run_job(job_id: str) -> dict[str, Any]:
     job["finished_at"] = _now(); job["exit_code"] = exit_code
     if timeout_error:
         job["error"] = timeout_error
-    job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {"pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json", "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json"})
+    job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_lint": str(job_dir / "project-lint-result.json")} if job["kind"] == "project-lint" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {"pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json", "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json"})
     _write(job)
     return job
 
@@ -447,7 +453,7 @@ def cancel_job(job_id: str) -> dict[str, Any]:
 @app.get("/v1/jobs/{job_id}/bundle")
 def get_bundle(job_id: str) -> dict[str, Any]:
     job = _read(job_id)
-    if job["kind"] in {"project-compile", "project-simulation"}:
+    if job["kind"] in {"project-compile", "project-lint", "project-simulation"}:
         if job["status"] not in {"passed", "failed"}:
             raise HTTPException(status_code=409, detail="project evidence bundle requires a terminal job")
         bundle_path = _path(job_id).parent / "evidence-bundle.zip"
