@@ -22,6 +22,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from deployment.job_queue import DurableJobQueue
+from deployment.project_store import ProjectStore
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -31,6 +32,9 @@ _COUNTERS = {"submitted": 0, "started": 0, "passed": 0, "failed": 0}
 
 def _queue() -> DurableJobQueue:
     return DurableJobQueue(JOB_ROOT.parent / "jobs.sqlite")
+
+def _projects() -> ProjectStore:
+    return ProjectStore(JOB_ROOT.parent / "jobs.sqlite")
 
 app = FastAPI(title="Verification Pilot Service", version="v1")
 
@@ -90,6 +94,10 @@ class JobRequest(BaseModel):
     kind: str = "multi-design-pilot"
     project_id: str = "default"
 
+class ProjectRequest(BaseModel):
+    id: str
+    name: str
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -124,6 +132,26 @@ def _write(job: dict[str, Any]) -> None:
 def _record(job: dict[str, Any], status: str, **details: Any) -> None:
     job.setdefault("events", []).append({"at": _now(), "status": status, **details})
 
+@app.post("/v1/projects", status_code=201)
+def create_project(request: ProjectRequest) -> dict[str, str]:
+    if not request.id or not request.id.replace("-", "").replace("_", "").isalnum() or not request.name.strip():
+        raise HTTPException(status_code=400, detail="invalid project")
+    try:
+        return _projects().create(request.id, request.name.strip())
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+@app.get("/v1/projects")
+def list_projects() -> list[dict[str, str]]:
+    return _projects().list()
+
+@app.get("/v1/projects/{project_id}")
+def get_project(project_id: str) -> dict[str, str]:
+    try:
+        return _projects().get(project_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="project not found") from error
+
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
     if request.kind != "multi-design-pilot":
@@ -134,6 +162,7 @@ def create_job(request: JobRequest) -> dict[str, Any]:
     backlog = queue_counts.get("queued", 0) + queue_counts.get("running", 0)
     if backlog >= _max_queued_jobs():
         raise HTTPException(status_code=429, detail="verification job capacity is full")
+    _projects().ensure(request.project_id)
     job = {"id": uuid.uuid4().hex, "kind": request.kind, "project_id": request.project_id, "status": "queued", "created_at": _now(), "events": []}
     _record(job, "queued")
     _COUNTERS["submitted"] += 1
