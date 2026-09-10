@@ -31,6 +31,7 @@ from deployment.generation_service import generate_persisted_plan
 from deployment.project_execution import compile_project_rtl, simulate_project
 from deployment.repair_service import propose_repair
 from deployment.project_pov import write_project_pov
+from deployment.project_comparison import write_comparison
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -304,6 +305,22 @@ def project_proof_of_value(job_id: str) -> dict[str, Any]:
         return json.loads(report_path.read_text(encoding="utf-8"))
     except (OSError, ValueError, json.JSONDecodeError) as error:
         raise HTTPException(status_code=422, detail=f"proof-of-value generation failed: {error}") from error
+
+@app.get("/v1/jobs/{baseline_job_id}/compare/{retest_job_id}")
+def compare_project_jobs(baseline_job_id: str, retest_job_id: str) -> dict[str, Any]:
+    baseline = _read(baseline_job_id)
+    retest = _read(retest_job_id)
+    if baseline.get("kind") != "project-simulation" or retest.get("kind") != "project-simulation":
+        raise HTTPException(status_code=409, detail="both jobs must be project-simulation jobs")
+    if baseline.get("status") not in {"passed", "failed"} or retest.get("status") not in {"passed", "failed"}:
+        raise HTTPException(status_code=409, detail="both jobs must be terminal")
+    if baseline.get("project_id") != retest.get("project_id"):
+        raise HTTPException(status_code=409, detail="jobs must belong to the same project")
+    try:
+        path = write_comparison(_path(baseline_job_id).parent, _path(retest_job_id).parent)
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=422, detail=f"comparison failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:

@@ -90,3 +90,6 @@ def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     approved = service.repair_retest_job(created["id"], service.RepairRequest(before="always_ff", after="always_ff", rationale="review selected RTL change", approved=True))
     assert approved["retest_job"]["kind"] == "project-simulation"
     assert approved["retest_job"]["status"] == "queued"
+    retest_finished = service.run_job(approved["retest_job"]["id"])
+    comparison = service.compare_project_jobs(created["id"], retest_finished["id"])
+    assert comparison["metrics"]["failure_resolved"] is False
