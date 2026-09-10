@@ -67,6 +67,19 @@ provenance, logs, and a content-addressed result artifact. Generated
 concurrent SVA and UVM remain explicitly review-only until the target customer
 simulator and UVM library are measured by an adapter.
 
+For a behavioral pilot, submit the RTL and testbench as separate collateral
+records and use `kind=project-simulation`. The testbench may emit bounded
+functional evidence with a line such as
+`COVERAGE kind=functional covered=37 total=40`; the worker validates and stores
+that result. A failed simulation exposes `diagnosis.json` and
+`closure-report.json`. Submit a repair proposal to
+`POST /v1/jobs/{job_id}/repair-retest` with `approved=false` for review, then
+repeat with explicit approval to create a new RTL artifact and queued retest.
+After both jobs are terminal, retrieve
+`GET /v1/jobs/{baseline_job_id}/compare/{retest_job_id}` for failure-resolution
+and coverage-delta metrics. All reports retain their source artifact IDs and
+hashes, and simulation metrics remain separate from formal and hardware claims.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
