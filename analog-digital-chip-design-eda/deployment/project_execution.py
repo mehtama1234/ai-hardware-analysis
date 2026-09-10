@@ -13,10 +13,16 @@ from verification_platform.simulation import run_iverilog_vvp
 from verification_platform.triage import failure_to_ir, parse_failure
 from verification_platform.logic import dependency_cone
 from verification_platform.closure import evaluate_closure, write_closure
+from verification_platform.artifacts import build_artifact_manifest, write_artifact_manifest
 from verification_platform.formal import counterexample_to_failure, yosys_sat_prove, yosys_syntax_check
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
 COVERAGE_RE = re.compile(r"COVERAGE\s+kind=(?P<kind>[A-Za-z_][\w-]*)\s+covered=(?P<covered>\d+)\s+total=(?P<total>\d+)")
+
+
+def _write_manifest(run_root: str | Path) -> Path:
+    root = Path(run_root)
+    return write_artifact_manifest(root / "artifact-manifest.json", build_artifact_manifest(root, exclude={"artifact-manifest.json"}))
 
 
 def compile_project_rtl(
@@ -56,6 +62,7 @@ def compile_project_rtl(
     }
     result_path = Path(run_root) / "project-compile-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result
 
@@ -85,6 +92,7 @@ def lint_project_rtl(
     result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "status": tool_run.status, "exit_code": tool_run.exit_code, "tool_run": asdict(tool_run)}
     result_path = Path(run_root) / "project-lint-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result
 
@@ -101,6 +109,7 @@ def formal_preflight_project_rtl(record: dict[str, Any], *, collateral_root: str
     result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "status": tool_run.status, "exit_code": tool_run.exit_code, "tool_run": asdict(tool_run), "claim": "formal_preflight_only"}
     result_path = Path(run_root) / "project-formal-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result
 
@@ -130,6 +139,7 @@ def prove_project_invariant(record: dict[str, Any], *, signal: str, expected_val
             result["closure_path"] = str(closure_path)
     result_path = Path(run_root) / "project-formal-proof-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result
 
@@ -204,5 +214,6 @@ def simulate_project(
             result["diagnosis_path"] = str(diagnosis_path)
     result_path = run_root / "project-simulation-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _write_manifest(run_root)
     result["result_path"] = str(result_path)
     return result

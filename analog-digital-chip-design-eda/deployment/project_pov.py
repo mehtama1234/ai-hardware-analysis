@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from verification_platform.coverage import rank_coverage_gaps
+from verification_platform.artifacts import verify_artifact_manifest
 
 
 def build_project_pov(run_root: str | Path) -> dict[str, Any]:
@@ -20,6 +21,7 @@ def build_project_pov(run_root: str | Path) -> dict[str, Any]:
     closure = load("closure-report.json", [])
     diagnosis = load("diagnosis.json", {})
     verification_ir = load("verification-ir.json", {})
+    artifact_manifest = load("artifact-manifest.json", {})
     captured_coverage = load("functional-coverage.json", None)
     if isinstance(captured_coverage, dict) and isinstance(captured_coverage.get("covered"), int) and isinstance(captured_coverage.get("total"), int) and captured_coverage.get("total", 0) > 0:
         coverage = {"kind": captured_coverage["kind"], "covered": captured_coverage["covered"], "total": captured_coverage["total"]}
@@ -50,6 +52,7 @@ def build_project_pov(run_root: str | Path) -> dict[str, Any]:
         "coverage": {**coverage, "percentage": round(100.0 * covered / coverage["total"], 4), "next_actions": rank_coverage_gaps([coverage]) if covered < coverage["total"] else []},
         "traceability": {"tool_runs": len(verification_ir.get("tool_runs", [])), "verification_ir": str(root / "verification-ir.json") if (root / "verification-ir.json").is_file() else None},
         "claim_boundary": "simulation execution evidence is not functional, code, formal, or measured-hardware coverage",
+        "artifact_integrity": verify_artifact_manifest(root, artifact_manifest) if artifact_manifest else {"valid": False, "reason": "manifest missing"},
     }
     canonical = json.dumps(report, sort_keys=True, separators=(",", ":"))
     report["report_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()

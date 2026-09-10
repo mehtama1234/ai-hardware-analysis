@@ -19,6 +19,7 @@ endmodule
     assert result["failure"]["signal"] == "q"
     assert (tmp_path / "run/waveform.vcd").is_file()
     assert (tmp_path / "run/verification-ir.json").is_file()
+    assert (tmp_path / "run/artifact-manifest.json").is_file()
     assert (tmp_path / "run/closure-report.json").read_text().find('"failed"') >= 0
     assert result["diagnosis"]["status"] == "review_required"
 
