@@ -28,3 +28,14 @@ def test_api_key_guard_accepts_secret_file(monkeypatch, tmp_path):
     valid = Request()
     valid.headers = {"x-api-key": "file-secret"}
     assert asyncio.run(api_key_guard(valid, _next)) == "ok"
+
+def test_project_key_is_required_when_project_scoping_configured(monkeypatch):
+    monkeypatch.setenv("VERIFICATION_SERVICE_API_KEY", "global")
+    monkeypatch.setenv("VERIFICATION_PROJECT_KEYS", '{"p1":"project-secret"}')
+    scoped = Request()
+    scoped.url = type("URL", (), {"path": "/v1/projects/p1"})()
+    scoped.headers = {"x-api-key": "global"}
+    response = asyncio.run(api_key_guard(scoped, _next))
+    assert response.status_code == 403
+    scoped.headers["x-project-key"] = "project-secret"
+    assert asyncio.run(api_key_guard(scoped, _next)) == "ok"

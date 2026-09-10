@@ -52,6 +52,16 @@ def _projects() -> ProjectStore:
 def _collateral() -> CollateralStore:
     return CollateralStore(JOB_ROOT.parent / "jobs.sqlite", JOB_ROOT.parent / "collateral")
 
+def _project_keys() -> dict[str, str]:
+    raw = os.environ.get("VERIFICATION_PROJECT_KEYS", "")
+    if not raw:
+        return {}
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    return value if isinstance(value, dict) and all(isinstance(key, str) and isinstance(item, str) for key, item in value.items()) else {}
+
 app = FastAPI(title="Verification Pilot Service", version="v1")
 
 @app.middleware("http")
@@ -66,6 +76,12 @@ async def api_key_guard(request: Request, call_next):
     supplied = request.headers.get("x-api-key", "")
     if expected and request.url.path not in {"/healthz", "/readyz"} and not hmac.compare_digest(supplied, expected):
         return JSONResponse(status_code=401, content={"detail": "invalid or missing API key"})
+    project_keys = _project_keys()
+    parts = request.url.path.strip("/").split("/")
+    if project_keys and len(parts) >= 3 and parts[0] == "v1" and parts[1] == "projects":
+        required = project_keys.get(parts[2])
+        if required and not hmac.compare_digest(request.headers.get("x-project-key", ""), required):
+            return JSONResponse(status_code=403, content={"detail": "invalid or missing project key"})
     return await call_next(request)
 
 @app.get("/healthz")
