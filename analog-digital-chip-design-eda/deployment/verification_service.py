@@ -282,6 +282,17 @@ def repair_project_collateral(project_id: str, artifact_id: str, request: Repair
     repaired = _collateral().add(project_id, str(record["name"]), str(record["kind"]), f"repair-of-{record['version']}", repaired_content)
     return {"project_id": project_id, "source_artifact_id": artifact_id, "proposal": proposal, "repaired_artifact": repaired}
 
+@app.post("/v1/jobs/{job_id}/repair-retest", status_code=202)
+def repair_retest_job(job_id: str, request: RepairRequest) -> dict[str, Any]:
+    job = _read(job_id)
+    if job.get("kind") != "project-simulation" or job.get("status") != "failed":
+        raise HTTPException(status_code=409, detail="a failed project-simulation job is required")
+    result = repair_project_collateral(str(job["project_id"]), str(job["artifact_id"]), request)
+    if "repaired_artifact" not in result:
+        return {"source_job_id": job_id, "proposal": result["proposal"], "retest_job": None}
+    retest = create_job(JobRequest(kind="project-simulation", project_id=str(job["project_id"]), artifact_id=str(result["repaired_artifact"]["id"]), testbench_artifact_id=str(job["testbench_artifact_id"])))
+    return {"source_job_id": job_id, "proposal": result["proposal"], "repaired_artifact": result["repaired_artifact"], "retest_job": retest}
+
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
     if request.kind not in {"multi-design-pilot", "project-compile", "project-simulation"}:
