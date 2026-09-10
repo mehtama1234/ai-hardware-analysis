@@ -70,3 +70,13 @@ def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     finished = service.run_job(created["id"])
     assert finished["status"] == "passed"
     assert finished["evidence"]["project_compile"].endswith("project-compile-result.json")
+
+def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
+    monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")
+    service.create_project(service.ProjectRequest(id="p1", name="Project one"))
+    rtl = service.add_collateral("p1", service.CollateralRequest(name="counter.sv", kind="rtl", content="module counter(input logic clk, output logic q); always_ff @(posedge clk) q <= 1'b0; endmodule\n"))
+    tb = service.add_collateral("p1", service.CollateralRequest(name="counter_tb.sv", kind="testbench", content='''module counter_tb; logic clk=0; logic q; counter dut(.clk(clk),.q(q)); always #5 clk=~clk; initial begin $dumpfile("waveform.vcd"); $dumpvars(0,counter_tb); #7; $display("FAIL cycle=1 signal=q expected=1 actual=%0d",q); #8 $finish; end endmodule\n'''))
+    created = service.create_job(service.JobRequest(kind="project-simulation", project_id="p1", artifact_id=rtl["id"], testbench_artifact_id=tb["id"]))
+    finished = service.run_job(created["id"])
+    assert finished["status"] == "failed"
+    assert finished["evidence"]["project_simulation"].endswith("project-simulation-result.json")

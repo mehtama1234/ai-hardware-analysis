@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+import hashlib
 from pathlib import Path
 import re
 from typing import Any
 
 from verification_platform.runner import run_command
+from verification_platform.simulation import run_iverilog_vvp
+from verification_platform.triage import failure_to_ir, parse_failure
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
 
@@ -48,6 +51,59 @@ def compile_project_rtl(
         "tool_run": asdict(tool_run),
     }
     result_path = Path(run_root) / "project-compile-result.json"
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    result["result_path"] = str(result_path)
+    return result
+
+
+def simulate_project(
+    rtl_record: dict[str, Any],
+    testbench_record: dict[str, Any],
+    *,
+    collateral_root: str | Path,
+    run_root: str | Path,
+    source_revision: str = "unknown",
+    timeout_seconds: float = 180.0,
+) -> dict[str, Any]:
+    """Run a customer RTL/testbench pair and preserve failure evidence."""
+    rtl = Path(collateral_root) / str(rtl_record["path"])
+    testbench = Path(collateral_root) / str(testbench_record["path"])
+    if not rtl.is_file() or not testbench.is_file():
+        raise FileNotFoundError("RTL or testbench collateral is missing")
+    run_root = Path(run_root)
+    compile_run, simulation_run = run_iverilog_vvp(
+        rtl,
+        testbench,
+        run_root=run_root,
+        source_revision=source_revision,
+        binary_name="simulation.out",
+        tool_prefix="project",
+    )
+    result: dict[str, Any] = {
+        "project_id": rtl_record["project_id"],
+        "rtl_artifact_id": rtl_record["id"],
+        "testbench_artifact_id": testbench_record["id"],
+        "status": simulation_run.status if simulation_run else compile_run.status,
+        "compile_run": asdict(compile_run),
+        "simulation_run": asdict(simulation_run) if simulation_run else None,
+    }
+    if simulation_run:
+        stdout_path = run_root / "simulation" / "stdout.log"
+        failure = parse_failure(stdout_path.read_text(encoding="utf-8")) if stdout_path.is_file() else None
+        if failure:
+            result["status"] = "failed"
+            result["failure"] = asdict(failure)
+            triage = failure_to_ir(
+                failure,
+                root=run_root,
+                source_revision=source_revision,
+                artifact_paths=["simulation/stdout.log", "simulation/stderr.log", "waveform.vcd"],
+            )
+            triage_path = run_root / "verification-ir.json"
+            triage.write(triage_path)
+            result["triage_path"] = str(triage_path)
+            result["triage_sha256"] = hashlib.sha256(triage_path.read_bytes()).hexdigest()
+    result_path = run_root / "project-simulation-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     result["result_path"] = str(result_path)
     return result
