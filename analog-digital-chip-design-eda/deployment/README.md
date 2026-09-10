@@ -135,6 +135,9 @@ The workbench's collateral panel reads
 ingestion state, and content hash, and supports client-side filtering so a
 reviewer can trace the evidence set before launching a run.
 
+See `site/VERIFICATION_WORKBENCH.md` for the complete demo walkthrough and
+live query-parameter contract.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
