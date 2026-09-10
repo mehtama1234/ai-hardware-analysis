@@ -13,7 +13,7 @@ from verification_platform.simulation import run_iverilog_vvp
 from verification_platform.triage import failure_to_ir, parse_failure
 from verification_platform.logic import dependency_cone
 from verification_platform.closure import evaluate_closure, write_closure
-from verification_platform.formal import yosys_syntax_check
+from verification_platform.formal import yosys_sat_prove, yosys_syntax_check, parse_yosys_sat_result
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
 COVERAGE_RE = re.compile(r"COVERAGE\s+kind=(?P<kind>[A-Za-z_][\w-]*)\s+covered=(?P<covered>\d+)\s+total=(?P<total>\d+)")
@@ -100,6 +100,23 @@ def formal_preflight_project_rtl(record: dict[str, Any], *, collateral_root: str
     tool_run = yosys_syntax_check(source, run_root=run_root, top=modules[0], source_revision=source_revision or str(record["version"]), timeout_seconds=timeout_seconds)
     result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "status": tool_run.status, "exit_code": tool_run.exit_code, "tool_run": asdict(tool_run), "claim": "formal_preflight_only"}
     result_path = Path(run_root) / "project-formal-result.json"
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    result["result_path"] = str(result_path)
+    return result
+
+
+def prove_project_invariant(record: dict[str, Any], *, signal: str, expected_value: str, collateral_root: str | Path, run_root: str | Path, source_revision: str | None = None, sequence: int = 3, timeout_seconds: float = 120.0) -> dict[str, Any]:
+    """Run a bounded SAT invariant supplied by an approved verification plan."""
+    source = Path(collateral_root) / str(record["path"])
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    modules = sorted(set(MODULE_RE.findall(source.read_text(encoding="utf-8"))))
+    if not modules:
+        raise ValueError("collateral contains no SystemVerilog module")
+    tool_run = yosys_sat_prove(source, top=modules[0], signal=signal, expected_value=expected_value, sequence=sequence, run_root=run_root, source_revision=source_revision or str(record["version"]), timeout_seconds=timeout_seconds)
+    proof_result = tool_run.metadata.get("proof_result", "unknown")
+    result = {"project_id": record["project_id"], "artifact_id": record["id"], "top_module": modules[0], "signal": signal, "expected_value": expected_value, "sequence": sequence, "status": "passed" if proof_result == "proven" else ("failed" if proof_result == "counterexample" else "blocked"), "proof_result": proof_result, "tool_run": asdict(tool_run), "claim": "bounded_formal_result"}
+    result_path = Path(run_root) / "project-formal-proof-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     result["result_path"] = str(result_path)
     return result

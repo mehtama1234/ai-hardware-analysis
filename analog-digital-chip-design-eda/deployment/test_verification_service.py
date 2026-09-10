@@ -80,6 +80,10 @@ def test_project_compile_job_runs_uploaded_rtl(tmp_path, monkeypatch):
     formal_finished = service.run_job(formal_job["id"])
     assert formal_finished["status"] == "passed"
     assert formal_finished["evidence"]["project_formal"].endswith("project-formal-result.json")
+    proof_job = service.create_job(service.JobRequest(kind="project-formal-proof", project_id="p1", artifact_id=collateral["id"], formal_signal="clk", formal_expected="0"))
+    proof_finished = service.run_job(proof_job["id"])
+    assert proof_finished["status"] in {"passed", "failed"}
+    assert proof_finished["evidence"]["project_formal_proof"].endswith("project-formal-proof-result.json")
 
 def test_project_simulation_job_persists_failure_triage(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")

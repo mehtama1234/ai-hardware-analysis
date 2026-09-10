@@ -15,7 +15,7 @@ import time
 from deployment.job_queue import DurableJobQueue
 from deployment.verification_service import JOB_ROOT, PILOT, ROOT, _path, _read, _write
 from deployment.collateral_store import CollateralStore
-from deployment.project_execution import compile_project_rtl, formal_preflight_project_rtl, lint_project_rtl, simulate_project
+from deployment.project_execution import compile_project_rtl, formal_preflight_project_rtl, lint_project_rtl, prove_project_invariant, simulate_project
 
 
 def _now() -> str:
@@ -59,6 +59,12 @@ def process_once(*, stale_after_seconds: float = 900.0, job_timeout_seconds: flo
                 stdout = (job_dir / "stdout.log").read_text(encoding="utf-8") if (job_dir / "stdout.log").is_file() else ""
                 stderr = (job_dir / "stderr.log").read_text(encoding="utf-8") if (job_dir / "stderr.log").is_file() else ""
                 return_code = result_data["exit_code"]
+            elif job["kind"] == "project-formal-proof":
+                record = CollateralStore(JOB_ROOT.parent / "jobs.sqlite", JOB_ROOT.parent / "collateral").get(str(job["artifact_id"]))
+                result_data = prove_project_invariant(record, signal=str(job["formal_signal"]), expected_value=str(job["formal_expected"]), sequence=int(job["formal_sequence"]), collateral_root=JOB_ROOT.parent / "collateral", run_root=job_dir, timeout_seconds=job_timeout_seconds)
+                stdout = (job_dir / "stdout.log").read_text(encoding="utf-8") if (job_dir / "stdout.log").is_file() else ""
+                stderr = (job_dir / "stderr.log").read_text(encoding="utf-8") if (job_dir / "stderr.log").is_file() else ""
+                return_code = 0 if result_data["status"] == "passed" else 1
             elif job["kind"] == "project-simulation":
                 store = CollateralStore(JOB_ROOT.parent / "jobs.sqlite", JOB_ROOT.parent / "collateral")
                 rtl_record = store.get(str(job["artifact_id"]))
@@ -90,7 +96,7 @@ def process_once(*, stale_after_seconds: float = 900.0, job_timeout_seconds: flo
         job.setdefault("events", []).append({"at": _now(), "status": job["status"], "exit_code": return_code})
         job["finished_at"] = _now()
         job["exit_code"] = return_code
-        job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_lint": str(job_dir / "project-lint-result.json")} if job["kind"] == "project-lint" else {"project_formal": str(job_dir / "project-formal-result.json")} if job["kind"] == "project-formal" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {
+        job["evidence"] = ({"project_compile": str(job_dir / "project-compile-result.json")} if job["kind"] == "project-compile" else {"project_lint": str(job_dir / "project-lint-result.json")} if job["kind"] == "project-lint" else {"project_formal": str(job_dir / "project-formal-result.json")} if job["kind"] == "project-formal" else {"project_formal_proof": str(job_dir / "project-formal-proof-result.json")} if job["kind"] == "project-formal-proof" else {"project_simulation": str(job_dir / "project-simulation-result.json")} if job["kind"] == "project-simulation" else {
             "pilot_summary": "benchmarks/multi_design_pilot/runs/latest/pilot-summary.json",
             "validation": "benchmarks/multi_design_pilot/runs/latest/clean-checkout-validation.json",
         })
