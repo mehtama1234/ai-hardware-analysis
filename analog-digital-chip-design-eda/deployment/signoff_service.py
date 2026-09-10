@@ -25,3 +25,18 @@ def write_signoff(report_path: str | Path, *, reviewer: str, notes: str, approve
     output = report.parent / "pilot-signoff.json"
     output.write_text(json.dumps(signoff, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return output
+
+
+def verify_signoff(signoff_path: str | Path) -> bool:
+    """Verify both the report self-digest and the digest recorded at sign-off."""
+    try:
+        signoff = json.loads(Path(signoff_path).read_text(encoding="utf-8"))
+        report_path = Path(signoff["report_path"])
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        digest_key = "report_sha256" if isinstance(report.get("report_sha256"), str) else "comparison_sha256"
+        stored = report[digest_key]
+        payload = {key: value for key, value in report.items() if key != digest_key}
+        computed = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        return signoff.get("report_sha256") == stored == computed
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return False

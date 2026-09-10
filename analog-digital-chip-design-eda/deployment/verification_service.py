@@ -35,7 +35,7 @@ from deployment.project_pov import write_project_pov
 from deployment.project_comparison import write_comparison
 from deployment.project_regression_pov import write_regression_pov
 from verification_platform.capabilities import discover_capabilities
-from deployment.signoff_service import write_signoff
+from deployment.signoff_service import verify_signoff, write_signoff
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -210,7 +210,9 @@ def project_dashboard(project_id: str) -> dict[str, Any]:
         signoff = _path(job["id"]).parent / "pilot-signoff.json"
         if signoff.is_file():
             try:
-                signed.append(json.loads(signoff.read_text(encoding="utf-8")))
+                record = json.loads(signoff.read_text(encoding="utf-8"))
+                record["valid"] = verify_signoff(signoff)
+                signed.append(record)
             except json.JSONDecodeError:
                 continue
     return {"project": project, "collateral_count": len(_collateral().list(project_id)), "jobs": {"total": len(jobs), "queued": sum(job.get("status") == "queued" for job in jobs), "running": sum(job.get("status") == "running" for job in jobs), "passed": sum(job.get("status") == "passed" for job in jobs), "failed": sum(job.get("status") == "failed" for job in jobs)}, "terminal_jobs": [{"id": job["id"], "kind": job["kind"], "status": job["status"], "evidence": job.get("evidence", {})} for job in terminal], "signoffs": signed}
