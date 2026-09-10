@@ -115,6 +115,21 @@ For a project-level view, call `GET /v1/projects/{project_id}/dashboard`. The
 response combines collateral count, queued/running/terminal job counts,
 terminal-job evidence pointers, and all report sign-offs for that project.
 
+The evidence-first browser workbench is available at
+`site/verification-workbench.html`. Open it from any static HTTP server to use
+the inspectable demo data. To hydrate the project header and metrics from a
+running pilot API, provide the API origin, project ID, RTL artifact ID, and
+testbench artifact ID as query parameters:
+
+```text
+/verification-workbench.html?api=http://localhost:8080&project=customer_demo&artifact=<rtl-id>&tb=<testbench-id>
+```
+
+The `Run verification` action submits a durable `project-simulation` job and
+starts its worker when those live parameters are present. The repair action is
+deliberately review-only in the browser; approval and retest remain explicit
+API operations.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
