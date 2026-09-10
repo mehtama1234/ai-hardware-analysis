@@ -44,6 +44,29 @@ curl -fS "http://localhost:8080/v1/jobs/$id/bundle/download" \
   -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY" -o verification-$id.zip
 ```
 
+Customer collateral follows the same durable boundary. Create a project,
+upload RTL or a specification, ingest it, generate reviewable artifacts, then
+submit an isolated open-source compile job:
+
+```bash
+artifact=$(curl -sS -X POST http://localhost:8080/v1/projects/customer_demo/collateral \
+  -H 'Content-Type: application/json' -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY" \
+  -d '{"name":"counter.sv","kind":"rtl","version":"r7","content":"module counter(input logic clk); endmodule"}')
+aid=$(printf '%s' "$artifact" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+curl -sS -X POST "http://localhost:8080/v1/projects/customer_demo/collateral/$aid/ingest" -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY"
+curl -sS -X POST "http://localhost:8080/v1/projects/customer_demo/collateral/$aid/plan" -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY"
+job=$(curl -sS -X POST http://localhost:8080/v1/jobs \
+  -H 'Content-Type: application/json' -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY" \
+  -d "{\"kind\":\"project-compile\",\"project_id\":\"customer_demo\",\"artifact_id\":\"$aid\"}")
+id=$(printf '%s' "$job" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+curl -sS -X POST "http://localhost:8080/v1/jobs/$id/run-async" -H "X-API-Key: $VERIFICATION_SERVICE_API_KEY"
+```
+
+The compile result contains the selected top module, tool status, command
+provenance, logs, and a content-addressed result artifact. Generated
+concurrent SVA and UVM remain explicitly review-only until the target customer
+simulator and UVM library are measured by an adapter.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
