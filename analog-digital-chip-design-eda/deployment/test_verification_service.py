@@ -21,6 +21,8 @@ def test_job_lifecycle_persists_status_and_rejects_unknown_kind(tmp_path, monkey
     collateral = service.add_collateral("customer_demo", service.CollateralRequest(name="spec.md", kind="specification", content="module spec;"))
     assert collateral["sha256"]
     assert service.list_collateral("customer_demo")[0]["name"] == "spec.md"
+    ingested = service.ingest_project_collateral("customer_demo", collateral["id"])
+    assert ingested["requirements"] == 0
 
 def test_async_run_submission_is_nonblocking_for_queued_job(tmp_path, monkeypatch):
     monkeypatch.setattr(service, "JOB_ROOT", tmp_path / "jobs")

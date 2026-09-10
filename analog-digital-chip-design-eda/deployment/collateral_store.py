@@ -45,3 +45,10 @@ class CollateralStore:
         with self._connect() as db:
             rows = db.execute("SELECT * FROM collateral WHERE project_id=? ORDER BY created_at, id", (project_id,)).fetchall()
         return [dict(row) for row in rows]
+
+    def get(self, artifact_id: str) -> dict[str, object]:
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM collateral WHERE id=?", (artifact_id,)).fetchone()
+        if row is None:
+            raise KeyError(artifact_id)
+        return dict(row)

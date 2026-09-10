@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from deployment.job_queue import DurableJobQueue
 from deployment.project_store import ProjectStore
 from deployment.collateral_store import CollateralStore, MAX_CONTENT_BYTES
+from deployment.collateral_ingest import ingest_artifact
 
 ROOT = Path(__file__).resolve().parents[1]
 JOB_ROOT = ROOT / ".artifacts" / "verification-service" / "jobs"
@@ -184,6 +185,19 @@ def list_collateral(project_id: str) -> list[dict[str, object]]:
     except KeyError as error:
         raise HTTPException(status_code=404, detail="project not found") from error
     return _collateral().list(project_id)
+
+@app.post("/v1/projects/{project_id}/collateral/{artifact_id}/ingest")
+def ingest_project_collateral(project_id: str, artifact_id: str) -> dict[str, Any]:
+    try:
+        record = _collateral().get(artifact_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="collateral not found") from error
+    if record["project_id"] != project_id:
+        raise HTTPException(status_code=404, detail="collateral not found")
+    try:
+        return ingest_artifact(record, artifact_root=JOB_ROOT.parent / "collateral", output_root=JOB_ROOT.parent / "ir")
+    except (OSError, UnicodeError, ValueError) as error:
+        raise HTTPException(status_code=422, detail=f"collateral ingestion failed: {error}") from error
 
 @app.post("/v1/jobs", status_code=202)
 def create_job(request: JobRequest) -> dict[str, Any]:
