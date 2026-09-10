@@ -20,6 +20,8 @@ def test_workbench_exposes_live_api_and_evidence_boundaries():
         "/repair-retest",
     ):
         assert endpoint in html
+    assert "Upload artifact" in html
+    assert "Artifact uploaded and hash recorded" in html
     assert "evidence-backed" in html
     assert 'data-tab="formal"' in html
     assert "Counterexample" in html
