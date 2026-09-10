@@ -11,6 +11,8 @@ from typing import Any
 from verification_platform.runner import run_command
 from verification_platform.simulation import run_iverilog_vvp
 from verification_platform.triage import failure_to_ir, parse_failure
+from verification_platform.logic import dependency_cone
+from verification_platform.closure import evaluate_closure, write_closure
 
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_$]*)")
 
@@ -103,6 +105,18 @@ def simulate_project(
             triage.write(triage_path)
             result["triage_path"] = str(triage_path)
             result["triage_sha256"] = hashlib.sha256(triage_path.read_bytes()).hexdigest()
+            closure_path = run_root / "closure-report.json"
+            write_closure(evaluate_closure(triage), closure_path)
+            result["closure_path"] = str(closure_path)
+            result["diagnosis"] = {
+                "status": "review_required",
+                "signal": failure.signal,
+                "dependency_cone": sorted(dependency_cone(rtl, failure.signal)),
+                "hypothesis": f"inspect the RTL driver cone for {failure.signal} at the first failing cycle",
+            }
+            diagnosis_path = run_root / "diagnosis.json"
+            diagnosis_path.write_text(json.dumps(result["diagnosis"], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            result["diagnosis_path"] = str(diagnosis_path)
     result_path = run_root / "project-simulation-result.json"
     result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     result["result_path"] = str(result_path)
