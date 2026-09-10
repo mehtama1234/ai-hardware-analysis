@@ -106,6 +106,10 @@ The service writes `pilot-signoff.json` containing the reviewer, timestamp,
 decision, and PoV report digest. Bundles created after sign-off include this
 record automatically.
 
+For a project-level view, call `GET /v1/projects/{project_id}/dashboard`. The
+response combines collateral count, queued/running/terminal job counts,
+terminal-job evidence pointers, and all report sign-offs for that project.
+
 This deployment is a production-shaped pilot foundation. Before a customer
 deployment, add external authentication/RBAC, managed PostgreSQL or an
 equivalent queue, object storage for evidence, resource quotas and timeouts,
