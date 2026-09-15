@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records nineteen passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -192,7 +192,7 @@ blockers: human approval is still pending, and held-out generalization/local
 semantic localization is not complete. The audit itself is independently
 checked and cannot report completion while those requirements remain open.
 
-The first four held-out historical items are now reconstructed rather than merely
+The first five held-out historical items are now reconstructed rather than merely
 listed as candidates. The committed
 `.artifacts/heldout-openlane-historical-replay-20260915/` receipt replays
 OpenLane commit `000c992a…`, which corrected a synthesis checker that read a
@@ -218,6 +218,11 @@ absolute `WORK_HOME`, while the corrected runner changes to its own directory
 and sources the bundled variables file. The original workspace is deleted
 before execution and `openroad` is stubbed, so this proves only the
 self-contained runner contract.
+The `.artifacts/heldout-openroad-metrics-replay-20260915/` receipt replays
+OpenROAD-flow-scripts commit `31fdacec…`: given `.def`, `.spef`, and `.gds`
+outputs beside a stage log, the parent recognizes only older result extensions
+while the corrected elapsed-time helper includes all three new artifact
+classes. This is artifact-accounting evidence, not physical-quality evidence.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
