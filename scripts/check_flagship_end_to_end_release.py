@@ -15,6 +15,7 @@ REQUIRED = {
     "four_causal_agent_receipt",
     "four_causal_agent_package",
     "rtl2gds_bridge",
+    "structured_register_rtl2gds_handoff",
     "model_to_chip_manifest",
     "real_model_summary",
     "real_model_benchmark",
@@ -64,7 +65,7 @@ def main() -> int:
         elif digest(path) != item.get("sha256"):
             errors.append(f"evidence digest mismatch: {raw}")
     gates = manifest.get("gates", {})
-    for key in ("local_unified_reference", "aggregate_agentic_verification", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge"):
+    for key in ("local_unified_reference", "aggregate_agentic_verification", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds"):
         if gates.get(key) != "passed":
             errors.append(f"required local gate is not passed: {key}")
     if gates.get("real_model_primary_benchmark") != "passed":
