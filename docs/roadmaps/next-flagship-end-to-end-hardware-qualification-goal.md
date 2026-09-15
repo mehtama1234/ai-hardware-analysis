@@ -130,6 +130,14 @@ closure remained blocked. Its full-workstream run also exposed a separate
 allocation attempt received service-unavailable responses on all three retries,
 so no claim is made that the timeout fix has been remeasured yet.
 
+The committed evidence plane now also survives a clean archived-checkout
+replay. `.artifacts/flagship-clean-checkout-replay.json` records six passing
+independent checks for the flagship manifest, local unified acceptance, the
+163-component milestone report, the four-causal-agent package, the RTL-to-GDS
+bridge, and the model-to-chip handoff. Its independent receipt checker passes;
+the replay proves repository-contained evidence integrity, not physical,
+silicon, or production signoff.
+
 ## Core design principles
 
 ### Evidence before agency
