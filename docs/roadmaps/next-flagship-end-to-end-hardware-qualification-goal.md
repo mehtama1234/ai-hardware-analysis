@@ -83,6 +83,16 @@ failure, inspect what the agent saw, verify the proposed change, approve or
 reject it, reproduce the retest and physical evidence, and make a bounded
 release decision without relying on hidden state or trust in the orchestrator.
 
+The current provider-free aggregate checkpoint now passes all 163 declared
+components, including the real-design catalog, four causal-agent trajectories,
+1,000-mutation closure, held-out split plumbing, formal/coverage/security
+checks, OpenROAD tasks, historical repairs, and the specification-grounded
+assertion matrix. Its compact repository receipt is
+`.artifacts/flagship-next-stage-20260915-receipt.json`. This is meaningful
+integration evidence, but its claim boundary remains local seeded, OpenROAD,
+and fixture-agent acceptance; it is not model generalization, silicon signoff,
+or production readiness.
+
 ## Core design principles
 
 ### Evidence before agency
@@ -457,4 +467,3 @@ After that control path is green, the highest-value external increment is the
 authenticated real-model Colab evaluation. The highest-value local increment
 is the first held-out real design through causal diagnosis, bounded repair,
 identical-scope retest, and physical handoff under the same manifest contract.
-
