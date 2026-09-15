@@ -155,6 +155,13 @@ depending on the original `/tmp` run directory. This remains declared local
 acceptance evidence: it is not exhaustive proof, silicon signoff, or a
 production release.
 
+The release package also now carries an explicit pending human-review receipt
+at `.artifacts/flagship-human-review-receipt.json`. It binds the exact
+flagship manifest and evidence-list digests, records `approval: false` and a
+null reviewer, and names the decision and scope that still require a human.
+Its independent checker rejects a receipt that silently turns a blocked
+package into approval; this is an auditable pending state, not signoff.
+
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
 local qualification package, counterfactual advantage report, frozen
