@@ -49,7 +49,11 @@ def main() -> int:
         ["python3", "scripts/validate_end_to_end_handoff.py"],
     ]
     with tempfile.TemporaryDirectory(prefix="flagship-clean-checkout-") as temporary:
-        checkout = Path(temporary)
+        # The cross-repository handoff records workspace-relative paths with
+        # the canonical checkout directory name.  Recreate that topology so
+        # validation exercises the same path contract as a real clean clone.
+        checkout = Path(temporary) / "ai-hardware-analysis"
+        checkout.mkdir()
         with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as bundle:
             bundle.extractall(checkout, filter="data")
         checks = [run(command, cwd=checkout) for command in commands]
