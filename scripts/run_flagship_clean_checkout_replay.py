@@ -48,6 +48,7 @@ def main() -> int:
         ["python3", "scripts/check_heldout_historical_openlane_replay.py", ".artifacts/heldout-openlane-historical-replay-20260915/replay-report.json"],
         ["python3", "scripts/check_heldout_openlane_config_path_replay.py", ".artifacts/heldout-openlane-config-path-replay-20260915/replay-report.json"],
         ["python3", "scripts/check_heldout_openroad_installer_replay.py", ".artifacts/heldout-openroad-installer-replay-20260915/replay-report.json"],
+        ["python3", "scripts/check_heldout_openroad_issue_bundle_replay.py", ".artifacts/heldout-openroad-issue-bundle-replay-20260915/replay-report.json"],
         ["python3", "scripts/check_semantic_debugging_breadth.py", ".artifacts/semantic-debugging-breadth-20260915/receipt.json"],
         ["python3", "scripts/check_flagship_definition_of_done_audit.py", ".artifacts/flagship-definition-of-done-audit.json"],
         ["python3", "scripts/check_flagship_closure_evidence.py", ".artifacts/flagship-closure-evidence-20260915/manifest.json"],

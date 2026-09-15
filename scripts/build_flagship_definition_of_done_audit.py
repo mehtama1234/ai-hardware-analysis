@@ -23,6 +23,7 @@ def main():
   "heldout_historical_replay":ROOT/".artifacts/heldout-openlane-historical-replay-20260915/replay-report.json",
   "heldout_historical_config_replay":ROOT/".artifacts/heldout-openlane-config-path-replay-20260915/replay-report.json",
   "heldout_openroad_installer_replay":ROOT/".artifacts/heldout-openroad-installer-replay-20260915/replay-report.json",
+  "heldout_openroad_issue_bundle_replay":ROOT/".artifacts/heldout-openroad-issue-bundle-replay-20260915/replay-report.json",
  }
  records=[
   {"id":1,"requirement":"clean_checkout_reproduces_baseline","status":"passed","evidence":["clean_replay"],"finding":"clean archived-checkout replay passes all independent checks"},
@@ -31,7 +32,7 @@ def main():
   {"id":4,"requirement":"human_approval_or_rejection_explicit_and_digest_bound","status":"pending","evidence":["human_review"],"finding":"pending receipt is digest-bound but approval=false and reviewer=null"},
   {"id":5,"requirement":"repair_disposable_copy_only","status":"passed","evidence":["proof_closure","real_model"],"finding":"canonical immutability and bounded retest evidence are retained"},
   {"id":6,"requirement":"identical_scope_retest","status":"passed_bounded_local","evidence":["proof_closure","physical_archive"],"finding":"declared local closure and physical handoff scope pass; no silicon scope claimed"},
-  {"id":7,"requirement":"heldout_real_designs_test_generalization","status":"blocked","evidence":["real_model","semantic_debugging","historical_breadth","heldout_historical_replay","heldout_historical_config_replay","heldout_openroad_installer_replay"],"finding":"three upstream held-out historical regressions are reconstructed, but real-model closure is 0%/12.5% and held-out semantic localization is unmeasured"},
+  {"id":7,"requirement":"heldout_real_designs_test_generalization","status":"blocked","evidence":["real_model","semantic_debugging","historical_breadth","heldout_historical_replay","heldout_historical_config_replay","heldout_openroad_installer_replay","heldout_openroad_issue_bundle_replay"],"finding":"four upstream held-out historical regressions are reconstructed, but real-model closure is 0%/12.5% and held-out semantic localization is unmeasured"},
   {"id":8,"requirement":"proof_carrying_simulation_formal_mutation_coverage_security_assertion_integrity","status":"passed","evidence":["proof_closure"],"finding":"six required proof roles are bundled and independently checked"},
   {"id":9,"requirement":"accepted_rtl_hash_linked_to_physical_evidence","status":"passed_bounded_local","evidence":["physical_archive"],"finding":"source alignment and local OpenLane artifacts are hash-linked; commercial signoff excluded"},
   {"id":10,"requirement":"frozen_workload_compiler_runtime_replay_deterministic","status":"passed_bounded_local","evidence":["model_to_chip_archive"],"finding":"digital reference and deterministic fallback archive passes; analog/GPU gates remain open"},

@@ -26,7 +26,7 @@ def main() -> int:
     if receipt.get("replay_sha256") != expected:
         errors.append("replay receipt digest mismatch")
     checks = receipt.get("checks")
-    if not isinstance(checks, list) or len(checks) != 18:
+    if not isinstance(checks, list) or len(checks) != 19:
         errors.append("replay check set is incomplete")
     elif any(item.get("status") != "passed" or item.get("returncode") != 0 for item in checks if isinstance(item, dict)):
         errors.append("one or more clean-checkout checks did not pass")
