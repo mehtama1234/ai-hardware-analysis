@@ -135,7 +135,8 @@ for line in sys.stdin:
             "proposal_id, kind, source_revision, action, rationale, evidence, status, before, after"
         )
         repair_selection = (
-            "repair_choice must be selected exactly from the supplied bounded repair option ids."
+            "repair_choice must be selected exactly from the supplied bounded repair option ids. "
+            "declared_repair applies the supplied canonical before/after repair; reject_repair abstains and cannot close the task."
             if choice_mode else
             "edit_operator must be selected exactly from the supplied bounded choices."
             if operator_mode else
