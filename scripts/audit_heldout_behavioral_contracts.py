@@ -7,6 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
 
 def digest(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -29,6 +30,8 @@ def main() -> int:
             and path.suffix.lower() in {".v", ".sv", ".py", ".tcl"}
             and ("tb" in path.name.lower() or "test" in path.name.lower() or "sim" in path.name.lower())
         )
+        local_root = ROOT / "evidence/heldout-behavioral-contracts" / design["top"]
+        local_files = sorted(str(path.relative_to(ROOT)) for path in local_root.rglob("*") if path.is_file()) if local_root.is_dir() else []
         records.append(
             {
                 "top": design["top"],
@@ -36,7 +39,8 @@ def main() -> int:
                 "root": str(root),
                 "compiled": design.get("compile_status") == "passed",
                 "testlike_files": files,
-                "behavioral_contract_status": "available" if files else "missing",
+                "local_contract_files": local_files,
+                "behavioral_contract_status": "available" if files or local_files else "missing",
             }
         )
     available = sum(item["behavioral_contract_status"] == "available" for item in records)

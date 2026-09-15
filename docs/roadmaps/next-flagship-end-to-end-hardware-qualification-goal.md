@@ -199,20 +199,22 @@ validation; this receipt proves split breadth, not 50 successful repairs.
 
 Semantic-debugging breadth is recorded separately under
 `.artifacts/semantic-debugging-breadth-20260915/`. It proves ten compiled
-real multi-module designs and four checked causal trajectories with 4/4
-observed localization, but records the required held-out localization rate as
-unmeasured and keeps the 90% gate blocked. This prevents the observed fixture
-result from being promoted into held-out generalization.
+real multi-module designs, four checked causal trajectories with 4/4 observed
+localization, and one held-out real pipelined target with a 1/1 causal replay.
+The required 90% held-out gate remains blocked because only 1/10 required
+held-out designs has been measured. This prevents the small held-out result
+from being promoted into generalization.
 
 The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
-receipt makes the reason for that block executable: only one of the ten real
-targets currently has a source-level behavioral testbench (`aimc_multi_clock_control_subsystem_tb.v`);
-the other nine have compile/structural collateral but no runnable behavioral
-contract in their design trees. The independent checker records `1/10`
-available contracts and `9` missing contracts. Until those contracts exist and
-each target has a real mutation replay with module/cycle localization, the
-90% held-out metric remains unmeasured rather than inferred from compilation,
-timing, or physical artifacts.
+receipt makes the reason for that block executable: two of the ten real
+targets now have source-level behavioral contracts: the existing
+`aimc_multi_clock_control_subsystem_tb.v` and the committed pipelined-governor
+contract under `evidence/heldout-behavioral-contracts/`. The independent
+checker records `2/10` available contracts and `8` missing contracts. The
+pipelined target has a digest-bound canonical/mutated replay with a cycle-2
+first divergence and source-bound localization, but the other eight contracts
+and their mutation replays are still required; the 90% metric cannot be
+inferred from compilation, timing, or physical artifacts.
 
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
