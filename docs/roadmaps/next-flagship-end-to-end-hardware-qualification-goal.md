@@ -470,6 +470,10 @@ python3 scripts/check_local_unified_release_acceptance.py
 python3 scripts/build_local_checkpoint_manifest.py
 python3 scripts/check_real_four_causal_agent_colab_package.py \
   /tmp/next-stage-milestone-161-four-causal-agent-20260915
+python3 scripts/build_flagship_end_to_end_release.py \
+  --output .artifacts/flagship-end-to-end-release.json
+python3 scripts/check_flagship_end_to_end_release.py \
+  .artifacts/flagship-end-to-end-release.json
 ```
 
 After that control path is green, the highest-value external increment is the
