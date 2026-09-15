@@ -70,20 +70,35 @@ def bind_request_contract(payload: dict, request: dict, *, assertion_task: bool,
         if isinstance(request.get("assertion"), str):
             bound["assertion"] = request["assertion"]
     elif repair_task:
-        choices = request.get("repair_operator_choices")
-        if isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str):
-            # Benchmark contracts may use a domain-specific operator label;
-            # only the orchestration's approval label is translated to the
-            # executable exact-text patch operator.
-            bound["edit_operator"] = (
-                "exact_text_replace"
-                if choices == ["approval_gated_copy_only"]
-                else choices[0] if isinstance(choices, list) and choices else "exact_text_replace"
+        option_list = request.get("repair_choice_options")
+        if isinstance(option_list, list) and isinstance(bound.get("repair_choice"), str):
+            selected = next(
+                (item for item in option_list
+                 if isinstance(item, dict) and item.get("id") == bound["repair_choice"]),
+                None,
             )
+            if isinstance(selected, dict):
+                # Exact patch text is protocol-bound to the selected option;
+                # the model supplies only the bounded choice identifier.
+                bound["before"] = selected.get("before", "")
+                bound["after"] = selected.get("after", "")
+                bound["edit_operator"] = "exact_text_replace"
+        elif isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str):
+            # Legacy exact-text transport retained for fixture and one-shot
+            # backends that do not use the bounded-choice extension.
+            choices = request.get("repair_operator_choices")
+            if isinstance(choices, list) and choices:
+                bound["edit_operator"] = (
+                    "exact_text_replace"
+                    if choices == ["approval_gated_copy_only"]
+                    else choices[0]
+                )
             bound.setdefault("before", request["repair_before"])
             bound.setdefault("after", request["repair_after"])
-        elif isinstance(choices, list) and choices:
-            bound.setdefault("edit_operator", choices[0])
+        else:
+            choices = request.get("repair_operator_choices")
+            if isinstance(choices, list) and choices:
+                bound.setdefault("edit_operator", choices[0])
     return bound
 
 
@@ -111,8 +126,21 @@ for line in sys.stdin:
             and bool(request["repair_operator_choices"])
             and not (isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str))
         )
-        repair_fields = "proposal_id, kind, source_revision, action, rationale, evidence, status, edit_operator" if operator_mode else "proposal_id, kind, source_revision, action, rationale, evidence, status, before, after"
-        repair_selection = "edit_operator must be selected exactly from the supplied bounded choices." if operator_mode else "before and after must be selected exactly from the supplied repair choices."
+        choice_mode = isinstance(request.get("repair_choice_options"), list) and bool(request["repair_choice_options"])
+        repair_fields = (
+            "proposal_id, kind, source_revision, action, rationale, evidence, status, repair_choice"
+            if choice_mode else
+            "proposal_id, kind, source_revision, action, rationale, evidence, status, edit_operator"
+            if operator_mode else
+            "proposal_id, kind, source_revision, action, rationale, evidence, status, before, after"
+        )
+        repair_selection = (
+            "repair_choice must be selected exactly from the supplied bounded repair option ids."
+            if choice_mode else
+            "edit_operator must be selected exactly from the supplied bounded choices."
+            if operator_mode else
+            "before and after must be selected exactly from the supplied repair choices."
+        )
         system = ("You are a hardware repair assistant. Return exactly one JSON object and no prose, markdown, or code fence. "
                   f"Required keys are {repair_fields}. "
                   f"kind must be repair; status must be review_required; evidence must copy the supplied evidence list; never claim closure. {repair_selection} Explain the root cause in rationale.")
@@ -158,15 +186,22 @@ for line in sys.stdin:
             schema["properties"]["assertion"] = {"type": "string", "minLength": 1}
             schema["required"].append("assertion")
         if repair_task:
-            operator_choices = request.get("repair_operator_choices")
-            if isinstance(operator_choices, list) and operator_choices:
-                schema["properties"].update({"edit_operator": {"enum": [item for item in operator_choices if isinstance(item, str)]}})
-                schema["required"].append("edit_operator")
+            repair_options = request.get("repair_choice_options")
+            if isinstance(repair_options, list) and repair_options:
+                schema["properties"]["repair_choice"] = {
+                    "enum": [item["id"] for item in repair_options if isinstance(item, dict) and isinstance(item.get("id"), str)]
+                }
+                schema["required"].append("repair_choice")
             else:
-                before_choice = request.get("repair_before")
-                after_choice = request.get("repair_after")
-                schema["properties"].update({"before": {"enum": [before_choice]} if isinstance(before_choice, str) else {"type": "string"}, "after": {"enum": [after_choice]} if isinstance(after_choice, str) else {"type": "string"}})
-                schema["required"].extend(["before", "after"])
+                operator_choices = request.get("repair_operator_choices")
+                if isinstance(operator_choices, list) and operator_choices:
+                    schema["properties"].update({"edit_operator": {"enum": [item for item in operator_choices if isinstance(item, str)]}})
+                    schema["required"].append("edit_operator")
+                else:
+                    before_choice = request.get("repair_before")
+                    after_choice = request.get("repair_after")
+                    schema["properties"].update({"before": {"enum": [before_choice]} if isinstance(before_choice, str) else {"type": "string"}, "after": {"enum": [after_choice]} if isinstance(after_choice, str) else {"type": "string"}})
+                    schema["required"].extend(["before", "after"])
         parser = JsonSchemaParser(schema)
         generation_kwargs["prefix_allowed_tokens_fn"] = build_transformers_prefix_allowed_tokens_fn(tokenizer, parser)
     with torch.inference_mode():
@@ -194,10 +229,13 @@ for line in sys.stdin:
             payload["_request_bound_fields"] = sorted(set(payload) - set(model_payload))
             if repair_task:
                 if isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str):
-                    payload["_model_selected_repair"] = (
-                        model_payload.get("before") == request["repair_before"]
-                        and model_payload.get("after") == request["repair_after"]
-                    )
+                    if isinstance(request.get("repair_choice_options"), list):
+                        payload["_model_selected_repair"] = model_payload.get("repair_choice") == "declared_repair"
+                    else:
+                        payload["_model_selected_repair"] = (
+                            model_payload.get("before") == request["repair_before"]
+                            and model_payload.get("after") == request["repair_after"]
+                        )
                 elif isinstance(request.get("repair_operator_choices"), list):
                     payload["_model_selected_repair"] = model_payload.get("edit_operator") in request["repair_operator_choices"]
         print(json.dumps(payload), flush=True)

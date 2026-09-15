@@ -72,7 +72,16 @@ def run_agent_team(
                 if "_model_selected_repair" in raw:
                     record["model_selected_repair"] = raw["_model_selected_repair"]
             if role == "repair_proposer" and isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str):
-                repair_choices_ok = raw.get("before") == request["repair_before"] and raw.get("after") == request["repair_after"]
+                if isinstance(raw.get("repair_choice"), str):
+                    # The bounded-choice transport lets a model select the
+                    # declared repair without reproducing long source text.
+                    # Only the declared option is admissible; the adapter
+                    # binds its exact before/after text below.
+                    repair_choices_ok = raw.get("repair_choice") == "declared_repair"
+                else:
+                    # Preserve the original exact-text contract for existing
+                    # one-shot and fixture backends.
+                    repair_choices_ok = raw.get("before") == request["repair_before"] and raw.get("after") == request["repair_after"]
             grounded = (
                 proposal.source_revision == source_revision
                 and proposal.kind == ROLE_KINDS[role]

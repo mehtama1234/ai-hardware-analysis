@@ -18,7 +18,17 @@ def build_repository_agent_requests(*, task_id: str, source_revision: str, evide
     if (repair_before is None) != (repair_after is None):
         raise ValueError("repair_before and repair_after must be supplied together")
     common = {"task_id": task_id, "allowed_source_revision": source_revision, "evidence": list(evidence)}
-    repair_fields = ({"repair_before": repair_before, "repair_after": repair_after} if repair_before is not None else {})
+    repair_fields = ({
+        "repair_before": repair_before,
+        "repair_after": repair_after,
+        # Keep the substantive model decision small and enumerable.  The
+        # adapter still binds the selected option to the exact text supplied
+        # by the benchmark; the model cannot invent or mutate patch text.
+        "repair_choice_options": [
+            {"id": "declared_repair", "before": repair_before, "after": repair_after},
+            {"id": "reject_repair", "before": repair_after, "after": repair_after},
+        ],
+    } if repair_before is not None else {})
     return [
         {**common, "role": "diagnostician", "task": f"localize the repository failure for task {task_id}; context: {failure_context}"},
         {**common, "role": "reviewer", "task": f"propose the next discriminating executable check for task {task_id}"},
