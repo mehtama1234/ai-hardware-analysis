@@ -79,7 +79,21 @@ def complete(request: dict[str, object]) -> dict[str, object]:
     if os.environ.get("QWEN_DEBUG_RAW") == "1":
         print(f"QWEN_RAW role={role}: {text!r}", file=sys.stderr, flush=True)
     payload = extract_json(text)
-    payload.setdefault("status", "review_required")
+    # Bind transport-invariant fields from the request rather than asking a
+    # small local model to copy them reliably.  The substantive fields remain
+    # model-generated, especially repair_choice; the metadata makes this
+    # distinction auditable to agent_team.py.
+    generated_fields = sorted(payload)
+    bound = {
+        "proposal_id": f"qwen-{request.get('role', 'agent')}-{request.get('task_id', 'task')}",
+        "kind": expected_kind,
+        "source_revision": request.get("allowed_source_revision", ""),
+        "evidence": request.get("evidence", []),
+        "status": "review_required",
+    }
+    payload.update(bound)
+    payload["_model_generated_fields"] = generated_fields
+    payload["_request_bound_fields"] = sorted(bound)
     return payload
 
 
