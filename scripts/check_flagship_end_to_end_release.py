@@ -32,6 +32,37 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def validate_structured_register_handoff(path: Path) -> list[str]:
+    errors: list[str] = []
+    try:
+        handoff = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"structured register handoff is unreadable: {exc}"]
+    if handoff.get("schema_version") != "register-peripheral-model-repair-rtl2gds-handoff-v1":
+        errors.append("structured register handoff schema is unsupported")
+    if handoff.get("status") != "passed" or handoff.get("design") != "register_peripheral":
+        errors.append("structured register handoff is not a passed register package")
+    model = handoff.get("model", {})
+    if model.get("repair_match") is not True or model.get("grounded") is not True:
+        errors.append("structured register model evidence is not grounded and repair-matching")
+    retest = handoff.get("repair_retest", {})
+    if retest.get("status") != "passed" or retest.get("model_generated") is not True or retest.get("original_unchanged") is not True:
+        errors.append("structured register repair retest is incomplete")
+    formal = handoff.get("formal", {})
+    runs = formal.get("property_runs", [])
+    if formal.get("status") != "passed" or formal.get("proof") != "proven" or formal.get("property_count", 0) < 3 or not all(item.get("passed") is True for item in runs):
+        errors.append("structured register formal evidence is incomplete")
+    physical = handoff.get("physical", {})
+    if (physical.get("flow_status") != "flow completed" or physical.get("source_match") is not True
+            or physical.get("lvs_errors") != 0 or physical.get("gds_present") is not True
+            or physical.get("xor_report") is not True):
+        errors.append("structured register physical evidence is incomplete")
+    boundary = handoff.get("claim_boundary", "")
+    if "not commercial" not in boundary.lower() or "silicon" not in boundary.lower():
+        errors.append("structured register claim boundary is missing local-only limits")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path)
@@ -64,6 +95,8 @@ def main() -> int:
             errors.append(f"missing evidence: {raw}")
         elif digest(path) != item.get("sha256"):
             errors.append(f"evidence digest mismatch: {raw}")
+        elif item.get("name") == "structured_register_rtl2gds_handoff":
+            errors.extend(validate_structured_register_handoff(path))
     gates = manifest.get("gates", {})
     for key in ("local_unified_reference", "aggregate_agentic_verification", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds"):
         if gates.get(key) != "passed":
