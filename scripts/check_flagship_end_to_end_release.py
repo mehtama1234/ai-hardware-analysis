@@ -14,6 +14,7 @@ REQUIRED = {
     "aggregate_milestone_report",
     "historical_breadth_evidence",
     "semantic_debugging_breadth",
+    "definition_of_done_audit",
     "proof_carrying_closure_bundle",
     "four_causal_agent_receipt",
     "four_causal_agent_package",
@@ -111,6 +112,8 @@ def main() -> int:
         errors.append("real-model primary benchmark is not recorded as passed")
     if gates.get("semantic_debugging_breadth") != "blocked_pending_heldout_localization":
         errors.append("semantic-debugging held-out boundary was not preserved")
+    if gates.get("definition_of_done_audit") != "blocked_pending_requirements":
+        errors.append("definition-of-done audit was not preserved as incomplete")
     if gates.get("real_model_full_pipeline") != "blocked" or gates.get("real_model_heldout_generalization") != "blocked":
         errors.append("real-model pipeline/generalization boundary was not preserved")
     if manifest.get("release_decision") != "blocked_pending_physical_and_measured_gates":

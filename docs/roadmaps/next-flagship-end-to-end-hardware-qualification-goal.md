@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records fourteen passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records fifteen passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -184,6 +184,13 @@ real multi-module designs and four checked causal trajectories with 4/4
 observed localization, but records the required held-out localization rate as
 unmeasured and keeps the 90% gate blocked. This prevents the observed fixture
 result from being promoted into held-out generalization.
+
+The requirement-by-requirement audit is committed at
+`.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
+definition-of-done items against current evidence and records the two genuine
+blockers: human approval is still pending, and held-out generalization/local
+semantic localization is not complete. The audit itself is independently
+checked and cannot report completion while those requirements remain open.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
