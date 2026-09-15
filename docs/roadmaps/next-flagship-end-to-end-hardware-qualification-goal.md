@@ -147,8 +147,17 @@ adapter digests, explicitly records `device=cpu` and `cuda_available=false`,
 and keeps the result supplemental; it is not authenticated T4 evidence, a
 full-suite result, or proof of model generalization.
 
+The paired supplemental CPU sweep is preserved under
+`.artifacts/real-model-colab/local-cpu-supplemental-sweep-20260915/`. It runs
+the same bounded transport on two held-out seeded tasks: `arbiter-reset-grant`
+closes end to end, while `decoder-opcode-two-value` is rejected by the repair
+choice/team gate after baseline, canonical reference, and causal localization
+remain valid. The independently checked result is therefore 1/2 closure with
+an explicit `blocked_pending_supplemental_closure` status, not generalization
+success.
+
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty-one passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty-two passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
