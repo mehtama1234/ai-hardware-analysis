@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records thirteen passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records fourteen passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -177,6 +177,13 @@ The historical breadth gate is now durable under
 40-entry development queue, and no development/held-out/queue split leak. The
 entries remain candidate-only until regression reconstruction and agent repair
 validation; this receipt proves split breadth, not 50 successful repairs.
+
+Semantic-debugging breadth is recorded separately under
+`.artifacts/semantic-debugging-breadth-20260915/`. It proves ten compiled
+real multi-module designs and four checked causal trajectories with 4/4
+observed localization, but records the required held-out localization rate as
+unmeasured and keeps the 90% gate blocked. This prevents the observed fixture
+result from being promoted into held-out generalization.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the

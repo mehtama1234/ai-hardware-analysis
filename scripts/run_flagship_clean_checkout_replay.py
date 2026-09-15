@@ -45,6 +45,7 @@ def main() -> int:
         ["python3", "scripts/check_local_unified_release_acceptance.py", ".artifacts/local-unified-release-acceptance.json"],
         ["python3", "scripts/check_next_stage_milestone.py", ".artifacts/flagship-next-stage-20260915-report.json"],
         ["python3", "scripts/check_historical_breadth_evidence.py", ".artifacts/historical-breadth-20260915/receipt.json"],
+        ["python3", "scripts/check_semantic_debugging_breadth.py", ".artifacts/semantic-debugging-breadth-20260915/receipt.json"],
         ["python3", "scripts/check_flagship_closure_evidence.py", ".artifacts/flagship-closure-evidence-20260915/manifest.json"],
         ["python3", "scripts/check_local_qualification_archive.py", ".artifacts/local-model-to-chip-qualification-20260915/archive-receipt.json"],
         ["python3", "scripts/check_real_model_colab_evidence.py", "--receipt", ".artifacts/real-model-colab/evidence-check.json"],
