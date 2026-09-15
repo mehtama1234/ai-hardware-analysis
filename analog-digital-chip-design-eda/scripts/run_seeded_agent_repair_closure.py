@@ -233,6 +233,9 @@ def main() -> int:
                 "repaired_status": repaired_status,
                 "canonical_unchanged": canonical_unchanged,
                 "model_selected_repair": repair_team_result.get("model_selected_repair"),
+                "model_repair_choice": repair_team_result.get("model_repair_choice"),
+                "model_generated_fields": repair_team_result.get("model_generated_fields", []),
+                "repair_agent_error": repair_team_result.get("error"),
                 "passed": passed,
                 "run_sha256": agent["run_sha256"],
             })

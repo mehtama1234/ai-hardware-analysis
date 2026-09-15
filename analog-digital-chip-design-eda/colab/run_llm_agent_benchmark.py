@@ -101,6 +101,11 @@ def main() -> int:
     output = WORKDIR / ".artifacts" / "llm-agent-benchmark-colab.json"
     environment.update({
         "VERIFICATION_LLM_BATCH_COMMAND": f"{sys.executable} scripts/hf_llm_batch_backend.py",
+        # The assertion adapter has a 30-second API default, but a resident
+        # model on a shared Colab GPU can legitimately need longer for the
+        # first constrained generation.  Keep the same explicit timeout for
+        # single-request fallbacks and batch calls in the real-model run.
+        "VERIFICATION_LLM_TIMEOUT_SECONDS": "300",
         "VERIFICATION_HF_MODEL": str(model_cache),
         "VERIFICATION_HF_DEVICE": "cuda",
         "VERIFICATION_HF_JSON_CONSTRAINED": "1",

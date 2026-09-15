@@ -71,6 +71,8 @@ def run_agent_team(
                 record["request_bound_fields"] = raw.get("_request_bound_fields", [])
                 if "_model_selected_repair" in raw:
                     record["model_selected_repair"] = raw["_model_selected_repair"]
+                if "repair_choice" in raw:
+                    record["model_repair_choice"] = raw["repair_choice"]
             if role == "repair_proposer" and isinstance(request.get("repair_before"), str) and isinstance(request.get("repair_after"), str):
                 if isinstance(raw.get("repair_choice"), str):
                     # The bounded-choice transport lets a model select the
