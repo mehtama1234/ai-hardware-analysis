@@ -8,6 +8,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 def digest(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -27,7 +29,7 @@ def main() -> int:
         "status": "pending_human_review",
         "approval": False,
         "reviewer": None,
-        "reviewed_manifest": {"path": str(manifest_path), "sha256": manifest.get("manifest_sha256")},
+        "reviewed_manifest": {"path": str(manifest_path.relative_to(ROOT)), "sha256": manifest.get("manifest_sha256")},
         "reviewed_evidence_sha256": digest(evidence),
         "decision_under_review": manifest.get("release_decision"),
         "required_decision": "approve_or_reject_with_named_reviewer_and_scope",
