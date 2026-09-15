@@ -345,7 +345,19 @@ def analyze_failure(
         raise ValueError("signal and source_revision are required")
     observed_list, reference_list = list(observed), list(reference)
     frontier = state_frontier(observed_list, reference_list, signal=signal)
-    graph = causal_graph_from_vcd(waveform, rtl, [signal])
+    # A failing output may remain electrically unchanged at the first
+    # divergent sample (for example, a missing decode branch or a request
+    # that is incorrectly ignored).  In that case the VCD contains no event
+    # for the output at the reference-trace timestamp, even though the
+    # aligned execution trace proves that this is the frontier we must
+    # explain.  Bind the observed frontier sample into the graph as an
+    # explicit trace event; causal.py only admits it when the signal/time
+    # pair is absent, and source localization still requires a validated
+    # graph or the deterministic assignment-location fallback.
+    frontier_events: list[tuple[str, int, str]] = []
+    if frontier.get("status") == "diverged" and isinstance(frontier.get("time"), int):
+        frontier_events.append((signal, int(frontier["time"]), str(frontier.get("observed", ""))))
+    graph = causal_graph_from_vcd(waveform, rtl, [signal], extra_events=frontier_events)
     causal_errors = verify_causal_graph(graph)
     frontier_binding = bind_frontier_to_causal_graph(frontier, graph)
     root_cause_candidates = rank_frontier_root_causes(frontier_binding, rtl)

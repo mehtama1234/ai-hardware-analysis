@@ -112,6 +112,15 @@ failed its expected classifications and the train/held-out repair closure was
 0/16 with zero model-selected repairs. This is model-evaluation evidence, not
 generalization proof or release authorization.
 
+The first replay also exposed and closed an integration defect in the causal
+frontier contract: when a seeded bug leaves an output stuck, the output has no
+VCD transition at the first divergent reference timestamp. The debugger now
+binds that observed frontier sample explicitly, preserves the digest-bound
+waveform/source contract, and uses deterministic RTL assignment localization
+when no structural edge is available. The four-design repair matrix and the
+full provider-free four-workstream wrapper now pass all four disposable-copy
+repairs, while the real-model path remains separately measured and fail-closed.
+
 ## Core design principles
 
 ### Evidence before agency

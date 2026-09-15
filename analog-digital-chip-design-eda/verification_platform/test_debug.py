@@ -36,6 +36,36 @@ def test_debug_package_blocks_ambiguous_alignment(tmp_path: Path):
     assert package["aligned_state_frontier"]["status"] == "blocked"
 
 
+def test_debug_package_binds_stuck_output_frontier(tmp_path: Path):
+    """A missing output transition must still produce a source-bound frontier."""
+    rtl = tmp_path / "dut.sv"
+    rtl.write_text(
+        "module dut(input enable, output logic out); assign out = enable; endmodule\n",
+        encoding="utf-8",
+    )
+    wave = tmp_path / "trace.vcd"
+    wave.write_text(
+        "$var wire 1 ! enable $end\n"
+        "$var wire 1 \\\" out $end\n"
+        "$enddefinitions $end\n"
+        "#0\n0!\n0\\\"\n#5\n1!\n",
+        encoding="utf-8",
+    )
+    package = analyze_failure(
+        wave,
+        rtl,
+        signal="out",
+        observed=[(0, "0"), (5, "0")],
+        reference=[(0, "0"), (5, "1")],
+        source_revision="v1",
+        for_evidence=["out remains low after enable rises"],
+        against_evidence=["the source compiles"],
+    )
+    assert package["causal_frontier_binding"]["status"] == "available"
+    assert package["root_cause_candidates"]["status"] == "available"
+    assert package["root_cause_candidates"]["candidates"][0]["line"] == 1
+
+
 def test_replay_slice_is_bounded_and_digest_bound(tmp_path: Path):
     rtl, wave = _inputs(tmp_path)
     slice_record = build_replay_slice(rtl, signal="out", source_revision="v1")
