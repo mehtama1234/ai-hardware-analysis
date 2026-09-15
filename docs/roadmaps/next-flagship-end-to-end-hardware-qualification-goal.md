@@ -130,8 +130,15 @@ closure remained blocked. Its full-workstream run also exposed a separate
 allocation attempt received service-unavailable responses on all three retries,
 so no claim is made that the timeout fix has been remeasured yet.
 
+The two authenticated Qwen/T4 runs now have an independent boundary receipt at
+`.artifacts/real-model-colab/evidence-check.json`. It verifies the model and
+GPU provenance, 11-design primary benchmark, unsafe-claim rejection count,
+reference retests, train/held-out split shape, and the intentionally blocked
+held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
+held-out closure results as generalization success.
+
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records eight passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records ten passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
