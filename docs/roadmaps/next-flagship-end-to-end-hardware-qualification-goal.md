@@ -102,6 +102,16 @@ verified RTL-to-GDS bridge independently passes source alignment and physical
 package recheck; commercial EDA, analog, measured-hardware, and silicon gates
 remain separate.
 
+The first authenticated real-model run is preserved under
+`.artifacts/real-model-colab/20260915T173123Z/`. Qwen
+`Qwen/Qwen2.5-0.5B-Instruct` ran on a Tesla T4, and the primary benchmark
+passed 11/11 grounded, diagnosis-matching, adversarially accepted cases with
+three unsafe-claim rejections. The same run correctly remains blocked for the
+full four-workstream matrix and held-out repair generalization: the matrix
+failed its expected classifications and the train/held-out repair closure was
+0/16 with zero model-selected repairs. This is model-evaluation evidence, not
+generalization proof or release authorization.
+
 ## Core design principles
 
 ### Evidence before agency

@@ -25,6 +25,10 @@ def main() -> int:
         "four_causal_agent_receipt": ROOT / ".artifacts/flagship-four-causal-agent-20260915-receipt.json",
         "rtl2gds_bridge": ROOT / "analog-digital-chip-design-eda/evidence/aimc-hardware-lab/verified-rtl2gds-bridge-latest.json",
         "model_to_chip_manifest": ROOT / "evidence/end-to-end-qualification-manifest.json",
+        "real_model_summary": ROOT / ".artifacts/real-model-colab/20260915T173123Z/aimc-llm-agent-colab-summary.json",
+        "real_model_benchmark": ROOT / ".artifacts/real-model-colab/20260915T173123Z/llm-agent-benchmark-colab.json",
+        "real_model_heldout": ROOT / ".artifacts/real-model-colab/20260915T173123Z/agent-repair-heldout-evaluation-report.json",
+        "real_model_pipeline": ROOT / ".artifacts/real-model-colab/20260915T173123Z/real-four-workstream-colab.json",
     }
     records = []
     for name, path in evidence.items():
@@ -41,6 +45,9 @@ def main() -> int:
             "four_real_causal_agent_repairs": "passed",
             "local_rtl_to_gds_bridge": "passed",
             "model_to_chip_software": "bounded_local_evidence",
+            "real_model_primary_benchmark": "passed",
+            "real_model_full_pipeline": "blocked",
+            "real_model_heldout_generalization": "blocked",
             "physical_converter": "blocked_pending_qualification",
             "measured_hardware": "blocked_pending_measurement",
             "commercial_production_controls": "open",

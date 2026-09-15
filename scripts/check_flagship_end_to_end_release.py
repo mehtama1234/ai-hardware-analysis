@@ -14,6 +14,10 @@ REQUIRED = {
     "four_causal_agent_receipt",
     "rtl2gds_bridge",
     "model_to_chip_manifest",
+    "real_model_summary",
+    "real_model_benchmark",
+    "real_model_heldout",
+    "real_model_pipeline",
 }
 
 
@@ -57,6 +61,10 @@ def main() -> int:
     for key in ("local_unified_reference", "aggregate_agentic_verification", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge"):
         if gates.get(key) != "passed":
             errors.append(f"required local gate is not passed: {key}")
+    if gates.get("real_model_primary_benchmark") != "passed":
+        errors.append("real-model primary benchmark is not recorded as passed")
+    if gates.get("real_model_full_pipeline") != "blocked" or gates.get("real_model_heldout_generalization") != "blocked":
+        errors.append("real-model pipeline/generalization boundary was not preserved")
     if manifest.get("release_decision") != "blocked_pending_physical_and_measured_gates":
         errors.append("release decision is not fail-closed")
     if manifest.get("analog_authorized") is not False:
