@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records sixteen passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records eighteen passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -192,7 +192,7 @@ blockers: human approval is still pending, and held-out generalization/local
 semantic localization is not complete. The audit itself is independently
 checked and cannot report completion while those requirements remain open.
 
-The first two held-out historical items are now reconstructed rather than merely
+The first three held-out historical items are now reconstructed rather than merely
 listed as candidates. The committed
 `.artifacts/heldout-openlane-historical-replay-20260915/` receipt replays
 OpenLane commit `000c992a…`, which corrected a synthesis checker that read a
@@ -203,9 +203,14 @@ snapshots, parent/fixed behavior, and report are independently digest-checked.
 The companion `.artifacts/heldout-openlane-config-path-replay-20260915/`
 receipt replays OpenLane commit `1c6d1704…`, proving the parent mishandles
 `pdk_dir::` and `scl_dir::` paths while the corrected implementation expands
-both against the configured roots. These advances historical held-out
-regression reconstruction, but they are not agent repairs, model-generalization
-results, or full OpenLane qualification.
+both against the configured roots. The
+`.artifacts/heldout-openroad-installer-replay-20260915/` receipt adds an
+OpenROAD-flow-scripts replay for commit `83e9302b…`: with package installation
+stubbed out, the parent resolves the dependency lockfile relative to the
+post-`cd` working directory, while the corrected revision uses the absolute
+script directory. These advance historical held-out regression reconstruction,
+but they are not agent repairs, model-generalization results, or full flow
+qualification.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
