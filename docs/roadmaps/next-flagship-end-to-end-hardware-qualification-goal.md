@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records ten passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records twelve passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -161,6 +161,14 @@ flagship manifest and evidence-list digests, records `approval: false` and a
 null reviewer, and names the decision and scope that still require a human.
 Its independent checker rejects a receipt that silently turns a blocked
 package into approval; this is an auditable pending state, not signoff.
+
+The local physical evidence boundary is portable as well. The committed
+`.artifacts/flagship-physical-evidence-20260915/` archive contains the AIMC
+and structured-register bridge receipts, OpenLane preparation manifest,
+metrics, LVS/XOR/DRC/antenna reports, and final GDS/LEF/LIB/SDC/SPEF/SDF
+artifacts for both local runs. Its independent checker verifies every archive
+digest and required artifact while preserving the local-only, non-commercial,
+non-silicon claim boundary.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the

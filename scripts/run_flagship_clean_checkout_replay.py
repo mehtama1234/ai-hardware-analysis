@@ -55,6 +55,7 @@ def main() -> int:
             "analog-digital-chip-design-eda/scripts/check_register_peripheral_rtl2gds_handoff.py",
             "analog-digital-chip-design-eda/evidence/register-peripheral/model-repair-rtl2gds-handoff-20260913.json",
         ],
+        ["python3", "scripts/check_flagship_physical_evidence_archive.py", ".artifacts/flagship-physical-evidence-20260915/archive-receipt.json"],
         ["python3", "scripts/validate_end_to_end_handoff.py"],
     ]
     with tempfile.TemporaryDirectory(prefix="flagship-clean-checkout-") as temporary:
