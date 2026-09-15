@@ -148,6 +148,15 @@ depending on the original `/tmp` run directory. This remains declared local
 acceptance evidence: it is not exhaustive proof, silicon signoff, or a
 production release.
 
+The model-to-chip slice now has the same portability boundary. The committed
+`.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
+local qualification package, counterfactual advantage report, frozen
+model-to-chip manifest, handoff contract, model-to-chip goal, source inputs,
+and profile-family replay. A separate checker verifies the ZIP, embedded
+receipt, every entry digest, required documents, and the digital-fallback-only
+decision. This is still modeled/local CPU evidence; it does not promote the
+open GPU, converter, board, energy, or silicon gates.
+
 ## Core design principles
 
 ### Evidence before agency

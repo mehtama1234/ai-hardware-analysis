@@ -18,6 +18,7 @@ REQUIRED = {
     "rtl2gds_bridge",
     "structured_register_rtl2gds_handoff",
     "model_to_chip_manifest",
+    "model_to_chip_archive_receipt",
     "real_model_summary",
     "real_model_benchmark",
     "real_model_heldout",
@@ -99,7 +100,7 @@ def main() -> int:
         elif item.get("name") == "structured_register_rtl2gds_handoff":
             errors.extend(validate_structured_register_handoff(path))
     gates = manifest.get("gates", {})
-    for key in ("local_unified_reference", "aggregate_agentic_verification", "proof_carrying_closure", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds"):
+    for key in ("local_unified_reference", "aggregate_agentic_verification", "proof_carrying_closure", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds", "model_to_chip_portable_archive"):
         if gates.get(key) != "passed":
             errors.append(f"required local gate is not passed: {key}")
     if gates.get("real_model_primary_benchmark") != "passed":
