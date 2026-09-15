@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = {
     "local_unified_acceptance",
     "aggregate_milestone_receipt",
+    "aggregate_milestone_report",
     "four_causal_agent_receipt",
+    "four_causal_agent_package",
     "rtl2gds_bridge",
     "model_to_chip_manifest",
     "real_model_summary",

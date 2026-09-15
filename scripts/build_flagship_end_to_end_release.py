@@ -22,7 +22,9 @@ def main() -> int:
     evidence = {
         "local_unified_acceptance": ROOT / ".artifacts/local-unified-release-acceptance.json",
         "aggregate_milestone_receipt": ROOT / ".artifacts/flagship-next-stage-20260915-receipt.json",
+        "aggregate_milestone_report": ROOT / ".artifacts/flagship-next-stage-20260915-report.json",
         "four_causal_agent_receipt": ROOT / ".artifacts/flagship-four-causal-agent-20260915-receipt.json",
+        "four_causal_agent_package": ROOT / ".artifacts/flagship-four-causal-agent-20260915-package.tgz",
         "rtl2gds_bridge": ROOT / "analog-digital-chip-design-eda/evidence/aimc-hardware-lab/verified-rtl2gds-bridge-latest.json",
         "model_to_chip_manifest": ROOT / "evidence/end-to-end-qualification-manifest.json",
         "real_model_summary": ROOT / ".artifacts/real-model-colab/20260915T173123Z/aimc-llm-agent-colab-summary.json",
