@@ -7,6 +7,7 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -46,6 +47,11 @@ def main() -> int:
         run("final_gate_report", [python, "scripts/report_end_to_end_status.py"], ROOT),
         run("final_handoff_validation", [python, "scripts/validate_end_to_end_handoff.py"], ROOT),
     ]
+    public_source = EDA / ".artifacts/public-reference-acceptance.json"
+    public_durable = ARTIFACTS / "public-reference-acceptance.json"
+    if public_source.is_file():
+        public_durable.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(public_source, public_durable)
     passed = {step["label"] for step in steps if step["returncode"] == 0}
     required = {step["label"] for step in steps}
     decision = {
@@ -60,7 +66,9 @@ def main() -> int:
         "artifacts": {},
     }
     artifact_paths = {
-        "public_reference_acceptance": EDA / ".artifacts/public-reference-acceptance.json",
+        # Keep the acceptance package replayable from a clean checkout; the
+        # EDA subrepository intentionally ignores its local .artifacts tree.
+        "public_reference_acceptance": ARTIFACTS / "public-reference-acceptance.json",
         "model_to_chip_manifest": ROOT / "evidence/end-to-end-qualification-manifest.json",
         "model_to_chip_report": ROOT / "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-profile-to-workload-qualification/qualification_report.json",
         "model_to_chip_decision": ROOT / "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-profile-to-workload-qualification/decision_audit.json",
