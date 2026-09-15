@@ -93,6 +93,15 @@ integration evidence, but its claim boundary remains local seeded, OpenROAD,
 and fixture-agent acceptance; it is not model generalization, silicon signoff,
 or production readiness.
 
+The four real causal-agent classes have also been rebuilt from the current
+checkout: CSR peripheral, AIMC operation partition, AIMC error budget, and
+multi-clock CDC. Their causal reports, package digest, and four independently
+checked disposable-copy repairs are recorded in
+`.artifacts/flagship-four-causal-agent-20260915-receipt.json`. The local
+verified RTL-to-GDS bridge independently passes source alignment and physical
+package recheck; commercial EDA, analog, measured-hardware, and silicon gates
+remain separate.
+
 ## Core design principles
 
 ### Evidence before agency
