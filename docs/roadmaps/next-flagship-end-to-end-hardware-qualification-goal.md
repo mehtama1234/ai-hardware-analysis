@@ -121,6 +121,15 @@ when no structural edge is available. The four-design repair matrix and the
 full provider-free four-workstream wrapper now pass all four disposable-copy
 repairs, while the real-model path remains separately measured and fail-closed.
 
+A follow-up authenticated Qwen/T4 run using bounded repair-choice transport
+preserved the model boundary with stronger diagnostics: the model selected the
+declared repair in 2/8 train cases and 1/8 held-out cases, but complete repair
+closure remained blocked. Its full-workstream run also exposed a separate
+30-second assertion-generation timeout; the real-model launcher now carries a
+300-second explicit timeout for constrained generation. A subsequent Colab
+allocation attempt received service-unavailable responses on all three retries,
+so no claim is made that the timeout fix has been remeasured yet.
+
 ## Core design principles
 
 ### Evidence before agency

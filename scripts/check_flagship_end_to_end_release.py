@@ -18,6 +18,10 @@ REQUIRED = {
     "real_model_benchmark",
     "real_model_heldout",
     "real_model_pipeline",
+    "real_model_choice_summary",
+    "real_model_choice_benchmark",
+    "real_model_choice_heldout",
+    "real_model_choice_pipeline",
 }
 
 

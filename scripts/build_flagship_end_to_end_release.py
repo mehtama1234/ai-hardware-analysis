@@ -29,6 +29,10 @@ def main() -> int:
         "real_model_benchmark": ROOT / ".artifacts/real-model-colab/20260915T173123Z/llm-agent-benchmark-colab.json",
         "real_model_heldout": ROOT / ".artifacts/real-model-colab/20260915T173123Z/agent-repair-heldout-evaluation-report.json",
         "real_model_pipeline": ROOT / ".artifacts/real-model-colab/20260915T173123Z/real-four-workstream-colab.json",
+        "real_model_choice_summary": ROOT / ".artifacts/real-model-colab/20260915T182003Z/aimc-llm-agent-colab-summary.json",
+        "real_model_choice_benchmark": ROOT / ".artifacts/real-model-colab/20260915T182003Z/llm-agent-benchmark-colab.json",
+        "real_model_choice_heldout": ROOT / ".artifacts/real-model-colab/20260915T182003Z/agent-repair-heldout-evaluation-report.json",
+        "real_model_choice_pipeline": ROOT / ".artifacts/real-model-colab/20260915T182003Z/real-four-workstream-colab.json",
     }
     records = []
     for name, path in evidence.items():
