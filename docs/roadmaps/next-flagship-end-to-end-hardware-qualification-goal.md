@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records fifteen passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records sixteen passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -191,6 +191,17 @@ definition-of-done items against current evidence and records the two genuine
 blockers: human approval is still pending, and held-out generalization/local
 semantic localization is not complete. The audit itself is independently
 checked and cannot report completion while those requirements remain open.
+
+The first held-out historical item is now reconstructed rather than merely
+listed as a candidate. The committed
+`.artifacts/heldout-openlane-historical-replay-20260915/` receipt replays
+OpenLane commit `000c992a…`, which corrected a synthesis checker that read a
+stale `synthesis_results` path instead of the active netlist. An isolated Tcl
+harness demonstrates that the parent silently passes when the active netlist
+contains an `assign`, while the corrected checker rejects it; the source
+snapshots, parent/fixed behavior, and report are independently digest-checked.
+This advances historical held-out regression reconstruction, but it is not an
+agent repair, a model-generalization result, or full OpenLane qualification.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
