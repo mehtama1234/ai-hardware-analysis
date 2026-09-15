@@ -55,6 +55,7 @@ def main() -> int:
         ["python3", "scripts/check_flagship_closure_evidence.py", ".artifacts/flagship-closure-evidence-20260915/manifest.json"],
         ["python3", "scripts/check_local_qualification_archive.py", ".artifacts/local-model-to-chip-qualification-20260915/archive-receipt.json"],
         ["python3", "scripts/check_real_model_colab_evidence.py", "--receipt", ".artifacts/real-model-colab/evidence-check.json"],
+        ["python3", "scripts/check_local_cpu_model_evidence.py", ".artifacts/real-model-colab/local-cpu-supplemental-20260915/receipt.json"],
         ["python3", "scripts/check_flagship_human_review_receipt.py", ".artifacts/flagship-human-review-receipt.json", ".artifacts/flagship-end-to-end-release.json"],
         ["python3", "scripts/check_real_four_causal_agent_colab_package.py", ".artifacts/flagship-four-causal-agent-20260915-package.tgz"],
         ["python3", "analog-digital-chip-design-eda/scripts/check_verified_rtl2gds_bridge.py"],

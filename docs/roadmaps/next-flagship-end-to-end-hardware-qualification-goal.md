@@ -137,8 +137,18 @@ reference retests, train/held-out split shape, and the intentionally blocked
 held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
+A supplemental local CPU run is preserved under
+`.artifacts/real-model-colab/local-cpu-supplemental-20260915/`. The cached
+Qwen/Qwen2.5-Coder-0.5B-Instruct worker closed one held-out seeded task
+(`arbiter-reset-grant`) end to end: baseline failure, canonical reference,
+causal localization, source/location-bound disposable repair, retest, and
+canonical immutability all passed. Its receipt binds the model snapshot and
+adapter digests, explicitly records `device=cpu` and `cuda_available=false`,
+and keeps the result supplemental; it is not authenticated T4 evidence, a
+full-suite result, or proof of model generalization.
+
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty-one passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;

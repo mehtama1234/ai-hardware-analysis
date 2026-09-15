@@ -36,6 +36,7 @@ REQUIRED = {
     "real_model_choice_heldout",
     "real_model_choice_pipeline",
     "real_model_evidence_check",
+    "real_model_cpu_supplemental",
 }
 
 
@@ -114,6 +115,8 @@ def main() -> int:
             errors.append(f"required local gate is not passed: {key}")
     if gates.get("real_model_primary_benchmark") != "passed":
         errors.append("real-model primary benchmark is not recorded as passed")
+    if gates.get("real_model_cpu_supplemental") != "passed_bounded_supplemental":
+        errors.append("local CPU model supplemental boundary is missing")
     if gates.get("semantic_debugging_breadth") != "blocked_pending_heldout_localization":
         errors.append("semantic-debugging held-out boundary was not preserved")
     if gates.get("real_model_full_pipeline") != "blocked" or gates.get("real_model_heldout_generalization") != "blocked":

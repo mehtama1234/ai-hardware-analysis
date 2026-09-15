@@ -47,6 +47,7 @@ def main() -> int:
         "real_model_choice_heldout": ROOT / ".artifacts/real-model-colab/20260915T182003Z/agent-repair-heldout-evaluation-report.json",
         "real_model_choice_pipeline": ROOT / ".artifacts/real-model-colab/20260915T182003Z/real-four-workstream-colab.json",
         "real_model_evidence_check": ROOT / ".artifacts/real-model-colab/evidence-check.json",
+        "real_model_cpu_supplemental": ROOT / ".artifacts/real-model-colab/local-cpu-supplemental-20260915/receipt.json",
     }
     records = []
     for name, path in evidence.items():
@@ -76,6 +77,7 @@ def main() -> int:
             "model_to_chip_portable_archive": "passed",
             "real_model_primary_benchmark": "passed",
             "real_model_evidence_boundary": "passed",
+            "real_model_cpu_supplemental": "passed_bounded_supplemental",
             "real_model_full_pipeline": "blocked",
             "real_model_heldout_generalization": "blocked",
             "physical_converter": "blocked_pending_qualification",
