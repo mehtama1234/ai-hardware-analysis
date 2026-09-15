@@ -46,6 +46,11 @@ def main() -> int:
         ["python3", "scripts/check_next_stage_milestone.py", ".artifacts/flagship-next-stage-20260915-report.json"],
         ["python3", "scripts/check_real_four_causal_agent_colab_package.py", ".artifacts/flagship-four-causal-agent-20260915-package.tgz"],
         ["python3", "analog-digital-chip-design-eda/scripts/check_verified_rtl2gds_bridge.py"],
+        [
+            "python3",
+            "analog-digital-chip-design-eda/scripts/check_register_peripheral_rtl2gds_handoff.py",
+            "analog-digital-chip-design-eda/evidence/register-peripheral/model-repair-rtl2gds-handoff-20260913.json",
+        ],
         ["python3", "scripts/validate_end_to_end_handoff.py"],
     ]
     with tempfile.TemporaryDirectory(prefix="flagship-clean-checkout-") as temporary:
