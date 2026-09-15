@@ -204,6 +204,16 @@ observed localization, but records the required held-out localization rate as
 unmeasured and keeps the 90% gate blocked. This prevents the observed fixture
 result from being promoted into held-out generalization.
 
+The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
+receipt makes the reason for that block executable: only one of the ten real
+targets currently has a source-level behavioral testbench (`aimc_multi_clock_control_subsystem_tb.v`);
+the other nine have compile/structural collateral but no runnable behavioral
+contract in their design trees. The independent checker records `1/10`
+available contracts and `9` missing contracts. Until those contracts exist and
+each target has a real mutation replay with module/cycle localization, the
+90% held-out metric remains unmeasured rather than inferred from compilation,
+timing, or physical artifacts.
+
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
 definition-of-done items against current evidence and records the two genuine

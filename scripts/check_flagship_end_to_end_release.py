@@ -19,6 +19,7 @@ REQUIRED = {
     "heldout_openroad_issue_bundle_replay",
     "heldout_openroad_metrics_replay",
     "semantic_debugging_breadth",
+    "heldout_behavioral_contract_inventory",
     "proof_carrying_closure_bundle",
     "four_causal_agent_receipt",
     "four_causal_agent_package",
@@ -110,6 +111,16 @@ def main() -> int:
             errors.append(f"evidence digest mismatch: {raw}")
         elif item.get("name") == "structured_register_rtl2gds_handoff":
             errors.extend(validate_structured_register_handoff(path))
+        elif item.get("name") == "heldout_behavioral_contract_inventory":
+            try:
+                inventory = json.loads(path.read_text(encoding="utf-8"))
+                body = {key: value for key, value in inventory.items() if key != "report_sha256"}
+                if inventory.get("report_sha256") != hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest():
+                    errors.append("held-out behavioral contract inventory digest mismatch")
+                if inventory.get("status") != "blocked_pending_behavioral_contracts" or inventory.get("behavioral_contract_count") != 1 or inventory.get("missing_behavioral_contract_count") != 9:
+                    errors.append("held-out behavioral contract inventory boundary changed")
+            except (OSError, json.JSONDecodeError):
+                errors.append("held-out behavioral contract inventory is unreadable")
     gates = manifest.get("gates", {})
     for key in ("local_unified_reference", "aggregate_agentic_verification", "historical_breadth", "heldout_historical_replay", "heldout_historical_config_replay", "heldout_openroad_installer_replay", "heldout_openroad_issue_bundle_replay", "heldout_openroad_metrics_replay", "proof_carrying_closure", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds", "portable_physical_evidence", "model_to_chip_portable_archive", "real_model_evidence_boundary"):
         if gates.get(key) != "passed":
