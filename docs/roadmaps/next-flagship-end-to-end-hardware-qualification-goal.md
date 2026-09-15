@@ -138,7 +138,7 @@ held-out/full-pipeline outcomes. It does not reinterpret the 0% and 12.5%
 held-out closure results as generalization success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records twelve passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records thirteen passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
@@ -169,6 +169,14 @@ metrics, LVS/XOR/DRC/antenna reports, and final GDS/LEF/LIB/SDC/SPEF/SDF
 artifacts for both local runs. Its independent checker verifies every archive
 digest and required artifact while preserving the local-only, non-commercial,
 non-silicon claim boundary.
+
+The historical breadth gate is now durable under
+`.artifacts/historical-breadth-20260915/`. Its independent checker verifies
+291 mined candidates across OpenLane, OpenROAD-flow-scripts, and cross-sim,
+233 development items, 58 held-out items, 50 validated replay keys, a
+40-entry development queue, and no development/held-out/queue split leak. The
+entries remain candidate-only until regression reconstruction and agent repair
+validation; this receipt proves split breadth, not 50 successful repairs.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the

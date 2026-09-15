@@ -12,6 +12,7 @@ REQUIRED = {
     "local_unified_acceptance",
     "aggregate_milestone_receipt",
     "aggregate_milestone_report",
+    "historical_breadth_evidence",
     "proof_carrying_closure_bundle",
     "four_causal_agent_receipt",
     "four_causal_agent_package",
@@ -102,7 +103,7 @@ def main() -> int:
         elif item.get("name") == "structured_register_rtl2gds_handoff":
             errors.extend(validate_structured_register_handoff(path))
     gates = manifest.get("gates", {})
-    for key in ("local_unified_reference", "aggregate_agentic_verification", "proof_carrying_closure", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds", "portable_physical_evidence", "model_to_chip_portable_archive", "real_model_evidence_boundary"):
+    for key in ("local_unified_reference", "aggregate_agentic_verification", "historical_breadth", "proof_carrying_closure", "four_real_causal_agent_repairs", "local_rtl_to_gds_bridge", "structured_register_spec_to_gds", "portable_physical_evidence", "model_to_chip_portable_archive", "real_model_evidence_boundary"):
         if gates.get(key) != "passed":
             errors.append(f"required local gate is not passed: {key}")
     if gates.get("real_model_primary_benchmark") != "passed":

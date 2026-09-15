@@ -23,6 +23,7 @@ def main() -> int:
         "local_unified_acceptance": ROOT / ".artifacts/local-unified-release-acceptance.json",
         "aggregate_milestone_receipt": ROOT / ".artifacts/flagship-next-stage-20260915-receipt.json",
         "aggregate_milestone_report": ROOT / ".artifacts/flagship-next-stage-20260915-report.json",
+        "historical_breadth_evidence": ROOT / ".artifacts/historical-breadth-20260915/receipt.json",
         "proof_carrying_closure_bundle": ROOT / ".artifacts/flagship-closure-evidence-20260915/manifest.json",
         "four_causal_agent_receipt": ROOT / ".artifacts/flagship-four-causal-agent-20260915-receipt.json",
         "four_causal_agent_package": ROOT / ".artifacts/flagship-four-causal-agent-20260915-package.tgz",
@@ -53,6 +54,7 @@ def main() -> int:
         "gates": {
             "local_unified_reference": "passed",
             "aggregate_agentic_verification": "passed",
+            "historical_breadth": "passed",
             "proof_carrying_closure": "passed",
             "four_real_causal_agent_repairs": "passed",
             "local_rtl_to_gds_bridge": "passed",
