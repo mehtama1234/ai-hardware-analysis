@@ -4,25 +4,58 @@
 from __future__ import annotations
 
 import json
+import os
+from concurrent.futures import ThreadPoolExecutor
+import hashlib
 from pathlib import Path
 from typing import Any
+
+# The physical DAC/comparator fixture requires the long acquisition schedule
+# for bottom-plate redistribution to settle before comparator sampling. Keep
+# an explicit environment override for diagnostic short-schedule experiments.
+os.environ.setdefault("AIMC_COUPLED_DAC_ACQ", "long")
 
 from run_sky130_coupled_dac_comparator_bit import run_trial
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
-OUT_JSON = EVIDENCE / "sky130-physical-dac-sar-sequence.json"
-OUT_MD = EVIDENCE / "sky130-physical-dac-sar-sequence.md"
+OUTPUT_STEM = os.environ.get("AIMC_PHYSICAL_SAR_OUTPUT_STEM", "sky130-physical-dac-sar-sequence")
+OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
 BITS = 4
 DAC_SOURCE_V = 0.9
-STEP_V = 1.8 / (1 << BITS)
+INPUT_SPAN_V = float(os.environ.get("AIMC_PHYSICAL_SAR_INPUT_SPAN_V", "1.8"))
+STEP_V = INPUT_SPAN_V / (1 << BITS)
 # These are centers of ideal code regions while keeping the comparator input
 # below the 1.8 V supply. They test retained-bit sequencing, not full range.
 INPUT_CODES = (0, 2, 4, 6, 7)
+CALIBRATION_TABLE_PATH = Path(os.environ["AIMC_PHYSICAL_SAR_CALIBRATION_TABLE"]).resolve() if os.environ.get("AIMC_PHYSICAL_SAR_CALIBRATION_TABLE") else None
+
+
+def calibrated_targets() -> list[float] | None:
+    if CALIBRATION_TABLE_PATH is None:
+        return None
+    report = json.loads(CALIBRATION_TABLE_PATH.read_text(encoding="utf-8"))
+    values = [float(row["dac_top_after_v"]) for row in report["table"]]
+    if len(values) != 16 or any(b <= a for a, b in zip(values, values[1:])):
+        raise ValueError("calibration table must contain a complete monotonic 16-code transfer")
+    return [values[0] - (values[1] - values[0]) / 2.0] + [(a + b) / 2.0 for a, b in zip(values, values[1:])] + [values[-1] + (values[-1] - values[-2]) / 2.0]
+
+
+def requested_input_codes() -> tuple[int, ...]:
+    """Allow a bounded smoke subset while preserving the default sweep."""
+    raw = os.environ.get("AIMC_PHYSICAL_SAR_INPUT_CODES", "")
+    if not raw.strip():
+        return INPUT_CODES
+    values = tuple(int(token.strip()) for token in raw.split(",") if token.strip())
+    if not values or any(value < 0 or value >= (1 << BITS) for value in values):
+        raise ValueError("AIMC_PHYSICAL_SAR_INPUT_CODES must contain codes in [0, 15]")
+    return values
 
 
 def sequence(expected_code: int) -> dict[str, Any]:
-    input_v = DAC_SOURCE_V + STEP_V * (expected_code + 0.5)
+    targets = calibrated_targets()
+    input_v = targets[expected_code] if targets is not None else DAC_SOURCE_V + STEP_V * (expected_code + 0.5)
     code = 0
     trace = []
     for decision_number, bit in enumerate(reversed(range(BITS)), start=1):
@@ -49,19 +82,45 @@ def sequence(expected_code: int) -> dict[str, Any]:
 
 
 def main() -> int:
-    conversions = [sequence(code) for code in INPUT_CODES]
+    input_codes = requested_input_codes()
+    targets = calibrated_targets()
+    workers = max(1, int(os.environ.get("AIMC_PHYSICAL_SAR_WORKERS", "1")))
+    # Input-code conversions are independent; each sequence itself remains
+    # strictly MSB-first and serial. map() preserves deterministic code order.
+    with ThreadPoolExecutor(max_workers=min(workers, len(input_codes))) as pool:
+        conversions = list(pool.map(sequence, input_codes))
     comparisons = [row["comparison"] for conversion in conversions for row in conversion["trace"]]
     measured = [row for row in comparisons if row.get("measured")]
+    timeouts = sum(row.get("timed_out", False) for row in comparisons)
+    full_code_campaign = tuple(input_codes) == tuple(range(1 << BITS))
+    status = (
+        "physical_dac_sar_full_code_campaign_timeout"
+        if timeouts and not measured and full_code_campaign
+        else "physical_dac_sar_timeout_smoke"
+        if timeouts and not measured
+        else "physical_dac_sar_full_code_campaign_characterized_not_continuous_multicycle_proof"
+        if full_code_campaign
+        else "physical_dac_sar_sequence_characterized_not_continuous_multicycle_proof"
+    )
     report = {
         "result_type": "sky130_physical_dac_sar_sequence",
-        "status": "physical_dac_sar_sequence_characterized_not_continuous_multicycle_proof",
+        "status": status,
+        "dac_acquisition_schedule": os.environ.get("AIMC_COUPLED_DAC_ACQ", "long"),
+        "worker_count": workers,
         "bits": BITS,
         "dac_source_v": DAC_SOURCE_V,
-        "input_codes": list(INPUT_CODES),
+        "input_span_v": INPUT_SPAN_V,
+        "input_target_mode": "measured_transfer_midpoints" if targets is not None else "linear_span",
+        "calibration_table": str(CALIBRATION_TABLE_PATH) if CALIBRATION_TABLE_PATH else None,
+        "calibration_table_sha256": hashlib.sha256(CALIBRATION_TABLE_PATH.read_bytes()).hexdigest() if CALIBRATION_TABLE_PATH else None,
+        "input_codes": list(input_codes),
+        "full_code_campaign": full_code_campaign,
         "conversion_count": len(conversions),
         "comparison_count": len(comparisons),
         "measured_comparison_count": len(measured),
+        "timeout_count": timeouts,
         "correct_conversion_count": sum(row["correct_code"] for row in conversions),
+        "failing_input_codes": [row["expected_code"] for row in conversions if not row["correct_code"]],
         "conversions": conversions,
         "claim_boundary": {
             "allowed": "sequences retained-bit SAR decisions where every trial uses the physical Sky130 DAC/comparator transient runner",

@@ -22,10 +22,13 @@ OUT_JSON = EVIDENCE / f"{_OUTPUT_STEM}.json"
 OUT_MD = EVIDENCE / f"{_OUTPUT_STEM}.md"
 TIMEOUT_S = float(os.environ.get("AIMC_COUPLED_TIMEOUT_S", "180"))
 
-# The DAC input is 1.2 V and the comparator reference is 1.5 V. The selected
-# code is chosen so that the physical DAC top plate is close to that reference.
+# The default source/reference pair preserves the original comparator fixture;
+# calibration campaigns can bind both values explicitly.
 _trial_codes = os.environ.get("AIMC_COUPLED_CODES", "")
-TRIALS = tuple((int(code.strip()), 1.2, 1.5) for code in _trial_codes.split(",") if code.strip()) if _trial_codes else tuple((code, 1.2, 1.5) for code in range(16))
+_trial_source_v = float(os.environ.get("AIMC_COUPLED_SOURCE_V", "1.2"))
+_trial_reference_v = float(os.environ.get("AIMC_COUPLED_REFERENCE_V", "1.5"))
+SEGMENTED_DAC = os.environ.get("AIMC_COUPLED_SEGMENTED_DAC") == "1"
+TRIALS = tuple((int(code.strip()), _trial_source_v, _trial_reference_v) for code in _trial_codes.split(",") if code.strip()) if _trial_codes else tuple((code, _trial_source_v, _trial_reference_v) for code in range(16))
 
 
 def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
@@ -43,6 +46,7 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
         bit: float(os.environ.get(f"AIMC_COUPLED_BIT{bit}_CAP_SCALE", "1.0"))
         for bit in range(4)
     }
+    segmented = os.environ.get("AIMC_COUPLED_SEGMENTED_DAC") == "1"
     redist_ns = float(os.environ.get("AIMC_COUPLED_REDIST_NS", "5.0"))
     isolate_bottom = os.environ.get("AIMC_COUPLED_BOTTOM_PRECHARGE_ISOLATE") == "1"
     keeper_v = float(os.environ.get("AIMC_COUPLED_BOTTOM_KEEPER_V", "0.0"))
@@ -51,45 +55,63 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
     top_rail_clamp = os.environ.get("AIMC_COUPLED_TOP_RAIL_CLAMP") == "1"
     rail_clamp_area = float(os.environ.get("AIMC_COUPLED_RAIL_CLAMP_AREA", "1.0"))
     top_rail_resistor = os.environ.get("AIMC_COUPLED_TOP_RAIL_RESISTOR", "")
+    ideal_bottom_switches = os.environ.get("AIMC_CONTINUOUS_IDEAL_BOTTOM_SWITCHES") == "1"
+    bootstrapped_high = os.environ.get("AIMC_CONTINUOUS_BOOTSTRAPPED_NMOS_HIGH") == "1"
     supply_v = float(os.environ.get("AIMC_COUPLED_SUPPLY_V", "1.8"))
+    dac_high_v = float(os.environ.get("AIMC_COUPLED_DAC_HIGH_V", str(supply_v)))
     caps = []
     controls = []
     switches = []
-    for bit, cap in enumerate(CAPS_F):
-        cap *= cap_scale
-        if bit == 0:
-            cap *= msb_scale
-        cap *= bit_cap_scales[bit]
-        if bit == 3:
-            cap *= lsb_scale
-        selected = (code >> (3 - bit)) & 1
-        caps.append(f"CDAC{bit} top db{bit} {cap:.12e}")
-        caps.append(f"CDACDUMMY{bit} db{bit} 0 {dummy_override}")
+    if segmented:
+        # Four equal coarse units encode floor(code/4) thermometrically;
+        # two smaller units encode the remaining two binary bits. This avoids
+        # relying on one large, high-impedance MSB branch.
+        elements = [(f"coarse{index}", 4e-12, index < code // 4) for index in range(4)]
+        elements += [("fine2", 2e-12, bool(code & 0b10)), ("fine1", 1e-12, bool(code & 0b01))]
+    else:
+        elements = []
+        for bit, base_cap in enumerate(CAPS_F):
+            cap = base_cap * cap_scale
+            if bit == 0:
+                cap *= msb_scale
+            cap *= bit_cap_scales[bit]
+            if bit == 3:
+                cap *= lsb_scale
+            elements.append((f"bit{bit}", cap, bool((code >> (3 - bit)) & 1)))
+    db_nodes = []
+    for element_index, (element_name, cap, selected) in enumerate(elements):
+        node = f"db_{element_name}" if segmented else f"db{element_index}"
+        db_nodes.append(node)
+        cap *= cap_scale if segmented else 1.0
+        caps.append(f"CDAC_{element_name} top {node} {cap:.12e}")
+        caps.append(f"CDACDUMMY_{element_name} {node} 0 {dummy_override}")
         if bottom_leak:
-            caps.append(f"RLEAK_DAC{bit} db{bit} 0 {bottom_leak}")
+            caps.append(f"RLEAK_DAC_{element_name} {node} 0 {bottom_leak}")
         if selected:
             redistribution_time = f"{redist_ns:g}n" if os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long" else "1n"
             selected_nfet_control = f"PULSE(1.8 0 {redistribution_time} 10p 10p 200n 1u)"
             pfet_time = "5.18n" if os.environ.get("AIMC_COUPLED_BREAK_BEFORE_MAKE") == "1" and os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long" else redistribution_time
             selected_pfet_control = f"PULSE(1.8 0 {pfet_time} 10p 10p 200n 1u)"
-            if os.environ.get("AIMC_COUPLED_BOTTOM_PMOS_ONLY") != "1":
-                controls.append(f"VGN_DAC{bit} gn_dac{bit} 0 {selected_nfet_control}")
-                switches.append(f"XBN_DAC{bit} db{bit} gn_dac{bit} 0 0 sky130_fd_pr__nfet_01v8 W={8.0 * bottom_scale:.6g} L=0.15")
-            if os.environ.get("AIMC_COUPLED_BOTTOM_NMOS_ONLY") != "1":
+            if os.environ.get("AIMC_COUPLED_BOTTOM_PMOS_ONLY") != "1" and not ideal_bottom_switches:
+                controls.append(f"VGN_DAC_{element_name} gn_dac_{element_name} 0 {selected_nfet_control}")
+                switches.append(f"XBN_DAC_{element_name} {node} gn_dac_{element_name} 0 0 sky130_fd_pr__nfet_01v8 W={8.0 * bottom_scale:.6g} L=0.15")
+            if os.environ.get("AIMC_COUPLED_BOTTOM_NMOS_ONLY") != "1" and not ideal_bottom_switches:
                 if pfet_boost_v:
                     selected_pfet_control = selected_pfet_control.replace("1.8 0 ", f"1.8 {pfet_boost_v:.6g} ")
-                controls.append(f"VGP_DAC{bit} gp_dac{bit} 0 {selected_pfet_control}")
-                switch_width = 16.0 * bottom_scale * (msb_switch_scale if bit == 0 else 1.0)
-                switches.append(f"XBP_DAC{bit} db{bit} gp_dac{bit} vdd vdd sky130_fd_pr__pfet_01v8 W={switch_width:.6g} L=0.15")
+                controls.append(f"VGP_DAC_{element_name} gp_dac_{element_name} 0 {selected_pfet_control}")
+                switch_width = 16.0 * bottom_scale
+                if not bootstrapped_high:
+                    switches.append(f"XBP_DAC_{element_name} {node} gp_dac_{element_name} vdac_high vdd sky130_fd_pr__pfet_01v8 W={switch_width:.6g} L=0.15")
             if os.environ.get("AIMC_COUPLED_HIGH_NMOS") == "1":
-                switches.append(f"XBPHI_DAC{bit} db{bit} gn_dac{bit} vdd vdd sky130_fd_pr__nfet_01v8 W=8.0 L=0.15")
+                switches.append(f"XBPHI_DAC_{element_name} {node} gn_dac_{element_name} vdd vdd sky130_fd_pr__nfet_01v8 W=8.0 L=0.15")
         else:
             if isolate_bottom and os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long":
                 unselected_nmos_control = f"PULSE(1.8 {keeper_v:g} {redist_ns:g}n 10p 10p 200n 1u)"
             else:
                 unselected_nmos_control = "1.8"
-            controls.extend([f"VGP_DAC{bit} gp_dac{bit} 0 1.8", f"VGN_DAC{bit} gn_dac{bit} 0 {unselected_nmos_control}"])
-            switches.append(f"XBN_DAC{bit} db{bit} gn_dac{bit} 0 0 sky130_fd_pr__nfet_01v8 W={8.0 * bottom_scale:.6g} L=0.15")
+            controls.extend([f"VGP_DAC_{element_name} gp_dac_{element_name} 0 1.8", f"VGN_DAC_{element_name} gn_dac_{element_name} 0 {unselected_nmos_control}"])
+            if not ideal_bottom_switches:
+                switches.append(f"XBN_DAC_{element_name} {node} gn_dac_{element_name} 0 0 sky130_fd_pr__nfet_01v8 W={8.0 * bottom_scale:.6g} L=0.15")
     if top_dummy_override:
         caps.append(f"CDAC_TOP_DUMMY top 0 {top_dummy_override}")
     if sense_isolation_cap:
@@ -98,6 +120,7 @@ def add_dac(source: str, code: int, input_v: float, reference_v: float) -> str:
     block = f'''* Physical Sky130 transistor DAC feeding the comparator input.
 VREF inn 0 {reference_v:.9f}
 VSRC_DAC srcin 0 {input_v:.9f}
+VDAC_HIGH vdac_high 0 {dac_high_v:.9f}
 VDAC_CTRL dac_ctrl 0 PULSE(0 {{vdd}} 0.1n 10p 10p 0.9n 1u)
 VDAC_CTRLB dac_ctrlb 0 PULSE({{vdd}} 0 0.1n 10p 10p 0.9n 1u)
 XDS_DAC srcin dac_ctrl top 0 sky130_fd_pr__nfet_01v8 W=2.0 L=0.15
@@ -109,6 +132,14 @@ XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=4.0 L=0.15
 {chr(10).join(switches)}
 {chr(10).join(controls)}
 '''
+    if ideal_bottom_switches:
+        block += ".model SWIDEAL_BOTTOM SW(Ron=0.5 Roff=1G Vt=0.9 Vh=0.05)\n"
+        block += "\n".join(
+            f"BIDEAL_GP_INV{index} gp_inv{index} 0 V={{1.8-V(gp_dac_{name})}}\n"
+            f"SIDEAL_BOTTOM_HIGH{index} {node} vdac_high gp_inv{index} 0 SWIDEAL_BOTTOM\n"
+            f"SIDEAL_BOTTOM_LOW{index} {node} 0 gn_dac_{name} 0 SWIDEAL_BOTTOM"
+            for index, (name, _cap, _selected), node in zip(range(len(elements)), elements, db_nodes)
+        ) + "\n"
     if top_reset and os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long":
         reset_delay = max(0.2, redist_ns - 0.7)
         block += f"VTOP_RESET top_reset 0 PULSE(0 {{vdd}} {reset_delay:g}n 10p 10p 0.5n 20n)\n"
@@ -155,7 +186,12 @@ XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=4.0 L=0.15
         source = source.replace("1n 10p 10p 200n 1u", f"{redist_ns:g}n 10p 10p 200n 1u")
     # Reduce the comparator sampling switch area while preserving a matched
     # pair. This is an interface-loading experiment, not a final sizing.
-    source = source.replace(".ic v(sp)=0.9", f".ic v(top)={input_v:.9f} v(db0)=0 v(db1)=0 v(db2)=0 v(db3)=0 v(sp)=0.9")
+    bottom_initial_conditions = " ".join(f"v({node})=0" for node in db_nodes)
+    bottom_measurements = "\n".join(
+        f".measure tran {'dac_' + node if segmented else 'dac_b' + str(index)}_after_v FIND v({node}) AT=7.55n"
+        for index, node in enumerate(db_nodes)
+    )
+    source = source.replace(".ic v(sp)=0.9", f".ic v(top)={input_v:.9f} {bottom_initial_conditions} v(sp)=0.9")
     # The DAC must finish redistribution before the comparator samples. The
     # original standalone comparator sampled at 0.1-0.85 ns, before the DAC's
     # 1 ns bottom-plate transition, which held the wrong physical quantity.
@@ -167,7 +203,7 @@ XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=4.0 L=0.15
     source = source.replace(".tran 5p 3n", ".tran 5p 9n")
     source = source.replace("AT=1.45n", "AT=7.55n")
     source = source.replace("AT=2.70n", "AT=8.80n")
-    source = source.replace(".measure tran sampled_p_before_v FIND v(sp) AT=0.90n", ".measure tran dac_top_before_v FIND v(top) AT=0.90n\n.measure tran dac_top_after_v FIND v(top) AT=7.55n\n.measure tran dac_sense_after_v FIND v(sense) AT=7.55n\n.measure tran dac_b0_after_v FIND v(db0) AT=7.55n\n.measure tran dac_b1_after_v FIND v(db1) AT=7.55n\n.measure tran dac_b2_after_v FIND v(db2) AT=7.55n\n.measure tran dac_b3_after_v FIND v(db3) AT=7.55n\n.measure tran comparator_sp_after_v FIND v(sp) AT=7.55n\n.measure tran comparator_sn_after_v FIND v(sn) AT=7.55n\n.measure tran sampled_p_before_v FIND v(sp) AT=0.90n")
+    source = source.replace(".measure tran sampled_p_before_v FIND v(sp) AT=0.90n", ".measure tran dac_top_before_v FIND v(top) AT=0.90n\n.measure tran dac_top_after_v FIND v(top) AT=7.55n\n.measure tran dac_sense_after_v FIND v(sense) AT=7.55n\n" + bottom_measurements + "\n.measure tran comparator_sp_after_v FIND v(sp) AT=7.55n\n.measure tran comparator_sn_after_v FIND v(sn) AT=7.55n\n.measure tran sampled_p_before_v FIND v(sp) AT=0.90n")
     if not sense_isolation_cap:
         source = source.replace(".measure tran dac_sense_after_v FIND v(sense) AT=7.55n", ".measure tran dac_sense_after_v FIND v(top) AT=7.55n")
     if os.environ.get("AIMC_COUPLED_DAC_ACQ") == "long":
@@ -225,11 +261,18 @@ def run_trial(code: int, input_v: float, reference_v: float) -> dict[str, Any]:
     output_sign = 1 if output_diff > 0 else -1 if output_diff < 0 else 0
     # This comparator fixture has the raw inverted convention outn-outp.
     row.update({
+        "dac_source_v": input_v,
         "dac_top_before_v": read_measure(result.stdout, "dac_top_before_v"),
         "dac_top_after_v": dac_top,
         "dac_sense_after_v": sense_value,
         "dac_to_reference_diff_v": sense_value - reference_v,
-        "dac_bottom_plate_v": [read_measure(result.stdout, f"dac_b{bit}_after_v") for bit in range(4)],
+        "dac_bottom_plate_v": [
+            read_measure(result.stdout, f"dac_{node}_after_v" if SEGMENTED_DAC else f"dac_b{index}_after_v")
+            for index, node in enumerate(
+                ["db_coarse0", "db_coarse1", "db_coarse2", "db_coarse3", "db_fine2", "db_fine1"]
+                if SEGMENTED_DAC else ["db0", "db1", "db2", "db3"]
+            )
+        ],
         "comparator_sp_after_v": read_measure(result.stdout, "comparator_sp_after_v"),
         "comparator_sn_after_v": read_measure(result.stdout, "comparator_sn_after_v"),
         "output_diff_v": output_diff,
@@ -268,6 +311,8 @@ def main() -> int:
         "direct_preamp_enabled": os.environ.get("AIMC_COUPLED_DIRECT_PREAMP") == "1",
         "top_dummy_capacitance": os.environ.get("AIMC_COUPLED_TOP_DUMMY_CAP", ""),
         "top_rail_resistor": os.environ.get("AIMC_COUPLED_TOP_RAIL_RESISTOR", ""),
+        "dac_high_v": float(os.environ.get("AIMC_COUPLED_DAC_HIGH_V", "1.8")),
+        "segmented_dac_enabled": SEGMENTED_DAC,
         "rail_clamp_area": float(os.environ.get("AIMC_COUPLED_RAIL_CLAMP_AREA", "1.0")),
         "rows": rows,
         "claim_boundary": {

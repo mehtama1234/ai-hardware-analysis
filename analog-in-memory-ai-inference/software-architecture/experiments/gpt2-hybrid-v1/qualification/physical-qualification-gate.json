@@ -1,0 +1,104 @@
+{
+  "schema_version": "physical-qualification-gate-v0.1",
+  "result_type": "guarded_model_to_chip_qualification_gate",
+  "decision": "retain_native_digital_gpu_execution",
+  "workload": {
+    "source": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-workload-trace.json",
+    "vectors": 162,
+    "trace_digest": "8d44e6951a9680d8749da573c1a5b4050956a947c36325a22840009733d1544e"
+  },
+  "campaign_summary": null,
+  "circuit_evidence": {
+    "corners": {
+      "TT": {
+        "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-pwl50ps-clock100ps-cpu.json",
+        "status": "continuous_physical_sar_nominal_map_passed",
+        "measured": true,
+        "accepted": true,
+        "decision_values": [
+          1,
+          1,
+          0,
+          1
+        ]
+      },
+      "SS": {
+        "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-ss162-pwl02-clock02-cpu.json",
+        "status": "continuous_physical_sar_candidate_measured_not_accepted",
+        "measured": true,
+        "accepted": false,
+        "decision_values": [
+          1,
+          1,
+          0,
+          1
+        ]
+      },
+      "SF": {
+        "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-sf180-pwl02-clock02-cpu.json",
+        "status": "continuous_physical_sar_nominal_map_passed",
+        "measured": true,
+        "accepted": true,
+        "decision_values": [
+          1,
+          1,
+          0,
+          1
+        ]
+      },
+      "FF": {
+        "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-ff-corner-api-20260910.json",
+        "status": "continuous_physical_sar_nominal_map_passed",
+        "measured": true,
+        "accepted": true,
+        "decision_values": [
+          1,
+          1,
+          0,
+          1
+        ]
+      },
+      "FS": {
+        "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-corner-api-20260910.json",
+        "status": "continuous_physical_sar_candidate_measured_not_accepted",
+        "measured": true,
+        "accepted": false,
+        "decision_values": [
+          1,
+          0,
+          1,
+          1
+        ]
+      }
+    },
+    "mismatch_trial": {
+      "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-calibrated5-20260910-trial-000.json",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "all_conversions_correct": false
+    },
+    "simple_load_energy": {
+      "path": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/converter-supply-energy-spice-evidence.json",
+      "status": "converter_supply_energy_spice_complete_simple_load",
+      "worst_total_energy_j": 4.273039299999999e-12
+    }
+  },
+  "checks": {
+    "nominal_continuous_sar": true,
+    "all_pvt_corners_accepted": false,
+    "mismatch_yield_campaign_accepted": false,
+    "matched_converter_energy": false
+  },
+  "open_items": [
+    "all_pvt_corners_accepted",
+    "mismatch_yield_campaign_accepted",
+    "matched_converter_energy"
+  ],
+  "next_actions": [
+    "Run a fresh FS/FF calibrated continuous-SAR campaign with one-to-one code-map acceptance.",
+    "Run an independent mismatch population and report legal-map yield without per-trial remap.",
+    "Replace simple-load energy with matched extracted converter/array/controller coefficients.",
+    "Only then populate projection-cost-model.json and replay the GPT-2 trace for analog-vs-digital break-even."
+  ],
+  "claim_boundary": "Software and nominal circuit evidence do not authorize an analog GPT-2 claim while any PVT, mismatch, or matched-energy gate is open.",
+  "artifact_sha256": "46a32b444a4977cf7057e429a12cbfcd297886b60dddafadaa8e3410323076ab"
+}

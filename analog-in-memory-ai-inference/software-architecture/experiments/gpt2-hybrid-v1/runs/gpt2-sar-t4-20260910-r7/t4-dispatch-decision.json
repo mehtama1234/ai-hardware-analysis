@@ -1,0 +1,45 @@
+{
+  "schema_version": "t4-dispatch-decision-v0.1",
+  "result_type": "matched_t4_workload_dispatch_decision",
+  "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "device": "cuda",
+  "quality": {
+    "argmax_agreement": 1.0,
+    "generation_exact_matches": 4,
+    "nll_increase_nats": 0.004783872574095405
+  },
+  "timing": {
+    "median_cpu_ms": 1791.4343590018689,
+    "median_cuda_ms": 408.38722099999814,
+    "cpu_to_cuda_speedup": 4.386607285642459
+  },
+  "dispatch": {
+    "routes": [
+      {
+        "case": "nominal_ss_sf_ff_supported_profile",
+        "route": "digital_fallback",
+        "reason": "profile metadata is schematic and analog placement is unauthorized"
+      },
+      {
+        "case": "fs_corner",
+        "route": "digital_fallback",
+        "reason": "global remap rejected: observed code collision"
+      },
+      {
+        "case": "fixed_seed_mismatch_campaign",
+        "route": "digital_code_correction_candidate",
+        "reason": "per-converter remap passed 4/4 same-campaign holdouts; analog path remains unqualified"
+      },
+      {
+        "case": "unknown_or_uncharacterized",
+        "route": "digital_fallback",
+        "reason": "fail closed on missing calibration or out-of-domain code"
+      }
+    ],
+    "analog_vectors_authorized": 0,
+    "mismatch_digital_correction_candidate": true
+  },
+  "decision": "retain_native_digital_gpu_execution_until_physical_converter_and_energy_data_close",
+  "next_gate": "Run calibrated per-converter dispatch on held-out workload references, then replace numerical profile costs with matched converter/array/controller measurements.",
+  "claim_boundary": "This decision joins matched numerical T4 execution with schematic converter routing. It does not claim analog hardware latency, energy, yield, or speedup."
+}

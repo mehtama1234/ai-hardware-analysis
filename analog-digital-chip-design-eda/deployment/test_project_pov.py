@@ -13,3 +13,10 @@ def test_project_pov_preserves_failed_closure_and_claim_boundary(tmp_path):
     assert "measured-hardware" in report["claim_boundary"]
     assert report["report_sha256"]
     assert json.loads(write_project_pov(tmp_path).read_text())["report_sha256"] == report["report_sha256"]
+
+def test_project_pov_marks_synthetic_execution_proxy_as_unreported(tmp_path):
+    (tmp_path / "project-simulation-result.json").write_text(json.dumps({"project_id": "p1", "status": "passed"}))
+    (tmp_path / "closure-report.json").write_text("[]")
+    report = build_project_pov(tmp_path)
+    assert report["coverage"]["reported"] is False
+    assert report["coverage"]["percentage"] == 100.0

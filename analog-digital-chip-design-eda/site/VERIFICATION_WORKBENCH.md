@@ -19,20 +19,39 @@ approval gate, PoV preview, bundle preview, and comparison controls.
 
 ## Connect a live pilot service
 
-Use the API origin and project-scoped artifact IDs in the URL:
+Run the existing service and durable worker using the deployment instructions.
+Open the service's `/workbench/` page for a same-origin UI. The page and its
+allowlisted JavaScript assets are public; API requests retain API-key checks.
 
-```text
-/verification-workbench.html?api=http://localhost:8080&project=customer_demo&artifact=<rtl-id>&tb=<testbench-id>
-```
+Choose **Connection**, enter the service origin and any API/project key, and
+connect. Credentials are scoped to that origin in tab session storage, never
+included in URLs. After connection:
 
-The page reads project, dashboard, collateral, job, PoV, bundle, comparison,
-and signoff endpoints. The job selector supports compile, lint, simulation,
-formal preflight, bounded formal proof, and regression. Regression testbench
-IDs are supplied as `tbs=id1,id2`; bounded proof parameters may use
-`signal`, `expected`, and `sequence`.
+1. Create or select a project.
+2. Use **Upload artifact** to choose a text file or paste multiline content.
+3. Inspect and ingest its recorded version in **Sources & plan**.
+4. Choose **Run verification**, select RTL and checker versions, and queue the run.
+5. A durable worker must claim the queued run before it executes.
 
-The service API key is read from `localStorage` key
-`verification_api_key` when present. The frontend does not embed credentials.
+Regression accepts multiple checker selections. Bounded invariant proof has
+explicit signal, expected-value, and bound fields. Tool availability is shown
+in the run form. An unavailable tool can still result in a tool failure;
+capability-specific admission guidance remains under development.
+
+A separately served static UI requires the service to permit its origin;
+the same-origin `/workbench/` path avoids that requirement. The **Connection**
+form reports reachability/authentication failures without substituting sample data.
+
+The investigation, exact repair review, retest comparison, bundle download,
+and signoff receipt flow are implemented for the open-source pilot. The
+walkthrough below describes the supported path; production customers still
+need external identity/RBAC, durable production storage, customer-specific EDA
+adapters, and representative usability validation. See the implementation
+status document for the remaining release gates.
+When a live action fails, the inline error includes the service request ID so
+an operator can provide an exact trace to support.
+Successful run submission displays the same persisted request ID in the queue
+confirmation toast.
 
 ## Customer PoV walkthrough
 
@@ -52,3 +71,12 @@ The service API key is read from `localStorage` key
 Generated SVA/UVM remains review-only. Bounded formal status is not an
 unbounded proof, captured functional markers are not exhaustive coverage, and
 simulation evidence is not hardware qualification.
+
+## Pilot recovery checks
+
+If the run list shows `Stale`, use **Refresh** after checking `/readyz`; the
+last known run remains reviewable while the service recovers. If it shows
+`Unauthorized · reconnect required`, reopen **Connection** and replace the
+expired API key in the current tab. A blocked formal run exposes its timeout
+reason and cannot be signed off. A comparison marked incomparable requires a
+retest with the same checker scope before closure or signoff.

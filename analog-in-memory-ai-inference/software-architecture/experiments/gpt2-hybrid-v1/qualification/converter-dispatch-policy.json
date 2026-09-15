@@ -1,0 +1,79 @@
+{
+  "schema_version": "converter-dispatch-policy-v0.1",
+  "result_type": "guarded_converter_runtime_dispatch_policy",
+  "sources": [
+    {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/circuit-derived-sar-profile.json",
+      "sha256": "4be2417e927bf8ff70bb5a2e43050a4cd21708bd3abdef0c0df927a71868980a"
+    },
+    {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-contract.json",
+      "sha256": "7d907553c6d66b6d22c1c8034ada91969ae360645765ee8a7e20a368064c72d1"
+    },
+    {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-holdout-mismatch-per-converter.json",
+      "sha256": "1cbecd910325fa0545c47c89383fa9b7fd602d0fd20b322e841267a10dd75ea5"
+    },
+    {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-transformer-contract.json",
+      "sha256": "e4c52a3a76dc14c2c4e394f89e054faac059cd31965ab5d9df58e1629294e93a"
+    }
+  ],
+  "workload_binding": {
+    "model": {
+      "model_id": "openai-community/gpt2",
+      "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "target_module": "transformer.h.0.mlp.c_fc",
+      "projection_shape": [
+        768,
+        3072
+      ]
+    },
+    "per_vector_schedule": {
+      "macs": 2359296,
+      "dac_conversions_without_column_tile_broadcast": 18432,
+      "adc_conversions_after_differential_subtraction": 18432,
+      "array_evaluations": 288,
+      "digital_partial_sum_additions": 15360,
+      "boundary_input_bytes_fp32": 3072,
+      "boundary_output_bytes_fp32": 12288
+    }
+  },
+  "qualification_summary": {
+    "supported_profile_cases": 4,
+    "open_profile_cases": 3,
+    "global_remap_usable_cases": 1,
+    "per_converter_mismatch_holdouts": 4,
+    "per_converter_mismatch_holdout_total": 4
+  },
+  "routes": [
+    {
+      "case": "nominal_ss_sf_ff_supported_profile",
+      "route": "digital_fallback",
+      "reason": "profile metadata is schematic and analog placement is unauthorized"
+    },
+    {
+      "case": "fs_corner",
+      "route": "digital_fallback",
+      "reason": "global remap rejected: observed code collision"
+    },
+    {
+      "case": "fixed_seed_mismatch_campaign",
+      "route": "digital_code_correction_candidate",
+      "reason": "per-converter remap passed 4/4 same-campaign holdouts; analog path remains unqualified"
+    },
+    {
+      "case": "unknown_or_uncharacterized",
+      "route": "digital_fallback",
+      "reason": "fail closed on missing calibration or out-of-domain code"
+    }
+  ],
+  "fail_closed_invariants": [
+    "analog_placement_allowed must remain false",
+    "unknown code causes digital fallback",
+    "code collision causes digital fallback",
+    "calibration must be per converter/tile and held out before workload use"
+  ],
+  "decision": "digital_runtime_authoritative_with_guarded_calibration_candidate",
+  "claim_boundary": "This dispatch policy controls software routing from schematic qualification receipts. It does not authorize analog placement or claim circuit yield, hardware acceleration, latency, or energy benefit."
+}

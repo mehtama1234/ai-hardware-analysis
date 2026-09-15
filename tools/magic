@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+IMAGE="ghcr.io/the-openroad-project/openlane:ff5509f65b17bfa4068d5336495ab1718987ff69-amd64"
+WORKDIR="${PWD}"
+PDK_TECH_ROOT=""
+for candidate in "${WORKDIR}" "${WORKDIR}/.." "${WORKDIR}/../.." "${WORKDIR}/../../.." "${WORKDIR}/../../../.."; do
+  if [ "$(basename "$(realpath "${candidate}")")" = "sky130A" ] && [ -d "${candidate}" ]; then
+    PDK_TECH_ROOT="$(realpath "${candidate}")"
+    break
+  fi
+done
+if [ -z "${PDK_TECH_ROOT}" ]; then
+  PDK_TECH_ROOT="${WORKDIR}"
+fi
+ARGS=("$@")
+if [[ " ${ARGS[*]} " != *" -T "* ]]; then
+  ARGS=(-rcfile /build/pdk/sky130A/libs.tech/magic/sky130A.magicrc -T sky130A "${ARGS[@]}")
+fi
+exec docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -v "${WORKDIR}:${WORKDIR}" \
+  -v "${PDK_TECH_ROOT}:/build/pdk/sky130A" \
+  -e PDK_ROOT=/build/pdk \
+  -w "${WORKDIR}" \
+  "${IMAGE}" /build//bin/magic "${ARGS[@]}"

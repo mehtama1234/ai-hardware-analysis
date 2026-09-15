@@ -1,0 +1,43 @@
+{
+  "lowering_sha256": "ff739ac50d24bae6fc4b1f51d8f6c85361fdd4cc02dbc3835960b311f2141a00",
+  "properties": [
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (rst && reg0 !== '0) $error(\"REQ-REG-RESET: reset invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) rst |-> reg0 == '0);",
+      "reason": null,
+      "requirement_id": "REQ-REG-RESET",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "reset_guard_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": null,
+      "original": "assert property (@(posedge clk) wr_en && addr != 0 |=> $stable(reg0));",
+      "reason": "unsupported property body: wr_en && addr != 0 |=> $stable(reg0)",
+      "requirement_id": "REQ-REG-ADDRESS",
+      "reset": null,
+      "status": "unsupported",
+      "transformations": [
+        "clock_alias_injection"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": null,
+      "original": "assert property (@(posedge clk) wr_en && addr == 0 |=> reg0 == $past(wdata));",
+      "reason": "unsupported property body: wr_en && addr == 0 |=> reg0 == $past(wdata)",
+      "requirement_id": "REQ-REG-WRITE",
+      "reset": null,
+      "status": "unsupported",
+      "transformations": [
+        "clock_alias_injection"
+      ]
+    }
+  ],
+  "schema_version": "sva-lowering-v1"
+}

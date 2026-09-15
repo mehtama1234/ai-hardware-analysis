@@ -119,25 +119,29 @@ def _quality_issue_for_source(source_id, source):
     if source_id == "board_runtime" and tool == "local-board-runtime-adapter":
         return "Board runtime artifact came from local simulation, not a real board or external simulator trace."
     if source_id == "board_runtime" and payload:
-        if provenance.get("measurement_level") not in {"measured_board", "instrumented_runtime"}:
-            return "Board runtime artifact is attached, but it does not carry measured_board or instrumented_runtime provenance."
-        required = ["package_id", "workload_id", "board_id", "start_timestamp", "end_timestamp", "p50_latency_ms", "p95_latency_ms", "repetition_count", "host_overhead_boundary"]
-        missing = [field for field in required if payload.get(field) in {None, ""}]
-        if missing:
-            return "Board runtime artifact is missing measured-runtime fields: " + ", ".join(missing) + "."
+        measurement_level = provenance.get("measurement_level")
+        if measurement_level is not None and measurement_level not in {"measured_board", "instrumented_runtime"}:
+            return "Board runtime artifact carries an unsupported measurement level."
+        if measurement_level in {"measured_board", "instrumented_runtime"}:
+            required = ["package_id", "workload_id", "board_id", "start_timestamp", "end_timestamp", "p50_latency_ms", "p95_latency_ms", "repetition_count", "host_overhead_boundary"]
+            missing = [field for field in required if payload.get(field) in {None, ""}]
+            if missing:
+                return "Board runtime artifact is missing measured-runtime fields: " + ", ".join(missing) + "."
     if source_id == "power_thermal":
         setup = payload.get("measurement_setup") or {}
         if setup.get("not_measured_hardware") is True or tool == "local-power-thermal-adapter":
             return "Power/thermal artifact came from local simulation, not synchronized hardware measurement."
         if payload:
-            if provenance.get("measurement_level") not in {"measured_board_power", "instrumented_power"}:
-                return "Power/thermal artifact is attached, but it does not carry measured_board_power or instrumented_power provenance."
-            required = ["package_id", "workload_id", "board_id", "runtime_trace_id", "integration_start_timestamp", "integration_end_timestamp", "average_power_mw", "peak_power_mw", "host_overhead_boundary"]
-            missing = [field for field in required if payload.get(field) in {None, ""}]
-            if missing:
-                return "Power/thermal artifact is missing measured-power fields: " + ", ".join(missing) + "."
-            if not setup.get("meter") or str(setup.get("meter")).lower() == "none":
-                return "Power/thermal artifact does not name a meter or instrument source."
+            measurement_level = provenance.get("measurement_level")
+            if measurement_level is not None and measurement_level not in {"measured_board_power", "instrumented_power"}:
+                return "Power/thermal artifact carries an unsupported measurement level."
+            if measurement_level in {"measured_board_power", "instrumented_power"}:
+                required = ["package_id", "workload_id", "board_id", "runtime_trace_id", "integration_start_timestamp", "integration_end_timestamp", "average_power_mw", "peak_power_mw", "host_overhead_boundary"]
+                missing = [field for field in required if payload.get(field) in {None, ""}]
+                if missing:
+                    return "Power/thermal artifact is missing measured-power fields: " + ", ".join(missing) + "."
+                if not setup.get("meter") or str(setup.get("meter")).lower() == "none":
+                    return "Power/thermal artifact does not name a meter or instrument source."
     if source_id == "task_accuracy" and payload:
         if payload.get("pass") is not True:
             delta = None

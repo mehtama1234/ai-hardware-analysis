@@ -1,0 +1,49 @@
+groups:
+  - name: verification-pilot
+    rules:
+      - alert: VerificationPilotNotReady
+        expr: verification_readiness < 1
+        for: 5m
+        labels: {severity: critical, service: verification-pilot}
+        annotations:
+          summary: Verification service is not ready
+          runbook: deployment/RECOVERY_RUNBOOK.md
+      - alert: VerificationPilotHttp5xx
+        expr: sum(rate(verification_http_responses_total{class="5xx"}[5m])) > 0
+        for: 10m
+        labels: {severity: warning, service: verification-pilot}
+        annotations:
+          summary: Verification API is returning server errors
+      - alert: VerificationPilotQueueBacklog
+        expr: sum(verification_queue_jobs{state="queued"}) > verification_queue_capacity
+        for: 10m
+        labels: {severity: warning, service: verification-pilot}
+        annotations:
+          summary: Verification job backlog exceeds the pilot capacity
+          runbook: deployment/RECOVERY_RUNBOOK.md
+      - alert: VerificationPilotBackupStale
+        expr: verification_backup_age_seconds > verification_backup_rpo_seconds * 2
+        for: 10m
+        labels: {severity: critical, service: verification-pilot}
+        annotations:
+          summary: Latest successful backup is outside the DR freshness window
+          runbook: deployment/RECOVERY_RUNBOOK.md
+      - alert: VerificationPilotLatencyHigh
+        expr: sum(rate(verification_http_request_duration_seconds_sum[5m])) / sum(rate(verification_http_request_duration_seconds_count[5m])) > 5
+        for: 10m
+        labels: {severity: warning, service: verification-pilot}
+        annotations:
+          summary: Verification API average latency exceeds five seconds
+      - alert: VerificationPilotOidcUnknownKey
+        expr: increase(verification_oidc_jwks_unknown_kid_total[10m]) > 0
+        for: 2m
+        labels: {severity: warning, service: verification-pilot}
+        annotations:
+          summary: OIDC signing key rotation or configuration mismatch detected
+          runbook: deployment/PRODUCTION_MIGRATION_PLAN.md
+      - alert: VerificationPilotOidcRefreshFailure
+        expr: verification_oidc_cached_keys == 0
+        for: 5m
+        labels: {severity: critical, service: verification-pilot}
+        annotations:
+          summary: OIDC verifier has no cached signing keys

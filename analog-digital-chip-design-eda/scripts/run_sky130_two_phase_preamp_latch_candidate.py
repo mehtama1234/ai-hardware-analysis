@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -19,11 +20,12 @@ EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
 SPEC_JSON = EVIDENCE / "sky130-comparator-acceptance-fixture-spec.json"
 RISK_JSON = EVIDENCE / "sky130-polarity-contract-latch-sar-risk.json"
-DECK_OUT = SPICE_DIR / "sky130_two_phase_preamp_latch_candidate.sp"
-CSV_OUT = MEASUREMENTS / "sky130-two-phase-preamp-latch-candidate.csv"
-OUT_JSON = EVIDENCE / "sky130-two-phase-preamp-latch-candidate.json"
-OUT_MD = EVIDENCE / "sky130-two-phase-preamp-latch-candidate.md"
-NGSPICE_TIMEOUT_S = 50
+_OUTPUT_STEM = os.environ.get("AIMC_TWO_PHASE_OUTPUT_STEM", "sky130-two-phase-preamp-latch-candidate")
+DECK_OUT = SPICE_DIR / f"{_OUTPUT_STEM}.sp"
+CSV_OUT = MEASUREMENTS / f"{_OUTPUT_STEM}.csv"
+OUT_JSON = EVIDENCE / f"{_OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{_OUTPUT_STEM}.md"
+NGSPICE_TIMEOUT_S = float(os.environ.get("AIMC_TWO_PHASE_TIMEOUT_S", "50"))
 
 
 @dataclass(frozen=True)
@@ -186,7 +188,7 @@ def run_case(case: Case) -> dict[str, Any]:
 def build_report() -> dict[str, Any]:
     spec = json.loads(SPEC_JSON.read_text(encoding="utf-8"))
     risk = json.loads(RISK_JSON.read_text(encoding="utf-8"))
-    target_mv = float(spec["derived_budget"]["target_combined_offset_noise_mv"])
+    target_mv = float(os.environ.get("AIMC_TWO_PHASE_TARGET_MV", spec["derived_budget"]["target_combined_offset_noise_mv"]))
     rows = [run_case(Case("negative_target_edge", -target_mv)), run_case(Case("positive_target_edge", target_mv))]
     measured = [row for row in rows if row.get("ngspice_returncode") == 0 and not row.get("ngspice_timed_out")]
     resolved = sum(1 for row in rows if row.get("resolved_correct_polarity"))
@@ -228,7 +230,7 @@ def write_outputs(report: dict[str, Any]) -> None:
     CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
     keys = sorted({key for row in report["rows"] for key in row})
     with CSV_OUT.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=keys)
+        writer = csv.DictWriter(handle, fieldnames=keys, lineterminator="\n")
         writer.writeheader()
         writer.writerows(report["rows"])
     OUT_JSON.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

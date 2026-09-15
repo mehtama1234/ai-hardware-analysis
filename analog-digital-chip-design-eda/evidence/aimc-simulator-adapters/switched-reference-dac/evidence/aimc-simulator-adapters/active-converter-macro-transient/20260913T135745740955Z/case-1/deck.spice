@@ -1,0 +1,67 @@
+* Extracted active converter macro decision-boundary transient.
+.option scale=1u
+.param mc_mm_switch=0 mc_pr_switch=0
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__tt.corner.spice"
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.ref/sky130_fd_pr/spice/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+* SKY130 Spice File.
+.option scale=1.0u
+.include "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/parameters/lod.spice"
+.param
++ lv_dlc_rotweak = .00e-9
++ lvhvt_dlc_rotweak = .00e-9
++ lvt_dlc_rotweak = .00e-9
++ hv_dlc_rotweak = .00e-9
++ sky130_fd_pr__nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__esd_nfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__nfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_lvt__dlc_rotweak = lvt_dlc_rotweak
++ sky130_fd_pr__pfet_01v8_hvt__dlc_rotweak = lvhvt_dlc_rotweak
++ sky130_fd_pr__esd_nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__esd_pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_03v3_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_05v0_nvt__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__nfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d10v5__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__pfet_g5v0d16v0__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_pass_flash__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_nfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_pr__special_pfet_latch_lowleakage__dlc_rotweak = lv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_star__dlc_rotweak = hv_dlc_rotweak
++ sky130_fd_bs_flash__special_sonosfet_original__dlc_rotweak = hv_dlc_rotweak
++ sonos_eeol_dlc_rotweak = hv_dlc_rotweak
++ sonos_peol_dlc_rotweak = hv_dlc_rotweak
+
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/active-converter-macro-candidate/routing-repair-20260913T144000Z/aimc_converter_macro_active_candidate_extracted.spice"
+.param vdd=1.8
+VSS vss 0 0
+VDD vdd 0 {vdd}
+VROW row_drive 0 0.900076485293
+VCOMP sar_comparator_input 0 0.899923514707
+VRESET reset 0 PULSE(0 {vdd} 8.00n 20p 20p 30n 60n)
+VEVAL eval 0 PULSE(0 {vdd} 8.20n 20p 20p 20n 30n)
+VSSX vss_escape 0 0
+VDD_EXT vdd_ext 0 {vdd}
+RP vdd_ext latch_sense_p_ext 100000
+RN vdd_ext latch_sense_n_ext 100000
+IBIAS iso_tail_ext 0 4u
+
+RTAIL tail_ext 0 100G
+XU vss vdd row_drive sar_comparator_input decision_p decision_n reset eval vss_escape latch_sense_p_ext latch_sense_n_ext iso_tail_ext tail_ext vdd_ext aimc_converter_macro_active_candidate_flat
+.options method=gear reltol=2e-3 abstol=1e-14 vntol=1e-7 gmin=1e-12 itl1=1000 itl4=1000 maxord=2 cshunt=1e-15 rshunt=1e12
+.tran 20p 20n uic
+.measure tran decision_p_v FIND v(decision_p) AT=18n
+.measure tran decision_n_v FIND v(decision_n) AT=18n
+.measure tran decision_diff_v PARAM='decision_n_v-decision_p_v'
+.measure tran supply_charge_c INTEG I(VDD) FROM=0 TO=20n
+.measure tran active_supply_charge_c INTEG I(VDD_EXT) FROM=0 TO=20n
+.control
+run
+.endc
+.end

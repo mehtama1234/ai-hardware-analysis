@@ -85,8 +85,21 @@ XEVAL eval clk_latch 0 0 sky130_fd_pr__nfet_01v8 W={latch_tail_w} L=0.15
 CLATP lat_p 0 5f
 CLATN lat_n 0 5f
 '''
-    base = base.replace(".ic v(sense_p)=0.9", insertion + ".ic v(sense_p)=0.9")
-    base = base.replace(".control\nset noaskquit", ".measure tran preamp_out_p_for_trim_v FIND v(out_p) AT=2.60n\n.measure tran preamp_out_n_for_trim_v FIND v(out_n) AT=2.60n\n.measure tran buffer_out_p_for_trim_v FIND v(buf_p) AT=2.60n\n.measure tran buffer_out_n_for_trim_v FIND v(buf_n) AT=2.60n\n.control\nset noaskquit")
+    # The extracted capacitive-isolation frontend intentionally omits sense
+    # node initial conditions, so anchor the handoff insertion on the first
+    # preamp initial condition rather than on a frontend-specific .ic line.
+    # Frontend variants use different .ic forms.  The historical replacement
+    # only matched the ultra-sense initializer and could silently omit the
+    # entire latch insertion for the default extracted frontend.
+    anchor = ".ic v(pre_p)=1.0"
+    if anchor in base:
+        base = base.replace(anchor, insertion + anchor, 1)
+    else:
+        match = re.search(r"^\.ic\s+", base, re.MULTILINE)
+        if match is None:
+            raise ValueError("two-stage handoff deck has no initial-condition anchor")
+        base = base[:match.start()] + insertion + base[match.start():]
+    base = base.replace(".control\nset noaskquit", ".measure tran preamp_out_p_for_trim_v FIND v(out_p) AT=2.60n\n.measure tran preamp_out_n_for_trim_v FIND v(out_n) AT=2.60n\n.measure tran latch_input_p_v FIND v(corr_p) AT=4.60n\n.measure tran latch_input_n_v FIND v(corr_n) AT=4.60n\n.measure tran buffer_out_p_for_trim_v FIND v(buf_p) AT=2.60n\n.measure tran buffer_out_n_for_trim_v FIND v(buf_n) AT=2.60n\n.control\nset noaskquit")
     base = base.replace(".tran 20p 3n", ".tran 20p 6n")
     base = base.replace("AT=2.60n\n.control", "AT=4.60n\n.measure tran lat_p_final_v FIND v(lat_p) AT=4.60n\n.measure tran lat_n_final_v FIND v(lat_n) AT=4.60n\n.measure tran latch_output_diff_v PARAM='lat_n_final_v-lat_p_final_v'\n.control")
     return base
@@ -122,12 +135,14 @@ def main() -> int:
             output = measure(result.stdout, "latch_output_diff_v")
             sample_before = measure(result.stdout, "sense_p_after_v") - measure(result.stdout, "sense_n_after_v")
             sample_after = sample_before
-            row.update({"latch_output_diff_v": output, "measured_sign": 1 if output > 0 else -1 if output < 0 else 0, "expected_sign": -1 if diff > 0 else 1, "latch_polarity_pass": (output < 0) == (diff > 0) and abs(output) >= 0.9, "sense_diff_before_v": sample_before, "sense_diff_after_v": sample_after, "sampled_diff_kickback_v": abs(sample_after - sample_before)})
+            latch_input_p = measure(result.stdout, "latch_input_p_v")
+            latch_input_n = measure(result.stdout, "latch_input_n_v")
+            row.update({"latch_output_diff_v": output, "measured_sign": 1 if output > 0 else -1 if output < 0 else 0, "expected_sign": -1 if diff > 0 else 1, "latch_polarity_pass": (output < 0) == (diff > 0) and abs(output) >= 0.9, "sense_diff_before_v": sample_before, "sense_diff_after_v": sample_after, "sampled_diff_kickback_v": abs(sample_after - sample_before), "latch_input_common_mode_v": (latch_input_p + latch_input_n) / 2, "latch_input_diff_v": latch_input_p - latch_input_n})
         else:
             row["error_excerpt"] = (result.stdout + result.stderr)[-1200:]
         rows.append(row)
     passing = [r for r in rows if r.get("latch_polarity_pass") and r.get("sampled_diff_kickback_v", 1) <= 1.8 / 4096 / 2]
-    report = {"result_type": "sky130_two_stage_preamp_latch_handoff", "status": "two_stage_preamp_latch_handoff_passed_kickback_measurement_limited" if len(passing) == len(rows) else "two_stage_preamp_latch_handoff_open", "same_run_zero_input_offset_output_diff_v": zero_offset, "applied_trim_v": applied_trim, "same_run_buffer_zero_input_offset_output_diff_v": buffer_zero_offset, "prior_standalone_zero_input_offset_output_diff_v": prior_zero_offset, "input_diff_scale": input_diff_scale, "output_equalizer": use_equalizer, "output_buffer": use_buffer, "input_sample_isolation": use_input_sample, "input_sample_cap_ff": input_sample_cap_ff, "input_sample_switch_width_um": input_sample_switch_w, "biased_tail": use_biased_tail, "precharge_gate": precharge_gate, "case_count": len(rows), "measured_case_count": sum(r["measured"] for r in rows), "passing_case_count": len(passing), "hard_kickback_limit_v": 1.8 / 4096 / 2, "rows": rows, "accepted_ready_now": False, "claim_boundary": {"allowed": "connects a calibrated two-stage transistor preamp to a Sky130 transistor latch and measures both polarity and output separation", "not_allowed": "does not prove statistical offset, noise, mismatch, physical preamp layout, DRC/LVS, SAR bit cycling, or accepted converter evidence"}}
+    report = {"result_type": "sky130_two_stage_preamp_latch_handoff", "status": "two_stage_preamp_latch_handoff_passed_kickback_measurement_limited" if len(passing) == len(rows) else "two_stage_preamp_latch_handoff_open", "frontend_netlist": os.environ.get("AIMC_TWO_STAGE_FRONTEND_NETLIST", "default_ultra_sense_extracted_netlist"), "frontend_subckt": os.environ.get("AIMC_TWO_STAGE_FRONTEND_SUBCKT", "sky130_ultra_sense_capacitive_frontend"), "frontend_pin_mode": os.environ.get("AIMC_TWO_STAGE_FRONTEND_PIN_MODE", "ultra_sense"), "frontend_sense_bias": "vcm_0.9v" if os.environ.get("AIMC_TWO_STAGE_FRONTEND_PIN_MODE") == "capacitive_isolation" else "ground", "stage1_input_width_um": float(os.environ.get("AIMC_TWO_STAGE_W1_UM", "1")), "stage2_input_width_um": float(os.environ.get("AIMC_TWO_STAGE_W2_UM", "1")), "same_run_zero_input_offset_output_diff_v": zero_offset, "applied_trim_v": applied_trim, "same_run_buffer_zero_input_offset_output_diff_v": buffer_zero_offset, "prior_standalone_zero_input_offset_output_diff_v": prior_zero_offset, "input_diff_scale": input_diff_scale, "output_equalizer": use_equalizer, "output_buffer": use_buffer, "input_sample_isolation": use_input_sample, "input_sample_cap_ff": input_sample_cap_ff, "input_sample_switch_width_um": input_sample_switch_w, "biased_tail": use_biased_tail, "precharge_gate": precharge_gate, "case_count": len(rows), "measured_case_count": sum(r["measured"] for r in rows), "passing_case_count": len(passing), "hard_kickback_limit_v": 1.8 / 4096 / 2, "rows": rows, "accepted_ready_now": False, "claim_boundary": {"allowed": "connects a calibrated two-stage transistor preamp to a Sky130 transistor latch and measures both polarity and output separation", "not_allowed": "does not prove statistical offset, noise, mismatch, physical preamp layout, DRC/LVS, SAR bit cycling, or accepted converter evidence"}}
     OUT.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     lines = ["# Sky130 Two-Stage Preamp Latch Handoff", "", f"- status: `{report['status']}`", f"- zero-input trim V: `{zero_offset}`", f"- passing cases: `{len(passing)}` of `{len(rows)}`", "", "This test connects the measured-offset-trimmed two-stage transistor preamp to the transistor latch. The sample-side movement is currently reported from the preamp sense measurement and remains a limited kickback proxy.", "", "| input diff mV | latch output diff V | polarity pass |", "|---:|---:|---|"]
     for r in rows:

@@ -19,9 +19,30 @@ OUT_MD = EVIDENCE / "sky130-two-phase-offset-noise-sweep.md"
 def main() -> int:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     rows = [row for row in source["rows"] if row.get("ngspice_returncode") == 0]
+    half_lsb_v = float(source["half_lsb_12b_v"])
+    if not rows:
+        report = {
+            "result_type": "sky130_two_phase_offset_noise_sweep",
+            "status": "proxy_input_unavailable_transistor_fixture_timeout",
+            "source_two_phase_candidate": str(SOURCE.relative_to(ROOT)),
+            "half_lsb_12b_v": half_lsb_v,
+            "case_count": 0,
+            "passing_case_count": 0,
+            "pass_fraction": None,
+            "claim_boundary": {
+                "allowed": "records that the measured source fixture did not provide a valid signal for proxy construction",
+                "not_allowed": "does not estimate noise margin or support any converter claim without measured source values",
+            },
+        }
+        OUT_JSON.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        OUT_MD.write_text("# Sky130 Two-Phase Offset And Noise Sweep\n\n- status: `proxy_input_unavailable_transistor_fixture_timeout`\n\nThe source fixture had no successful measured rows, so no proxy cases were constructed.\n", encoding="utf-8")
+        print("sky130_two_phase_offset_noise_sweep")
+        print("status,proxy_input_unavailable_transistor_fixture_timeout")
+        print("case_count,0")
+        print(f"json,{OUT_JSON}")
+        return 0
     signal_v = min(abs(float(row["preamp_diff_before_latch_v"])) for row in rows)
     measured_kickback_v = max(float(row["sampled_diff_kickback_v"]) for row in rows)
-    half_lsb_v = float(source["half_lsb_12b_v"])
 
     offset_values_v = [0.0, 50e-6, 100e-6, 150e-6, 200e-6]
     noise_values_v = [0.0, 25e-6, 50e-6, 100e-6]

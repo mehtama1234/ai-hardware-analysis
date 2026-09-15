@@ -56,9 +56,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("lvs_run", type=Path)
     parser.add_argument("--load-ohm", type=float, default=100000)
+    parser.add_argument("--isolation-bias-ua", type=float, default=4.0,
+                        help="Ideal isolation-tail bias current in microamps; diagnostic operating-point sweep")
     parser.add_argument("--input-diffs-mv", type=float, nargs="+", default=[-0.5, 0.5])
     parser.add_argument("--view", choices=("extracted", "schematic", "device-only-extracted", "symmetric-cap-diagnostic"), default="extracted")
     parser.add_argument("--eval-at-ns", type=float, default=8.2)
+    parser.add_argument("--reset-release-ns", type=float, default=8.0,
+                        help="Release active-low reset before evaluation; diagnostic clock parameter")
+    parser.add_argument("--decision-at-ns", type=float, default=18.0,
+                        help="Sample output after evaluation for the decision-margin check")
     parser.add_argument("--clock-rise-ps", type=float, default=20,
                         help="Ideal reset/evaluation source rise time; not a physical driver model")
     parser.add_argument("--precharge-v", type=float, default=1.8,
@@ -68,10 +74,16 @@ def main() -> int:
     args = parser.parse_args()
     if not math.isfinite(args.load_ohm) or args.load_ohm <= 0:
         parser.error("--load-ohm must be finite and positive")
+    if not math.isfinite(args.isolation_bias_ua) or not 0 < args.isolation_bias_ua <= 100:
+        parser.error("--isolation-bias-ua must be finite and within (0, 100]")
     if any(not math.isfinite(value) or abs(value) > 1000 for value in args.input_diffs_mv):
         parser.error("input differences must be finite and within ±1000 mV")
     if not math.isfinite(args.eval_at_ns) or not 1 <= args.eval_at_ns <= 10:
         parser.error("evaluation time must be within 1..10 ns")
+    if not math.isfinite(args.reset_release_ns) or not 0.1 <= args.reset_release_ns <= 10:
+        parser.error("reset release time must be within 0.1..10 ns")
+    if not math.isfinite(args.decision_at_ns) or not args.eval_at_ns + 0.1 <= args.decision_at_ns <= 20:
+        parser.error("decision sample time must be after evaluation and within 20 ns")
     if not math.isfinite(args.clock_rise_ps) or not 1 <= args.clock_rise_ps <= 2000:
         parser.error("clock rise time must be within 1..2000 ps")
     if not math.isfinite(args.precharge_v) or not 1.6 <= args.precharge_v <= 1.8:
@@ -119,8 +131,10 @@ def main() -> int:
               "model_corner": "tt", "temperature_c": 27, "input_common_mode_v": 0.9,
               "model_selection": "PDK TT nfet_01v8 and pfet_01v8 only; no model substitution",
               "model_file_sha256": {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in model_files + [models / "sky130_fd_pr__pfet_01v8__tt.pm3.spice", common_file, library.parent / "parameters/lod.spice"]},
-              "input_diffs_mv": args.input_diffs_mv, "load_ohm": args.load_ohm, "isolation_bias_a": 4e-6,
-              "eval_at_ns": args.eval_at_ns, "reset_release_ns": 8,
+              "input_diffs_mv": args.input_diffs_mv, "load_ohm": args.load_ohm,
+              "isolation_bias_a": args.isolation_bias_ua * 1e-6,
+              "eval_at_ns": args.eval_at_ns, "reset_release_ns": args.reset_release_ns,
+              "decision_at_ns": args.decision_at_ns,
               "clock_rise_ps": args.clock_rise_ps,
               "precharge_rail_v": args.precharge_v, "active_and_sense_load_rail_v": 1.8,
               "precharge_rail_generation_verified": False,
@@ -150,16 +164,16 @@ VACTIVE vdd_active 0 1.8
 VSS vss 0 0
 VP sense_p 0 {0.9 + diff / 2000:.12g}
 VN sense_n 0 {0.9 - diff / 2000:.12g}
-IBIAS iso_tail 0 4u
+IBIAS iso_tail 0 {args.isolation_bias_ua:.12g}u
 RP vdd_active latch_sense_p {args.load_ohm:.12g}
 RN vdd_active latch_sense_n {args.load_ohm:.12g}
-VRESET reset 0 PULSE(0 1.8 8n {args.clock_rise_ps:.12g}p 20p 30n 50n)
+VRESET reset 0 PULSE(0 1.8 {args.reset_release_ns:.12g}n {args.clock_rise_ps:.12g}p 20p 30n 50n)
 VEVAL eval 0 PULSE(0 1.8 {args.eval_at_ns:.12g}n {args.clock_rise_ps:.12g}p 20p 30n 50n)
 XU out_p out_n latch_sense_p latch_sense_n tail reset vdd vss eval sense_p sense_n iso_tail vdd_active {CELL}
 {equalizer}
 .tran 20p 20n
-.measure tran op_final FIND v(out_p) AT=18n
-.measure tran on_final FIND v(out_n) AT=18n
+.measure tran op_final FIND v(out_p) AT={args.decision_at_ns:.12g}n
+.measure tran on_final FIND v(out_n) AT={args.decision_at_ns:.12g}n
 .measure tran lp_before FIND v(latch_sense_p) AT={min(8, args.eval_at_ns) - 0.2:.12g}n
 .measure tran ln_before FIND v(latch_sense_n) AT={min(8, args.eval_at_ns) - 0.2:.12g}n
 .control

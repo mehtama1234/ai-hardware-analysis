@@ -1046,3 +1046,26 @@ when it must fall back,
 whether the physical errors change the task,
 and whether the complete system is better than the digital baseline.
 ```
+
+## Handoff packet for the next session
+
+Start from the authoritative digital GPU reference and keep analog execution
+behind an evidence gate. Read this page with
+[`model-to-chip-handoff-2026-09-10.md`](model-to-chip-handoff-2026-09-10.md),
+then run:
+
+```bash
+python3 colab/validate_sequential_control_deck.py
+python3 scripts/validate_aimc_physical_evidence.py
+```
+
+The immediate experiment is defined in
+[`sky130-top-plate-acquisition-work-order-2026-09-11.md`](sky130-top-plate-acquisition-work-order-2026-09-11.md).
+It must produce a complete, legal, monotonic continuous-SAR receipt before
+any model-level analog claim advances. Every receipt, including a timeout,
+must preserve its experiment controls and Colab/runtime provenance. Use local
+SPICE for bounded diagnosis and Colab T4 for reproducibility.
+
+Validate the checked-in campaign contract before upload with
+`python3 colab/validate_top_plate_campaign_settings.py`. An invalid contract
+is a handoff failure and cannot start the FS/FF campaign.

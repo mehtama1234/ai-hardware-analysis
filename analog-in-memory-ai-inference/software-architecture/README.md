@@ -22,6 +22,17 @@ trained model
 
 That path is the product. The frontend and backend should exist to make that path clear, repeatable, measurable, and debuggable.
 
+The next execution target is the [Real-Model Inference Decision Vertical Slice](real-model-inference-decision-goal.md): one real pretrained causal model through measured serving behavior and a bounded hybrid analog/digital decision.
+
+The [GPT-2 hybrid evaluation](experiments/gpt2-hybrid-v1/README.md) now executes a pinned real model with one explicit tiled projection, measures model-output and generation sensitivity, verifies digital fallback, and links the converter's failed final-netlist boundary. Its numerical array remains provisional; measured analog hardware benefit is still open.
+
+The [non-hardware closeout](experiments/gpt2-hybrid-v1/NON-HARDWARE-CLOSEOUT-2026-09-09.md) freezes the verified model, held-out finite-reference profile, fallback controls and digital-only decision. Resume hardware work from the EDA [hardware handoff](../../analog-digital-chip-design-eda/docs/roadmaps/hardware-handoff-after-software-closeout-2026-09-09.md).
+
+The current cross-project handoff is tracked in the EDA [model-to-chip handoff](../../analog-digital-chip-design-eda/docs/research/model-to-chip-handoff-2026-09-10.md). Its latest Colab raw-capture receipt is the authoritative status for the still-unqualified sequential analog path.
+The product-level handoff joining this workload to the model contract, GPU
+receipt, circuit profile, runtime trace, and ship/no-ship decision is
+[`END_TO_END_QUALIFICATION_HANDOFF.md`](../../END_TO_END_QUALIFICATION_HANDOFF.md).
+
 ## What We Should Do First
 
 Start with the model onboarding workflow.
@@ -51,6 +62,7 @@ This is useful even before full hardware deployment because it tells the custome
 - [page-contract-audit.html](page-contract-audit.html): audit page and verification command for the full visible HTML/markdown review surface against the shared object/constraint/evidence/claim contract.
 - [master-review-path.html](master-review-path.html): start-here reading path across the frontend/backend workbench, proof pages, strategy pages, and hardware-lab evidence.
 - [combined-system-end-to-end-workflow.html](combined-system-end-to-end-workflow.html): unified review path connecting the frontend/backend workbench, strategy pages, and the newer analog/digital/EDA hardware lab.
+- [cross-project-agentic-verification-goal.md](../../analog-digital-chip-design-eda/docs/roadmaps/end-to-end-goal.md): current strategic north star for the evidence-backed AI verification platform; this workbench is its mixed-signal case study.
 - [real-evidence-end-to-end-goal.html](real-evidence-end-to-end-goal.html): browser-readable next meaty goal for connecting real analog simulator output, compiler placement, RTL/OpenLane evidence, board runtime, power measurement, and final proof packages.
 - [real-evidence-end-to-end-goal.md](real-evidence-end-to-end-goal.md): markdown source for the same goal.
 
@@ -85,6 +97,13 @@ The saved package flow now includes a `hardware_placement` artifact at `/deploym
 - [physical-ai-readiness-implementation-spec.md](physical-ai-readiness-implementation-spec.md): concrete backend artifacts, frontend panels, archive files, and smoke tests needed to implement Physical AI and VLA-era readiness.
 - [current-state-audit.md](current-state-audit.md): short status audit that says what is implemented, what is simulated, what remains missing, and what the next real external-evidence step should be.
 - [source-check-register.md](source-check-register.md): source-checked company, product, and research examples with allowed-use and do-not-claim boundaries.
+- [transformer-to-chip-first-principles.html](transformer-to-chip-first-principles.html): deep first-principles program translating semiconductor-conference themes into practical transformer-to-chip engineering decisions.
+- [transformer-workload-and-movement-contract.html](transformer-workload-and-movement-contract.html): prefill/decode workload contracts, token objectives, KV-cache boundaries, and movement accounting.
+- [transformer-analog-eligibility.html](transformer-analog-eligibility.html): operator-by-operator analog eligibility, error budgets, sensitivity, and digital fallback rules.
+- [transformer-compiler-runtime.html](transformer-compiler-runtime.html): target-specific hybrid compiler artifacts, bit slicing, scheduling, runtime governance, and checker-driven search.
+- [transformer-physical-reliability.html](transformer-physical-reliability.html): converter contracts, calibration, PVT/mismatch/noise, thermal limits, layout, and reliability feedback.
+- [transformer-verification-acceptance.html](transformer-verification-acceptance.html): evidence ladder, comparison protocol, acceptance gates, failure preservation, and claim language.
+- [transformer-implementation-playbook.html](transformer-implementation-playbook.html): executable build sequence with workload, movement, eligibility, compiler, converter, calibration, reliability, comparison, and evidence artifacts.
 
 ## Prototype Data
 

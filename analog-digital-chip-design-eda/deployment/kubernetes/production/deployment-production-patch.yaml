@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verification-pilot
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - name: VERIFICATION_DEPLOYMENT_TIER
+              value: customer-production
+            - name: VERIFICATION_EVIDENCE_STORE_PROVIDER
+              value: object-store
+            - name: VERIFICATION_REQUIRE_IDENTITY_SUBJECT
+              value: "true"
+            - name: VERIFICATION_REQUIRE_IDENTITY_TOKEN
+              value: "true"
+            - name: VERIFICATION_DATABASE_URL
+              valueFrom: {secretKeyRef: {name: verification-production-database, key: database-url}}
+            - name: VERIFICATION_EVIDENCE_STORE_BUCKET
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: evidence-store-bucket}}
+            - name: VERIFICATION_REVIEWER_ROLE
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: reviewer-role}}
+            - name: VERIFICATION_OPERATOR_ROLE
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: operator-role}}
+            - name: VERIFICATION_PROJECT_SUBJECTS
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: project-subjects}}
+            - name: VERIFICATION_IDENTITY_ISSUER
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: identity-issuer}}
+            - name: VERIFICATION_IDENTITY_AUDIENCE
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: identity-audience}}
+            - name: VERIFICATION_IDENTITY_JWKS_URL
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: identity-jwks-url}}
+            - name: VERIFICATION_EXECUTION_SANDBOX
+              value: isolated
+            - name: VERIFICATION_EXECUTION_WORKSPACE
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: execution-workspace}}
+            - name: VERIFICATION_EXECUTION_NETWORK_POLICY
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: execution-network-policy}}
+            - name: VERIFICATION_JOB_MAX_WORKSPACE_BYTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: max-workspace-bytes}}
+            - name: VERIFICATION_JOB_MAX_FILE_BYTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: max-file-bytes}}
+            - name: VERIFICATION_OBSERVABILITY_ENDPOINT
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: observability-endpoint}}
+            - name: VERIFICATION_LOGS_ENDPOINT
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: logs-endpoint}}
+            - name: VERIFICATION_ALERTMANAGER_ENDPOINT
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: alertmanager-endpoint}}
+            - name: VERIFICATION_SLO_OWNER
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: slo-owner}}
+            - name: VERIFICATION_EDA_ADAPTERS
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: eda-adapters}}
+            - name: VERIFICATION_BACKUP_POLICY
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: backup-policy}}
+            - name: VERIFICATION_DR_RPO_MINUTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: dr-rpo-minutes}}
+            - name: VERIFICATION_DR_RTO_MINUTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: dr-rto-minutes}}
+        - name: worker
+          env:
+            - name: VERIFICATION_DEPLOYMENT_TIER
+              value: customer-production
+            - name: VERIFICATION_DATABASE_URL
+              valueFrom: {secretKeyRef: {name: verification-production-database, key: database-url}}
+            - name: VERIFICATION_EVIDENCE_STORE_PROVIDER
+              value: object-store
+            - name: VERIFICATION_EVIDENCE_STORE_BUCKET
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: evidence-store-bucket}}
+            - name: VERIFICATION_EXECUTION_SANDBOX
+              value: isolated
+            - name: VERIFICATION_EXECUTION_WORKSPACE
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: execution-workspace}}
+            - name: VERIFICATION_EXECUTION_NETWORK_POLICY
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: execution-network-policy}}
+            - name: VERIFICATION_JOB_MAX_WORKSPACE_BYTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: max-workspace-bytes}}
+            - name: VERIFICATION_JOB_MAX_FILE_BYTES
+              valueFrom: {configMapKeyRef: {name: verification-production-config, key: max-file-bytes}}

@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT.parent.parent))
 from verification_platform.waveform import compare_traces
 from verification_platform.formal import counterexample_to_failure, yosys_sat_prove
 from verification_platform.artifacts import build_artifact_manifest, verify_artifact_manifest, write_artifact_manifest
+from verification_platform.reference_agent import propose_failure_diagnosis
+from verification_platform.triage import Failure
 
 
 def main() -> int:
@@ -32,6 +34,15 @@ def main() -> int:
     artifact_integrity = verify_artifact_manifest(ROOT / "runs", artifact_manifest)
     baseline_report = json.loads((ROOT / "runs/latest/triage-report.json").read_text(encoding="utf-8"))
     retest_report = json.loads((ROOT / "runs/retest/retest-report.json").read_text(encoding="utf-8"))
+    divergence = baseline_report["first_divergence"]
+    agent_proposal = propose_failure_diagnosis(
+        Failure(int(divergence["cycle"]), str(divergence["signal"]), str(divergence["expected"]), str(divergence["actual"])),
+        source_revision="seeded-counter-v1",
+        evidence=list(baseline_report["evidence"]),
+        dependency_cone=list(baseline_report.get("root_cause", {}).get("dependency_cone", [])),
+    )
+    agent_proposal_path = ROOT / "runs/latest/reference-agent-proposal.json"
+    agent_proposal_path.write_text(json.dumps(agent_proposal.record(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary = {
         "schema_version": "seeded-counter-end-to-end-v1",
         "baseline": {"process_exit": baseline.returncode, "verification_status": baseline_report["status"], "report": "runs/latest/triage-report.json"},
@@ -41,6 +52,7 @@ def main() -> int:
         "trace_comparison": compare_traces(ROOT / "runs/latest/waveform.vcd", ROOT / "runs/retest/simulation/waveform.vcd", "counter_q"),
         "formal": {"tool": formal_run.tool, "execution_status": formal_run.status, "proof_result": formal_run.metadata.get("proof_result"), "ledger": "runs/formal/provenance-ledger.json"},
         "formal_counterexample": {"tool": formal_failure_run.tool, "proof_result": formal_failure_run.metadata.get("proof_result"), "failure": {"cycle": formal_failure.cycle, "signal": formal_failure.signal, "expected": formal_failure.expected, "actual": formal_failure.actual} if formal_failure else None, "ledger": "runs/formal-counterexample/provenance-ledger.json"},
+        "agent_proposal": {"path": "runs/latest/reference-agent-proposal.json", "status": agent_proposal.status, "proposal_sha256": agent_proposal.proposal_sha256, "provider": "deterministic-reference"},
         "artifact_manifest": "runs/artifact-manifest.json",
         "artifact_integrity": artifact_integrity,
         "pov_metrics": {"baseline_proven": sum(item.get("status") == "proven" for item in baseline_closure), "retest_proven": sum(item.get("status") == "proven" for item in retest_closure), "proven_delta": sum(item.get("status") == "proven" for item in retest_closure) - sum(item.get("status") == "proven" for item in baseline_closure), "baseline_coverage_percentage": round(100.0 * baseline_coverage["covered"] / baseline_coverage["total"], 4), "retest_coverage_percentage": round(100.0 * retest_coverage["covered"] / retest_coverage["total"], 4)},
@@ -48,7 +60,7 @@ def main() -> int:
     summary["summary_sha256"] = hashlib.sha256(json.dumps(summary, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     (ROOT / "runs" / "end-to-end-summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(summary, sort_keys=True))
-    return 0 if baseline_report["status"] == "failed" and retest_report["status"] == "passed" and formal_run.metadata.get("proof_result") == "proven" and formal_failure_run.metadata.get("proof_result") == "counterexample" and formal_failure is not None and artifact_integrity["valid"] else 1
+    return 0 if baseline_report["status"] == "failed" and retest_report["status"] == "passed" and agent_proposal.status == "review_required" and formal_run.metadata.get("proof_result") == "proven" and formal_failure_run.metadata.get("proof_result") == "counterexample" and formal_failure is not None and artifact_integrity["valid"] else 1
 
 
 if __name__ == "__main__":

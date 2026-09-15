@@ -16,6 +16,9 @@ from verification_platform.ingest import ingest_markdown
 from verification_platform.ir import VerificationIR
 from verification_platform.planner import plan_ir, planning_summary, write_plan
 from verification_platform.generator import write_sva_module
+from verification_platform.lowering import generate_lowered_checker, lower_plans, write_lowering_manifest
+from verification_platform.autoformalize import infer_assertion_signals, proposal_from_plan, write_assertion_proposals
+from verification_platform.scheduling import lint_time_zero, write_time_zero_lint
 from verification_platform.procedural import write_procedural_checker
 from verification_platform.uvm import write_uvm_agent
 from verification_platform.pov import write_pov_report
@@ -45,10 +48,16 @@ def main() -> int:
     spec.checks = [asdict(plan) for plan in plans]
     (run / "specification-ir.json").write_text(json.dumps(spec.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_plan(plans, run / "verification-plan.json")
+    spec_digest = spec.requirements[0].source.sha256 if spec.requirements and spec.requirements[0].source else "0" * 64
+    write_assertion_proposals([proposal_from_plan(plan, specification_sha256=spec_digest, signals=infer_assertion_signals(plan.assertion), model_id="deterministic-template") for plan in plans], run / "assertion-proposals.json")
     (run / "planning-summary.json").write_text(json.dumps(planning_summary(spec), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_sva_module(plans, run / "generated_checks.sv")
+    lowered_properties = lower_plans(plans)
+    (run / "lowered_checks.sv").write_text(generate_lowered_checker(lowered_properties), encoding="utf-8")
+    write_lowering_manifest(lowered_properties, run / "sva-lowering.json")
     write_procedural_checker(plans, run / "procedural_checks.sv")
     write_uvm_agent("CounterAgent", ["clk", "rst", "enable", "counter_q"], run / "uvm-counter-agent.sv")
+    write_time_zero_lint(run / "time-zero-lint.json", lint_time_zero([ROOT / "tb.sv", run / "uvm-counter-agent.sv"], root=ROOT))
     session.advance("executed", metadata={"tool": "iverilog/vvp"})
     compile_dir = run / "compile"
     binary = compile_dir / "counter.vvp"
@@ -92,7 +101,8 @@ def main() -> int:
     session.advance("retested", metadata={"status": "passed" if passed else "failed"})
     session.advance("closed", metadata={"closure_report": "closure-report.json"})
     session.write()
-    write_pov_report(run, mixed_signal_manifest=ROOT.parent.parent / "evidence" / "aimc-hardware-lab" / "verification-platform-mixed-signal-manifest.json")
+    mixed_manifest = ROOT.parent.parent / "evidence" / "aimc-hardware-lab" / "verification-platform-mixed-signal-manifest.json"
+    write_pov_report(run, **({"mixed_signal_manifest": mixed_manifest} if mixed_manifest.is_file() else {}))
     report = {
         "status": "passed" if passed else "failed",
         "repair": {"decision": proposal.decision(human_approved=True), "source": "counter.sv", "destination": "runs/retest/counter_repaired.sv", "original_source_sha256": hashlib.sha256((ROOT / "counter.sv").read_bytes()).hexdigest(), "repaired_source_sha256": hashlib.sha256(repaired.read_bytes()).hexdigest(), "original_unchanged": hashlib.sha256((ROOT / "counter.sv").read_bytes()).hexdigest() == hashlib.sha256((ROOT / "counter.sv").read_bytes()).hexdigest()},

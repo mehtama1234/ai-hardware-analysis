@@ -133,6 +133,7 @@ def build_execution_plan(summary: dict) -> dict:
             "physical_measurement_ns": 9.0,
             "physical_topology": "differential break-before-make with 4x top-plate dummy capacitance",
             "compatibility_status": PHYSICAL_GATE,
+            "circuit_qualification_profile": "evidence/aimc-simulator-adapters/sky130-converter-qualification-profile.json",
             "blocking_observation": "nominal DAC transfer passes, but level-shifted physical SAR returns only 2/5 representative conversions and the source interface has not closed the endpoint headroom contract",
         },
         "provenance": {

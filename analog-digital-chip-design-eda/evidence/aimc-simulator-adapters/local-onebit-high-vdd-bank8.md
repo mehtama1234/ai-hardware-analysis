@@ -1,0 +1,18 @@
+# Sky130 Bottom-Plate Cell
+
+- status: `bottom_plate_cell_measured_not_accepted`
+- measured cases: `1` of `1`
+- break-before-make interval: `0.020000000000000018 ns`
+- low-side pulse width: `0.18 ns`
+
+- high-side device bank: `8` parallel device(s)
+
+This isolated fixture tests the bottom-plate switch before it is placed back into the binary array. The low-side device is released first; the high-side device is enabled only after the non-overlap interval. The top plate and bottom plate are measured before and after the transition.
+
+| input V | target rail | bottom before V | bottom after V | expected V | bottom error V |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1.500 | vdd | 0.222163 | 1.798321 | 1.800 | -0.001679 |
+
+## Refused Claim
+
+does not prove the four-bit DAC, SAR accuracy, mismatch/noise yield, PVT behavior, extracted layout, board behavior, or silicon

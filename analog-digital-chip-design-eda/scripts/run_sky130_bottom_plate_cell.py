@@ -13,12 +13,23 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
+DEFAULT_PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
+PDK_LIB = Path(os.environ.get("AIMC_SKY130_PDK_LIB", str(DEFAULT_PDK_LIB)))
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 OUTPUT_STEM = os.environ.get("AIMC_BOTTOM_CELL_OUTPUT_STEM", "sky130-bottom-plate-cell")
 OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
 OUT_MD = EVIDENCE / f"{OUTPUT_STEM}.md"
 TIMEOUT_S = float(os.environ.get("AIMC_BOTTOM_CELL_TIMEOUT_S", "180"))
+TRAN_STEP_PS = float(os.environ.get("AIMC_BOTTOM_CELL_TRAN_STEP_PS", "5"))
+HIGH_RISE_NS = float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_RISE_NS", "0"))
+LOW_FALL_NS = float(os.environ.get("AIMC_BOTTOM_CELL_LOW_FALL_NS", "0"))
+HIGH_NMOS_ASSIST = os.environ.get("AIMC_BOTTOM_CELL_HIGH_NMOS_ASSIST") == "1"
+if TRAN_STEP_PS <= 0.0:
+    raise SystemExit("AIMC_BOTTOM_CELL_TRAN_STEP_PS must be positive")
+if HIGH_RISE_NS < 0.0:
+    raise SystemExit("AIMC_BOTTOM_CELL_HIGH_RISE_NS must be non-negative")
+if LOW_FALL_NS < 0.0:
+    raise SystemExit("AIMC_BOTTOM_CELL_LOW_FALL_NS must be non-negative")
 
 
 def measure(stdout: str, name: str) -> float:
@@ -35,14 +46,30 @@ def deck(input_v: float, target: str) -> str:
         low_delay_ns = float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00"))
         low_width_ns = float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18"))
         high_delay_ns = float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20"))
-        if high_delay_ns < low_delay_ns + low_width_ns:
-            raise ValueError("high-side enable must not overlap the low-side on interval")
-        low_gate = f"PULSE(1.8 0 {low_delay_ns:g}n 20p 20p {low_width_ns:g}n 20n)"
-        high_gate = f"PULSE(1.8 0 {high_delay_ns:g}n 20p 20p 20n 40n)"
+        low_fall_end_ns = low_delay_ns + low_width_ns + LOW_FALL_NS
+        if high_delay_ns < low_fall_end_ns:
+            raise ValueError("high-side enable must not overlap the low-side release interval")
+        if LOW_FALL_NS:
+            low_gate = f"PWL(0 1.8 {low_delay_ns:g}n 1.8 {low_delay_ns + low_width_ns:g}n 1.8 {low_fall_end_ns:g}n 0 4n 0)"
+        else:
+            low_gate = f"PWL(0 1.8 {low_delay_ns:g}n 1.8 {low_delay_ns + low_width_ns:g}n 0 4n 0)"
+        high_end_ns = high_delay_ns + HIGH_RISE_NS
+        if HIGH_RISE_NS:
+            high_gate = f"PWL(0 1.8 {high_delay_ns:g}n 1.8 {high_end_ns:g}n 0 4n 0)"
+        else:
+            high_gate = f"PWL(0 1.8 {high_delay_ns:g}n 0 4n 0)"
+        if HIGH_NMOS_ASSIST:
+            if HIGH_RISE_NS:
+                high_assist_gate = f"PWL(0 0 {high_delay_ns:g}n 0 {high_end_ns:g}n 1.8 4n 1.8)"
+            else:
+                high_assist_gate = f"PWL(0 0 {high_delay_ns:g}n 0 4n 1.8)"
+        else:
+            high_assist_gate = "0"
     else:
         low_gate = "1.8"
         high_gate = "1.8"
-    tran_control = ".tran 5p 4n uic" if os.environ.get("AIMC_BOTTOM_CELL_UIC") == "1" else ".tran 5p 4n"
+        high_assist_gate = "0"
+    tran_control = f".tran {TRAN_STEP_PS:g}p 4n uic" if os.environ.get("AIMC_BOTTOM_CELL_UIC") == "1" else f".tran {TRAN_STEP_PS:g}p 4n"
     high_width = float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_WIDTH", "16.0"))
     high_nf = int(os.environ.get("AIMC_BOTTOM_CELL_HIGH_NF", "1"))
     high_bank = int(os.environ.get("AIMC_BOTTOM_CELL_HIGH_BANK", "1"))
@@ -52,6 +79,9 @@ def deck(input_v: float, target: str) -> str:
         f"XHIGH{index} bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W={high_width:g} L=0.15 NF={high_nf}"
         for index in range(high_bank)
     )
+    high_assist = ""
+    if HIGH_NMOS_ASSIST:
+        high_assist = "XHIGH_ASSIST bottom high_gate_assist vdd 0 sky130_fd_pr__nfet_01v8 W=16 L=0.15"
     capacitor_f = os.environ.get("AIMC_BOTTOM_CELL_CAP_F", "8p")
     return f'''* One-bit Sky130 bottom-plate charge-transfer cell.
 .lib "{PDK_LIB}" tt
@@ -62,8 +92,10 @@ VTOP top 0 {input_v:.9f}
 CBOTTOM top bottom {capacitor_f}
 XLOW bottom low_gate vss vss sky130_fd_pr__nfet_01v8 W=8.0 L=0.15
 {high_devices}
+{high_assist}
 VLOW low_gate 0 {low_gate}
 VHIGH high_gate 0 {high_gate}
+VHIGH_ASSIST high_gate_assist 0 {high_assist_gate}
 .ic v(top)={input_v:.9f} v(bottom)=0
 RLEAKTOP top 0 100G
 RLEAKBOTTOM bottom 0 100G
@@ -103,8 +135,14 @@ def run(input_v: float, target: str) -> dict[str, Any]:
                 os.killpg(process.pid, signal.SIGKILL)
             except (ProcessLookupError, PermissionError):
                 pass
-            process.communicate()
-            return {"input_v": input_v, "target": target, "measured": False, "timed_out": True}
+            stdout, stderr = process.communicate()
+            timeout_deck = EVIDENCE / f"{OUTPUT_STEM}-{input_v:g}v-{target}.timeout.spice"
+            timeout_stdout = EVIDENCE / f"{OUTPUT_STEM}-{input_v:g}v-{target}.timeout.stdout.log"
+            timeout_stderr = EVIDENCE / f"{OUTPUT_STEM}-{input_v:g}v-{target}.timeout.stderr.log"
+            timeout_deck.write_text(source, encoding="utf-8")
+            timeout_stdout.write_text(stdout, encoding="utf-8")
+            timeout_stderr.write_text(stderr, encoding="utf-8")
+            return {"input_v": input_v, "target": target, "measured": False, "timed_out": True, "failure_class": "numerical_convergence_timeout", "timeout_artifacts": {"deck": str(timeout_deck.relative_to(ROOT)), "stdout": str(timeout_stdout.relative_to(ROOT)), "stderr": str(timeout_stderr.relative_to(ROOT))}}
         result = subprocess.CompletedProcess(process.args, process.returncode, stdout, stderr)
     row: dict[str, Any] = {"input_v": input_v, "target": target, "measured": result.returncode == 0, "timed_out": False, "returncode": result.returncode}
     if result.returncode != 0:
@@ -132,20 +170,29 @@ def run(input_v: float, target: str) -> dict[str, Any]:
 
 
 def main() -> int:
-    cases = [(0.3, "vdd"), (0.9, "vdd"), (1.5, "vdd"), (0.9, "ground")]
+    if "AIMC_BOTTOM_CELL_INPUT_V" in os.environ or "AIMC_BOTTOM_CELL_TARGET" in os.environ:
+        if "AIMC_BOTTOM_CELL_INPUT_V" not in os.environ or "AIMC_BOTTOM_CELL_TARGET" not in os.environ:
+            raise SystemExit("AIMC_BOTTOM_CELL_INPUT_V and AIMC_BOTTOM_CELL_TARGET must be set together")
+        cases = [(float(os.environ["AIMC_BOTTOM_CELL_INPUT_V"]), os.environ["AIMC_BOTTOM_CELL_TARGET"])]
+    else:
+        cases = [(0.3, "vdd"), (0.9, "vdd"), (1.5, "vdd"), (0.9, "ground")]
     rows = [run(*case) for case in cases]
     measured = [row for row in rows if row["measured"]]
     report = {
         "result_type": "sky130_bottom_plate_cell",
-        "status": "bottom_plate_cell_characterized" if len(measured) == len(rows) else "bottom_plate_cell_incomplete",
+        "status": "bottom_plate_cell_measured_not_accepted" if len(measured) == len(rows) else "bottom_plate_cell_incomplete",
         "case_count": len(rows),
         "measured_case_count": len(measured),
         "timed_out_case_count": sum(row.get("timed_out", False) for row in rows),
-        "break_before_make_ns": float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20")) - (float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00")) + float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18"))),
+        "break_before_make_ns": float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20")) - (float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00")) + float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18")) + LOW_FALL_NS),
         "low_side_pulse_width_ns": float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18")),
         "low_side_delay_ns": float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00")),
         "high_side_delay_ns": float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20")),
-        "measured_break_before_make_ns": float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20")) - (float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00")) + float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18"))),
+        "measured_break_before_make_ns": float(os.environ.get("AIMC_BOTTOM_CELL_HIGH_DELAY_NS", "1.20")) - (float(os.environ.get("AIMC_BOTTOM_CELL_LOW_DELAY_NS", "1.00")) + float(os.environ.get("AIMC_BOTTOM_CELL_LOW_PULSE_NS", "0.18")) + LOW_FALL_NS),
+        "transient_step_ps": TRAN_STEP_PS,
+        "high_side_gate_rise_ns": HIGH_RISE_NS,
+        "low_side_gate_fall_ns": LOW_FALL_NS,
+        "high_side_nmos_assist": HIGH_NMOS_ASSIST,
         "rows": rows,
         "claim_boundary": {
             "allowed": "tests one physical Sky130 bottom-plate capacitor cell with separate low-side and high-side devices and non-overlap control",

@@ -1,0 +1,252 @@
+* Sky130 two-phase preamp then latch candidate.
+* Phase 1 samples the input. Phase 2 lets a resistor-load preamp form an internal difference.
+* Phase 3 enables the latch after the preamp has settled.
+
+.lib "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.param vdd=1.800000000
+.param lmin=0.15
+.param wn=2.0
+.param wp=4.0
+.param dummy_wn=1.0
+.param dummy_wp=2.0
+.param cstore=0.2p
+.param pre_w=8.0
+.param pre_tail=20u
+.param pre_rd=100k
+.param wn_latch=3.0
+.param wp_latch=6.0
+.param wn_in=0.5
+.param wn_tail=20.0
+.param vinp=0.900000000000
+.param vinn=0.900000000000
+.options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12
+
+VDD vdd 0 {vdd}
+VSS vss 0 0
+* Physical Sky130 transistor DAC feeding the comparator input.
+XCONT_BP0_0_0 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_1 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_2 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_3 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_4 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_5 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_6 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP0_0_7 db0 gp_dac0 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_0 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_1 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_2 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_3 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_4 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_5 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_6 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP1_0_7 db1 gp_dac1 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_0 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_1 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_2 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_3 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_4 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_5 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_6 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP2_0_7 db2 gp_dac2 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_0 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_1 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_2 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_3 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_4 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_5 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_6 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XCONT_BP3_0_7 db3 gp_dac3 vdd vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+VREF inn 0 PWL(0n 0.302156250 80n 0.302156250)
+VSRC_DAC srcin 0 0.004000000
+VDAC_CTRL dac_ctrl 0 PULSE(0 {vdd} 0.1n 10p 10p 4.0n 80n)
+VDAC_CTRLB dac_ctrlb 0 PULSE({vdd} 0 0.1n 10p 10p 4.0n 80n)
+XDS_DAC srcin dac_ctrl top 0 sky130_fd_pr__nfet_01v8 W=32.0 L=0.15
+XDP_DAC srcin dac_ctrlb top vdd sky130_fd_pr__pfet_01v8 W=64.0 L=0.15
+* Matched source followers isolate the floating DAC/reference nodes from the comparator sample capacitors.
+* Buffer control variant: direct late sampling is retained as the comparison
+* baseline. The source-follower variant is documented in prior evidence.
+CDAC0 top db0 8.000000000000e-12
+CDACDUMMY0 db0 0 0.01p
+CDAC1 top db1 3.000000000000e-12
+CDACDUMMY1 db1 0 0.01p
+CDAC2 top db2 2.000000000000e-12
+CDACDUMMY2 db2 0 0.01p
+CDAC3 top db3 1.500000000000e-12
+CDACDUMMY3 db3 0 0.01p
+CDAC_TOP_DUMMY top 0 0.5p
+XBN_DAC0 db0 gn_dac0 0 0 sky130_fd_pr__nfet_01v8 W=64 L=0.15
+XBN_DAC1 db1 gn_dac1 0 0 sky130_fd_pr__nfet_01v8 W=64 L=0.15
+XBN_DAC2 db2 gn_dac2 0 0 sky130_fd_pr__nfet_01v8 W=64 L=0.15
+XBN_DAC3 db3 gn_dac3 0 0 sky130_fd_pr__nfet_01v8 W=64 L=0.15
+
+
+
+
+
+
+
+
+
+
+VCTRL ctrl 0 PULSE(0 {vdd} 9.10n 20p 20p 0.50n 16n)
+VCTRLB ctrlb 0 PULSE({vdd} 0 9.10n 20p 20p 0.50n 16n)
+VCLK clk 0 PULSE(0 {vdd} 12.70n 20p 20p 5n 16n)
+VCLKB clkb 0 PULSE({vdd} 0 11.70n 20p 20p 1n 16n)
+
+XSWNP top ctrl sp vss sky130_fd_pr__nfet_01v8 W={wn} L={lmin}
+XSWPP top ctrlb sp vdd sky130_fd_pr__pfet_01v8 W={wp} L={lmin}
+XSWNN inn ctrl sn vss sky130_fd_pr__nfet_01v8 W={wn} L={lmin}
+XSWPN inn ctrlb sn vdd sky130_fd_pr__pfet_01v8 W={wp} L={lmin}
+XDUMNP sp ctrlb sp vss sky130_fd_pr__nfet_01v8 W={dummy_wn} L={lmin}
+XDUMPP sp ctrl sp vdd sky130_fd_pr__pfet_01v8 W={dummy_wp} L={lmin}
+XDUMNN sn ctrlb sn vss sky130_fd_pr__nfet_01v8 W={dummy_wn} L={lmin}
+XDUMPN sn ctrl sn vdd sky130_fd_pr__pfet_01v8 W={dummy_wp} L={lmin}
+CSP sp 0 {cstore}
+CSN sn 0 {cstore}
+RLEAKP sp 0 100G
+RLEAKN sn 0 100G
+
+RPREP vdd pre_p {pre_rd}
+RPREN vdd pre_n {pre_rd}
+XPREP pre_p handoff_p pre_tail_node 0 sky130_fd_pr__nfet_01v8 W={pre_w} L={lmin}
+XPREN pre_n handoff_n pre_tail_node 0 sky130_fd_pr__nfet_01v8 W={pre_w} L={lmin}
+IPRE pre_tail_node 0 PULSE(0 {pre_tail} 10.70n 20p 20p 5n 16n)
+CPREP pre_p 0 2f
+CPREN pre_n 0 2f
+
+XLPRE1 vdd clkb outp vdd sky130_fd_pr__pfet_01v8 W={wp_latch} L={lmin}
+XLPRE2 vdd clkb outn vdd sky130_fd_pr__pfet_01v8 W={wp_latch} L={lmin}
+XLP outp outn vdd vdd sky130_fd_pr__pfet_01v8 W={wp_latch} L={lmin}
+XLN outp outn eval 0 sky130_fd_pr__nfet_01v8 W={wn_latch} L={lmin}
+XRP outn outp vdd vdd sky130_fd_pr__pfet_01v8 W={wp_latch} L={lmin}
+XRN outn outp eval 0 sky130_fd_pr__nfet_01v8 W={wn_latch} L={lmin}
+XINP outp pre_p tail 0 sky130_fd_pr__nfet_01v8 W={wn_in} L={lmin}
+XINN outn pre_n tail 0 sky130_fd_pr__nfet_01v8 W={wn_in} L={lmin}
+XTAIL tail clk 0 0 sky130_fd_pr__nfet_01v8 W={wn_tail} L={lmin}
+XEVAL eval clk 0 0 sky130_fd_pr__nfet_01v8 W={wn_tail} L={lmin}
+* Optional post-sample switched direct DAC/reference handoff.
+VCONT_HANDOFF_CM handoff_cm 0 {vdd/2}
+BCONT_HANDOFF handoff_enable 0 V=0+1.8*u(time-9.7n)*(1-u(time-11.7n))+1.8*u(time-25.7n)*(1-u(time-27.7n))+1.8*u(time-41.7n)*(1-u(time-43.7n))+1.8*u(time-57.7n)*(1-u(time-59.7n))
+RHANDOFF_P handoff_p handoff_cm 1e+06
+RHANDOFF_N handoff_n handoff_cm 1e+06
+XHANDOFF_P handoff_p handoff_enable top 0 sky130_fd_pr__nfet_01v8 W=8 L=0.15
+XHANDOFF_N handoff_n handoff_enable inn 0 sky130_fd_pr__nfet_01v8 W=8 L=0.15
+COUTP outp 0 5f
+COUTN outn 0 5f
+
+.ic v(db0)=0 v(db1)=0 v(db2)=0 v(db3)=0 v(sp)=0.9 v(sn)=0.9 v(pre_p)=1.0 v(pre_n)=1.0 v(pre_tail_node)=0.25 v(outp)=1.8 v(outn)=1.8
+BRAW1 raw_dec1 0 V=1.8*u(V(outn)-V(outp))
+BRAW2 raw_dec2 0 V=1.8*u(V(outn)-V(outp))
+BRAW3 raw_dec3 0 V=1.8*u(V(outn)-V(outp))
+BRAW4 raw_dec4 0 V=1.8*u(V(outn)-V(outp))
+VDEC1CLK dec1_clk 0 PULSE(0 1.8 13.2n 0.01n 0.01n 0.20n 80n)
+VDEC2CLK dec2_clk 0 PULSE(0 1.8 29.2n 0.01n 0.01n 0.20n 80n)
+VDEC3CLK dec3_clk 0 PULSE(0 1.8 45.2n 0.01n 0.01n 0.20n 80n)
+VDEC4CLK dec4_clk 0 PULSE(0 1.8 61.2n 0.01n 0.01n 0.20n 80n)
+VDEC1RESET dec1_reset 0 0
+VDEC2RESET dec2_reset 0 0
+VDEC3RESET dec3_reset 0 0
+VDEC4RESET dec4_reset 0 0
+.model SWDEC SW(Ron=1 Roff=1G Vt=0.9 Vh=0.1)
+.model SWRESET SW(Ron=1 Roff=1G Vt=0.9 Vh=0.1)
+SDEC1 dec1 raw_dec1 dec1_clk 0 SWDEC
+SDEC2 dec2 raw_dec2 dec2_clk 0 SWDEC
+SDEC3 dec3 raw_dec3 dec3_clk 0 SWDEC
+SDEC4 dec4 raw_dec4 dec4_clk 0 SWDEC
+SRESET1 dec1 0 dec1_reset 0 SWRESET
+SRESET2 dec2 0 dec2_reset 0 SWRESET
+SRESET3 dec3 0 dec3_reset 0 SWRESET
+SRESET4 dec4 0 dec4_reset 0 SWRESET
+CDEC1 dec1 0 1p
+CDEC2 dec2 0 1p
+CDEC3 dec3 0 1p
+CDEC4 dec4 0 1p
+RDEC1 dec1 0 1G
+RDEC2 dec2 0 1G
+RDEC3 dec3 0 1G
+RDEC4 dec4 0 1G
+BCONT_PGATE0 gp_dac0 0 V=(1.8)*(u(time-0n)-u(time-5n))+(1.8)*u(time-5n)*(1-u(time-5.5n))+(0)*u(time-5.5n)*(1-u(time-21n))+(1.8)*u(time-21n)*(1-u(time-21.5n))+(1.8*u(V(dec1)-0.9))*u(time-21.5n)*(1-u(time-37n))+(1.8)*u(time-37n)*(1-u(time-37.5n))+(1.8*u(V(dec1)-0.9))*u(time-37.5n)*(1-u(time-53n))+(1.8)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec1)-0.9))*u(time-53.5n)*(1-u(time-80n))+(1.8)*u(time-80n)*(1-u(time-80n))
+BCONT_NGATE0 gn_dac0 0 V=(0)*(u(time-0n)-u(time-5n))+(0)*u(time-5n)*(1-u(time-5.5n))+(0)*u(time-5.5n)*(1-u(time-21n))+(0)*u(time-21n)*(1-u(time-21.5n))+(1.8*u(V(dec1)-0.9))*u(time-21.5n)*(1-u(time-37n))+(0)*u(time-37n)*(1-u(time-37.5n))+(1.8*u(V(dec1)-0.9))*u(time-37.5n)*(1-u(time-53n))+(0)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec1)-0.9))*u(time-53.5n)*(1-u(time-80n))+(0)*u(time-80n)*(1-u(time-80n))
+BCONT_PGATE1 gp_dac1 0 V=(1.8)*(u(time-0n)-u(time-5n))+(1.8)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(1.8)*u(time-21n)*(1-u(time-21.5n))+(0)*u(time-21.5n)*(1-u(time-37n))+(1.8)*u(time-37n)*(1-u(time-37.5n))+(1.8*u(V(dec2)-0.9))*u(time-37.5n)*(1-u(time-53n))+(1.8)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec2)-0.9))*u(time-53.5n)*(1-u(time-80n))+(1.8)*u(time-80n)*(1-u(time-80n))
+BCONT_NGATE1 gn_dac1 0 V=(0)*(u(time-0n)-u(time-5n))+(0)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(0)*u(time-21n)*(1-u(time-21.5n))+(0)*u(time-21.5n)*(1-u(time-37n))+(0)*u(time-37n)*(1-u(time-37.5n))+(1.8*u(V(dec2)-0.9))*u(time-37.5n)*(1-u(time-53n))+(0)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec2)-0.9))*u(time-53.5n)*(1-u(time-80n))+(0)*u(time-80n)*(1-u(time-80n))
+BCONT_PGATE2 gp_dac2 0 V=(1.8)*(u(time-0n)-u(time-5n))+(1.8)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(1.8)*u(time-21n)*(1-u(time-21.5n))+(1.8)*u(time-21.5n)*(1-u(time-37n))+(1.8)*u(time-37n)*(1-u(time-37.5n))+(0)*u(time-37.5n)*(1-u(time-53n))+(1.8)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec3)-0.9))*u(time-53.5n)*(1-u(time-80n))+(1.8)*u(time-80n)*(1-u(time-80n))
+BCONT_NGATE2 gn_dac2 0 V=(0)*(u(time-0n)-u(time-5n))+(0)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(0)*u(time-21n)*(1-u(time-21.5n))+(1.8)*u(time-21.5n)*(1-u(time-37n))+(0)*u(time-37n)*(1-u(time-37.5n))+(0)*u(time-37.5n)*(1-u(time-53n))+(0)*u(time-53n)*(1-u(time-53.5n))+(1.8*u(V(dec3)-0.9))*u(time-53.5n)*(1-u(time-80n))+(0)*u(time-80n)*(1-u(time-80n))
+BCONT_PGATE3 gp_dac3 0 V=(1.8)*(u(time-0n)-u(time-5n))+(1.8)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(1.8)*u(time-21n)*(1-u(time-21.5n))+(1.8)*u(time-21.5n)*(1-u(time-37n))+(1.8)*u(time-37n)*(1-u(time-37.5n))+(1.8)*u(time-37.5n)*(1-u(time-53n))+(1.8)*u(time-53n)*(1-u(time-53.5n))+(0)*u(time-53.5n)*(1-u(time-80n))+(1.8)*u(time-80n)*(1-u(time-80n))
+BCONT_NGATE3 gn_dac3 0 V=(0)*(u(time-0n)-u(time-5n))+(0)*u(time-5n)*(1-u(time-5.5n))+(1.8)*u(time-5.5n)*(1-u(time-21n))+(0)*u(time-21n)*(1-u(time-21.5n))+(1.8)*u(time-21.5n)*(1-u(time-37n))+(0)*u(time-37n)*(1-u(time-37.5n))+(1.8)*u(time-37.5n)*(1-u(time-53n))+(0)*u(time-53n)*(1-u(time-53.5n))+(0)*u(time-53.5n)*(1-u(time-80n))+(0)*u(time-80n)*(1-u(time-80n))
+* Optional matched sample-storage reset between retained-bit trials.
+VCONT_SAMPLE_CM sample_cm 0 {vdd/2}
+BCONT_SAMPLE_RESET sample_reset 0 V=0+1.8*u(time-0.5n)*(1-u(time-4n))+1.8*u(time-16.5n)*(1-u(time-20n))+1.8*u(time-32.5n)*(1-u(time-36n))+1.8*u(time-48.5n)*(1-u(time-52n))
+R_SAMPLE_RESET_P sp sample_reset_p 10000
+R_SAMPLE_RESET_N sn sample_reset_n 10000
+XSAMPLE_RESET_P sample_reset_p sample_reset sample_cm 0 sky130_fd_pr__nfet_01v8 W=3.5 L=0.15
+XSAMPLE_RESET_N sample_reset_n sample_reset sample_cm 0 sky130_fd_pr__nfet_01v8 W=3.5 L=0.15
+
+.tran 20p 80n
+.measure tran dac_top_before_v FIND v(top) AT=0.90n
+.measure tran dac_top_after_v FIND v(top) AT=9.00n
+.measure tran dac_sense_after_v FIND v(top) AT=9.00n
+.measure tran dac_b0_after_v FIND v(db0) AT=9.00n
+.measure tran dac_b1_after_v FIND v(db1) AT=9.00n
+.measure tran dac_b2_after_v FIND v(db2) AT=9.00n
+.measure tran dac_b3_after_v FIND v(db3) AT=9.00n
+.measure tran comparator_sp_after_v FIND v(sp) AT=9.00n
+.measure tran comparator_sn_after_v FIND v(sn) AT=9.00n
+.measure tran sampled_p_before_v FIND v(sp) AT=0.90n
+.measure tran sampled_n_before_v FIND v(sn) AT=0.90n
+.measure tran sampled_p_after_v FIND v(sp) AT=12.80n
+.measure tran sampled_n_after_v FIND v(sn) AT=12.80n
+.measure tran preamp_p_before_latch_v FIND v(pre_p) AT=11.45n
+.measure tran preamp_n_before_latch_v FIND v(pre_n) AT=11.45n
+.measure tran preamp_p_after_latch_v FIND v(pre_p) AT=12.80n
+.measure tran preamp_n_after_latch_v FIND v(pre_n) AT=12.80n
+.measure tran output_p_final_v FIND v(outp) AT=12.80n
+.measure tran output_n_final_v FIND v(outn) AT=12.80n
+.measure tran conv1_cycle1_dac_v FIND v(top) AT=9.00n
+.measure tran conv1_cycle1_db0_v FIND v(db0) AT=9.00n
+.measure tran conv1_cycle1_db1_v FIND v(db1) AT=9.00n
+.measure tran conv1_cycle1_db2_v FIND v(db2) AT=9.00n
+.measure tran conv1_cycle1_db3_v FIND v(db3) AT=9.00n
+.measure tran conv1_cycle2_dac_v FIND v(top) AT=25.00n
+.measure tran conv1_cycle2_db0_v FIND v(db0) AT=25.00n
+.measure tran conv1_cycle2_db1_v FIND v(db1) AT=25.00n
+.measure tran conv1_cycle2_db2_v FIND v(db2) AT=25.00n
+.measure tran conv1_cycle2_db3_v FIND v(db3) AT=25.00n
+.measure tran conv1_cycle3_dac_v FIND v(top) AT=41.00n
+.measure tran conv1_cycle3_db0_v FIND v(db0) AT=41.00n
+.measure tran conv1_cycle3_db1_v FIND v(db1) AT=41.00n
+.measure tran conv1_cycle3_db2_v FIND v(db2) AT=41.00n
+.measure tran conv1_cycle3_db3_v FIND v(db3) AT=41.00n
+.measure tran conv1_cycle4_dac_v FIND v(top) AT=57.00n
+.measure tran conv1_cycle4_db0_v FIND v(db0) AT=57.00n
+.measure tran conv1_cycle4_db1_v FIND v(db1) AT=57.00n
+.measure tran conv1_cycle4_db2_v FIND v(db2) AT=57.00n
+.measure tran conv1_cycle4_db3_v FIND v(db3) AT=57.00n
+.measure tran conv1_decision1_v FIND v(dec1) AT=20.00n
+.measure tran conv1_decision1_comparator_diff_v FIND par('v(outn)-v(outp)') AT=20.00n
+.measure tran conv1_decision1_preamp_diff_v FIND par('v(pre_n)-v(pre_p)') AT=16.80n
+.measure tran conv1_decision1_latched_diff_v FIND par('v(outn)-v(outp)') AT=18.40n
+.measure tran conv1_decision1_sp_v FIND v(sp) AT=12.00n
+.measure tran conv1_decision1_sn_v FIND v(sn) AT=12.00n
+.measure tran conv1_decision2_v FIND v(dec2) AT=36.00n
+.measure tran conv1_decision2_comparator_diff_v FIND par('v(outn)-v(outp)') AT=36.00n
+.measure tran conv1_decision2_preamp_diff_v FIND par('v(pre_n)-v(pre_p)') AT=32.80n
+.measure tran conv1_decision2_latched_diff_v FIND par('v(outn)-v(outp)') AT=34.40n
+.measure tran conv1_decision2_sp_v FIND v(sp) AT=28.00n
+.measure tran conv1_decision2_sn_v FIND v(sn) AT=28.00n
+.measure tran conv1_decision3_v FIND v(dec3) AT=52.00n
+.measure tran conv1_decision3_comparator_diff_v FIND par('v(outn)-v(outp)') AT=52.00n
+.measure tran conv1_decision3_preamp_diff_v FIND par('v(pre_n)-v(pre_p)') AT=48.80n
+.measure tran conv1_decision3_latched_diff_v FIND par('v(outn)-v(outp)') AT=50.40n
+.measure tran conv1_decision3_sp_v FIND v(sp) AT=44.00n
+.measure tran conv1_decision3_sn_v FIND v(sn) AT=44.00n
+.measure tran conv1_decision4_v FIND v(dec4) AT=68.00n
+.measure tran conv1_decision4_comparator_diff_v FIND par('v(outn)-v(outp)') AT=68.00n
+.measure tran conv1_decision4_preamp_diff_v FIND par('v(pre_n)-v(pre_p)') AT=64.80n
+.measure tran conv1_decision4_latched_diff_v FIND par('v(outn)-v(outp)') AT=66.40n
+.measure tran conv1_decision4_sp_v FIND v(sp) AT=60.00n
+.measure tran conv1_decision4_sn_v FIND v(sn) AT=60.00n
+.measure tran final_output_diff_v FIND par('v(outn)-v(outp)') AT=79.70n
+.control
+run
+.endc
+.end

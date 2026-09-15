@@ -1,0 +1,17 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${VERIFICATION_PROMETHEUS_RETENTION:-15d}
+    volumes:
+      - ./deployment/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deployment/observability/verification-pilot-alert-rules.yaml:/etc/prometheus/verification-pilot-alert-rules.yaml:ro
+      - verification-pilot-prometheus:/prometheus
+
+volumes:
+  verification-pilot-prometheus:

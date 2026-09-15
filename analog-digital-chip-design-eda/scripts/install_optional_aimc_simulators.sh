@@ -4,6 +4,8 @@ set -euo pipefail
 INSTALL_ROOT="${INSTALL_ROOT:-$HOME/eda-tools}"
 VENV_DIR="${VENV_DIR:-$INSTALL_ROOT/aimc-simulators-venv}"
 CROSSSIM_DIR="${CROSSSIM_DIR:-$INSTALL_ROOT/cross-sim}"
+AIHWKIT_SPEC="${AIHWKIT_SPEC:-aihwkit==1.1.0}"
+VENV_SYSTEM_SITE_PACKAGES="${VENV_SYSTEM_SITE_PACKAGES:-1}"
 
 usage() {
   cat <<'MSG'
@@ -21,9 +23,11 @@ Options:
   --help      Show this help.
 
 Environment:
-  INSTALL_ROOT  Default: $HOME/eda-tools
-  VENV_DIR      Default: $INSTALL_ROOT/aimc-simulators-venv
-  CROSSSIM_DIR  Default: $INSTALL_ROOT/cross-sim
+  INSTALL_ROOT   Default: $HOME/eda-tools
+  VENV_DIR       Default: $INSTALL_ROOT/aimc-simulators-venv
+  CROSSSIM_DIR   Default: $INSTALL_ROOT/cross-sim
+  AIHWKIT_SPEC   Default: aihwkit==1.1.0
+  VENV_SYSTEM_SITE_PACKAGES  Default: 1; expose the host PyTorch to the adapter venv
 
 After install:
   source "$VENV_DIR/bin/activate"
@@ -69,14 +73,31 @@ done
 
 ensure_python_venv() {
   if [ ! -d "$VENV_DIR" ]; then
-    python3 -m venv "$VENV_DIR"
+    if [ "$VENV_SYSTEM_SITE_PACKAGES" = "1" ]; then
+      python3 -m venv --system-site-packages "$VENV_DIR"
+    else
+      python3 -m venv "$VENV_DIR"
+    fi
   fi
   "$VENV_DIR/bin/python" -m pip install --upgrade pip setuptools wheel
 }
 
 install_aihwkit() {
   ensure_python_venv
-  "$VENV_DIR/bin/python" -m pip install aihwkit
+  # Colab and the lab simulator environment own the PyTorch installation.
+  # Installing AIHWKIT with dependencies would silently replace it with a
+  # large, unrelated CUDA stack. The pinned wheel is the adapter boundary;
+  # reject a host without torch before downloading the adapter wheel.
+  if ! "$VENV_DIR/bin/python" -c 'import torch' >/dev/null 2>&1; then
+    echo "AIHWKIT requires an existing PyTorch installation in $VENV_DIR; refusing to install dependencies automatically." >&2
+    return 2
+  fi
+  "$VENV_DIR/bin/python" -m pip install --no-deps "$AIHWKIT_SPEC"
+  "$VENV_DIR/bin/python" - <<'PY'
+import aihwkit
+import torch
+print(f"AIHWKIT {getattr(aihwkit, '__version__', 'unknown')} PyTorch {torch.__version__}")
+PY
 }
 
 install_crosssim() {

@@ -23,7 +23,8 @@ def build_project_pov(run_root: str | Path) -> dict[str, Any]:
     verification_ir = load("verification-ir.json", {})
     artifact_manifest = load("artifact-manifest.json", {})
     captured_coverage = load("functional-coverage.json", None)
-    if isinstance(captured_coverage, dict) and isinstance(captured_coverage.get("covered"), int) and isinstance(captured_coverage.get("total"), int) and captured_coverage.get("total", 0) > 0:
+    coverage_reported = isinstance(captured_coverage, dict) and isinstance(captured_coverage.get("covered"), int) and isinstance(captured_coverage.get("total"), int) and captured_coverage.get("total", 0) > 0
+    if coverage_reported:
         coverage = {"kind": captured_coverage["kind"], "covered": captured_coverage["covered"], "total": captured_coverage["total"]}
     else:
         covered = 1 if result.get("status") == "passed" else 0
@@ -49,7 +50,7 @@ def build_project_pov(run_root: str | Path) -> dict[str, Any]:
             "open": sum(item.get("status") == "open" for item in closure),
             "results": closure,
         },
-        "coverage": {**coverage, "percentage": round(100.0 * covered / coverage["total"], 4), "next_actions": rank_coverage_gaps([coverage]) if covered < coverage["total"] else []},
+        "coverage": {**coverage, "reported": coverage_reported, "percentage": round(100.0 * covered / coverage["total"], 4), "next_actions": rank_coverage_gaps([coverage]) if covered < coverage["total"] else []},
         "traceability": {"tool_runs": len(verification_ir.get("tool_runs", [])), "verification_ir": str(root / "verification-ir.json") if (root / "verification-ir.json").is_file() else None},
         "claim_boundary": "simulation execution evidence is not functional, code, formal, or measured-hardware coverage",
         "artifact_integrity": verify_artifact_manifest(root, artifact_manifest) if artifact_manifest else {"valid": False, "reason": "manifest missing"},

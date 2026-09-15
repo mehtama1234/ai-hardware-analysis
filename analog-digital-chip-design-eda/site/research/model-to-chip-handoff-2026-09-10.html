@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Model-to-Chip Handoff</title><style>
+:root{--bg:#f7f4ee;--ink:#1d2525;--muted:#5d6662;--line:#d8d0c3;--card:#ffffff;--accent:#0f6b61}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+header{border-bottom:1px solid var(--line);background:#fffaf1}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+h1{font-size:42px;line-height:1.08;margin:10px 0 12px}h2{font-size:25px;margin:34px 0 10px}h3{font-size:18px;margin:0 0 8px}
+p{margin:0 0 14px}.lead{font-size:19px;color:var(--muted);max-width:820px}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}nav a,.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;color:var(--ink);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.section{padding:28px 0;border-bottom:1px solid var(--line)}
+article{max-width:840px}.article-body pre{background:#1f2827;color:#f5f0e8;padding:14px;border-radius:8px;overflow:auto}
+.article-body code{background:#eee7da;padding:1px 4px;border-radius:4px}.article-body pre code{background:transparent;padding:0}
+ul,ol{padding-left:22px}li{margin:6px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:#fffaf1}
+</style></head>
+<body><header><div class="wrap"><div class="k">research map</div><h1>Model-to-Chip Handoff</h1><p class="lead">Source: docs/research/model-to-chip-handoff-2026-09-10.md</p><nav><a href="../../workbench/index.html">Silicon Workbench</a><a href="../index.html">Hub</a><a href="../synthesis.html">Synthesis</a><a href="../paper-synthesis.html">Paper synthesis</a><a href="../coverage-audit.html">Coverage audit</a><a href="../concepts.html">Concepts</a><a href="../labs.html">Labs</a><a href="../research.html">Research</a><a href="../papers.html">Papers</a></nav></div></header><main class="wrap"><article class="article-body"><h1>Model-to-Chip Handoff</h1>
+<p>**Snapshot:** 2026-09-11 **Owner:** ongoing shared lab work **Status:** active; analog path is not authorized</p>
+<h2>What this handoff is for</h2>
+<p>This document lets the next work session resume without reconstructing the investigation. It records what is proven, what failed, where the artifacts are, and the next experiment. It is intentionally conservative: a completed SPICE transient does not equal a qualified converter, and a model match does not equal a hardware speedup claim.</p>
+<h2>Current decision</h2>
+<p>Keep native digital GPU execution as the authoritative path. The analog/hybrid path remains an experiment until the exact-map, robustness, energy, and matched workload gates close.</p>
+<h2>Proven reference</h2>
+<p>The fixed-decision Sky130 FS diagnostic repeatedly reproduces:</p>
+<pre><code>
+[0, 2, 4, 6, 7]
+</code></pre>
+<p>The transient completes and the fixed arm is the reference for every sequential experiment. This is a fixed-control diagnostic, not closed-loop qualification.</p>
+<h2>Current sequential result</h2>
+<p>The latest stable two-control run uses:</p>
+<ul>
+<li>raw comparator decision capture;</li>
+<li>separate trial override and retained-state switches;</li>
+<li>break-before-make timing;</li>
+<li>trial and retained PMOS/NMOS edge probes; and</li>
+<li>a completed five-conversion FS transient.</li>
+</ul>
+<p>The raw-capture version reached real state rails and produced <code>[0, 0, 15, 0, 0]</code>. A later sample-reset test returned <code>[0, 0, 0, 0, 0]</code>, and a fixed-state two-control isolation returned <code>[8, 0, 8, 0, 0]</code>. These results prove useful parts of the handoff but do not qualify the converter.</p>
+<p>The most recent reference-calibration screen used sequential references <code>[1.1, 1.4, 1.1, 1.4, 1.75]</code> and still returned all zeros. This rules out a simple reference-window mismatch as the primary repair.</p>
+<h2>Local retention-fix diagnostic</h2>
+<p>The corrected generator was also exercised against the pinned local Sky130 models in <code>evidence/aimc-simulator-adapters/local-retention-fix.json</code>. All five conversions completed, and the retained state now reaches near-rail values for the first two conversions (<code>0.078/1.717/1.715/0.077 V</code>, then <code>0.000/0.161/1.800/0.000 V</code>). This confirms that separating the trial override from the retained-state driver repaired the state-storage ownership defect.</p>
+<p>The same run remains rejected: later DAC nodes leave the legal range and the decoded sequence is not the expected <code>[0, 2, 4, 6, 7]</code>. The result is a local diagnostic only; the next Colab receipt must reproduce these probes with the pinned bundle before the repair is treated as portable physical evidence. The one-conversion DAC legality comparison is recorded in <code>docs/research/continuous-sar-dac-legality-screen-2026-09-11.md</code>. The runner now also records <code>post_trial_db_v</code> probes for all four plates after each trial, making the rail-handoff timing observable in both local and Colab receipts. The fixed-state handoff receipt confirms the per-bit rail polarity follows a known pattern; the live loop&#x27;s all-low capture therefore points upstream to decision capture and state restore. The raw decision sources have now been corrected to use <code>V(outn)-V(outp)</code>, the same polarity as the accepted comparator measurement. Static deck inspection confirms the correction. A one-conversion run capturing at the decision edge now converges and records rail-valued raw/state nodes in <code>evidence/aimc-simulator-adapters/local-raw-latecapture1-100ps.json</code>; the DAC trajectory remains rejected and requires a full Colab reproduction.</p>
+<h2>Evidence locations</h2>
+<p>Authoritative raw receipts are under:</p>
+<pre><code>
+analog-digital-chip-design-eda/evidence/colab-fixedtwocontrol-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-rawcapture-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-owner-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-refcal-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-resetboundary-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-edgeprobe-ab-20260910/comparison.json
+analog-digital-chip-design-eda/evidence/colab-rawcapture-ab-20260910/online-schedule-audit.md
+</code></pre>
+<p>The qualification ledger is:</p>
+<pre><code>
+analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/matrix.json
+</code></pre>
+<p>The isolated one-bit Sky130 bottom-plate fixture is measured but not accepted in <code>analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-bottom-plate-cell.json</code>. It covers four nominal cases with non-overlap control; it is the starting cell for the required two-cell and four-bit reconstruction, not converter proof.</p>
+<p>The first shared-top-plate two-cell reconstruction is now measured in <code>analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-two-bottom-plate-cells.json</code>. All four code combinations converge, but selected high rails settle near <code>1.171 V</code> rather than <code>1.8 V</code> after correcting the original enable waveform. The fixture is therefore explicitly marked <code>two_cell_fixture_measured_not_accepted</code>; the next repair target is high-side charge transfer and settling margin before reconnecting the four-bit array. An attempted 64 µm PMOS sizing screen timed out before producing a complete receipt (<code>sky130-two-bottom-plate-cells-pmos64-timeout.json</code>), so brute-force width increase is rejected as the next fix; isolation and a bounded handoff remain the preferred redesign. The complementary NMOS high-side assist screen also timed out before a complete four-code receipt (<code>sky130-two-bottom-plate-cells-tg-assist.json</code>). This rejects the naive parallel transmission-gate assist and keeps the next repair focused on isolated, finite-edge charge transfer. Adding a <code>1 kΩ</code> or <code>10 kΩ</code> high-side keeper likewise timed out in the shared two-cell fixture (<code>sky130-two-bottom-plate-cells-keeper1k.json</code> and <code>sky130-two-bottom-plate-cells-keeper10k.json</code>). Passive low-value rail keepers are therefore rejected; the cell needs a sequenced active handoff with a bounded load. An isolated timing screen at <code>3.9 ns</code> still reached only <code>1.669 V</code> on the selected high rail (code 1), outside the <code>100 mV</code> target window. The existing 16 µm PMOS therefore needs either a longer legal acquisition interval or a different isolated cell topology; the 2.5 ns SAR boundary cannot yet be claimed. With the same 16 µm PMOS and corrected controls, extending the isolated measurement to <code>7.9 ns</code> reaches <code>1.7995 V</code> (code 1), inside the 100 mV target. This separates a timing requirement from a topology failure: the next SAR revision should test a legally extended acquisition phase before changing the transistor cell again.</p>
+<p>The active design notes are:</p>
+<pre><code>
+analog-digital-chip-design-eda/docs/research/sky130-dac-bottom-plate-switch-redesign-work-order.md
+analog-digital-chip-design-eda/scripts/run_sky130_continuous_physical_sar.py
+analog-digital-chip-design-eda/colab/run_fs_fixed_vs_sequential_ab.py
+analog-digital-chip-design-eda/colab/validate_sequential_control_deck.py
+</code></pre>
+<h2>Reproduce the structural checks</h2>
+<pre><code>
+python3 analog-digital-chip-design-eda/colab/validate_sequential_control_deck.py
+python3 analog-digital-chip-design-eda/scripts/check_sequential_bit_mapping.py
+python3 -m py_compile \
+  analog-digital-chip-design-eda/scripts/run_sky130_continuous_physical_sar.py \
+  analog-digital-chip-design-eda/colab/run_fs_fixed_vs_sequential_ab.py
+</code></pre>
+<p>The canonical A/B harness enables <code>AIMC_CONTINUOUS_STATE_CAPTURE_RAW=1</code> for sequential cases, so new receipts include the raw comparator boundary by default.</p>
+<p>The preflight must report <code>status: ready</code>, including the explicit <code>two_control_timing_contract</code> check for the four trial starts, pulse widths, and retention gating. These checks prove deck structure only; they do not authorize analog execution.</p>
+<p>The receipt also records the schedule as data: trial starts at <code>5, 21, 37, 53 ns</code>, a <code>1 ns</code> break-before-make interval, <code>14 ns</code> trial width, and an <code>80 ns</code> conversion period. This is the schedule contract to compare against every future Colab transient. The structural preflight also requires at least <code>6.7 ns</code> of trial width, based on the isolated 7.9 ns rail screen minus the 1.2 ns high-side enable delay. The current two-control deck provides <code>14 ns</code>, so the remaining online failure is more likely state ownership or capture alignment than insufficient trial window.</p>
+<h2>Next work order</h2>
+<ol>
+<li>Keep retained state independent from plate acquisition reset.</li>
+<li>Add measurements at each trial edge for <code>gp_dacN</code>, <code>gn_dacN</code>, bottom plate,</li>
+<p>   and the trial/retained switch controls.</p>
+<li>Compare the online trial schedule with the fixed arm at the same four sample</li>
+<p>   times. Resolve whether the candidate bit is actually connected to the DAC    plate before comparator capture.</p>
+<li>Correct the conversion-boundary initialization and state-to-bit contract.</li>
+<li>Rerun the five-conversion FS A/B on Colab T4 and preserve the full JSON.</li>
+<li>Only after an exact map is repeated should PVT, noise, mismatch, energy, or</li>
+<p>   DeepSeek workload integration resume.</p>
+</ol>
+<p>The first saved schedule audit is generated with:</p>
+<pre><code>
+python3 analog-digital-chip-design-eda/colab/analyze_online_schedule.py \
+  analog-digital-chip-design-eda/evidence/colab-rawcapture-ab-20260910/comparison.json \
+  --output analog-digital-chip-design-eda/evidence/colab-rawcapture-ab-20260910/online-schedule-audit.md
+</code></pre>
+<p>It shows the retained-state rails, trial rails, and retained-control rails for each conversion so the next Colab run can target a specific boundary rather than infer behavior from the final code alone. The generator now also records the raw comparator decision at the same capture sample (<code>raw_dec_v</code>), allowing the next receipt to separate comparator polarity from state-storage or gate-driver failure.</p>
+<p>The first Colab T4 rerun with that instrumentation is saved under <code>evidence/colab-rawcapture-ab-20260911/</code>. Raw comparator nodes are clean 0/1.8 V rails, while captured state nodes sit in intermediate ranges (<code>~0.09 V</code> or <code>~1.64 V</code>) and the resulting codes are <code>[15, 0, 6, 14, 5]</code>. This localizes the online defect to state storage/restore or its threshold contract; comparator polarity is no longer the leading hypothesis.</p>
+<h2>Colab operating rule</h2>
+<p>Use a pinned bundle and upload the repository tarball plus the Sky130 and dependency bundles. Download the JSON before stopping the session. If Colab returns <code>TooManyAssignmentsError</code>, treat that as an infrastructure condition, not circuit evidence; keep the goal active and continue structural work.</p>
+<p>Build the correctly rooted upload archives with <code>colab/build_sky130_colab_bundle.py</code>; the helper emits the source, ngspice, and device-model bundles expected by <code>bootstrap_continuous_sar.py</code>.</p>
+<p>Every continuous-SAR receipt now carries an <code>experiment_controls</code> object, including failed and timed-out runs. This makes the handoff reproducible: the next session can identify the topology and timing knobs actually exercised. The provenance smoke receipt <code>evidence/aimc-simulator-adapters/local-provenance-failure128b.json</code> is a timeout artifact and has no acceptance value.</p>
+<p>Run the next Colab handoff in this order:</p>
+<pre><code>
+python3 colab/validate_sequential_control_deck.py
+python3 scripts/validate_aimc_physical_evidence.py
+python3 colab/build_sky130_colab_bundle.py
+# upload the emitted archives; run the matching bootstrap in Colab T4
+# download JSON and Markdown receipts before ending the session
+python3 scripts/validate_aimc_physical_evidence.py
+</code></pre>
+<p>Use the checked-in campaign contract <code>colab/sky130-top-plate-acquisition-settings.json</code> as <code>/content/sky130-campaign-settings.json</code>; do not recreate its environment by memory or by filename. Validate it locally with <code>python3 colab/validate_top_plate_campaign_settings.py</code> before uploading. When the repository is unpacked under <code>/content</code>, the campaign can select the same contract directly with <code>AIMC_USE_BUNDLED_TOP_PLATE_SETTINGS=1</code>; the resulting summary records the settings SHA-256.</p>
+<p>Preserve the Colab runtime, GPU, ngspice version, bundle hashes, timeout, output stem, and <code>experiment_controls</code> with every receipt. A timeout is an infrastructure result and cannot be promoted to analog accuracy evidence.</p>
+<h2>Claim boundary</h2>
+<p>The cross-repository proof was rerun after correcting backend evidence-batch path resolution and completed with <code>PASS cross_repo_aimc_loop</code>. Its saved record is <code>evidence/aimc-hardware-lab/cross-repo-loop-proof.json</code> (10 governor rows, 6 imported evidence records, RTL pass, and 3 supported / 2 needs-review lab claims). This proves the software-to-lab evidence loop; it does not promote the analog converter or production claim.</p>
+<p>The current work demonstrates a reproducible digital reference and a growing set of physical handoff diagnostics. It does not yet demonstrate a qualified closed-loop analog converter, PVT or mismatch yield, energy advantage, silicon behavior, or end-to-end DeepSeek acceleration. The next executable work order is <code>docs/research/sky130-top-plate-acquisition-work-order-2026-09-11.md</code>. The five-conversion diagnostic with decision-edge capture completes, but the held state alternates between near-low and near-high values across conversions and every decoded code is <code>15</code>. This is now a repeated-history state-capture failure, not a simulator timeout; reset/restore sequencing remains the next hardware repair target. An isolated one-conversion run with the cross-coupled restore latch disabled holds a stable low state (<code>~4 mV</code> on all bits), strengthening the diagnosis. The corresponding five-conversion run is numerically stiff, so the next implementation should use a clocked, damped restore element rather than the present cross-coupled latch. The first damped-restore receipt (<code>evidence/aimc-simulator-adapters/local-damped-restore1-100ps.json</code>) reproduces the stable low hold with finite 100 Ω rail paths. A five-conversion run now completes in <code>evidence/aimc-simulator-adapters/local-damped-restore5-100ps.json</code>, but raw decisions alternate all-low/all-high by conversion and every code is <code>15</code>. The preamp differential has one sign across all four bit decisions within each conversion, and the comparator follows it. The remaining issue is the DAC charge trajectory and plate handoff, not only the restore latch. The PMOS-bank screen (<code>evidence/aimc-simulator-adapters/local-pmosbank16-100ps.json</code>) shows that stronger high-side drive brings the four DAC samples close together near <code>0.36 V</code>, but does not restore bit weighting. The next topology change must preserve capacitor isolation and binary weighting while improving rail drive; simply adding more parallel PMOS devices is rejected. The combined isolated-plate/timed-handoff fixture preserves a mixed per-bit rail pattern under fixed states in <code>evidence/aimc-simulator-adapters/local-isolated-handoff-fixed1-100ps.json</code>. This makes the settling and comparator sample interval the next measurable repair target. An early-handoff diagnostic with a shortened 3 ns trial still leaves the sampled DAC out of range (<code>local-isolated-handoff-early-fixed1-100ps.json</code>), so top-plate redistribution and comparator input isolation must be examined alongside timing. The 100 fF capacitive copy diagnostic (<code>local-capcopy-fixed1-100ps.json</code>) changes the fixed-pattern preamp signs to <code>[+,-,-,-]</code>, showing that input loading was masking bit information. The DAC plates themselves remain outside the legal range, so this is an interface improvement rather than acceptance. Adding 100 fF sense isolation at the comparator boundary does not improve the trajectory or weighting (<code>local-senseisolation-fixed1-100ps.json</code>), so the preferred interface remains the direct 100 fF capacitive copy without this extra sense capacitor. Increasing the top dummy capacitor to 10 pF attenuates the excursion but still leaves a negative sample and weakens the MSB (<code>local-capcopy-dummy10p-fixed1-100ps.json</code>). This is a damping tradeoff, not a viable weighting fix. Enabling the top-reset primitive improves selected nodes but still leaves the top trajectory outside range (<code>local-capcopy-topreset-fixed1-100ps.json</code>), so reset alone is insufficient. The bootstrapped high-side NMOS diagnostic improves the MSB sample to <code>0.565 V</code> but leaves lower-bit samples negative (<code>local-bootstrapped-high-fixed1-100ps.json</code>). It is a useful charge-transfer direction, but it does not yet preserve the full binary range or satisfy the gate-oxide claim boundary. An opt-in 10 pF common-mode top hold attenuates the swing but still leaves negative samples (<code>local-top-hold10p-fixed1-100ps.json</code>), so top capacitance is not a sufficient charge-preservation fix. The opt-in post-trial acquisition schedule (<code>AIMC_CONTINUOUS_POST_TRIAL_SAMPLE=1</code>) settles the bottom rails but collapses the top node and preamp signal in the fixed-pattern test (<code>local-postsample-fixed1-100ps.json</code>). The handoff must therefore preserve top-plate charge, not only clamp the bottom plates. Increasing the capacitive copy to 1 pF removes nearly all preamp differential while leaving the DAC out of range (<code>local-capcopy1p-fixed1-100ps.json</code>). Keep the 100 fF copy as the interface baseline; larger capacitance is rejected. Combining top reset with bottom ground precharge improves the sampled values slightly but still leaves the top trajectory outside range (<code>local-capcopy-reset-precharge-fixed1-100ps.json</code>). The next design should replace these broad clamps with a phase-specific acquisition schedule. The five-conversion live capacitive-copy run completes with bit-dependent preamp magnitudes but a uniform sign within each conversion; all codes remain <code>15</code>. The interface is less loaded, but the DAC feedback still does not create per-bit decisions. The source-follower copy variant gives weaker separation (<code>+0.068/-0.007/-0.006/-0.004 V</code>) than the 100 fF capacitive copy, so the capacitive interface remains the preferred handoff candidate for the next timing experiment.</p></article></main></body></html>

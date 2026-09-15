@@ -41,6 +41,21 @@ def make_deck(diff_mv: float) -> str:
     model_section = os.environ.get("AIMC_TWO_STAGE_MODEL_SECTION", "tt")
     supply_v = float(os.environ.get("AIMC_TWO_STAGE_SUPPLY_V", "1.8"))
     temperature_c = float(os.environ.get("AIMC_TWO_STAGE_TEMPERATURE_C", "27"))
+    frontend_netlist = Path(os.environ.get("AIMC_TWO_STAGE_FRONTEND_NETLIST", str(NETLIST))).resolve()
+    frontend_subckt = os.environ.get("AIMC_TWO_STAGE_FRONTEND_SUBCKT", "sky130_ultra_sense_capacitive_frontend")
+    frontend_pin_mode = os.environ.get("AIMC_TWO_STAGE_FRONTEND_PIN_MODE", "ultra_sense")
+    if frontend_pin_mode == "capacitive_isolation":
+        frontend_instance = f"XFRONT vss vdd sp sense_p clk_sample sense_n sn {frontend_subckt}"
+        sense_bias = "vcm"
+        sense_bias_source = "VBIAS vcm 0 0.9"
+        initial_conditions = ".ic v(pre_p)=1.0 v(pre_n)=1.0 v(out_p)=1.0 v(out_n)=1.0"
+    elif frontend_pin_mode == "ultra_sense":
+        frontend_instance = f"XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn {frontend_subckt}"
+        sense_bias = "0"
+        sense_bias_source = ""
+        initial_conditions = ".ic v(sense_p)=0.9 v(sense_n)=0.9 v(pre_p)=1.0 v(pre_n)=1.0 v(out_p)=1.0 v(out_n)=1.0"
+    else:
+        raise ValueError(f"unsupported frontend pin mode: {frontend_pin_mode}")
     load_mode = os.environ.get("AIMC_TWO_STAGE_LOAD_MODE", "resistive")
     if load_mode == "pmos_cascode":
         load_w = float(os.environ.get("AIMC_TWO_STAGE_LOAD_W_UM", "4"))
@@ -67,7 +82,7 @@ def make_deck(diff_mv: float) -> str:
     return f'''* Two-stage transistor preamp attached to extracted Sky130 frontend.
 .global VSUBS
 .lib "{PDK}" {model_section}
-.include "{NETLIST}"
+.include "{frontend_netlist}"
 .param vdd={supply_v:.12g}
 .param lmin=0.15
 .param rd1={rd1:.12g}
@@ -83,14 +98,15 @@ def make_deck(diff_mv: float) -> str:
 VDD vdd 0 {{vdd}}
 VSS vss 0 0
 VSUB VSUBS 0 0
+{sense_bias_source}
 VSP sp 0 PULSE(0 {{vinp}} 0.05n 20p 20p 20n 40n)
 VSN sn 0 PULSE(0 {{vinn}} 0.05n 20p 20p 20n 40n)
 VCS clk_sample 0 PULSE(0 {{vdd}} 1.00n 20p 20p 5n 10n)
 VCL clk_latch 0 PULSE(0 {{vdd}} 2.00n 20p 20p 5n 10n)
 VCM vcm_reset 0 PULSE({{vdd/2}} {{vdd}} 0.50n 20p 20p 0.50n 2n)
-XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn sky130_ultra_sense_capacitive_frontend
-RBIASP sense_p 0 100G
-RBIASN sense_n 0 100G
+{frontend_instance}
+RBIASP sense_p {sense_bias} 100G
+RBIASN sense_n {sense_bias} 100G
 {stage1_load}
 XINP1 pre_p sense_p tail1 0 sky130_fd_pr__nfet_01v8 W={{w1}} L={{lmin}}
 XINN1 pre_n sense_n tail1 0 sky130_fd_pr__nfet_01v8 W={{w1}} L={{lmin}}
@@ -101,7 +117,7 @@ XINN2 out_n pre_n tail2 0 sky130_fd_pr__nfet_01v8 W={{w2}} L={{lmin}}
 ITAIL2 tail2 0 {{itail2}}
 COUTP out_p 0 2f
 COUTN out_n 0 2f
-.ic v(sense_p)=0.9 v(sense_n)=0.9 v(pre_p)=1.0 v(pre_n)=1.0 v(out_p)=1.0 v(out_n)=1.0
+{initial_conditions}
 .tran 20p 3n
 .measure tran sense_p_after_v FIND v(sense_p) AT=2.60n
 .measure tran sense_n_after_v FIND v(sense_n) AT=2.60n
@@ -144,7 +160,9 @@ def main() -> int:
     report = {
         "result_type": "sky130_extracted_frontend_two_stage_preamp",
         "status": "two_stage_preamp_offset_corrected_margin_passed_not_layout_or_latch_proof" if nonzero and all(r.get("offset_corrected_sign_pass") and r.get("offset_corrected_margin_pass") for r in nonzero) else "two_stage_preamp_characterized_not_accepted",
-        "frontend_netlist": str(NETLIST.relative_to(ROOT)),
+        "frontend_netlist": str(Path(os.environ.get("AIMC_TWO_STAGE_FRONTEND_NETLIST", str(NETLIST))).resolve().relative_to(ROOT)),
+        "frontend_subckt": os.environ.get("AIMC_TWO_STAGE_FRONTEND_SUBCKT", "sky130_ultra_sense_capacitive_frontend"),
+        "frontend_pin_mode": os.environ.get("AIMC_TWO_STAGE_FRONTEND_PIN_MODE", "ultra_sense"),
         "load_mode": os.environ.get("AIMC_TWO_STAGE_LOAD_MODE", "resistive"),
         "load_width_um": float(os.environ.get("AIMC_TWO_STAGE_LOAD_W_UM", "2")),
         "stage1_load_ohm": float(os.environ.get("AIMC_TWO_STAGE_RD1_OHM", "500000")),

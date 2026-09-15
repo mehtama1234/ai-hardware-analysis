@@ -12,7 +12,7 @@ Run-output contract: `sources/evidence/analog-simulator-adapter-output-schema.js
 - local residual: 0.090004
 - AIHWKIT future payload: `evidence/aimc-simulator-adapters/aihwkit-analog-error-simulation.json`
 - CrossSim future payload: `evidence/aimc-simulator-adapters/crosssim-analog-error-simulation.json`
-- AIHWKIT smoke: ran
+- AIHWKIT smoke: failed
 - CrossSim smoke: ran
 
 ## Claim Boundary
@@ -25,9 +25,9 @@ do not call availability smoke checks calibrated silicon, measured board runtime
 
 | Layer | Local residual | AIHWKIT | CrossSim | Claim effect |
 | --- | ---: | --- | --- | --- |
-| measured_fixed_projection_tile | 0.090004 | availability smoke ran; strict payload still required | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
-| backend_dense1.matmul | 0.090004 | availability smoke ran; strict payload still required | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
-| backend_dense2.matmul | 0.090004 | availability smoke ran; strict payload still required | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
+| measured_fixed_projection_tile | 0.090004 | module importable; smoke did not produce strict evidence | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
+| backend_dense1.matmul | 0.090004 | module importable; smoke did not produce strict evidence | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
+| backend_dense2.matmul | 0.090004 | module importable; smoke did not produce strict evidence | availability smoke ran; strict payload still required | external simulator payload is required before this candidate receives stronger simulator evidence |
 
 ## Next Handoff
 

@@ -1,0 +1,80 @@
+{
+  "schema_version": "gpt2-stateful-multimodule-decision-v0.1",
+  "result_type": "bounded_local_stateful_multi_module_decision",
+  "sources": {
+    "stateful_report": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260911-local-stateful-transfer-v1/stateful_transfer_report.json",
+      "sha256": "492a6a38c1ea75e3461a15d45ad382276afbbf580734750118988e54121f5674"
+    },
+    "third_holdout": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260911-local-stateful-third-holdout-v1/stateful_transfer_report.json",
+      "sha256": "68e73560e084aab30c1c5e5714101d47b1584af3fdf8128bfc28a3dcd863a691"
+    },
+    "runtime_trace": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-stateful-profile-governor-v1/stateful_profile_governor.json",
+      "sha256": "1870b8ef90a01f925bda9117acaf0ba619b47a38d20411315b8ca1b12548f547"
+    },
+    "cost_trace": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-stateful-profile-governor-v1/stateful_route_cost_trace.jsonl",
+      "sha256": "2acfb85708a744a598a1a2a087d1785f36e2ae9d03492b0b424cb54679b190a0"
+    }
+  },
+  "target_modules": [
+    "transformer.h.0.mlp.c_fc",
+    "transformer.h.0.mlp.c_proj",
+    "transformer.h.0.attn.c_attn"
+  ],
+  "profile": {
+    "weight_bits": 16,
+    "dac_bits": 16,
+    "adc_bits": 14,
+    "range_multiplier": 1.25,
+    "transfer": "previous provisional output row"
+  },
+  "gates": [
+    {
+      "gate": "frozen_stateful_profile",
+      "passed": true
+    },
+    {
+      "gate": "original_context_quality",
+      "passed": true,
+      "detail": "agreement 1.000000"
+    },
+    {
+      "gate": "prior_stress_context_quality",
+      "passed": true,
+      "detail": "agreement 1.000000"
+    },
+    {
+      "gate": "third_holdout_generalization",
+      "passed": false,
+      "detail": "agreement 0.975309"
+    },
+    {
+      "gate": "sequence_state_scope",
+      "passed": true,
+      "detail": "previous-row term is computed within each projection call; no cross-call state is retained"
+    },
+    {
+      "gate": "governed_runtime_trace",
+      "passed": true,
+      "detail": "stateful governor route trace is hash-bound"
+    },
+    {
+      "gate": "modeled_cost_trace",
+      "passed": true,
+      "detail": "162-vector modeled cost/fallback rows are present"
+    },
+    {
+      "gate": "analog_authorization",
+      "passed": false
+    }
+  ],
+  "gate_count": 8,
+  "passed_gate_count": 6,
+  "decision": "stateful_profile_not_generalized",
+  "runtime_decision": "digital_reference_and_deterministic_fallback_only",
+  "analog_candidate_authorized": false,
+  "claim_boundary": "Local CPU multi-context decision only; third holdout fails, modeled costs are not measurements, and no analog authorization is claimed."
+}

@@ -1,0 +1,118 @@
+{
+  "schema_version": "mutation-suite-v1",
+  "name": "seeded-multi-design-mutation-closure",
+  "mutations": [
+    {
+      "mutation_id": "arbiter-drop-requester-one",
+      "source_file": "benchmarks/seeded_arbiter/arbiter.sv",
+      "from": "assign grant = rst ? 2'b00 : (req[0] ? 2'b01 : (req[1] ? 2'b10 : 2'b00));",
+      "to": "assign grant = rst ? 2'b00 : (req[0] ? 2'b01 : 2'b00);",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_arbiter/arbiter.sv", "benchmarks/seeded_arbiter/tb.sv"]
+    },
+    {
+      "mutation_id": "decoder-drop-opcode-two",
+      "source_file": "benchmarks/seeded_decoder/decoder.sv",
+      "from": "        2'd2: decode = 4'b0100;\n        2'd3: decode = 4'b1000;",
+      "to": "        2'd3: decode = 4'b1000;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_decoder/decoder.sv", "benchmarks/seeded_decoder/tb.sv"]
+    },
+    {
+      "mutation_id": "fifo-ignore-full",
+      "source_file": "benchmarks/seeded_fifo/fifo.sv",
+      "from": "        2'b10: count <= (count < DEPTH) ? count + 3'd1 : count;",
+      "to": "        2'b10: count <= count + 3'd1;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_fifo/fifo.sv", "benchmarks/seeded_fifo/tb.sv"]
+    },
+    {
+      "mutation_id": "handshake-ready-during-reset",
+      "source_file": "benchmarks/seeded_handshake/handshake.sv",
+      "from": "  assign ready = rst ? 1'b0 : 1'b1;",
+      "to": "  assign ready = 1'b1;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_handshake/handshake.sv", "benchmarks/seeded_handshake/tb.sv"]
+    },
+    {
+      "mutation_id": "parity-invert-result",
+      "source_file": "benchmarks/seeded_parity/parity.sv",
+      "from": "  assign even = rst ? 1'b0 : ~^data;",
+      "to": "  assign even = rst ? 1'b0 : ^data;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_parity/parity.sv", "benchmarks/seeded_parity/tb.sv"]
+    },
+    {
+      "mutation_id": "regblock-accept-nonzero-address",
+      "source_file": "benchmarks/seeded_regblock/regblock.sv",
+      "from": "      if (addr == 2'd0) reg0 <= wdata;",
+      "to": "      if (addr == 2'd0) reg0 <= wdata;\n      else reg0 <= wdata;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_regblock/regblock.sv", "benchmarks/seeded_regblock/tb.sv"]
+    },
+    {
+      "mutation_id": "signed-add-zero-extend",
+      "source_file": "benchmarks/seeded_signed/signed_add.sv",
+      "from": "  assign sum = rst ? 6'sd0 : {{2{a[3]}},a} + {{2{b[3]}},b};",
+      "to": "  assign sum = rst ? 6'sd0 : {2'b00,a} + {2'b00,b};",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_signed/signed_add.sv", "benchmarks/seeded_signed/tb.sv"]
+    },
+    {
+      "mutation_id": "width-adapter-high-nibble",
+      "source_file": "benchmarks/seeded_width/width_adapter.sv",
+      "from": "  assign low = rst ? 4'b0000 : data[3:0];",
+      "to": "  assign low = rst ? 4'b0000 : data[7:4];",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_width/width_adapter.sv", "benchmarks/seeded_width/tb.sv"]
+    },
+    {
+      "mutation_id": "arbiter-reset-grant",
+      "source_file": "benchmarks/seeded_arbiter/arbiter.sv",
+      "from": "assign grant = rst ? 2'b00 : (req[0] ? 2'b01 : (req[1] ? 2'b10 : 2'b00));",
+      "to": "assign grant = rst ? 2'b01 : (req[0] ? 2'b01 : (req[1] ? 2'b10 : 2'b00));",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_arbiter/arbiter.sv", "benchmarks/seeded_arbiter/tb.sv"]
+    },
+    {
+      "mutation_id": "decoder-opcode-two-value",
+      "source_file": "benchmarks/seeded_decoder/decoder.sv",
+      "from": "        2'd2: decode = 4'b0100;\n        2'd3: decode = 4'b1000;",
+      "to": "        2'd2: decode = 4'b0001;\n        2'd3: decode = 4'b1000;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_decoder/decoder.sv", "benchmarks/seeded_decoder/tb.sv"]
+    },
+    {
+      "mutation_id": "fifo-overfill-boundary",
+      "source_file": "benchmarks/seeded_fifo/fifo.sv",
+      "from": "        2'b10: count <= (count < DEPTH) ? count + 3'd1 : count;",
+      "to": "        2'b10: count <= (count <= DEPTH) ? count + 3'd1 : count;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_fifo/fifo.sv", "benchmarks/seeded_fifo/tb.sv"]
+    },
+    {
+      "mutation_id": "handshake-reset-high",
+      "source_file": "benchmarks/seeded_handshake/handshake.sv",
+      "from": "  assign ready = rst ? 1'b0 : 1'b1;",
+      "to": "  assign ready = rst ? 1'b1 : 1'b1;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_handshake/handshake.sv", "benchmarks/seeded_handshake/tb.sv"]
+    },
+    {
+      "mutation_id": "parity-reset-high",
+      "source_file": "benchmarks/seeded_parity/parity.sv",
+      "from": "  assign even = rst ? 1'b0 : ~^data;",
+      "to": "  assign even = rst ? 1'b1 : ~^data;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_parity/parity.sv", "benchmarks/seeded_parity/tb.sv"]
+    },
+    {
+      "mutation_id": "regblock-address-one",
+      "source_file": "benchmarks/seeded_regblock/regblock.sv",
+      "from": "      if (addr == 2'd0) reg0 <= wdata;",
+      "to": "      if (addr == 2'd1) reg0 <= wdata;",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_regblock/regblock.sv", "benchmarks/seeded_regblock/tb.sv"]
+    },
+    {
+      "mutation_id": "signed-add-partial-extension",
+      "source_file": "benchmarks/seeded_signed/signed_add.sv",
+      "from": "  assign sum = rst ? 6'sd0 : {{2{a[3]}},a} + {{2{b[3]}},b};",
+      "to": "  assign sum = rst ? 6'sd0 : {{2{a[3]}},a} + {2'b00,b};",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_signed/signed_add.sv", "benchmarks/seeded_signed/tb.sv"]
+    },
+    {
+      "mutation_id": "width-adapter-truncated-low",
+      "source_file": "benchmarks/seeded_width/width_adapter.sv",
+      "from": "  assign low = rst ? 4'b0000 : data[3:0];",
+      "to": "  assign low = rst ? 4'b0000 : data[3:1];",
+      "command": ["python3", "scripts/run_seeded_counter_check.py", "benchmarks/seeded_width/width_adapter.sv", "benchmarks/seeded_width/tb.sv"]
+    }
+  ]
+}

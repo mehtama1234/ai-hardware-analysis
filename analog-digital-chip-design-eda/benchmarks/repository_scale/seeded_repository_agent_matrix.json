@@ -1,0 +1,14 @@
+{
+  "schema_version": "repository-agent-matrix-v1",
+  "source_revision": "seeded-matrix-v1",
+  "tasks": [
+    {"task_id": "arbiter-requester-one", "source": "benchmarks/seeded_arbiter/arbiter.sv", "failure_context": "requester one is never granted when requester zero is idle", "repair_before": "assign grant = rst ? 2'b00 : (req[0] ? 2'b01 : 2'b00);", "repair_after": "assign grant = rst ? 2'b00 : (req[0] ? 2'b01 : (req[1] ? 2'b10 : 2'b00));"},
+    {"task_id": "decoder-opcode-two", "source": "benchmarks/seeded_decoder/decoder.sv", "failure_context": "opcode two produces no decode output", "repair_before": "        2'd3: decode = 4'b1000;", "repair_after": "        2'd2: decode = 4'b0100;\n        2'd3: decode = 4'b1000;"},
+    {"task_id": "fifo-full-boundary", "source": "benchmarks/seeded_fifo/fifo.sv", "failure_context": "FIFO count advances beyond depth at the full boundary", "repair_before": "        2'b10: count <= count + 3'd1;", "repair_after": "        2'b10: count <= (count < DEPTH) ? count + 3'd1 : count;"},
+    {"task_id": "handshake-reset-ready", "source": "benchmarks/seeded_handshake/handshake.sv", "failure_context": "ready is asserted during reset", "repair_before": "  assign ready = 1'b1; // SEEDED_BUG: ready must be low during reset", "repair_after": "  assign ready = rst ? 1'b0 : 1'b1;"},
+    {"task_id": "parity-even-polarity", "source": "benchmarks/seeded_parity/parity.sv", "failure_context": "even parity output has inverted polarity", "repair_before": "  assign even = rst ? 1'b0 : ^data;", "repair_after": "  assign even = rst ? 1'b0 : ~^data;"},
+    {"task_id": "regblock-address-filter", "source": "benchmarks/seeded_regblock/regblock.sv", "failure_context": "nonzero register address writes change reg0", "repair_before": "      if (addr == 2'd0) reg0 <= wdata;\n      else reg0 <= wdata; // SEEDED_BUG: nonzero addresses must be ignored", "repair_after": "      if (addr == 2'd0) reg0 <= wdata;"},
+    {"task_id": "signed-add-extension", "source": "benchmarks/seeded_signed/signed_add.sv", "failure_context": "negative operands are zero extended before addition", "repair_before": "  assign sum = rst ? 6'sd0 : {2'b00,a} + {2'b00,b};", "repair_after": "  assign sum = rst ? 6'sd0 : {{2{a[3]}},a} + {{2{b[3]}},b};"},
+    {"task_id": "width-adapter-nibble", "source": "benchmarks/seeded_width/width_adapter.sv", "failure_context": "adapter exposes the high nibble instead of the low nibble", "repair_before": "  assign low = rst ? 4'b0000 : data[7:4];", "repair_after": "  assign low = rst ? 4'b0000 : data[3:0];"}
+  ]
+}

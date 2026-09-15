@@ -82,7 +82,7 @@ This file is generated from the latest proof artifacts.
 
 ## Simulator State
 
-- AIHWKIT: `available` version `1.1.0`
+- AIHWKIT: `available` version `unknown`
 - CrossSim: `available` smoke max error `2.252e-07`
 
 - optional_simulator_payloads: AIHWKIT `wrote_payload`, CrossSim `wrote_payload`
@@ -237,13 +237,13 @@ This file is generated from the latest proof artifacts.
 
 ## Comparator Candidate State
 
-- status: `two_phase_preamp_latch_candidate_passed_schematic_not_noise_layout_or_strict`
-- measured edge cases: `2/2`
-- correct polarity: `2/2`
-- kickback below half LSB: `2/2`
-- worst sampled differential kickback: `1.9699999999955864e-05` V
-- minimum preamp differential before latch: `0.0007466000000000417` V
-- schematic candidate all cases pass: `True`
+- status: `two_phase_preamp_latch_candidate_characterized_not_accepted`
+- measured edge cases: `0/2`
+- correct polarity: `0/2`
+- kickback below half LSB: `0/2`
+- worst sampled differential kickback: `None` V
+- minimum preamp differential before latch: `None` V
+- schematic candidate all cases pass: `False`
 
 ## Digital Physical Boundary State
 
@@ -419,10 +419,10 @@ This file is generated from the latest proof artifacts.
 
 ## Physical DAC SAR Sequence State
 
-- status: `physical_dac_sar_sequence_characterized_not_continuous_multicycle_proof`
+- status: `physical_dac_sar_timeout_smoke`
 - artifact: `evidence/aimc-simulator-adapters/sky130-physical-dac-sar-sequence.json`
-- conversions: `5`
-- physical comparator trials: `20` of `20`
+- conversions: `1`
+- physical comparator trials: `0` of `1`
 - correct conversions: `0`
 
 ## Calibrated Physical SAR State
@@ -833,7 +833,7 @@ This file is generated from the latest proof artifacts.
 - status: `no_complete_real_artifact_package_found`
 - artifact: `evidence/aimc-simulator-adapters/converter-post-layout-real-artifact-discovery.json`
 - accepted post-layout exists: `False`
-- candidate non-scaffold files: `2`
+- candidate non-scaffold files: `13`
 - current candidate would write accepted evidence: `False`
 - current candidate strict issues: `22`
 

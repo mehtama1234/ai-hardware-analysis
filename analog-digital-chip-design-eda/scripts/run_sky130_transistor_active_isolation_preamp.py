@@ -17,6 +17,10 @@ MEASUREMENTS = LAB / "measurements"
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 PDK_LIB = Path.home() / "eda-tools" / "pdks" / "sky130A" / "libs.tech" / "ngspice" / "sky130.lib.spice"
 FRONTEND_NETLIST = LAB / "layout-workbench" / "extracted" / "sky130_ultra_sense_capacitive_frontend_extracted.spice"
+FRONTEND_NETLIST = Path(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_FRONTEND_NETLIST", str(FRONTEND_NETLIST)))
+FRONTEND_SUBCKT = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_FRONTEND_SUBCKT", "sky130_ultra_sense_capacitive_frontend")
+FRONTEND_EXPOSED_FLOATS = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_FRONTEND_EXPOSED_FLOATS") == "1"
+FRONTEND_WRAPPED_LEAKAGE = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_FRONTEND_WRAPPED_LEAKAGE") == "1"
 ISOLATION_NETLIST = LAB / "layout-workbench" / "extracted" / "sky130_transistor_active_isolation_pair_extracted.spice"
 SOURCE_FRONTEND = EVIDENCE / "sky130-ultra-sense-frontend-candidate.json"
 SOURCE_MACRO = EVIDENCE / "sky130-offset-calibrated-active-isolation-preamp.json"
@@ -28,6 +32,8 @@ PDK_CORNER = os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_PDK_CORNER", "tt")
 SUPPLY_V = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_SUPPLY_V", "1.8"))
 TEMPERATURE_C = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_TEMPERATURE_C", "27"))
 ISOLATION_LOAD_MISMATCH = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_LOAD_MISMATCH", "0"))
+RSHUNT = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_RSHUNT_OHM", "0"))
+FLOATING_LEAKAGE = float(os.environ.get("AIMC_TRANSISTOR_ACTIVE_ISOLATION_FLOATING_LEAKAGE_OHM", "0"))
 DECK_OUT = SPICE_DIR / f"{OUTPUT_STEM}.sp"
 CSV_OUT = MEASUREMENTS / f"{OUTPUT_STEM}.csv"
 OUT_JSON = EVIDENCE / f"{OUTPUT_STEM}.json"
@@ -49,6 +55,8 @@ SINGLE_SETTING_PROFILES = {
     "extracted_650k_4ua": {"name": "extracted_650k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 650_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
     "extracted_560k_pre12_4ua": {"name": "extracted_560k_pre12_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 12.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
     "extracted_560k_pre4_4ua": {"name": "extracted_560k_pre4_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 4.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_560k_pre3p9_4ua": {"name": "extracted_560k_pre3p9_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 3.9, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
+    "extracted_560k_pre4p1_4ua": {"name": "extracted_560k_pre4p1_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 560_000.0, "pre_w": 4.1, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
     "extracted_300k_8ua": {"name": "extracted_300k_8ua", "wiso": 2.0, "iso_tail_a": 8e-6, "iso_rd_ohm": 300_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 100_000.0},
     "extracted_pre300k_4ua": {"name": "extracted_pre300k_4ua", "wiso": 2.0, "iso_tail_a": 4e-6, "iso_rd_ohm": 300_000.0, "pre_w": 8.0, "pre_tail_a": 20e-6, "pre_rd_ohm": 300_000.0},
 }
@@ -108,6 +116,28 @@ RISO_N vdd iso_n {setting['iso_rd_ohm'] * (1.0 - ISOLATION_LOAD_MISMATCH):.12g}
 XISO_P iso_p sense_p iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
 XISO_N iso_n sense_n iso_tail 0 sky130_fd_pr__nfet_01v8 W={setting['wiso']:.12g} L={{lmin}}
 IISO_TAIL iso_tail 0 {setting['iso_tail_a']:.12g}"""
+    frontend_instance = (
+        f"XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn float_cm {FRONTEND_SUBCKT}"
+        if FRONTEND_WRAPPED_LEAKAGE else
+        f"XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn {FRONTEND_SUBCKT}"
+        if not FRONTEND_EXPOSED_FLOATS else
+        f"XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn "
+        f"ultra_sample_p_sense_p_region ultra_sample_n_sense_n_region "
+        f"symmetric_reset_region symmetric_latch_clock_region {FRONTEND_SUBCKT}"
+    )
+    leakage_source = ""
+    leakage_block = ""
+    if FLOATING_LEAKAGE > 0 and (FRONTEND_EXPOSED_FLOATS or FRONTEND_WRAPPED_LEAKAGE):
+        leakage_source = "VFLOATCM float_cm 0 0.9"
+        leakage_block = "\n".join(
+            f"RFLOAT{index} {node} float_cm {FLOATING_LEAKAGE:.12g}"
+            for index, node in enumerate((
+                "ultra_sample_p_sense_p_region",
+                "ultra_sample_n_sense_n_region",
+                "symmetric_reset_region",
+                "symmetric_latch_clock_region",
+            ), start=1)
+        ) if FRONTEND_EXPOSED_FLOATS else ""
     return f"""* Sky130 transistor active isolation before preamp.
 * This replaces the ideal active-isolation macro with a small differential pair.
 * It is schematic transistor evidence, not layout or accepted converter evidence.
@@ -118,21 +148,23 @@ IISO_TAIL iso_tail 0 {setting['iso_tail_a']:.12g}"""
 {isolation_include}
 .param vdd={SUPPLY_V:.6f}
 .param lmin=0.15
-.options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12
+.options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12{f" rshunt={RSHUNT:.12g}" if RSHUNT > 0 else ""}
 .temp {TEMPERATURE_C:.6f}
 
 VDD vdd 0 {{vdd}}
 VSS vss 0 0
 VSUB VSUBS 0 0
+{leakage_source}
 VSP sp 0 PULSE(0 {vinp:.12f} 0.05n 20p 20p 20n 40n)
 VSN sn 0 PULSE(0 {vinn:.12f} 0.05n 20p 20p 20n 40n)
 VCS clk_sample 0 PULSE(0 {{vdd}} 1.00n 20p 20p 5n 10n)
 VCL clk_latch 0 PULSE(0 {{vdd}} 2.00n 20p 20p 5n 10n)
 VCM vcm_reset 0 PULSE(0.9 1.8 0.50n 20p 20p 0.50n 2n)
 
-XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn sky130_ultra_sense_capacitive_frontend
+{frontend_instance}
 RBIASP sense_p 0 100G
 RBIASN sense_n 0 100G
+{leakage_block}
 
 {isolation_block}
 CISO_P iso_p 0 2f
@@ -250,7 +282,12 @@ def build_report() -> dict[str, Any]:
         "supply_v": SUPPLY_V,
         "temperature_c": TEMPERATURE_C,
         "isolation_load_mismatch_fraction": ISOLATION_LOAD_MISMATCH,
+        "rshunt_ohm": RSHUNT if RSHUNT > 0 else None,
+        "floating_leakage_ohm": FLOATING_LEAKAGE if FLOATING_LEAKAGE > 0 else None,
         "source_frontend_netlist": rel(FRONTEND_NETLIST),
+        "frontend_subckt": FRONTEND_SUBCKT,
+        "frontend_exposed_float_ports": FRONTEND_EXPOSED_FLOATS,
+        "frontend_wrapped_leakage": FRONTEND_WRAPPED_LEAKAGE,
         "generated_deck": rel(DECK_OUT),
         "csv": rel(CSV_OUT),
         "output_margin_target_v": OUTPUT_TARGET_V,

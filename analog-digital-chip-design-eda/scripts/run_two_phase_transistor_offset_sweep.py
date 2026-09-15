@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -13,18 +14,30 @@ from run_sky130_two_phase_preamp_latch_candidate import Case, PDK_LIB, build_dec
 
 ROOT = Path(__file__).resolve().parents[1]
 LAB = ROOT / "labs" / "analog" / "analog-in-memory-foundation-model-hardware"
-DECK = LAB / "spice" / "sky130_two_phase_transistor_offset_sweep.sp"
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
-OUT_JSON = EVIDENCE / "sky130-two-phase-transistor-offset-sweep.json"
-OUT_MD = EVIDENCE / "sky130-two-phase-transistor-offset-sweep.md"
-TIMEOUT_S = 70
+_OUTPUT_STEM = os.environ.get("AIMC_OFFSET_OUTPUT_STEM", "sky130-two-phase-transistor-offset-sweep")
+DECK = LAB / "spice" / f"{_OUTPUT_STEM}.sp"
+OUT_JSON = EVIDENCE / f"{_OUTPUT_STEM}.json"
+OUT_MD = EVIDENCE / f"{_OUTPUT_STEM}.md"
+TIMEOUT_S = float(os.environ.get("AIMC_OFFSET_TIMEOUT_S", "70"))
 
 
 def run_case(diff_mv: float) -> dict[str, Any]:
     deck = build_deck(Case(f"offset_{diff_mv:+.3f}mV", diff_mv))
+    deck = deck.replace(
+        ".options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16",
+        ".options method={} reltol={} abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin={}".format(
+            os.environ.get("AIMC_OFFSET_METHOD", "gear"),
+            os.environ.get("AIMC_OFFSET_RELTOL", "1e-3"),
+            os.environ.get("AIMC_OFFSET_GMIN", "1e-12"),
+        ),
+    )
     # Offset is a preamp property. Stop before the regenerative latch clock so
     # an exactly balanced input cannot become a metastable latch decision.
-    deck = deck.replace(".tran 5p 3n", ".tran 20p 1.5n")
+    step_ps = os.environ.get("AIMC_OFFSET_STEP_PS", "20")
+    deck = deck.replace(".tran 5p 3n", f".tran {step_ps}p 1.5n")
+    if os.environ.get("AIMC_OFFSET_UIC") == "1":
+        deck = deck.replace(f".tran {step_ps}p 1.5n", f".tran {step_ps}p 1.5n uic")
     deck = "\n".join(
         line
         for line in deck.splitlines()
@@ -61,8 +74,9 @@ def run_case(diff_mv: float) -> dict[str, Any]:
     DECK.write_text(deck, encoding="utf-8")
     try:
         result = subprocess.run(["ngspice", "-b", str(DECK)], cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT_S)
-    except subprocess.TimeoutExpired:
-        return {"input_diff_mv": diff_mv, "measured": False, "timed_out": True}
+    except subprocess.TimeoutExpired as exc:
+        partial = (exc.stdout or "") + (exc.stderr or "")
+        return {"input_diff_mv": diff_mv, "measured": False, "timed_out": True, "timeout_excerpt": partial[-1200:]}
     row: dict[str, Any] = {"input_diff_mv": diff_mv, "measured": result.returncode == 0, "timed_out": False, "returncode": result.returncode}
     if result.returncode != 0:
         row["error_excerpt"] = (result.stdout + result.stderr)[-1400:]
@@ -96,14 +110,20 @@ def main() -> int:
         raise SystemExit(f"missing Sky130 model library: {PDK_LIB}")
     # Five points are enough to bracket the zero crossing while keeping this
     # transistor-level sweep practical to rerun.
-    diffs_mv = [-0.20, -0.10, 0.0, 0.10, 0.20]
+    raw_diffs = os.environ.get("AIMC_OFFSET_DIFFS_MV", "")
+    diffs_mv = [float(token.strip()) for token in raw_diffs.split(",") if token.strip()] if raw_diffs else [-0.20, -0.10, 0.0, 0.10, 0.20]
     rows = [run_case(diff) for diff in diffs_mv]
     measured = [row for row in rows if row.get("measured")]
     crossing = estimate_crossing(rows)
     sign_pass = sum(row.get("preamp_sign_preserved") for row in measured if row["input_diff_mv"] != 0.0)
+    status = (
+        "transistor_threshold_sweep_measured_not_noise_or_sar_proof"
+        if len(measured) == len(rows)
+        else "transistor_threshold_partial_timeout"
+    )
     report = {
         "result_type": "sky130_two_phase_transistor_offset_sweep",
-        "status": "transistor_threshold_sweep_measured_not_noise_or_sar_proof",
+        "status": status,
         "generated_deck": str(DECK.relative_to(ROOT)),
         "measurement_boundary": "latch-free transient stopped at 1.5 ns; preamp measured at 1.45 ns",
         "transient_timestep_ps": 20.0,

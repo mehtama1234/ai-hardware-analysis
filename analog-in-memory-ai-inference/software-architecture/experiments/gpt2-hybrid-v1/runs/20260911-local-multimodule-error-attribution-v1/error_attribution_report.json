@@ -1,0 +1,224 @@
+{
+  "schema_version": "gpt2-multimodule-error-attribution-v0.1",
+  "result_type": "local_multi_module_output_to_logit_error_attribution",
+  "source": {
+    "fixture": {
+      "path": "experiments/gpt2-hybrid-v1/fixture-multimodule-v1.json",
+      "sha256": "1e645653fbc16379e2eddc0f98d0b015298060117ab082b93e973464bf18c04d"
+    },
+    "runner": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/scripts/run_multimodule_error_attribution.py",
+      "sha256": "d49213e20400d9a9efb0ff748d1534eae1aca177ee80c79f64bb1809e282440f"
+    }
+  },
+  "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "target_modules": [
+    "transformer.h.0.mlp.c_fc",
+    "transformer.h.0.mlp.c_proj",
+    "transformer.h.0.attn.c_attn"
+  ],
+  "calibration_split": [
+    "A computer stores information in memory and processes it with arithmetic circuits.",
+    "The weather changed slowly as the train crossed the valley.",
+    "The engineer checked the voltage before starting the measurement."
+  ],
+  "evaluation_split": [
+    "Memory movement dominates transformer inference when context grows because the attention cache must be read repeatedly.",
+    "The system bottleneck is determined by the slowest operation in the complete execution path.",
+    "A small library stood beside the river, where children gathered to read books.",
+    "Calibration corrects a measured error only while the operating conditions remain within the supported range."
+  ],
+  "activation_bounds": {
+    "transformer.h.0.mlp.c_fc": 2.80496883392334,
+    "transformer.h.0.mlp.c_proj": 11.491100311279297,
+    "transformer.h.0.attn.c_attn": 0.8089856505393982
+  },
+  "adc_bits": 12,
+  "calibrated": true,
+  "scenarios": {
+    "c_fc_only": {
+      "analog_modules": [
+        "transformer.h.0.mlp.c_fc"
+      ],
+      "digital_modules": [
+        "transformer.h.0.mlp.c_proj",
+        "transformer.h.0.attn.c_attn"
+      ],
+      "metrics": {
+        "modules": {
+          "transformer.h.0.mlp.c_fc": {
+            "output_rows": 67,
+            "output_relative_l2": 0.019093542146255568,
+            "output_max_abs_error": 0.14570146799087524
+          },
+          "transformer.h.0.mlp.c_proj": {
+            "output_rows": 67,
+            "output_relative_l2": 0.030983801053161616,
+            "output_max_abs_error": 0.8643524050712585
+          },
+          "transformer.h.0.attn.c_attn": {
+            "output_rows": 67,
+            "output_relative_l2": 0.0,
+            "output_max_abs_error": 0.0
+          }
+        },
+        "final_logit_relative_l2": 0.0018840207485482097,
+        "final_logit_max_abs_error": 0.8214263916015625,
+        "final_argmax_disagreement": 0.0
+      },
+      "trace_events": {
+        "transformer.h.0.mlp.c_fc": 4
+      },
+      "claim_boundary": "Local calibrated CPU replay; output and logit differences are not measured hardware behavior."
+    },
+    "c_proj_only": {
+      "analog_modules": [
+        "transformer.h.0.mlp.c_proj"
+      ],
+      "digital_modules": [
+        "transformer.h.0.mlp.c_fc",
+        "transformer.h.0.attn.c_attn"
+      ],
+      "metrics": {
+        "modules": {
+          "transformer.h.0.mlp.c_fc": {
+            "output_rows": 67,
+            "output_relative_l2": 0.0,
+            "output_max_abs_error": 0.0
+          },
+          "transformer.h.0.mlp.c_proj": {
+            "output_rows": 67,
+            "output_relative_l2": 0.09875849972382558,
+            "output_max_abs_error": 0.9411187767982483
+          },
+          "transformer.h.0.attn.c_attn": {
+            "output_rows": 67,
+            "output_relative_l2": 0.0,
+            "output_max_abs_error": 0.0
+          }
+        },
+        "final_logit_relative_l2": 0.006702080834656954,
+        "final_logit_max_abs_error": 2.5648880004882812,
+        "final_argmax_disagreement": 0.08955223858356476
+      },
+      "trace_events": {
+        "transformer.h.0.mlp.c_proj": 4
+      },
+      "claim_boundary": "Local calibrated CPU replay; output and logit differences are not measured hardware behavior."
+    },
+    "attn_only": {
+      "analog_modules": [
+        "transformer.h.0.attn.c_attn"
+      ],
+      "digital_modules": [
+        "transformer.h.0.mlp.c_fc",
+        "transformer.h.0.mlp.c_proj"
+      ],
+      "metrics": {
+        "modules": {
+          "transformer.h.0.mlp.c_fc": {
+            "output_rows": 67,
+            "output_relative_l2": 0.006241093466566982,
+            "output_max_abs_error": 0.15252268314361572
+          },
+          "transformer.h.0.mlp.c_proj": {
+            "output_rows": 67,
+            "output_relative_l2": 0.007643448417408528,
+            "output_max_abs_error": 0.35764312744140625
+          },
+          "transformer.h.0.attn.c_attn": {
+            "output_rows": 67,
+            "output_relative_l2": 0.011310881709640548,
+            "output_max_abs_error": 0.07807022333145142
+          }
+        },
+        "final_logit_relative_l2": 0.0007710523786954582,
+        "final_logit_max_abs_error": 0.38610076904296875,
+        "final_argmax_disagreement": 0.0
+      },
+      "trace_events": {
+        "transformer.h.0.attn.c_attn": 4
+      },
+      "claim_boundary": "Local calibrated CPU replay; output and logit differences are not measured hardware behavior."
+    },
+    "c_proj_digital_mixed": {
+      "analog_modules": [
+        "transformer.h.0.mlp.c_fc",
+        "transformer.h.0.attn.c_attn"
+      ],
+      "digital_modules": [
+        "transformer.h.0.mlp.c_proj"
+      ],
+      "metrics": {
+        "modules": {
+          "transformer.h.0.mlp.c_fc": {
+            "output_rows": 67,
+            "output_relative_l2": 0.02052053735847421,
+            "output_max_abs_error": 0.2076101303100586
+          },
+          "transformer.h.0.mlp.c_proj": {
+            "output_rows": 67,
+            "output_relative_l2": 0.031951492347727053,
+            "output_max_abs_error": 1.1910314559936523
+          },
+          "transformer.h.0.attn.c_attn": {
+            "output_rows": 67,
+            "output_relative_l2": 0.011310881709640548,
+            "output_max_abs_error": 0.07807022333145142
+          }
+        },
+        "final_logit_relative_l2": 0.002127197803929448,
+        "final_logit_max_abs_error": 0.816741943359375,
+        "final_argmax_disagreement": 0.014925372786819935
+      },
+      "trace_events": {
+        "transformer.h.0.mlp.c_fc": 4,
+        "transformer.h.0.attn.c_attn": 4
+      },
+      "claim_boundary": "Local calibrated CPU replay; output and logit differences are not measured hardware behavior."
+    },
+    "full_three_module": {
+      "analog_modules": [
+        "transformer.h.0.mlp.c_fc",
+        "transformer.h.0.mlp.c_proj",
+        "transformer.h.0.attn.c_attn"
+      ],
+      "digital_modules": [],
+      "metrics": {
+        "modules": {
+          "transformer.h.0.mlp.c_fc": {
+            "output_rows": 67,
+            "output_relative_l2": 0.02052053735847421,
+            "output_max_abs_error": 0.2076101303100586
+          },
+          "transformer.h.0.mlp.c_proj": {
+            "output_rows": 67,
+            "output_relative_l2": 0.10478545181926344,
+            "output_max_abs_error": 1.6522531509399414
+          },
+          "transformer.h.0.attn.c_attn": {
+            "output_rows": 67,
+            "output_relative_l2": 0.011310881709640548,
+            "output_max_abs_error": 0.07807022333145142
+          }
+        },
+        "final_logit_relative_l2": 0.007143110036849976,
+        "final_logit_max_abs_error": 4.5953216552734375,
+        "final_argmax_disagreement": 0.04477611929178238
+      },
+      "trace_events": {
+        "transformer.h.0.mlp.c_fc": 4,
+        "transformer.h.0.mlp.c_proj": 4,
+        "transformer.h.0.attn.c_attn": 4
+      },
+      "claim_boundary": "Local calibrated CPU replay; output and logit differences are not measured hardware behavior."
+    }
+  },
+  "interaction_summary": {
+    "sum_of_isolated_final_logit_relative_l2": 0.009357153961900622,
+    "full_route_final_logit_relative_l2": 0.007143110036849976,
+    "full_to_isolated_sum_ratio": 0.7633848995041084,
+    "interpretation": "Ratio above one indicates non-additive propagation; this is attribution evidence, not a causal hardware proof."
+  },
+  "claim_boundary": "Local CPU attribution only; no measured hardware latency, energy, silicon yield, or analog authorization."
+}

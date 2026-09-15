@@ -1,0 +1,56 @@
+{
+  "lowering_sha256": "8e4cc8b4f5dd4ffc0dc3d1b59b399c97d9e8d06746422739ffd01150a714532f",
+  "properties": [
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (rst && control !== '0) $error(\"REQ-CSR-RESET: reset invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) rst |-> control == '0);",
+      "reason": null,
+      "requirement_id": "REQ-CSR-RESET",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "reset_guard_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": null,
+      "original": "assert property (@(posedge clk) wr_en && addr != 0 |=> $stable(control));",
+      "reason": "unsupported property body: wr_en && addr != 0 |=> $stable(control)",
+      "requirement_id": "REQ-CSR-ADDRESS",
+      "reset": null,
+      "status": "unsupported",
+      "transformations": [
+        "clock_alias_injection"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": null,
+      "original": "assert property (@(posedge clk) wr_en && addr == 0 |=> control == $past(wdata));",
+      "reason": "unsupported property body: wr_en && addr == 0 |=> control == $past(wdata)",
+      "requirement_id": "REQ-CSR-WRITE",
+      "reset": null,
+      "status": "unsupported",
+      "transformations": [
+        "clock_alias_injection"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (rst && ready !== '0) $error(\"REQ-CSR-READY: reset invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) rst |-> ready == '0);",
+      "reason": null,
+      "requirement_id": "REQ-CSR-READY",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "reset_guard_lowering"
+      ]
+    }
+  ],
+  "schema_version": "sva-lowering-v1"
+}

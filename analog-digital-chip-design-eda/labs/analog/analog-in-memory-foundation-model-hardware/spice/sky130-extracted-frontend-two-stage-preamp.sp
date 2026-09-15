@@ -10,9 +10,10 @@
 .param itail2=4e-06
 .param w1=1
 .param w2=1
-.param vinp=0.900076485293
-.param vinn=0.899923514707
+.param vinp=0.900000000000
+.param vinn=0.900000000000
 .options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12
+.temp 27
 VDD vdd 0 {vdd}
 VSS vss 0 0
 VSUB VSUBS 0 0
@@ -20,17 +21,19 @@ VSP sp 0 PULSE(0 {vinp} 0.05n 20p 20p 20n 40n)
 VSN sn 0 PULSE(0 {vinn} 0.05n 20p 20p 20n 40n)
 VCS clk_sample 0 PULSE(0 {vdd} 1.00n 20p 20p 5n 10n)
 VCL clk_latch 0 PULSE(0 {vdd} 2.00n 20p 20p 5n 10n)
-VCM vcm_reset 0 PULSE(0.9 1.8 0.50n 20p 20p 0.50n 2n)
+VCM vcm_reset 0 PULSE({vdd/2} {vdd} 0.50n 20p 20p 0.50n 2n)
 XFRONT vss vdd sp sense_p clk_sample vcm_reset clk_latch sense_n sn sky130_ultra_sense_capacitive_frontend
 RBIASP sense_p 0 100G
 RBIASN sense_n 0 100G
-RDP1 vdd pre_p 500000
-RDN1 vdd pre_n 500000
+VLOADBIAS1 load_bias1 0 1.1
+XLOAD1P vdd load_bias1 pre_p vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XLOAD1N vdd load_bias1 pre_n vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
 XINP1 pre_p sense_p tail1 0 sky130_fd_pr__nfet_01v8 W={w1} L={lmin}
 XINN1 pre_n sense_n tail1 0 sky130_fd_pr__nfet_01v8 W={w1} L={lmin}
 ITAIL1 tail1 0 {itail1}
-RDP2 vdd out_p 500000
-RDN2 vdd out_n 500000
+VLOADBIAS2 load_bias2 0 1.1
+XLOAD2P vdd load_bias2 out_p vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
+XLOAD2N vdd load_bias2 out_n vdd sky130_fd_pr__pfet_01v8 W=8 L=0.15
 XINP2 out_p pre_p tail2 0 sky130_fd_pr__nfet_01v8 W={w2} L={lmin}
 XINN2 out_n pre_n tail2 0 sky130_fd_pr__nfet_01v8 W={w2} L={lmin}
 ITAIL2 tail2 0 {itail2}

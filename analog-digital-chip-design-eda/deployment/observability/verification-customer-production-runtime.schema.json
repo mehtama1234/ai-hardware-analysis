@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "verification-customer-production-runtime-v1",
+  "title": "Customer production runtime preflight result",
+  "type": "object",
+  "required": ["schema_version", "schema_path", "status"],
+  "properties": {
+    "schema_version": {"const": "verification-customer-production-runtime-v1"},
+    "schema_path": {"const": "deployment/observability/verification-customer-production-runtime.schema.json"},
+    "status": {"enum": ["passed", "blocked"]},
+    "deployment": {"const": "customer-production"},
+    "contract": {"type": "string"},
+    "checks": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"type": "string"}},
+    "error_type": {"type": "string"},
+    "stage": {"enum": ["readyz", "contract", "metrics", "execution-sandbox"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "passed"}}}, "then": {"required": ["deployment", "contract", "checks"]}},
+    {"if": {"properties": {"status": {"const": "blocked"}}}, "then": {"anyOf": [{"required": ["errors"]}, {"required": ["error_type", "stage"]}]}}
+  ],
+  "additionalProperties": true
+}

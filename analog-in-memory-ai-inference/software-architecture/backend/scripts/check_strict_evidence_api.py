@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 IMPORT_TEMPLATES = ROOT.parent / "review-package-demo" / "import-templates"
 CURRENT_LAB_EVIDENCE = (
-    ROOT.parents[3] / "analog-digital-chip-design-eda" / "evidence" / "aimc-hardware-lab"
+    ROOT.parents[2] / "analog-digital-chip-design-eda" / "evidence" / "aimc-hardware-lab"
 )
 PACKAGE_ID = "pkg-e931662a01293df2"
 LIVE_PACKAGE_DIR = ROOT / ".data" / "packages" / PACKAGE_ID

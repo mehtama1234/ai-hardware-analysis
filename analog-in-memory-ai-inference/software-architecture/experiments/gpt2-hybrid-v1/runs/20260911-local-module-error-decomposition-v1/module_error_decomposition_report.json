@@ -1,0 +1,114 @@
+{
+  "schema_version": "gpt2-module-error-decomposition-v0.1",
+  "result_type": "local_staged_module_error_decomposition",
+  "sources": {
+    "error_budget": {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260911-local-error-budget-v1/error_budget_report.json",
+      "sha256": "9427d1813487611d287b4ad0f25e22d8532aa3ef06a8348faf4ede26f0231557"
+    },
+    "boundary_interventions": {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260911-local-boundary-interventions-v1/boundary_intervention_report.json",
+      "sha256": "c81e375a0fcea6c1a413047082903374ee3245c5f8294b9181967908034d1588"
+    },
+    "builder": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/scripts/build_module_error_decomposition.py",
+      "sha256": "aaf2748bb59b52bf2b36dee0f3e4e89041a1647225f5551d484bed290f1561c2"
+    }
+  },
+  "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "target_modules": [
+    "transformer.h.0.mlp.c_fc",
+    "transformer.h.0.mlp.c_proj",
+    "transformer.h.0.attn.c_attn"
+  ],
+  "stages": {
+    "weight_quantization_only": {
+      "transformer.h.0.mlp.c_fc": 0.0070409587956978435,
+      "transformer.h.0.mlp.c_proj": 0.03400480231195089,
+      "transformer.h.0.attn.c_attn": 0.006994323084787185
+    },
+    "dac_quantization_only": {
+      "transformer.h.0.mlp.c_fc": 0.004418620474565114,
+      "transformer.h.0.mlp.c_proj": 0.019510798677347,
+      "transformer.h.0.attn.c_attn": 0.002546922379729559
+    },
+    "adc_quantization_only": {
+      "transformer.h.0.mlp.c_fc": 0.015869494337632618,
+      "transformer.h.0.mlp.c_proj": 0.0767661497125734,
+      "transformer.h.0.attn.c_attn": 0.007577853118970534
+    },
+    "combined_current_profile": {
+      "transformer.h.0.mlp.c_fc": 0.017754723264326238,
+      "transformer.h.0.mlp.c_proj": 0.08493000764660633,
+      "transformer.h.0.attn.c_attn": 0.010598737508810538
+    }
+  },
+  "dominant_module_by_stage": {
+    "weight_quantization_only": "transformer.h.0.mlp.c_proj",
+    "dac_quantization_only": "transformer.h.0.mlp.c_proj",
+    "adc_quantization_only": "transformer.h.0.mlp.c_proj",
+    "combined_current_profile": "transformer.h.0.mlp.c_proj"
+  },
+  "boundary_intervention_summary": {
+    "transformer.h.0.mlp.c_fc": {
+      "calibrated_adc12_output_relative_l2": 0.019093542146255568,
+      "amplitudes": [
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "final_logit_relative_l2": [
+        0.00047612402704544365,
+        0.0009486463968642056,
+        0.0018840613774955273,
+        0.003725706599652767
+      ],
+      "monotonic": true
+    },
+    "transformer.h.0.mlp.c_proj": {
+      "calibrated_adc12_output_relative_l2": 0.09875849972382558,
+      "amplitudes": [
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "final_logit_relative_l2": [
+        0.0016989773139357567,
+        0.0033894842490553856,
+        0.006702084559947252,
+        0.012867065146565437
+      ],
+      "monotonic": true
+    },
+    "transformer.h.0.attn.c_attn": {
+      "calibrated_adc12_output_relative_l2": 0.011310881709640548,
+      "amplitudes": [
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "final_logit_relative_l2": [
+        0.0001928238052641973,
+        0.0003855088143609464,
+        0.0007710382342338562,
+        0.0015425343299284577
+      ],
+      "monotonic": true
+    }
+  },
+  "finding": {
+    "dominant_module": "transformer.h.0.mlp.c_proj",
+    "dominant_error_source": "combined_current_profile",
+    "monotonic_boundary_modules": [
+      "transformer.h.0.mlp.c_fc",
+      "transformer.h.0.mlp.c_proj",
+      "transformer.h.0.attn.c_attn"
+    ]
+  },
+  "decision": "c_proj_boundary_and_adc_resolution_are_the_next_local_targets",
+  "analog_authorized": false,
+  "claim_boundary": "Local CPU staged error decomposition and perturbation propagation only; no measured hardware latency, energy, silicon yield, or analog authorization."
+}

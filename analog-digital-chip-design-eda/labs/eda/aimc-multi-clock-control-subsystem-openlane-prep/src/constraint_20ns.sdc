@@ -1,0 +1,7 @@
+create_clock -name core_clock -period 20.000 [get_ports core_clk]
+create_clock -name maintenance_clock -period 20.000 [get_ports maintenance_clk]
+set_clock_groups -asynchronous -group [get_clocks core_clock] -group [get_clocks maintenance_clock]
+set_false_path -from [get_ports rst_n]
+set_input_delay 1.000 -clock core_clock [get_ports {sample_valid op_class[*] resident_weights tile_id[*] tile_enabled adc_code[*] zero_code[*] gain_q6[*] bias[*] estimated_state_error[*] state_error_budget[*] attention_flip_rate[*] attention_flip_budget[*] token_flip_rate[*] token_flip_budget[*] residual_abs[*] residual_budget[*] calibration_age[*] weak_tiles[*] calibration_done probe_request probe_passed probe_failed analog_candidate requested_tile_id[*] tile1_health_action[*] tile2_health_action[*] tile3_health_action[*] tile_busy[*] drift_age[*] sensitivity_q8[*] cumulative_error_q8[*]}]
+set_input_delay 1.000 -clock maintenance_clock [get_ports maintenance_budget_async]
+set_output_delay 1.000 -clock core_clock [all_outputs]

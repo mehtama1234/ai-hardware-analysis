@@ -1,0 +1,8 @@
+module counter(input logic clk, input logic rst, input logic enable, output logic [3:0] counter_q);
+  always_ff @(posedge clk) begin
+    if (rst)
+      counter_q <= 4'd0;
+    else if (enable)
+      counter_q <= counter_q + 4'd1;
+  end
+endmodule

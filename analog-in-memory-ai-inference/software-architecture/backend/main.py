@@ -78,13 +78,15 @@ LOCAL_EVIDENCE_TOOLS = {
     "local-board-runtime-adapter",
     "local-power-thermal-adapter",
 }
-HARDWARE_LAB_EVIDENCE_BATCH = (
-    BASE_DIR.parents[3]
-    / "analog-digital-chip-design-eda"
-    / "evidence"
-    / "aimc-hardware-lab"
-    / "import-batch.json"
+_HARDWARE_LAB_ROOT_CANDIDATES = (
+    BASE_DIR.parents[3] / "ai-hardware-analysis" / "analog-digital-chip-design-eda",
+    BASE_DIR.parents[3] / "analog-digital-chip-design-eda",
 )
+HARDWARE_LAB_ROOT = next(
+    (candidate for candidate in _HARDWARE_LAB_ROOT_CANDIDATES if (candidate / "evidence" / "aimc-hardware-lab" / "import-batch.json").exists()),
+    _HARDWARE_LAB_ROOT_CANDIDATES[0],
+)
+HARDWARE_LAB_EVIDENCE_BATCH = HARDWARE_LAB_ROOT / "evidence" / "aimc-hardware-lab" / "import-batch.json"
 HARDWARE_LAB_STRICT_TOOL_EVIDENCE = HARDWARE_LAB_EVIDENCE_BATCH.parent / "analog_error_simulation_strict_tool.json"
 
 app = FastAPI(title="Analog AI Model-Fit Backend", version="0.1.0")

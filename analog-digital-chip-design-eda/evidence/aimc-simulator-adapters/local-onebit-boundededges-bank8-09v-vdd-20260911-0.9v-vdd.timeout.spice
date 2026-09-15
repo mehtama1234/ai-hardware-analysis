@@ -1,0 +1,34 @@
+* One-bit Sky130 bottom-plate charge-transfer cell.
+.lib "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.param vdd=1.8
+VDD vdd 0 {vdd}
+VSS vss 0 0
+VTOP top 0 0.900000000
+CBOTTOM top bottom 8p
+XLOW bottom low_gate vss vss sky130_fd_pr__nfet_01v8 W=8.0 L=0.15
+XHIGH0 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH1 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH2 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH3 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH4 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH5 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH6 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+XHIGH7 bottom high_gate vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.15 NF=1
+VLOW low_gate 0 PWL(0 1.8 1n 1.8 1.18n 1.8 1.23n 0 4n 0)
+VHIGH high_gate 0 PWL(0 1.8 1.25n 1.8 1.3n 0 4n 0)
+.ic v(top)=0.900000000 v(bottom)=0
+RLEAKTOP top 0 100G
+RLEAKBOTTOM bottom 0 100G
+.options method=gear reltol=1e-3 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-12
+.nodeset v(top)=0.900000000 v(bottom)=0
+.tran 50p 4n
+.measure tran top_before_v FIND v(top) AT=0.90n
+.measure tran bottom_before_v FIND v(bottom) AT=0.90n
+.measure tran top_after_v FIND v(top) AT=2.50n
+.measure tran bottom_after_v FIND v(bottom) AT=2.50n
+.measure tran bottom_late_v FIND v(bottom) AT=3.50n
+.measure tran top_late_v FIND v(top) AT=3.50n
+.control
+run
+.endc
+.end

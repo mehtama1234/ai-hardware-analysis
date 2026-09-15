@@ -1,3 +1,5 @@
+> Superseded by the 2026-09-09 [behavioral UX audit](docs/roadmaps/verification-workbench-ux-review.md). The prior pass below did not establish end-to-end usability. Remediation is in progress; this is retained as historical evidence, not current acceptance.
+
 # Verification Workbench Design QA
 
 source visual truth path: `/home/mehtama1/.codex/generated_images/01a086f3-7604-7b42-8a41-a8a93f3ca7ab/exec-1dbef3fa-eb4d-4bf1-9ee2-05fbb89aa508.png` (selected Verification Workbench concept)

@@ -103,6 +103,7 @@ module aimc_micro_tile_controller_tb;
             @(negedge clk);
             sample_valid = 1'b0;
             @(negedge clk);
+            @(negedge clk);
             #1;
             $display("%0s,path=%0d,reason=%0d,value=%0d,last_fallback_tile=%0d,fallback_count=%0d,accepted_count=%0d,residual_fallback_count=%0d,stale_fallback_count=%0d,tile_health_action=%0d", name, execution_path, reason, corrected_value, last_fallback_tile_id, fallback_count, accepted_count, residual_fallback_count, stale_fallback_count, tile_health_action);
             if (

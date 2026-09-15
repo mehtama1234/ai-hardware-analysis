@@ -1,0 +1,27 @@
+{
+  "schema_version": "verification-observability-dashboard-v1",
+  "title": "Verification Pilot SLOs",
+  "datasource": "Prometheus",
+  "panels": [
+    {"id": "readiness", "title": "Service readiness", "query": "verification_readiness", "unit": "short", "alert_below": 1},
+    {"id": "queue", "title": "Queued jobs", "query": "verification_queue_jobs{state=\"queued\"}", "unit": "short", "alert_above_metric": "verification_queue_capacity"},
+    {"id": "errors", "title": "HTTP 5xx rate", "query": "rate(verification_http_responses_total{class=\"5xx\"}[5m])", "unit": "reqps"},
+    {"id": "latency", "title": "HTTP average latency", "query": "sum(rate(verification_http_request_duration_seconds_sum[5m])) / sum(rate(verification_http_request_duration_seconds_count[5m]))", "unit": "s"},
+    {"id": "adapters", "title": "EDA adapter availability", "query": "verification_eda_adapter_available", "unit": "short", "alert_below": 1}
+    ,{"id": "oidc-refresh", "title": "OIDC JWKS refreshes", "query": "verification_oidc_jwks_refresh_total", "unit": "short"}
+    ,{"id": "oidc-unknown-key", "title": "OIDC unknown key IDs", "query": "verification_oidc_jwks_unknown_kid_total", "unit": "short"}
+    ,{"id": "oidc-cache", "title": "Cached OIDC signing keys", "query": "verification_oidc_cached_keys", "unit": "short", "alert_below": 1}
+    ,{"id": "backup-age", "title": "Backup age", "query": "verification_backup_age_seconds", "unit": "s"}
+    ,{"id": "backup-rpo", "title": "Backup RPO", "query": "verification_backup_rpo_seconds", "unit": "s"}
+  ],
+  "alerts": [
+    {"name": "VerificationPilotNotReady", "expr": "verification_readiness < 1", "for": "5m", "severity": "critical"},
+    {"name": "VerificationPilotHttp5xx", "expr": "sum(rate(verification_http_responses_total{class=\"5xx\"}[5m])) > 0", "for": "10m", "severity": "warning"},
+    {"name": "VerificationPilotQueueBacklog", "expr": "sum(verification_queue_jobs{state=\"queued\"}) > verification_queue_capacity", "for": "10m", "severity": "warning"},
+    {"name": "VerificationPilotLatencyHigh", "expr": "sum(rate(verification_http_request_duration_seconds_sum[5m])) / sum(rate(verification_http_request_duration_seconds_count[5m])) > 5", "for": "10m", "severity": "warning"},
+    {"name": "VerificationPilotAdapterBlocked", "expr": "verification_eda_adapter_available < 1", "for": "5m", "severity": "warning"},
+    {"name": "VerificationPilotOidcUnknownKey", "expr": "increase(verification_oidc_jwks_unknown_kid_total[10m]) > 0", "for": "2m", "severity": "warning"},
+    {"name": "VerificationPilotBackupStale", "expr": "verification_backup_age_seconds > verification_backup_rpo_seconds * 2", "for": "10m", "severity": "critical"}
+  ],
+  "claim_boundary": "Dashboard signals support operational alerting; they do not establish verification completeness or silicon correctness."
+}

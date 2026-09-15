@@ -1,0 +1,2324 @@
+{
+  "schema_version": "gpt2-hybrid-projection-evaluation-v0.1",
+  "evidence_kind": "real_pretrained_model_with_provisional_numerical_array_on_cpu",
+  "sources": {
+    "fixture": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/fixture.json",
+      "sha256": "8bb5526fed4c4d4efb54bd9e7a7aa83305613e116353ea6991a4231c661be6de"
+    },
+    "runner": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/scripts/run_gpt2_hybrid_evaluation.py",
+      "sha256": "0af944caf13f78077bdc01612c1b5947ff224c04d46fe6ba08b04404644d7660"
+    },
+    "projection_model": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/scripts/tiled_projection_model.py",
+      "sha256": "e90749b64d1373756640a58deeb542fd0e3419216ec497222502e34c4f550d8f"
+    },
+    "model_snapshot": [
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/config.json",
+        "sha256": "0daed7749b4f02b8f76240d5444551d7b08712dab4d0adb8239c56ba823bb7b4"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/generation_config.json",
+        "sha256": "ed0b32ac72c0f5f44a719abb2d7786ea5146c871f83717b7f2018065954de02b"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/merges.txt",
+        "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/model.safetensors",
+        "sha256": "248dfc3911869ec493c76e65bf2fcf7f615828b0254c12b473182f0f81d3a707"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/tokenizer.json",
+        "sha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/tokenizer_config.json",
+        "sha256": "5e04eb606e3a1583530a42e36c2a6b6615c86f34fe77e44d9ddeb43ff940931f"
+      },
+      {
+        "path": "/home/mehtama1/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e/vocab.json",
+        "sha256": "196139668be63f3b5d6574427317ae82f612a97c5d1cdaf36ed2256dbf636783"
+      }
+    ]
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "target_module": "transformer.h.0.mlp.c_fc",
+    "parameter_count": 124439808
+  },
+  "runtime": {
+    "python": "3.10.12 (main, Jun 22 2026, 18:55:27) [GCC 11.4.0]",
+    "torch": "2.4.1+cu121",
+    "transformers": "5.12.1",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "device": "cpu",
+    "threads": 2,
+    "command": [
+      "scripts/run_gpt2_hybrid_evaluation.py",
+      "--output",
+      "experiments/gpt2-hybrid-v1/runs/20260909-recovery-projection"
+    ]
+  },
+  "fixture": {
+    "id": "gpt2-hybrid-projection-exploration-v1",
+    "provenance": "Locally authored engineering sentences; exploratory fixture, not a benchmark dataset or final task acceptance set.",
+    "model_id": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "target_module": "transformer.h.0.mlp.c_fc",
+    "calibration": [
+      "A computer stores information in memory and processes it with arithmetic circuits.",
+      "The weather changed slowly as the train crossed the valley.",
+      "The engineer checked the voltage before starting the measurement."
+    ],
+    "evaluation": [
+      "Memory movement dominates transformer inference when context grows because the attention cache must be read repeatedly.",
+      "The system bottleneck is determined by the slowest operation in the complete execution path.",
+      "A small library stood beside the river, where children gathered to read books.",
+      "Calibration corrects a measured error only while the operating conditions remain within the supported range."
+    ],
+    "max_new_tokens": 8,
+    "seed": 8181,
+    "exploratory_screen": {
+      "maximum_nll_increase_nats": 0.05,
+      "minimum_teacher_forced_argmax_agreement": 0.99
+    },
+    "claim_boundary": "These screening thresholds are provisional; they do not replace original workload acceptance requirements or authorize physical placement."
+  },
+  "variants": [
+    {
+      "id": "ideal_tiled_control",
+      "contract": {
+        "profile": {
+          "tile_rows": 128,
+          "tile_columns": 128,
+          "weight_bits": 8,
+          "dac_bits": 10,
+          "adc_bits": 12,
+          "read_noise_fraction": 0.0
+        },
+        "weight_shape_input_output": [
+          768,
+          3072
+        ],
+        "calibrated_activation_abs_max": 2.80496883392334,
+        "logical_tiles": 144,
+        "physical_arrays_if_differential_pair": 288,
+        "signed_weight_representation": "differential pair; effective multilevel weight precision is assumed, not demonstrated",
+        "input_representation": "signed DAC voltage assumed; no input bit serialization",
+        "readout": "analog differential subtraction before one signed ADC per logical column",
+        "adc_range": "activation bound times maximum column L1 weight norm within each tile",
+        "accumulation": "digital float32 sum across row tiles and digital bias addition",
+        "per_vector": {
+          "macs": 2359296,
+          "dac_conversions_without_column_tile_broadcast": 18432,
+          "adc_conversions_after_differential_subtraction": 18432,
+          "array_evaluations": 288,
+          "digital_partial_sum_additions": 15360,
+          "boundary_input_bytes_fp32": 3072,
+          "boundary_output_bytes_fp32": 12288
+        },
+        "excluded_physics": [
+          "wire resistance",
+          "conductance programming error",
+          "drift",
+          "nonlinear I/V",
+          "PVT",
+          "mismatch",
+          "settling",
+          "sample/hold",
+          "SRAM contention"
+        ],
+        "calibration_status": "activation-calibrated numerical model; not circuit-calibrated",
+        "energy_latency": {
+          "status": "not_identifiable_without_matched_cost_coefficients",
+          "required": [
+            "DAC pJ/conversion",
+            "ADC pJ/conversion",
+            "array pJ/evaluation",
+            "digital accumulation pJ/add",
+            "boundary transfer pJ/byte",
+            "converter sharing schedule and settling",
+            "same-target digital projection cost"
+          ],
+          "energy_equation": "E_projection = N_DAC*e_DAC + N_ADC*e_ADC + N_array*e_array + N_add*e_add + bytes*e_move; add programming/calibration amortization",
+          "break_even": "E_projection plus integration overhead must be below same-target digital projection energy"
+        }
+      },
+      "quality": {
+        "predicted_tokens": 63,
+        "baseline_nll_nats_per_token": 5.185712360200428,
+        "candidate_nll_nats_per_token": 5.185711633591425,
+        "nll_increase_nats": -7.266090031876615e-07,
+        "teacher_forced_argmax_agreement": 1.0,
+        "generation_exact_match_count": 4,
+        "rows": [
+          {
+            "predicted_tokens": 16,
+            "argmax_matches": 16,
+            "logit_relative_l2": 1.331123513637067e-07,
+            "maximum_logit_abs_error": 6.866455078125e-05,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+            "candidate_cpu_reference_wall_ms": 3725.750694999988
+          },
+          {
+            "predicted_tokens": 15,
+            "argmax_matches": 15,
+            "logit_relative_l2": 1.7179324629523762e-07,
+            "maximum_logit_abs_error": 7.62939453125e-05,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3699.878961999957,
+            "candidate_cpu_reference_wall_ms": 3049.9844519999897
+          },
+          {
+            "predicted_tokens": 14,
+            "argmax_matches": 14,
+            "logit_relative_l2": 1.0460018273761307e-07,
+            "maximum_logit_abs_error": 4.57763671875e-05,
+            "baseline_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 4119.700697999974,
+            "candidate_cpu_reference_wall_ms": 2853.202005000071
+          },
+          {
+            "predicted_tokens": 18,
+            "argmax_matches": 18,
+            "logit_relative_l2": 1.5835711053568957e-07,
+            "maximum_logit_abs_error": 6.4849853515625e-05,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 5813.66028399998,
+            "candidate_cpu_reference_wall_ms": 3660.3836519999504
+          }
+        ]
+      },
+      "exploratory_quality_screen_pass": true,
+      "trace": [
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "ideal_tiled"
+        }
+      ]
+    },
+    {
+      "id": "dac10_weight8_adc8",
+      "contract": {
+        "profile": {
+          "tile_rows": 128,
+          "tile_columns": 128,
+          "weight_bits": 8,
+          "dac_bits": 10,
+          "adc_bits": 8,
+          "read_noise_fraction": 0.0
+        },
+        "weight_shape_input_output": [
+          768,
+          3072
+        ],
+        "calibrated_activation_abs_max": 2.80496883392334,
+        "logical_tiles": 144,
+        "physical_arrays_if_differential_pair": 288,
+        "signed_weight_representation": "differential pair; effective multilevel weight precision is assumed, not demonstrated",
+        "input_representation": "signed DAC voltage assumed; no input bit serialization",
+        "readout": "analog differential subtraction before one signed ADC per logical column",
+        "adc_range": "activation bound times maximum column L1 weight norm within each tile",
+        "accumulation": "digital float32 sum across row tiles and digital bias addition",
+        "per_vector": {
+          "macs": 2359296,
+          "dac_conversions_without_column_tile_broadcast": 18432,
+          "adc_conversions_after_differential_subtraction": 18432,
+          "array_evaluations": 288,
+          "digital_partial_sum_additions": 15360,
+          "boundary_input_bytes_fp32": 3072,
+          "boundary_output_bytes_fp32": 12288
+        },
+        "excluded_physics": [
+          "wire resistance",
+          "conductance programming error",
+          "drift",
+          "nonlinear I/V",
+          "PVT",
+          "mismatch",
+          "settling",
+          "sample/hold",
+          "SRAM contention"
+        ],
+        "calibration_status": "activation-calibrated numerical model; not circuit-calibrated",
+        "energy_latency": {
+          "status": "not_identifiable_without_matched_cost_coefficients",
+          "required": [
+            "DAC pJ/conversion",
+            "ADC pJ/conversion",
+            "array pJ/evaluation",
+            "digital accumulation pJ/add",
+            "boundary transfer pJ/byte",
+            "converter sharing schedule and settling",
+            "same-target digital projection cost"
+          ],
+          "energy_equation": "E_projection = N_DAC*e_DAC + N_ADC*e_ADC + N_array*e_array + N_add*e_add + bytes*e_move; add programming/calibration amortization",
+          "break_even": "E_projection plus integration overhead must be below same-target digital projection energy"
+        }
+      },
+      "quality": {
+        "predicted_tokens": 63,
+        "baseline_nll_nats_per_token": 5.185712360200428,
+        "candidate_nll_nats_per_token": 5.21167967054579,
+        "nll_increase_nats": 0.025967310345361483,
+        "teacher_forced_argmax_agreement": 0.8253968253968254,
+        "generation_exact_match_count": 3,
+        "rows": [
+          {
+            "predicted_tokens": 16,
+            "argmax_matches": 12,
+            "logit_relative_l2": 0.032277051359415054,
+            "maximum_logit_abs_error": 9.065238952636719,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+            "candidate_cpu_reference_wall_ms": 5712.68162299998
+          },
+          {
+            "predicted_tokens": 15,
+            "argmax_matches": 14,
+            "logit_relative_l2": 0.03381982818245888,
+            "maximum_logit_abs_error": 8.218040466308594,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3699.878961999957,
+            "candidate_cpu_reference_wall_ms": 4506.601236000051
+          },
+          {
+            "predicted_tokens": 14,
+            "argmax_matches": 11,
+            "logit_relative_l2": 0.01564881019294262,
+            "maximum_logit_abs_error": 3.7956390380859375,
+            "baseline_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              644
+            ],
+            "generation_exact_match": false,
+            "baseline_cpu_reference_wall_ms": 4119.700697999974,
+            "candidate_cpu_reference_wall_ms": 3004.7861510000757
+          },
+          {
+            "predicted_tokens": 18,
+            "argmax_matches": 15,
+            "logit_relative_l2": 0.02806219831109047,
+            "maximum_logit_abs_error": 13.0860595703125,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 5813.66028399998,
+            "candidate_cpu_reference_wall_ms": 3817.086345000007
+          }
+        ]
+      },
+      "exploratory_quality_screen_pass": false,
+      "trace": [
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        }
+      ]
+    },
+    {
+      "id": "dac10_weight8_adc12",
+      "contract": {
+        "profile": {
+          "tile_rows": 128,
+          "tile_columns": 128,
+          "weight_bits": 8,
+          "dac_bits": 10,
+          "adc_bits": 12,
+          "read_noise_fraction": 0.0
+        },
+        "weight_shape_input_output": [
+          768,
+          3072
+        ],
+        "calibrated_activation_abs_max": 2.80496883392334,
+        "logical_tiles": 144,
+        "physical_arrays_if_differential_pair": 288,
+        "signed_weight_representation": "differential pair; effective multilevel weight precision is assumed, not demonstrated",
+        "input_representation": "signed DAC voltage assumed; no input bit serialization",
+        "readout": "analog differential subtraction before one signed ADC per logical column",
+        "adc_range": "activation bound times maximum column L1 weight norm within each tile",
+        "accumulation": "digital float32 sum across row tiles and digital bias addition",
+        "per_vector": {
+          "macs": 2359296,
+          "dac_conversions_without_column_tile_broadcast": 18432,
+          "adc_conversions_after_differential_subtraction": 18432,
+          "array_evaluations": 288,
+          "digital_partial_sum_additions": 15360,
+          "boundary_input_bytes_fp32": 3072,
+          "boundary_output_bytes_fp32": 12288
+        },
+        "excluded_physics": [
+          "wire resistance",
+          "conductance programming error",
+          "drift",
+          "nonlinear I/V",
+          "PVT",
+          "mismatch",
+          "settling",
+          "sample/hold",
+          "SRAM contention"
+        ],
+        "calibration_status": "activation-calibrated numerical model; not circuit-calibrated",
+        "energy_latency": {
+          "status": "not_identifiable_without_matched_cost_coefficients",
+          "required": [
+            "DAC pJ/conversion",
+            "ADC pJ/conversion",
+            "array pJ/evaluation",
+            "digital accumulation pJ/add",
+            "boundary transfer pJ/byte",
+            "converter sharing schedule and settling",
+            "same-target digital projection cost"
+          ],
+          "energy_equation": "E_projection = N_DAC*e_DAC + N_ADC*e_ADC + N_array*e_array + N_add*e_add + bytes*e_move; add programming/calibration amortization",
+          "break_even": "E_projection plus integration overhead must be below same-target digital projection energy"
+        }
+      },
+      "quality": {
+        "predicted_tokens": 63,
+        "baseline_nll_nats_per_token": 5.185712360200428,
+        "candidate_nll_nats_per_token": 5.1903668358212425,
+        "nll_increase_nats": 0.004654475620814225,
+        "teacher_forced_argmax_agreement": 1.0,
+        "generation_exact_match_count": 4,
+        "rows": [
+          {
+            "predicted_tokens": 16,
+            "argmax_matches": 16,
+            "logit_relative_l2": 0.001535447663627565,
+            "maximum_logit_abs_error": 0.5923843383789062,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+            "candidate_cpu_reference_wall_ms": 3735.219313000016
+          },
+          {
+            "predicted_tokens": 15,
+            "argmax_matches": 15,
+            "logit_relative_l2": 0.0016740851569920778,
+            "maximum_logit_abs_error": 0.6035919189453125,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3699.878961999957,
+            "candidate_cpu_reference_wall_ms": 3761.3247120000324
+          },
+          {
+            "predicted_tokens": 14,
+            "argmax_matches": 14,
+            "logit_relative_l2": 0.0026619755662977695,
+            "maximum_logit_abs_error": 0.8212890625,
+            "baseline_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 4119.700697999974,
+            "candidate_cpu_reference_wall_ms": 3410.3567860000794
+          },
+          {
+            "predicted_tokens": 18,
+            "argmax_matches": 18,
+            "logit_relative_l2": 0.003015577094629407,
+            "maximum_logit_abs_error": 1.0575027465820312,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 5813.66028399998,
+            "candidate_cpu_reference_wall_ms": 4682.733504999987
+          }
+        ]
+      },
+      "exploratory_quality_screen_pass": true,
+      "trace": [
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        }
+      ]
+    },
+    {
+      "id": "dac10_weight8_adc12_noise001",
+      "contract": {
+        "profile": {
+          "tile_rows": 128,
+          "tile_columns": 128,
+          "weight_bits": 8,
+          "dac_bits": 10,
+          "adc_bits": 12,
+          "read_noise_fraction": 0.001
+        },
+        "weight_shape_input_output": [
+          768,
+          3072
+        ],
+        "calibrated_activation_abs_max": 2.80496883392334,
+        "logical_tiles": 144,
+        "physical_arrays_if_differential_pair": 288,
+        "signed_weight_representation": "differential pair; effective multilevel weight precision is assumed, not demonstrated",
+        "input_representation": "signed DAC voltage assumed; no input bit serialization",
+        "readout": "analog differential subtraction before one signed ADC per logical column",
+        "adc_range": "activation bound times maximum column L1 weight norm within each tile",
+        "accumulation": "digital float32 sum across row tiles and digital bias addition",
+        "per_vector": {
+          "macs": 2359296,
+          "dac_conversions_without_column_tile_broadcast": 18432,
+          "adc_conversions_after_differential_subtraction": 18432,
+          "array_evaluations": 288,
+          "digital_partial_sum_additions": 15360,
+          "boundary_input_bytes_fp32": 3072,
+          "boundary_output_bytes_fp32": 12288
+        },
+        "excluded_physics": [
+          "wire resistance",
+          "conductance programming error",
+          "drift",
+          "nonlinear I/V",
+          "PVT",
+          "mismatch",
+          "settling",
+          "sample/hold",
+          "SRAM contention"
+        ],
+        "calibration_status": "activation-calibrated numerical model; not circuit-calibrated",
+        "energy_latency": {
+          "status": "not_identifiable_without_matched_cost_coefficients",
+          "required": [
+            "DAC pJ/conversion",
+            "ADC pJ/conversion",
+            "array pJ/evaluation",
+            "digital accumulation pJ/add",
+            "boundary transfer pJ/byte",
+            "converter sharing schedule and settling",
+            "same-target digital projection cost"
+          ],
+          "energy_equation": "E_projection = N_DAC*e_DAC + N_ADC*e_ADC + N_array*e_array + N_add*e_add + bytes*e_move; add programming/calibration amortization",
+          "break_even": "E_projection plus integration overhead must be below same-target digital projection energy"
+        }
+      },
+      "quality": {
+        "predicted_tokens": 63,
+        "baseline_nll_nats_per_token": 5.185712360200428,
+        "candidate_nll_nats_per_token": 5.213725498744419,
+        "nll_increase_nats": 0.028013138543991012,
+        "teacher_forced_argmax_agreement": 0.9682539682539683,
+        "generation_exact_match_count": 3,
+        "rows": [
+          {
+            "predicted_tokens": 16,
+            "argmax_matches": 15,
+            "logit_relative_l2": 0.0145353889092803,
+            "maximum_logit_abs_error": 4.665687561035156,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              1672,
+              2523,
+              703,
+              284
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+            "candidate_cpu_reference_wall_ms": 2974.3322939999643
+          },
+          {
+            "predicted_tokens": 15,
+            "argmax_matches": 15,
+            "logit_relative_l2": 0.01173010841012001,
+            "maximum_logit_abs_error": 3.9488067626953125,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1080,
+              49936,
+              318,
+              5295,
+              416
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 3699.878961999957,
+            "candidate_cpu_reference_wall_ms": 3223.4589729999925
+          },
+          {
+            "predicted_tokens": 14,
+            "argmax_matches": 14,
+            "logit_relative_l2": 0.009051314555108547,
+            "maximum_logit_abs_error": 2.7567825317382812,
+            "baseline_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              407,
+              1654,
+              611
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              1,
+              40,
+              1101,
+              7926,
+              11,
+              475
+            ],
+            "generation_exact_match": false,
+            "baseline_cpu_reference_wall_ms": 4119.700697999974,
+            "candidate_cpu_reference_wall_ms": 2798.9387110000052
+          },
+          {
+            "predicted_tokens": 18,
+            "argmax_matches": 17,
+            "logit_relative_l2": 0.0073606171645224094,
+            "maximum_logit_abs_error": 2.4769058227539062,
+            "baseline_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "candidate_generated_ids": [
+              198,
+              198,
+              464,
+              1708,
+              3084,
+              2523,
+              262,
+              2482
+            ],
+            "generation_exact_match": true,
+            "baseline_cpu_reference_wall_ms": 5813.66028399998,
+            "candidate_cpu_reference_wall_ms": 2482.9248830000097
+          }
+        ]
+      },
+      "exploratory_quality_screen_pass": false,
+      "trace": [
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 17,
+          "input_values": 13056,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 16,
+          "input_values": 12288,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 15,
+          "input_values": 11520,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "teacher_forced_prefill",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 19,
+          "input_values": 14592,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        },
+        {
+          "phase": "generation_prefill_and_cached_decode",
+          "vectors": 1,
+          "input_values": 768,
+          "dac_clipped_values": 0,
+          "adc_clipped_values": 0,
+          "mode": "assumed_array"
+        }
+      ]
+    }
+  ],
+  "controls": {
+    "ideal_tiled_control_pass": true,
+    "digital_fallback_pass": true,
+    "fallback_quality": {
+      "predicted_tokens": 63,
+      "baseline_nll_nats_per_token": 5.185712360200428,
+      "candidate_nll_nats_per_token": 5.185712360200428,
+      "nll_increase_nats": 0.0,
+      "teacher_forced_argmax_agreement": 1.0,
+      "generation_exact_match_count": 4,
+      "rows": [
+        {
+          "predicted_tokens": 16,
+          "argmax_matches": 16,
+          "logit_relative_l2": 0.0,
+          "maximum_logit_abs_error": 0.0,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            1672,
+            2523,
+            703,
+            284
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            1672,
+            2523,
+            703,
+            284
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+          "candidate_cpu_reference_wall_ms": 1502.5701280000021
+        },
+        {
+          "predicted_tokens": 15,
+          "argmax_matches": 15,
+          "logit_relative_l2": 0.0,
+          "maximum_logit_abs_error": 0.0,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1080,
+            49936,
+            318,
+            5295,
+            416
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1080,
+            49936,
+            318,
+            5295,
+            416
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 3699.878961999957,
+          "candidate_cpu_reference_wall_ms": 1942.4988849999636
+        },
+        {
+          "predicted_tokens": 14,
+          "argmax_matches": 14,
+          "logit_relative_l2": 0.0,
+          "maximum_logit_abs_error": 0.0,
+          "baseline_generated_ids": [
+            198,
+            198,
+            1,
+            40,
+            1101,
+            407,
+            1654,
+            611
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            1,
+            40,
+            1101,
+            407,
+            1654,
+            611
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 4119.700697999974,
+          "candidate_cpu_reference_wall_ms": 3045.6141800000296
+        },
+        {
+          "predicted_tokens": 18,
+          "argmax_matches": 18,
+          "logit_relative_l2": 0.0,
+          "maximum_logit_abs_error": 0.0,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            3084,
+            2523,
+            262,
+            2482
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            3084,
+            2523,
+            262,
+            2482
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 5813.66028399998,
+          "candidate_cpu_reference_wall_ms": 2476.8101029999343
+        }
+      ]
+    }
+  },
+  "physical_converter": {
+    "source": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/active-converter-macro-transient/20260909T075601726677Z/result.json",
+      "sha256": "a685388720fd693f08568380193870abf82fcc9cee267abc0530f90a738bfb47"
+    },
+    "accepted_converter": false,
+    "netlist_hash_matches": true,
+    "measured_case_count": 8,
+    "polarity_pass_count": 1,
+    "logic_margin_pass_count": 8,
+    "used_as_numeric_error_profile": false,
+    "reason": "A comparator boundary test is not an ADC transfer/noise/energy profile for this array."
+  },
+  "measured_gpu_reference": {
+    "source": {
+      "path": "/home/mehtama1/git-repo/ai-hardware-analysis/gpu-mode-curriculum/gpu-runs/imports/colab-real-model-persistent-page-cache-long-gpt2-20260909/real-model-device-resident-arrival-load.json",
+      "sha256": "f19a095d4c3827faf908192c746ca9cc472598b271bd41e27005369c1812e16b"
+    },
+    "model_profile": {
+      "model_id": "openai-community/gpt2",
+      "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "trained": true,
+      "parameter_count": 124439808
+    },
+    "protocol": {
+      "max_new_tokens": 64,
+      "repeats": 3,
+      "long_decode_profile": true,
+      "stress_profile": true,
+      "scheduler": "accepted bounded arrival-window grouping with pre-service cancellation",
+      "decode": "device-resident K/V page packing plus CUDA paged attention across all 12 GPT-2 layers",
+      "kernel_variant": "one CUDA launch per GPT-2 attention layer over batch*heads with reusable page workspace and output buffer",
+      "page_allocator": "reused PyTorch CUDA K/V page workspace and output buffer per batch and token length across GPT-2 layers; no Python page-table or repack path",
+      "diagnostic_control": "direct CUDA K/V attention with identical reduction and no page packing",
+      "persistent_variant": "per-layer page cache initialized from the first decode context and append-only for subsequent one-token calls",
+      "timing": "CUDA synchronized around complete generation",
+      "memory": "torch.cuda.max_memory_allocated per phase"
+    },
+    "result": {
+      "request_count": 8,
+      "active_request_count": 7,
+      "cancelled_request_indices": [
+        7
+      ],
+      "arrival_trace_ms": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        20.0,
+        20.5,
+        21.0,
+        21.5
+      ],
+      "groups": [
+        [
+          0,
+          1,
+          2,
+          3
+        ],
+        [
+          4,
+          5,
+          6
+        ]
+      ],
+      "window_ms": 2.0,
+      "max_batch": 4,
+      "output_parity": true,
+      "direct_output_parity": true,
+      "persistent_output_parity": true,
+      "native_sequential": {
+        "wall_time_ms_samples": [
+          4472.821473,
+          4507.880024,
+          3754.204334
+        ],
+        "wall_time_ms_median": 4472.821473,
+        "peak_memory_allocated_mb": 659.11572265625,
+        "power": {
+          "status": "sampled_nvml_protocol_scope",
+          "sample_count": 875,
+          "duration_s": 12.731992166,
+          "average_power_w": 49.86085179745665,
+          "peak_power_w": 100.478,
+          "integrated_energy_j": 634.827974475305,
+          "scope": "entire extended characterization process; not an isolated per-token energy claim"
+        }
+      },
+      "native_scheduled": {
+        "wall_time_ms_samples": [
+          1712.366465,
+          1526.172035,
+          1500.883683
+        ],
+        "wall_time_ms_median": 1526.172035,
+        "peak_memory_allocated_mb": 996.6611328125,
+        "power": {
+          "status": "sampled_nvml_protocol_scope",
+          "sample_count": 321,
+          "duration_s": 4.730300159,
+          "average_power_w": 65.47471781841709,
+          "peak_power_w": 101.284,
+          "integrated_energy_j": 309.7150681069385,
+          "scope": "entire extended characterization process; not an isolated per-token energy claim"
+        }
+      },
+      "device_resident_scheduled": {
+        "wall_time_ms_samples": [
+          2750.534352,
+          2104.743022,
+          2090.184178
+        ],
+        "wall_time_ms_median": 2104.743022,
+        "peak_memory_allocated_mb": 2195.80224609375,
+        "power": {
+          "status": "sampled_nvml_protocol_scope",
+          "sample_count": 457,
+          "duration_s": 6.93842493,
+          "average_power_w": 59.75223073438599,
+          "peak_power_w": 80.02,
+          "integrated_energy_j": 414.586367350576,
+          "scope": "entire extended characterization process; not an isolated per-token energy claim"
+        }
+      },
+      "device_direct_scheduled": {
+        "wall_time_ms_samples": [
+          2451.976303,
+          2481.599394,
+          2024.533847
+        ],
+        "wall_time_ms_median": 2451.976303,
+        "peak_memory_allocated_mb": 996.67041015625,
+        "power": {
+          "status": "sampled_nvml_protocol_scope",
+          "sample_count": 464,
+          "duration_s": 6.957165035,
+          "average_power_w": 55.66155784117122,
+          "peak_power_w": 103.372,
+          "integrated_energy_j": 387.2466440062265,
+          "scope": "entire extended characterization process; not an isolated per-token energy claim"
+        }
+      },
+      "device_persistent_scheduled": {
+        "wall_time_ms_samples": [
+          2189.583154,
+          2238.390474,
+          2179.840343
+        ],
+        "wall_time_ms_median": 2189.583154,
+        "peak_memory_allocated_mb": 1144.26611328125,
+        "power": {
+          "status": "sampled_nvml_protocol_scope",
+          "sample_count": 458,
+          "duration_s": 6.60678502,
+          "average_power_w": 57.92896084703775,
+          "peak_power_w": 87.953,
+          "integrated_energy_j": 382.7241907483755,
+          "scope": "entire extended characterization process; not an isolated per-token energy claim"
+        }
+      },
+      "throughput_speedup": 2.1251152403155467,
+      "persistent_throughput_speedup": 2.0427730569761224,
+      "claim_boundary": "Full GPT-2 arrival-trace parity and bounded scheduled-vs-sequential timing/memory/power at this T4 protocol; not production continuous batching."
+    },
+    "join_scope": "context only: different prompts and execution device; no CPU-to-T4 speedup or energy inference"
+  },
+  "placement": {
+    "candidate": "transformer.h.0.mlp.c_fc",
+    "authorized_analog_modules": [],
+    "execution": "native_digital_fallback",
+    "reason": "Array/converter mapping is provisional and no matched physical costs or task-qualified target exist.",
+    "always_digital": [
+      "attention",
+      "KV_cache",
+      "normalization",
+      "nonlinearity",
+      "remaining_projections",
+      "logits",
+      "scheduler"
+    ]
+  },
+  "decision": "hybrid_hardware_benefit_unproven",
+  "next_required_evidence": [
+    "versioned representative token dataset and frozen task acceptance contract",
+    "matched array technology and signed precision implementation",
+    "accepted ADC transfer/noise/settling profile tied to this mapping",
+    "same-target projection timing and energy including boundary transfers",
+    "controller execution and measured analog hardware task comparison"
+  ],
+  "claim_boundary": "Real GPT-2 sensitivity to one provisional tiled projection. CPU emulation time is not hybrid hardware latency. No silicon, energy advantage, or full-task acceptance claim."
+}

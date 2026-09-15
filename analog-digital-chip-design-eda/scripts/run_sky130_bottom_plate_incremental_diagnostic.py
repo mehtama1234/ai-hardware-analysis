@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "aimc-simulator-adapters"
 OUT_JSON = EVIDENCE / "sky130-bottom-plate-incremental-diagnostic.json"
 OUT_MD = EVIDENCE / "sky130-bottom-plate-incremental-diagnostic.md"
-TIMEOUT_S = 120
+TIMEOUT_S = float(os.environ.get("AIMC_INCREMENTAL_TIMEOUT_S", "120"))
 
 
 def measure(stdout: str, name: str) -> float:
@@ -67,15 +68,23 @@ def run(stage: str) -> dict[str, Any]:
         try:
             result = subprocess.run(["ngspice", "-b", str(path)], cwd=ROOT, text=True, capture_output=True, check=False, timeout=TIMEOUT_S)
         except subprocess.TimeoutExpired:
-            return {"stage": stage, "measured": False, "timed_out": True}
+            return {"stage": stage, "measured": False, "timed_out": True, "failure_class": "numerical_convergence_timeout"}
     row: dict[str, Any] = {"stage": stage, "measured": result.returncode == 0, "timed_out": False, "returncode": result.returncode}
     if result.returncode != 0:
-        row["error_excerpt"] = (result.stdout + result.stderr)[-1200:]
+        error_text = result.stdout + result.stderr
+        row["error_excerpt"] = error_text[-1200:]
+        if "could not find a valid modelname" in error_text:
+            row["failure_class"] = "invalid_model_sizing"
+        elif "timestep too small" in error_text.lower() or "singular matrix" in error_text.lower():
+            row["failure_class"] = "numerical_convergence_failure"
+        else:
+            row["failure_class"] = "simulator_failure"
         return row
     try:
         row.update({"sampled_v": measure(result.stdout, "sampled_v"), "input_v": measure(result.stdout, "input_v"), "bottom_v": measure(result.stdout, "bottom_v") if "bottom_v" in result.stdout else None})
     except ValueError as exc:
         row["measured"] = False
+        row["failure_class"] = "missing_measurement"
         row["measurement_error"] = str(exc)
         row["error_excerpt"] = (result.stdout + result.stderr)[-1200:]
         return row
@@ -88,7 +97,7 @@ def main() -> int:
     rows = [run(stage) for stage in stages]
     report = {
         "result_type": "sky130_bottom_plate_incremental_diagnostic",
-        "status": "incremental_diagnostic_complete" if all(row["measured"] for row in rows) else "incremental_diagnostic_isolated_timeout",
+        "status": "incremental_diagnostic_complete" if all(row["measured"] for row in rows) else "incremental_diagnostic_complete_with_failures",
         "stage_count": len(rows),
         "measured_stage_count": sum(row["measured"] for row in rows),
         "rows": rows,
@@ -103,7 +112,8 @@ def main() -> int:
         if row["measured"]:
             lines.append(f"| {row['stage']} | True | {row['sampled_v']:.6f} | {row['bottom_v'] if row['bottom_v'] is not None else 'n/a'} | {row['sample_error_v']:.6e} |")
         else:
-            lines.append(f"| {row['stage']} | False | timeout | timeout | timeout |")
+            failure = row.get("failure_class", "timeout")
+            lines.append(f"| {row['stage']} | False ({failure}) | n/a | n/a | n/a |")
     lines += ["", "## Refused Claim", "", report["claim_boundary"]["not_allowed"], ""]
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")
     print(f"status,{report['status']}")

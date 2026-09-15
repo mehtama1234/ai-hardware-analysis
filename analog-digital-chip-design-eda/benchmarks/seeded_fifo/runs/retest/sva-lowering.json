@@ -1,0 +1,46 @@
+{
+  "lowering_sha256": "add7f8ff34df4f4bb69af1db252425318dd2c0fc8d22a12a7ccc71114fd788aa",
+  "properties": [
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (rst && count !== '0) $error(\"REQ-FIFO-RESET: reset invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) rst |-> count == '0);",
+      "reason": null,
+      "requirement_id": "REQ-FIFO-RESET",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "reset_guard_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (!(count <= 2)) $error(\"REQ-FIFO-BOUNDS: invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) count <= 2);",
+      "reason": null,
+      "requirement_id": "REQ-FIFO-BOUNDS",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "bounded_invariant_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": "logic previous_valid_REQ_FIFO_WRITE;\nlogic [31:0] previous_REQ_FIFO_WRITE_value;\nalways @(posedge clk) begin\n    if (previous_valid_REQ_FIFO_WRITE && wr_en && count < 2 && count !== previous_REQ_FIFO_WRITE_value + 1'b1) $error(\"REQ-FIFO-WRITE: gated increment violated\");\n    previous_REQ_FIFO_WRITE_value <= count;\n    previous_valid_REQ_FIFO_WRITE <= 1'b1;\nend",
+      "original": "assert property (@(posedge clk) wr_en && count < 2 |=> count == $past(count) + 1'b1);",
+      "reason": null,
+      "requirement_id": "REQ-FIFO-WRITE",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "compound_boolean_implication_lowering",
+        "one_cycle_delay_lowering"
+      ]
+    }
+  ],
+  "schema_version": "sva-lowering-v1"
+}

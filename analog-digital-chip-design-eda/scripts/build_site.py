@@ -159,7 +159,7 @@ def inline(text: str) -> str:
 
 
 def page(title: str, kicker: str, lead: str, body: str, nav_prefix: str = "") -> str:
-    nav = f"""<nav><a href="{nav_prefix}index.html">Hub</a><a href="{nav_prefix}synthesis.html">Synthesis</a><a href="{nav_prefix}paper-synthesis.html">Paper synthesis</a><a href="{nav_prefix}coverage-audit.html">Coverage audit</a><a href="{nav_prefix}concepts.html">Concepts</a><a href="{nav_prefix}labs.html">Labs</a><a href="{nav_prefix}research.html">Research</a><a href="{nav_prefix}papers.html">Papers</a></nav>"""
+    nav = f"""<nav><a href="{nav_prefix}../workbench/index.html">Silicon Workbench</a><a href="{nav_prefix}index.html">Hub</a><a href="{nav_prefix}synthesis.html">Synthesis</a><a href="{nav_prefix}paper-synthesis.html">Paper synthesis</a><a href="{nav_prefix}coverage-audit.html">Coverage audit</a><a href="{nav_prefix}concepts.html">Concepts</a><a href="{nav_prefix}labs.html">Labs</a><a href="{nav_prefix}research.html">Research</a><a href="{nav_prefix}papers.html">Papers</a></nav>"""
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(title)}</title><style>{STYLE}</style></head>
 <body><header><div class="wrap"><div class="k">{html.escape(kicker)}</div><h1>{html.escape(title)}</h1><p class="lead">{html.escape(lead)}</p>{nav}</div></header><main class="wrap">{body}</main></body></html>"""

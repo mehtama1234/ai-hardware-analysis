@@ -1,6 +1,6 @@
 # Sky130 Bottom-Plate Incremental Diagnostic
 
-- status: `incremental_diagnostic_isolated_timeout`
+- status: `incremental_diagnostic_complete_with_failures`
 - measured stages: `4` of `5`
 
 The stages start from the known-good transmission-gate sample-switch deck and add one bottom-plate element at a time.
@@ -11,7 +11,7 @@ The stages start from the known-good transmission-gate sample-switch deck and ad
 | baseline_plus_capacitor | True | 0.900137 | -0.06019909 | 1.371000e-04 |
 | plus_capacitor_plus_nfet | True | 0.342206 | 0.03895692 | 5.577937e-01 |
 | large_sample_switch_plus_nfet | True | 0.865989 | 0.0131484 | 3.401060e-02 |
-| very_large_sample_switch_plus_nfet | False | timeout | timeout | timeout |
+| very_large_sample_switch_plus_nfet | False (numerical_convergence_timeout) | n/a | n/a | n/a |
 
 ## Refused Claim
 

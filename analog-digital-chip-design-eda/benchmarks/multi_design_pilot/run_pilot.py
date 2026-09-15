@@ -16,12 +16,21 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from verification_platform.artifacts import build_artifact_manifest, verify_artifact_manifest, write_artifact_manifest
 from verification_platform.session import VerificationSession
+from verification_platform.reference_agent import propose_failure_diagnosis
+from verification_platform.closure_lab import propose_next_test
+from verification_platform.triage import Failure
 BENCHMARKS = [
     ("seeded_counter", ROOT / "benchmarks" / "seeded_counter" / "run_benchmark.py"),
     ("seeded_fifo", ROOT / "benchmarks" / "seeded_fifo" / "run_benchmark.py"),
     ("seeded_regblock", ROOT / "benchmarks" / "seeded_regblock" / "run_benchmark.py"),
     ("register_peripheral", ROOT / "benchmarks" / "register_peripheral" / "run_benchmark.py"),
     ("seeded_handshake", ROOT / "benchmarks" / "seeded_handshake" / "run_benchmark.py"),
+    ("seeded_arbiter", ROOT / "benchmarks" / "seeded_arbiter" / "run_benchmark.py"),
+    ("seeded_decoder", ROOT / "benchmarks" / "seeded_decoder" / "run_benchmark.py"),
+    ("seeded_parity", ROOT / "benchmarks" / "seeded_parity" / "run_benchmark.py"),
+    ("seeded_width", ROOT / "benchmarks" / "seeded_width" / "run_benchmark.py"),
+    ("seeded_timeout", ROOT / "benchmarks" / "seeded_timeout" / "run_benchmark.py"),
+    ("seeded_signed", ROOT / "benchmarks" / "seeded_signed" / "run_benchmark.py"),
 ]
 RETESTS = {
     "seeded_counter": ROOT / "benchmarks" / "seeded_counter" / "retest_benchmark.py",
@@ -29,7 +38,14 @@ RETESTS = {
     "seeded_regblock": ROOT / "benchmarks" / "seeded_regblock" / "retest_benchmark.py",
     "register_peripheral": ROOT / "benchmarks" / "register_peripheral" / "retest_benchmark.py",
     "seeded_handshake": ROOT / "benchmarks" / "seeded_handshake" / "retest_benchmark.py",
+    "seeded_arbiter": ROOT / "benchmarks" / "seeded_arbiter" / "retest_benchmark.py",
+    "seeded_decoder": ROOT / "benchmarks" / "seeded_decoder" / "retest_benchmark.py",
+    "seeded_parity": ROOT / "benchmarks" / "seeded_parity" / "retest_benchmark.py",
+    "seeded_width": ROOT / "benchmarks" / "seeded_width" / "retest_benchmark.py",
+    "seeded_timeout": ROOT / "benchmarks" / "seeded_timeout" / "retest_benchmark.py",
+    "seeded_signed": ROOT / "benchmarks" / "seeded_signed" / "retest_benchmark.py",
 }
+FAULT_TAXONOMY = json.loads((Path(__file__).with_name("fault-taxonomy.json")).read_text(encoding="utf-8"))["designs"]
 
 def _durations(payload: object) -> list[float]:
     """Collect recorded adapter durations across benchmark report schemas."""
@@ -45,6 +61,15 @@ def _durations(payload: object) -> list[float]:
             found.extend(_durations(value))
     return found
 
+def _scope_id(design_root: Path) -> str:
+    """Identify the specification/testbench scope while excluding repaired RTL."""
+    digest = hashlib.sha256()
+    for name in ("spec.md", "tb.sv"):
+        path = design_root / name
+        digest.update(name.encode())
+        digest.update(path.read_bytes() if path.is_file() else b"<missing>")
+    return digest.hexdigest()
+
 
 def main() -> int:
     results = []
@@ -53,6 +78,30 @@ def main() -> int:
         report_path = script.parent / "runs" / "latest" / "triage-report.json"
         report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else {"status": "blocked"}
         run_root = script.parent / "runs" / "latest"
+        failure = report.get("failure") or report.get("first_divergence")
+        agent_proposal = None
+        if isinstance(failure, dict):
+            proposal = propose_failure_diagnosis(
+                Failure(int(failure["cycle"]), str(failure["signal"]), str(failure["expected"]), str(failure["actual"])),
+                source_revision=f"{name}-baseline-v1",
+                evidence=list(report.get("evidence") or [str(report_path.relative_to(script.parent))]),
+                dependency_cone=list(report.get("root_cause", {}).get("dependency_cone", [])),
+            )
+            proposal_path = run_root / "reference-agent-proposal.json"
+            proposal_path.write_text(json.dumps(proposal.record(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            agent_proposal = {"path": str(proposal_path.relative_to(ROOT)), "status": proposal.status, "proposal_sha256": proposal.proposal_sha256, "provider": "deterministic-reference"}
+        baseline_coverage = {"kind": "functional", "covered": 0 if report.get("status") == "failed" else 1, "total": 1}
+        next_test = propose_next_test(
+            baseline_coverage,
+            source_revision=f"{name}-baseline-v1",
+            evidence=list(report.get("evidence") or [str(report_path.relative_to(script.parent))]),
+            context=f"baseline failure for {name}" if report.get("status") == "failed" else "baseline run",
+        )
+        next_test_record = None
+        if next_test is not None:
+            next_test_path = run_root / "next-test-proposal.json"
+            next_test_path.write_text(json.dumps(next_test.record(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            next_test_record = {"path": str(next_test_path.relative_to(ROOT)), "status": next_test.proposal.status, "plan_sha256": next_test.plan_sha256}
         manifest_path = run_root / "artifact-manifest.json"
         manifest = build_artifact_manifest(run_root, exclude={"artifact-manifest.json"})
         write_artifact_manifest(manifest_path, manifest)
@@ -65,12 +114,16 @@ def main() -> int:
         evidence_complete = all((script.parent / path).is_file() for path in report.get("evidence", []))
         results.append({
             "design": name,
+            "fault_class": FAULT_TAXONOMY[name],
+            "scope_id": _scope_id(script.parent),
             "process_exit_code": completed.returncode,
             "status": report.get("status", "unknown"),
-            "failure": report.get("failure") or report.get("first_divergence"),
+            "failure": failure,
+            "agent_proposal": agent_proposal,
+            "next_test_proposal": next_test_record,
             "report": str(report_path.relative_to(ROOT)),
             "baseline_tool_seconds": round(sum(durations), 6),
-            "baseline_coverage": {"covered": 0 if report.get("status") == "failed" else 1, "total": 1},
+            "baseline_coverage": baseline_coverage,
             "diagnosis_evidence_complete": evidence_complete,
             "baseline_artifact_integrity": manifest_check,
             "planning": {"total": planning.get("total", 0), "planned": len(planning.get("planned", [])), "unplanned": len(planning.get("unplanned", []))},
@@ -82,6 +135,8 @@ def main() -> int:
         retest_path = RETESTS[item["design"]].parent / "runs" / "retest" / "retest-report.json"
         retest = json.loads(retest_path.read_text(encoding="utf-8")) if retest_path.is_file() else {"status":"blocked"}
         retest_root = RETESTS[item["design"]].parent / "runs" / "retest"
+        item["retest_scope_id"] = _scope_id(RETESTS[item["design"]].parent)
+        item["scope_comparable"] = item["scope_id"] == item["retest_scope_id"]
         retest_manifest = build_artifact_manifest(retest_root, exclude={"artifact-manifest.json"})
         write_artifact_manifest(retest_root / "artifact-manifest.json", retest_manifest)
         retest_integrity = verify_artifact_manifest(retest_root, retest_manifest)
@@ -107,7 +162,10 @@ def main() -> int:
         "passed_retests": sum(item["retest_status"] == "passed" for item in results),
         "metrics": {
             "diagnosis_evidence_complete": sum(item["diagnosis_evidence_complete"] for item in results),
+            "agent_proposals_reviewable": sum((item.get("agent_proposal") or {}).get("status") == "review_required" for item in results),
+            "next_test_proposals_reviewable": sum((item.get("next_test_proposal") or {}).get("status") == "review_required" for item in results),
             "unique_failure_signatures": len({json.dumps(item["failure"], sort_keys=True) for item in results if item["failure"]}),
+            "unique_fault_classes": len({item["fault_class"] for item in results}),
             "baseline_coverage_percent": round(100.0 * sum(item["baseline_coverage"]["covered"] for item in results) / len(results), 2),
             "retest_coverage_percent": round(100.0 * sum(item["retest_coverage"]["covered"] for item in results) / len(results), 2),
             "baseline_tool_seconds": round(sum(item["baseline_tool_seconds"] for item in results), 6),

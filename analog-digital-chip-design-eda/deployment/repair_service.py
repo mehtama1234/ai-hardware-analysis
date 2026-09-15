@@ -16,8 +16,13 @@ class RepairProposal:
     rationale: str
     occurrences: int
 
+    @property
+    def proposal_sha256(self) -> str:
+        payload = "\x1f".join((self.artifact_id, self.before_sha256, self.before, self.after, self.rationale, str(self.occurrences)))
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
     def review(self, *, approved: bool) -> dict[str, Any]:
-        return {**asdict(self), "status": "allowed" if approved and self.occurrences == 1 else "review_required"}
+        return {**asdict(self), "proposal_sha256": self.proposal_sha256, "status": "allowed" if approved and self.occurrences == 1 else "review_required"}
 
 
 def propose_repair(record: dict[str, Any], *, collateral_root: str | Path, before: str, after: str, rationale: str, approved: bool = False) -> tuple[dict[str, Any], str | None]:

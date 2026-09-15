@@ -5,19 +5,332 @@ on:
   pull_request:
 
 jobs:
-  verification-pilot:
+  next-stage-agentic-closure:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install open-source verification tools
+      - name: Install open-source next-stage tools
         run: sudo apt-get update && sudo apt-get install -y iverilog verilator yosys
+      - name: Install next-stage test dependencies
+        run: python3 -m pip install pytest
+      - name: Run next-stage local agentic closure
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts/next-stage-ci
+          python3 scripts/run_seeded_heldout_evaluation.py --output .artifacts/next-stage-ci/heldout
+          python3 scripts/run_seeded_coverage_closure.py --output .artifacts/next-stage-ci/coverage
+          python3 scripts/run_repaired_inductive_suite.py --output .artifacts/next-stage-ci/induction
+          python3 scripts/run_security_regblock_demo.py --output .artifacts/next-stage-ci/security
+          python3 scripts/run_seeded_repository_agent_matrix.py --backend mock --output .artifacts/next-stage-ci/agent-matrix
+          python3 scripts/check_seeded_repository_agent_matrix.py .artifacts/next-stage-ci/agent-matrix/repository-agent-matrix-report.json
+          python3 scripts/run_seeded_agent_repair_closure.py --backend mock --output .artifacts/next-stage-ci/agent-repair-closure
+      - name: Run next-stage contract tests
+        run: pytest -q verification_platform/test_repository_agent_matrix.py verification_platform/test_repository_agent.py verification_platform/test_agent_team.py verification_platform/test_coverage_closure.py verification_platform/test_mutation.py verification_platform/test_proof_closure.py verification_platform/test_security_closure.py
+      - name: Upload next-stage evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-stage-agentic-closure-evidence
+          include-hidden-files: true
+          path: .artifacts/next-stage-ci
+
+  four-workstream-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install provider-free verification tools
+        run: sudo apt-get update && sudo apt-get install -y iverilog verilator yosys
+      - name: Install test dependencies
+        run: python3 -m pip install pytest jsonschema
+      - name: Run four-workstream platform tests
+        run: pytest -q verification_platform
+      - name: Run time-zero scheduling regression matrix
+        run: python3 scripts/run_time_zero_regression_matrix.py --output .artifacts/time-zero-regression-matrix --timeout-seconds 1.0
+      - name: Run clean reference acceleration and formal tiers
+        run: |
+          python3 scripts/run_four_workstream_pipeline.py \
+            --spec benchmarks/seeded_counter/spec.md \
+            --rtl benchmarks/seeded_counter/counter_reference.sv \
+            --top counter \
+            --protocol-plan benchmarks/register_peripheral/protocol_sequence.json \
+            --run-root .artifacts/tiered-reference \
+            --source-revision tiered-reference-v1 \
+            --scheduling-regression-source benchmarks/time_zero_regressions/normal_completion.sv \
+            --assertion-formal-source benchmarks/seeded_counter/formal_model_check.sv \
+            --assertion-formal-top formal_model_check \
+            --assertion-formal-sequence 6 \
+            --compiled-sim-harness benchmarks/seeded_counter/verilator_smoke.cpp \
+            -- python3 -c "print('ok')" > .artifacts/tiered-reference-result.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path('.artifacts/tiered-reference-result.json').read_text())
+          assert result['status'] == 'passed', result
+          assert result['scheduling_runtime']['outcome'] == 'normal_completion', result
+          assert result['assertion_formal']['status'] == 'proven', result
+          assert result['compiled_simulation']['status'] == 'passed', result
+          PY
+      - name: Run Colab-compatible four-workstream demo
+        run: |
+          mkdir -p .artifacts/four-workstream-colab
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from colab.run_four_workstream_colab import run_demo
+
+          result = run_demo(repo_root=Path.cwd(), run_root=Path('.artifacts/four-workstream-colab'))
+          assert result['status'] == 'passed', result
+          assert result['checkpoint']['completed'] == [
+              'planning', 'scheduling', 'structural', 'protocol', 'debug', 'optimization'
+          ], result
+          assert result['assertion_agent']['status'] == 'available', result
+          assert len(result['assertion_agent']['proposals']) == 3, result
+          assert all(item['status'] == 'review_required' for item in result['assertion_agent']['proposals']), result
+          assert result['assertion_validation']['status'] == 'passed', result
+          assert result['compiled_simulation']['status'] == 'passed', result
+          assert result['svm']['status'] == 'passed', result
+          assert result['svm']['performance']['cycles'] == 4, result
+          assert result['scheduling_runtime']['status'] == 'passed', result
+          assert result['scheduling_runtime']['outcome'] == 'normal_completion', result
+          assert result['scheduling_matrix']['status'] == 'passed', result
+          assert result['scheduling_matrix']['case_count'] == 5, result
+          assert result['repair_matrix']['status'] == 'passed', result
+          assert result['repair_matrix']['case_count'] == 4, result
+          assert result['assertion_matrix']['status'] == 'passed', result
+          assert result['assertion_matrix']['case_count'] == 4, result
+          assert result['assertion_matrix']['integrity']['valid'] is True, result
+          assert result['collateral']['status'] == 'ready', result
+          assert len(result['collateral']['sources']) == 4, result
+          assert result['assertion_formal']['status'] == 'counterexample', result
+          assert result['debug']['status'] == 'review_required', result
+          assert result['debug']['causal_frontier_binding']['status'] == 'available', result
+          assert result['debug']['causal_frontier_binding']['source_locations'], result
+          assert result['debug']['cdfg_alignment']['status'] == 'available', result
+          assert result['debug']['cdfg_alignment']['aligned_count'] == 2, result
+          assert result['debug']['cdfg_alignment']['ambiguous_count'] == 0, result
+          assert result['optimization']['status'] == 'ready', result
+          assert result['agent_team']['status'] == 'available', result
+          assert result['assertion_agent']['team_handoff_count'] == 1, result
+          assert result['assertion_agent']['coverage_gap_ranking'].endswith('protocol/coverage-gaps.json'), result
+          assert result['protocol']['execution']['status'] == 'passed', result
+          assert result['protocol']['execution']['coverage'] == {'covered': 2, 'total': 2, 'percentage': 100.0}, result
+          assert result['claim_status'] == 'review_required', result
+          manifest = Path('.artifacts/four-workstream-colab/four-workstream-evidence-manifest.json')
+          assert manifest.is_file(), manifest
+          checkpoint = json.loads(Path('.artifacts/four-workstream-colab/workflow-checkpoint.json').read_text())
+          assert 'four-workstream-evidence-manifest.json' in checkpoint['artifacts'], checkpoint
+          assert 'four-workstream-result.json' in checkpoint['artifacts'], checkpoint
+          PY
+      - name: Verify resumable checkpoint reaches release boundary
+        run: |
+          python3 scripts/resume_four_workstream_pipeline.py \
+            --checkpoint .artifacts/four-workstream-colab/workflow-checkpoint.json \
+            --artifact-root .artifacts/four-workstream-colab \
+            > .artifacts/four-workstream-colab/resume.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path('.artifacts/four-workstream-colab/resume.json').read_text())
+          assert result['status'] == 'ready', result
+          assert result['next_stage'] == 'release', result
+          assert result['artifact_errors'] == [], result
+          PY
+      - name: Audit four-workstream release inputs
+        run: |
+          python3 scripts/audit_four_workstream_release.py \
+            --checkpoint .artifacts/four-workstream-colab/workflow-checkpoint.json \
+            --artifact-root .artifacts/four-workstream-colab \
+            > .artifacts/four-workstream-colab/release-audit.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('.artifacts/four-workstream-colab/release-audit.json').read_text())
+          assert result['status'] == 'ready_for_approval', result
+          assert result['semantic_release_inputs']['errors'] == [], result
+          PY
+      - name: Upload four-workstream evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: four-workstream-reference-evidence
+          path: |
+            .artifacts/four-workstream-colab
+            .artifacts/time-zero-regression-matrix
+            .artifacts/tiered-reference
+            .artifacts/tiered-reference-result.json
+
+  verification-pilot:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: verification
+          POSTGRES_PASSWORD: verification-password
+          POSTGRES_DB: verification
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U verification -d verification"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install open-source verification tools
+        run: sudo apt-get update && sudo apt-get install -y iverilog verilator yosys util-linux
       - name: Install service dependencies
         run: python3 -m pip install -r deployment/requirements.txt pytest
       - name: Run multi-design pilot
         run: python3 benchmarks/multi_design_pilot/ci_gate.py
+      - name: Rehearse pilot evidence recovery
+        run: |
+          recovery_dir="$(mktemp -d)"
+          python3 scripts/verify_recovery_snapshot.py benchmarks/multi_design_pilot/runs/latest "$recovery_dir/snapshot" "$recovery_dir/restored" --output .artifacts/recovery-snapshot-verification.json
+      - name: Exercise managed PostgreSQL repository boundary
+        env:
+          VERIFICATION_POSTGRES_SMOKE_DSN: postgresql://verification:verification-password@127.0.0.1:5432/verification
+        run: |
+          python3 deployment/apply_managed_state_migration.py --dsn "$VERIFICATION_POSTGRES_SMOKE_DSN"
+          python3 scripts/run_managed_state_repository_smoke.py "$VERIFICATION_POSTGRES_SMOKE_DSN" --output .artifacts/managed-state-repository-smoke.json
+          recovery_dir="$(mktemp -d)"
+          python3 deployment/managed_restore_drill.py --dsn "$VERIFICATION_POSTGRES_SMOKE_DSN" --evidence-root benchmarks/multi_design_pilot/runs/latest --snapshot "$recovery_dir/snapshot" --restored "$recovery_dir/restored" --output .artifacts/managed-postgres-restore-drill-2026-09-10.json
       - name: Run pilot tests
         run: pytest -q verification_platform benchmarks/multi_design_pilot deployment
+      - name: Run execution-loop LLM contract fixture
+        run: |
+          VERIFICATION_LLM_BATCH_COMMAND='python3 scripts/mock_llm_backend.py' \
+            python3 scripts/run_llm_agent_benchmark.py --output .artifacts/llm-agent-benchmark-batch-mock.json
+          python3 scripts/verify_llm_model_evaluation.py .artifacts/llm-agent-benchmark-batch-mock.json
+      - name: Install browser acceptance runtime
+        run: python3 -m playwright install --with-deps chromium
+      - name: Run browser acceptance gates
+        run: |
+          python3 scripts/verify_workbench_browser.py
+          python3 scripts/verify_workbench_setup.py
+          python3 scripts/verify_workbench_handoff.py
+          python3 scripts/verify_workbench_adapter_ux.py
       - name: Validate deployment manifest
-        run: docker compose --env-file deployment/.env.example -f deployment/docker-compose.yml config
+        run: |
+          mkdir -p .artifacts
+          docker compose --env-file deployment/.env.example -f deployment/docker-compose.yml config >.artifacts/verification-compose-config.yaml
+      - name: Render customer production Kubernetes overlay
+        run: |
+          mkdir -p .artifacts
+          kubectl kustomize --load-restrictor LoadRestrictionsNone deployment/kubernetes/production >.artifacts/verification-production-overlay.yaml
+          python3 scripts/preflight_customer_production_overlay.py .artifacts/verification-production-overlay.yaml
+      - name: Validate observability compose overlay
+        run: VERIFICATION_SERVICE_API_KEY=ci-test-key docker compose -f deployment/docker-compose.yml -f deployment/observability/docker-compose.observability.yml config --quiet
+      - name: Write production readiness report
+        run: python3 scripts/report_production_readiness.py --output .artifacts/production-readiness.json
+      - name: Run commercial release preflight
+        run: python3 scripts/preflight_verification_deployment.py
+      - name: Validate pilot evidence templates
+        run: |
+          python3 scripts/validate_pilot_scorecard.py deployment/pilot-scorecard-template.json
+          python3 scripts/validate_usability_study.py deployment/pilot-usability-study-template.json
+          python3 scripts/build_open_source_pilot_scorecard.py benchmarks/multi_design_pilot/runs/latest .artifacts/open-source-pilot-scorecard.json
+          python3 scripts/validate_pilot_scorecard.py .artifacts/open-source-pilot-scorecard.json
+          python3 scripts/verify_pilot_scorecard_evidence.py .artifacts/open-source-pilot-scorecard.json --root .
+      - name: Generate execution and adapter acceptance evidence
+        run: |
+          python3 scripts/verify_execution_sandbox_runtime.py --output .artifacts/execution-sandbox-runtime.json
+          python3 scripts/run_adapter_acceptance.py --output .artifacts/adapter-acceptance
+          python3 scripts/preflight_registered_adapters.py --registry '[{"name":"reference-iverilog","kind":"simulation","executable":"iverilog","version":"system"},{"name":"reference-verilator","kind":"simulation","executable":"verilator","version":"system"},{"name":"reference-yosys","kind":"formal","executable":"yosys","version":"system"}]' --output .artifacts/registered-adapters-preflight.json
+          python3 scripts/run_oidc_key_rotation_drill.py --output .artifacts/oidc-key-rotation-drill.json
+      - name: Validate runtime preflight schema
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from jsonschema import validate
+          schema = json.loads(Path("deployment/observability/verification-customer-production-runtime.schema.json").read_text())
+          base = {"schema_version": "verification-customer-production-runtime-v1", "schema_path": "deployment/observability/verification-customer-production-runtime.schema.json"}
+          validate({**base, "status": "passed", "deployment": "customer-production", "contract": "verification-platform-contract-v1", "checks": ["readyz"]}, schema)
+          validate({**base, "status": "blocked", "errors": ["deployment configuration is not ready"]}, schema)
+          PY
+      - name: Run adversarial workbench gate
+        run: python3 scripts/run_workbench_adversarial_judge.py --findings docs/evaluations/verification-workbench-adjudicated-findings.json
+      - name: Build unified hardware verification release
+        run: python3 scripts/build_unified_release_manifest.py --output .artifacts/unified-hardware-verification-release.json
+      - name: Verify unified hardware verification release
+        run: python3 scripts/verify_unified_release_manifest.py .artifacts/unified-hardware-verification-release.json --root .
+      - name: Build and verify public reference archive
+        run: |
+          python3 scripts/build_public_reference_archive.py --output .artifacts/public-reference-release.tar.gz
+          python3 scripts/verify_public_reference_archive.py .artifacts/public-reference-release.tar.gz
+          python3 scripts/replay_public_reference_archive.py .artifacts/public-reference-release.tar.gz --output .artifacts/public-reference-replay.json
       - name: Build deployment image
         run: docker build -f deployment/Dockerfile -t verification-pilot-ci .
+      - name: Smoke deployment image
+        run: python3 scripts/verify_verification_image_runtime.py verification-pilot-ci --port 18081 --sandbox-probe --output .artifacts/verification-image-runtime.json
+      - name: Write release provenance manifest
+        run: python3 scripts/write_verification_release_manifest.py verification-pilot-ci .artifacts/verification-release-manifest.json
+      - name: Build commercial handoff manifest
+        run: python3 scripts/build_commercial_handoff_manifest.py --root . --readiness .artifacts/production-readiness.json --scorecard .artifacts/open-source-pilot-scorecard.json --recovery .artifacts/recovery-snapshot-verification.json --output .artifacts/commercial-handoff-manifest.json
+      - name: Verify commercial handoff manifest
+        run: python3 scripts/verify_commercial_handoff_manifest.py .artifacts/commercial-handoff-manifest.json --root .
+      - name: Verify handoff upload contract
+        run: python3 scripts/verify_handoff_upload_contract.py .artifacts/commercial-handoff-manifest.json .github/workflows/verification-pilot.yml
+      - name: Require clean release provenance
+        run: python3 -c "import json; p=json.load(open('.artifacts/verification-release-manifest.json')); assert p['source_tree_dirty'] is False, p['changed_paths']"
+      - name: Upload release provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-pilot-release-provenance
+          include-hidden-files: true
+          path: |
+            .artifacts/verification-release-manifest.json
+            .artifacts/open-source-pilot-scorecard.json
+            .artifacts/recovery-snapshot-verification.json
+            .artifacts/execution-sandbox-runtime.json
+            .artifacts/verification-image-runtime.json
+            .artifacts/verification-release-manifest.json
+            .artifacts/oidc-key-rotation-drill.json
+            .artifacts/adapter-acceptance/acceptance-summary.json
+            .artifacts/registered-adapters-preflight.json
+            .artifacts/managed-postgres-restore-drill-2026-09-10.json
+            .artifacts/managed-state-repository-smoke.json
+            .artifacts/workbench-adversarial/judge-packet.json
+            .artifacts/production-readiness.json
+            .artifacts/verification-production-overlay.yaml
+            .artifacts/verification-compose-config.yaml
+            .artifacts/unified-hardware-verification-release.json
+            .artifacts/commercial-handoff-manifest.json
+            .artifacts/llm-agent-benchmark.json
+            .artifacts/llm-agent-benchmark-batch-mock.json
+            .artifacts/public-reference-release.tar.gz
+            .artifacts/public-reference-release.tar.gz.json
+            .artifacts/public-reference-replay.json
+            .artifacts/workbench-browser/handoff-signed.png
+            .github/workflows/verification-pilot.yml
+            deployment/requirements.txt
+            deployment/Dockerfile
+            deployment/.env.example
+            deployment/docker-compose.yml
+            deployment/kubernetes/README.md
+            deployment/kubernetes/kustomization.yaml
+            deployment/kubernetes/base/kustomization.yaml
+            deployment/kubernetes/production/kustomization.yaml
+            deployment/kubernetes/production/deployment-production-patch.yaml
+            deployment/kubernetes/verification-pilot.yaml
+            deployment/kubernetes/verification-backup-cronjob.yaml
+            deployment/kubernetes/verification-production-config.example.yaml
+            deployment/observability/verification-customer-production-runtime.schema.json
+            scripts/verify_customer_production_runtime.py
+            scripts/run_adapter_acceptance.py
+            scripts/run_workbench_adversarial_judge.py
+            scripts/report_production_readiness.py
+            scripts/build_commercial_handoff_manifest.py
+            scripts/verify_commercial_handoff_manifest.py
+            scripts/verify_handoff_upload_contract.py
+            scripts/build_public_reference_archive.py
+            scripts/verify_public_reference_archive.py
+            scripts/replay_public_reference_archive.py
+            scripts/build_unified_release_manifest.py
+            scripts/verify_unified_release_manifest.py
+            verification_platform/agent.py
+            verification_platform/reference_agent.py
+            scripts/run_reference_agent.py
+            PUBLIC_REFERENCE_RELEASE.md
+            scripts/write_verification_release_manifest.py
+            scripts/verify_workbench_setup.py
+            scripts/verify_workbench_handoff.py

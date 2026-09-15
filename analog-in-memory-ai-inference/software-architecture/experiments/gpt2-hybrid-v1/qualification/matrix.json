@@ -1,0 +1,1701 @@
+{
+  "schema_version": "gpt2_converter_qualification_matrix.v1",
+  "claim_status": "measured",
+  "goal": "real_model_to_analog_hardware_qualification",
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "target_projection": "transformer.h.0.mlp.c_fc",
+    "logical_tiles": 144
+  },
+  "candidate": {
+    "candidate_dir": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/recovery-20260909/contact-rebuild-v3",
+    "netlist_sha256": "d94c84fa2534bd92e0c763ec9dd58de6a7f236a5c5fafa20a3ba6abd3673bcc5",
+    "view": "extracted",
+    "decision_time_ns": 18.0
+  },
+  "run": {
+    "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/active-converter-macro-transient/20260910T054415175737Z/result.json",
+    "runner_sha256": "5143b3b1cde7d4a177786fc5da3d80111114278a8347e67182fd91091dc1883b",
+    "input_differentials_mv": [-100.0, -0.1529705854, 0.1529705854, 100.0],
+    "measured_case_count": 4,
+    "polarity_pass_count": 3,
+    "logic_margin_pass_count": 0,
+    "timeouts": 0,
+    "energy_scope": "signed net energy delivered by VDD and VDD_EXT over 0–20 ns; excludes input/clock driver and bias-generation costs"
+  },
+  "repeated_history_screen": {
+    "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/combined-latch-corner-screen/20260910T054749203951Z/result.json",
+    "profiles": 7,
+    "measured_profiles": 7,
+    "logic_hold_reset_pass_profiles": 7,
+    "waveform_legal_profiles": 0,
+    "status": "screen_complete_not_qualified",
+    "claim_boundary": "Combined latch/receiver diagnostic with fixed nominal rails and a preserved four-cycle sequence; not full converter, PVT, mismatch, noise, or settling signoff."
+  },
+  "legality_diagnosis": {
+    "latest_latch_only_artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/latch-repeated-readout/20260910T055204692720Z/result.json",
+    "latest_latch_only_status": "repeated_diagnostic_fail",
+    "observable_output_scope": ["v(out_p)", "v(out_n)"],
+    "output_minimum_v": -0.0715632722,
+    "output_maximum_v": 1.7869049774,
+    "hold_and_reset_checks": "pass per cycle",
+    "root_cause_class": "observable output undershoot violates rail legality outside the sampled hold window",
+    "repair_status": "repair_screen_passed_combined_screen_passed"
+  },
+  "reset_timing_repair_screen": {
+    "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/latch-output-legality-screen/20260910T055423213694Z/result.json",
+    "repair_candidate": "reset_early_0.5ns_clock_fall_1000ps",
+    "profiles": 7,
+    "all_profiles_waveform_legal": true,
+    "all_profiles_pass": true,
+    "status": "screen_passed_not_qualified",
+    "claim_boundary": "Latch-only extracted diagnostic with ideal sources; combined path is covered by a separate screen, while noise, mismatch, full PVT, settling and converter-transfer requirements remain open."
+  },
+  "combined_repair_screen": {
+    "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/latch-repeated-readout/20260910T055612306158Z/result.json",
+    "repair_candidate": "reset_early_0.5ns_clock_fall_1000ps",
+    "receiver_boundary": "combined extracted latch/receiver layout",
+    "measured_cases": 4,
+    "all_rows_pass": true,
+    "waveform_legal": true,
+    "waveform_rail_tolerance_v": 0.005,
+    "receiver_min_v": -0.0025159194,
+    "receiver_max_v": 1.8017951249,
+    "status": "combined_screen_passed_not_qualified",
+    "claim_boundary": "Nominal combined latch/receiver sub-block diagnostic with ideal supplies and clocks; not full SAR converter, PVT, noise/mismatch, settling, or analog inference qualification."
+  },
+  "converter_boundary_screens": {
+    "row_dac_settling": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/row-dac-settling-spice-evidence.json",
+      "cases": 3,
+      "all_cases_pass_half_lsb": true,
+      "worst_abs_error_v": 0.0001767,
+      "settling_time_ns": 4.0,
+      "status": "simple_load_spice_passed_not_extracted"
+    },
+    "sar_readout": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sar-readout-spice-evidence.json",
+      "cases": 3,
+      "comparisons": 12,
+      "all_cases_pass_half_lsb": true,
+      "worst_abs_error_v": 0.0,
+      "conversion_time_ns": 12.0,
+      "status": "simple_sample_load_spice_passed_not_extracted"
+    },
+    "differential_sampling": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/differential-sampling-control-proof-ngspice.json",
+      "cases": 3,
+      "diff_hold_pass_count": 2,
+      "worst_diff_hold_abs_delta_v": 0.0003,
+      "status": "topology_only_control_proof_not_converter_proof"
+    },
+    "shared_converter_loading": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/shared-converter-loading-spice-evidence.json",
+      "cases": 4,
+      "max_active_loads": 32,
+      "all_cases_pass_half_lsb": true,
+      "worst_abs_error_v": 0.0,
+      "status": "simple_mux_load_spice_passed_not_extracted"
+    },
+    "supply_energy": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/converter-supply-energy-spice-evidence.json",
+      "cases": 3,
+      "all_cases_have_positive_energy": true,
+      "worst_total_energy_j": 4.2730393e-12,
+      "status": "simple_load_energy_complete_not_system_energy"
+    },
+    "physical_dac_sar_sequence_smoke": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-physical-dac-sar-sequence.json",
+      "input_codes": [4],
+      "comparison_count": 1,
+      "measured_comparison_count": 0,
+      "timeout_count": 1,
+      "status": "transistor_sequence_timeout_smoke",
+      "claim_boundary": "The first physical DAC/comparator transient exceeded the 5 second interactive timeout; no SAR correctness claim is allowed."
+    },
+    "physical_dac_comparator_bit_sweep": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-coupled-dac-comparator-bit.json",
+      "cases": 16,
+      "measured_cases": 16,
+      "correct_polarity_cases": 16,
+      "status": "physical_one_bit_transfer_passed_not_sar",
+      "claim_boundary": "Nominal one-bit physical Sky130 DAC/comparator transient across all 4-bit trial codes; no multi-bit SAR, PVT, mismatch/noise, or extracted-layout claim."
+    },
+    "continuous_physical_sar_nominal": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-continuous-physical-sar.json",
+      "conversions": 5,
+      "measured_conversions": 5,
+      "all_conversions_correct": true,
+      "status": "continuous_nominal_sar_passed_not_accepted",
+      "claim_boundary": "One continuous five-conversion physical DAC/comparator transient with decision-dependent controls; not PVT, mismatch/noise, extracted-layout, board, or silicon acceptance."
+    },
+    "continuous_physical_sar_mismatch": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-continuous-physical-sar-mismatch-100.json",
+      "sigma_percent": 1.0,
+      "trials": 100,
+      "measured_trials": 97,
+      "full_map_pass_count": 95,
+      "legal_bottom_pass_count": 97,
+      "status": "seeded_mismatch_stress_measured_not_foundry_yield",
+      "claim_boundary": "Seeded capacitor variation through the five-conversion continuous SAR; not foundry Monte Carlo, comparator noise/offset yield, extracted-layout, board, or silicon acceptance."
+    },
+    "physical_sar_pvt_calibrated": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-coupled-physical-sar-pvt-calibrated.json",
+      "corners": 5,
+      "cases": 25,
+      "measured_cases": 25,
+      "correct_polarity_cases": 25,
+      "timeouts": 0,
+      "status": "representative_pvt_measured_not_full_pvt_sar",
+      "claim_boundary": "Five representative process/supply/temperature corners using the same physical bit topology; not all-code calibration at every corner, continuous multi-cycle SAR, mismatch/noise yield, or extracted-layout acceptance."
+    },
+    "comparator_disturbance_stress": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-differential-dummy-candidate-offset-noise-stress.json",
+      "cases": 20,
+      "passing_cases": 17,
+      "failing_cases": 3,
+      "max_passing_decision_uncertainty_mv": 0.1530,
+      "min_failing_decision_uncertainty_mv": 0.1581,
+      "status": "defined_disturbance_stress_not_comparator_proof",
+      "claim_boundary": "Decision-uncertainty stress envelope for the differential dummy candidate; not transistor-level comparator noise/offset measurement or yield."
+    },
+    "transistor_offset_sweep": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-two-phase-transistor-offset-sweep.json",
+      "cases": 1,
+      "measured_cases": 0,
+      "timeouts": 1,
+      "zero_crossing_mv": null,
+      "nonzero_polarity_passes": 0,
+      "status": "transistor_threshold_current_smoke_timeout",
+      "claim_boundary": "Latch-free transistor preamp threshold sweep; does not establish random noise, mismatch distributions, PVT, SAR cycling, or accepted converter evidence."
+    },
+    "noise_margin_proxy": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-two-phase-offset-noise-sweep.json",
+      "status": "proxy_input_unavailable_transistor_fixture_timeout",
+      "cases": 0,
+      "claim_boundary": "The source fixture currently has no successful measured rows, so no noise-margin proxy is constructed."
+    },
+    "noise_candidate": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/first-real-converter-noise-candidate.json",
+      "output_noise_rms": 0.000851121,
+      "meets_output_noise_budget": true,
+      "status": "behavioral_candidate_not_extracted_noise",
+      "claim_boundary": "Named-candidate behavioral noise estimate only; not extracted device noise, comparator offset distribution, or yield."
+    },
+    "offset_convergence_sweep": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-two-phase-offset-convergence-sweep.json",
+      "configurations_tested": 5,
+      "status": "numerical_configs_timeout",
+      "claim_boundary": "Convergence diagnostics only; no circuit performance or converter claim."
+    },
+    "preamp_dc_sanity": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-preamp-dc-sanity.json",
+      "cases": 3,
+      "measured_cases": 0,
+      "timeouts": 3,
+      "status": "dc_startup_incomplete",
+      "claim_boundary": "Minimal DC-biased preamp startup diagnostic; no clocked latch, SAR, noise, or converter claim."
+    },
+    "explicit_bias_preamp_reference": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-explicit-bias-preamp-reference.json",
+      "cases": 1,
+      "measured_cases": 0,
+      "timeouts": 1,
+      "status": "explicit_bias_reference_timeout",
+      "claim_boundary": "Explicitly biased differential-pair reference diagnostic; no converter claim."
+    },
+    "sky130_model_runtime_probe": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-minimal-model-probe.json",
+      "devices": 1,
+      "analysis": "operating_point",
+      "timeout_s": 30.0,
+      "status": "model_operating_point_timeout",
+      "claim_boundary": "Runtime/model availability diagnostic only; no circuit or converter performance claim."
+    },
+    "simulation_host_preflight": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/simulation-host-preflight.json",
+      "status": "host_contended",
+      "load_ratio_1m": 15.69,
+      "active_simulation_or_test_processes": 0,
+      "claim_boundary": "Host scheduling diagnostic only; it does not qualify or disqualify circuit evidence."
+    },
+    "ngspice_builtin_control": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/ngspice-builtin-probe.json",
+      "status": "ngspice_builtin_pass",
+      "claim_boundary": "ngspice executable control only; no Sky130 model or circuit claim."
+    },
+    "sky130_model_parse": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-model-parse-probe.json",
+      "status": "sky130_model_parse_timeout",
+      "timeout_s": 30.0,
+      "claim_boundary": "Sky130 library-load diagnostic with a resistor-only circuit; no device or converter claim."
+    },
+    "colab_sky130_device_probe": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-device-probe.json",
+      "status": "sky130_device_pass",
+      "bundle_hash_matches": true,
+      "ngspice_version": "42+ds-3build1",
+      "device_analysis_time_s": 11.264,
+      "claim_boundary": "Clean Colab PDK runtime gate with one nominal Sky130 transistor operating point; no converter or silicon claim."
+    },
+    "colab_coupled_dac_comparator": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-coupled-dac-comparator-bit.json",
+      "cases": 2,
+      "measured_cases": 2,
+      "correct_polarity_cases": 2,
+      "timeouts": 0,
+      "status": "colab_physical_bit_passed_not_sar",
+      "claim_boundary": "Two representative coupled Sky130 DAC/comparator transients in Colab; not full SAR, PVT, mismatch/noise, or extracted-layout acceptance."
+    },
+    "colab_coupled_dac_comparator_full": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-coupled-dac-comparator-full-parallel.json",
+      "cases": 16,
+      "measured_cases": 0,
+      "correct_polarity_cases": 0,
+      "timeouts": 16,
+      "status": "colab_full_sweep_timeout",
+      "claim_boundary": "Fresh Colab run covered all 16 requested codes but every coupled transistor transient exceeded the 30 s per-case bound; this is a remote runtime throughput result, not a circuit rejection or qualification pass."
+    },
+    "colab_coupled_dac_comparator_full_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-coupled-dac-comparator-full-parallel-t4.json",
+      "accelerator": "T4",
+      "cases": 16,
+      "measured_cases": 0,
+      "correct_polarity_cases": 0,
+      "timeouts": 16,
+      "status": "colab_t4_full_sweep_timeout",
+      "claim_boundary": "Fresh T4 Colab run covered all 16 requested codes; every coupled transistor transient exceeded the 30 s per-case bound. This confirms the current deck is simulator-throughput limited on remote Colab and does not establish a circuit rejection."
+    },
+    "colab_coupled_dac_comparator_full_sequential_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-coupled-dac-comparator-full-sequential-t4.json",
+      "accelerator": "T4",
+      "workers": 1,
+      "cases": 16,
+      "measured_cases": 16,
+      "correct_polarity_cases": 16,
+      "timeouts": 0,
+      "status": "colab_physical_bit_sweep_passed_not_sar",
+      "claim_boundary": "All 16 coupled Sky130 DAC/comparator codes measured sequentially in a fresh T4 Colab session with correct polarity. This is a complete one-bit code sweep, not full SAR, PVT, mismatch/noise, or extracted-layout acceptance."
+    },
+    "colab_physical_dac_sar_sequence_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-physical-dac-sar-sequence-t4.json",
+      "accelerator": "T4",
+      "conversion_count": 5,
+      "comparison_count": 20,
+      "measured_comparison_count": 20,
+      "timeout_count": 0,
+      "correct_conversion_count": 5,
+      "status": "colab_retained_bit_sar_passed_not_continuous_multicycle_proof",
+      "claim_boundary": "Five representative retained-bit SAR conversions completed in fresh T4 Colab using the physical Sky130 DAC/comparator runner. Each bit uses a fresh transient reset; this does not prove continuous clock-to-clock state retention, full-range conversion, PVT, mismatch/noise, or extracted-layout acceptance."
+    },
+    "colab_continuous_physical_sar_one_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-one-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "measured": true,
+      "expected_code": 2,
+      "final_code": 0,
+      "claim_boundary": "One continuous four-decision transient converged remotely, but the diagnostic reference produced the wrong retained code; this is a candidate waveform and not a pass."
+    },
+    "colab_continuous_physical_sar_five_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-smooth5-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_numerical_failure",
+      "measured": false,
+      "requested_conversions": 5,
+      "claim_boundary": "The five-conversion continuous deck reaches a ngspice timestep-collapse failure at a behavioral gate branch before producing conversion measurements; continuous multi-cycle acceptance remains open."
+    },
+    "colab_continuous_physical_sar_five_smoothed_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-tstepsmooth-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "measured": true,
+      "conversion_count": 5,
+      "conversion_coverage_complete": true,
+      "all_conversions_correct": false,
+      "decoded_codes": [15, 15, 15, 15, 15],
+      "claim_boundary": "A smooth time-driver removed the ngspice timestep collapse and produced all five continuous waveforms, but the altered gate ramp collapsed the DAC thresholds and decoded every input as code 15. This is numerical diagnostics, not functional acceptance."
+    },
+    "colab_continuous_physical_sar_five_time_slope100_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-tstepsmooth100-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_numerical_failure",
+      "time_slope": 100.0,
+      "claim_boundary": "A narrow smooth time transition preserves the original logic timing but still reaches a timestep collapse at the retained-bit gate branch; further finite-rise/fall driver work is required."
+    },
+    "colab_continuous_physical_sar_five_gate_series1k_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-gseries1k-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_numerical_failure",
+      "gate_series_ohm": 1000.0,
+      "claim_boundary": "Adding 1 kOhm series resistance between behavioral gate drivers and transistor gates did not remove the timestep collapse; the failure moved to the complementary gate branch. Explicit finite-rise/fall control sources remain required."
+    },
+    "colab_continuous_physical_sar_five_time_slope1_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-tstepsmooth1-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "time_slope_per_ns": 1.0,
+      "decoded_codes": [3, 6, 7, 7, 8],
+      "claim_boundary": "Correctly unit-scaled smooth gate timing makes the full continuous deck converge and cover all five conversions, but the decoded map is wrong; this remains a functional calibration failure."
+    },
+    "colab_continuous_physical_sar_five_cal1_t4": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-cal1-t4.json",
+      "accelerator": "T4",
+      "status": "continuous_physical_sar_calibration_unchanged",
+      "reference_profile_v": [-0.2, 0.65, 0.6, 0.78, 0.88],
+      "decoded_codes": [3, 6, 7, 7, 8],
+      "claim_boundary": "A reference-profile sweep left the decoded map unchanged, indicating the dominant error is the continuous switched-capacitor/control trajectory rather than the nominal reference values alone."
+    },
+    "colab_continuous_physical_sar_five_pwl_clock100ps_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-physical-sar-five-pwl50ps-clock100ps-cpu.json",
+      "accelerator": "CPU",
+      "pwl_rise_ns": 0.05,
+      "clock_edge_ns": 0.1,
+      "status": "continuous_physical_sar_nominal_map_passed",
+      "measured": true,
+      "conversion_count": 5,
+      "conversion_coverage_complete": true,
+      "all_conversions_correct": true,
+      "decoded_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Five representative conversions completed in one continuous physical Sky130 transient in Colab with explicit finite-rise/fall PWL controls. This closes the nominal continuous-SAR gate; PVT, mismatch/noise, extracted-layout, energy, and GPT-2 tile acceptance remain open."
+    },
+    "local_continuous_sar_handoff_reproduction_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/local-historical-calibration-20260910.json",
+      "settings": "sample_reset=1; PMOS_bank=8; NMOS_width=64um; LSB_scale=1.8; PWL_rise=50ps; handoff_probe=1",
+      "status": "continuous_physical_sar_nominal_map_passed",
+      "decoded_codes": [0, 2, 4, 6, 7],
+      "active_handoff_range_v": [-0.4694079, -0.1880801],
+      "claim_boundary": "Local reproducibility receipt with direct active-handoff probes; nominal schematic behavior only. It does not close PVT, mismatch/noise yield, extracted-layout, energy, or GPT-2 tile acceptance."
+    },
+    "colab_continuous_sar_ss162_pwl02_clock02_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-ss162-pwl02-clock02-cpu.json",
+      "model_section": "ss",
+      "temperature_c": -20.0,
+      "supply_v": 1.62,
+      "pwl_rise_ns": 0.2,
+      "clock_edge_ns": 0.2,
+      "status": "continuous_physical_sar_nominal_map_passed",
+      "conversion_count": 5,
+      "conversion_coverage_complete": true,
+      "all_conversions_correct": true,
+      "claim_boundary": "Five representative continuous conversions pass at the SS, −20 °C, 1.62 V Sky130 corner in Colab. This is one robustness corner, not full PVT or mismatch/noise acceptance."
+    },
+    "colab_continuous_sar_sf180_pwl02_clock02_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-sf180-pwl02-clock02-cpu.json",
+      "model_section": "sf",
+      "temperature_c": 25.0,
+      "supply_v": 1.8,
+      "status": "continuous_physical_sar_nominal_map_passed",
+      "decoded_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Five representative continuous conversions pass at the SF, 25 °C, 1.8 V corner; remaining PVT and robustness gates remain open."
+    },
+    "colab_continuous_sar_ff198_pwl02_clock02_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-ff198-pwl02-clock02-cpu.json",
+      "model_section": "ff",
+      "temperature_c": 85.0,
+      "supply_v": 1.98,
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "decoded_codes": [2, 6, 7, 7, 8],
+      "claim_boundary": "All five FF corner waveforms measured, but the nominal reference profile does not preserve the target code map at 85 °C and 1.98 V. Corner calibration remains open."
+    },
+    "colab_continuous_sar_fs180_pwl02_clock02_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-fs180-pwl02-clock02-cpu.json",
+      "model_section": "fs",
+      "temperature_c": 25.0,
+      "supply_v": 1.8,
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "decoded_codes": [0, 4, 5, 6, 7],
+      "claim_boundary": "All five FS corner waveforms measured, but the nominal reference profile misses the code-2 and code-4 targets. Corner calibration remains open."
+    },
+    "colab_continuous_sar_ff198_pwl04_clock04_cpu": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-continuous-sar-ff198wide-pwl04-clock04-cpu.json",
+      "model_section": "ff",
+      "temperature_c": 85.0,
+      "supply_v": 1.98,
+      "pwl_rise_ns": 0.4,
+      "clock_edge_ns": 0.4,
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "decoded_codes": [3, 7, 7, 9, 10],
+      "claim_boundary": "Widening the FF control and clock edges preserves convergence but worsens the decoded map; FF needs a calibrated switched-capacitor trajectory, not timing width alone."
+    },
+    "colab_fs_bit2scale08_calibration": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-cal-bit2scale08-bit10.75-lsb1.8.json",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "bit2_cap_scale": 0.8,
+      "decoded_codes": [0, 4, 4, 7, 7],
+      "claim_boundary": "Reducing the FS bit-2 capacitor scale to 0.8 does not correct the code-2 boundary; further trajectory calibration is required."
+    },
+    "colab_fs_bit2scale12_calibration": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-cal-bit2scale12-bit10.75-lsb1.8.json",
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "bit2_cap_scale": 1.2,
+      "decoded_codes": [0, 4, 5, 6, 7],
+      "claim_boundary": "Increasing the FS bit-2 capacitor scale to 1.2 also leaves code-2 wrong and shifts code-4, bounding the useful bit-2 calibration around the nominal value."
+    },
+    "colab_ff_corner_api_calibrated": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-ff-corner-api-20260910.json",
+      "corner": "FF, 85 C, 1.98 V",
+      "bit1_cap_scale": 0.75,
+      "lsb_cap_scale": 1.8,
+      "decoded_codes": [0, 2, 4, 6, 7],
+      "status": "continuous_physical_sar_corner_map_passed",
+      "claim_boundary": "Fresh persistent Colab FF-corner run passes all five representative continuous conversions with the calibrated LSB scale. This closes one corner map only; FS, mismatch, extracted layout, and noise remain open."
+    },
+    "colab_fs_corner_api_calibrated": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-corner-api-20260910.json",
+      "corner": "FS, 25 C, 1.8 V",
+      "bit1_cap_scale": 0.75,
+      "lsb_cap_scale": 1.8,
+      "decoded_codes": [0, 4, 4, 6, 7],
+      "status": "continuous_physical_sar_corner_map_measured_not_accepted",
+      "claim_boundary": "Fresh persistent Colab FS-corner run completes all five conversions and improves the map, but code-2 remains wrong. FS calibration remains open."
+    },
+    "colab_fs_reference_threshold_probe": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-refup-api-20260910.json",
+      "corner": "FS, 25 C, 1.8 V",
+      "reference_profile_v": [0.0, 0.75, 0.65, 0.7808133, 0.89247035],
+      "baseline_code2_reference_v": 0.695,
+      "decoded_codes": [0, 4, 4, 6, 7],
+      "status": "continuous_physical_sar_reference_probe_unchanged",
+      "claim_boundary": "Raising the code-2 reference from 0.695 V to 0.75 V leaves the FS decoded map unchanged, ruling out a simple reference offset as the dominant correction."
+    },
+    "fs_bit1_trajectory_diagnosis": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/fs-bit1-trajectory-diagnosis.json",
+      "baseline_artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-corner-api-20260910.json",
+      "variant_artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-bit1wide-api-20260910.json",
+      "status": "trajectory_localization_complete",
+      "first_decision_change_by_conversion": [null, null, 3, 4, null],
+      "max_abs_dac_delta_v": 0.1517037,
+      "max_abs_preamp_delta_v": 0.32487773,
+      "claim_boundary": "FS bit-1 scale comparison localizes the first changed decisions to conversions 3 and 4; it is a calibration diagnosis, not a qualified fix."
+    },
+    "colab_continuous_mismatch_smoke_cpu3": {
+      "artifacts": [
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-continuous-mismatch-smoke-cpu3-trial-000.json",
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-continuous-mismatch-smoke-cpu3-trial-001.json",
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-continuous-mismatch-smoke-cpu3-trial-002.json"
+      ],
+      "seed": 130,
+      "sigma_percent": 1.0,
+      "trials": 3,
+      "full_map_passes": 2,
+      "numerical_failures": 1,
+      "status": "continuous_sar_mismatch_smoke_measured_not_yield_proof",
+      "claim_boundary": "Two of three seeded 1% capacitor perturbations preserve the five-code continuous map; one trial fails numerically. This is a Colab smoke result, not foundry mismatch or yield acceptance."
+    },
+    "colab_continuous_mismatch_trial001_stable": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial001-stable.json",
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "pwl_rise_ns": 0.5,
+      "clock_edge_ns": 0.5,
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "decoded_codes": [0, 2, 5, 7, 7],
+      "claim_boundary": "The previously numerical-failure mismatch seed converges with widened finite controls but fails the code map, separating simulator stability from functional mismatch sensitivity."
+    },
+    "colab_continuous_mismatch_trial131_persistent": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial131-persistent.json",
+      "seeded_scales": [1.01, 0.755, 0.99, 1.005],
+      "pwl_rise_ns": 0.5,
+      "clock_edge_ns": 0.5,
+      "conversion_coverage_complete": true,
+      "decoded_codes": [0, 4, 5, 7, 8],
+      "status": "continuous_physical_sar_candidate_measured_not_accepted",
+      "claim_boundary": "A persistent Colab run completed all five continuous conversions under a seeded capacitor perturbation, but the map was wrong for four of five references. This is measured mismatch sensitivity evidence, not foundry yield or analog authorization."
+    },
+    "colab_continuous_mismatch_calibrated5": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-calibrated5-20260910.json",
+      "seed": 130,
+      "sigma_percent": 1.0,
+      "trials": 5,
+      "lsb_cap_scale": 1.8,
+      "measured_trials": 5,
+      "full_map_passes": 0,
+      "legal_bottom_passes": 5,
+      "decoded_map_pattern": [1, 4, 6, 7, 8],
+      "status": "continuous_sar_mismatch_calibrated_stress_measured_not_yield_proof",
+      "claim_boundary": "Five fixed-seed 1% capacitor-variation trials using the current 1.8x LSB candidate all completed with legal bottom plates but failed the code map. This is a reproducible functional sensitivity result, not foundry mismatch yield."
+    },
+    "colab_mismatch_trial0_bottom_precharge": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-precharge-20260910.json",
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "bottom_precharge_ns": 4.0,
+      "decoded_codes": [3, 6, 6, 7, 7],
+      "status": "mitigation_screen_failed",
+      "claim_boundary": "Exact failing mismatch seed replay with bottom-plate precharge worsens the map; this mitigation is rejected for the candidate."
+    },
+    "colab_mismatch_trial0_switch_strength": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-strength-20260910.json",
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "switch_width_um": 16.0,
+      "nmos_width_um": 16.0,
+      "pmos_bank": 16,
+      "decoded_codes": [3, 6, 6, 7, 7],
+      "status": "mitigation_screen_failed",
+      "claim_boundary": "Doubling switch widths and the PMOS bank does not recover the exact failing mismatch seed; mismatch is not fixed by drive strength alone."
+    },
+    "colab_mismatch_trial0_capacitive_copy": {
+      "artifacts": [
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-capcopy-20260910.json",
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-capcopy-noreset-20260910.json"
+      ],
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "capacitive_copy_ff": 100.0,
+      "with_copy_reset": "numerical_failure",
+      "without_copy_reset_decoded_codes": [3, 6, 6, 7, 6],
+      "status": "mitigation_screen_failed",
+      "claim_boundary": "Capacitive isolation with its reset branch fails numerically; removing the copy reset converges but still fails the map. The added isolation stage does not yet provide a viable mismatch fix."
+    },
+    "colab_mismatch_trial0_split_msb": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-splitmsb-20260910.json",
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "split_msb": true,
+      "decoded_codes": [0, 10, 12, 12, 14],
+      "bottom_plate_in_legal_range": true,
+      "status": "mitigation_screen_failed",
+      "claim_boundary": "Fresh Colab split-MSB replay completes with legal bottom plates but severely worsens the mismatch map; simple MSB plate splitting is rejected for this candidate."
+    },
+    "colab_mismatch_trial0_gate_series": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-mismatch-trial0-gateseries1k-20260910.json",
+      "seeded_scales": [0.9987326825, 0.7487382842, 1.0005699852, 1.0090714929],
+      "gate_series_ohm": 1000,
+      "decoded_codes": [9, 12, 12, 12, 12],
+      "status": "mitigation_screen_failed",
+      "claim_boundary": "Adding 1 kohm gate series resistance completes the transient but severely worsens the exact mismatch map; edge damping alone is rejected."
+    },
+    "mismatch_trajectory_capcopy_diagnosis": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/mismatch-trajectory-capcopy-diagnosis.json",
+      "status": "trajectory_localization_complete",
+      "first_decision_change_by_conversion": [3, 3, null, null, 1],
+      "max_abs_dac_delta_v": 0.7650206,
+      "max_abs_preamp_delta_v": 0.8201263,
+      "claim_boundary": "Like-seed trajectory comparison localizes the capacitive-copy intervention's dominant perturbation to the first and second conversion decision paths; it does not establish a fix or device-level yield."
+    },
+    "sar_calibration_ranking": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-calibration-ranking.json",
+      "receipts_scanned": 438,
+      "full_map_receipts": 296,
+      "status": "calibration_history_ranked",
+      "claim_boundary": "Deterministic ranking of checked-in schematic transient receipts. Historical passes remain tied to their exact controls and cannot be generalized across PVT or mismatch populations without replay."
+    },
+    "circuit_profile_guarded_import": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/circuit-profile-import.json",
+      "supported_cases": 4,
+      "open_cases": 3,
+      "placement_allowed": false,
+      "status": "profile_handoff_guarded",
+      "claim_boundary": "The workload handoff accepts provenance-checked circuit profile metadata while refusing analog placement until open FS/mismatch cases and held-out validation close."
+    },
+    "circuit_derived_sar_profile_v01": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/circuit-derived-sar-profile.json",
+      "supported_cases": 4,
+      "open_cases": 3,
+      "status": "candidate_integration_profile_not_calibrated",
+      "claim_boundary": "The profile aggregates complete passing nominal, SS, and SF continuous maps for software integration. FF, FS, and seeded mismatch remain open and the profile cannot authorize analog placement or hardware claims."
+    },
+    "sar_code_remap_contract": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-contract.json",
+      "cases_evaluated": 4,
+      "usable_cases": 1,
+      "status": "guarded_digital_remap_contract",
+      "placement_allowed": false,
+      "claim_boundary": "A digital code remap is usable only for a one-to-one observed code set that covers the target references; the FS collision and seeded mismatch out-of-set codes remain rejected, and this does not establish analog yield or hardware qualification."
+    },
+    "profile_driven_transformer_contract": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-transformer-contract.json",
+      "model": "openai-community/gpt2",
+      "target_module": "transformer.h.0.mlp.c_fc",
+      "supported_profile_cases": 4,
+      "open_profile_cases": 3,
+      "remap_usable_cases": 1,
+      "analog_placement_allowed": false,
+      "contract_check": "passed",
+      "status": "schedule_bound_held_out_validation_required",
+      "claim_boundary": "The measured SAR profile is now bound to a real GPT-2 projection schedule with explicit conversion and movement counts; native digital fallback remains authoritative until held-out circuit and workload validation pass."
+    },
+    "sar_code_remap_holdout_ff": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-holdout-ff.json",
+      "calibration_case": "colab-ff-corner-api-20260910.json",
+      "holdouts": 3,
+      "passed_holdouts": 0,
+      "promotion_allowed": false,
+      "status": "fixed_remap_does_not_generalize",
+      "claim_boundary": "The FF-fitted digital remap fails FS, mismatch, and split-MSB holdouts; calibration cannot currently substitute for per-corner/per-converter qualification or analog repair."
+    },
+    "sar_code_remap_holdout_mismatch_per_converter": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-holdout-mismatch-per-converter.json",
+      "calibration_case": "colab-mismatch-calibrated5-20260910-trial-000.json",
+      "holdouts": 4,
+      "passed_holdouts": 4,
+      "promotion_allowed": true,
+      "status": "bounded_per_converter_digital_remap_pass",
+      "claim_boundary": "A remap fitted on one fixed-seed mismatch converter generalized to four same-campaign mismatch holdouts; this authorizes only a guarded digital label correction for that campaign and does not establish analog accuracy, yield, noise tolerance, energy, or hardware placement."
+    },
+    "profile_driven_workload_trace": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-workload-trace.json",
+      "model": "openai-community/gpt2",
+      "variant": "dac10_weight8_adc12",
+      "vectors": 162,
+      "dac_conversions": 2985984,
+      "adc_conversions": 2985984,
+      "placement": "digital_fallback_only",
+      "status": "operation_trace_derived_colab_ready",
+      "claim_boundary": "The trace derives operation and movement counts from a saved numerical GPT-2 run; it is ready for a Colab holdout execution but is not analog hardware timing, energy, yield, or speedup evidence."
+    },
+    "colab_profile_driven_entrypoint": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/colab/run_profile_driven_gpt2_colab.py",
+      "local_smoke_receipt": "/tmp/profile-colab-receipt-20260910/colab-receipt.json",
+      "status": "colab_contract_and_trace_smoke_passed",
+      "model_execution": "not_run_in_smoke",
+      "per_converter_remap_attached": "4_of_4_bounded_mismatch_holdouts",
+      "pinned_model_fetch": "supported_with_fetch_model_flag",
+      "claim_boundary": "The entry point reproducibly validates the profile contract and derives the workload trace in Colab; model execution and analog hardware claims remain gated by pinned assets and held-out evidence."
+    },
+    "converter_dispatch_policy": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/converter-dispatch-policy.json",
+      "routes": 4,
+      "mismatch_candidate_holdouts": 4,
+      "analog_placement_allowed": false,
+      "status": "guarded_runtime_dispatch_ready",
+      "claim_boundary": "The policy fails closed for unknown, colliding, or unqualified converter cases and exposes only a bounded digital correction candidate for the fixed mismatch campaign; it does not authorize analog placement or hardware claims."
+    },
+    "converter_dispatch_simulation": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/converter-dispatch-simulation.json",
+      "workload_vectors": 162,
+      "scenarios": 4,
+      "mismatch_digital_correction_candidate_vectors": 162,
+      "analog_vectors": 0,
+      "status": "runtime_routing_simulation_passed",
+      "claim_boundary": "The deterministic simulation demonstrates fail-closed routing over the GPT-2 trace; it is not an analog execution or performance measurement."
+    },
+    "converter_dispatch_simulation_check": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/scripts/check_converter_dispatch_simulation.py",
+      "status": "passed",
+      "checks": ["scenario_count", "vector_conservation", "zero_analog", "fail_closed_routes"],
+      "claim_boundary": "The checker verifies routing invariants for the derived trace; it does not measure hardware behavior."
+    },
+    "colab_profile_driven_real_execution": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-device-aware/evaluation.json",
+      "evaluation": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-device-aware/evaluation.json",
+      "model": "openai-community/gpt2",
+      "variant": "dac10_weight8_adc12",
+      "predicted_tokens": 63,
+      "nll_increase_nats": 0.004654475620814225,
+      "teacher_forced_argmax_agreement": 1.0,
+      "generation_exact_matches": "4/4",
+      "digital_fallback_pass": true,
+      "status": "real_pinned_model_profile_evaluation_passed_cpu",
+      "claim_boundary": "The pinned GPT-2 numerical array evaluation passes its provisional quality screen on the saved contexts, but this remains CPU numerical emulation with no analog hardware latency, energy, yield, or speedup claim."
+    },
+    "gpu_joined_workload_hardware_contract": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-colab/real-model-workload-hardware-contract.json",
+      "device": "Tesla T4",
+      "maximum_recorded_peak_memory_mb": 630.23876953125,
+      "decision": "pursue_decode_first_digital_runtime_optimization_before_analog_placement",
+      "status": "gpu_context_joined_to_workload_contract",
+      "claim_boundary": "The T4 serving characterization supplies digital workload denominators and memory context; it is not a matched analog comparison or energy/speedup claim."
+    },
+    "colab_profile_driven_synchronized_execution": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-synchronized/evaluation.json",
+      "model": "openai-community/gpt2",
+      "device": "cpu_control",
+      "cuda_synchronization": true,
+      "adc12_argmax_agreement": 1.0,
+      "adc12_generation_exact_matches": "4/4",
+      "status": "timing_corrected_cpu_control_passed",
+      "claim_boundary": "The device-aware evaluator now synchronizes CUDA around measured calls and this CPU control passes; a T4 run is still required for matched GPU timing and no analog benefit is claimed."
+    },
+    "cuda_device_guard": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/scripts/run_gpt2_hybrid_evaluation.py",
+      "requested_device": "cuda",
+      "host_cuda_available": false,
+      "observed_exit": 1,
+      "observed_error": "requested CUDA device but CUDA is unavailable",
+      "status": "fail_closed_guard_verified",
+      "claim_boundary": "The evaluator refuses to run when CUDA is unavailable, preventing an intended T4 experiment from silently becoming a CPU run."
+    },
+    "colab_profile_driven_integrated_control": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-integrated/colab-receipt.json",
+      "device": "cpu_control",
+      "model_executed": true,
+      "contract_checks": "passed",
+      "dispatch_checks": "passed",
+      "per_converter_remap_holdouts": "4/4",
+      "status": "full_orchestration_control_passed",
+      "claim_boundary": "The complete orchestration path passes on CPU and preserves all guards; a Colab T4 run is still required for matched GPU execution and no analog benefit is claimed."
+    },
+    "colab_t4_run_config": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/colab/t4-run-config.json",
+      "run_name": "20260910-profile-driven-t4",
+      "device": "cuda",
+      "pinned_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "status": "t4_run_frozen_ready",
+      "claim_boundary": "The configuration freezes the exact CUDA numerical run and its acceptance checks; it is not evidence that the run has executed or that analog hardware is qualified."
+    },
+    "colab_receipt_checker": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/scripts/check_profile_driven_colab_receipt.py",
+      "control_receipt": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260910-profile-driven-integrated/colab-receipt.json",
+      "control_status": "passed",
+      "cuda_guard_status": "passed_expected_rejection_on_cpu",
+      "status": "receipt_checker_and_cuda_guard_verified",
+      "claim_boundary": "The checker validates Colab receipt structure and rejects CPU receipts when CUDA is required; it does not measure analog hardware."
+    },
+    "colab_t4_notebook": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/colab/gpt2_sar_t4_qualification.ipynb",
+      "cells": 6,
+      "cuda_required": true,
+      "status": "notebook_packaged_ready_for_t4",
+      "claim_boundary": "The notebook packages the reproducible T4 numerical run and verification steps; it contains no analog hardware performance or yield claim."
+    },
+    "colab_t4_profile_driven_execution_r7": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r7/colab-receipt.json",
+      "evaluation": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r7/evaluation.json",
+      "device": "cuda",
+      "torch": "2.11.0+cu128",
+      "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "adc12_argmax_agreement": 1.0,
+      "adc12_generation_exact_matches": "4/4",
+      "adc12_nll_increase_nats": 0.004783872574095405,
+      "receipt_checker": "passed_with_require_cuda",
+      "evaluator_checker": "passed_with_colab_path_maps",
+      "status": "t4_gpu_execution_verified",
+      "claim_boundary": "This is verified CUDA numerical execution of the pinned GPT-2 profile on a Colab T4. It does not establish analog hardware latency, energy, yield, or speedup."
+    },
+    "colab_t4_profile_driven_execution_r8": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r8/colab-receipt.json",
+      "evaluation": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r8/evaluation.json",
+      "device": "cuda",
+      "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+      "workload_holdout": "3_calibration_contexts_4_disjoint_contexts_passed",
+      "adc12_argmax_agreement": 1.0,
+      "adc12_generation_exact_matches": "4/4",
+      "receipt_checker": "passed_with_require_cuda",
+      "evaluator_checker": "passed_with_colab_path_maps",
+      "status": "t4_gpu_execution_and_workload_holdout_verified",
+      "claim_boundary": "This is verified CUDA numerical execution and held-out workload validation on a Colab T4. It does not establish analog hardware latency, energy, yield, or speedup."
+    },
+    "cpu_cuda_profile_comparison_r7": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r7/cpu-cuda-comparison.json",
+      "status": "matched_device_comparison_passed",
+      "adc12_median_cpu_ms": 1791.4,
+      "adc12_median_cuda_ms": 408.4,
+      "adc12_cpu_to_cuda_speedup": 4.39,
+      "noise_variant": "stochastic_quality_comparison_exempted_from_exact_parity",
+      "claim_boundary": "The same numerical GPT-2 fixture is faster on the T4 than CPU under this runner; this is a device comparison only and is not analog hardware speedup or energy evidence."
+    },
+    "t4_dispatch_decision_r7": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/gpt2-sar-t4-20260910-r7/t4-dispatch-decision.json",
+      "median_cuda_ms_adc12": 408.38722099999814,
+      "analog_vectors_authorized": 0,
+      "status": "digital_gpu_authoritative",
+      "claim_boundary": "The decision joins matched T4 numerical quality/timing with converter routing and keeps native digital GPU execution authoritative until physical converter and energy data close."
+    },
+    "projection_cost_model": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/projection-cost-model.json",
+      "status": "missing_matched_cost_coefficients",
+      "required_coefficients": 6,
+      "energy_claim_allowed": false,
+      "claim_boundary": "The cost model is ready to consume matched DAC, ADC, array, accumulation, movement, and digital-baseline coefficients; no energy claim is made while they are missing."
+    },
+    "energy_measurement_contract": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/energy-measurement-contract.json",
+      "checker": "analog-in-memory-ai-inference/software-architecture/scripts/build_energy_measurement_contract.py",
+      "status": "awaiting_matched_measurements",
+      "required_coefficients": 6,
+      "claim_boundary": "Defines the measurement evidence required for energy accounting; current proxies remain ineligible."
+    },
+    "physical_qualification_gate": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/physical-qualification-gate.json",
+      "checker": "analog-in-memory-ai-inference/software-architecture/scripts/check_physical_qualification_gate.py",
+      "campaign_input": "--campaign-summary <downloaded Colab campaign-summary.json>",
+      "decision": "retain_native_digital_gpu_execution",
+      "open_items": [
+        "all_pvt_corners_accepted",
+        "mismatch_yield_campaign_accepted",
+        "matched_converter_energy"
+      ],
+      "status": "physical_model_to_chip_gate_open",
+      "claim_boundary": "The gate joins workload and circuit evidence but does not authorize analog execution while PVT, mismatch, or matched-energy evidence is open."
+    },
+    "corner_campaign_preflight": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/corner-campaign-preflight.json",
+      "checker": "analog-in-memory-ai-inference/software-architecture/scripts/check_corner_campaign_config.py",
+      "status": "fs_ff_static_configuration_passed",
+      "claim_boundary": "Static corner and finite-PWL configuration only; remote ngspice execution and physical qualification remain open."
+    },
+    "qualification_dashboard": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/qualification-dashboard.html",
+      "checker": "analog-in-memory-ai-inference/software-architecture/scripts/check_qualification_dashboard.py",
+      "status": "dashboard_matches_physical_gate",
+      "claim_boundary": "Human review surface only; the machine-readable physical gate remains authoritative."
+    },
+    "fresh_colab_corner_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-campaign-20260910-summary.json",
+      "ff_receipt": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-campaign-20260910-ff.json",
+      "fs_envelope": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-campaign-20260910-fs-envelope.json",
+      "status": "fresh_ff_timestep_collapse_fs_child_missing",
+      "decision": "retain_native_digital_gpu_execution",
+      "claim_boundary": "Fresh Colab campaign evidence; no PVT pass, mismatch yield, or energy claim."
+    },
+    "gateseries1000_convergence_diagnostic_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-gateseries1000-20260910-summary.json",
+      "fs_receipt": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-gateseries1000-20260910-fs.json",
+      "ff_receipt": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-gateseries1000-20260910-ff.json",
+      "settings": "sample_reset=0; AIMC_CONTINUOUS_GATE_SERIES_OHM=1000",
+      "result": "both_corners_measured_rejected_map_3_6_7_7_8",
+      "status": "convergence_improved_functional_map_rejected",
+      "claim_boundary": "Diagnostic topology screen only; no PVT, mismatch-yield, or analog energy qualification."
+    },
+    "gateseries100_convergence_diagnostic_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-gateseries100-20260910-summary.json",
+      "ff_receipt": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-gateseries100-20260910-ff.json",
+      "settings": "sample_reset=0; AIMC_CONTINUOUS_GATE_SERIES_OHM=100",
+      "result": "ff_measured_rejected_map_3_6_7_7_8; fs_child_missing",
+      "status": "gate_resistance_not_functional_fix",
+      "claim_boundary": "Diagnostic topology screen only; no PVT, mismatch-yield, or analog energy qualification."
+    },
+    "lsb18_slowedge_diagnostic_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-diagnostic-lsb18-slowedge-20260910-summary.json",
+      "settings": "sample_reset=1; AIMC_COUPLED_LSB_SCALE=1.8; AIMC_CONTINUOUS_PWL_RISE_NS=1.0",
+      "result": "FS_3_7_9_13_14; FF_3_8_10_13_14",
+      "status": "slow_edge_timing_rejected",
+      "claim_boundary": "Diagnostic timing/calibration screen only; no PVT, mismatch-yield, or analog energy qualification."
+    },
+    "handoff_trajectory_diagnosis_20260910": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/handoff-trajectory-diagnosis.json",
+      "source_campaign": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-corner-probe3-20260910-summary.json",
+      "result": "FF_active_handoff_range_0.1902V; preamp_range_1.3604V; map_3_6_7_7_8",
+      "status": "active_handoff_live_not_frozen; charge_transfer_timing_open",
+      "claim_boundary": "Trajectory diagnosis only; active switched-handoff movement is measured, but no conversion, PVT, mismatch-yield, or energy qualification follows."
+    },
+    "colab_calibrated_pvt_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-calibrated-pvt-20260910-summary.json",
+      "settings": "sample_reset=1; PMOS_bank=8; NMOS_width=64um; LSB_scale=1.8; PWL_rise=50ps; gate_series=1kOhm",
+      "status": "ff_functional_failure_fs_no_receipt",
+      "ff_decoded_codes": [3, 6, 7, 7, 8],
+      "claim_boundary": "Fresh Colab calibrated-candidate PVT screen; FF remains functionally rejected and FS produced no child receipt. This does not authorize analog execution or establish mismatch yield/energy."
+    },
+    "colab_cal055_pwlreset_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-cal055-pwlreset-20260910-summary.json",
+      "settings": "sample_reset=1; reference_profile=[0,0.55,0.65,0.7808133,0.89247035]; PMOS_bank=8; NMOS_width=64um; LSB_scale=1.8; PWL_rise=200ps; reset_source=PWL",
+      "status": "remote_numerical_failure_before_measurement",
+      "ff_error": "timestep_collapse_at_bcont_ngate3_branch",
+      "claim_boundary": "Colab numerical-stability receipt only; no FS/FF conversion was measured and no circuit correctness or analog authorization follows."
+    },
+    "colab_cal055_esource2_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-cal055-esource2-20260910-summary.json",
+      "settings": "sample_reset=1; reference_profile=[0,0.55,0.65,0.7808133,0.89247035]; reset=PWL; gate_enable=E/VALUE",
+      "status": "remote_numerical_failure_at_ectrl_ngate3",
+      "claim_boundary": "Colab numerical-stability receipt only; no FS/FF conversion was measured and no circuit correctness or analog authorization follows."
+    },
+    "colab_decisionfilter2_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sky130-decisionfilter2-20260910-summary.json",
+      "settings": "closed-loop decision RC filter 1kOhm/100fF; reference_profile=[0,0.55,0.65,0.7808133,0.89247035]",
+      "status": "ff_numerical_failure_fs_no_receipt",
+      "ff_error": "timestep_collapse_at_ectrl_ngate3_branch",
+      "claim_boundary": "Colab numerical-stability receipt only; no FS/FF conversion was measured and no circuit correctness or analog authorization follows."
+    },
+    "local_corner_cal055_reproduction_20260910": {
+      "artifacts": [
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/local-fs-ref055-20260910.json",
+        "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/local-ff-ref055-20260910.json"
+      ],
+      "reference_profile_v": [0.0, 0.55, 0.65, 0.7808133, 0.89247035],
+      "status": "fs_ff_nominal_maps_pass_locally",
+      "decoded_codes": {"fs": [0, 2, 4, 6, 7], "ff": [0, 2, 4, 6, 7]},
+      "claim_boundary": "Local schematic corner reproductions only; remote Colab numerical stability and extracted-layout, mismatch/noise, energy, and workload gates remain open."
+    },
+    "local_fs_ff_cal055_profile_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/local-fs-ff-cal055-profile-20260910.json",
+      "status": "local_profile_built_remote_validation_open",
+      "supported_cases": 2,
+      "claim_boundary": "Conservative local schematic integration profile from complete FS/FF maps; not physically calibrated and not authorized for analog workload placement."
+    },
+    "local_profile_workload_trace_20260910": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-fs-ff-profile-workload-trace.json",
+      "status": "trace_ready_digital_fallback_only",
+      "vectors": 162,
+      "dac_conversions": 2985984,
+      "adc_conversions": 2985984,
+      "claim_boundary": "Operation and movement counts derived from a saved numerical GPT-2 projection; no measured analog execution, latency, energy, yield, or speedup claim."
+    },
+    "local_profile_import_guard_20260910": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/local-fs-ff-profile-import.json",
+      "status": "imported_placement_disabled",
+      "placement_allowed": false,
+      "claim_boundary": "Profile metadata is available to workload tooling, but schematic evidence cannot authorize analog placement."
+    },
+    "ngate_sequential_control_work_order_20260910": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/ngate-sequential-control-work-order.json",
+      "status": "next_experiment_defined",
+      "claim_boundary": "Design work order only; no circuit or workload qualification claim."
+    },
+    "ngate_sequential_control_local_diagnostic_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-sequential-control-diagnostic.json",
+      "status": "local_diagnostic_timed_out",
+      "requested_conversion_count": 1,
+      "sequential_control_deck_structural_checks": "passed",
+      "claim_boundary": "The explicit state-sampler deck was generated and attempted locally, but timed out before a measured conversion; this is a redesign diagnostic and does not authorize closed-loop, PVT, mismatch, energy, or workload claims."
+    },
+    "ngate_sequential_control_preflight_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/sky130-sequential-control-preflight.json",
+      "status": "structural_preflight_passed",
+      "decision_map": [0, 2, 4, 6, 7],
+      "claim_boundary": "Structural deck preflight only; no transient, PVT, mismatch, energy, or workload claim."
+    },
+    "ngate_sequential_control_colab_preflight_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-preflight-20260910/sky130-sequential-control-preflight.json",
+      "status": "remote_t4_structural_preflight_passed",
+      "accelerator": "T4",
+      "decision_map": [0, 2, 4, 6, 7],
+      "deck_sha256": "47357f165abadfe7b26306d87490aa4a51aff941712ce9052582c412f8584fba",
+      "claim_boundary": "Authenticated remote T4 structural deck preflight only; no ngspice transient, PVT, mismatch, energy, or workload claim."
+    },
+    "ngate_sequential_control_colab_campaign_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-campaign-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "conversion_coverage_complete": {"fs": true, "ff": true},
+      "all_conversions_correct": {"fs": false, "ff": false},
+      "decoded_codes": {"fs": [15, 15, 15, 15, 15], "ff": [15, 15, 15, 15, 15]},
+      "expected_codes": [0, 2, 4, 6, 7],
+      "failure_mechanism": "all_comparator_decisions_zero_and_all_dac_plates_held_at_1.8_v",
+      "claim_boundary": "Measured remote FS/FF sequential-control campaign with complete five-conversion coverage; rejected code map, and no PVT, mismatch, energy, or workload authorization follows."
+    },
+    "ngate_sequential_control_colab_campaign_v5_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-campaign-v5-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_state_decay_diagnosed",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "conversion_coverage_complete": {"fs": true, "ff": true},
+      "all_conversions_correct": {"fs": false, "ff": false},
+      "decoded_codes": {"fs": [15, 15, 15, 15, 15], "ff": [15, 15, 15, 15, 15]},
+      "state_observation": "held_state_v_decayed_from_0.30_v_to_below_0.15_v_over_one_conversion",
+      "claim_boundary": "Measured remote FS/FF campaign with explicit state/gate probes; rejected code map, and no PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_colab_campaign_v3_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-v3-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_incomplete_fs",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "ff_conversion_coverage_complete": true,
+      "ff_all_conversions_correct": false,
+      "ff_decoded_codes": [0, 13, 11, 9, 8],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal": false,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured fixed-decision open-loop diagnostic with rejected FF transfer and incomplete FS evidence; no closed-loop, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_colab_campaign_v4_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-v4-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_waveform_syntax_cleared",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "pwl_timestamp_check": "passed",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 13, 11, 9, 8],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal": false,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured fixed-decision open-loop diagnostic after PWL syntax repair; analog transfer remains rejected and no closed-loop, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_clamp_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-clamp-settings.json",
+      "status": "experiment_prepared_execution_not_observed",
+      "hypothesis": "Ground precharge plus a bottom-plate clamp may contain the measured negative excursions.",
+      "claim_boundary": "Settings artifact only; no transient or qualification claim."
+    },
+    "fixed_decision_open_loop_clamp_colab_campaign_v4_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-clamp-v4-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "conversion_precharge": "finite_edge_pwl_enabled",
+      "bottom_clamp": "enabled",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal": false,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured fixed-decision open-loop clamp/precharge diagnostic; analog transfer remains rejected and no closed-loop, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_clamp_colab_campaign_v5_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-clamp-v5-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_rail_diode_revision",
+      "accelerator": "T4",
+      "corners": ["fs", "ff"],
+      "rail_diode_area": 100,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured fixed-decision open-loop rail-diode diagnostic; unchanged rejection confirms switch timing/reset remains the active failure mechanism."
+    },
+    "fixed_decision_open_loop_rail_handoff_diagnostic_20260910": {
+      "artifact": "analog-digital-chip-design-eda/scripts/run_sky130_continuous_physical_sar.py",
+      "status": "remote_t4_measured_rejected",
+      "control": "post-dead-time_voltage_controlled_rail_switches",
+      "env": "AIMC_CONTINUOUS_BOTTOM_RAIL_SWITCHES=1",
+      "hypothesis": "A low-Ron rail handoff after break-before-make will isolate pass-device charge injection from switch timing errors.",
+      "ff_decoded_codes": [0, 14, 12, 14, 15],
+      "ff_bottom_plate_legal_by_conversion": [false, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured fixed-decision rail-handoff diagnostic; rejected because the added switches perturb the DAC and do not restore legal rails."
+    },
+    "fixed_decision_open_loop_extended_nonoverlap_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-nonoverlap-settings.json",
+      "status": "remote_t4_measured_rejected",
+      "dead_time_ns": 2.0,
+      "pwl_rise_ns": 0.5,
+      "rail_handoff_switches": false,
+      "hypothesis": "A longer non-overlap interval with slower edges will reduce pass-device charge injection without perturbing the DAC rails.",
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "artifact_result": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-nonoverlap-v1-20260910/campaign-summary.json",
+      "claim_boundary": "Measured extended-non-overlap fixed-decision diagnostic; unchanged rejection indicates edge timing alone is insufficient."
+    },
+    "fixed_decision_open_loop_complementary_switches_colab_v1_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-v1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected",
+      "accelerator": "T4",
+      "topology": "complementary_nmos_pmos_bottom_switches",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary bottom-switch diagnostic; unchanged rejection means the control path still needs explicit acquisition/reset isolation."
+    },
+    "fixed_decision_open_loop_acquisition_isolation_colab_v1_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-acquisition-isolation-v1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected",
+      "accelerator": "T4",
+      "topology": "complementary_switches_with_top_reset_and_unselected_plate_isolation",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [7, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [false, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured acquisition-isolation diagnostic; rejected because top reset and unselected-plate isolation did not restore legal rails or the code map."
+    },
+    "fixed_decision_open_loop_acquisition_isolation_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-acquisition-isolation-settings.json",
+      "status": "remote_t4_measured_rejected",
+      "top_reset": true,
+      "unselected_bottom_isolation": true,
+      "claim_boundary": "Settings and receipt index for the measured acquisition-isolation rejection; no qualification authorization follows."
+    },
+    "fixed_decision_open_loop_pfet_boost_colab_v1_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-pfet-boost-v1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_no_transfer_change",
+      "accelerator": "T4",
+      "pfet_gate_low_v": -0.5,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured PFET gate-overdrive diagnostic; no improvement confirms simple high-side headroom is insufficient and no qualification authorization follows."
+    },
+    "fixed_decision_open_loop_bottom_keeper_colab_v1_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-bottom-keeper-v1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_no_change",
+      "accelerator": "T4",
+      "keeper_ohm": 10000,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured weak bottom-plate keeper diagnostic; no improvement confirms simple floating-node damping is insufficient."
+    },
+    "fixed_decision_open_loop_complementary_swap_colab_v1_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-v1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_startup_and_rail_legality",
+      "accelerator": "T4",
+      "latch_polarity_swap": true,
+      "initial_reset": true,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [12, 2, 4, 6, 7],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary Sky130 polarity-corrected diagnostic; steady-state four-code agreement is not converter qualification because startup and rail legality still fail."
+    },
+    "fixed_decision_open_loop_bootstrapped_high_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-bootstrapped-high-settings.json",
+      "status": "remote_t4_measured_rejected_code_map",
+      "topology": "boosted_nmos_high_side_with_nmos_low_side",
+      "ff_decoded_codes": [15, 13, 15, 15, 14],
+      "ff_bottom_plate_legal_by_conversion": [true, true, true, true, true],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "artifact_result": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-bootstrapped-high-v2-20260910/campaign-summary.json",
+      "claim_boundary": "Measured bootstrapped high-side diagnostic; legal rails improved but analog code transfer is rejected and gate reliability remains unqualified."
+    },
+    "fixed_decision_open_loop_ideal_switch_reference_v2_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-ideal-switch-reference-v2-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_code_map_but_legal_rails",
+      "accelerator": "T4",
+      "reference": "ideal_voltage_controlled_bottom_switches",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, true, true, true, true],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Ideal-switch schedule reference only; legal rails prove the repaired schedule, while code-map mismatch remains and no transistor or workload claim follows."
+    },
+    "fixed_decision_open_loop_complementary_switches_colab_v2_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-v2-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_transistor_behavior",
+      "accelerator": "T4",
+      "topology": "complementary_nmos_pmos_bottom_switches_with_safe_unset_baseline",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [3, 13, 11, 9, 8],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary Sky130 transistor diagnostic after schedule repair; transistor pass-device behavior remains rejected."
+    },
+    "fixed_decision_open_loop_ideal_swap_ref06_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-ideal-swap-ref06-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_ideal_reference_map_passed_rail_screen_open",
+      "accelerator": "T4",
+      "topology": "ideal_bottom_switches_with_latch_polarity_swap_and_startup_reset",
+      "reference_profile_v": [0.6, 0.695, 0.65, 0.7808133, 0.89247035],
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_all_conversions_correct": true,
+      "ff_bottom_plate_legal_by_conversion": [true, true, true, false, true],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured ideal-switch startup-reference diagnostic; exact FF logical map is a reference result only, with one DAC legality failure and no transistor, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_ref06_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-ref06-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_rail_legality_rejected",
+      "accelerator": "T4",
+      "topology": "complementary_sky130_bottom_switches_with_latch_polarity_swap_startup_reset_and_reference_profile",
+      "reference_profile_v": [0.6, 0.695, 0.65, 0.7808133, 0.89247035],
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary Sky130 diagnostic; exact FF logical map is not converter qualification because later bottom-plate rails are illegal and FS is missing. No PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_ref06_clamp1e6_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-ref06-clamp1e6-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_timestep_collapse",
+      "accelerator": "T4",
+      "topology": "complementary_sky130_bottom_switches_with_very_strong_diode_clamp",
+      "clamp_area": 1000000,
+      "ff_conversion_coverage_complete": false,
+      "ff_failure_node": "bcont_sample_reset#branch",
+      "ff_failure_time_ns": 119.118,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured strong-clamp diagnostic; timestep collapse rejects the topology and provides no rail, transfer, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_rail_handoff_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-complementary-swap-rail-handoff-settings.json",
+      "status": "planned_diagnostic",
+      "topology": "complementary_transistor_pass_devices_with_delayed_low_ron_rail_handoff",
+      "claim_boundary": "Settings contract only; remote measurement is required and no qualification authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_pmos_r100_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-pmos-r100-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_timestep_collapse",
+      "accelerator": "T4",
+      "pmos_series_resistor_ohm": 100,
+      "ff_conversion_coverage_complete": false,
+      "ff_failure_node": "bcont_handoff#branch",
+      "ff_failure_time_ns": 301.206,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured PMOS source-resistor diagnostic; timestep collapse rejects the candidate and provides no rail, transfer, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-isolated-copy-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_isolation_did_not_fix_rail_legality",
+      "accelerator": "T4",
+      "topology": "complementary_sky130_switches_with_isolated_sample_to_preamp_copy_and_no_behavioral_handoff",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_cycle_dac_legal_by_conversion": [true, true, true, true, true],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured isolated-copy diagnostic; exact logical transfer and DAC thresholds persist, but bottom-plate rails remain illegal. No converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_slow_edge_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-isolated-copy-slow-edge-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_timestep_collapse",
+      "accelerator": "T4",
+      "pwl_rise_ns": 2.0,
+      "ff_conversion_coverage_complete": false,
+      "ff_failure_node": "vcont_precharge_gate3#branch",
+      "ff_failure_time_ns": 173.206,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured slow-edge diagnostic; global edge slowing collapses at the precharge branch and provides no rail, transfer, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_gate2ns_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-complementary-swap-isolated-copy-gate2ns-settings.json",
+      "status": "prepared_local_deck_contract_passed",
+      "gate_dead_time_ns": 2.0,
+      "precharge_rise_ns": 0.2,
+      "claim_boundary": "Settings and local waveform-shape contract only; Colab measurement is required before any physical claim."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_gate2ns_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-isolated-copy-gate2ns-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_overshoot_reduced_but_rail_rejected",
+      "accelerator": "T4",
+      "gate_dead_time_ns": 2.0,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.800215,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured gate-only finite-edge diagnostic; overshoot reduction is not rail qualification and no PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_gate4ns_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-isolated-copy-gate4ns-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_partial_rail_improvement",
+      "accelerator": "T4",
+      "gate_dead_time_ns": 4.0,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, true, false, false, false],
+      "ff_later_plate_peak_v": 1.800047,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured gate-only finite-edge diagnostic; slower turn-off improves two conversions but does not qualify rails or authorize PVT, mismatch, energy, or workload use."
+    },
+    "fixed_decision_open_loop_complementary_swap_isolated_copy_gate8ns_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-isolated-copy-gate8ns-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_transfer_and_rail_break",
+      "accelerator": "T4",
+      "gate_dead_time_ns": 8.0,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 0, 2, 3],
+      "ff_bottom_plate_legal_by_conversion": [false, false, false, false, false],
+      "ff_later_plate_peak_v": 1.845495,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured gate-only finite-edge diagnostic; 8 ns breaks transfer and rail legality, so no PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_plate_isolation_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-plate-isolation-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_isolation_loading_and_transfer",
+      "accelerator": "T4",
+      "topology": "complementary_transmission_gate_plate_isolation_with_0.5pF_hold",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 3],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [false, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured physical plate-isolation diagnostic; added transmission-gate loading breaks the map and rails, so no converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_plate_isolation_small_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-plate-isolation-small-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_transfer_and_rail_break",
+      "accelerator": "T4",
+      "topology": "complementary_transmission_gate_plate_isolation_with_2um_devices_and_0.05pF_hold",
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 0, 2, 3],
+      "ff_expected_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [false, false, false, false, false],
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured reduced-loading plate-isolation diagnostic; the smaller transmission gate still breaks transfer and rails, so no converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_direct_pmos_r100_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-direct-pmos-r100-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_rejected_timestep_collapse",
+      "accelerator": "T4",
+      "topology": "direct_complementary_plate_switches_with_100ohm_pmos_source_resistor_and_no_behavioral_handoff",
+      "ff_conversion_coverage_complete": false,
+      "ff_failure_node": "bcont_sample_reset#branch",
+      "ff_failure_time_ns": 173.206,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured direct PMOS resistor diagnostic; passive source resistance still collapses the reset branch and provides no rail, transfer, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_direct_pmos_bank1_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-direct-pmos-bank1-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_rail_worsened",
+      "accelerator": "T4",
+      "pmos_bank": 1,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.99504,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured PMOS-bank sizing diagnostic; reducing the bank worsens rail behavior and does not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fixed_decision_open_loop_complementary_swap_direct_pfet03_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-direct-pfet03-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_rail_worsened",
+      "accelerator": "T4",
+      "pfet_gate_low_v": 0.3,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.810108,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured PMOS gate-bias diagnostic; reducing overdrive worsens rail behavior and does not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fixed_decision_open_loop_complementary_swap_pfet_delay05_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-pfet-delay05-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_rail_worsened",
+      "accelerator": "T4",
+      "pfet_gate_delay_ns": 0.5,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.855405,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured one-sided PMOS turn-on-delay diagnostic; rail behavior worsens, so no converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fixed_decision_open_loop_complementary_swap_complementary_skew_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-complementary-skew-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_rail_worsened",
+      "accelerator": "T4",
+      "nmos_gate_advance_ns": 0.5,
+      "pfet_gate_delay_ns": 0.5,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.808833,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary skew diagnostic; simple gate skew worsens rail behavior and does not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fixed_decision_open_loop_complementary_swap_complementary_state_machine_settings_20260910": {
+      "artifact": "analog-digital-chip-design-eda/colab/sky130-fixed-open-loop-complementary-swap-complementary-skew-settings.json",
+      "status": "measured_skew_rejected_next_state_machine_required",
+      "control_requirement": "mutually_exclusive_rail_ownership_with_explicit_hold_interval",
+      "claim_boundary": "Control-state requirement only; all physical qualification gates remain closed."
+    },
+    "direct_gate_phase_contract_20260910": {
+      "artifact": "analog-digital-chip-design-eda/scripts/check_direct_gate_phase_contract.py",
+      "status": "local_contract_passed",
+      "finite_strict_pwl": true,
+      "simultaneous_rail_request": [],
+      "claim_boundary": "Control waveform contract only; no transistor transient, PVT, mismatch, energy, or workload authorization."
+    },
+    "fixed_decision_open_loop_complementary_swap_phasegap01_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-phasegap01-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_partial_rail_improvement",
+      "accelerator": "T4",
+      "nmos_gate_advance_ns": 0.1,
+      "pfet_gate_delay_ns": 0.1,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.800776,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured complementary phase-gap diagnostic; exact FF map and partial rail improvement do not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fixed_decision_open_loop_complementary_swap_direct_holdcap005_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-complementary-swap-direct-holdcap005-20260910/campaign-summary.json",
+      "status": "remote_t4_measured_exact_ff_map_hold_cap_did_not_fix_rail_legality",
+      "accelerator": "T4",
+      "plate_hold_cap_pF": 0.05,
+      "nmos_gate_advance_ns": 0.1,
+      "pfet_gate_delay_ns": 0.1,
+      "gate_dead_time_ns": 4.0,
+      "ff_conversion_coverage_complete": true,
+      "ff_decoded_codes": [0, 2, 4, 6, 7],
+      "ff_bottom_plate_legal_by_conversion": [true, false, false, false, false],
+      "ff_later_plate_peak_v": 1.800894,
+      "fs_receipt": "missing_runner_failed_before_child_report",
+      "claim_boundary": "Measured direct-topology hold-cap diagnostic; exact FF map does not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "sequential_control_phasegap_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-phasegap-20260910/campaign-summary.json",
+      "status": "remote_t4_fs_ff_completed_rejected_all_codes_15",
+      "accelerator": "T4",
+      "sequential_preflight": "passed",
+      "fs_conversion_coverage_complete": true,
+      "ff_conversion_coverage_complete": true,
+      "fs_decoded_codes": [15, 15, 15, 15, 15],
+      "ff_decoded_codes": [15, 15, 15, 15, 15],
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Measured explicit state-control campaign; complete FS/FF receipts reject state capture or phase alignment and provide no converter, PVT, mismatch, energy, or workload authorization."
+    },
+    "sequential_control_quantized_state_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-quantized-20260910/campaign-summary.json",
+      "status": "remote_t4_fs_ff_completed_rejected_all_codes_15_after_state_quantizer",
+      "accelerator": "T4",
+      "state_quantizer_enabled": true,
+      "sequential_preflight": "passed",
+      "fs_decoded_codes": [15, 15, 15, 15, 15],
+      "ff_decoded_codes": [15, 15, 15, 15, 15],
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Measured quantized state-driver campaign; complete FS/FF rejection shows gate handoff remains misaligned and provides no converter, PVT, mismatch, energy, or workload authorization."
+    },
+    "sequential_control_timingfix_probed_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-timingfix-20260910/campaign-summary.json",
+      "status": "remote_t4_fs_ff_complete_state_capture_valid_comparator_all_zero_rejected",
+      "accelerator": "T4",
+      "sequential_preflight": "passed",
+      "fs_decoded_codes": [15, 15, 15, 15, 15],
+      "ff_decoded_codes": [15, 15, 15, 15, 15],
+      "fs_comparator_decisions": [[0, 0, 0, 0]],
+      "ff_comparator_decisions": [[0, 0, 0, 0]],
+      "capture_clock_v": [1.8, 1.8, 1.8, 1.8],
+      "held_state_v": [0.2723641, 0.2723641, 0.2723641, 0.2723641],
+      "quantized_logic_v": [0.0, 0.0, 0.0, 0.0],
+      "gate_p_v": [1.8e-08, 1.8e-08, 1.8e-08, 1.8e-08],
+      "gate_n_v": [1.8e-08, 1.8e-08, 1.8e-08, 1.8e-08],
+      "claim_boundary": "Measured sequential timing probe; state capture and gate polarity are valid, while comparator sense remains rejected. No converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "sequential_control_polarity_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-polarity-20260910/campaign-summary.json",
+      "status": "remote_t4_fs_all_zero_code_ff_timestep_collapse_rejected",
+      "accelerator": "T4",
+      "latch_input_swap_enabled": true,
+      "fs_decoded_codes": [0, 0, 0, 0, 0],
+      "fs_comparator_decisions": [[1, 1, 1, 1]],
+      "ff_status": "timestep_collapse_at_bcont_sample_reset_branch",
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Measured comparator-polarity screen; FS polarity reversal is confirmed but code progression and FF stability remain unqualified."
+    },
+    "fs_fixed_vs_sequential_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-ab2-20260910/comparison.json",
+      "status": "remote_t4_fs_ab_fixed_exact_map_sequential_sample_reset_collapse",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "fixed_fs_comparator_decisions": [[1, 1, 1, 1], [1, 1, 0, 1], [1, 0, 1, 1], [1, 0, 0, 1], [1, 0, 0, 0]],
+      "sequential_fs_status": "timestep_collapse_at_bcont_sample_reset_branch",
+      "same_corner_and_references": true,
+      "claim_boundary": "Same-corner fixed-versus-sequential diagnostic; fixed control restores the code map while sequential reset stability is rejected. No converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fs_fixed_vs_sequential_resetoff_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-ab-resetoff-20260910/comparison.json",
+      "status": "remote_t4_fs_fixed_exact_map_sequential_handoff_collapse_after_reset_disabled",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "sequential_fs_status": "timestep_collapse_at_bcont_handoff_branch",
+      "sample_reset_disabled_in_sequential_arm": true,
+      "claim_boundary": "Same-corner reset-isolation diagnostic; disabling reset moves the sequential failure to behavioral handoff. No converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fs_fixed_vs_sequential_isolated_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fs-ab-isolated-20260910/comparison.json",
+      "status": "remote_t4_fs_fixed_exact_map_sequential_isolated_completed_all_zero_map",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "sequential_fs_codes": [0, 0, 0, 0, 0],
+      "sample_reset_disabled_in_sequential_arm": true,
+      "switched_handoff_disabled_in_sequential_arm": true,
+      "sequential_capture_and_gate_probe_valid": true,
+      "claim_boundary": "Same-corner isolated sequential-control diagnostic; clean all-zero sequential map localizes failure to decision-dependent DAC progression or latch handoff semantics."
+    },
+    "fs_fixed_vs_sequential_fixedstate_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixedstate2-20260910/comparison.json",
+      "status": "remote_t4_fixed_exact_map_fixedstate_gate_path_wrong_dead_state",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "fixed_state_fs_codes": [0, 0, 0, 0, 0],
+      "state_to_bit_mapping_contract": "passed",
+      "claim_boundary": "Measured fixed-state gate-path diagnostic; all-zero result localizes the mismatch to pre-trial dead-state/phase control, with no converter or workload authorization."
+    },
+    "fs_fixed_vs_sequential_phase_safe_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-phase-safe2-ab-20260910/comparison.json",
+      "status": "remote_t4_fs_phase_safe_sequential_completed_partial_code7_then_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "phase_safe_sequential_fs_codes": [7, 0, 0, 0, 0],
+      "phase_safe_driver_enabled": true,
+      "sequential_conversion_coverage_complete": true,
+      "claim_boundary": "Measured phase-safe sequential gate diagnostic; stable transient and partial code progression do not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fs_fixed_vs_sequential_threshold03_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-threshold03-ab-20260910/comparison.json",
+      "status": "remote_t4_fs_threshold03_sequential_code6_then_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "threshold_v": 0.3,
+      "sequential_fs_codes": [6, 0, 0, 0, 0],
+      "claim_boundary": "Measured state-threshold calibration screen; threshold sensitivity is confirmed but drift prevents qualification."
+    },
+    "fs_fixed_vs_sequential_restore_latch_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-restore-latch-ab-20260910/comparison.json",
+      "status": "remote_t4_fs_fixed_exact_map_restored_sequential_all_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "restored_sequential_fs_codes": [0, 0, 0, 0, 0],
+      "transient_completed": true,
+      "claim_boundary": "Measured cross-coupled state-restoration diagnostic; latch stability without set/reset phasing does not authorize converter, PVT, mismatch, energy, or workload use."
+    },
+    "fs_fixed_vs_sequential_pulse_restore_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-pulserestore-ab-20260910/comparison.json",
+      "status": "remote_t4_fs_fixed_exact_map_pulse_restore_sequential_all_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "pulse_restore_sequential_fs_codes": [0, 0, 0, 0, 0],
+      "pulse_restore_transient_completed": true,
+      "claim_boundary": "Measured pulse-controlled state-restore diagnostic; stable transient without code progression remains unqualified."
+    },
+    "fs_fixed_vs_sequential_shifted_mapping_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-shifted-mapping-ab-20260910/comparison.json",
+      "status": "remote_t4_fs_fixed_exact_map_shifted_sequential_all_zero",
+      "accelerator": "T4",
+      "mapping": "decision1_to_bit1_decision2_to_bit2_decision3_to_bit3_decision4_to_next_bit0",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "fixed_exact": true,
+      "fixed_state_fs_codes": [0, 0, 0, 0, 0],
+      "shifted_sequential_fs_codes": [0, 0, 0, 0, 0],
+      "transient_completed": true,
+      "claim_boundary": "Measured corrected one-phase-ahead sequential timing diagnostic; fixed control remains exact while sequential state-to-DAC handoff remains rejected. No converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fs_fixed_vs_sequential_direct_gate_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-direct-gate-ab-20260910/comparison.json",
+      "status": "remote_t4_direct_state_gate_diagnostic_rejected",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "direct_sequential_fs_codes": [15, 0, 0, 0, 0],
+      "capture_state_observed": true,
+      "claim_boundary": "Measured direct state-to-gate bypass diagnostic; captured state reaches the direct driver but the single-control-per-decision schedule cannot establish the SAR trial/retention sequence. No converter or workload authorization follows."
+    },
+    "fs_fixed_state_same_mapping_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-samemap-ab-20260910/comparison.json",
+      "status": "remote_t4_same_mapping_fixed_state_all_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "same_mapping_fixed_state_fs_codes": [0, 0, 0, 0, 0],
+      "claim_boundary": "Measured same-bit gate-assignment diagnostic; state values are present but phase timing leaves the retained gate inactive at the capture edge. This confirms the need for separate retention and next-trial controls."
+    },
+    "fs_two_control_schedule_prototype_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-twocontrol-ab-20260910/comparison.json",
+      "status": "rejected_numerical_singular_gate_node",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_transient": "aborted_before_measurement",
+      "claim_boundary": "Two-control schedule prototype only; finite-rise and hold-path repair is required before physical comparison. No converter or workload authorization follows."
+    },
+    "fs_two_control_schedule_finite_rise_ab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-twocontrol2-ab-20260910/comparison.json",
+      "status": "rejected_timestep_failure_at_two_control_gate_source",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_transient": "aborted_at_bseq_twoctrl_gp3",
+      "claim_boundary": "Finite-rise two-control prototype diagnostic; feedback discontinuity still causes timestep failure and remains unqualified."
+    },
+    "fs_two_control_switch_schedule_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-switch2-ab-20260910/comparison.json",
+      "status": "remote_t4_two_control_transient_completed_gate_contention_all_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fs_codes": [0, 0, 0, 0, 0],
+      "transient_completed": true,
+      "handoff_observation": "trial override and retained-state switch paths leave measured gate nodes near 0.9 V threshold",
+      "claim_boundary": "Stable transistor-switch two-control diagnostic; gate contention prevents code progression and no converter, PVT, mismatch, energy, or workload authorization follows."
+    },
+    "fs_two_control_break_before_make_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-bbm-ab-20260910/comparison.json",
+      "status": "remote_t4_two_control_bbm_transient_completed_all_zero",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_bbm_fs_codes": [0, 0, 0, 0, 0],
+      "transient_completed": true,
+      "handoff_observation": "break-before-make removes threshold contention, but trial windows do not produce the expected DAC charge",
+      "claim_boundary": "Stable break-before-make two-control diagnostic; trial-enable polarity or gate-to-DAC connectivity remains unqualified."
+    },
+    "fs_two_control_trial_ownership_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-owner-ab-20260910/comparison.json",
+      "status": "remote_t4_two_control_trial_low_retained_clean_partial_progression",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fs_codes": [0, 0, 8, 0, 0],
+      "transient_completed": true,
+      "trial_gate_receipt": "PMOS/NMOS trial probes approximately 0 V across later conversions",
+      "retained_gate_receipt": "retained probes approximately 1.8 V",
+      "claim_boundary": "Stable trial-ownership two-control diagnostic with partial code progression; retained-bit polarity/weight schedule remains unqualified."
+    },
+    "fs_two_control_raw_capture_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-rawcapture-ab-20260910/comparison.json",
+      "status": "remote_t4_raw_decision_capture_rails_state_sequence_partial",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fs_codes": [0, 0, 15, 0, 0],
+      "transient_completed": true,
+      "state_capture_receipt": "raw comparator capture reaches approximately 0 V or 1.8 V rails",
+      "claim_boundary": "Stable raw-decision state-capture diagnostic; converter state sequencing across conversions remains unqualified."
+    },
+    "fs_two_control_reference_calibration_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-refcal-ab-20260910/comparison.json",
+      "status": "remote_t4_reference_calibration_no_state_progression",
+      "accelerator": "T4",
+      "calibrated_reference_profile_v": [1.1, 1.4, 1.1, 1.4, 1.75],
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fs_codes": [0, 0, 0, 0, 0],
+      "claim_boundary": "Sequential reference calibration screen only; initial/conversion-boundary trial state remains unqualified."
+    },
+    "fs_two_control_sample_reset_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-resetboundary-ab-20260910/comparison.json",
+      "status": "remote_t4_two_control_sample_reset_no_progression",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fs_codes": [0, 0, 0, 0, 0],
+      "sample_reset_enabled": true,
+      "claim_boundary": "Sample-reset boundary diagnostic only; resetting the plate path does not restore sequential progression and no qualification follows."
+    },
+    "fs_two_control_fixed_state_ab_colab_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/colab-fixedtwocontrol-ab-20260910/comparison.json",
+      "status": "remote_t4_two_control_fixed_state_schedule_partial",
+      "accelerator": "T4",
+      "fixed_fs_codes": [0, 2, 4, 6, 7],
+      "two_control_fixed_state_fs_codes": [8, 0, 8, 0, 0],
+      "transient_completed": true,
+      "claim_boundary": "Fixed-state two-control schedule diagnostic; online trial thresholds differ from the pre-applied fixed reference schedule, so no converter qualification follows."
+    },
+    "sequential_campaign_receipt_evaluation_v5_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-sequential-campaign-v5-20260910/receipt-evaluation.json",
+      "status": "rejected_exact_code_map",
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Mechanical receipt evaluation only; no authorization claim."
+    },
+    "fixed_open_loop_receipt_evaluation_v4_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-v4-20260910/receipt-evaluation.json",
+      "status": "rejected_incomplete_fs_and_ff_code_map",
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Mechanical receipt evaluation only; no authorization claim."
+    },
+    "fixed_open_loop_clamp_receipt_evaluation_v4_20260910": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-fixed-open-loop-clamp-v4-20260910/receipt-evaluation.json",
+      "status": "rejected_incomplete_fs_and_ff_code_map",
+      "required_codes": [0, 2, 4, 6, 7],
+      "claim_boundary": "Mechanical receipt evaluation only; no authorization claim."
+    },
+    "sequential_control_latest_status_20260910": {
+      "artifact": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sequential-control-latest-status.json",
+      "status": "closed_loop_and_fixed_open_loop_rejected",
+      "next_required_experiment": "clamp_precharge_fixed_open_loop",
+      "claim_boundary": "Status index only; raw receipts remain authoritative."
+    },
+    "colab_ngspice_control": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-ngspice-control-probe.json",
+      "status": "ngspice_missing",
+      "claim_boundary": "Remote runtime preflight only; no Sky130 or circuit claim."
+    },
+    "colab_ngspice_installed_control": {
+      "artifact": "analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/colab-ngspice-installed-control.json",
+      "status": "pass",
+      "ngspice_version": "42+ds-3build1",
+      "claim_boundary": "Remote ngspice executable control only; no Sky130 model or circuit claim."
+    },
+    "claim_boundary": "These screens establish simple-load DAC/SAR behavior and a differential sampling principle. They do not establish extracted transistor transfer, comparator offset/noise, mismatch yield, PVT, or continuous multi-cycle converter correctness."
+  },
+  "gates": {
+    "sky130_runtime": "colab_device_probe_pass",
+    "candidate_identity": "pass",
+    "extracted_netlist": "pass",
+    "polarity": "colab_16_case_pass",
+    "logic_margin": "fail",
+    "reset": "planned",
+    "repeated_history": "repair_screen_passed_not_qualified",
+    "pvt": "continuous_sar_ss_sf_passed_ff_fs_calibration_open",
+    "noise_mismatch": "offset_measured_noise_proxy_unavailable_mismatch_stress_not_yield",
+    "settling": "simple_load_passed_extracted_open",
+    "full_converter_transfer": "colab_continuous_sar_5_of_5_passed_pvt_noise_mismatch_layout_open",
+    "analog_authorized": false
+  },
+  "decision": "retain_native_digital_execution",
+  "claim_boundary": "Measured extracted active-macro transient characterization; no SAR correctness, noise/mismatch, PVT, full converter energy, or accepted post-layout evidence.",
+  "next_required_evidence": [
+    "clean-host or Colab Sky130 model runtime probe using the portable colab/sky130_runtime_probe.py bundle",
+    "reset, acquisition, regeneration and repeated-history matrix",
+    "supply/common-mode and PVT or model-availability record",
+    "controlled noise and mismatch sweep",
+    "full converter transfer, settling and code correctness",
+    "matched digital/hybrid GPT-2 latency and energy including conversions, transfers, accumulation and fallback"
+  ]
+}

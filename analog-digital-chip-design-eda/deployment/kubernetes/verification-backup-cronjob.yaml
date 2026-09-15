@@ -1,0 +1,72 @@
+# Production overlay: apply only with the managed database/object-storage
+# configuration described in PRODUCTION_MIGRATION_PLAN.md.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: verification-postgres-backup
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 900
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: verification-pilot:0.1.0
+              imagePullPolicy: IfNotPresent
+              command: [python3, -m, deployment.run_scheduled_backup]
+              args: [--dsn, $(VERIFICATION_DATABASE_URL), --output-dir, /app/.artifacts/backups, --bucket, $(VERIFICATION_EVIDENCE_STORE_BUCKET)]
+              env:
+                - name: VERIFICATION_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: verification-production-database
+                      key: database-url
+                - name: VERIFICATION_EVIDENCE_STORE_BUCKET
+                  valueFrom:
+                    configMapKeyRef:
+                      name: verification-production-config
+                      key: evidence-store-bucket
+                - name: VERIFICATION_BACKUP_POLICY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: verification-production-config
+                      key: backup-policy
+                - name: VERIFICATION_BACKUP_SCHEDULE
+                  value: "0 * * * *"
+                - name: VERIFICATION_DR_RPO_MINUTES
+                  valueFrom:
+                    configMapKeyRef:
+                      name: verification-production-config
+                      key: dr-rpo-minutes
+                - name: VERIFICATION_DR_RTO_MINUTES
+                  valueFrom:
+                    configMapKeyRef:
+                      name: verification-production-config
+                      key: dr-rto-minutes
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              volumeMounts:
+                - name: backup-output
+                  mountPath: /app/.artifacts
+          volumes:
+            - name: backup-output
+              persistentVolumeClaim:
+                claimName: verification-pilot-artifacts

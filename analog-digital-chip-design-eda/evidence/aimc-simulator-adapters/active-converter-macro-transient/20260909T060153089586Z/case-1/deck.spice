@@ -1,0 +1,23 @@
+* Extracted active converter macro decision-boundary transient.
+.lib "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/active-converter-macro-candidate/20260909T060038Z/aimc_converter_macro_active_candidate_extracted.spice"
+.param vdd=1.8
+VSS vss 0 0
+VDD vdd 0 {vdd}
+VROW row_drive 0 0.900076485293
+VCOMP sar_comparator_input 0 0.899923514707
+VRESET reset 0 PULSE(0 {vdd} 0.10n 20p 20p 7.80n 30n)
+VEVAL eval 0 PULSE(0 {vdd} 8.00n 20p 20p 20n 30n)
+VSSX vss_escape 0 0
+VDDU vdd_uq0 0 {vdd}
+XU vss vdd row_drive sar_comparator_input decision_p decision_n reset eval vss_escape vdd_uq0 aimc_converter_macro_active_candidate
+.options method=gear reltol=2e-3 abstol=1e-14 vntol=1e-7 gmin=1e-12
+.tran 10p 18n
+.measure tran decision_p_v FIND v(decision_p) AT=17n
+.measure tran decision_n_v FIND v(decision_n) AT=17n
+.measure tran decision_diff_v PARAM='decision_n_v-decision_p_v'
+.measure tran supply_charge_c INTEG I(VDD) FROM=0 TO=18n
+.control
+run
+.endc
+.end

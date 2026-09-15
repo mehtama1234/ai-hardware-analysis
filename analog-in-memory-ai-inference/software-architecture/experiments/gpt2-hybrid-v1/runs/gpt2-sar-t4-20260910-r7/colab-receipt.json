@@ -1,0 +1,74 @@
+{
+  "schema_version": "colab-profile-driven-gpt2-receipt-v0.1",
+  "environment": {
+    "python": "3.13.15 (main, Aug  6 2026, 11:06:22) [GCC 13.3.0]",
+    "repo_root": "/content/ai-hardware-analysis",
+    "execute_model": true,
+    "fetch_model": true,
+    "device": "cuda"
+  },
+  "model_fetch": {
+    "model_id": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "snapshot": "/root/.cache/huggingface/hub/models--openai-community--gpt2/snapshots/607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "allow_patterns": [
+      "config.json",
+      "generation_config.json",
+      "merges.txt",
+      "model.safetensors",
+      "special_tokens_map.json",
+      "tokenizer.json",
+      "tokenizer_config.json",
+      "vocab.json"
+    ],
+    "status": "downloaded_or_cached"
+  },
+  "inputs": {
+    "evaluation": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260909-recovery-projection/evaluation.json",
+    "contract": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-transformer-contract.json",
+    "sar_profile": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/circuit-derived-sar-profile.json",
+    "remap_contract": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-contract.json",
+    "per_converter_remap_holdout": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/sar-code-remap-holdout-mismatch-per-converter.json",
+    "dispatch_policy": "/content/ai-hardware-analysis/analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/converter-dispatch-policy.json"
+  },
+  "dispatch_policy": {
+    "status": "available",
+    "decision": "digital_runtime_authoritative_with_guarded_calibration_candidate",
+    "routes": [
+      {
+        "case": "nominal_ss_sf_ff_supported_profile",
+        "route": "digital_fallback",
+        "reason": "profile metadata is schematic and analog placement is unauthorized"
+      },
+      {
+        "case": "fs_corner",
+        "route": "digital_fallback",
+        "reason": "global remap rejected: observed code collision"
+      },
+      {
+        "case": "fixed_seed_mismatch_campaign",
+        "route": "digital_code_correction_candidate",
+        "reason": "per-converter remap passed 4/4 same-campaign holdouts; analog path remains unqualified"
+      },
+      {
+        "case": "unknown_or_uncharacterized",
+        "route": "digital_fallback",
+        "reason": "fail closed on missing calibration or out-of-domain code"
+      }
+    ]
+  },
+  "per_converter_remap": {
+    "status": "available",
+    "passed_holdouts": 4,
+    "total_holdouts": 4,
+    "promotion_allowed": true,
+    "scope": "bounded mismatch campaign only"
+  },
+  "contract_check_output": "{\n  \"status\": \"passed\",\n  \"checks\": [\n    \"source_hashes\",\n    \"schedule_counts\",\n    \"placement_guard\",\n    \"fallback_policy\",\n    \"held_out_split\"\n  ],\n  \"failures\": [],\n  \"claim_boundary\": \"This contract binds measured schematic SAR metadata to a real GPT-2 projection schedule. It does not claim analog placement, silicon yield, latency, energy advantage, or hardware acceleration.\"\n}\n",
+  "trace_command_output": "{\"output\": \"/content/gpt2-sar-t4/profile-driven-workload-trace.json\", \"vectors\": 162, \"dac_conversions\": 2985984, \"adc_conversions\": 2985984, \"placement\": \"digital_fallback_only\"}\n",
+  "dispatch_simulation_output": "{\"output\": \"/content/gpt2-sar-t4/converter-dispatch-simulation.json\", \"vectors\": 162, \"scenarios\": 4, \"analog_vectors\": 0}\n",
+  "dispatch_simulation_check_output": "{\n  \"status\": \"passed\",\n  \"checks\": [\n    \"scenario_count\",\n    \"vector_conservation\",\n    \"zero_analog\",\n    \"fail_closed_routes\"\n  ],\n  \"failures\": [],\n  \"claim_boundary\": \"This is a deterministic software routing simulation over a derived numerical trace. It does not measure analog hardware execution, latency, energy, yield, or speedup.\"\n}\n",
+  "model_command_output": "Loading pinned cached GPT-2\n\nLoading weights:   0%|          | 0/148 [00:00<?, ?it/s]\nLoading weights: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 148/148 [00:00<00:00, 4179.76it/s]\nEvaluating ideal_tiled_control\nEvaluating dac10_weight8_adc8\nEvaluating dac10_weight8_adc12\nEvaluating dac10_weight8_adc12_noise001\n{\"output\": \"/content/gpt2-sar-t4/model-evaluation/evaluation.json\", \"decision\": \"hybrid_hardware_benefit_unproven\", \"controls_pass\": true}\n",
+  "decision": "native_digital_fallback_until_held_out_validation_passes",
+  "claim_boundary": "Colab orchestration and derived operation counts only; model execution remains subject to its own evidence checks, and no analog hardware latency, energy, yield, or speedup is claimed."
+}

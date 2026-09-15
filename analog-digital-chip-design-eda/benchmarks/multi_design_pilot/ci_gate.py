@@ -6,6 +6,7 @@ import hashlib, json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+TAXONOMY = ROOT / "benchmarks" / "multi_design_pilot" / "fault-taxonomy.json"
 
 def main() -> int:
     result = subprocess.run([sys.executable, str(Path(__file__).with_name("run_pilot.py"))], cwd=ROOT, check=False)
@@ -14,11 +15,12 @@ def main() -> int:
     manifest = {
         "schema_version": "verification-pilot-release-v1",
         "pilot": "multi-design-open-source-verification",
-        "designs": ["seeded_counter", "seeded_fifo", "seeded_regblock", "register_peripheral", "seeded_handshake"],
+        "designs": ["seeded_counter", "seeded_fifo", "seeded_regblock", "register_peripheral", "seeded_handshake", "seeded_arbiter", "seeded_decoder", "seeded_parity", "seeded_width", "seeded_timeout", "seeded_signed"],
         "backend_policy": "open-source-only",
         "commands": ["python3 benchmarks/multi_design_pilot/run_pilot.py", "python3 benchmarks/multi_design_pilot/validate_pilot.py"],
-        "evidence_contract": ["typed_planning", "generated_checks", "simulation", "triage", "human_approved_retest", "artifact_manifest", "session_ledger"],
+        "evidence_contract": ["typed_planning", "generated_checks", "simulation", "triage", "next_test_proposal", "fault_taxonomy", "identical_scope_retest", "human_approved_retest", "artifact_manifest", "session_ledger"],
         "hardware_required": False,
+        "fault_taxonomy_sha256": hashlib.sha256(TAXONOMY.read_bytes()).hexdigest(),
     }
     canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":"))
     manifest["release_sha256"] = hashlib.sha256(canonical.encode()).hexdigest()

@@ -37,10 +37,11 @@ Current local install:
 - simulator venv: `$HOME/eda-tools/aimc-simulators-venv`
 - CrossSim checkout: `$HOME/eda-tools/cross-sim`
 
-AIHWKIT follows the official IBM install path:
+AIHWKIT uses the pinned lab adapter path. The host or Colab runtime must
+provide PyTorch; the installer deliberately does not replace it:
 
 ```bash
-pip install aihwkit
+python3 -m pip install --no-deps 'aihwkit==1.1.0'
 ```
 
 CrossSim follows the Sandia GitHub install path:

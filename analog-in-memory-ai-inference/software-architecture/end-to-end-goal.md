@@ -1,4 +1,8 @@
-# End-To-End Build Goal
+# End-To-End Build Goal (Case Study Under the Verification Platform)
+
+> **Current strategic north star:** the cross-project goal is now the [Evidence-Backed AI Verification Platform](../../analog-digital-chip-design-eda/docs/roadmaps/end-to-end-goal.md). This model-fit workbench remains an important mixed-signal case study and benchmark for that platform: it supplies real workload, placement, calibration, simulator, fallback, and claim-evidence workflows that the verification agents must ingest, execute, debug, and close.
+
+The product described below is therefore the domain case study, not the entire company platform. Its outputs become verification collateral and evidence nodes in the shared requirement-to-closure graph.
 
 ## Goal
 
@@ -7,6 +11,36 @@ Build a model-fit workbench for analog in-memory AI inference hardware.
 The product should take a trained model, analyze whether it fits the hardware, show where analog compute helps, show where digital fallback is needed, estimate the risks, and produce a clear report that helps a customer decide whether to continue toward deployment.
 
 The goal is not to build a generic dashboard. The goal is to build the software path that makes the hardware usable.
+
+## Current local-only qualification milestone
+
+Before external GPU or hardware evidence is available, the next meaty
+end-to-end goal is to close the digital qualification boundary for one frozen
+transformer slice. The local workflow must join the native model reference,
+all 162 scheduled module vectors, digital fallback recomputation, converter-code
+routing, error decomposition, runtime trace, and counterfactual cost/quality
+sensitivity into one hash-bound decision package.
+
+The required local conclusion is deliberately bounded:
+
+```text
+digital reference and deterministic fallback only
+```
+
+This milestone is complete when the 162-vector parity check passes for all
+three target modules, every converter code has an explicit route, every
+scheduled vector has a runtime decision, modeled hybrid economics are exposed
+with sensitivity and quality risk, source hashes are retained, and the
+fallback route—not the counterfactual hybrid route—is enforced. It must not
+authorize analog execution or claim measured latency, energy, silicon yield, or
+production readiness.
+
+The retained package and handoff are
+[`evidence/local-digital-qualification-v1/local_digital_qualification_package.json`](../../evidence/local-digital-qualification-v1/local_digital_qualification_package.json)
+and
+[`END_TO_END_QUALIFICATION_HANDOFF.md`](../../END_TO_END_QUALIFICATION_HANDOFF.md).
+The counterfactual sensitivity report is
+[`evidence/counterfactual-hybrid-advantage-v2/counterfactual_hybrid_advantage_report.json`](../../evidence/counterfactual-hybrid-advantage-v2/counterfactual_hybrid_advantage_report.json).
 
 ## Connected-System Contract
 

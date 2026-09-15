@@ -1,0 +1,47 @@
+{
+  "lowering_sha256": "14ba1dd0ba8e275366cb39f945d8a6d0554dfb69d1b4f89492b171018a93845c",
+  "properties": [
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (rst && counter_q !== '0) $error(\"REQ-COUNTER-RESET: reset invariant violated\");\nend",
+      "original": "assert property (@(posedge clk) rst |-> counter_q == '0);",
+      "reason": null,
+      "requirement_id": "REQ-COUNTER-RESET",
+      "reset": null,
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "reset_guard_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (previous_valid && !(rst) && enable && counter_q !== previous_counter_q + 1'b1) $error(\"REQ-COUNTER-ENABLE: increment violated\");\n  previous_counter_q <= counter_q;\n  previous_valid <= 1'b1;\nend",
+      "original": "assert property (@(posedge clk) disable iff (rst) enable |=> counter_q == $past(counter_q) + 1'b1);",
+      "reason": null,
+      "requirement_id": "REQ-COUNTER-ENABLE",
+      "reset": "rst",
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "disable_iff_extraction",
+        "sequence_delay_lowering"
+      ]
+    },
+    {
+      "clock": "clk",
+      "lowered": "always @(posedge clk) begin\n  if (previous_valid && !(rst) && !enable && counter_q !== previous_counter_q) $error(\"REQ-COUNTER-HOLD: hold violated\");\n  previous_counter_q <= counter_q;\n  previous_valid <= 1'b1;\nend",
+      "original": "assert property (@(posedge clk) disable iff (rst) !enable |=> $stable(counter_q));",
+      "reason": null,
+      "requirement_id": "REQ-COUNTER-HOLD",
+      "reset": "rst",
+      "status": "supported",
+      "transformations": [
+        "clock_alias_injection",
+        "disable_iff_extraction",
+        "sequence_delay_lowering"
+      ]
+    }
+  ],
+  "schema_version": "sva-lowering-v1"
+}

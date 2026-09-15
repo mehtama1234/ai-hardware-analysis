@@ -1,0 +1,16 @@
+drc on
+path search +/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/recovery-20260909/physical-preamp-route-repair-v4 +/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/labs/analog/analog-in-memory-foundation-model-hardware/layout-workbench/cells
+load aimc_converter_macro_active_candidate -force
+select top cell
+flatten aimc_converter_macro_active_candidate_flat
+load aimc_converter_macro_active_candidate_flat -force
+select top cell
+drc check
+drc catchup
+drc count
+drc listall why
+
+puts "DETAILS_BEGIN"
+foreach {why boxes} [drc listall why] {puts "$why : [llength $boxes] regions"}
+puts "DETAILS_END"
+quit -noprompt

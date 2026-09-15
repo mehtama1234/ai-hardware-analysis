@@ -14,10 +14,12 @@ class AdapterSpec:
     name: str
     executable: str
     expected_artifacts: tuple[str, ...] = ()
+    timeout_seconds: float = 60.0
 
 
-def execute_adapter(spec: AdapterSpec, args: list[str], *, run_root: str | Path, source_revision: str, timeout_seconds: float = 60.0) -> ToolRun:
+def execute_adapter(spec: AdapterSpec, args: list[str], *, run_root: str | Path, source_revision: str, timeout_seconds: float | None = None) -> ToolRun:
     """Execute a named backend while preserving the common run contract."""
     if not spec.name or not spec.executable or any(not isinstance(arg, str) for arg in args):
         raise ValueError("adapter name, executable, and string args are required")
-    return run_command([spec.executable, *args], tool=spec.name, run_root=run_root, source_revision=source_revision, timeout_seconds=timeout_seconds, expected_artifacts=list(spec.expected_artifacts))
+    effective_timeout = spec.timeout_seconds if timeout_seconds is None else timeout_seconds
+    return run_command([spec.executable, *args], tool=spec.name, run_root=run_root, source_revision=source_revision, timeout_seconds=effective_timeout, expected_artifacts=list(spec.expected_artifacts))

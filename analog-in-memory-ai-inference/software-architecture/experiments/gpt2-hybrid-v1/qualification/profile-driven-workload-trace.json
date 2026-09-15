@@ -1,0 +1,269 @@
+{
+  "schema_version": "profile-driven-workload-trace-v0.1",
+  "result_type": "derived_gpt2_projection_workload_trace",
+  "evidence_kind": "derived_from_saved_real_model_evaluation",
+  "sources": {
+    "evaluation": {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/runs/20260909-recovery-projection/evaluation.json",
+      "sha256": "76287d8795a54267b6d7a26625277f403f88d1515926917fb5618537f4a4cdc2"
+    },
+    "workload_contract": {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/profile-driven-transformer-contract.json",
+      "sha256": "e4c52a3a76dc14c2c4e394f89e054faac059cd31965ab5d9df58e1629294e93a"
+    },
+    "sar_profile": {
+      "path": "analog-in-memory-ai-inference/software-architecture/experiments/gpt2-hybrid-v1/qualification/circuit-derived-sar-profile.json",
+      "sha256": "4be2417e927bf8ff70bb5a2e43050a4cd21708bd3abdef0c0df927a71868980a"
+    }
+  },
+  "model": {
+    "id": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "target_module": "transformer.h.0.mlp.c_fc",
+    "parameter_count": 124439808
+  },
+  "variant": {
+    "id": "dac10_weight8_adc12",
+    "quality": {
+      "predicted_tokens": 63,
+      "baseline_nll_nats_per_token": 5.185712360200428,
+      "candidate_nll_nats_per_token": 5.1903668358212425,
+      "nll_increase_nats": 0.004654475620814225,
+      "teacher_forced_argmax_agreement": 1.0,
+      "generation_exact_match_count": 4,
+      "rows": [
+        {
+          "predicted_tokens": 16,
+          "argmax_matches": 16,
+          "logit_relative_l2": 0.001535447663627565,
+          "maximum_logit_abs_error": 0.5923843383789062,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            1672,
+            2523,
+            703,
+            284
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            1672,
+            2523,
+            703,
+            284
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 3947.4588519999543,
+          "candidate_cpu_reference_wall_ms": 3735.219313000016
+        },
+        {
+          "predicted_tokens": 15,
+          "argmax_matches": 15,
+          "logit_relative_l2": 0.0016740851569920778,
+          "maximum_logit_abs_error": 0.6035919189453125,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1080,
+            49936,
+            318,
+            5295,
+            416
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1080,
+            49936,
+            318,
+            5295,
+            416
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 3699.878961999957,
+          "candidate_cpu_reference_wall_ms": 3761.3247120000324
+        },
+        {
+          "predicted_tokens": 14,
+          "argmax_matches": 14,
+          "logit_relative_l2": 0.0026619755662977695,
+          "maximum_logit_abs_error": 0.8212890625,
+          "baseline_generated_ids": [
+            198,
+            198,
+            1,
+            40,
+            1101,
+            407,
+            1654,
+            611
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            1,
+            40,
+            1101,
+            407,
+            1654,
+            611
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 4119.700697999974,
+          "candidate_cpu_reference_wall_ms": 3410.3567860000794
+        },
+        {
+          "predicted_tokens": 18,
+          "argmax_matches": 18,
+          "logit_relative_l2": 0.003015577094629407,
+          "maximum_logit_abs_error": 1.0575027465820312,
+          "baseline_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            3084,
+            2523,
+            262,
+            2482
+          ],
+          "candidate_generated_ids": [
+            198,
+            198,
+            464,
+            1708,
+            3084,
+            2523,
+            262,
+            2482
+          ],
+          "generation_exact_match": true,
+          "baseline_cpu_reference_wall_ms": 5813.66028399998,
+          "candidate_cpu_reference_wall_ms": 4682.733504999987
+        }
+      ]
+    },
+    "contract": {
+      "profile": {
+        "tile_rows": 128,
+        "tile_columns": 128,
+        "weight_bits": 8,
+        "dac_bits": 10,
+        "adc_bits": 12,
+        "read_noise_fraction": 0.0
+      },
+      "weight_shape_input_output": [
+        768,
+        3072
+      ],
+      "calibrated_activation_abs_max": 2.80496883392334,
+      "logical_tiles": 144,
+      "physical_arrays_if_differential_pair": 288,
+      "signed_weight_representation": "differential pair; effective multilevel weight precision is assumed, not demonstrated",
+      "input_representation": "signed DAC voltage assumed; no input bit serialization",
+      "readout": "analog differential subtraction before one signed ADC per logical column",
+      "adc_range": "activation bound times maximum column L1 weight norm within each tile",
+      "accumulation": "digital float32 sum across row tiles and digital bias addition",
+      "per_vector": {
+        "macs": 2359296,
+        "dac_conversions_without_column_tile_broadcast": 18432,
+        "adc_conversions_after_differential_subtraction": 18432,
+        "array_evaluations": 288,
+        "digital_partial_sum_additions": 15360,
+        "boundary_input_bytes_fp32": 3072,
+        "boundary_output_bytes_fp32": 12288
+      },
+      "excluded_physics": [
+        "wire resistance",
+        "conductance programming error",
+        "drift",
+        "nonlinear I/V",
+        "PVT",
+        "mismatch",
+        "settling",
+        "sample/hold",
+        "SRAM contention"
+      ],
+      "calibration_status": "activation-calibrated numerical model; not circuit-calibrated",
+      "energy_latency": {
+        "status": "not_identifiable_without_matched_cost_coefficients",
+        "required": [
+          "DAC pJ/conversion",
+          "ADC pJ/conversion",
+          "array pJ/evaluation",
+          "digital accumulation pJ/add",
+          "boundary transfer pJ/byte",
+          "converter sharing schedule and settling",
+          "same-target digital projection cost"
+        ],
+        "energy_equation": "E_projection = N_DAC*e_DAC + N_ADC*e_ADC + N_array*e_array + N_add*e_add + bytes*e_move; add programming/calibration amortization",
+        "break_even": "E_projection plus integration overhead must be below same-target digital projection energy"
+      }
+    }
+  },
+  "phase_rows": [
+    {
+      "phase": "generation_prefill_and_cached_decode",
+      "trace_records": 32,
+      "vectors": 95,
+      "dac_conversions": 1751040,
+      "adc_conversions": 1751040,
+      "array_evaluations": 27360,
+      "digital_partial_sum_additions": 1459200,
+      "boundary_input_bytes_fp32": 291840,
+      "boundary_output_bytes_fp32": 1167360,
+      "dac_clipped_values": 0,
+      "adc_clipped_values": 0
+    },
+    {
+      "phase": "teacher_forced_prefill",
+      "trace_records": 4,
+      "vectors": 67,
+      "dac_conversions": 1234944,
+      "adc_conversions": 1234944,
+      "array_evaluations": 19296,
+      "digital_partial_sum_additions": 1029120,
+      "boundary_input_bytes_fp32": 205824,
+      "boundary_output_bytes_fp32": 823296,
+      "dac_clipped_values": 0,
+      "adc_clipped_values": 0
+    }
+  ],
+  "totals": {
+    "vectors": 162,
+    "dac_conversions": 2985984,
+    "adc_conversions": 2985984,
+    "array_evaluations": 46656,
+    "digital_partial_sum_additions": 2488320,
+    "boundary_input_bytes_fp32": 497664,
+    "boundary_output_bytes_fp32": 1990656,
+    "dac_clipped_values": 0,
+    "adc_clipped_values": 0
+  },
+  "execution_policy": {
+    "placement": "digital_fallback_only",
+    "fallback_count": 162,
+    "analog_placement_allowed": false,
+    "reason": "circuit profile has open cases and fixed remap holdout promotion is false"
+  },
+  "energy_latency": {
+    "status": "not_identifiable",
+    "missing_coefficients": [
+      "DAC_pJ_per_conversion",
+      "ADC_pJ_per_conversion",
+      "array_pJ_per_evaluation",
+      "digital_add_pJ",
+      "boundary_pJ_per_byte",
+      "same_target_digital_baseline"
+    ]
+  },
+  "decision": "trace_ready_for_colab_holdout_execution",
+  "claim_boundary": "This trace counts operations and movement implied by a saved numerical GPT-2 projection. It is not measured analog hardware execution and does not claim latency, energy, yield, or speedup."
+}

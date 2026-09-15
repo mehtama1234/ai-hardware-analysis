@@ -1,0 +1,27 @@
+{
+  "documents": [
+    {
+      "evidence": {
+        "kind": "retrieval-source",
+        "path": "spec.md",
+        "sha256": "ac98a212f8c3db7812d0dfcf60d288255d143226d18d9c4de59cb036271a1b94",
+        "source_revision": "seeded-counter-v1"
+      },
+      "path": "spec.md",
+      "text": "# Seeded counter benchmark\n\n`counter_q` resets to zero on `rst`, increments by one on each rising clock edge\nwhen `enable` is high, and holds its previous value when `enable` is low.\n\nREQ-COUNTER-RESET: counter_q is zero while rst is asserted.\nREQ-COUNTER-ENABLE: counter_q increments only on a rising edge with enable high.\nREQ-COUNTER-HOLD: counter_q holds its previous value when enable is low and rst is released.\n\nThe RTL intentionally contains one seeded defect: it increments whenever reset is\nreleased, regardless of `enable`. The testbench assertion exposes that defect.\n"
+    },
+    {
+      "evidence": {
+        "kind": "retrieval-source",
+        "path": "counter.sv",
+        "sha256": "e144d0e4800a49ef2c28048cb783c76125a9e07aaf001148d070381401a2a773",
+        "source_revision": "seeded-counter-v1"
+      },
+      "path": "counter.sv",
+      "text": "module counter(input logic clk, input logic rst, input logic enable, output logic [3:0] counter_q);\n  always_ff @(posedge clk) begin\n    if (rst)\n      counter_q <= 4'd0;\n    else\n      counter_q <= counter_q + 4'd1; // SEEDED_BUG: missing enable guard\n  end\nendmodule\n"
+    }
+  ],
+  "index_sha256": "95b39bcbc041012b1cf3d15b76aca3ec565a33f0bf8271dcda7f7568203a5b4c",
+  "schema_version": "retrieval-index-v1",
+  "source_revision": "seeded-counter-v1"
+}

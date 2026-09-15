@@ -1,0 +1,30 @@
+* Extracted active converter macro decision-boundary transient.
+.option scale=1u
+.lib "/home/mehtama1/eda-tools/pdks/sky130A/libs.tech/ngspice/sky130.lib.spice" tt
+.include "/home/mehtama1/git-repo/ai-hardware-analysis/analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/active-converter-macro-candidate/20260909T062431Z/aimc_converter_macro_active_candidate_extracted.spice"
+.param vdd=1.8
+VSS vss 0 0
+VDD vdd 0 {vdd}
+VROW row_drive 0 0.899923514707
+VCOMP sar_comparator_input 0 0.900076485293
+VRESET reset 0 PULSE(0 {vdd} 7.80n 20p 20p 30n 60n)
+VEVAL eval 0 PULSE(0 {vdd} 8.00n 20p 20p 20n 30n)
+VSSX vss_escape 0 0
+VDD_EXT vdd_ext 0 {vdd}
+RP vdd_ext latch_sense_p_ext 100k
+RN vdd_ext latch_sense_n_ext 100k
+IBIAS iso_tail_ext 0 4u
+RTAIL tail_ext 0 100G
+VP sense_p 0 {row:.12g}
+VN sense_n 0 {comparator:.12g}
+XU decision_p decision_n latch_sense_p_ext latch_sense_n_ext tail_ext reset vdd_ext vss_escape eval sense_p sense_n iso_tail_ext vdd_ext escaped_input_latch
+.options method=gear reltol=2e-3 abstol=1e-14 vntol=1e-7 gmin=1e-12 itl1=1000 itl4=1000 maxord=2 cshunt=1e-15 rshunt=1e12
+.tran 20p 12n uic
+.measure tran decision_p_v FIND v(decision_p) AT=11n
+.measure tran decision_n_v FIND v(decision_n) AT=11n
+.measure tran decision_diff_v PARAM='decision_n_v-decision_p_v'
+.measure tran supply_charge_c INTEG I(VDD) FROM=0 TO=12n
+.control
+run
+.endc
+.end

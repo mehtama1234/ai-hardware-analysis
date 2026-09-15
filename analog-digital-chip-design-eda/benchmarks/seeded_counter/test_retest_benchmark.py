@@ -17,6 +17,9 @@ def test_approved_repair_retest_proves_closure():
     assert report["compile_run"]["status"] == "passed"
     assert (ROOT / "runs" / "retest" / "generated_checks.sv").is_file()
     assert (ROOT / "runs" / "retest" / "procedural_checks.sv").is_file()
+    assert (ROOT / "runs" / "retest" / "lowered_checks.sv").is_file()
+    assert (ROOT / "runs" / "retest" / "sva-lowering.json").is_file()
+    assert (ROOT / "runs" / "retest" / "time-zero-lint.json").is_file()
     assert (ROOT / "runs" / "retest" / "uvm-counter-agent.sv").is_file()
     session = json.loads((ROOT / "runs" / "retest" / "session-ledger.json").read_text())
     assert [event["stage"] for event in session["events"]] == ["created", "planned", "executed", "triaged", "repair_review", "retested", "closed"]
@@ -26,7 +29,7 @@ def test_approved_repair_retest_proves_closure():
     assert pov["closure"]["proven"] == 3
     assert pov["coverage"]["percentage"] == 100.0
     assert pov["mixed_signal"]["claims"][1]["status"] == "unsupported"
-    assert pov["requirements"]["planning_queue"][0]["requirement_id"] == "REQ-COUNTER-RESET"
+    assert pov["requirements"]["planning_queue"] == []
     assert (ROOT / "counter.sv").read_text().count("SEEDED_BUG") == 1
     assert "if (enable)" in (ROOT / "runs" / "retest" / "counter_repaired.sv").read_text()
 
@@ -45,4 +48,7 @@ def test_single_end_to_end_entrypoint_reports_baseline_and_retest():
     assert summary["artifact_integrity"]["valid"] is True
     assert summary["pov_metrics"]["proven_delta"] == 3
     assert summary["pov_metrics"]["retest_coverage_percentage"] == 100.0
+    assert summary["agent_proposal"]["status"] == "review_required"
+    assert summary["agent_proposal"]["provider"] == "deterministic-reference"
+    assert (ROOT / "runs/latest/reference-agent-proposal.json").is_file()
     assert (ROOT / "runs" / "artifact-manifest.json").is_file()

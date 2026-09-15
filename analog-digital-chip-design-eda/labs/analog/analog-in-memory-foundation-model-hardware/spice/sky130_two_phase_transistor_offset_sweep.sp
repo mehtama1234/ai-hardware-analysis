@@ -17,8 +17,9 @@
 .param wp_latch=6.0
 .param wn_in=0.5
 .param wn_tail=20.0
-.param vinp=0.900100000000
-.param vinn=0.899900000000
+.param vinp=0.900050000000
+.param vinn=0.899950000000
+.options method=gear reltol=1e-2 abstol=1e-14 vntol=1e-7 chgtol=1e-16 gmin=1e-9 gmin=1e-12
 
 VDD vdd 0 {vdd}
 VSS vss 0 0

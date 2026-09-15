@@ -519,7 +519,7 @@ def main():
 
     measurement = request_json(endpoint(model_query(model_id, "/measurement-evidence") + f"&project_id={project_id}"), method="POST", data=b"")
     assert_true(measurement["result_type"] == "measurement_evidence", "Measurement evidence result type mismatch")
-    assert_true(len(measurement["required_sources"]) == 5, "Measurement evidence source count mismatch")
+    assert_true(len(measurement["required_sources"]) == 6, "Measurement evidence source count mismatch")
     assert_true(any(source["id"] == "power_thermal" for source in measurement["required_sources"]), "Power/thermal evidence source missing")
     assert_true(measurement["summary"]["claim_status"] == "measurement blocked", "Measurement evidence should block measured claims in local mode")
     local_evidence = request_json(endpoint(f"/deployment-packages/{package['package_id']}/local-evidence"), method="POST", data=b"")

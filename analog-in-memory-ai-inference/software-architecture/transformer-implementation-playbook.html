@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Transformer To Chip Implementation Playbook</title><link rel="stylesheet" href="transformer-chip-review.css"></head>
+<body><header><nav><a href="transformer-to-chip-first-principles.html">Program Index</a><a href="connected-system-map.html">System Map</a><a href="transformer-workload-and-movement-contract.html">Workload</a><a href="transformer-analog-eligibility.html">Analog Boundary</a><a href="transformer-compiler-runtime.html">Compiler</a><a href="transformer-physical-reliability.html">Physical Reality</a><a href="transformer-verification-acceptance.html">Acceptance</a></nav><div class="k">implementation playbook</div><h1>How we build the transformer-to-chip proof</h1><p class="lead">This is the executable work order behind the conceptual chapters. It converts the conference lessons into artifacts and tests that connect the transformer model, hybrid compiler, analog converter, digital control, runtime fallback, and final task result.</p></header><main>
+<section class="band"><h2>The build sequence</h2><p class="flow">workload contract → operator inventory → movement ledger → analog eligibility → compiler schedule → converter profile → calibration/governor → reliability sweep → token comparison → evidence package</p><p>Each stage consumes the output of the previous stage. We do not begin by claiming a full LLM runs on analog hardware. We begin with a small transformer fixture and make every boundary explicit.</p><div class="callout"><strong>First implementation target:</strong> <code>deep-transformer-mlp-stack.onnx</code>. It is small enough to make the execution package reproducible while still containing repeated transformer-style fixed-weight matrix work, digital nonlinearities, residuals, SRAM boundaries, calibration, and fallback.</div></section>
+<section class="band"><h2>Phase 1 — freeze the workload</h2><p>Create <code>workload_contract.json</code>. It is the experiment’s identity card, not a presentation detail.</p><pre>{
+  "model": "deep-transformer-mlp-stack.onnx",
+  "model_hash": "sha256:...",
+  "phase": "prefill",
+  "batch_size": 1,
+  "sequence_length": 16,
+  "quality_metric": "relative_output_residual",
+  "latency_metric": "time_per_token",
+  "energy_metric": "joules_per_token",
+  "fallback": "digital",
+  "hardware_profile_id": "sky130_converter_candidate_v1"
+}</pre><p>Then create a second contract for decode. Keep prefill and decode separate because their reuse, KV-cache, movement, and latency behavior are different.</p><h3>Phase gate</h3><p>We cannot compare hybrid and digital until model weights, inputs, tokenization, shapes, phase, quality metric, and denominator are frozen.</p></section>
+<section class="band"><h2>Phase 2 — inventory every operator</h2><p>The model importer produces one row per operator and tensor edge. The row must identify what the operation does physically and mathematically.</p><table><thead><tr><th>Operator</th><th>Shape</th><th>Fixed weights</th><th>Dynamic state</th><th>Initial placement</th></tr></thead><tbody><tr><td>dense1.matmul</td><td>declared tensor shape</td><td>yes</td><td>no</td><td>analog candidate</td></tr><tr><td>dense1.bias</td><td>declared tensor shape</td><td>no</td><td>no</td><td>digital</td></tr><tr><td>dense1.relu/GELU</td><td>declared tensor shape</td><td>no</td><td>no</td><td>digital</td></tr><tr><td>attention.score</td><td>token/cache dependent</td><td>no</td><td>yes</td><td>digital</td></tr><tr><td>attention.softmax</td><td>token/cache dependent</td><td>no</td><td>yes</td><td>digital</td></tr><tr><td>kv_cache.read/write</td><td>sequence dependent</td><td>no</td><td>yes</td><td>digital memory</td></tr></tbody></table><p>Required output: <code>operator_inventory.json</code> and <code>hybrid_execution_plan.json</code>. No operator may be unclassified.</p></section>
+<section class="band"><h2>First executable command</h2><p>The repository now has a builder that reuses the existing ONNX analyzer and hardware-placement policy:</p><pre>cd software-architecture/backend
+.venv/bin/python ../scripts/build_transformer_execution_contract.py \
+  --model ../samples/deep-transformer-mlp-stack.onnx \
+  --output /tmp/deep-transformer-execution-contract \
+  --target-profile robotics \
+  --phase prefill</pre><p>The current fixture produces 36 operators, including 12 <code>MatMul</code> candidates, with 36 movement rows and 36 schedule events. The result is explicitly estimated planning evidence; it is not yet token-level decode or physical hardware evidence.</p><p>Run its regression check with:</p><pre>.venv/bin/python ../scripts/check_transformer_execution_contract.py</pre></section>
+<section class="band"><h2>Phase 3 — calculate the movement ledger</h2><p>For every tensor edge, calculate the complete cost of representing and moving the value.</p><table><thead><tr><th>Ledger field</th><th>What to calculate</th></tr></thead><tbody><tr><td>Storage</td><td>Weight and activation bytes, SRAM bank, conductance capacity, and residency.</td></tr><tr><td>Conversions</td><td>DAC/ADC count, resolution, serial/parallel behavior, and conversion time.</td></tr><tr><td>Accumulation</td><td>Partial sums, bit slices, digital accumulator width, overflow and saturation.</td></tr><tr><td>Synchronization</td><td>Barriers between analog array, converter, SRAM, and digital logic.</td></tr><tr><td>State</td><td>KV-cache reads/writes, calibration state, and tile health state.</td></tr><tr><td>Recovery</td><td>Extra traffic and work when a tile falls back to digital.</td></tr></tbody></table><p>Required output: <code>movement_ledger.json</code>. It must allow a complete token cost to be reconstructed without hiding conversion or cache work.</p><div class="callout warning"><strong>Reject rule:</strong> an analog MAC speedup is not a system speedup if movement, conversion, calibration, or fallback erases it.</div></section>
+<section class="band"><h2>Phase 4 — run the analog eligibility pass</h2><p>The compiler applies explicit gates rather than intuition.</p><pre>eligible = fixed_weight_matmul
+    and precision_supported
+    and sensitivity_passes
+    and movement_benefit_positive
+    and converter_range_legal
+    and calibration_profile_valid</pre><p>Each result is explainable:</p><pre>{
+  "operator": "dense1.matmul",
+  "placement": "analog",
+  "reason": "all_eligibility_gates_passed"
+}</pre><p>Or:</p><pre>{
+  "operator": "attention.softmax",
+  "placement": "digital",
+  "reason": "dynamic_nonlinear_operation"
+}</pre><p>Required output: <code>analog_eligibility.json</code>. The first failed gate is preserved, because rejection reasons become future design work.</p></section>
+<section class="band"><h2>Phase 5 — import the physical converter profile</h2><p>The EDA repo produces physical evidence. The software workbench imports it through a versioned hardware profile.</p><pre>{
+  "converter_id": "sky130_sar_candidate_v1",
+  "resolution_bits": 4,
+  "legal_input_range": [0.1, 1.6],
+  "minimum_code_spacing_mv": 83.5,
+  "monotonic": true,
+  "pvt_status": "needs_review",
+  "mismatch_status": "open",
+  "calibration_profile": "nominal_only",
+  "analog_placement_allowed": false
+}</pre><p>The last field is decisive. If the converter is not physically accepted for the required operating envelope, the compiler may still run software experiments, but it must select digital fallback for physical claims.</p></section>
+<section class="band"><h2>Physical gate enforcement command</h2><p>The current EDA gate can be imported directly:</p><pre>cd software-architecture
+backend/.venv/bin/python scripts/build_transformer_execution_contract.py \
+  --model samples/deep-transformer-mlp-stack.onnx \
+  --physical-gate ../../analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/analog-converter-physical-cell-gate.json \
+  --enforce-physical-gate \
+  --output /tmp/deep-transformer-physical-gated</pre><p>The current result is <code>physical_cells_present_waiting_for_extracted_artifacts</code>. Because <code>analog_allowed_for_physical_claim</code> is false, all 12 matrix candidates are emitted as <code>digital_fallback</code>. This is the correct conservative behavior until the EDA gate is upgraded.</p></section>
+<section class="band"><h2>Phase 6 — implement calibration and the runtime governor</h2><p>A calibration profile records what was measured, where it is valid, how it corrects values, and when it expires.</p><table><thead><tr><th>Runtime condition</th><th>Decision</th><th>Trace to save</th></tr></thead><tbody><tr><td>Calibration valid and residual within budget</td><td>Use analog.</td><td>Tile, profile, residual, temperature, timestamp.</td></tr><tr><td>Profile stale but recalibration available</td><td>Recalibrate and retry.</td><td>Calibration duration and energy.</td></tr><tr><td>Range, timeout, or health failure</td><td>Digital fallback.</td><td>First failure and fallback cost.</td></tr><tr><td>Repeated failure</td><td>Quarantine tile.</td><td>Fault count and re-enable policy.</td></tr></tbody></table><p>Required outputs: <code>calibration_profile.json</code> and <code>runtime_governor_trace.json</code>. Fallback is not a hidden success; it is part of latency, energy, and reliability.</p></section>
+<section class="band"><h2>Phase 7 — run reliability sweeps</h2><p>Run the same workload over process/mismatch seeds, supply corners, temperatures, noise, settling time, converter timing, and stale calibration. Collect distributions instead of one favorable run.</p><pre>for mismatch_seed in seeds:
+  for voltage in voltage_corners:
+    for temperature in temperature_corners:
+      for calibration_age in calibration_ages:
+        run_hybrid_token_case()
+        record(residual, token_agreement, fallback, latency, energy)</pre><p>Required output: <code>reliability_results.json</code> containing median, 95th percentile, worst case, failure count, and fallback rate. Reliability asks whether the system stays inside its operating envelope, not whether one nominal run passes.</p></section>
+<section class="band"><h2>Phase 8 — run three comparable executions</h2><table><thead><tr><th>Execution</th><th>Purpose</th></tr></thead><tbody><tr><td>All-digital baseline</td><td>Reference logits, tokens, latency, and energy denominator.</td></tr><tr><td>Idealized hybrid</td><td>Separates mapping and model sensitivity from physical converter limitations.</td></tr><tr><td>Physically constrained hybrid</td><td>Includes converter profile, calibration, movement, governor, and fallback.</td></tr></tbody></table><p>The first executable version now runs the MLP fixture through ONNX ReferenceEvaluator twice. It perturbs only declared analog MatMul weights with a seeded relative-error model, computes relative L2 error, RMSE, cosine similarity, and argmax agreement, and writes <code>hybrid_output_comparison.json</code>. The physical-gated run applies no analog perturbation and must reproduce the digital output exactly because all candidates have fallen back.</p><pre>backend/.venv/bin/python scripts/run_transformer_output_comparison.py \
+  --model samples/deep-transformer-mlp-stack.onnx \
+  --output /tmp/deep-transformer-output-comparison \
+  --target-profile robotics \
+  --error-scale 0.001</pre><p>Compare the same weights, prompts, shapes, phases, quality metric, thermal condition, and compilation budget. This is still a software stress experiment, not measured converter data or token-level LLM evidence.</p></section>
+<section class="band"><h2>Phase 9 — execute the decode slice</h2><p>The attention fixture now has a six-token decode runner. At each token it computes Q/K/V, appends K and V to digital cache state, reads all prior cache entries, applies digital score/Softmax/value mixing, and applies the output projection. The artifact records cache movement rather than hiding it.</p><pre>backend/.venv/bin/python scripts/run_transformer_decode_comparison.py \
+  --model samples/attention-block.onnx \
+  --sequence-length 6 \
+  --output /tmp/attention-decode-comparison \
+  --error-scale 0.001</pre><p>The current six-token run moves <code>960</code> bytes reading prior K/V state and <code>384</code> bytes writing new K/V state. The unconstrained synthetic hybrid replay has mean relative error <code>0.001594</code>, maximum relative error <code>0.001737</code>, and output-channel agreement <code>100%</code>. These are fixture results, not tokenizer-level LLM results.</p><h3>Phase 9b — token decision gate</h3><p>The tiny causal-LM fixture now adds integer token IDs, a vocabulary projection, autoregressive generation, teacher-forced next-token agreement, free-running sequence agreement, and an oracle check that explicit cached decode matches the ONNX full-prefill graph. This closes the semantic gap between vector-output parity and token-level behavior while keeping the claim explicitly limited to the toy vocabulary.</p><pre>backend/.venv/bin/python samples/make-tiny-causal-lm-onnx.py
+backend/.venv/bin/python scripts/run_tiny_causal_lm_decode.py \
+  --model samples/tiny-causal-lm.onnx \
+  --prompt 1,2 \
+  --generated-steps 4 \
+  --output /tmp/tiny-causal-lm-decode \
+  --error-scale 0.001</pre></section>
+<section class="band"><h2>Phase 10 — sweep reliability before making a claim</h2><p>One passing error sample is not reliability. The tiny causal-LM runner now sweeps synthetic projection error scales and random seeds while preserving teacher-forced agreement, free-running sequence agreement, and the ONNX prefill oracle result for every case.</p><pre>backend/.venv/bin/python scripts/run_tiny_causal_lm_reliability_sweep.py \
+  --model samples/tiny-causal-lm.onnx \
+  --error-scales 0,0.001,0.003,0.005,0.01 \
+  --seeds 7,11,19,23 \
+  --output /tmp/tiny-causal-lm-reliability</pre><p>The checked-in five-scale/four-seed run accepted <code>17/20</code> cases. All generated token sequences agreed, but three cases at <code>1%</code> synthetic error exceeded the <code>1%</code> relative residual limit. This is the first explicit quality boundary in the loop; the system must recalibrate or fall back instead of hiding those failures.</p><p>This is a software sensitivity distribution. It becomes a physical reliability result only when the error scale is replaced by measured per-tile distributions indexed by voltage, temperature, age, mismatch, noise, and calibration state.</p></section>
+<section class="band"><h2>Phase 11 — import calibrated simulator evidence safely</h2><p>The sibling EDA repository contains a CrossSim calibrated attention profile for the same <code>attention-block.onnx</code> and the same four static projection candidates. The importer verifies that identity, checks weight names and shapes, checks residual limits, and preserves the simulator-only claim boundary.</p><pre>backend/.venv/bin/python scripts/import_attention_calibration_profile.py \
+  --model samples/attention-block.onnx \
+  --profile ../../analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/crosssim-calibrated-attention-block-analog-error-simulation.json \
+  --output /tmp/attention-calibration-import</pre><p>This is the correct bridge: calibrated simulator data can constrain the matching attention workload, but it cannot be silently reused for the tiny causal model or treated as measured silicon.</p><p>The matching attention decode runner can now consume the accepted profile and apply only its declared held-out residual vectors to Q/K/V/O. The six-token replay measured maximum relative error <code>1.33e-07</code> with <code>100%</code> output-channel agreement. This is calibrated simulator replay, not calibrated silicon.</p><pre>backend/.venv/bin/python scripts/run_transformer_decode_comparison.py \
+  --model samples/attention-block.onnx \
+  --calibration-profile-json ../../analog-digital-chip-design-eda/evidence/aimc-simulator-adapters/crosssim-calibrated-attention-block-analog-error-simulation.json \
+  --error-scale 0 \
+  --output /tmp/attention-decode-calibrated</pre></section>
+<section class="band"><h2>Phase 12 — benchmark the same token denominator</h2><p>The correctness loop now has a cost denominator. The benchmark replays the same six-token trace through digital and hybrid reference implementations, counts fixed projection MACs, dynamic attention MACs, converter values, K/V-cache bytes, and reports Python wall time separately from the modeled energy estimate.</p><pre>backend/.venv/bin/python scripts/benchmark_tiny_causal_lm.py \
+  --model samples/tiny-causal-lm.onnx \
+  --output /tmp/tiny-causal-lm-benchmark</pre><p>With the documented default assumptions, the six-token trace moves <code>1344</code> K/V-cache bytes and estimates a <code>2.20x</code> digital-over-hybrid energy ratio. The Python reference timing is not accelerator latency; the energy coefficients must be replaced by measured tile, converter, SRAM, RTL, or board data.</p></section>
+<section class="band"><h2>Phase 13 — assemble the evidence package</h2><p>The final package contains:</p><pre>workload_contract.json
+operator_inventory.json
+hybrid_execution_plan.json
+movement_ledger.json
+bit_slicing_plan.json
+converter_profile.json
+calibration_profile.json
+reliability_results.json
+runtime_governor_trace.json
+digital_baseline.json
+hybrid_output_comparison.json
+transformer_decode_comparison.json
+claim_report.md</pre><p>The claim report separates mathematical/model evidence, analog simulator evidence, transistor-level evidence, extracted-layout evidence, RTL evidence, board measurement, and silicon evidence.</p></section>
+<section class="band"><h2>One-command vertical-slice run</h2><p>The individual stages are now composed into one reproducible package builder:</p><pre>backend/.venv/bin/python scripts/run_transformer_vertical_slice.py \
+  --output /tmp/transformer-vertical-slice</pre><p>The run emits 21 hash-linked artifacts when the calibrated EDA profile is present, including MLP and attention contracts, token decode, reliability distribution, calibrated attention replay, cost benchmark, physical-gate audit, claim report, and manifest. The manifest was independently rehashed with zero mismatches. Its claim report is the authoritative boundary: it refuses measured hardware performance and production readiness until those evidence levels exist.</p><p>The physical-gate audit currently reports all four named converter cells present, but these two extracted artifacts are still missing: <code>evidence/aimc-simulator-adapters/candidate-post-layout/models/converter_layout_area_record.json</code> and <code>evidence/aimc-simulator-adapters/candidate-post-layout/rerun/converter-post-layout-break-even-rerun.json</code>. A separate Magic starter-layout measurement records 4/4 cells and a <code>237.6 µm²</code> macro bounding box, but it remains explicitly non-signoff. Starter payloads are deliberately not promoted to extracted evidence.</p></section>
+<section class="band"><h2>Repository ownership</h2><table><thead><tr><th>Repository</th><th>Owns</th></tr></thead><tbody><tr><td><code>analog-in-memory-ai-inference</code></td><td>Model intake, workload contract, operator inventory, movement ledger, compiler plan, governor, hybrid/digital comparison, claim package.</td></tr><tr><td><code>analog-digital-chip-design-eda</code></td><td>Converter measurements, transistor circuits, PVT/mismatch/noise, extraction, physical control logic, and circuit evidence.</td></tr></tbody></table><p>The bridge is a versioned hardware profile and evidence schema. The two repositories should not duplicate physical truth or silently promote one evidence level into another.</p></section>
+<section class="band"><h2>Definition of done for the first sprint</h2><ol><li>MLP workload contract is frozen.</li><li>Every operator has a placement and reason.</li><li>Movement ledger reconstructs complete cost.</li><li>Converter profile can reject physical analog placement.</li><li>Fallback-aware schedule runs.</li><li>Hybrid output is compared with digital output.</li><li>At least one reliability sweep is recorded.</li><li>All artifacts are hash-linked and claim-labeled.</li></ol><h2>Allowed claim</h2><p>The project has a reproducible, movement-aware, fallback-aware transformer-to-chip evaluation loop, including a toy token-level decode and a guarded matching-fixture calibration import.</p><h2>Refused claim</h2><p>This sprint cannot claim measured LLM silicon performance, production readiness, universal analog superiority, or board energy unless those separate evidence gates are completed.</p><h2>Next handoff</h2><p>The next implementation gate is a real small causal language model with a production tokenizer, followed by measured per-token latency and energy on a common digital baseline. In parallel, replace the synthetic error sweep with per-tile calibration indexed by voltage, temperature, mismatch, noise, drift, and fallback state.</p></section>
+<p class="foot">Return to the <a href="transformer-to-chip-first-principles.html">first-principles program index</a> or the <a href="connected-system-map.html">connected system map</a>.</p></main></body></html>

@@ -1,12 +1,4 @@
 apiVersion: v1
-kind: Secret
-metadata:
-  name: verification-pilot-api
-type: Opaque
-stringData:
-  api-key: replace-with-a-long-random-secret
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: verification-pilot-artifacts
@@ -30,15 +22,23 @@ spec:
       labels:
         app: verification-pilot
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
         fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
-          image: verification-pilot:latest
+          image: verification-pilot:0.1.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           ports:
             - name: http
               containerPort: 8080
@@ -49,15 +49,21 @@ spec:
               value: "1800"
             - name: VERIFICATION_MAX_QUEUED_JOBS
               value: "32"
+            - name: VERIFICATION_EXECUTION_WORKSPACE
+              value: disposable
+            - name: VERIFICATION_EXECUTION_NETWORK_POLICY
+              value: deny-by-default
           volumeMounts:
             - name: artifacts
               mountPath: /app/.artifacts
+            - name: tmp
+              mountPath: /tmp
             - name: api-key
               mountPath: /run/secrets
               readOnly: true
           resources:
-            requests: {cpu: 100m, memory: 256Mi}
-            limits: {cpu: "1", memory: 512Mi}
+            requests: {cpu: 100m, memory: 256Mi, ephemeral-storage: 128Mi}
+            limits: {cpu: "1", memory: 512Mi, ephemeral-storage: 1Gi}
           readinessProbe:
             httpGet: {path: /readyz, port: http}
             periodSeconds: 15
@@ -67,22 +73,35 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 5
         - name: worker
-          image: verification-pilot:latest
+          image: verification-pilot:0.1.0
           imagePullPolicy: IfNotPresent
           command: [python3, -m, deployment.worker]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           env:
             - name: VERIFICATION_WORKER_TIMEOUT_SECONDS
               value: "1800"
+            - name: VERIFICATION_EXECUTION_WORKSPACE
+              value: disposable
+            - name: VERIFICATION_EXECUTION_NETWORK_POLICY
+              value: deny-by-default
           volumeMounts:
             - name: artifacts
               mountPath: /app/.artifacts
+            - name: tmp
+              mountPath: /tmp
           resources:
-            requests: {cpu: 250m, memory: 512Mi}
-            limits: {cpu: "2", memory: 2Gi}
+            requests: {cpu: 250m, memory: 512Mi, ephemeral-storage: 256Mi}
+            limits: {cpu: "2", memory: 2Gi, ephemeral-storage: 2Gi}
       volumes:
         - name: artifacts
           persistentVolumeClaim:
             claimName: verification-pilot-artifacts
+        - name: tmp
+          emptyDir: {}
         - name: api-key
           secret:
             secretName: verification-pilot-api
@@ -99,3 +118,29 @@ spec:
       port: 8080
       targetPort: http
   type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: verification-pilot-default-egress-deny
+spec:
+  podSelector:
+    matchLabels:
+      app: verification-pilot
+  policyTypes:
+    - Egress
+  egress:
+    # DNS is required for normal cluster service discovery. Customer adapter
+    # endpoints must be added as an explicit namespace/IP rule per deployment.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

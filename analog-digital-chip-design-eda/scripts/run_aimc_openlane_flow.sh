@@ -6,6 +6,7 @@ DESIGN_NAME="${AIMC_OPENLANE_DESIGN:-aimc_control_plane}"
 PREP_NAME="${AIMC_OPENLANE_PREP:-aimc-control-plane-openlane-prep}"
 RTL_FILE="${AIMC_OPENLANE_RTL:-$DESIGN_NAME.v}"
 SOURCE_DIR="$ROOT/labs/eda/$PREP_NAME"
+VERILOG_SOURCE_DIR="${AIMC_OPENLANE_VERILOG_SOURCE_DIR:-$SOURCE_DIR/src}"
 OPENLANE_ROOT="${OPENLANE_ROOT:-$HOME/eda-tools/OpenLane}"
 TARGET_DIR="$OPENLANE_ROOT/designs/$DESIGN_NAME"
 TAG="${TAG:-aimc_control_plane_local}"
@@ -47,6 +48,7 @@ if ! timeout 60 docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | 
 fi
 
 mkdir -p "$TARGET_DIR/src"
+shopt -s nullglob
 cp "$SOURCE_DIR/config.json" "$TARGET_DIR/config.json"
 for config in "$SOURCE_DIR"/config*.tcl; do
   if [ -f "$config" ]; then
@@ -54,7 +56,7 @@ for config in "$SOURCE_DIR"/config*.tcl; do
   fi
 done
 cp "$SOURCE_DIR/pin_order.cfg" "$TARGET_DIR/pin_order.cfg"
-for source in "$SOURCE_DIR"/src/*.v; do
+for source in "$VERILOG_SOURCE_DIR"/*.v "$VERILOG_SOURCE_DIR"/*.sv; do
   if [ -f "$source" ]; then
     cp "$source" "$TARGET_DIR/src/$(basename "$source")"
   fi
@@ -62,6 +64,11 @@ done
 for constraint in "$SOURCE_DIR"/src/*.sdc; do
   if [ -f "$constraint" ]; then
     cp "$constraint" "$TARGET_DIR/src/$(basename "$constraint")"
+  fi
+done
+for source in "$SOURCE_DIR"/src/*.loc; do
+  if [ -f "$source" ]; then
+    cp "$source" "$TARGET_DIR/src/$(basename "$source")"
   fi
 done
 

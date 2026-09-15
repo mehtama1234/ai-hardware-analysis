@@ -1,0 +1,28 @@
+"""Run four packaged real causal-agent repairs on a Colab GPU."""
+from __future__ import annotations
+import hashlib,json,os,subprocess,tarfile
+from pathlib import Path
+CONTENT=Path(os.environ.get("REAL_FOUR_CAUSAL_CONTENT","/content"));ARCHIVE=Path(os.environ.get("REAL_FOUR_CAUSAL_ARCHIVE",str(CONTENT/"real-four-causal-agent.tgz")));WORK=CONTENT/"real-four-causal-agent";OUT=WORK/"artifacts";SUMMARY=OUT/"real-four-causal-agent-colab-summary.json"
+def main():
+ with tarfile.open(ARCHIVE,"r:gz") as archive:archive.extractall(CONTENT,filter="data")
+ cfg=json.loads((WORK/"config.json").read_text());model=WORK/"model";model.mkdir(exist_ok=True);env=os.environ.copy();env.update({"OPENLANE_REPO_ROOT":str(WORK/"openlane"),"VERIFICATION_LLM_BATCH_COMMAND":"python3 analog-digital-chip-design-eda/scripts/hf_llm_batch_backend.py","VERIFICATION_HF_MODEL":str(model),"VERIFICATION_HF_DEVICE":"cuda","VERIFICATION_HF_JSON_CONSTRAINED":"1","VERIFICATION_HF_MAX_NEW_TOKENS":"512"});steps=[]
+ def run(cmd,timeout,extra=None):
+  run_env=env|({"MODEL_ID":cfg["model_id"],"MODEL_DIR":str(model)} if extra is None else extra);r=subprocess.run(cmd,cwd=WORK,env=run_env,capture_output=True,text=True,timeout=timeout);steps.append({"command":cmd,"returncode":r.returncode,"status":"passed" if r.returncode==0 else "blocked","stdout_tail":r.stdout[-2000:],"stderr_tail":r.stderr[-2000:]});return r.returncode==0
+ if os.environ.get("REAL_FOUR_CAUSAL_SKIP_MODEL_SETUP") == "1":
+  env["VERIFICATION_LLM_COMMAND"]="python3 analog-digital-chip-design-eda/scripts/mock_repository_agent_backend.py";steps.append({"command":["model-setup-skipped"],"returncode":0,"status":"passed","stdout_tail":"offline orchestration test","stderr_tail":""})
+ else:
+  run(["bash","-lc","nvidia-smi --query-gpu=name,memory.total --format=csv,noheader"],60) and run(["python3","-m","pip","install","-q","transformers==4.51.3","huggingface_hub","torch","lm-format-enforcer"],1800) and run(["python3","-c","from huggingface_hub import snapshot_download; import os; snapshot_download(os.environ['MODEL_ID'], local_dir=os.environ['MODEL_DIR'])"],3600)
+ task_results=[]
+ if all(x["status"]=="passed" for x in steps):
+  cases=[("peripheral","scripts/run_real_peripheral_agent_repair.py","scripts/check_real_peripheral_agent_repair.py","real-openlane-peripheral-agent-repair-report.json"),("operation","scripts/run_real_operation_partition_agent_repair.py","scripts/check_real_operation_partition_agent_repair.py","real-openlane-operation-partition-agent-repair-report.json"),("error_budget","scripts/run_real_error_budget_agent_repair.py","scripts/check_real_error_budget_agent_repair.py","real-openlane-error-budget-agent-repair-report.json"),("multiclock","scripts/run_real_multiclock_agent_repair.py","scripts/check_real_multiclock_causal_agent_repair.py","real-openlane-multiclock-agent-repair-report.json")]
+  for key,runner,checker,report_name in cases:
+   out=OUT/key;causal=WORK/cfg["reports"][key];ok=run(["python3",runner,"--backend","local","--causal-report",str(causal),"--output",str(out)],7200);report=out/report_name
+   if ok and report.is_file():run(["python3",checker,str(report)],300)
+   if report.is_file():
+    payload=json.loads(report.read_text());agent_run=out/"agent/repository-agent-run.json";model_selected=None
+    if agent_run.is_file():
+     team=json.loads(agent_run.read_text()).get("team",{});repair=next((x for x in team.get("results",[]) if x.get("role")=="repair_proposer"),{});model_selected=repair.get("model_selected_repair")
+    task_results.append({"task":key,"status":payload.get("status"),"baseline_failed":payload.get("baseline_status")=="failed","causal_evidence_consumed":bool(payload.get("causal_report") and payload.get("causal_report_sha256") and payload.get("causal_frontier")),"repaired_passed":payload.get("repaired_status")=="passed","canonical_unchanged":payload.get("canonical_unchanged") is True,"model_selected_repair":model_selected})
+ real_model=os.environ.get("REAL_FOUR_CAUSAL_SKIP_MODEL_SETUP")!="1";model_observed=[x for x in task_results if isinstance(x.get("model_selected_repair"),bool)];all_required=steps and len(task_results)==4 and all(x["status"]=="passed" for x in steps) and (not real_model or len(model_observed)==4 and all(x["model_selected_repair"] for x in model_observed))
+ summary={"schema_version":"real-four-causal-agent-colab-summary-v1","model_id":cfg["model_id"],"tasks":cfg["tasks"],"steps":steps,"task_results":task_results,"metrics":{"task_count":len(task_results),"baseline_detection_rate":sum(x["baseline_failed"] for x in task_results)/4,"causal_evidence_consumption_rate":sum(x["causal_evidence_consumed"] for x in task_results)/4,"repair_success_rate":sum(x["repaired_passed"] for x in task_results)/4,"canonical_preservation_rate":sum(x["canonical_unchanged"] for x in task_results)/4,"model_selection_observed_count":len(model_observed),"model_repair_selection_rate":(sum(x["model_selected_repair"] for x in model_observed)/len(model_observed) if model_observed else None)},"status":"passed" if all_required else "blocked","claim_boundary":"real Qwen Colab execution across four packaged OpenLane causal-agent repairs; model-selection metrics distinguish model choices from adapter-bound protocol fields; not broad model generalization or silicon signoff"};summary["summary_sha256"]=hashlib.sha256(json.dumps(summary,sort_keys=True,separators=(",",":")).encode()).hexdigest();SUMMARY.parent.mkdir(parents=True,exist_ok=True);SUMMARY.write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n");return 0 if summary["status"]=="passed" else 1
+if __name__=="__main__":raise SystemExit(main())

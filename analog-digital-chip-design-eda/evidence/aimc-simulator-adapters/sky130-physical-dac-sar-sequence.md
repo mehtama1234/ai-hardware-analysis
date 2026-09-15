@@ -1,9 +1,9 @@
 # Sky130 Physical DAC SAR Sequence
 
 - status: `physical_dac_sar_sequence_characterized_not_continuous_multicycle_proof`
-- conversions: `5`
-- comparator trials: `20` of `20` measured
-- correct conversions: `0` of `5`
+- conversions: `16`
+- comparator trials: `64` of `64` measured
+- correct conversions: `11` of `16`
 
 ## What Is Physical
 
@@ -15,11 +15,22 @@ Each comparison is currently a fresh transient with the same circuit reset. That
 
 | expected code | input V | final code | comparisons | correct |
 | ---: | ---: | ---: | ---: | --- |
-| 0 | 0.956250 | 5 | 4 | False |
-| 2 | 1.181250 | 8 | 4 | False |
-| 4 | 1.406250 | 10 | 4 | False |
-| 6 | 1.631250 | 13 | 4 | False |
-| 7 | 1.743750 | 14 | 4 | False |
+| 0 | 0.956250 | 0 | 4 | True |
+| 1 | 1.068750 | 1 | 4 | True |
+| 2 | 1.181250 | 2 | 4 | True |
+| 3 | 1.293750 | 3 | 4 | True |
+| 4 | 1.406250 | 4 | 4 | True |
+| 5 | 1.518750 | 5 | 4 | True |
+| 6 | 1.631250 | 6 | 4 | True |
+| 7 | 1.743750 | 7 | 4 | True |
+| 8 | 1.856250 | 8 | 4 | True |
+| 9 | 1.968750 | 9 | 4 | True |
+| 10 | 2.081250 | 9 | 4 | False |
+| 11 | 2.193750 | 10 | 4 | False |
+| 12 | 2.306250 | 11 | 4 | False |
+| 13 | 2.418750 | 15 | 4 | False |
+| 14 | 2.531250 | 15 | 4 | False |
+| 15 | 2.643750 | 15 | 4 | True |
 
 ## Refused Claim
 
