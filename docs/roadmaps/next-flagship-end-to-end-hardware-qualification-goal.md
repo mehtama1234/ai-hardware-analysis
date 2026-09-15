@@ -192,16 +192,20 @@ blockers: human approval is still pending, and held-out generalization/local
 semantic localization is not complete. The audit itself is independently
 checked and cannot report completion while those requirements remain open.
 
-The first held-out historical item is now reconstructed rather than merely
-listed as a candidate. The committed
+The first two held-out historical items are now reconstructed rather than merely
+listed as candidates. The committed
 `.artifacts/heldout-openlane-historical-replay-20260915/` receipt replays
 OpenLane commit `000c992a…`, which corrected a synthesis checker that read a
 stale `synthesis_results` path instead of the active netlist. An isolated Tcl
 harness demonstrates that the parent silently passes when the active netlist
 contains an `assign`, while the corrected checker rejects it; the source
 snapshots, parent/fixed behavior, and report are independently digest-checked.
-This advances historical held-out regression reconstruction, but it is not an
-agent repair, a model-generalization result, or full OpenLane qualification.
+The companion `.artifacts/heldout-openlane-config-path-replay-20260915/`
+receipt replays OpenLane commit `1c6d1704…`, proving the parent mishandles
+`pdk_dir::` and `scl_dir::` paths while the corrected implementation expands
+both against the configured roots. These advances historical held-out
+regression reconstruction, but they are not agent repairs, model-generalization
+results, or full OpenLane qualification.
 
 The model-to-chip slice now has the same portability boundary. The committed
 `.artifacts/local-model-to-chip-qualification-20260915/` archive contains the
