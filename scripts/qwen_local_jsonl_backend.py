@@ -64,16 +64,28 @@ def complete(request: dict[str, object]) -> dict[str, object]:
             "Emit one compact JSON object containing only repair_choice, action, rationale, and status. "
             "The transport will bind proposal metadata, source revision, evidence, and proposal id."
         )
+        prompt_fields = {
+            "repair_choice": "declared_repair or reject_repair",
+            "action": "short bounded action",
+            "rationale": "short evidence-grounded rationale",
+            "status": "review_required",
+        }
     else:
         prompt_suffix = ""
         output_instruction = "Return exactly one compact JSON object containing the requested proposal fields."
+        prompt_fields = required
+    prompt_request = dict(request)
+    if role == "repair_proposer":
+        prompt_request.pop("repair_before", None)
+        prompt_request.pop("repair_after", None)
+        prompt_request.pop("repair_choice_options", None)
     prompt = (
         f"{output_instruction} No markdown. You are a bounded hardware verification agent. "
         "Use only the supplied request. Do not invent evidence, file names, line numbers, test results, "
         "or closure claims. The JSON must contain these fields and values/types:\n"
-        + json.dumps(required, sort_keys=True)
+        + json.dumps(prompt_fields, sort_keys=True)
         + "\nREQUEST:\n"
-        + json.dumps(request, sort_keys=True)
+        + json.dumps(prompt_request, sort_keys=True)
         + prompt_suffix
     )
     messages = [
