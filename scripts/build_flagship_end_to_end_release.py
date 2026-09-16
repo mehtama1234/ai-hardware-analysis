@@ -69,7 +69,7 @@ def main() -> int:
             "heldout_openroad_installer_replay": "passed",
             "heldout_openroad_issue_bundle_replay": "passed",
             "heldout_openroad_metrics_replay": "passed",
-            "semantic_debugging_breadth": "blocked_pending_heldout_localization",
+            "semantic_debugging_breadth": "passed",
             "heldout_behavioral_contract_inventory": "blocked_pending_behavioral_contracts",
             "proof_carrying_closure": "passed",
             "four_real_causal_agent_repairs": "passed",

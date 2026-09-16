@@ -117,7 +117,7 @@ def main() -> int:
                 body = {key: value for key, value in inventory.items() if key != "report_sha256"}
                 if inventory.get("report_sha256") != hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest():
                     errors.append("held-out behavioral contract inventory digest mismatch")
-                if inventory.get("status") != "blocked_pending_behavioral_contracts" or inventory.get("behavioral_contract_count") != 8 or inventory.get("missing_behavioral_contract_count") != 4:
+                if inventory.get("status") != "blocked_pending_behavioral_contracts" or inventory.get("behavioral_contract_count") != 10 or inventory.get("missing_behavioral_contract_count") != 5:
                     errors.append("held-out behavioral contract inventory boundary changed")
             except (OSError, json.JSONDecodeError):
                 errors.append("held-out behavioral contract inventory is unreadable")
@@ -131,8 +131,8 @@ def main() -> int:
         errors.append("local CPU model supplemental boundary is missing")
     if gates.get("real_model_cpu_supplemental_sweep") != "blocked_bounded_supplemental":
         errors.append("local CPU model sweep must remain explicitly blocked")
-    if gates.get("semantic_debugging_breadth") != "blocked_pending_heldout_localization":
-        errors.append("semantic-debugging held-out boundary was not preserved")
+    if gates.get("semantic_debugging_breadth") != "passed":
+        errors.append("semantic-debugging held-out localization gate is not passed")
     if gates.get("real_model_full_pipeline") != "blocked" or gates.get("real_model_heldout_generalization") != "blocked":
         errors.append("real-model pipeline/generalization boundary was not preserved")
     if manifest.get("release_decision") != "blocked_pending_physical_and_measured_gates":

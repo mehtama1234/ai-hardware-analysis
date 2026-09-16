@@ -15,6 +15,9 @@ TARGETS = [
     ("OpenLane", "/home/mehtama1/eda-tools/OpenLane/designs/peripheral", "peripheral"),
     ("OpenLane", "/home/mehtama1/eda-tools/OpenLane/designs/spm", "spm"),
     ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/src/aes", "aes_cipher_top"),
+    ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/src/fifo", "fifo"),
+    ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/src/chameleon/acc", "AHB_SPM"),
+    ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/src/uart", "uart"),
     ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/ihp-sg13g2/i2c-gpio-expander", "I2cGpioExpanderTop"),
 ]
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)")

@@ -198,32 +198,32 @@ entries remain candidate-only until regression reconstruction and agent repair
 validation; this receipt proves split breadth, not 50 successful repairs.
 
 Semantic-debugging breadth is recorded separately under
-`.artifacts/semantic-debugging-breadth-20260915/`. It proves ten compiled
-real multi-module designs, four checked causal trajectories with 4/4 observed
-localization, and seven held-out real targets with 7/7 causal replays. The
-required 90% held-out gate remains blocked because only 7/10 required
-held-out designs have been measured. These small held-out results are not
-promoted into generalization.
+`.artifacts/semantic-debugging-breadth-20260915/`. It now proves fifteen
+compiled real multi-module designs, four checked causal trajectories with 4/4
+observed localization, and ten disjoint held-out real targets with 10/10
+causal replays. The required 90% semantic-localization gate passes. The
+authenticated model-repair generalization gate remains separate and blocked:
+the Qwen/T4 closure results and supplemental CPU sweep do not establish model
+generalization. These results are not promoted into a broader model claim.
 
 The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
-receipt makes the reason for that block executable: eight of the twelve real
-targets now have source-level behavioral contracts: the existing
-`aimc_multi_clock_control_subsystem_tb.v` plus committed pipelined-governor
-and micro-tile-controller contracts under
-`evidence/heldout-behavioral-contracts/`. The independent checker records
-`8/12` available contracts and `4` missing contracts. The pipelined,
-micro-tile, registered-partition, physical-scheduler, tile-scheduler, SPM, and
-AES targets have digest-bound canonical/mutated replays with source-bound
-localization, but the other four contracts and their mutation replays are
-still required; the 90% metric cannot be inferred from compilation, timing, or
-physical artifacts.
+receipt makes the remaining boundary executable: ten of fifteen real targets
+now have source-level behavioral contracts. In addition to the earlier
+targets, committed contracts cover the asynchronous FIFO, Chameleon AHB
+scratchpad, and UART under `evidence/heldout-behavioral-contracts/`. The
+independent checker records `10/15` available contracts and five missing
+contracts. The ten measured targets have digest-bound canonical/mutated
+replays with source-bound localization; the five remaining targets still need
+contracts before the entire catalog can claim behavioral coverage. Compilation,
+timing, and physical artifacts cannot substitute for those contracts.
 
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
 definition-of-done items against current evidence and records the two genuine
-blockers: human approval is still pending, and held-out generalization/local
-semantic localization is not complete. The audit itself is independently
-checked and cannot report completion while those requirements remain open.
+blockers: human approval is still pending, and authenticated model
+generalization remains incomplete even though the local semantic-localization
+gate now passes. The audit itself is independently checked and cannot report
+completion while those requirements remain open.
 
 The first five held-out historical items are now reconstructed rather than merely
 listed as candidates. The committed
