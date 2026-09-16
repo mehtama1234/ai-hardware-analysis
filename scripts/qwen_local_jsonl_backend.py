@@ -60,10 +60,15 @@ def complete(request: dict[str, object]) -> dict[str, object]:
     if role == "repair_proposer":
         required["repair_choice"] = "declared_repair or reject_repair"
         prompt_suffix = " For repair_choice, output exactly one of the literal strings declared_repair or reject_repair; never repeat the explanatory label."
+        output_instruction = (
+            "Emit one compact JSON object containing only repair_choice, action, rationale, and status. "
+            "The transport will bind proposal metadata, source revision, evidence, and proposal id."
+        )
     else:
         prompt_suffix = ""
+        output_instruction = "Return exactly one compact JSON object containing the requested proposal fields."
     prompt = (
-        "Return exactly one JSON object and no markdown. You are a bounded hardware verification agent. "
+        f"{output_instruction} No markdown. You are a bounded hardware verification agent. "
         "Use only the supplied request. Do not invent evidence, file names, line numbers, test results, "
         "or closure claims. The JSON must contain these fields and values/types:\n"
         + json.dumps(required, sort_keys=True)
