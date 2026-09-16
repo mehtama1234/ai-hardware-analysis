@@ -157,7 +157,7 @@ an explicit `blocked_pending_supplemental_closure` status, not generalization
 success.
 
 The committed evidence plane now also survives a clean archived-checkout
-replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty-two passing
+replay. `.artifacts/flagship-clean-checkout-replay.json` records twenty-three passing
 independent checks for the flagship manifest, local unified acceptance, the
 163-component milestone report, the four-causal-agent package, the RTL-to-GDS
 bridge, and the model-to-chip handoff. Its independent receipt checker passes;
