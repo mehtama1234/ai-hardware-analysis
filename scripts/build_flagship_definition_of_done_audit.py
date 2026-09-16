@@ -28,11 +28,14 @@ def main():
   "heldout_openroad_issue_bundle_replay":ROOT/".artifacts/heldout-openroad-issue-bundle-replay-20260915/replay-report.json",
   "heldout_openroad_metrics_replay":ROOT/".artifacts/heldout-openroad-metrics-replay-20260915/replay-report.json",
  }
+ human_review = json.loads(evidence["human_review"].read_text(encoding="utf-8"))
+ human_status = human_review.get("status")
+ human_decision_complete = human_status in {"human_approved", "human_rejected"}
  records=[
   {"id":1,"requirement":"clean_checkout_reproduces_baseline","status":"passed","evidence":["clean_replay"],"finding":"clean archived-checkout replay passes all independent checks"},
   {"id":2,"requirement":"requirement_source_failure_and_agent_context_identified","status":"passed","evidence":["real_model","proof_closure"],"finding":"declared evidence packages retain source-bound model and closure context"},
   {"id":3,"requirement":"agent_output_grounded_bounded_and_checked","status":"passed","evidence":["real_model","proof_closure"],"finding":"authenticated primary proposals and closure evidence are independently checked"},
-  {"id":4,"requirement":"human_approval_or_rejection_explicit_and_digest_bound","status":"pending","evidence":["human_review"],"finding":"pending receipt is digest-bound but approval=false and reviewer=null"},
+  {"id":4,"requirement":"human_approval_or_rejection_explicit_and_digest_bound","status":"passed" if human_decision_complete else "pending","evidence":["human_review"],"finding":"explicit human decision is digest-bound" if human_decision_complete else "pending receipt is digest-bound but approval=false and reviewer=null"},
   {"id":5,"requirement":"repair_disposable_copy_only","status":"passed","evidence":["proof_closure","real_model"],"finding":"canonical immutability and bounded retest evidence are retained"},
   {"id":6,"requirement":"identical_scope_retest","status":"passed_bounded_local","evidence":["proof_closure","physical_archive"],"finding":"declared local closure and physical handoff scope pass; no silicon scope claimed"},
   {"id":7,"requirement":"heldout_real_designs_test_generalization","status":"blocked","evidence":["real_model","real_model_cpu_supplemental","real_model_cpu_supplemental_sweep","semantic_debugging","historical_breadth","heldout_historical_replay","heldout_historical_config_replay","heldout_openroad_installer_replay","heldout_openroad_issue_bundle_replay","heldout_openroad_metrics_replay"],"finding":"semantic localization now passes on 10/10 measured held-out real targets, but the authenticated Qwen/T4 repair closure remains 0%/12.5% and the supplemental CPU sweep closes 1/2 seeded tasks; model generalization is not promoted"},
@@ -46,6 +49,7 @@ def main():
  # The replay receipt includes this audit check, so bind its path but not its
  # digest to avoid a self-referential digest cycle.
  evidence_records["clean_replay"]={"path":rel(evidence["clean_replay"]),"binding":"independently checked committed replay receipt"}
- audit={"schema_version":"flagship-definition-of-done-audit-v1","generated_at":datetime.now(timezone.utc).isoformat(),"completion":False,"status":"blocked_pending_requirements","release_decision":"blocked_pending_physical_and_measured_gates","evidence":evidence_records,"requirements":records,"blocking_requirements":[4,7],"claim_boundary":"Requirement audit for the declared flagship evidence package; not human approval, held-out generalization, silicon signoff, commercial signoff, or production release."}
+ blocking = [requirement["id"] for requirement in records if requirement["status"] in {"pending", "blocked"}]
+ audit={"schema_version":"flagship-definition-of-done-audit-v1","generated_at":datetime.now(timezone.utc).isoformat(),"completion":False,"status":"blocked_pending_requirements","release_decision":"blocked_pending_physical_and_measured_gates","evidence":evidence_records,"requirements":records,"blocking_requirements":blocking,"claim_boundary":"Requirement audit for the declared flagship evidence package; not human approval, held-out generalization, silicon signoff, commercial signoff, or production release."}
  audit["audit_sha256"]=hashlib.sha256(json.dumps(audit,sort_keys=True,separators=(",",":")).encode()).hexdigest();out=a.output.resolve();out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(audit,indent=2,sort_keys=True)+"\n");print(json.dumps({"status":audit["status"],"completion":False,"blocking_requirements":audit["blocking_requirements"],"output":str(out)},sort_keys=True));return 0
 if __name__=="__main__":raise SystemExit(main())
