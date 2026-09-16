@@ -14,6 +14,7 @@ TARGETS = [
     ("OpenLane", "/home/mehtama1/eda-tools/OpenLane/designs/aimc_tile_service_scheduler_physical", "aimc_tile_service_scheduler_physical"),
     ("OpenLane", "/home/mehtama1/eda-tools/OpenLane/designs/peripheral", "peripheral"),
     ("OpenLane", "/home/mehtama1/eda-tools/OpenLane/designs/spm", "spm"),
+    ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/src/aes", "aes_cipher_top"),
     ("OpenROAD-flow-scripts", "/home/mehtama1/eda-tools/OpenROAD-flow-scripts/flow/designs/ihp-sg13g2/i2c-gpio-expander", "I2cGpioExpanderTop"),
 ]
 MODULE_RE = re.compile(r"\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)")
@@ -39,7 +40,7 @@ def main():
                 if candidate in names and candidate != instance: edges.append({"module":candidate,"instance":instance})
         compile_dir=Path(tempfile.mkdtemp(prefix="real-multimodule-compile-", dir="/tmp")); binary=compile_dir/"design.vvp"
         compile_files = files + EXTRA_FILES.get(root.name, [])
-        completed=subprocess.run(["iverilog","-g2012","-s",top,"-o",str(binary),*[str(x) for x in compile_files]],capture_output=True,text=True,timeout=120,check=False)
+        completed=subprocess.run(["iverilog","-g2012","-I",str(root),"-s",top,"-o",str(binary),*[str(x) for x in compile_files]],capture_output=True,text=True,timeout=120,check=False)
         (args.output/f"{len(designs):02d}-{root.name}-compile.stdout.log").write_text(completed.stdout); (args.output/f"{len(designs):02d}-{root.name}-compile.stderr.log").write_text(completed.stderr)
         designs.append({"repository":repository,"root":str(root),"top":top,"rtl_file_count":len(files),"rtl_files":[{"path":str(x),"sha256":sha(x)} for x in files],"module_count":len(modules),"modules":modules,"hierarchy_edges":sorted(set((x["module"],x["instance"]) for x in edges)),"clock_signals":sorted(set(re.findall(r"\b(?:posedge|negedge)\s+([A-Za-z_][A-Za-z0-9_]*)", "\n".join(text_by_file.values())))),"reset_signals":sorted(set(re.findall(r"\b(?:rst|reset)[A-Za-z0-9_]*\b", "\n".join(text_by_file.values()), re.I))),"compile_status":"passed" if completed.returncode==0 else "blocked","compile_returncode":completed.returncode})
     report={"schema_version":"real-multimodule-rtl-catalog-v1","target_count":len(designs),"minimum_target_count":10,"designs":designs,"errors":errors,"status":"passed" if len(designs)>=10 and not errors and all(x["module_count"]>=2 for x in designs) else "blocked","claim_boundary":"real multi-module RTL source trees cataloged and compile-checked where supported; no functional correctness, failure localization, or physical signoff claim"}
