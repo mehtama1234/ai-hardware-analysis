@@ -207,15 +207,13 @@ the Qwen/T4 closure results and supplemental CPU sweep do not establish model
 generalization. These results are not promoted into a broader model claim.
 
 The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
-receipt makes the remaining boundary executable: fourteen of fifteen real
-targets now have source-level behavioral contracts. In addition to the earlier
-targets, committed contracts cover the asynchronous FIFO, Chameleon AHB
-scratchpad, UART, both physical AIMC wrappers, and the CSR peripheral under
-`evidence/heldout-behavioral-contracts/`. The independent checker records
-`14/15` available contracts and one missing contract: the I2C expander whose
-referenced controller and pad RTL dependencies are absent from the local
-external tree. Compilation, timing, and physical artifacts cannot substitute
-for that missing executable contract.
+receipt makes the contract boundary executable: all fifteen real targets now
+have source-level behavioral contracts. In addition to the earlier targets,
+committed contracts cover the asynchronous FIFO, Chameleon AHB scratchpad,
+UART, both physical AIMC wrappers, the CSR peripheral, and the I2C GPIO
+expander. The independent checker records `15/15` available contracts and the
+inventory is ready for held-out execution. Compilation, timing, and physical
+artifacts remain separate from behavioral qualification.
 
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
