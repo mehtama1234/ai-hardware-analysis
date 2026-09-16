@@ -22,6 +22,10 @@ MODEL_PATH = os.environ.get("QWEN_LOCAL_MODEL_PATH", "").strip()
 if not MODEL_PATH:
     raise SystemExit("QWEN_LOCAL_MODEL_PATH is required")
 torch.set_num_threads(int(os.environ.get("QWEN_CPU_THREADS", "2")))
+try:
+    MAX_NEW_TOKENS = max(16, int(os.environ.get("QWEN_MAX_NEW_TOKENS", "192")))
+except ValueError:
+    MAX_NEW_TOKENS = 192
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, local_files_only=True)
 model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, local_files_only=True, torch_dtype=torch.float32)
 model.eval()
@@ -74,7 +78,7 @@ def complete(request: dict[str, object]) -> dict[str, object]:
     encoded = tokenizer.apply_chat_template(messages, add_generation_prompt=True, return_tensors="pt")
     input_ids = encoded["input_ids"] if hasattr(encoded, "__getitem__") else encoded
     with torch.no_grad():
-        generated = model.generate(input_ids, attention_mask=encoded.get("attention_mask"), max_new_tokens=192, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+        generated = model.generate(input_ids, attention_mask=encoded.get("attention_mask"), max_new_tokens=MAX_NEW_TOKENS, do_sample=False, pad_token_id=tokenizer.eos_token_id)
     text = tokenizer.decode(generated[0][input_ids.shape[-1]:], skip_special_tokens=True)
     if os.environ.get("QWEN_DEBUG_RAW") == "1":
         print(f"QWEN_RAW role={role}: {text!r}", file=sys.stderr, flush=True)
