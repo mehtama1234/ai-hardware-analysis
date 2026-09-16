@@ -179,7 +179,11 @@ at `.artifacts/flagship-human-review-receipt.json`. It binds the exact
 flagship manifest and evidence-list digests, records `approval: false` and a
 null reviewer, and names the decision and scope that still require a human.
 Its independent checker rejects a receipt that silently turns a blocked
-package into approval; this is an auditable pending state, not signoff.
+package into approval; this is an auditable pending state, not signoff. The
+digest-bound `scripts/record_flagship_human_decision.py` path can now record a
+named approval or rejection with explicit scope and reason, while preserving
+the fail-closed release decision until the signed human choice is actually
+present.
 
 The local physical evidence boundary is portable as well. The committed
 `.artifacts/flagship-physical-evidence-20260915/` archive contains the AIMC
