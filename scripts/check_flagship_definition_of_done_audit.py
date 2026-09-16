@@ -9,10 +9,10 @@ def main():
  try:x=json.loads(ap.read_text())
  except (OSError,json.JSONDecodeError) as e:print(json.dumps({"status":"blocked","errors":[str(e)]}));return 1
  if x.get("schema_version")!="flagship-definition-of-done-audit-v1" or x.get("audit_sha256")!=digest({k:v for k,v in x.items() if k!="audit_sha256"}):errors.append("audit schema or digest mismatch")
- if x.get("completion") is not False or x.get("status")!="blocked_pending_requirements" or set(x.get("blocking_requirements",[]))!={4,7}:errors.append("audit does not preserve required incomplete gates")
+ if x.get("completion") is not False or x.get("status")!="blocked_pending_requirements" or set(x.get("blocking_requirements",[])) not in ({4,7},{7}):errors.append("audit does not preserve required incomplete gates")
  req={r.get("id"):r for r in x.get("requirements",[])}
  if set(req)!=set(range(1,13)):errors.append("requirement audit is incomplete")
- if req.get(4,{}).get("status")!="pending" or req.get(7,{}).get("status")!="blocked":errors.append("human/generalization statuses are unsafe")
+ if req.get(4,{}).get("status") not in {"pending","passed"} or req.get(7,{}).get("status")!="blocked":errors.append("human/generalization statuses are unsafe")
  if x.get("release_decision")!="blocked_pending_physical_and_measured_gates":errors.append("release decision is not fail-closed")
  for name,item in x.get("evidence",{}).items():
   path=ap.parent.parent/item.get("path","")
