@@ -200,22 +200,23 @@ validation; this receipt proves split breadth, not 50 successful repairs.
 Semantic-debugging breadth is recorded separately under
 `.artifacts/semantic-debugging-breadth-20260915/`. It proves ten compiled
 real multi-module designs, four checked causal trajectories with 4/4 observed
-localization, and two held-out real targets with 2/2 causal replays. The
-required 90% held-out gate remains blocked because only 2/10 required
+localization, and three held-out real targets with 3/3 causal replays. The
+required 90% held-out gate remains blocked because only 3/10 required
 held-out designs have been measured. These small held-out results are not
 promoted into generalization.
 
 The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
-receipt makes the reason for that block executable: two of the ten real
+receipt makes the reason for that block executable: four of the ten real
 targets now have source-level behavioral contracts: the existing
 `aimc_multi_clock_control_subsystem_tb.v` plus committed pipelined-governor
 and micro-tile-controller contracts under
 `evidence/heldout-behavioral-contracts/`. The independent checker records
-`3/10` available contracts and `7` missing contracts. The pipelined and
-micro-tile targets have digest-bound canonical/mutated replays with cycle-2
-first divergences and source-bound localization, but the other seven contracts
-and their mutation replays are still required; the 90% metric cannot be
-inferred from compilation, timing, or physical artifacts.
+`4/10` available contracts and `6` missing contracts. The pipelined,
+micro-tile, and registered-partition targets have digest-bound
+canonical/mutated replays with cycle-2 first divergences and source-bound
+localization, but the other six contracts and their mutation replays are still
+required; the 90% metric cannot be inferred from compilation, timing, or
+physical artifacts.
 
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve

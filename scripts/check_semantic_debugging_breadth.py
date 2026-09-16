@@ -14,7 +14,7 @@ def main():
  if cat.get("schema_version")!="real-multimodule-rtl-catalog-v1" or cat.get("target_count")<10 or sum(x.get("compile_status")=="passed" for x in cat.get("designs",[]))<10: errors.append("catalog does not prove ten compiled designs")
  if causal.get("status")!="passed": errors.append("causal receipt is not passed")
  m=r.get("metrics",{});
- if m.get("observed_localization_rate")!=1.0 or m.get("heldout_localization_passed")!=2 or m.get("heldout_localization_total")!=2 or m.get("heldout_localization_rate")!=1.0 or m.get("required_heldout_designs")!=10: errors.append("localization boundary is malformed")
+ if m.get("observed_localization_rate")!=1.0 or m.get("heldout_localization_passed")!=3 or m.get("heldout_localization_total")!=3 or m.get("heldout_localization_rate")!=1.0 or m.get("required_heldout_designs")!=10: errors.append("localization boundary is malformed")
  for name,item in r.get("artifacts",{}).items():
   pth=rp.parent/item.get("path","")
   if not pth.is_file() or sha(pth)!=item.get("sha256"): errors.append(f"artifact digest mismatch: {name}")
@@ -27,6 +27,6 @@ def main():
     if heldout.get("frontier",{}).get("status")!="diverged" or heldout.get("binding",{}).get("status")!="available" or heldout.get("localization",{}).get("status")!="available": errors.append("held-out causal localization is incomplete")
     if heldout.get("integrity_errors")!=[]: errors.append("held-out report contains integrity errors")
    except (OSError,json.JSONDecodeError): errors.append("held-out report is unreadable")
- if "2/10" not in r.get("claim_boundary","") or "90%" not in r.get("claim_boundary","") or "blocked" not in r.get("claim_boundary","").lower(): errors.append("claim boundary does not preserve held-out limit")
+ if "3/10" not in r.get("claim_boundary","") or "90%" not in r.get("claim_boundary","") or "blocked" not in r.get("claim_boundary","").lower(): errors.append("claim boundary does not preserve held-out limit")
  result={"schema_version":"semantic-debugging-breadth-check-v1","status":"passed" if not errors else "blocked","receipt":str(rp),"metrics":m,"errors":sorted(set(errors))};result["check_sha256"]=digest(result);print(json.dumps(result,sort_keys=True));return 0 if not errors else 1
 if __name__=="__main__": raise SystemExit(main())
