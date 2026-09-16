@@ -65,7 +65,7 @@ def complete(request: dict[str, object]) -> dict[str, object]:
             "The transport will bind proposal metadata, source revision, evidence, and proposal id."
         )
         prompt_fields = {
-            "repair_choice": "declared_repair or reject_repair",
+            "repair_choice": "your selected option",
             "action": "short bounded action",
             "rationale": "short evidence-grounded rationale",
             "status": "review_required",
