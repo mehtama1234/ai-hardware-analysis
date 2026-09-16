@@ -174,16 +174,13 @@ depending on the original `/tmp` run directory. This remains declared local
 acceptance evidence: it is not exhaustive proof, silicon signoff, or a
 production release.
 
-The release package also now carries an explicit pending human-review receipt
-at `.artifacts/flagship-human-review-receipt.json`. It binds the exact
-flagship manifest and evidence-list digests, records `approval: false` and a
-null reviewer, and names the decision and scope that still require a human.
-Its independent checker rejects a receipt that silently turns a blocked
-package into approval; this is an auditable pending state, not signoff. The
-digest-bound `scripts/record_flagship_human_decision.py` path can now record a
-named approval or rejection with explicit scope and reason, while preserving
-the fail-closed release decision until the signed human choice is actually
-present.
+The release package now carries an explicit digest-bound human approval at
+`.artifacts/flagship-human-review-receipt.json`. It binds the exact flagship
+manifest and evidence-list digests, records the named reviewer `mehtama1`, and
+limits the approval to the bounded digital/model-review transition. The
+independent checker accepts this explicit decision while preserving the
+fail-closed release decision for physical, measured, silicon, and production
+claims.
 
 The local physical evidence boundary is portable as well. The committed
 `.artifacts/flagship-physical-evidence-20260915/` archive contains the AIMC
@@ -221,11 +218,19 @@ artifacts remain separate from behavioral qualification.
 
 The requirement-by-requirement audit is committed at
 `.artifacts/flagship-definition-of-done-audit.json`. It checks all twelve
-definition-of-done items against current evidence and records the two genuine
-blockers: human approval is still pending, and authenticated model
-generalization remains incomplete even though the local semantic-localization
-gate now passes. The audit itself is independently checked and cannot report
-completion while those requirements remain open.
+definition-of-done items against current evidence and records the remaining
+genuine blocker: authenticated model generalization remains incomplete even
+though the local semantic-localization gate now passes. The audit itself is
+independently checked and cannot report completion while that requirement or
+the physical/measured gates remain open.
+
+On 2026-09-16, the WSL-installed authenticated Colab CLI was used to request a
+fresh T4 session for the held-out real-model repair evaluation. Colab returned
+`503 Service Unavailable` at the assignment endpoint on two attempts; L4 was
+also rejected because the account has no entitlement. No new model result was
+promoted, and the prior authenticated Qwen/T4 evidence remains the only
+accepted external model evidence. The allocation failure is preserved as an
+external-capacity blocker rather than being represented as a model pass.
 
 The first five held-out historical items are now reconstructed rather than merely
 listed as candidates. The committed
