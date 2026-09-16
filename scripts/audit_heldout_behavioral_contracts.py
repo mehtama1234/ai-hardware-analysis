@@ -8,7 +8,10 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCAL_CONTRACT_ALIASES = {"aes_cipher_top": "aes"}
+LOCAL_CONTRACT_ALIASES = {
+    "aes_cipher_top": "aes",
+    "AHB_SPM": "ahb_spm",
+}
 
 def digest(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
