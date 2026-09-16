@@ -117,7 +117,7 @@ def main() -> int:
                 body = {key: value for key, value in inventory.items() if key != "report_sha256"}
                 if inventory.get("report_sha256") != hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest():
                     errors.append("held-out behavioral contract inventory digest mismatch")
-                if inventory.get("status") != "blocked_pending_behavioral_contracts" or inventory.get("behavioral_contract_count") != 2 or inventory.get("missing_behavioral_contract_count") != 8:
+                if inventory.get("status") != "blocked_pending_behavioral_contracts" or inventory.get("behavioral_contract_count") != 3 or inventory.get("missing_behavioral_contract_count") != 7:
                     errors.append("held-out behavioral contract inventory boundary changed")
             except (OSError, json.JSONDecodeError):
                 errors.append("held-out behavioral contract inventory is unreadable")

@@ -200,19 +200,20 @@ validation; this receipt proves split breadth, not 50 successful repairs.
 Semantic-debugging breadth is recorded separately under
 `.artifacts/semantic-debugging-breadth-20260915/`. It proves ten compiled
 real multi-module designs, four checked causal trajectories with 4/4 observed
-localization, and one held-out real pipelined target with a 1/1 causal replay.
-The required 90% held-out gate remains blocked because only 1/10 required
-held-out designs has been measured. This prevents the small held-out result
-from being promoted into generalization.
+localization, and two held-out real targets with 2/2 causal replays. The
+required 90% held-out gate remains blocked because only 2/10 required
+held-out designs have been measured. These small held-out results are not
+promoted into generalization.
 
 The companion `.artifacts/heldout-behavioral-contract-inventory-20260915/`
 receipt makes the reason for that block executable: two of the ten real
 targets now have source-level behavioral contracts: the existing
-`aimc_multi_clock_control_subsystem_tb.v` and the committed pipelined-governor
-contract under `evidence/heldout-behavioral-contracts/`. The independent
-checker records `2/10` available contracts and `8` missing contracts. The
-pipelined target has a digest-bound canonical/mutated replay with a cycle-2
-first divergence and source-bound localization, but the other eight contracts
+`aimc_multi_clock_control_subsystem_tb.v` plus committed pipelined-governor
+and micro-tile-controller contracts under
+`evidence/heldout-behavioral-contracts/`. The independent checker records
+`3/10` available contracts and `7` missing contracts. The pipelined and
+micro-tile targets have digest-bound canonical/mutated replays with cycle-2
+first divergences and source-bound localization, but the other seven contracts
 and their mutation replays are still required; the 90% metric cannot be
 inferred from compilation, timing, or physical artifacts.
 
