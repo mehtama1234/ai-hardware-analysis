@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
 OUT = RESULTS / "differential-feedback-finger-mismatch-stress.json"
 PROTOCOL = RESULTS / "differential-feedback-finger-mismatch-stress-preregistered-protocol.json"
+PROGRESS = RESULTS / "differential-feedback-finger-mismatch-stress.progress.json"
 
 WIDTHS = ("100u", "2.5u", "10u")
 FINGERS = (32, 1, 2)
@@ -52,15 +53,40 @@ def evaluate(trial: tuple[str, tuple[str, ...], str]) -> dict:
             "corners": result["corners"]}
 
 
+def save_progress(protocol_sha256: str, rows: list[dict | None]) -> None:
+    """Persist completed trials so an interrupted SPICE cohort can resume."""
+    payload = {
+        "schema_version": "analog_converter_differential_feedback_finger_mismatch_stress_progress.v1",
+        "protocol_sha256": protocol_sha256,
+        "candidate": {"correction_width": list(WIDTHS), "finger_count": list(FINGERS)},
+        "trials": [row for row in rows if row is not None],
+    }
+    PROGRESS.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+
 def main() -> int:
     protocol_doc = protocol()
     PROTOCOL.write_text(json.dumps(protocol_doc, indent=2, sort_keys=True) + "\n")
+    protocol_sha256 = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
     rows: list[dict | None] = [None] * len(TRIALS)
+    by_name = {name: index for index, (name, _, _) in enumerate(TRIALS)}
+    if PROGRESS.is_file():
+        checkpoint = json.loads(PROGRESS.read_text())
+        if (checkpoint.get("protocol_sha256") != protocol_sha256
+                or checkpoint.get("candidate") != {"correction_width": list(WIDTHS), "finger_count": list(FINGERS)}):
+            raise RuntimeError("mismatch-stress progress does not match the frozen protocol/candidate")
+        for row in checkpoint.get("trials", []):
+            index = by_name.get(row.get("name"))
+            if index is not None:
+                rows[index] = row
+        print(json.dumps({"resuming_completed_trials": sum(row is not None for row in rows)}, sort_keys=True), flush=True)
+    pending = [trial for index, trial in enumerate(TRIALS) if rows[index] is None]
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {executor.submit(evaluate, trial): index for index, trial in enumerate(TRIALS)}
+        futures = {executor.submit(evaluate, trial): by_name[trial[0]] for trial in pending}
         for future in as_completed(futures):
             index = futures[future]
             rows[index] = future.result()
+            save_progress(protocol_sha256, rows)
             print(json.dumps({"trial": rows[index]["name"], "status": rows[index]["status"],
                               "max_inl_lsb": rows[index]["summary"]["max_inl_lsb"]}), flush=True)
     complete = [row for row in rows if row is not None]
@@ -68,7 +94,8 @@ def main() -> int:
                and row["summary"]["all_monotonic"] and row["summary"]["all_settled"]]
     result = {
         "schema_version": "analog_converter_differential_feedback_finger_mismatch_stress.v1",
-        "protocol": {"path": PROTOCOL.name, "sha256": hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()},
+        "protocol": {"path": PROTOCOL.name, "sha256": protocol_sha256},
+        "progress": {"path": PROGRESS.name, "sha256": hashlib.sha256(PROGRESS.read_bytes()).hexdigest()},
         "candidate": {"correction_width": list(WIDTHS), "finger_count": list(FINGERS)},
         "trials": complete,
         "summary": {"trials": len(complete), "passing": len(passing),
