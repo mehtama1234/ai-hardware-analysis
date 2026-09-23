@@ -1,4 +1,9 @@
-# MLSYS 2025 — Cross-Corpus Theme Taxonomy
+# MLSYS 2025 — Legacy Cross-Corpus Digest (Nine-Theme Working View)
+
+> **Status:** legacy digest for navigation and metric lookup. This nine-theme clustering
+> predates and does not replace the eight-theme first-principles taxonomy in
+> `analysis/mlsys-2025-first-principles-theme-syntheses.md` and
+> `metadata/mlsys-2025-first-principles-taxonomy-draft.json`.
 
 Scope: 61 per-paper records, all `confidence: high` (full-text extractions). This file
 clusters the granular `primary_theme` / `technique_category` / `tags` fields from the

@@ -1,10 +1,9 @@
 # Cross-Venue Synthesis — AI Hardware & Systems, 2025
 
 Ten venues, one year: **MLSys, ISCA, MICRO, HPCA, ASPLOS, DAC, ISSCC, Hot Chips, SC, VLSID**.
-This file reads the ten per-venue deterministic digests and the MLSys theme taxonomy (its
-anchor), samples the per-paper JSON extractions to ground every claim in specific paper ids,
-and draws the real contrasts across the full stack — from transistor and circuit up through
-supercomputer. Paper ids are cited as `venue-2025-nnn`.
+This file reads the ten per-venue deterministic digests and the MLSys theme taxonomy, samples
+per-paper JSON records, and uses paper ids (`venue-2025-nnn`) to point readers toward evidence.
+It is a cross-venue map and reading guide, not a paper-by-paper verification of every record.
 
 **Corpus:** ~1769 papers analyzed across ten venues (MLSys 61, ISCA 112, MICRO 47, HPCA 119,
 ASPLOS 164, DAC 443, ISSCC 258, Hot Chips 38, SC 430, VLSID 97). Only MLSys is fully full-text;
@@ -12,58 +11,58 @@ every other venue is dominated by abstract-only (`low` confidence) records, and 
 newly added venues (ISSCC, VLSID) are almost entirely circuit-level abstracts. See §6 for the
 honest coverage picture before trusting any count.
 
-The four new venues widen the stack in two directions the original six did not reach: **down**
+The four added venues widen the stack in two directions the original six did not reach: **down**
 to the transistor/circuit/silicon-measurement layer (ISSCC, VLSID) and **out** to two ends of
 the deployment spectrum — the taped-out industrial product (Hot Chips) and the exascale
 supercomputer running real science (SC).
 
 ---
 
+## How to use this synthesis
+
+The counts are corpus counts, not independently verified scientific conclusions. MLSys has the
+deepest full-text treatment in this project. Most other records are based on abstracts, structured
+metadata, or local reviews, so they can support a paper's topic and high-level mechanism more
+readily than detailed claims about implementation, omitted costs, or generality. Hot Chips is a
+product-disclosure venue rather than a conventional peer-reviewed research venue. ISSCC and VLSID
+often report measured circuits, but a measured circuit metric is not the same as an end-to-end
+application result. SC's reproduction and artifact records answer still another question: whether
+selected work can be rerun under stated conditions.
+
+Use the representative paper ids as starting points. Before transferring a number or comparison,
+check its source, baseline, workload, hardware, measurement boundary, and acceptance rule. A
+theme appearing in several venues means that a related mechanism or question recurs; it does not
+mean the papers use the same definition or that their results can be ranked together.
+
 ## 1. The one-paragraph picture
 
-Across all ten venues in 2025 the field is doing one thing above all others: **bending the
-entire stack — from the transistor up to the 65,536-GPU supercomputer — around the LLM
-transformer, and around attention and the KV-cache in particular.** "LLM-inference" is the
-single most common workload at nearly every venue — MLSys (26), ISCA (31), MICRO (16), HPCA
-(29), ASPLOS (37), DAC (70), ISSCC (26), Hot Chips (22) — and even the two venues where it is
-not #1 are visibly reorganizing around it: SC's top compute theme is LLM-training (37) and
-exascale foundation models (`sc-2025-016` ORBIT-2 on 65,536 GPUs), and VLSID's ML/AI cluster
-is its single largest technique bucket. The dominant *mechanism* recurs regardless of layer:
-fuse an algorithmic idea (a sparsity pattern, a quantization scheme, an attention variant, a
-prefill/decode split) directly into the datapath and its scheduler rather than treating them
-as separable layers. What changes is the **layer of the stack** each venue attacks. MLSys
-optimizes GPU software on NVIDIA A100/H100 silicon it takes as given. The three architecture
-venues (ISCA, MICRO, HPCA) build that silicon and carry the body of work MLSys structurally
-cannot touch: ASICs and compute-in-memory, memory systems and coherence, on-chip interconnect,
-RowHammer/side-channels, reliability, and near-data processing. ASPLOS sits at the boundary,
-pairing compilers and OS/runtime with hardware co-design and a heavy security stream. DAC
-builds the *tools* that produce the silicon (EDA, RTL simulation, verification, LLM-for-chip).
-The four new venues extend this: **ISSCC and VLSID** publish the *measured circuits* — real
-chips with mW, GS/s, phase-noise, and TOPS/W numbers, where "AI accelerator" sits alongside
-power ICs, ADCs, mm-wave transceivers, and SerDes; **Hot Chips** presents the *shipping
-industrial parts* (NPUs, GPUs, CPUs, optical I/O, open-source RISC-V SoCs); and **SC** runs
-the *whole machine* — distributed LLM training and inference co-existing with scientific
-simulation, and, distinctively, an enormous reproducibility/artifact-evaluation apparatus that
-no other venue has. The collective reflex everywhere is **co-design**; the collective blind
-spot — inherited from MLSys, only partly repaired — is non-NVIDIA silicon and honest
-energy/PPA accounting, though ISSCC/VLSID/Hot Chips supply the per-chip power numbers the
-GPU-software venues almost never report.
+Across these ten venues, LLM inference and training are prominent, especially in the systems and
+architecture records, while circuit venues retain substantial work on communications, power,
+conversion, sensing, and other applications. A recurring design pattern is to connect an
+algorithmic choice—such as a number format, sparsity pattern, attention rule, or serving phase—to
+the datapath and schedule that execute it. The layer changes by venue: MLSys studies software on
+existing accelerators; ISCA, MICRO, and HPCA study hardware and memory systems; ASPLOS connects
+software with hardware and security; DAC studies tools that produce designs; ISSCC and VLSID often
+measure circuits; Hot Chips presents products; and SC studies complete supercomputer workloads and
+reproduction. This is a division of emphasis, not a claim that a venue never crosses its usual
+boundary.
 
 ---
 
 ## 2. Per-venue character
 
-**MLSys — systems-for-LLMs on GPUs.** The software-systems venue for the NVIDIA GPU: 42/61
-papers name a GPU, A100/H100 are the de-facto harness, non-NVIDIA silicon is nearly absent (one
-Huawei NPU, one RISC-V ASIC, no TPU/AMD). Workloads are overwhelmingly LLM-inference (26) and
-LLM-training (22); the work is kernels, serving schedulers, quantization-for-serving,
-parallelism plans, and offloading — never the silicon. Signature: **mlsys-2025-000**
+**MLSys — software for model training and serving on accelerators.** In this corpus, 42/61
+records name a GPU, with A100/H100 common in the evaluations; non-NVIDIA hardware is rare in the
+sample. LLM inference (26) and training (22) are prominent, alongside kernels, serving schedulers,
+quantization, parallelism, and offloading. The sampled papers generally take the accelerator as
+given rather than designing its silicon. Signature: **mlsys-2025-000**
 (FlashInfer attention/KV-layout kernel compiler), **mlsys-2025-003** (QServe W4A8KV4 co-designed
 with the Tensor-Core datapath), **mlsys-2025-018** (SOLA per-iteration SLO-aware prefill/decode
 scheduling on vLLM). It is the anchor taxonomy (9 themes) and the venue whose gaps the others
 exist to fill.
 
-**ISCA — real silicon, memory systems, the whole non-GPU frontier.** Where hardware gets built:
+**ISCA — computer architecture across memory, data movement, and specialized hardware.** The
+sample includes many hardware proposals and evaluations:
 ASIC dominates (49/112) with CIM (13), FPGA (10), SoC (10), plus photonic/PIM/analog/chiplet and
 one TPU. Technique profile: memory-system (47), dataflow (39), near-data-processing (27),
 interconnect (17), reliability (12), security (9). Workloads broaden beyond LLM-inference (31) to
@@ -82,7 +81,7 @@ would never publish). Signature: **micro-2025-057** (Pimba PIM for post-transfor
 **micro-2025-087** (automated RISC-V subset-processor generation for extreme edge). Caveat: 47
 records; 76 title-only excluded because IEEE withholds MICRO abstracts — most under-sampled.
 
-**HPCA — the broad architecture slice: memory, reliability, near-data, quantum.** Broadest
+**HPCA — a broad architecture slice: memory, reliability, near-data, and quantum systems.** Broadest
 architecture corpus (119). Technique histogram: memory-system (61), scheduling (54), dataflow
 (40), near-data-processing (24), cache (19), reliability (14), prefetching (13), security (13).
 HPC (40) edges out LLM-inference (29) — HPCA keeps a strong non-AI systems core. Owns
@@ -103,7 +102,7 @@ node MoE comm with compute), **asplos-2025-049** (output-length-aware SLA LLM se
 **asplos-2025-113** (MOAT provably-secure per-row RowHammer mitigation). The bridge between
 MLSys systems and ISCA/MICRO/HPCA silicon.
 
-**DAC — the design-automation / EDA venue, at scale.** Categorically about the *tools that build
+**DAC — design automation and EDA at scale.** The sample centers on *tools that build
 chips*, not chips as workloads — and by far the largest corpus (443 analyzed). Dominant technique
 is **circuit-design (168)** plus compiler (129), with EDA-native tags: physical-design, routing,
 placement, IR-drop, verification, timing, logic-synthesis. Signature EDA work: **dac-2025-035**
@@ -115,18 +114,19 @@ graph-based per-node IR-drop). Fast-growing **AI-for-EDA / LLM-for-chip** sub-st
 (**dac-2025-072** SQ-DM 4-bit diffusion, **dac-2025-128/134** attention-on-PIM) but always with
 the EDA/tool lens.
 
-**ISSCC — measured silicon: the circuit venue.** The solid-state-circuits venue, and it looks
-nothing like the systems venues: **ASIC dominates 236/258**, and its technique profile is
-**circuit-design (221) + power (96)** — everything is a taped-out, measured circuit with real
-mW/GS/s/phase-noise/TOPS/W numbers. AI accelerators are one cluster among many: mm-wave
+**ISSCC — circuit designs and measured silicon.** In this sample, **ASIC dominates 236/258**, and
+the technique profile is **circuit-design (221) + power (96)**. Many records describe taped-out,
+measured circuits with mW, GS/s, phase-noise, or TOPS/W numbers. AI accelerators are one cluster
+among many: mm-wave
 transceivers, PLLs/oscillators (phase-noise 9), high-speed I/O/PAM-4 SerDes (`isscc-2025-192`
 200Gb/s PAM-4), ADCs (`isscc-2025-050` 12b 3GS/s pipelined), power ICs/GaN drivers, LPDDR5X,
 and biomedical/implantable SoCs. The AI work is aggressively low-power and per-chip-measured:
 **isscc-2025-020** (3.9mW 200-words/min implantable speech-decoding NSP), **isscc-2025-100**
 (monolithic MRAM in-memory-computing DNN microprocessor, 1.1Mb weights, 28nm),
 **isscc-2025-186** (IRIS 8.55mJ/frame 3D-Gaussian-Splatting spatial-computing SoC),
-**isscc-2025-190** (IBM Telum II 5.5GHz CPU with on-die DPU + AI accelerator). This is the
-venue that supplies the energy/area ground-truth the GPU-software venues omit.
+**isscc-2025-190** (IBM Telum II 5.5GHz CPU with on-die DPU + AI accelerator). These records
+provide circuit-level energy and area measurements that are usually outside the boundary of
+GPU-software evaluations.
 
 **Hot Chips — the shipping industrial part.** The industry-disclosure venue: 38 talks, ASIC (19)
 / SoC (14) / CPU (9) / GPU (8), workloads dominated by LLM-inference (22) and LLM-training (15).
@@ -140,13 +140,13 @@ collectives, ultra-low-latency Ethernet switches for AI fabrics, and cloud secur
 Strong photonic/optical-I/O (4) and chiplet (4) presence — the scale-up interconnect story told
 from the product side.
 
-**SC — the whole machine, and reproducibility as a first-class object.** Supercomputing: GPU
+**SC — complete supercomputer workloads and reproduction studies.** Supercomputing: GPU
 dominates (173) with big AMD (MI250X, Frontier) and Aurora/Exascale presence, and it is the one
 venue where AI does *not* monopolize — HPC (59) and scientific simulation sit alongside
 LLM-training (37) and GNN (29). Two things make SC unique. First, **exascale AI-for-science**:
 **sc-2025-016** (ORBIT-2 exascale vision foundation models for climate on 65,536 GPUs),
 linear-attention exascale foundation models, N-body/plasma/quantum-chemistry at scale. Second,
-and unlike every other venue, a massive **reproducibility / artifact-evaluation apparatus** —
+and the corpus contains a large **reproducibility / artifact-evaluation stream** —
 reproducibility (25) and artifact-evaluation (19) are the *top two technique categories*, with a
 whole class of "Reproducibility Report for SC25 Paper …" meta-papers (**sc-2025-050**,
 **sc-2025-069**–**073**). SC also owns real non-NVIDIA-silicon evaluation the others lack:
@@ -175,7 +175,8 @@ Themes recurring **across** venues, with the venues that carry them, the shared 
 representative ids.
 
 ### T1 — LLM attention & KV-cache acceleration
-*All ten venues.* The single most universal theme. Shared mechanism: **restructure attention and
+*Records from all ten venues contain related work.* This is the broadest recurring theme in the
+sample. Shared mechanism: **restructure attention and
 the KV-cache to fit the target datapath.** Unify KV layouts and generate kernels (**mlsys-2025-000**
 FlashInfer); split prefill/decode and schedule them (**mlsys-2025-018**, ISCA phase-disaggregation,
 **sc-2025-018** gLLM global-balanced pipeline with token throttling); compress/quantize KV in
@@ -188,7 +189,8 @@ writes the kernel; ISCA/MICRO/DAC build the accelerator; Hot Chips ships it; SC 
 bottleneck (attention + KV) is identical.
 
 ### T2 — Quantization & low-precision
-*All ten venues.* Everyone drives precision down; the **co-design partner differs by layer.** MLSys
+*Records from all ten venues contain low-precision work; the co-design partner differs by layer.*
+MLSys
 co-designs precision with the *Tensor-Core datapath* (**mlsys-2025-003** W4A8KV4, **mlsys-2025-021**
 INT3 MoE). Architecture venues build *custom low-bit datapaths*: **isca-2025-079** (LUT Tensor
 Core), **hpca-2025-003** (VQ-LLM), MICRO outlier-aware MX block-floating-point for 4-bit inference
@@ -228,7 +230,8 @@ silicon photonics for AI clusters, photonic interposers/chiplets, monolithic opt
 (**isscc-2025-192**) — the *physical* AI-fabric layer the systems venues only consume.
 
 ### T5 — Sparsity & MoE
-*All ten venues.* Shared mechanism: **make irregular sparsity hardware-legible** — decompose to
+*Records from all ten venues contain related sparsity or routing work.* Shared mechanism: **make
+irregular sparsity hardware-legible** — decompose to
 N:M, prune columns/tokens, or exploit output/temporal redundancy. MLSys: **mlsys-2025-022** (TASD
 unstructured→N:M), **mlsys-2025-014** (RISC-V N:M ISA). Architecture venues build sparse
 accelerators with adaptive on-chip memory (MICRO reconfigurable sparse accelerator; ISCA SpMM cache
@@ -240,7 +243,7 @@ MoE recurs everywhere (**asplos-2025-105/133**, MICRO Mono3D-for-MoE, MLSys COME
 inference, DAC MoE).
 
 ### T6 — Compilation, programming models & accelerator/chip generation
-*All ten venues.* Shared mechanism: **raise the abstraction so one description targets many
+*Related records appear in all ten venues.* Shared mechanism: **raise the abstraction so one description targets many
 datapaths.** MLSys: programmable attention (**mlsys-2025-015** FlexAttention), tile-centric comm.
 Architecture venues generate the *hardware itself*: **hpca-2025-002** (LEGO spatial-accelerator RTL),
 **isca-2025-003** (RSN circuit-switched streaming ISA), **micro-2025-087** (RISC-V subset-processor
@@ -254,8 +257,8 @@ compilation for dynamic tensor workloads, Fortran GPU-offload modernization, map
 distributed Fourier ops.
 
 ### T7 — Security, side-channels & reliability
-*ISCA, MICRO, HPCA, ASPLOS, DAC, ISSCC, VLSID, Hot Chips (essentially absent from MLSys).* A
-defining architecture/systems/circuits theme with no real MLSys presence. Sub-streams: **RowHammer**
+*ISCA, MICRO, HPCA, ASPLOS, DAC, ISSCC, VLSID, and Hot Chips; sparse in the sampled MLSys records.*
+The theme connects architecture, systems, and circuit work. Sub-streams: **RowHammer**
 (**micro-2025-025** ρHammer, **asplos-2025-113** MOAT, **asplos-2025-027** hypervisor escape, on-DRAM
 mitigations at HPCA); **microarchitectural side channels** (**asplos-2025-124** SMaCk,
 **asplos-2025-134** SEV-SNP, secure BTB at MICRO); **confidential computing** (CXL-memory encryption
@@ -313,24 +316,24 @@ five-venue convergence. **Neuromorphic/SNN and approximate computing** are a VLS
 
 ## 4. What differs by venue
 
-**What ISCA / MICRO / HPCA / DAC / ISSCC / VLSID do that MLSys never touches:**
-- **Real, and now *measured*, silicon.** ASIC is #1 at ISCA (49), HPCA (48), DAC (171), ISSCC
+**What appears more often in ISCA / MICRO / HPCA / DAC / ISSCC / VLSID than in this MLSys sample:**
+- **Fabricated and measured silicon.** ASIC is #1 at ISCA (49), HPCA (48), DAC (171), ISSCC
   (236). ISSCC/VLSID go further than any research venue: papers are *fabricated, measured* chips
   with mW, GS/s, phase-noise, and mJ/frame numbers. MLSys has one ASIC result.
 - **The memory subsystem as a first-class object** — cache-replacement policy (**micro-2025-054**),
   coherence, DRAM microarchitecture, NDP/PIM (T3), prefetching. No MLSys analogue.
-- **On-chip interconnect and coherence** (**hpca-2025-001**, ISCA NoC) — MLSys uses NVLink, never
-  designs a network.
+- **On-chip interconnect and coherence** (**hpca-2025-001**, ISCA NoC) — MLSys records in this
+  sample generally use existing links rather than designing them.
 - **Hardware security and reliability** (T7), including **physical/side-channel attacks measured on
-  real chips** (ISSCC laser-probing detection, VLSID PUF/CAN) — MLSys is silent.
+  chips** (ISSCC laser-probing detection, VLSID PUF/CAN) — these are sparse in the MLSys sample.
 - **Cryptographic and quantum acceleration** (T8) — no MLSys presence.
 - **Microarchitecture reverse-engineering** (**micro-2025-043** Ampere SM) — architecture-only genre.
 - **EDA / design automation (DAC, with VLSID/Hot Chips satellites)** — placement, routing, timing,
   IR-drop, RTL simulation, logic synthesis, verification, AI-for-EDA, and end-to-end open-source
   chip generation (**hotchips-2025-028** Basilisk). MLSys does no chip-design tooling.
-- **The analog/RF/power/circuit world entirely** (ISSCC, VLSID) — ADCs, PLLs, mm-wave transceivers,
-  SerDes, GaN power ICs, energy harvesting. Adjacent to AI silicon (they build the I/O and power
-  delivery for AI chips) but a universe MLSys and the systems venues never enter.
+- **Analog/RF/power/circuit work** (ISSCC, VLSID) — ADCs, PLLs, mm-wave transceivers, SerDes,
+  GaN power ICs, and energy harvesting. This work is adjacent to AI silicon because it supplies
+  I/O and power delivery, but it usually lies outside the MLSys and systems-venue boundary.
 
 **What MLSys / ASPLOS / SC do that the silicon and circuit venues barely touch:**
 - **Large-scale distributed *training* systems** — RLHF reallocation (**mlsys-2025-030**),
@@ -345,17 +348,18 @@ five-venue convergence. **Neuromorphic/SNN and approximate computing** are a VLS
   PagedAttention+FlashAttention at batch > 4). This "does it survive a real stack" critique is
   MLSys-native; HPCA's analogue is statistical-methodology correctness (**hpca-2025**).
 
-**What SC does that *no other venue* does:**
+**What is especially visible in SC in this corpus:**
 - **Reproducibility and artifact evaluation as first-class research output** — reproducibility (25)
   and artifact-evaluation (19) are SC's top two technique categories, plus a whole genre of
   "Reproducibility Report for SC25 Paper …" meta-papers (**sc-2025-050**, **sc-2025-069**–**073**).
-  No other venue publishes reproduction studies at all.
+- The presence of reproduction studies is unusually strong in this corpus; absence from another
+  sampled venue should not be read as proof that the venue publishes none.
 - **AI *for* science at exascale** — climate/weather foundation models (**sc-2025-016**), plasma/
   N-body/quantum-chemistry, scientific data streaming and compression at supercomputer scale.
-- **Honest non-NVIDIA-silicon evaluation** — Cerebras wafer-scale (**sc-2025-430**), superconducting
+- **Non-NVIDIA-silicon evaluation** — Cerebras wafer-scale (**sc-2025-430**), superconducting
   full-system modeling (**sc-2025-257**), RISC-V-for-HPC viability (**sc-2025-024**), AMD-GPU exascale
-  porting (**sc-2025-225**), RoCE-vs-InfiniBand (**sc-2025-058**). SC is the one venue that routinely
-  benchmarks on parts other than an NVIDIA GPU.
+  porting (**sc-2025-225**), RoCE-vs-InfiniBand (**sc-2025-058**). These records make SC a strong
+  source for comparisons involving parts other than an NVIDIA GPU.
 
 **What Hot Chips does that the peer-reviewed venues do not:**
 - **Disclose shipping industrial products** — datacenter GPUs, NPUs, CPUs, SmartNICs/IPUs, optical
@@ -363,30 +367,30 @@ five-venue convergence. **Neuromorphic/SNN and approximate computing** are a VLS
   The **optical/photonic AI-fabric** story (co-packaged silicon photonics, photonic interposers,
   monolithic optical-I/O SoCs) is proportionally strongest here.
 
-**The through-line:** MLSys optimizes software above fixed NVIDIA silicon; ISCA/MICRO/HPCA build and
-secure the silicon below; DAC builds the tools that produce it; **ISSCC/VLSID measure the circuits
-those tools tape out**; **Hot Chips ships the product**; **SC runs the whole machine and audits
-whether the result reproduces.** The same LLM/attention/quantization/sparsity problems appear at
-every layer — each venue attacks them with the degrees of freedom available at its layer.
+**The through-line:** the venues expose different layers of one chain. MLSys commonly optimizes
+software above existing accelerators; ISCA/MICRO/HPCA study architecture and memory; DAC studies
+design tools; **ISSCC/VLSID measure selected circuits**; **Hot Chips presents products**; and **SC
+studies complete machines and reproduction.** Related attention, quantization, sparsity, and
+communication questions recur, but each venue can change only the parts within its scope.
 
 ---
 
 ## 5. Cross-cutting observations
 
-**The co-design reflex is universal.** Nearly every high-confidence paper fuses an algorithmic idea
+**Co-design recurs across the reviewed material.** Many high-confidence papers fuse an algorithmic idea
 into a datapath/schedule: quantization × Tensor-Core (**mlsys-2025-003**), LUT × bit-serial Tensor
 Core (**isca-2025-079**), heterogeneous fixed+float × outlier handling (**hotchips-2025-009**),
 sparsity × diffusion accelerator (**hpca-2025-035**, **dac-2025-072**), 3DGS × spatial-computing SoC
 (**isscc-2025-186**), sparse fine-tuning × wafer-scale engine (**sc-2025-430**). "Algorithm-hardware
 co-design" is the most common phrase in the corpus.
 
-**Recurring baselines and harnesses.** MLSys/serving work benchmarks against a near-standard harness:
+**Recurring baselines and harnesses.** Many MLSys/serving records use a familiar harness:
 **vLLM / SGLang / TensorRT-LLM on A100/H100 with FlashAttention-2**; quantization against
 GPTQ/MARLIN; training against Megatron-LM/DeepSpeed/FSDP. The architecture venues compare against
-their own prior accelerators *and* against **an A100/H100 GPU as the "to beat" reference** even for
-ASIC/FPGA work (**sc-2025-430** Cerebras vs A100; RSN-XNN vs A100/T4). The GPU is the field's
-universal yardstick across all ten venues — including at ISSCC/VLSID where a per-chip TOPS/W is then
-reported that the GPU-software venues never produce.
+their own prior accelerators and sometimes against **an A100/H100 GPU as a reference** even for
+ASIC/FPGA work (**sc-2025-430** Cerebras vs A100; RSN-XNN vs A100/T4). The GPU is therefore a
+common reference in this corpus, but a per-chip TOPS/W result at ISSCC or VLSID still has a
+different measurement boundary from a serving result in a GPU-software paper.
 
 **Consistent framings.** *Prefill vs decode as opposite regimes* recurs from MLSys serving into ISCA
 phase-disaggregation and SC pipeline balancing. *Hide a slow tier behind a fast one* generalizes from
@@ -435,7 +439,7 @@ so. Per-venue:
 
 | Venue     | Analyzed | high | med | low | Notes |
 |-----------|---------:|-----:|----:|----:|-------|
-| MLSys     | 61  | 61 | 0 |   0 | Fully full-text; the reliable anchor. |
+| MLSys     | 61  | 61 | 0 |   0 | Fully full-text; the deepest source base in this set. |
 | ISCA      | 112 | 17 | 0 |  95 | Mostly abstract-only. |
 | MICRO     | 47  | 20 | 0 |  27 | 76 title-only excluded (IEEE withholds abstracts). Most under-sampled of the original six. |
 | HPCA      | 119 |  8 | 0 | 111 | Almost entirely abstract-only. |
@@ -449,11 +453,11 @@ so. Per-venue:
 **What this means, stated plainly:**
 - **Only MLSys is fully full-text.** Its 9-theme taxonomy is high-confidence.
 - **Abstract-only (`low`) analyses are shallower.** For ISCA/HPCA/ASPLOS/DAC the *distributions*
-  (hardware targets, workloads, technique categories) are trustworthy in aggregate, but any individual
+  (hardware targets, workloads, technique categories) are useful for orientation in aggregate, but any individual
   `low` paper's mechanism/metrics are read from an abstract. High-confidence ids were preferred for
   every grounded claim above.
 - **ISSCC and VLSID are metrics-rich but full-text-poor.** ISSCC abstracts *do* carry hard numbers
-  (mW, GS/s, mJ/frame, TOPS/W) that make the circuit character reliable, but with only 3/258 full-text
+  (mW, GS/s, mJ/frame, TOPS/W) that establish what the records report, but with only 3/258 full-text
   the mechanism details are abstract-level. VLSID is small (97) and 4/97 full-text.
 - **Hot Chips is not peer-reviewed research.** Its 38 records summarize *disclosed products*; treat
   them as evidence of what industry shipped/announced, not as method papers. The optical-I/O, NPU, and
